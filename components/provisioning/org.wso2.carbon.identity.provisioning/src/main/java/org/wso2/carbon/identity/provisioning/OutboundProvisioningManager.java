@@ -890,6 +890,7 @@ public class OutboundProvisioningManager {
                The roles have "Internal/" prefix compared to the groups. */
             List<String> roleGroupListOfUser = new ArrayList<>();
             List<String> groupListOfUser = getUserGroups(userName, tenantDomain);
+            // Only fetch directly assigned roles to the user.
             List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
             roleGroupListOfUser.addAll(roleListOfUser);
             roleGroupListOfUser.addAll(groupListOfUser);
