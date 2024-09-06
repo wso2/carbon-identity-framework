@@ -89,8 +89,8 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
 
     @Test
     public void testGeneratePassword() throws Exception {
-        String randomPassword = provisioningHandler.generatePassword();
+        char[] randomPassword = provisioningHandler.generatePassword();
         assertNotNull(randomPassword);
-        assertEquals(randomPassword.length(), 12);
+        assertEquals(randomPassword.length, 12);
     }
 }

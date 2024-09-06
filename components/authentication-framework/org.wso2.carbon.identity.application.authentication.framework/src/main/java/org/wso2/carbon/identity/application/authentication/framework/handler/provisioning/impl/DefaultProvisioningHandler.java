@@ -116,6 +116,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
+        char[] password = new char[0];
 
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -232,9 +233,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     }
                 }
             } else {
-                String password = generatePassword();
-                String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
-                if (StringUtils.isNotEmpty(passwordFromUser)) {
+                password = generatePassword();
+                char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
+                        ? userClaims.get(FrameworkConstants.PASSWORD).toCharArray() : null;
+                if (passwordFromUser != null && passwordFromUser.length > 0) {
                     password = passwordFromUser;
                 }
 
@@ -257,7 +259,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
                         setJitProvisionedSource(tenantDomain, idp, userClaims);
                     }
-                    userStoreManager.addUser(username, password, null, userClaims, null);
+                    userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
                 } catch (UserStoreException e) {
                     // Add user operation will fail if a user operation workflow is already defined for the same user.
                     if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
@@ -357,6 +359,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
+            Arrays.fill(password, '\0');
             IdentityUtil.threadLocalProperties.get().remove(FrameworkConstants.JIT_PROVISIONING_FLOW);
         }
     }
@@ -535,9 +538,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     /**
      * Generates (random) password for user to be provisioned
      *
-     * @return
+     * @return array of characters of the password created.
      */
-    protected String generatePassword() {
+    protected char[] generatePassword() {
 
         // Pick from some letters that won't be easily mistaken for each other.
         // So, for example, omit o O and 0, 1 l and L.
@@ -556,11 +559,15 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         for (int i = 0; i < passwordLength - mandatoryCharactersCount; i++) {
             pw.append(characters.charAt(secureRandom.nextInt(characters.length())));
         }
-        pw.append(digits.charAt(secureRandom.nextInt(digits.length())));
-        pw.append(lowercaseLetters.charAt(secureRandom.nextInt(lowercaseLetters.length())));
-        pw.append(uppercaseLetters.charAt(secureRandom.nextInt(uppercaseLetters.length())));
-        pw.append(specialCharacters.charAt(secureRandom.nextInt(specialCharacters.length())));
-        return pw.toString();
+        pw.insert(secureRandom.nextInt(pw.length()), digits.charAt(secureRandom.nextInt(digits.length())));
+        pw.insert(secureRandom.nextInt(pw.length()), lowercaseLetters.charAt(secureRandom.nextInt(
+                lowercaseLetters.length())));
+        pw.insert(secureRandom.nextInt(pw.length()), uppercaseLetters.charAt(secureRandom.nextInt(
+                uppercaseLetters.length())));
+        pw.insert(secureRandom.nextInt(pw.length()), specialCharacters.charAt(secureRandom.nextInt(
+                specialCharacters.length())));
+
+        return pw.toString().toCharArray();
     }
 
     /**
