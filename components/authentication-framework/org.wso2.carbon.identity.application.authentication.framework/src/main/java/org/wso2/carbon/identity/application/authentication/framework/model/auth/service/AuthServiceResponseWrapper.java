@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -64,6 +64,20 @@ public class AuthServiceResponseWrapper extends CommonAuthResponseWrapper {
 
         Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(getRedirectURL());
         return Boolean.parseBoolean(queryParams.get(AuthServiceConstants.AUTH_FAILURE_PARAM));
+    }
+
+    /**
+     * Check if the response is a password expired error response.
+     * This is determined by checking the existence and the value of the
+     * query param {@link AuthServiceConstants#PASSWORD_EXPIRED_PARAM}.
+     *
+     * @return true if the response is a password expired error response.
+     * @throws AuthServiceException
+     */
+    public boolean isPasswordExpiredResponse() throws AuthServiceException {
+
+        Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(getRedirectURL());
+        return Boolean.parseBoolean(queryParams.get(AuthServiceConstants.PASSWORD_EXPIRED_PARAM));
     }
 
     /**
