@@ -22,8 +22,10 @@
 <suite name="identity-mgt-endpoint-test-suite">
     <test name="identity-mgt-endpoint-test-all">
         <classes>
-            <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtilTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.BrandingPreferenceRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.CommonDataRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtilTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtilTest"/>
         </classes>
     </test>
 </suite>
