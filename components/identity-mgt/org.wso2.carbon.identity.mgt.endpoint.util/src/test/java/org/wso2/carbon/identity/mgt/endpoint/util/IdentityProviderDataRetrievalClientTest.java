@@ -18,18 +18,50 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
+import org.apache.http.client.methods.HttpGet;
+import org.locationtech.jts.util.Assert;
 import org.mockito.MockedStatic;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.IdentityProviderDataRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.IdentityProviderDataRetrievalClientException;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.IOException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBaseTest {
 
+    private static final String idpName = "enterpriseIDP";
+
     private final IdentityProviderDataRetrievalClient identityProviderDataRetrievalClient =
             new IdentityProviderDataRetrievalClient();
+
+    @BeforeTest
+    public void setMockData() {
+
+        setMockJsonResponse("{\n" +
+                "    \"totalResults\": 1,\n" +
+                "    \"startIndex\": 1,\n" +
+                "    \"identityProviders\": [\n" +
+                "        {\n" +
+                "            \"image\": \"assets/images/logos/enterprise.svg\",\n" +
+                "            \"isEnabled\": true,\n" +
+                "            \"name\": \"" + idpName + "\",\n" +
+                "            \"description\": \"Authenticate users with Enterprise OIDC connections.\",\n" +
+                "            \"self\": \"\",\n" +
+                "            \"id\": \"390a19c4-f602-4c9c-bcbc-4ce74fb58df7\"\n" +
+                "        }\n" +
+                "    ],\n" +
+                "    \"count\": 1,\n" +
+                "    \"links\": []\n" +
+                "}");
+    }
 
     @Test
     public void testGetIdPImage() throws IdentityProviderDataRetrievalClientException {
@@ -39,7 +71,23 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
             httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
-            identityProviderDataRetrievalClient.getIdPImage(SUPER_TENANT_DOMAIN, "");
+            String imageKey = identityProviderDataRetrievalClient.getIdPImage(SUPER_TENANT_DOMAIN, idpName);
+            Assert.equals("assets/images/logos/enterprise.svg", imageKey);
+        }
+    }
+
+    @Test
+    public void testGetFederatedIdpConfigs() throws IdentityProviderDataRetrievalClientException, IOException {
+
+        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(IdentityManagementServiceUtil.class);
+             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
+            identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
+                    .thenReturn(identityManagementServiceUtil);
+            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
+            when(httpClient.execute(any(HttpGet.class))).thenReturn(httpResponse);
+
+            identityProviderDataRetrievalClient.getFederatedIdpConfigs(SUPER_TENANT_DOMAIN, "idp-code", idpName,
+                    Stream.of("key").collect(Collectors.toList()));
         }
     }
 }

@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.locationtech.jts.util.Assert;
 import org.mockito.MockedStatic;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.ConfiguredAuthenticatorsRetrievalClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ValidationConfigurationRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ValidationConfigurationRetrievalClientException;
 import org.wso2.carbon.utils.HTTPClientUtils;
@@ -32,6 +35,99 @@ public class ValidationConfigurationRetrievalClientTest extends RetrievalClientB
     private final ValidationConfigurationRetrievalClient validationConfigurationRetrievalClient =
             new ValidationConfigurationRetrievalClient();
 
+    @BeforeTest
+    public void setupData() {
+
+        setMockJsonResponse("[\n" +
+                "    {\n" +
+                "        \"field\": \"password\",\n" +
+                "        \"rules\": [\n" +
+                "            {\n" +
+                "                \"validator\": \"LengthValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"8\",\n" +
+                "                        \"key\": \"min.length\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"validator\": \"LengthValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"30\",\n" +
+                "                        \"key\": \"max.length\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"validator\": \"NumeralValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"1\",\n" +
+                "                        \"key\": \"min.length\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"validator\": \"UpperCaseValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"1\",\n" +
+                "                        \"key\": \"min.length\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"validator\": \"LowerCaseValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"1\",\n" +
+                "                        \"key\": \"min.length\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"validator\": \"SpecialCharacterValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"1\",\n" +
+                "                        \"key\": \"min.length\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            }\n" +
+                "        ]\n" +
+                "    },\n" +
+                "    {\n" +
+                "        \"field\": \"username\",\n" +
+                "        \"rules\": [\n" +
+                "            {\n" +
+                "                \"validator\": \"LengthValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"5\",\n" +
+                "                        \"key\": \"min.length\"\n" +
+                "                    },\n" +
+                "                    {\n" +
+                "                        \"value\": \"30\",\n" +
+                "                        \"key\": \"max.length\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"validator\": \"AlphanumericValidator\",\n" +
+                "                \"properties\": [\n" +
+                "                    {\n" +
+                "                        \"value\": \"true\",\n" +
+                "                        \"key\": \"enable.validator\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            }\n" +
+                "        ]\n" +
+                "    }\n" +
+                "]");
+    }
+
     @Test
     public void testGetConfigurations() throws ValidationConfigurationRetrievalClientException {
 
@@ -40,7 +136,10 @@ public class ValidationConfigurationRetrievalClientTest extends RetrievalClientB
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
             httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
-            validationConfigurationRetrievalClient.getConfigurations(SUPER_TENANT_DOMAIN);
+            JSONArray jsonArray = validationConfigurationRetrievalClient.getConfigurations(SUPER_TENANT_DOMAIN);
+            JSONObject jsonObject = (JSONObject) jsonArray.get(0);
+            jsonArray = (JSONArray) jsonObject.get("rules");
+            Assert.equals("LengthValidator", ((JSONObject) jsonArray.get(0)).get("validator").toString());
         }
     }
 }

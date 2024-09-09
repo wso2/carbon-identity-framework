@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
 import org.mockito.MockedStatic;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.CommonDataRetrievalClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ConfiguredAuthenticatorsRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ConfiguredAuthenticatorsRetrievalClientException;
 import org.wso2.carbon.utils.HTTPClientUtils;
@@ -31,6 +31,12 @@ public class ConfiguredAuthenticatorsRetrievalClientTest extends RetrievalClient
 
     private final ConfiguredAuthenticatorsRetrievalClient configuredAuthenticatorsRetrievalClient =
             new ConfiguredAuthenticatorsRetrievalClient();
+
+    @BeforeTest
+    public void setupData() {
+
+        setMockJsonResponse("[{}]");
+    }
 
     @Test
     public void testGetConfiguredAuthenticators() throws ConfiguredAuthenticatorsRetrievalClientException {

@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
+import org.json.JSONObject;
+import org.locationtech.jts.util.Assert;
 import org.mockito.MockedStatic;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.BrandingPreferenceRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.BrandingPreferenceRetrievalClientException;
@@ -31,6 +34,21 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
     private final BrandingPreferenceRetrievalClient preferenceRetrievalClient =
             new BrandingPreferenceRetrievalClient();
 
+    @BeforeTest
+    public void setMockData() {
+
+        setMockJsonResponse("{\n" +
+                "    \"preference\": {\n" +
+                "        \"layout\": {\n" +
+                "            \"activeLayout\": \"centered\"\n" +
+                "        }\n" +
+                "    },\n" +
+                "    \"name\": \"carbon.super\",\n" +
+                "    \"type\": \"ORG\",\n" +
+                "    \"locale\": \"en-US\"\n" +
+                "}");
+    }
+
     @Test
     public void testGetPreference() throws BrandingPreferenceRetrievalClientException {
 
@@ -39,7 +57,8 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
             httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
-            preferenceRetrievalClient.getPreference(SUPER_TENANT_DOMAIN, "", "", "");
+            JSONObject jsonObject = preferenceRetrievalClient.getPreference(SUPER_TENANT_DOMAIN, "ORG", null, "en-US");
+            Assert.equals("centered", ((JSONObject)((JSONObject) jsonObject.get("preference")).get("layout")).get("activeLayout").toString());
         }
     }
 
