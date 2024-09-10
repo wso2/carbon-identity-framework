@@ -33,12 +33,13 @@ public class CommonDataRetrievalClientTest extends RetrievalClientBaseTest {
     @Test
     public void techCheckBooleanProperty() throws CommonDataRetrievalClientException {
 
-        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(IdentityManagementServiceUtil.class);
+        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
+                IdentityManagementServiceUtil.class);
              MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
             httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
-            commonDataRetrievalClient.checkBooleanProperty("", SUPER_TENANT_DOMAIN, "" ,false, true);
+            commonDataRetrievalClient.checkBooleanProperty("", SUPER_TENANT_DOMAIN, "", false, true);
         }
     }
 }

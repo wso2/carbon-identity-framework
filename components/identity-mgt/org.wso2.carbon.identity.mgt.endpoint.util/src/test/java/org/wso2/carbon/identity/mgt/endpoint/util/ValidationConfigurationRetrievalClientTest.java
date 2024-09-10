@@ -131,7 +131,8 @@ public class ValidationConfigurationRetrievalClientTest extends RetrievalClientB
     @Test
     public void testGetConfigurations() throws ValidationConfigurationRetrievalClientException {
 
-        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(IdentityManagementServiceUtil.class);
+        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
+                IdentityManagementServiceUtil.class);
              MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);

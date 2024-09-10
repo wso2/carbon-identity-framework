@@ -66,7 +66,8 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
     @Test
     public void testGetIdPImage() throws IdentityProviderDataRetrievalClientException {
 
-        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(IdentityManagementServiceUtil.class);
+        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
+                IdentityManagementServiceUtil.class);
              MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
@@ -79,7 +80,8 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
     @Test
     public void testGetFederatedIdpConfigs() throws IdentityProviderDataRetrievalClientException, IOException {
 
-        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(IdentityManagementServiceUtil.class);
+        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
+                IdentityManagementServiceUtil.class);
              MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);

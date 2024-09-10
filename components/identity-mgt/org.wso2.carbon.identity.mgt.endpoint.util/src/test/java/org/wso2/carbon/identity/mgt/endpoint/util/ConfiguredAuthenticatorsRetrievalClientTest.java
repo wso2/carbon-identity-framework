@@ -41,7 +41,8 @@ public class ConfiguredAuthenticatorsRetrievalClientTest extends RetrievalClient
     @Test
     public void testGetConfiguredAuthenticators() throws ConfiguredAuthenticatorsRetrievalClientException {
 
-        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(IdentityManagementServiceUtil.class);
+        try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
+                IdentityManagementServiceUtil.class);
              MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
