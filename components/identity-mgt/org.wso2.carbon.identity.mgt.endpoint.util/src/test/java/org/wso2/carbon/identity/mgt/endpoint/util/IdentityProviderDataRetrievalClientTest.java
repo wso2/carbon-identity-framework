@@ -43,24 +43,9 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
             new IdentityProviderDataRetrievalClient();
 
     @BeforeTest
-    public void setMockData() {
+    public void setMockData() throws IOException {
 
-        setMockJsonResponse("{\n" +
-                "    \"totalResults\": 1,\n" +
-                "    \"startIndex\": 1,\n" +
-                "    \"identityProviders\": [\n" +
-                "        {\n" +
-                "            \"image\": \"assets/images/logos/enterprise.svg\",\n" +
-                "            \"isEnabled\": true,\n" +
-                "            \"name\": \"" + idpName + "\",\n" +
-                "            \"description\": \"Authenticate users with Enterprise OIDC connections.\",\n" +
-                "            \"self\": \"\",\n" +
-                "            \"id\": \"390a19c4-f602-4c9c-bcbc-4ce74fb58df7\"\n" +
-                "        }\n" +
-                "    ],\n" +
-                "    \"count\": 1,\n" +
-                "    \"links\": []\n" +
-                "}");
+        setMockJsonResponse(readResource("IdpListResponse.json"));
     }
 
     @Test

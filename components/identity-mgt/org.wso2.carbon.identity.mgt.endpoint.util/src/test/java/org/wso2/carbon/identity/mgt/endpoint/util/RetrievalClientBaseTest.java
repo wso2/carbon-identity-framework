@@ -23,7 +23,6 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeMethod;
@@ -31,6 +30,7 @@ import org.testng.annotations.Listeners;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,5 +101,28 @@ public class RetrievalClientBaseTest {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(SUPER_TENANT_ID);
         PrivilegedCarbonContext.getThreadLocalCarbonContext();
+    }
+
+    /**
+     * Read a resource in the responses directory.
+     *
+     * @param path File path to be read.
+     * @return Content of the file as a String.
+     * @throws IOException Exception when file reading fails.
+     */
+    public String readResource(String path) throws IOException {
+
+        path = "responses/" + path;
+        try (InputStream resourceAsStream = RetrievalClientBaseTest.class.getClassLoader().getResourceAsStream(path);
+             BufferedInputStream bufferedInputStream = new BufferedInputStream(resourceAsStream)) {
+            StringBuilder resourceFile = new StringBuilder();
+
+            int character;
+            while ((character = bufferedInputStream.read()) != -1) {
+                char value = (char) character;
+                resourceFile.append(value);
+            }
+            return resourceFile.toString();
+        }
     }
 }

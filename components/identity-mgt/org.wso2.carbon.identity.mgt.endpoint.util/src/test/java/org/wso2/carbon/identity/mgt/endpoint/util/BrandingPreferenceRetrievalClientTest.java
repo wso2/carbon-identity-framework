@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.BrandingPreferenceRetri
 import org.wso2.carbon.identity.mgt.endpoint.util.client.BrandingPreferenceRetrievalClientException;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.IOException;
+
 import static org.mockito.Mockito.mockStatic;
 
 public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTest {
@@ -35,18 +37,9 @@ public class BrandingPreferenceRetrievalClientTest extends RetrievalClientBaseTe
             new BrandingPreferenceRetrievalClient();
 
     @BeforeTest
-    public void setMockData() {
+    public void setMockData() throws IOException {
 
-        setMockJsonResponse("{\n" +
-                "    \"preference\": {\n" +
-                "        \"layout\": {\n" +
-                "            \"activeLayout\": \"centered\"\n" +
-                "        }\n" +
-                "    },\n" +
-                "    \"name\": \"carbon.super\",\n" +
-                "    \"type\": \"ORG\",\n" +
-                "    \"locale\": \"en-US\"\n" +
-                "}");
+        setMockJsonResponse(readResource("BrandingPreferenceResponse.json"));
     }
 
     @Test

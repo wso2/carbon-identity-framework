@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.ValidationConfiguration
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ValidationConfigurationRetrievalClientException;
 import org.wso2.carbon.utils.HTTPClientUtils;
 
+import java.io.IOException;
+
 import static org.mockito.Mockito.mockStatic;
 
 public class ValidationConfigurationRetrievalClientTest extends RetrievalClientBaseTest {
@@ -36,96 +38,9 @@ public class ValidationConfigurationRetrievalClientTest extends RetrievalClientB
             new ValidationConfigurationRetrievalClient();
 
     @BeforeTest
-    public void setupData() {
+    public void setupData() throws IOException {
 
-        setMockJsonResponse("[\n" +
-                "    {\n" +
-                "        \"field\": \"password\",\n" +
-                "        \"rules\": [\n" +
-                "            {\n" +
-                "                \"validator\": \"LengthValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"8\",\n" +
-                "                        \"key\": \"min.length\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"validator\": \"LengthValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"30\",\n" +
-                "                        \"key\": \"max.length\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"validator\": \"NumeralValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"1\",\n" +
-                "                        \"key\": \"min.length\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"validator\": \"UpperCaseValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"1\",\n" +
-                "                        \"key\": \"min.length\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"validator\": \"LowerCaseValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"1\",\n" +
-                "                        \"key\": \"min.length\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"validator\": \"SpecialCharacterValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"1\",\n" +
-                "                        \"key\": \"min.length\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            }\n" +
-                "        ]\n" +
-                "    },\n" +
-                "    {\n" +
-                "        \"field\": \"username\",\n" +
-                "        \"rules\": [\n" +
-                "            {\n" +
-                "                \"validator\": \"LengthValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"5\",\n" +
-                "                        \"key\": \"min.length\"\n" +
-                "                    },\n" +
-                "                    {\n" +
-                "                        \"value\": \"30\",\n" +
-                "                        \"key\": \"max.length\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            },\n" +
-                "            {\n" +
-                "                \"validator\": \"AlphanumericValidator\",\n" +
-                "                \"properties\": [\n" +
-                "                    {\n" +
-                "                        \"value\": \"true\",\n" +
-                "                        \"key\": \"enable.validator\"\n" +
-                "                    }\n" +
-                "                ]\n" +
-                "            }\n" +
-                "        ]\n" +
-                "    }\n" +
-                "]");
+        setMockJsonResponse(readResource("ValidationConfigurationResponse.json"));
     }
 
     @Test
