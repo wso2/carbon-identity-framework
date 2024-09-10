@@ -1154,8 +1154,7 @@
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
     "applications.loginFlow.ai",
-    "applications.loginFlow.legacyEditor",
-    "applications.myaccount.saasMyaccountSettings"
+    "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
