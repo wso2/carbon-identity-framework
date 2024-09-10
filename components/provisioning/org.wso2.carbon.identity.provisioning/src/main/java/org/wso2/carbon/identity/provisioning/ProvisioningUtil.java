@@ -561,10 +561,10 @@ public class ProvisioningUtil {
     public static boolean isOutboundProvisioningEnabled(String serviceProviderIdentifier,
                                                         String tenantDomainName) throws IdentityApplicationManagementException {
 
-        /* Outbound provisioning is enabled for organization by default. If application bound provisioning enabled,
+        /*
+            Outbound provisioning is enabled for organization by default. If application bound provisioning enabled,
             each application should configure outbound provisioning.
-         */
-
+        */
         if (!isApplicationBasedOutboundProvisioningEnabled()) {
             return true;
         }
