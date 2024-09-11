@@ -107,6 +107,27 @@
         <KeyStoresDir>{{key_mgt.keystore_dir}}</KeyStoresDir>
         <KeyManagerType>{{key_mgt.key_manager_type}}</KeyManagerType>
         <TrustManagerType>{{key_mgt.trust_manager_type}}</TrustManagerType>
+
+        <KeyStoreMapping>
+            {% if keystore.mapping.oauth is defined %}
+            <OAuth>
+                <KeyStoreName>{{keystore.mapping.oauth.keystore_file_name}}</KeyStoreName>
+                <UseInAllTenants>{{keystore.mapping.oauth.use_in_all_tenants}}</UseInAllTenants>
+            </OAuth>
+            {% endif %}
+            {% if keystore.mapping.ws_trust is defined %}
+            <WS-Trust>
+                <KeyStoreName>{{keystore.mapping.ws_trust.keystore_file_name}}</KeyStoreName>
+                <UseInAllTenants>{{keystore.mapping.ws_trust.use_in_all_tenants}}</UseInAllTenants>
+            </WS-Trust>
+            {% endif %}
+            {% if keystore.mapping.ws_federation is defined %}
+            <WS-Federation>
+                <KeyStoreName>{{keystore.mapping.ws_federation.keystore_file_name}}</KeyStoreName>
+                <UseInAllTenants>{{keystore.mapping.ws_federation.use_in_all_tenants}}</UseInAllTenants>
+            </WS-Federation>
+            {% endif %}
+        </KeyStoreMapping>
     </Security>
 
     <!-- This configuration is to resolve the internal service URL for internal API calls. -->
@@ -2028,6 +2049,21 @@
                     </ExcludedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
+            <Authentication>
+                <Enable>{{actions.authentication.enable}}</Enable>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.authentication.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.authentication.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                </ActionRequest>
+            </Authentication>
         </Types>
     </Actions>
 

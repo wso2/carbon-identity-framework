@@ -22,6 +22,9 @@
     <test name="org.wso2.carbon.identity.entitlement.tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactoryTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.JDBCConfigPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.RegistryConfigPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.HybridConfigPersistenceManagerTest"/>
         </classes>
     </test>
 </suite>

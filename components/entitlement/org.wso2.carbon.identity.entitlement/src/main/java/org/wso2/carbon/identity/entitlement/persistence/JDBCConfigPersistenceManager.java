@@ -65,7 +65,7 @@ public class JDBCConfigPersistenceManager implements ConfigPersistenceManager {
      * @throws EntitlementException throws if fails.
      */
     @Override
-    public boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
+    public void addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
@@ -79,10 +79,8 @@ public class JDBCConfigPersistenceManager implements ConfigPersistenceManager {
         }
         if (StringUtils.isBlank(algorithm)) {
             configDAO.insertPolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
-            return false;
         } else {
             configDAO.updatePolicyCombiningAlgorithm(policyCombiningAlgorithm, tenantId);
-            return true;
         }
     }
 }

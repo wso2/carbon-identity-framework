@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>trusted-app-mgt</artifactId>
-        <version>7.4.16-SNAPSHOT</version>
+        <version>7.5.13-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -100,7 +100,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
                     <argLine>
+                        ${argLine}
                         --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
                         --add-exports java.base/jdk.internal.loader=ALL-UNNAMED
                     </argLine>
@@ -151,7 +153,7 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.90</minimum>
+                                            <minimum>0.34</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

@@ -1154,8 +1154,7 @@
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
     "applications.loginFlow.ai",
-    "applications.loginFlow.legacyEditor",
-    "applications.myaccount.saasMyaccountSettings"
+    "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
@@ -1285,7 +1284,11 @@
   "console.insights.enabled": false,
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
-  "console.login_and_registration.scopes.read": ["internal_governance_view"],
+  "console.login_and_registration.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
+  ],
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
     "internal_validation_rule_mgt_update",
@@ -1606,7 +1609,7 @@
     "client_assertion_type",
     "client_assertion"
   ],
-
+  "actions.types.authentication.enable": true,
 
   "oauth.authorize_all_scopes": false
 }

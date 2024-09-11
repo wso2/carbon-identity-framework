@@ -1,0 +1,16 @@
+{
+  "totalResults": 1,
+  "startIndex": 1,
+  "count": 1,
+  "links": [],
+  "identityProviders": [
+    {
+      "id": "6b4cce67-6d33-4ae9-9edc-0471455a437d",
+      "name": "enterpriseIDP",
+      "description": "Login users with enterpriseIDP",
+      "isEnabled": true,
+      "image": "assets/images/logos/enterprise.svg",
+      "self": ""
+    }
+  ]
+}

@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.action.management.dao.impl.CacheBackedActionMgtD
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -140,22 +140,24 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     @Override
-    public Action getActionByActionId(String actionId, String tenantDomain) throws ActionMgtException {
+    public Action getActionByActionId(String actionType, String actionId, String tenantDomain)
+            throws ActionMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving Action of Action ID: %s", actionId));
         }
-        return CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
+        return CACHE_BACKED_DAO.getActionByActionId(getActionTypeFromPath(actionType), actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     @Override
-    public Action updateActionEndpointAuthentication(String actionType, String actionId, AuthType authentication,
+    public Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
                                                      String tenantDomain) throws ActionMgtException {
 
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         if (existingAction.getEndpoint().getAuthentication().getType().equals(authentication.getType())) {
-            // Only need to update the properties since the authType is same.
+            // Only need to update the properties since the authentication type is same.
             return updateEndpointAuthenticationProperties(resolvedActionType, actionId, authentication, tenantDomain);
         } else {
             // Need to update the authentication type and properties.
@@ -208,7 +210,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private Action checkIfActionExists(String actionType, String actionId, String tenantDomain)
             throws ActionMgtException {
 
-        Action action = CACHE_BACKED_DAO.getActionByActionId(actionId, IdentityTenantUtil.getTenantId(tenantDomain));
+        Action action = CACHE_BACKED_DAO.getActionByActionId(actionType, actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
         if (action == null || !actionType.equals(action.getType().name())) {
             throw ActionManagementUtil.handleClientException(
                     ActionMgtConstants.ErrorMessages.ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ACTION_TYPE_AND_ID);
@@ -228,12 +231,13 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @throws ActionMgtException If an error occurs while updating action endpoint authentication.
      */
     private Action updateEndpoint(String actionType, String actionId, Action existingAction,
-                                  AuthType authentication, String tenantDomain)
+                                  Authentication authentication, String tenantDomain)
             throws ActionMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating endpoint authentication of Action Type: %s " +
-                    "and Action ID: %s to AuthType: %s", actionType, actionId, authentication.getType().name()));
+                    "and Action ID: %s to Authentication Type: %s", actionType, actionId,
+                    authentication.getType().name()));
         }
         EndpointConfig endpoint = new EndpointConfig.EndpointConfigBuilder()
                 .uri(existingAction.getEndpoint().getUri())
@@ -252,14 +256,16 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @return Action response after update.
      * @throws ActionMgtException If an error occurs while updating action endpoint authentication properties.
      */
-    private Action updateEndpointAuthenticationProperties(String actionType, String actionId, AuthType authentication,
-                                                          String tenantDomain) throws ActionMgtException {
+    private Action updateEndpointAuthenticationProperties(String actionType, String actionId,
+                                                          Authentication authentication, String tenantDomain)
+            throws ActionMgtException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Updating endpoint authentication properties of Action Type: %s " +
-                    "Action ID: %s and AuthType: %s", actionType, actionId, authentication.getType().name()));
+                    "Action ID: %s and Authentication Type: %s", actionType, actionId,
+                    authentication.getType().name()));
         }
-        return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionId, authentication,
+        return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionType, actionId, authentication,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 }

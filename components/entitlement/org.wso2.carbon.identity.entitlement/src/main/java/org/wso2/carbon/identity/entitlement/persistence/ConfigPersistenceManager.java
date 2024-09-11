@@ -52,5 +52,5 @@ public interface ConfigPersistenceManager {
      * @return true if the policy combining algorithm is updated, false if the policy combining algorithm is added.
      * @throws EntitlementException If an error occurs.
      */
-    boolean addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
+    void addOrUpdateGlobalPolicyAlgorithm(String policyCombiningAlgorithm) throws EntitlementException;
 }

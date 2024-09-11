@@ -21,10 +21,12 @@ package org.wso2.carbon.identity.action.execution;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Event;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -45,4 +47,12 @@ public interface ActionExecutionResponseProcessor {
                                                Event actionEvent,
                                                ActionInvocationErrorResponse errorResponse) throws
             ActionExecutionResponseProcessorException;
+
+    default ActionExecutionStatus processFailureResponse(Map<String, Object> eventContext,
+                                               Event actionEvent,
+                                               ActionInvocationFailureResponse failureResponse) throws
+            ActionExecutionResponseProcessorException {
+
+        return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, new HashMap<>());
+    }
 }
