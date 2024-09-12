@@ -274,7 +274,7 @@ public interface ApplicationDAO {
     }
 
     /**
-     * Method that retrieves discoverable applications from root and sub org.
+     * Get discoverable applications from root and sub org.
      *
      * @throws IdentityApplicationManagementException Error when obtaining discoverable applications.
      */
