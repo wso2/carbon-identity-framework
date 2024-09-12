@@ -44,6 +44,13 @@ public class ActionExecutorConfig {
             "Actions.ActionRequest.ExcludedHeaders.Header";
     private static final String EXCLUDED_PARAMS_IN_ACTION_REQUEST_PROPERTY =
             "Actions.ActionRequest.ExcludedParameters.Parameter";
+    private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPConnections.HTTPConnectionTimeout";
+    private static final String HTTP_READ_TIMEOUT_PROPERTY = "Actions.HTTPConnections.HTTPReadTimeout";
+    private static final String HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY =
+            "Actions.HTTPConnections.HTTPConnectionRequestTimeout";
+    private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT = 5000;
+    private static final int DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT = 2000;
+    private static final int DEFAULT_HTTP_READ_TIMEOUT = 2000;
 
     private ActionExecutorConfig() {
 
@@ -71,6 +78,34 @@ public class ActionExecutorConfig {
             default:
                 return false;
         }
+    }
+
+    public int getHttpConnectionTimeout() {
+
+        return parseTimeoutConfig(HTTP_CONNECTION_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_TIMEOUT);
+    }
+
+    public int getHttpConnectionRequestTimeout() {
+
+        return parseTimeoutConfig(HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT);
+    }
+
+    public int getHttpReadTimeout() {
+
+        return parseTimeoutConfig(HTTP_READ_TIMEOUT_PROPERTY, DEFAULT_HTTP_READ_TIMEOUT);
+    }
+
+    private int parseTimeoutConfig(String timeoutTypeName, int defaultTimeout) {
+
+        String timeoutPropertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(timeoutTypeName);
+        if (StringUtils.isNotBlank(timeoutPropertyValue)) {
+            try {
+                return Integer.parseInt(timeoutPropertyValue);
+            } catch (Exception e) {
+                LOG.warn("Error occurred while parsing the '" + timeoutTypeName + "' property value in identity.xml.", e);
+            }
+        }
+        return defaultTimeout;
     }
 
     private boolean isActionTypeEnabled(String actionTypePropertyName) {

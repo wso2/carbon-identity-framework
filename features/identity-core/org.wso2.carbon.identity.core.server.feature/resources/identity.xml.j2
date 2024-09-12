@@ -2020,6 +2020,11 @@
     </OutboundProvisioning>
 
     <Actions>
+        <HTTPConnections>
+            <HTTPConnectionTimeout>{{actions.http_connections.connection_timeout}}</HTTPConnectionTimeout>
+            <HTTPReadTimeout>{{actions.http_connections.read_timeout}}</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>{{actions.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
+        </HTTPConnections>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
         <ActionRequest>
             <ExcludedHeaders>
