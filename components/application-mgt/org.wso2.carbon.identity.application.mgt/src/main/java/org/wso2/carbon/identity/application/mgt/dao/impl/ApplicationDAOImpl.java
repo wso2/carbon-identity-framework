@@ -6249,6 +6249,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
         basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
         basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
+        basicInfo.setUuid(appNameResultSet.getString(ApplicationTableColumns.UUID));
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
