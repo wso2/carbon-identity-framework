@@ -355,8 +355,8 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
     private String getPasswordExpiryUrl(String sessionDataKey, String errorMsg) {
 
-        return "/oauth2/authorize?sessionDataKey=" + sessionDataKey + "&passwordExpired=true&passwordExpiredMsg="
-                + errorMsg;
+        return "/oauth2/authorize?sessionDataKey=" + sessionDataKey + "&" + AuthServiceConstants.PASSWORD_EXPIRED_PARAM
+                + "=true&" + AuthServiceConstants.PASSWORD_EXPIRED_MSG_PARAM + "=" + errorMsg;
     }
 
     private List<AuthenticatorData> getMultiOpsAuthenticatorData(String authenticatorList) {
