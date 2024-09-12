@@ -1231,12 +1231,14 @@ public class ApplicationMgtUtil {
 
     /**
      * check the given tenant is a sub org
+     *
      * @param tenantDomain
      * @return true if the tenant is a sub org
      * @throws OrganizationManagementException
      */
     public static boolean isSubOrg(String tenantDomain)
             throws OrganizationManagementException {
+
         return OrganizationManagementUtil.isOrganization(tenantDomain);
     }
 
@@ -1249,6 +1251,7 @@ public class ApplicationMgtUtil {
      */
     public static String getParentOrgId(String tenantDomain)
             throws OrganizationManagementServerException {
+
         OrganizationManagerImpl organizationManager = new OrganizationManagerImpl();
         return organizationManager.getPrimaryOrganizationId(tenantDomain);
     }

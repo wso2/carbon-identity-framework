@@ -5970,7 +5970,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 statement.setInt(3, offset);
                 statement.setInt(4, limit);
 
-
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         applicationBasicInfoList.add(buildApplicationBasicInfo(resultSet));

@@ -214,7 +214,6 @@ public class ApplicationConstants {
         }
     }
 
-    //set SP_SHARED_APP column nAMES
     /**
      * Grouping of constants related to database SP_SHARED_APP table.
      */

@@ -507,6 +507,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                                                                                String sortOrder, String sortBy,
                                                                                String tenantDomain, String primaryOrgID)
             throws IdentityApplicationManagementException {
+
         return appDAO.getDiscoverableAppsInfoFromRootAndSubOrg(limit, offset, filter,
                 sortOrder, sortBy, tenantDomain, primaryOrgID);
     }

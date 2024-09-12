@@ -282,6 +282,7 @@ public interface ApplicationDAO {
                                                                                 String sortOrder, String sortBy, String
                                                                   tenantDomain, String primaryOrgID)
             throws IdentityApplicationManagementException {
+
         return null;
     }
 
@@ -329,10 +330,11 @@ public interface ApplicationDAO {
 
     /**
      * Returns the count of discoverable applications from root and sub org.
-     * @param filter Filter to search for applications (optional).
+     *
+     * @param filter       Filter to search for applications (optional).
      * @param tenantDomain Tenant domain
      * @param primaryOrgId Primary organization ID
-     * @return  Count of discoverable applications.
+     * @return Count of discoverable applications.
      * @throws IdentityApplicationManagementException
      */
     default int getCountOfDiscoverableAppsFromRootAndSubOrg(String filter, String tenantDomain, String primaryOrgId)
