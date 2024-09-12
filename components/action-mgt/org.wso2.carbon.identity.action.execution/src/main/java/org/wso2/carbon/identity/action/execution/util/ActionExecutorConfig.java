@@ -121,7 +121,7 @@ public class ActionExecutorConfig {
             try {
                 timeoutPropertyValue = Integer.parseInt(timeoutValue);
             } catch (NumberFormatException e) {
-                if(LOG.isDebugEnabled()){
+                if (LOG.isDebugEnabled()) {
                     LOG.debug(" " + timeoutTypeName + " property value must be an integer in identity.xml. " +
                             "Default property value is parsed ", e);
                 }

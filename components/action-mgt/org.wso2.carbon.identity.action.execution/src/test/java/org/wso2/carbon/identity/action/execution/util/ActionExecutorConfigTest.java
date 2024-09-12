@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution.util;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -39,7 +40,6 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-import org.testng.Assert;
 
 public class ActionExecutorConfigTest {
 
@@ -305,7 +305,7 @@ public class ActionExecutorConfigTest {
     }
 
     @Test
-    public void testGetHttpReadTimeout(){
+    public void testGetHttpReadTimeout() {
 
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("Actions.HTTPConnections.HTTPReadTimeout", "5000");
@@ -314,7 +314,7 @@ public class ActionExecutorConfigTest {
     }
 
     @Test
-    public void testGetHttpConnectionRequestTimeout(){
+    public void testGetHttpConnectionRequestTimeout() {
 
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("Actions.HTTPConnections.HTTPConnectionRequestTimeout", "2000");
@@ -323,7 +323,7 @@ public class ActionExecutorConfigTest {
     }
 
     @Test
-    public void testGetHttpConnectionTimeout(){
+    public void testGetHttpConnectionTimeout() {
 
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("Actions.HTTPConnections.HTTPConnectionTimeout", "2000");
