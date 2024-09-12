@@ -80,16 +80,34 @@ public class ActionExecutorConfig {
         }
     }
 
+    /**
+     * Retrieves the HTTP read timeout configuration.
+     * If the configuration value is invalid or missing, the default timeout value is parsed.
+     *
+     * @return The HTTP read timeout int value in milliseconds.
+     */
     public int getHttpReadTimeout() {
 
         return parseTimeoutConfig(HTTP_READ_TIMEOUT_PROPERTY, DEFAULT_HTTP_READ_TIMEOUT);
     }
 
+    /**
+     * Retrieves the HTTP connection request timeout configuration.
+     * If the configuration value is invalid or missing, the default timeout value is parsed.
+     *
+     * @return The HTTP connection request timeout int value in milliseconds.
+     */
     public int getHttpConnectionRequestTimeout() {
 
         return parseTimeoutConfig(HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT);
     }
 
+    /**
+     * Retrieves the HTTP connection timeout configuration.
+     * If the configuration value is invalid or missing, the default timeout value is parsed.
+     *
+     * @return The HTTP connection timeout int value in milliseconds.
+     */
     public int getHttpConnectionTimeout() {
 
         return parseTimeoutConfig(HTTP_CONNECTION_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_TIMEOUT);
@@ -102,8 +120,11 @@ public class ActionExecutorConfig {
         if (StringUtils.isNotBlank(timeoutValue)) {
             try {
                 timeoutPropertyValue = Integer.parseInt(timeoutValue);
-            } catch (Exception e) {
-                LOG.warn("Error occurred while parsing the '" + timeoutTypeName + "' property value in identity.xml.", e);
+            } catch (NumberFormatException e) {
+                if(LOG.isDebugEnabled()){
+                    LOG.debug(" " + timeoutTypeName + " property value must be an integer in identity.xml. " +
+                            "Default property value is parsed ", e);
+                }
             }
         }
         return timeoutPropertyValue;
