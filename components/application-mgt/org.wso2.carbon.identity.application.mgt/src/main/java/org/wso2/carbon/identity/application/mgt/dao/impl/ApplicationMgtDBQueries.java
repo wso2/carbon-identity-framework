@@ -570,7 +570,7 @@ public class ApplicationMgtDBQueries {
                     "AND sa.IS_DISCOVERABLE = '1' " +
                     "AND ssa.OWNER_ORG_ID = ? " +
                     "ORDER BY sa.ID DESC " +
-                    "LIMIT ? OFFSET ?";
+                    "OFFSET ? LIMIT ?";
 
     public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_DB2 =
             "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
@@ -581,7 +581,7 @@ public class ApplicationMgtDBQueries {
                     "AND sa.IS_DISCOVERABLE = '1' " +
                     "AND ssa.OWNER_ORG_ID = ? " +
                     "ORDER BY sa.ID DESC " +
-                    "LIMIT ? OFFSET ?";
+                    "OFFSET ? LIMIT ?";
 
     public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_INFORMIX =
             "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
@@ -592,7 +592,7 @@ public class ApplicationMgtDBQueries {
                     "AND sa.IS_DISCOVERABLE = '1' " +
                     "AND ssa.OWNER_ORG_ID = ? " +
                     "ORDER BY sa.ID DESC " +
-                    "LIMIT ? OFFSET ?";
+                    "OFFSET ? LIMIT ?";
 
     public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_MYSQL =
             "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
@@ -644,7 +644,7 @@ public class ApplicationMgtDBQueries {
                     "AND sa.APP_NAME LIKE ? " +
                     "AND ssa.OWNER_ORG_ID = ? " +
                     "ORDER BY sa.ID DESC " +
-                    "LIMIT ? OFFSET ?";
+                    "OFFSET ? LIMIT ?";
 
     public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_DB2 =
             "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
@@ -668,7 +668,7 @@ public class ApplicationMgtDBQueries {
                     "AND sa.APP_NAME LIKE ? " +
                     "AND ssa.OWNER_ORG_ID = ? " +
                     "ORDER BY sa.ID DESC " +
-                    "LIMIT ? OFFSET ?";
+                    "OFFSET ? LIMIT ?";
 
     public static final String LOAD_DISCOVERABLE_APP_COUNT_BY_ROOT_AND_SUBORG =
             "SELECT COUNT(sa.UUID) " +
@@ -684,9 +684,8 @@ public class ApplicationMgtDBQueries {
                     "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
                     "WHERE ssa.SHARED_ORG_ID = ? " +
                     "AND sa.IS_DISCOVERABLE = '1' " +
-                    "AND sa.APP_NAME LIKE ?" +
+                    "AND sa.APP_NAME LIKE ? " +
                     "AND ssa.OWNER_ORG_ID = ? ";
-
 
     /**
      * SQL placeholders related to application management tables.
