@@ -97,15 +97,16 @@ public class ActionExecutorConfig {
 
     private int parseTimeoutConfig(String timeoutTypeName, int defaultTimeout) {
 
-        String timeoutPropertyValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(timeoutTypeName);
-        if (StringUtils.isNotBlank(timeoutPropertyValue)) {
+        int timeoutPropertyValue = defaultTimeout;
+        String timeoutValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(timeoutTypeName);
+        if (StringUtils.isNotBlank(timeoutValue)) {
             try {
-                return Integer.parseInt(timeoutPropertyValue);
+                timeoutPropertyValue = Integer.parseInt(timeoutValue);
             } catch (Exception e) {
                 LOG.warn("Error occurred while parsing the '" + timeoutTypeName + "' property value in identity.xml.", e);
             }
         }
-        return defaultTimeout;
+        return timeoutPropertyValue;
     }
 
     private boolean isActionTypeEnabled(String actionTypePropertyName) {
