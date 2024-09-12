@@ -173,11 +173,11 @@ public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule i
     @Override
     public int getPolicyOrder(String policyId) {
 
-        int policyOrder = jdbcPolicyPersistenceManager.getPolicyOrder(policyId);
-        if (policyOrder == -1) {
-            policyOrder = registryPolicyPersistenceManager.getPolicyOrder(policyId);
+        if (jdbcPolicyPersistenceManager.isPolicyExist(policyId)) {
+            return jdbcPolicyPersistenceManager.getPolicyOrder(policyId);
+        } else {
+            return registryPolicyPersistenceManager.getPolicyOrder(policyId);
         }
-        return policyOrder;
     }
 
     /**
