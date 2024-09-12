@@ -214,6 +214,20 @@ public class ApplicationConstants {
         }
     }
 
+    //set SP_SHARED_APP column nAMES
+    /**
+     * Grouping of constants related to database SP_SHARED_APP table.
+     */
+    public static class ApplicationSPSharedTableColumns {
+
+        public static final String SHARED_IDP_ID = "SHARED_IDP_ID";
+        public static final String OWNER_ORG_ID = "OWNER_ORG_ID";
+
+        private ApplicationSPSharedTableColumns() {
+
+        }
+    }
+
     /**
      * Enums for error messages.
      */

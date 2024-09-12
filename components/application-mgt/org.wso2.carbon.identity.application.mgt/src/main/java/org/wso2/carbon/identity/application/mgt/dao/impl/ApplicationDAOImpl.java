@@ -5905,6 +5905,110 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    public List<ApplicationBasicInfo> getDiscoverableAppsInfoFromRootAndSubOrg(int limit, int offset, String filter,
+                                                                               String sortOrder, String sortBy,
+                                                                               String tenantDomain, String primaryOrgID)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving application basic information of discoverable applications for limit: " + limit +
+                    " offset: " + offset + " filter: " + filter + " sortOrder: " + sortOrder + " sortBy: " + sortBy +
+                    " in tenantDomain: " + tenantDomain);
+        }
+
+        validateForUnImplementedSortingAttributes(sortOrder, sortBy);
+        validateAttributesForPagination(offset, limit);
+
+        // TODO: 11/5/19 : Enforce a max limit
+        if (StringUtils.isBlank(filter) || ASTERISK.equals(filter)) {
+            return getDiscoverableAppsInfoFromRootAndSubOrg(limit, offset, tenantDomain, primaryOrgID);
+        }
+
+        String filterResolvedForSQL = resolveSQLFilter(filter);
+
+        List<ApplicationBasicInfo> applicationBasicInfoList = new ArrayList<>();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String databaseVendorType = connection.getMetaData().getDatabaseProductName();
+
+            try (NamedPreparedStatement statement =
+                         new NamedPreparedStatement(connection,
+                                 getDBQueryForDiscoverableAppsByName(databaseVendorType))) {
+                statement.setString(1, tenantDomain);
+                statement.setString(2, filterResolvedForSQL);
+                statement.setString(3,  primaryOrgID);
+                statement.setInt(4, offset);
+                statement.setInt(5, limit);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        applicationBasicInfoList.add(buildApplicationBasicInfo(resultSet));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while getting application basic information" +
+                    " for discoverable applications in tenantDomain: " + tenantDomain, e);
+        }
+
+        return Collections.unmodifiableList(applicationBasicInfoList);
+    }
+
+    private List<ApplicationBasicInfo> getDiscoverableAppsInfoFromRootAndSubOrg(int limit, int offset, String
+            tenantDomain, String primaryOrgId) throws IdentityApplicationManagementException {
+
+        List<ApplicationBasicInfo> applicationBasicInfoList = new ArrayList<>();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String databaseVendorType = connection.getMetaData().getDatabaseProductName();
+
+            try (NamedPreparedStatement statement =
+                         new NamedPreparedStatement(connection,
+                                 getVendorSpecificDiscoverableAppsQueryForRootAndSubOrg(databaseVendorType))) {
+                statement.setString(1, tenantDomain);
+                statement.setString(2, primaryOrgId);
+                statement.setInt(3, offset);
+                statement.setInt(4, limit);
+
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        applicationBasicInfoList.add(buildApplicationBasicInfo(resultSet));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while getting application basic information" +
+                    " for discoverable applications in tenantDomain: " + tenantDomain, e);
+        }
+
+        return Collections.unmodifiableList(applicationBasicInfoList);
+    }
+
+    private String getVendorSpecificDiscoverableAppsQueryForRootAndSubOrg(String dbVendorType) throws
+            IdentityApplicationManagementException {
+
+        if ("MySQL".equals(dbVendorType)
+                || "MariaDB".equals(dbVendorType)
+                || "H2".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_MYSQL;
+        } else if ("Oracle".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_ORACLE;
+        } else if ("Microsoft SQL Server".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_MSSQL;
+        } else if ("PostgreSQL".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_POSTGRES;
+        } else if (dbVendorType != null && dbVendorType.contains("DB2")) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_DB2;
+        } else if ("INFORMIX".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_INFORMIX;
+        }
+
+        throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
+                "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+    }
+
+    @Override
     public int getCountOfDiscoverableApplications(String filter, String tenantDomain) throws
             IdentityApplicationManagementException {
 
@@ -5936,6 +6040,69 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (SQLException e) {
             throw new IdentityApplicationManagementServerException("Error while getting count of discoverable " +
                     "applications matching filter:" + filter + " in tenantDomain: " + tenantDomain, e);
+        }
+
+        return count;
+    }
+
+    @Override
+    public int getCountOfDiscoverableAppsFromRootAndSubOrg(String filter, String tenantDomain, String primaryOrgId)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting count of discoverable applications matching filter: " + filter + " in tenantDomain: "
+                    + tenantDomain);
+        }
+
+        if (StringUtils.isBlank(filter) || ASTERISK.equals(filter)) {
+            return getCountOfDiscoverableAppsFromRootAndSubOrg(tenantDomain, primaryOrgId);
+        }
+
+        int count = 0;
+        String filterResolvedForSQL = resolveSQLFilter(filter);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            try (NamedPreparedStatement statement =
+                         new NamedPreparedStatement(connection, ApplicationMgtDBQueries
+                                 .LOAD_DISCOVERABLE_APP_COUNT_FROM_ROOT_AND_SUBORG_BY_APP_NAME)) {
+                statement.setString(1, tenantDomain);
+                statement.setString(2, filterResolvedForSQL);
+                statement.setString(3, primaryOrgId);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        count = resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while getting count of discoverable " +
+                    "applications matching filter:" + filter + " in tenantDomain: " + tenantDomain, e);
+        }
+
+        return count;
+    }
+
+    private int getCountOfDiscoverableAppsFromRootAndSubOrg(String tenantDomain, String primaryOrgId)
+            throws IdentityApplicationManagementException {
+
+        int count;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            try (NamedPreparedStatement statement =
+                         new NamedPreparedStatement(connection,
+                                 ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APP_COUNT_BY_ROOT_AND_SUBORG)) {
+                statement.setString(1, tenantDomain);
+                statement.setString(2, primaryOrgId);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    resultSet.next();
+                    count = resultSet.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error while getting count of discoverable " +
+                    "applications in tenantDomain: " + tenantDomain, e);
         }
 
         return count;
@@ -6213,6 +6380,30 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
                 "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+    }
+
+    private String getDBQueryForDiscoverableAppsByName(String dbVendorType) throws
+            IdentityApplicationManagementException {
+
+        if ("MySQL".equals(dbVendorType)
+                || "MariaDB".equals(dbVendorType)
+                || "H2".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_MYSQL;
+        } else if ("Oracle".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_ORACLE;
+        } else if ("Microsoft SQL Server".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_MSSQL;
+        } else if ("PostgreSQL".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_POSTGRES;
+        } else if (dbVendorType != null && dbVendorType.contains("DB2")) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_DB2;
+        } else if ("INFORMIX".equals(dbVendorType)) {
+            return ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_INFORMIX;
+        }
+
+        throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
+                "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+
     }
 
     private String getDBVendorSpecificDiscoverableAppRetrievalQuery(String dbVendorType) throws

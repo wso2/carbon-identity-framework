@@ -528,6 +528,166 @@ public class ApplicationMgtDBQueries {
     public static final String ADD_APPLICATION_ASSOC_ROLE = "INSERT INTO APP_ROLE_ASSOCIATION " +
             "(APP_ID, ROLE_ID) VALUES (?, ?)";
 
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_MYSQL =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "LIMIT ?, ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_ORACLE =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_MSSQL =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_POSTGRES =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "LIMIT ? OFFSET ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_DB2 =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "LIMIT ? OFFSET ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_INFORMIX =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "LIMIT ? OFFSET ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_MYSQL =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND sa.APP_NAME LIKE ?" +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "LIMIT ?, ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_ORACLE =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM (SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "             sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID, " +
+                    "             ROW_NUMBER() OVER (ORDER BY sa.ID DESC) AS rn " +
+                    "      FROM SP_APP sa " +
+                    "      JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "      WHERE ssa.SHARED_ORG_ID = ? " +
+                    "      AND sa.IS_DISCOVERABLE = '1' " +
+                    "      AND sa.APP_NAME LIKE ? " +
+                    "      AND ssa.OWNER_ORG_ID = ?) " +
+                    "WHERE rn BETWEEN ? AND ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_MSSQL =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM (SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "             sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID, " +
+                    "             ROW_NUMBER() OVER (ORDER BY sa.ID DESC) AS rn " +
+                    "      FROM SP_APP sa " +
+                    "      JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "      WHERE ssa.SHARED_ORG_ID = ? " +
+                    "      AND sa.IS_DISCOVERABLE = '1' " +
+                    "      AND sa.APP_NAME LIKE ? " +
+                    "      AND ssa.OWNER_ORG_ID = ?) AS paginated " +
+                    "WHERE rn BETWEEN ? AND ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_POSTGRES =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND sa.APP_NAME LIKE ? " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "LIMIT ? OFFSET ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_DB2 =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND sa.APP_NAME LIKE ? " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "FETCH FIRST ? ROWS ONLY OFFSET ?";
+
+    public static final String LOAD_DISCOVERABLE_APPS_FROM_ROOT_AND_SUBORG_BY_APP_NAME_INFORMIX =
+            "SELECT sa.ID, sa.APP_NAME, sa.DESCRIPTION, sa.UUID, sa.IMAGE_URL, " +
+                    "sa.ACCESS_URL, sa.USERNAME, sa.USER_STORE, sa.TENANT_ID " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND sa.APP_NAME LIKE ? " +
+                    "AND ssa.OWNER_ORG_ID = ? " +
+                    "ORDER BY sa.ID DESC " +
+                    "LIMIT ? OFFSET ?";
+
+    public static final String LOAD_DISCOVERABLE_APP_COUNT_BY_ROOT_AND_SUBORG =
+            "SELECT COUNT(sa.UUID) " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND ssa.OWNER_ORG_ID = ? ";
+
+    public static final String LOAD_DISCOVERABLE_APP_COUNT_FROM_ROOT_AND_SUBORG_BY_APP_NAME =
+            "SELECT COUNT(sa.UUID) " +
+                    "FROM SP_APP sa " +
+                    "JOIN SP_SHARED_APP ssa ON sa.UUID = ssa.SHARED_APP_ID OR sa.UUID = ssa.MAIN_APP_ID " +
+                    "WHERE ssa.SHARED_ORG_ID = ? " +
+                    "AND sa.IS_DISCOVERABLE = '1' " +
+                    "AND sa.APP_NAME LIKE ?" +
+                    "AND ssa.OWNER_ORG_ID = ? ";
+
+
     /**
      * SQL placeholders related to application management tables.
      */

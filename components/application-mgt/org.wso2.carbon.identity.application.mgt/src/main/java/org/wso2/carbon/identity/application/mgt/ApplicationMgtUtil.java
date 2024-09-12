@@ -55,7 +55,10 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManagerImpl;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -1224,5 +1227,29 @@ public class ApplicationMgtUtil {
     public static boolean isTrustedAppConsentRequired() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY));
+    }
+
+    /**
+     * check the given tenant is a sub org
+     * @param tenantDomain
+     * @return true if the tenant is a sub org
+     * @throws OrganizationManagementException
+     */
+    public static boolean isSubOrg(String tenantDomain)
+            throws OrganizationManagementException {
+        return OrganizationManagementUtil.isOrganization(tenantDomain);
+    }
+
+    /**
+     * Get the parent organization id of the given organization.
+     *
+     * @param tenantDomain
+     * @return parent organization id
+     * @throws OrganizationManagementServerException
+     */
+    public static String getParentOrgId(String tenantDomain)
+            throws OrganizationManagementServerException {
+        OrganizationManagerImpl organizationManager = new OrganizationManagerImpl();
+        return organizationManager.getPrimaryOrganizationId(tenantDomain);
     }
 }

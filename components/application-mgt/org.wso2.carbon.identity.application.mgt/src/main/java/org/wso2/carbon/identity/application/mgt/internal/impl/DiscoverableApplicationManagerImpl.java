@@ -19,8 +19,10 @@ package org.wso2.carbon.identity.application.mgt.internal.impl;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 
 import java.util.List;
 
@@ -34,8 +36,20 @@ public class DiscoverableApplicationManagerImpl implements DiscoverableApplicati
             filter, String sortOrder, String sortBy, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        return appDAO.getDiscoverableApplicationBasicInfo(limit, offset, filter, sortOrder, sortBy, tenantDomain);
+        try {
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            if (ApplicationMgtUtil.isSubOrg(tenantDomain)) {
+                String primaryOrgID = ApplicationMgtUtil.getParentOrgId(tenantDomain);
+                return appDAO.getDiscoverableAppsInfoFromRootAndSubOrg(limit, offset, filter, sortOrder, sortBy,
+                        tenantDomain, primaryOrgID);
+            } else {
+                return appDAO.getDiscoverableApplicationBasicInfo(limit, offset, filter, sortOrder, sortBy,
+                        tenantDomain);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityApplicationManagementException("Error while checking whether the tenant domain is a " +
+                    "sub-organization.", e);
+        }
     }
 
     @Override
@@ -58,7 +72,17 @@ public class DiscoverableApplicationManagerImpl implements DiscoverableApplicati
     public int getCountOfDiscoverableApplications(String filter, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        return appDAO.getCountOfDiscoverableApplications(filter, tenantDomain);
+        try {
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            if (ApplicationMgtUtil.isSubOrg(tenantDomain)) {
+                String primaryOrgId = ApplicationMgtUtil.getParentOrgId(tenantDomain);
+                return appDAO.getCountOfDiscoverableAppsFromRootAndSubOrg(filter, tenantDomain, primaryOrgId);
+            } else {
+                return appDAO.getCountOfDiscoverableApplications(filter, tenantDomain);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityApplicationManagementException("Error while checking whether the tenant domain is a " +
+                    "sub-organization.", e);
+        }
     }
 }

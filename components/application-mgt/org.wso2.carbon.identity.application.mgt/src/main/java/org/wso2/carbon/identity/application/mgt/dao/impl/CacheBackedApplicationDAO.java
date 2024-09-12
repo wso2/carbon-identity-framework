@@ -503,6 +503,22 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     }
 
     @Override
+    public List<ApplicationBasicInfo> getDiscoverableAppsInfoFromRootAndSubOrg(int limit, int offset, String filter,
+                                                                               String sortOrder, String sortBy,
+                                                                               String tenantDomain, String primaryOrgID)
+            throws IdentityApplicationManagementException {
+        return appDAO.getDiscoverableAppsInfoFromRootAndSubOrg(limit, offset, filter,
+                sortOrder, sortBy, tenantDomain, primaryOrgID);
+    }
+
+    @Override
+    public int getCountOfDiscoverableAppsFromRootAndSubOrg(String filter, String tenantDomain, String primaryOrgId)
+            throws IdentityApplicationManagementException {
+
+        return appDAO.getCountOfDiscoverableAppsFromRootAndSubOrg(filter, tenantDomain, primaryOrgId);
+    }
+
+    @Override
     public int getCountOfDiscoverableApplications(String filter, String tenantDomain) throws
             IdentityApplicationManagementException {
 

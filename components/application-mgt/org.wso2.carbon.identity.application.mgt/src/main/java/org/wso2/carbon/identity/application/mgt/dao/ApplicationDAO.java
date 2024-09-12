@@ -274,6 +274,18 @@ public interface ApplicationDAO {
     }
 
     /**
+     * Method that retrieves discoverable applications from root and sub org.
+     *
+     * @throws IdentityApplicationManagementException Error when obtaining discoverable applications.
+     */
+    default List<ApplicationBasicInfo> getDiscoverableAppsInfoFromRootAndSubOrg(int limit, int offset, String filter,
+                                                                                String sortOrder, String sortBy, String
+                                                                  tenantDomain, String primaryOrgID)
+            throws IdentityApplicationManagementException {
+        return null;
+    }
+
+    /**
      * Returns basic application information of the application matching given resource Id if discoverable.
      *
      * @param resourceId   Unique resource identifier of the application.
@@ -311,6 +323,20 @@ public interface ApplicationDAO {
      */
     default int getCountOfDiscoverableApplications(String filter, String tenantDomain) throws
             IdentityApplicationManagementException {
+
+        return 0;
+    }
+
+    /**
+     * Returns the count of discoverable applications from root and sub org.
+     * @param filter Filter to search for applications (optional).
+     * @param tenantDomain Tenant domain
+     * @param primaryOrgId Primary organization ID
+     * @return  Count of discoverable applications.
+     * @throws IdentityApplicationManagementException
+     */
+    default int getCountOfDiscoverableAppsFromRootAndSubOrg(String filter, String tenantDomain, String primaryOrgId)
+            throws IdentityApplicationManagementException {
 
         return 0;
     }
