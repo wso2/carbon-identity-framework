@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import org.testng.Assert;
 
 public class ActionExecutorConfigTest {
 
@@ -301,5 +302,32 @@ public class ActionExecutorConfigTest {
         Set<String> excludedHeaders =
                 actionExecutorConfig.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
         assertEquals(excludedHeaders, Collections.emptySet());
+    }
+
+    @Test
+    public void testGetHttpReadTimeout(){
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPConnections.HTTPReadTimeout", "5000");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(5000, actionExecutorConfig.getHttpReadTimeout());
+    }
+
+    @Test
+    public void testGetHttpConnectionRequestTimeout(){
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPConnections.HTTPConnectionRequestTimeout", "2000");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2000, actionExecutorConfig.getHttpConnectionRequestTimeout());
+    }
+
+    @Test
+    public void testGetHttpConnectionTimeout(){
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPConnections.HTTPConnectionTimeout", "2000");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2000, actionExecutorConfig.getHttpConnectionTimeout());
     }
 }

@@ -30,7 +30,9 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -46,6 +48,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,14 +70,25 @@ public class APIClientTest {
     @Mock
     private StatusLine statusLine;
 
+    private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
+
     @InjectMocks
     private APIClient apiClient;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        actionExecutorConfigStatic = mockStatic(ActionExecutorConfig.class);
+        ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
+        actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
         MockitoAnnotations.openMocks(this);
         setField(apiClient, "httpClient", httpClient);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        actionExecutorConfigStatic.close();
     }
 
     @Test
