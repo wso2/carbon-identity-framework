@@ -619,4 +619,13 @@ public class IdentityConstants {
 
         public static final String SET_ACCOUNT_LOCK_AUTH_FAILURE_REASON = "APIResponse.SetAccountLockAuthFailureReason";
     }
+
+    /**
+     * The Authentication Type - SYSTEM: system define authenticator, CUSTOM: user defined authentication extension.
+     */
+    public enum DefinedByType {
+
+        SYSTEM,
+        USER
+    }
 }

@@ -63,6 +63,8 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "Tags")
     protected String[] tags;
 
+    protected IdentityConstants.DefinedByType definedByType;
+
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
      * <Properties></Properties> </LocalAuthenticatorConfig>
@@ -111,6 +113,8 @@ public class LocalAuthenticatorConfig implements Serializable {
                     Property[] propertiesArr = propertiesArrList.toArray(new Property[0]);
                     localAuthenticatorConfig.setProperties(propertiesArr);
                 }
+            } else if ("DefinedBy".equals(member.getLocalName())) {
+                localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.valueOf(member.getText()));
             }
         }
         return localAuthenticatorConfig;
@@ -223,5 +227,25 @@ public class LocalAuthenticatorConfig implements Serializable {
     public void setTags(String[] tagList) {
 
         tags = tagList;
+    }
+
+    /**
+     * Get the tag list of the Local authenticator.
+     *
+     * @return String[]
+     */
+    public IdentityConstants.DefinedByType getDefinedByType() {
+
+        return definedByType;
+    }
+
+    /**
+     * Set the tag list for Local authenticator config.
+     *
+     * @param type  authenticator.
+     */
+    public void setDefinedByType(IdentityConstants.DefinedByType type) {
+
+        definedByType = type;
     }
 }

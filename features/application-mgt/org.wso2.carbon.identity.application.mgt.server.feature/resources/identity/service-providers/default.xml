@@ -35,6 +35,7 @@
 						<Name>BasicAuthenticator</Name>
 						<DisplayName>basicauth</DisplayName>
 						<IsEnabled>true</IsEnabled>
+						<DefinedBy>SYSTEM</DefinedBy>
 					</LocalAuthenticatorConfig>
 				</LocalAuthenticatorConfigs>
 				<!-- FederatedIdentityProviders>

@@ -37,6 +37,7 @@
                         <Name>BasicMockAuthenticator</Name>
                         <DisplayName>basicauth</DisplayName>
                         <IsEnabled>true</IsEnabled>
+                        <DefinedBy>SYSTEM</DefinedBy>
                     </LocalAuthenticatorConfig>
                 </LocalAuthenticatorConfigs>
                 <SubjectStep>true</SubjectStep>
@@ -85,6 +86,7 @@
                         <Name>MockFallbackAuthenticator</Name>
                         <DisplayName>basicauthfallback</DisplayName>
                         <IsEnabled>true</IsEnabled>
+                        <DefinedBy>SYSTEM</DefinedBy>
                     </LocalAuthenticatorConfig>
                 </LocalAuthenticatorConfigs>
                 <SubjectStep>true</SubjectStep>

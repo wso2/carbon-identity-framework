@@ -2153,7 +2153,7 @@
         <icu.version>71.1</icu.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
-        <maven.spotbugsplugin.version>4.8.4.0</maven.spotbugsplugin.version>
+        <maven.spotbugsplugin.version>4.8.1.0</maven.spotbugsplugin.version>
 
         <account.lock.service.imp.pkg.version.range>[1.4.23, 2.0.0)</account.lock.service.imp.pkg.version.range>
         <openjdk.nashorn.version>15.3</openjdk.nashorn.version>
