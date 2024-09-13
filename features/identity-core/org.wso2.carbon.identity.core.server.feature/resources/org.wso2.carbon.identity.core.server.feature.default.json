@@ -1574,6 +1574,7 @@
   "actions.http_connections.read_timeout": 5000,
   "actions.http_connections.request_timeout": 2000,
   "actions.http_connections.connection_timeout": 2000,
+  "actions.http_client_connection_pool_size": 20,
   "actions.maximum_actions_per_action_type": 1,
   "actions.action_request.excluded_headers": [
     "authorization",
