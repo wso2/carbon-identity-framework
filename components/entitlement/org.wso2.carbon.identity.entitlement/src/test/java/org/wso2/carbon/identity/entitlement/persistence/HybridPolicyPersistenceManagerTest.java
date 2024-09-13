@@ -65,20 +65,22 @@ public class HybridPolicyPersistenceManagerTest extends PolicyPersistenceManager
 
         policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
 
-        PolicyDTO policyFromStorage = policyPersistenceManager.getPAPPolicy(samplePAPPolicy1.getPolicyId());
+        PolicyDTO policyFromStorage = jdbcPolicyPersistenceManager.getPAPPolicy(samplePAPPolicy1.getPolicyId());
         assertEquals(policyFromStorage.getPolicy(), samplePAPPolicy1.getPolicy());
         assertEquals(policyFromStorage.getPolicyId(), samplePAPPolicy1.getPolicyId());
         assertEquals(policyFromStorage.getVersion(), "1");
         assertTrue(jdbcPolicyPersistenceManager.isPolicyExistsInPap(samplePAPPolicy1.getPolicyId()));
+        assertFalse(registryPolicyPersistenceManager.isPolicyExistsInPap(samplePAPPolicy1.getPolicyId()));
     }
 
     @Test(priority = 14)
     public void testDeletePAPPolicyInDb() throws Exception {
 
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        jdbcPolicyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
         policyPersistenceManager.removePolicy(samplePAPPolicy1.getPolicyId());
         assertNull(policyPersistenceManager.getPolicy(samplePAPPolicy1.getPolicyId()));
         assertNull(jdbcPolicyPersistenceManager.getPolicy(samplePAPPolicy1.getPolicyId()));
+        assertNull(registryPolicyPersistenceManager.getPolicy(samplePAPPolicy1.getPolicyId()));
     }
 
     @Test(priority = 15)
@@ -336,12 +338,17 @@ public class HybridPolicyPersistenceManagerTest extends PolicyPersistenceManager
         assertEquals(dbPolicyIds.size(), 3);
 
         // Verify the number of ordered policy identifiers.
-        String[] orderedPolicyIdentifiers = jdbcPolicyPersistenceManager.getOrderedPolicyIdentifiers();
+        String[] orderedPolicyIdentifiers = policyPersistenceManager.getOrderedPolicyIdentifiers();
         assertEquals(orderedPolicyIdentifiers.length, 3);
+        String[] orderedPolicyIdentifiersFromDb = jdbcPolicyPersistenceManager.getOrderedPolicyIdentifiers();
+        assertEquals(orderedPolicyIdentifiersFromDb.length, 3);
+
 
         // Verify the number of active policies.
-        String[] activePolicies = jdbcPolicyPersistenceManager.getActivePolicies();
+        String[] activePolicies = policyPersistenceManager.getActivePolicies();
         assertEquals(activePolicies.length, 2);
+        String[] activePoliciesFromDb = jdbcPolicyPersistenceManager.getActivePolicies();
+        assertEquals(activePoliciesFromDb.length, 2);
     }
 
     @Test(priority = 28)
