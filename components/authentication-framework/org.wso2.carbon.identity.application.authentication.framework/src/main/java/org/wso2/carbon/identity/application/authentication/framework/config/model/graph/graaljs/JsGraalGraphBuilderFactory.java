@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graaljs.JsGraalAuthenticatedUser;
@@ -144,6 +145,9 @@ public class JsGraalGraphBuilderFactory implements JsGenericGraphBuilderFactory<
                 .targetTypeMapping(Value.class, JsServletResponse.class,
                         (v) -> v.asProxyObject() instanceof JsServletResponse,
                         (v) -> (JsServletResponse) v.asProxyObject())
+                .targetTypeMapping(Value.class, JsParameters.class,
+                        (v) -> v.asProxyObject() instanceof JsParameters,
+                        (v) -> (JsParameters) v.asProxyObject())
                 .build();
     }
 

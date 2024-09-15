@@ -258,7 +258,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
                 clearApplicationCaches(application.getId(), tenantDomain);
             }
         } catch (IdentityRoleManagementException e) {
-            throw new IdentityRoleManagementException(
+            throw new IdentityRoleManagementException(e.getErrorCode(),
                     String.format("Error occurred while deleting role : %s and tenant domain : %s",
                             roleID, tenantDomain), e);
         }

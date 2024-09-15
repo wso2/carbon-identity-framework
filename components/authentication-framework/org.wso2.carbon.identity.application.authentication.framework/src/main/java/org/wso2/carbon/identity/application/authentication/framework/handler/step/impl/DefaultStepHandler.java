@@ -89,7 +89,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BASIC_AUTH_MECHANISM;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Default implementation of the authentication step handler.
@@ -277,12 +276,6 @@ public class DefaultStepHandler implements StepHandler {
                  */
                 boolean isOrganizationLogin = isLoggedInWithOrganizationLogin(authenticatorConfig);
 
-                if (LOG.isDebugEnabled() && isOrganizationLogin) {
-                    LOG.debug("GIT-22890: User logged in with OrganizationAuthenticator. user: "
-                            + context.getSubject().toFullQualifiedUsername() + " re-authentication : "
-                            + context.isReAuthenticate());
-                }
-
                 if (context.isReAuthenticate() || isOrganizationLogin) {
 
                     if (LOG.isDebugEnabled()) {
@@ -330,7 +323,6 @@ public class DefaultStepHandler implements StepHandler {
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idp);
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             authenticatedStepIdps.get(idp));
-                    context.getCurrentAuthenticatedIdPs().put(idp, authenticatedIdPData);
                     stepConfig.setCompleted(true);
                     request.setAttribute(
                             FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.SUCCESS_COMPLETED);
@@ -757,17 +749,9 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
 
-            if (LOG.isDebugEnabled() && context.getSubject() != null) {
-                LOG.debug("GIT-22890:User : " + context.getSubject().toFullQualifiedUsername()
-                        + " authenticated with the authenticator: " + authenticator.getName());
-            }
             // Set authorized organization and user resident organization for B2B user logins.
             if (context.getSubject() != null && isLoggedInWithOrganizationLogin(authenticatorConfig)) {
                 String userResidentOrganization = resolveUserResidentOrganization(context.getSubject());
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("GIT-22890:User : " + context.getSubject().toFullQualifiedUsername()
-                            + " user resident organization: " + userResidentOrganization);
-                }
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
                 // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
@@ -883,10 +867,9 @@ public class DefaultStepHandler implements StepHandler {
             }
             String data = "Step: " + stepConfig.getOrder() + ", IDP: " + stepConfig.getAuthenticatedIdP() +
                     ", Authenticator:" + stepConfig.getAuthenticatedAutenticator().getName();
-            if (!isLegacyAuditLogsDisabled()) {
-                audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                        data, SUCCESS));
-            }
+
+            audit.info(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                    data, SUCCESS));
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
@@ -935,10 +918,9 @@ public class DefaultStepHandler implements StepHandler {
             if (LoggerUtils.isLogMaskingEnable) {
                 initiator = LoggerUtils.getMaskedContent(initiator);
             }
-            if (!isLegacyAuditLogsDisabled()) {
-                audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
-                        data, FAILURE));
-            }
+            audit.warn(String.format(AUDIT_MESSAGE, initiator, "Authenticate", "ApplicationAuthenticationFramework",
+                    data, FAILURE));
+
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (AuthenticationFailedException e) {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
@@ -976,10 +958,9 @@ public class DefaultStepHandler implements StepHandler {
             if (LoggerUtils.isLogMaskingEnable) {
                 initiator = LoggerUtils.getMaskedContent(initiator);
             }
-            if (!isLegacyAuditLogsDisabled()) {
-                audit.warn(String.format(AUDIT_MESSAGE, initiator,
-                        "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
-            }
+            audit.warn(String.format(AUDIT_MESSAGE, initiator,
+                    "Authenticate", "ApplicationAuthenticationFramework", data, FAILURE));
+
             if (LoggerUtils.isDiagnosticLogsEnabled()) {
                 DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                         FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
@@ -1417,15 +1398,7 @@ public class DefaultStepHandler implements StepHandler {
     private boolean isLoggedInWithOrganizationLogin(AuthenticatorConfig authenticatorConfig) {
 
         if (authenticatorConfig == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("GIT-22890: Authenticator config is null.");
-            }
             return false;
-        }
-
-        if (LOG.isDebugEnabled() && FrameworkConstants.ORGANIZATION_AUTHENTICATOR
-                .equals(authenticatorConfig.getName())) {
-            LOG.debug("GIT-22890: User logged in with OrganizationAuthenticator ");
         }
         return FrameworkConstants.ORGANIZATION_AUTHENTICATOR.equals(authenticatorConfig.getName());
     }
@@ -1438,10 +1411,6 @@ public class DefaultStepHandler implements StepHandler {
      */
     private void setLoggedInOrgIdInRequest(AuthenticatedIdPData authenticatedIdPData, HttpServletRequest request) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("GIT-22890: Setting the logged in org Id in the request.");
-        }
-
         AuthenticatedUser authenticatedUser = authenticatedIdPData.getUser();
         Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
@@ -1449,10 +1418,6 @@ public class DefaultStepHandler implements StepHandler {
             if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
                 String organizationId = entry.getValue();
                 if (StringUtils.isNotBlank(organizationId)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("GIT-22890: User: " + authenticatedUser.toFullQualifiedUsername()
-                                + "'s organization id is: " + organizationId);
-                    }
                     request.setAttribute(FrameworkConstants.ORG_ID_PARAMETER, organizationId);
                 }
                 return;
@@ -1473,11 +1438,6 @@ public class DefaultStepHandler implements StepHandler {
             for (Map.Entry<ClaimMapping, String> userAttributes : authenticatedUser.getUserAttributes().entrySet()) {
                 if (FrameworkConstants.USER_ORGANIZATION_CLAIM.equals(
                         userAttributes.getKey().getLocalClaim().getClaimUri())) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("GIT-22890: Check for user: " + authenticatedUser.toFullQualifiedUsername()
-                                + " organization claim for the authenticated user via the organization " +
-                                "login authenticator.");
-                    }
                     return userAttributes.getValue();
                 }
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,6 +28,7 @@ import java.util.Map;
 public class ExtensionInfo {
 
     private String id;
+    private String version;
     private String name;
     private String description;
     private String image;
@@ -48,6 +49,26 @@ public class ExtensionInfo {
     public String getId() {
 
         return id;
+    }
+
+    /**
+     * Set the current extension resource version.
+     *
+     * @param version Version of the extension.
+     */
+    public void setVersion(String version) {
+
+        this.version = version;
+    }
+
+    /**
+     * Retrieve the version of the current extension resource.
+     *
+     * @return Version of the extension.
+     */
+    public String getVersion() {
+
+        return version;
     }
 
     public void setId(String id) {

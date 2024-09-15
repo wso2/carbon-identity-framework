@@ -18,18 +18,23 @@
 
 package org.wso2.carbon.identity.entitlement.pap;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PAPStatusDataHandler;
+import org.wso2.carbon.identity.entitlement.persistence.ConfigPersistenceManager;
+import org.wso2.carbon.identity.entitlement.persistence.PersistenceManagerFactory;
+import org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManager;
+import org.wso2.carbon.identity.entitlement.persistence.SubscriberPersistenceManager;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pap.store.PAPPolicyStoreManager;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisher;
 import org.wso2.carbon.identity.entitlement.policy.store.DefaultPolicyDataStore;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
+import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManager;
-import org.wso2.carbon.identity.entitlement.policy.version.DefaultPolicyVersionManager;
-import org.wso2.carbon.identity.entitlement.policy.version.PolicyVersionManager;
 
 import java.util.Map;
 import java.util.Properties;
@@ -46,26 +51,49 @@ public class EntitlementAdminEngine {
             new ConcurrentHashMap<String, EntitlementAdminEngine>();
     private static Log log = LogFactory.getLog(EntitlementAdminEngine.class);
     private PolicyPublisher policyPublisher;
-    private PolicyVersionManager versionManager;
     private EntitlementDataFinder entitlementDataFinder;
     private PolicyDataStore policyDataStore;
     private PolicyStoreManager policyStoreManager;
     private PAPPolicyStoreManager papPolicyStoreManager;
     private Set<PAPStatusDataHandler> papStatusDataHandlers;
+    private ConfigPersistenceManager configPersistenceManager;
+    private PolicyPersistenceManager policyPersistenceManager;
+    private SubscriberPersistenceManager subscriberPersistenceManager;
 
     public EntitlementAdminEngine() {
 
         this.entitlementDataFinder = new EntitlementDataFinder();
         this.policyPublisher = new PolicyPublisher();
         this.papPolicyStoreManager = new PAPPolicyStoreManager();
-        this.versionManager = new DefaultPolicyVersionManager();
-        this.policyDataStore = new DefaultPolicyDataStore();
+
+        Map<PolicyStoreManageModule, Properties> policyCollections = EntitlementServiceComponent.
+                getEntitlementConfig().getPolicyStore();
+        Properties policyStoreProperties = new Properties();
+        if (MapUtils.isNotEmpty(policyCollections)) {
+            policyStoreProperties = policyCollections.entrySet().iterator().next().getValue();
+        }
+        Map<PolicyDataStore, Properties> dataStoreModules = EntitlementServiceComponent.
+                getEntitlementConfig().getPolicyDataStore();
+        if (MapUtils.isNotEmpty(dataStoreModules)) {
+            this.policyDataStore = dataStoreModules.entrySet().iterator().next().getKey();
+        } else {
+            this.policyDataStore = new DefaultPolicyDataStore();
+        }
+        try {
+            this.policyDataStore.init(policyStoreProperties);
+        } catch (EntitlementException e) {
+            log.warn("Error occurred while initializing the policy data store", e);
+        }
 
         Map<PAPStatusDataHandler, Properties> statusDataHandlers = EntitlementServiceComponent.
                 getEntitlementConfig().getPapStatusDataHandlers();
         papStatusDataHandlers = statusDataHandlers.keySet();
         this.policyPublisher.setPapStatusDataHandlers(papStatusDataHandlers);
         this.policyStoreManager = new PolicyStoreManager(policyDataStore);
+        this.configPersistenceManager = PersistenceManagerFactory.getConfigPersistenceManager();
+        this.policyPersistenceManager = PersistenceManagerFactory.getPolicyPersistenceManager();
+        this.subscriberPersistenceManager = PersistenceManagerFactory.getSubscriberPersistenceManager();
+
     }
 
     /**
@@ -97,13 +125,6 @@ public class EntitlementAdminEngine {
     }
 
     /**
-     * @return
-     */
-    public PolicyVersionManager getVersionManager() {
-        return versionManager;
-    }
-
-    /**
      * This method returns the entitlement data finder
      *
      * @return EntitlementDataFinder
@@ -113,9 +134,10 @@ public class EntitlementAdminEngine {
     }
 
     /**
-     * @return
+     * @return PolicyDataStore.
      */
     public PolicyDataStore getPolicyDataStore() {
+
         return policyDataStore;
     }
 
@@ -138,4 +160,10 @@ public class EntitlementAdminEngine {
     public Set<PAPStatusDataHandler> getPapStatusDataHandlers() {
         return papStatusDataHandlers;
     }
+
+    public ConfigPersistenceManager getConfigPersistenceManager() { return configPersistenceManager; }
+
+    public PolicyPersistenceManager getPolicyPersistenceManager() { return policyPersistenceManager; }
+
+    public SubscriberPersistenceManager getSubscriberPersistenceManager() { return subscriberPersistenceManager; }
 }

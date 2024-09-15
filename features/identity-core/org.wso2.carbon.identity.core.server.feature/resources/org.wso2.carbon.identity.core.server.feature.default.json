@@ -27,6 +27,7 @@
   "session_data.cleanup.clean_expired_session_data_in_chunks_of": "8192",
   "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": true,
   "session_data.cleanup.enable_pre_session_data_cleanup": true,
+  "session_data.cleanup.enable_periodic_pre_session_data_cleanup": true,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": true,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
@@ -131,6 +132,12 @@
   "oauth.response_type.none.enable": true,
   "oauth.response_type.none.class": "org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler",
   "oauth.response_type.none.validator": "org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator",
+  "oauth.response_type.subject_token.enable": true,
+  "oauth.response_type.subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
+  "oauth.response_type.subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
+  "oauth.response_type.id_token_subject_token.enable": true,
+  "oauth.response_type.id_token_subject_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.SubjectTokenResponseTypeHandler",
+  "oauth.response_type.id_token_subject_token.validator": "org.wso2.carbon.identity.oauth.common.SubjectTokenResponseValidator",
 
   "oauth.grant_type.jwt.enable_iat_validation": "true",
   "oauth.grant_type.jwt.iat_validity_period": "30",
@@ -211,6 +218,7 @@
   "oauth.scope_validator.xacml.enable": true,
   "oauth.scope_validator.xacml.class": "org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator",
   "oauth.scope_validator.authz_implicit.enable": true,
+  "oauth.scope_validator.preserve_case_sensitivity": false,
   "oauth.grant_type.saml_bearer.user_type": "FEDERATED",
 
   "oauth.prompt_consent": "$ref{authentication.consent.prompt}",
@@ -249,6 +257,8 @@
   "oauth.oidc.id_token.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
+  "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
+  "oauth.oidc.enable_claims_separation_for_access_tokens": false,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -348,7 +358,7 @@
   "scim2.endpoints.groups_endpoint": "$ref{server.base_path}/scim2/Groups",
   "scim2.enable_complex_multivalued_attribute_support": false,
   "scim2.enable_filtering_enhancements": false,
-  "scim2.enable_group_based_user_filter_improvements": false,
+  "scim2.enable_group_based_user_filter_improvements": true,
   "scim2.notify_userstore_status": false,
   "scim2.filter_users_and_groups_from_primary_domain": false,
   "scim2.mandate_domain_for_uesrnames_and_group_names_in_response": false,
@@ -510,6 +520,8 @@
   "authentication.jit_provisioning.enable_enhanced_feature": false,
 
   "application_mgt.enable_role_validation": false,
+  "application_mgt.trusted_app_consent_required": false,
+  "application_mgt.trusted_app_max_thumbprint_count": "20",
 
   "event.default_listener.validation.priority": "3",
   "event.default_listener.validation.enable": true,
@@ -772,6 +784,7 @@
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "AdaptiveAuth.ScriptEngine": "graaljs",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
@@ -790,6 +803,7 @@
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
+  "pagination.max_users_list_per_role": "1000",
 
   "user_filtering.show_display_name_of_user": false,
   "analytics.publish_password_grant_logins": false,
@@ -1049,6 +1063,11 @@
       "id": "T3JnYW5pemF0aW9uVXNlckludml0YXRpb24",
       "displayName": "Organization User Invitation",
       "description": "This email is sent when the organization admin invites a user to the organization"
+    },
+    {
+      "id": "SW1wZXJzb25hdGlvbkVtYWlsTm90aWZpY2F0aW9u",
+      "displayName": "Impersonation Email Notification",
+      "description": "This email is sent to the impersonated user when the impersonation session is started"
     }
   ],
   "console.ui.app_copyright": "WSO2 Identity Server",
@@ -1072,24 +1091,10 @@
     "OAuthRequestPathAuthenticator"
   ],
   "console.ui.hiddenConnectionTemplates": [ "swe-idp" ],
+  "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
-  "console.ui.legacy_mode.apiResourcesV1": false,
-  "console.ui.legacy_mode.apiResourcesV2": true,
-  "console.ui.legacy_mode.applicationListSystemApps": false,
-  "console.ui.legacy_mode.applicationOIDCSubjectIdentifier": true,
-  "console.ui.legacy_mode.applicationRequestPathAuthentication": false,
-  "console.ui.legacy_mode.applicationSystemAppsSettings": false,
-  "console.ui.legacy_mode.approvals": false,
-  "console.ui.legacy_mode.certificates": false,
-  "console.ui.legacy_mode.loginAndRegistrationEmailDomainDiscovery": true,
-  "console.ui.legacy_mode.organizations": true,
-  "console.ui.legacy_mode.rolesV1": false,
-  "console.ui.legacy_mode.roleMapping": false,
-  "console.ui.legacy_mode.secretsManagement": false,
-  "console.ui.legacy_mode.saasApplications": false,
-  "console.ui.legacy_mode.consoleFeatureScopeCheck": true,
   "console.ui.isXacmlConnectorEnabled": false,
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
@@ -1149,8 +1154,7 @@
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
     "applications.loginFlow.ai",
-    "applications.loginFlow.legacyEditor",
-    "applications.myaccount.saasMyaccountSettings"
+    "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
@@ -1280,7 +1284,11 @@
   "console.insights.enabled": false,
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
-  "console.login_and_registration.scopes.read": ["internal_governance_view"],
+  "console.login_and_registration.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
+  ],
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
     "internal_validation_rule_mgt_update",
@@ -1561,6 +1569,48 @@
   "connector.challenge_questions.enable": false,
   "tenant_mgt.enable_email_domain": false,
 
-  "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false
+  "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
+
+  "actions.maximum_actions_per_action_type": 1,
+  "actions.action_request.excluded_headers": [
+    "authorization",
+    "cookie",
+    "set-cookie",
+    "accept-encoding",
+    "accept-language",
+    "content-length",
+    "content-type",
+    "connection",
+    "host",
+    "referer",
+    "user-agent",
+    "origin",
+    "x-forwarded-for",
+    "x-forwarded-host",
+    "x-forwarded-proto",
+    "x-forwarded-port",
+    "x-forwarded-server",
+    "x-forwarded-uri"
+  ],
+  "actions.types.pre_issue_access_token.enable": true,
+  "actions.types.pre_issue_access_token.action_request.excluded_headers": [
+    "dpop"
+  ],
+  "actions.types.pre_issue_access_token.action_request.excluded_parameters": [
+    "code",
+    "redirect_uri",
+    "grant_type",
+    "scope",
+    "username",
+    "password",
+    "refresh_token",
+    "client_id",
+    "client_secret",
+    "client_assertion_type",
+    "client_assertion"
+  ],
+  "actions.types.authentication.enable": true,
+
+  "oauth.authorize_all_scopes": false
 }
 

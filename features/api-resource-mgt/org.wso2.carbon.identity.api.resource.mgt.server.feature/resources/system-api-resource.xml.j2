@@ -103,6 +103,20 @@
                    description="View authenticators of the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Action Management API" identifier="/api/server/v1/actions"
+                 requiresAuthorization="true"
+                 description="API representation of the Action Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Create Action" name="internal_action_mgt_create"
+                   description="Create new actions"/>
+            <Scope displayName="Update Action" name="internal_action_mgt_update"
+                   description="Update actions"/>
+            <Scope displayName="View Action" name="internal_action_mgt_view"
+                   description="View actions"/>
+            <Scope displayName="Delete Action" name="internal_action_mgt_delete"
+                   description="Delete actions"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">
@@ -1090,6 +1104,15 @@
                     description="Manage certificates from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Action Management Feature" identifier="console:actions"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Action Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Action Feature" name="console:actions" 
+                    description="Manage actions from the Console"/>
+        </Scopes>
+    </APIResource>   
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="ORGANIZATION">
@@ -1104,6 +1127,14 @@
         <Scopes>
             <Scope displayName="Offline invite link" name="internal_offline_invite" 
                     description="Manage offline invitations from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Impersonation" identifier="system:impersonation"
+                requiresAuthorization="true"
+                description="Resource representation of the User Impersonation" type="TENANT">
+        <Scopes>
+            <Scope displayName="User Impersonation Scope" name="internal_user_impersonate"
+                    description = "Allows to impersonate another user"/>
         </Scopes>
     </APIResource>
 </APIResources>

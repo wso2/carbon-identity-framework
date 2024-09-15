@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,13 +29,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -55,6 +55,8 @@ public class BrandingPreferenceRetrievalClient {
     private static final String RESOURCE_NAME_URL_SEARCH_PARAM = "name";
     private static final String RESOURCE_LOCALE_URL_SEARCH_PARAM = "locale";
     private static final String RESOURCE_SCREEN_URL_SEARCH_PARAM = "screen";
+    private static final String RESTRICT_TO_PUBLISHED_URL_SEARCH_PARAM = "restrictToPublished";
+    private static final String TRUE = "true";
 
     /**
      * Check for branding preference in the given tenant.
@@ -69,7 +71,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getPreference(String tenant, String type, String name, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             String uri = getBrandingPreferenceEndpoint(tenant);
 
@@ -87,6 +89,8 @@ public class BrandingPreferenceRetrievalClient {
                 if (StringUtils.isNotBlank(locale)) {
                     uriBuilder.addParameter(RESOURCE_LOCALE_URL_SEARCH_PARAM, locale);
                 }
+
+                uriBuilder.addParameter(RESTRICT_TO_PUBLISHED_URL_SEARCH_PARAM, TRUE);
                 uri = uriBuilder.build().toString();
 
                 if (log.isDebugEnabled()) {
@@ -141,7 +145,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getCustomTextPreference(String tenant, String type, String name, String screen, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             String uri = getCustomTextPreferenceEndpoint(tenant);
 

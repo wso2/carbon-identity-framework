@@ -108,6 +108,7 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
 
 public class IdentityUtil {
 
@@ -1479,6 +1480,28 @@ public class IdentityUtil {
     }
 
     /**
+     * Get the Maximum Actions per Action Type to be configured.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    public static int getMaximumActionsPerActionType() {
+
+        int maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ACTIONS_PER_TYPE;
+        String maximumActionsPerActionTypePropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_ACTIONS_PER_TYPE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumActionsPerActionTypePropertyValue)) {
+            try {
+                maximumActionsPerActionType = Integer.parseInt(maximumActionsPerActionTypePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'maximumActionsPerActionType' property value " +
+                        "in identity.xml.", e);
+            }
+        }
+        return maximumActionsPerActionType;
+    }
+
+    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.
@@ -1499,6 +1522,36 @@ public class IdentityUtil {
             // Ignore.
         }
         return defaultItemsPerPage;
+    }
+
+    /**
+     * Get the Maximum Users List per Role needed to display.
+     *
+     * @return maxUsersListPerRole need to display. If the property is invalid, falls back to the lower bound value.
+     */
+    public static int getMaximumUsersListPerRole() {
+
+        String maxUsersListPerRolePropertyValue = IdentityUtil.getProperty(
+                IdentityCoreConstants.MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY);
+
+        if (StringUtils.isBlank(maxUsersListPerRolePropertyValue)) {
+            log.warn("Missing 'MaximumUsersListPerRole' property. Using lower bound value "
+                    + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+            return USERS_LIST_PER_ROLE_LOWER_BOUND;
+        }
+
+        try {
+            int maxUsersListPerRole = Integer.parseInt(maxUsersListPerRolePropertyValue);
+            if (maxUsersListPerRole >= USERS_LIST_PER_ROLE_LOWER_BOUND) {
+                return maxUsersListPerRole;
+            }
+            log.warn("Configured 'MaximumUsersListPerRole' value " + maxUsersListPerRolePropertyValue +
+                    " is below the recommended minimum.");
+        } catch (NumberFormatException e) {
+            log.warn("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
+        }
+        log.warn("Falling back to the lower bound value " + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+        return USERS_LIST_PER_ROLE_LOWER_BOUND;
     }
 
     /**

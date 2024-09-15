@@ -17,12 +17,13 @@
 */
 package org.wso2.carbon.identity.entitlement.dto;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * This class encapsulate the XACML policy related the data
  */
-public class PolicyDTO {
+public class PolicyDTO implements Serializable {
 
 
     private String policy;
@@ -55,6 +56,24 @@ public class PolicyDTO {
 
     public PolicyDTO() {
 
+    }
+
+    public PolicyDTO(PolicyDTO policyDTO) {
+
+        this.policy = policyDTO.policy;
+        this.policyId = policyDTO.policyId;
+        this.active = policyDTO.active;
+        this.promote = policyDTO.promote;
+        this.policyType = policyDTO.policyType;
+        this.policyEditor = policyDTO.policyEditor;
+        this.policyEditorData = Arrays.copyOf(policyDTO.policyEditorData, policyDTO.policyEditorData.length);
+        this.policyOrder = policyDTO.policyOrder;
+        this.version = policyDTO.version;
+        this.lastModifiedTime = policyDTO.lastModifiedTime;
+        this.lastModifiedUser = policyDTO.lastModifiedUser;
+        this.attributeDTOs = Arrays.copyOf(policyDTO.attributeDTOs, policyDTO.attributeDTOs.length);
+        this.policySetIdReferences = Arrays.copyOf(policyDTO.policySetIdReferences, policyDTO.policySetIdReferences.length);
+        this.policyIdReferences = Arrays.copyOf(policyDTO.policyIdReferences, policyDTO.policyIdReferences.length);
     }
 
     public PolicyDTO(String policyId) {

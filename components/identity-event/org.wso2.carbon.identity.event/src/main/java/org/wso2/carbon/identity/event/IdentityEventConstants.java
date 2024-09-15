@@ -281,6 +281,10 @@ public class IdentityEventConstants {
 
         public static final String POST_UPDATE_API_RESOURCE = "POST_UPDATE_API_RESOURCE";
 
+        public static final String PRE_UPDATE_SCOPE_METADATA = "PRE_UPDATE_SCOPE_METADATA";
+
+        public static final String POST_UPDATE_SCOPE_METADATA = "POST_UPDATE_SCOPE_METADATA";
+
         public static final String PRE_DELETE_API_RESOURCE_SCOPES = "PRE_DELETE_API_RESOURCE_SCOPES";
 
         public static final String POST_DELETE_API_RESOURCE_SCOPES = "POST_DELETE_API_RESOURCE_SCOPES";
@@ -442,6 +446,7 @@ public class IdentityEventConstants {
         public static final String API_ID = "API_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String ADDED_SCOPES = "ADDED_SCOPES";
+        public static final String SCOPE = "SCOPE";
         public static final String DELETED_SCOPES = "DELETED_SCOPES";
         public static final String OLD_SCOPES = "OLD_SCOPES";
         public static final String NEW_SCOPES = "NEW_SCOPES";

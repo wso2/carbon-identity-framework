@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>7.3.23-SNAPSHOT</version>
+        <version>7.5.16-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -225,7 +225,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
                     <argLine>
+                        ${argLine}
                         --add-opens=java.base/java.util=ALL-UNNAMED
                     </argLine>
                     <suiteXmlFiles>

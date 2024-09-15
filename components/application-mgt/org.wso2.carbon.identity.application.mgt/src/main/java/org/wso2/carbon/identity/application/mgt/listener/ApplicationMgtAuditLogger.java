@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 
+import java.util.Arrays;
+
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
 
 /**
@@ -299,6 +301,21 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                 }
                 data.append("]");
             }
+            data.append("}");
+        }
+
+        if (serviceProvider.getTrustedAppMetadata() != null) {
+            data.append(", Trusted App Metadata:{");
+            data.append("isConsentGranted:").append(serviceProvider.getTrustedAppMetadata()
+                    .getIsConsentGranted()).append(", ");
+            data.append("isFidoTrusted:").append(serviceProvider.getTrustedAppMetadata()
+                    .getIsFidoTrusted()).append(", ");
+            data.append("androidPackageName:").append(serviceProvider.getTrustedAppMetadata()
+                    .getAndroidPackageName()).append(", ");
+            data.append("androidThumbprints:").append(Arrays.toString(serviceProvider.getTrustedAppMetadata()
+                    .getAndroidThumbprints())).append(", ");
+            data.append("appleAppId:").append(serviceProvider.getTrustedAppMetadata()
+                    .getAppleAppId()).append(", ");
             data.append("}");
         }
 

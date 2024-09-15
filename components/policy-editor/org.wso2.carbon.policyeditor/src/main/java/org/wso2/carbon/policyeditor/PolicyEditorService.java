@@ -21,6 +21,7 @@ package org.wso2.carbon.policyeditor;
 
 import org.apache.axis2.AxisFault;
 import org.apache.commons.io.Charsets;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.serialize.OutputFormat;
@@ -39,14 +40,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class PolicyEditorService {
 
     private static final Log log = LogFactory.getLog(PolicyEditorService.class);
     // The location of the XSD file resources
     private static final String ORG_WSO2_CARBON_POLICYEDITOR_XSD = "/org/wso2/carbon/policyeditor/xsd/";
-
+    private static final String POLICY_EDITOR_SERVICE_GET_POLICY_DOC_ALLOWED_URLS =
+            "AdminServices.PolicyEditorService.GetPolicyDoc.AllowedURLs";
+    private static final String MULTI_ATTRIBUTE_SEPARATOR = ",";
+    private static List<String> ALLOWED_URLS;
 
     /**
      * Retrieves a Policy document from a given URL
@@ -56,6 +62,10 @@ public class PolicyEditorService {
      * @throws AxisFault
      */
     public String getPolicyDoc(String policyURL) throws AxisFault {
+
+        if (!getAllowedUrls().contains(policyURL)) {
+            throw new AxisFault("Policy document retrieval is disabled for the given URL.");
+        }
         String policy = "";
 
         // Open a stream to the policy file using the URL.
@@ -196,6 +206,19 @@ public class PolicyEditorService {
         }
 
         return "<![CDATA[" + xml + "]]>";
+    }
+
+    private static List<String> getAllowedUrls() {
+
+        if (ALLOWED_URLS == null) {
+            if (StringUtils.isNotBlank(IdentityUtil.getProperty(POLICY_EDITOR_SERVICE_GET_POLICY_DOC_ALLOWED_URLS))) {
+                ALLOWED_URLS = Arrays.asList(IdentityUtil.getProperty(POLICY_EDITOR_SERVICE_GET_POLICY_DOC_ALLOWED_URLS)
+                        .split(MULTI_ATTRIBUTE_SEPARATOR));
+            } else {
+                ALLOWED_URLS = new ArrayList<>();
+            }
+        }
+        return ALLOWED_URLS;
     }
 
 }

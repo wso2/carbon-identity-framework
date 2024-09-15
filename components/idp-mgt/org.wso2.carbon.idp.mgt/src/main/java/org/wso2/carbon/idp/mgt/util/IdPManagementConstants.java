@@ -185,8 +185,8 @@ public class IdPManagementConstants {
         public static final String FROM = " FROM ( ";
 
         public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' " +
-                "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND " +
-                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true'0 AND ROWNUM <= ?) WHERE rnum > ?";
+                "AND ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = ? AND " +
+                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true') AND ROWNUM <= ?) WHERE rnum > ?";
 
 
         public static final String GET_IDP_BY_TENANT_POSTGRESQL =
@@ -194,7 +194,7 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_BY_TENANT_POSTGRESQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' " +
                 "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND " +
-                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true') ORDER BY %s LIMIT ? OFFSET ?";
+                "NAME = 'isSystemReservedIdP' AND VALUE = 'true') ORDER BY %s LIMIT ? OFFSET ?";
 
         public static final String GET_IDP_BY_TENANT_INFORMIX =
                 "SELECT SKIP ? FIRST ? ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
@@ -527,12 +527,12 @@ public class IdPManagementConstants {
                 "SP_AUTH_STEP.APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID = (SELECT ID FROM IDP_AUTHENTICATOR WHERE " +
                 "NAME=? AND TENANT_ID=?) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER JOIN SP_APP ON " +
                 "SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE SP_APP.TENANT_ID=? AND IDP_NAME=? LIMIT ?,?";
-        public static final String GET_CONNECTED_APPS_LOCAL_ORACLE = "SELECT UUID FROM (SELECT UUID, ROWNUM AS RNUM FROM ( " +
-                "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN SP_FEDERATED_IDP ON SP_AUTH_STEP.ID = SP_FEDERATED_IDP.ID)" +
+        public static final String GET_CONNECTED_APPS_LOCAL_ORACLE = "SELECT UUID FROM (SELECT UUID, ROWNUM AS RNUM FROM (" +
+                "(SELECT SP_APP.UUID FROM SP_AUTH_STEP INNER JOIN SP_FEDERATED_IDP ON SP_AUTH_STEP.ID = SP_FEDERATED_IDP.ID" +
                 " INNER JOIN SP_APP ON SP_AUTH_STEP.APP_ID = SP_APP.ID WHERE AUTHENTICATOR_ID = ( SELECT ID FROM " +
-                "IDP_AUTHENTICATOR WHERE IDP_ID = NAME=? AND TENANT_ID=?) UNION (SELECT SP_APP.UUID, " +
+                "IDP_AUTHENTICATOR WHERE NAME=? AND TENANT_ID=?)) UNION (SELECT SP_APP.UUID " +
                 "FROM SP_PROVISIONING_CONNECTOR INNER JOIN SP_APP ON " +
-                " SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE SP_APP.TENANT_ID = ? AND IDP_NAME=?) " +
+                " SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID WHERE SP_APP.TENANT_ID = ? AND IDP_NAME=?)) " +
                 "WHERE ROWNUM <= ?) WHERE RNUM > ?";
         public static final String GET_CONNECTED_APPS_LOCAL_MSSQL = "(SELECT UUID, SP_APP.ID FROM SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID INNER JOIN SP_APP ON SP_AUTH_STEP" +
