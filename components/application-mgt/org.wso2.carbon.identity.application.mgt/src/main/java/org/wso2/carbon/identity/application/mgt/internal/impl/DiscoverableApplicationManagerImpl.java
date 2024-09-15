@@ -75,9 +75,8 @@ public class DiscoverableApplicationManagerImpl implements DiscoverableApplicati
             if (ApplicationMgtUtil.isSubOrg(tenantDomain)) {
                 String primaryOrgId = ApplicationMgtUtil.getParentOrgId(tenantDomain);
                 return appDAO.getCountOfDiscoverableAppsFromRootAndSubOrg(filter, tenantDomain, primaryOrgId);
-            } else {
-                return appDAO.getCountOfDiscoverableApplications(filter, tenantDomain);
             }
+            return appDAO.getCountOfDiscoverableApplications(filter, tenantDomain);
         } catch (OrganizationManagementException e) {
             throw new IdentityApplicationManagementException(e.getErrorMessage(), e);
         }
