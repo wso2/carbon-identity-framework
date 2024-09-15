@@ -42,10 +42,9 @@ public class DiscoverableApplicationManagerImpl implements DiscoverableApplicati
                 String primaryOrgID = ApplicationMgtUtil.getParentOrgId(tenantDomain);
                 return appDAO.getDiscoverableAppsInfoFromRootAndSubOrg(limit, offset, filter, sortOrder, sortBy,
                         tenantDomain, primaryOrgID);
-            } else {
-                return appDAO.getDiscoverableApplicationBasicInfo(limit, offset, filter, sortOrder, sortBy,
-                        tenantDomain);
             }
+            return appDAO.getDiscoverableApplicationBasicInfo(limit, offset, filter, sortOrder, sortBy,
+                        tenantDomain);
         } catch (OrganizationManagementException e) {
             throw new IdentityApplicationManagementException(e.getErrorMessage(), e);
         }
