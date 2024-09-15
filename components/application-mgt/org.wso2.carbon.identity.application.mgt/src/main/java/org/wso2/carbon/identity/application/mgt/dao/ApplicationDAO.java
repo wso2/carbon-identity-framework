@@ -332,8 +332,8 @@ public interface ApplicationDAO {
      * Returns the count of discoverable applications from root and sub org.
      *
      * @param filter       Filter to search for applications (optional).
-     * @param tenantDomain Tenant domain
-     * @param primaryOrgId Primary organization ID
+     * @param tenantDomain Tenant domain.
+     * @param primaryOrgId Primary organization ID.
      * @return Count of discoverable applications.
      * @throws IdentityApplicationManagementException
      */
