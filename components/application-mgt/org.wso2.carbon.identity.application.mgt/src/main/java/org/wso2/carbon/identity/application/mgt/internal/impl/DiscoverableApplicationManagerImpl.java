@@ -80,8 +80,7 @@ public class DiscoverableApplicationManagerImpl implements DiscoverableApplicati
                 return appDAO.getCountOfDiscoverableApplications(filter, tenantDomain);
             }
         } catch (OrganizationManagementException e) {
-            throw new IdentityApplicationManagementException("Error while checking whether the tenant domain is a " +
-                    "sub-organization.", e);
+            throw new IdentityApplicationManagementException(e.getErrorMessage(), e);
         }
     }
 }
