@@ -1232,8 +1232,8 @@ public class ApplicationMgtUtil {
     /**
      * Check the given tenant is a sub org.
      *
-     * @param tenantDomain
-     * @return true if the tenant is a sub org
+     * @param tenantDomain Tenant Domain.
+     * @return True if the tenant is a sub organization.
      * @throws OrganizationManagementException
      */
     public static boolean isSubOrg(String tenantDomain)
