@@ -1230,7 +1230,7 @@ public class ApplicationMgtUtil {
     }
 
     /**
-     * check the given tenant is a sub org
+     * Check the given tenant is a sub org.
      *
      * @param tenantDomain
      * @return true if the tenant is a sub org
