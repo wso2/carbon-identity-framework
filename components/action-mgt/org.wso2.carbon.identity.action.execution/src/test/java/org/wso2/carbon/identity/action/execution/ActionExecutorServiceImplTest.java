@@ -137,8 +137,10 @@ public class ActionExecutorServiceImplTest {
             expectedExceptionsMessageRegExp = "No request builder found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenNoRegisteredRequestBuilderForActionType() throws Exception {
 
+        // Mock Action and its dependencies
+        Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
-                Collections.singletonList(mock(Action.class)));
+                Collections.singletonList(action));
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
     }
@@ -146,8 +148,10 @@ public class ActionExecutorServiceImplTest {
     @Test
     public void testActionExecuteFailureAtExceptionFromRequestBuilderForActionType() throws Exception {
 
+        // Mock Action and its dependencies
+        Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
-                Collections.singletonList(mock(Action.class)));
+                Collections.singletonList(action));
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(ActionType.PRE_ISSUE_ACCESS_TOKEN);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenThrow(
                 new ActionExecutionRequestBuilderException("Error while executing request builder."));
@@ -165,8 +169,10 @@ public class ActionExecutorServiceImplTest {
             expectedExceptionsMessageRegExp = "No response processor found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenNoRegisteredResponseProcessorForActionType() throws Exception {
 
+        // Mock Action and its dependencies
+        Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
-                Collections.singletonList(mock(Action.class)));
+                Collections.singletonList(action));
 
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(ActionType.PRE_ISSUE_ACCESS_TOKEN);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenReturn(
