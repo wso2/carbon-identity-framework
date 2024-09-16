@@ -120,7 +120,7 @@ public class APIResourceManagementUtil {
                                     .noneMatch(scope2 -> scope2.getName().equals(scope1.getName())))
                             .collect(Collectors.toList());
                     if (addedScopes.isEmpty() &&
-                            !StringUtils.equals(apiResourceFromDB.getType(), updatedAPIResource.getType())) {
+                            StringUtils.equals(apiResourceFromDB.getType(), updatedAPIResource.getType())) {
                         continue;
                     }
 
