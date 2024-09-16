@@ -58,6 +58,7 @@ import javax.xml.bind.annotation.XmlTransient;
 public class IdentityProvider implements Serializable {
 
     private static final long serialVersionUID = 2199048941051702943L;
+    private static final Log LOG = LogFactory.getLog(IdentityProvider.class);
 
     private static final Log log = LogFactory.getLog(IdentityProvider.class);
     private static final String FILE_ELEMENT_IDENTITY_PROVIDER_NAME = "IdentityProviderName";
@@ -418,6 +419,13 @@ public class IdentityProvider implements Serializable {
 
         if (federatedAuthenticatorConfigs == null) {
             return;
+        }
+
+        // TODO: Remove warn log, once feature is ready.
+        for (FederatedAuthenticatorConfig config: federatedAuthenticatorConfigs) {
+            if (config.getDefinedByType() == null) {
+                LOG.warn("The defined by type is not set for the : " + config.getName());
+            }
         }
         Set<FederatedAuthenticatorConfig> propertySet =
                 new HashSet<FederatedAuthenticatorConfig>(Arrays.asList(federatedAuthenticatorConfigs));

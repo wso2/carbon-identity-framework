@@ -1148,6 +1148,8 @@ public class IdPManagementDAO {
                 }
 
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
+                // TODO: Read from database and set the DefinedBy property to the authenticator.
+                authnConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());
@@ -1424,6 +1426,7 @@ public class IdPManagementDAO {
             }
             prepStmt1.setString(4, authnConfig.getName());
             prepStmt1.setString(5, authnConfig.getDisplayName());
+            //TODO: prepStmt1.setString(6, authnConfig.getDefinedByType().toString());
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
@@ -2330,6 +2333,7 @@ public class IdPManagementDAO {
         if (samlFederatedAuthConfig == null) {
             samlFederatedAuthConfig = new FederatedAuthenticatorConfig();
             samlFederatedAuthConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+            samlFederatedAuthConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         }
 
         List<Property> propertiesList = new ArrayList<>();
@@ -2713,6 +2717,7 @@ public class IdPManagementDAO {
         if (openIdFedAuthn == null) {
             openIdFedAuthn = new FederatedAuthenticatorConfig();
             openIdFedAuthn.setName(IdentityApplicationConstants.Authenticator.OpenID.NAME);
+            openIdFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(openIdFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(openIdFedAuthn.getProperties(),
@@ -2735,6 +2740,7 @@ public class IdPManagementDAO {
         if (oauth1FedAuthn == null) {
             oauth1FedAuthn = new FederatedAuthenticatorConfig();
             oauth1FedAuthn.setName(IdentityApplicationConstants.OAuth10A.NAME);
+            oauth1FedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(oauth1FedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
@@ -2770,6 +2776,7 @@ public class IdPManagementDAO {
         if (oidcFedAuthn == null) {
             oidcFedAuthn = new FederatedAuthenticatorConfig();
             oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+            oidcFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>();
 
@@ -2841,6 +2848,7 @@ public class IdPManagementDAO {
         if (passiveSTSFedAuthn == null) {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+            passiveSTSFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         }
 
         propertiesList = new ArrayList<>();
@@ -2880,6 +2888,7 @@ public class IdPManagementDAO {
         if (stsFedAuthn == null) {
             stsFedAuthn = new FederatedAuthenticatorConfig();
             stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
+            stsFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(stsFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
@@ -2894,6 +2903,7 @@ public class IdPManagementDAO {
 
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
         sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
+        sessionTimeoutConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
 
         propertiesList = new ArrayList<>(Arrays.asList(sessionTimeoutConfig.getProperties()));
 
@@ -3443,6 +3453,8 @@ public class IdPManagementDAO {
                 if (defaultAuthenticatorName != null) {
                     FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
                     defaultAuthenticator.setName(defaultAuthenticatorName);
+                    // TODO: Check the authenticator type and set the DefinedBy property accordingly.
+                    defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 
@@ -3606,6 +3618,8 @@ public class IdPManagementDAO {
                 if (defaultAuthenticatorName != null) {
                     FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
                     defaultAuthenticator.setName(defaultAuthenticatorName);
+                    // TODO: Check the authenticator type and set the DefinedBy property accordingly.
+                    defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 
