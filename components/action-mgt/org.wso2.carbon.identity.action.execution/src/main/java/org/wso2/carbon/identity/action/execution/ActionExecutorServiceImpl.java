@@ -86,7 +86,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     /**
-     * Resolve the actions that need to be executed for thr given action types and execute them.
+     * Resolve the actions that need to be executed for the given action types and execute them.
      *
      * @param actionType    Action Type.
      * @param eventContext  The event context of the corresponding flow.
@@ -123,6 +123,9 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         try {
             // As of now only one action is allowed.
+            if (actionIds.length != 1) {
+                throw new ActionExecutionException("Only support list with single action Id.");
+            }
             return execute(getActionByActionId(actionType, actionIds[0], tenantDomain), eventContext);
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
