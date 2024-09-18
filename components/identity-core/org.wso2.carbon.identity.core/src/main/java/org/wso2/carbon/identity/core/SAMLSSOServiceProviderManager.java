@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -30,6 +31,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
 
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML_STORAGE_CONFIG;
+
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
  * providers are supported here.
@@ -37,10 +40,9 @@ import org.wso2.carbon.registry.core.Registry;
 public class SAMLSSOServiceProviderManager {
 
     private static final Log LOG = LogFactory.getLog(SAMLSSOServiceProviderManager.class);
-
-    private static final String SAML_CONFIGS_LOCATION_CONFIG = "RegistryDataStoreLocation.SAMLConfigs";
-
-    private static final String DATABASE = "database";
+    private static final String SAML_STORAGE_TYPE = IdentityUtil.getProperty(SAML_STORAGE_CONFIG);
+    private static final String HYBRID = "hybrid";
+    private static final String REGISTRY = "registry";
 
     /**
      * Build the SAML service provider.
@@ -50,17 +52,30 @@ public class SAMLSSOServiceProviderManager {
      */
     private SAMLSSOServiceProviderDAO buildSAMLSSOProvider(int tenantId) throws IdentityException {
 
-        String samlConfigsDatabase = IdentityUtil.getProperty(SAML_CONFIGS_LOCATION_CONFIG);
-        if (DATABASE.equals(samlConfigsDatabase)) {
-            return new SAMLSSOServiceProviderDAOImpl(tenantId);
+        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = new SAMLSSOServiceProviderDAOImpl(tenantId);
+        if (StringUtils.isNotBlank(SAML_STORAGE_TYPE)) {
+            switch (SAML_STORAGE_TYPE) {
+                case HYBRID:
+                    LOG.info("Hybrid SAML storage initialized.");
+                    break;
+                case REGISTRY:
+                    try {
+                        Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry(tenantId);
+                        samlSSOServiceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+                    } catch (RegistryException e) {
+                        LOG.error("Error while retrieving registry", e);
+                        throw new IdentityException("Error while retrieving registry", e);
+                    }
+                    LOG.warn("Registry based SAML storage initialized.");
+                    break;
+            }
         }
-        try {
-            Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry(tenantId);
-            return new SAMLSSOServiceProviderRegistryDAOImpl(registry);
-        } catch (RegistryException e) {
-            LOG.error("Error while retrieving registry", e);
-            throw new IdentityException("Error while retrieving registry", e);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(
+                    "SAML SSO Service Provider DAO initialized with the type: " + samlSSOServiceProviderDAO.getClass());
         }
+        return samlSSOServiceProviderDAO;
     }
 
     /**

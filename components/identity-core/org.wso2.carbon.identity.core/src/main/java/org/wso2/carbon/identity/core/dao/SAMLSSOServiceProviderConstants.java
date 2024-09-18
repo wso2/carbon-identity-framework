@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.core.dao;
 
 public class SAMLSSOServiceProviderConstants {
 
+    public static final String SAML_STORAGE_CONFIG = "DataStorageType.SAML";
+
     private SAMLSSOServiceProviderConstants() {
 
     }
