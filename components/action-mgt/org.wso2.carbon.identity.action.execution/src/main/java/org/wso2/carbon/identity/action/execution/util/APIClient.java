@@ -66,7 +66,7 @@ public class APIClient {
                 .setRelativeRedirectsAllowed(false)
                 .build();
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(ActionExecutorConfig.getInstance().getHttpClientConnectionPoolSize());
+        connectionManager.setMaxTotal(ActionExecutorConfig.getInstance().getHttpConnectionPoolSize());
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
                 .build();
     }

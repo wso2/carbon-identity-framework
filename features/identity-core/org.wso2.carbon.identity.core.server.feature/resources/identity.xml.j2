@@ -2020,12 +2020,12 @@
     </OutboundProvisioning>
 
     <Actions>
-        <HTTPConnections>
-            <HTTPConnectionTimeout>{{actions.http_connections.connection_timeout}}</HTTPConnectionTimeout>
-            <HTTPReadTimeout>{{actions.http_connections.read_timeout}}</HTTPReadTimeout>
-            <HTTPConnectionRequestTimeout>{{actions.http_connections.request_timeout}}</HTTPConnectionRequestTimeout>
-        </HTTPConnections>
-        <HTTPClientConnectionPoolSize>{{actions.http_client_connection_pool_size}}</HTTPClientConnectionPoolSize>
+        <HTTPClient>
+            <HTTPConnectionTimeout>{{actions.http_client.connection_timeout}}</HTTPConnectionTimeout>
+            <HTTPReadTimeout>{{actions.http_client.read_timeout}}</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>{{actions.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+            <HTTPConnectionPoolSize>{{actions.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+        </HTTPClient>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
         <ActionRequest>
             <ExcludedHeaders>

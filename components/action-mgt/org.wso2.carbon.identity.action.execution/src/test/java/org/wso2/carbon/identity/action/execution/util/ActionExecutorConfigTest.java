@@ -308,7 +308,7 @@ public class ActionExecutorConfigTest {
     public void testGetHttpReadTimeoutInMillis() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPConnections.HTTPReadTimeout", "5000");
+        configMap.put("Actions.HTTPClient.HTTPReadTimeout", "5000");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(5000, actionExecutorConfig.getHttpReadTimeoutInMillis());
     }
@@ -317,7 +317,7 @@ public class ActionExecutorConfigTest {
     public void testGetHttpReadTimeoutInMillisWithoutNumberFormat() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPConnections.HTTPReadTimeout", "value");
+        configMap.put("Actions.HTTPClient.HTTPReadTimeout", "value");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(5000, actionExecutorConfig.getHttpReadTimeoutInMillis());
     }
@@ -326,7 +326,7 @@ public class ActionExecutorConfigTest {
     public void testGetHttpConnectionRequestTimeoutInMillis() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPConnections.HTTPConnectionRequestTimeout", "2000");
+        configMap.put("Actions.HTTPClient.HTTPConnectionRequestTimeout", "2000");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(2000, actionExecutorConfig.getHttpConnectionRequestTimeoutInMillis());
     }
@@ -335,26 +335,26 @@ public class ActionExecutorConfigTest {
     public void testGetHttpConnectionTimeoutInMillis() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPConnections.HTTPConnectionTimeout", "2000");
+        configMap.put("Actions.HTTPClient.HTTPConnectionTimeout", "2000");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(2000, actionExecutorConfig.getHttpConnectionTimeoutInMillis());
     }
 
     @Test
-    public void testGetHttpClientConnectionPoolSize() {
+    public void testGetHttpConnectionPoolSize() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPClientConnectionPoolSize", "20");
+        configMap.put("Actions.HTTPClient.HTTPConnectionPoolSize", "20");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
-        Assert.assertEquals(20, actionExecutorConfig.getHttpClientConnectionPoolSize());
+        Assert.assertEquals(20, actionExecutorConfig.getHttpConnectionPoolSize());
     }
 
     @Test
-    public void testGetHttpClientConnectionPoolSizeWithoutNumberFormat() {
+    public void testGetHttpConnectionPoolSizeWithoutNumberFormat() {
 
         Map<String, Object> configMap = new HashMap<>();
-        configMap.put("Actions.HTTPClientConnectionPoolSize", "value");
+        configMap.put("Actions.HTTPClient.HTTPConnectionPoolSize", "value");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
-        Assert.assertEquals(20, actionExecutorConfig.getHttpClientConnectionPoolSize());
+        Assert.assertEquals(20, actionExecutorConfig.getHttpConnectionPoolSize());
     }
 }

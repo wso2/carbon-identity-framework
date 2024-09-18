@@ -44,15 +44,15 @@ public class ActionExecutorConfig {
             "Actions.ActionRequest.ExcludedHeaders.Header";
     private static final String EXCLUDED_PARAMS_IN_ACTION_REQUEST_PROPERTY =
             "Actions.ActionRequest.ExcludedParameters.Parameter";
-    private static final String HTTP_READ_TIMEOUT_PROPERTY = "Actions.HTTPConnections.HTTPReadTimeout";
+    private static final String HTTP_READ_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPReadTimeout";
     private static final String HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY =
-            "Actions.HTTPConnections.HTTPConnectionRequestTimeout";
-    private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPConnections.HTTPConnectionTimeout";
-    private static final String HTTP_CLIENT_CONNECTION_POOL_SIZE_PROPERTY = "Actions.HTTPClientConnectionPoolSize";
-    private static final int DEFAULT_HTTP_CLIENT_CONNECTION_POOL_SIZE_PROPERTY = 20;
+            "Actions.HTTPClient.HTTPConnectionRequestTimeout";
+    private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPConnectionTimeout";
+    private static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY = "Actions.HTTPClient.HTTPConnectionPoolSize";
+    private static final int DEFAULT_HTTP_CONNECTION_POOL_SIZE = 20;
     private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = 5000;
-    private static final int DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_MILLIS = 2000;
-    private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT_MILLIS = 2000;
+    private static final int DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_IN_MILLIS = 2000;
+    private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT_IN_MILLIS = 2000;
 
     private ActionExecutorConfig() {
 
@@ -83,24 +83,22 @@ public class ActionExecutorConfig {
     }
 
     /**
-     * Returns the HTTP client connection pool size based on the system configuration.
+     * Returns the HTTP connection pool size based on the system configuration.
      *
-     * @return The HTTP client connection pool size, or the default if the property is missing or invalid.
+     * @return The HTTP connection pool size, or the default if the property is missing or invalid.
      */
-    public int getHttpClientConnectionPoolSize() {
+    public int getHttpConnectionPoolSize() {
 
-        int poolSizePropertyValue = DEFAULT_HTTP_CLIENT_CONNECTION_POOL_SIZE_PROPERTY;
+        int poolSizePropertyValue = DEFAULT_HTTP_CONNECTION_POOL_SIZE;
         String poolSizeValue = (String) IdentityConfigParser.getInstance().getConfiguration().
-                get(HTTP_CLIENT_CONNECTION_POOL_SIZE_PROPERTY);
+                get(HTTP_CONNECTION_POOL_SIZE_PROPERTY);
         if (StringUtils.isNotBlank(poolSizeValue)) {
             try {
                 poolSizePropertyValue = Integer.parseInt(poolSizeValue);
             } catch (NumberFormatException e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Failed to read Http client connection pool size property in identity.xml." +
-                            " Expects a number. Using the default value: " +
-                            DEFAULT_HTTP_CLIENT_CONNECTION_POOL_SIZE_PROPERTY, e);
-                }
+                LOG.debug("Failed to read Http client connection pool size property in identity.xml." +
+                        " Expects a number. Using the default value: " +
+                        DEFAULT_HTTP_CONNECTION_POOL_SIZE, e);
             }
         }
         return poolSizePropertyValue;
@@ -126,7 +124,7 @@ public class ActionExecutorConfig {
     public int getHttpConnectionRequestTimeoutInMillis() {
 
         return parseTimeoutConfig(HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY,
-                DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_MILLIS);
+                DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_IN_MILLIS);
     }
 
     /**
@@ -137,7 +135,7 @@ public class ActionExecutorConfig {
      */
     public int getHttpConnectionTimeoutInMillis() {
 
-        return parseTimeoutConfig(HTTP_CONNECTION_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_TIMEOUT_MILLIS);
+        return parseTimeoutConfig(HTTP_CONNECTION_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_TIMEOUT_IN_MILLIS);
     }
 
     private int parseTimeoutConfig(String timeoutTypeName, int defaultTimeout) {
@@ -148,10 +146,8 @@ public class ActionExecutorConfig {
             try {
                 timeoutPropertyValue = Integer.parseInt(timeoutValue);
             } catch (NumberFormatException e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Failed to read " + timeoutTypeName + " property in identity.xml." +
-                            " Expects a number. Using the default value: " + defaultTimeout, e);
-                }
+                LOG.debug("Failed to read " + timeoutTypeName + " property in identity.xml." +
+                        " Expects a number. Using the default value: " + defaultTimeout, e);
             }
         }
         return timeoutPropertyValue;
