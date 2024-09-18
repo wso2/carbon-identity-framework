@@ -314,8 +314,9 @@ public class ActionExecutorConfigTest {
     }
 
     @Test
-    public void testGetHttpReadTimeoutInMillisWithoutNumberFormat() {
+    public void testGetHttpReadTimeoutInMillisForInvalidConfig() {
 
+        //If the server configuration value is not a number, the default http read timeout value of 5000 is parsed
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("Actions.HTTPClient.HTTPReadTimeout", "value");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
@@ -350,8 +351,9 @@ public class ActionExecutorConfigTest {
     }
 
     @Test
-    public void testGetHttpConnectionPoolSizeWithoutNumberFormat() {
+    public void testGetHttpConnectionPoolSizeForInvalidConfig() {
 
+        //If the server configuration value is not a number, the default http connection pool size value of 20 is parsed
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("Actions.HTTPClient.HTTPConnectionPoolSize", "value");
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
