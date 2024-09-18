@@ -113,24 +113,34 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * Resolve the actions by given the action id list and execute them.
      *
      * @param actionType    Action Type.
-     * @param actionIds     Lis of action Ids of the actions that need to be executed.
+     * @param actionIdList     Lis of action Ids of the actions that need to be executed.
      * @param eventContext  The event context of the corresponding flow.
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
-    public ActionExecutionStatus execute(ActionType actionType, String[] actionIds, Map<String, Object> eventContext,
+    public ActionExecutionStatus execute(ActionType actionType, String[] actionIdList, Map<String, Object> eventContext,
                                          String tenantDomain) throws ActionExecutionException {
 
+        validateActionIdList(actionType, actionIdList);
+        Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
         try {
-            // As of now only one action is allowed.
-            if (actionIds.length != 1) {
-                throw new ActionExecutionException("Only support list with single action Id.");
-            }
-            return execute(getActionByActionId(actionType, actionIds[0], tenantDomain), eventContext);
+            return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        }
+    }
+
+    private void validateActionIdList(ActionType actionType, String[] actionIdList) throws ActionExecutionException {
+
+        // As of now only one action is allowed.
+        if (actionIdList == null || actionIdList.length == 0) {
+            throw new ActionExecutionException("No action Ids found for action type: " + actionType.name());
+        }
+        if (actionIdList.length > 1) {
+            throw new ActionExecutionException("Multiple actions found for action type: " + actionType.name() +
+                    ". Current implementation doesn't support multiple actions for a single action type.");
         }
     }
 
@@ -149,13 +159,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private Action getActionByActionId(ActionType actionType, String actionId, String tenantDomain)
-            throws ActionExecutionRuntimeException {
+            throws ActionExecutionException {
 
         try {
             return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService().getActionByActionId(
                     Action.ActionTypes.valueOf(actionType.name()).getActionType(), actionId, tenantDomain);
         } catch (ActionMgtException e) {
-            throw new ActionExecutionRuntimeException("Error occurred while retrieving action by action Id .", e);
+            throw new ActionExecutionException("Error occurred while retrieving action by action Id.", e);
         }
     }
 

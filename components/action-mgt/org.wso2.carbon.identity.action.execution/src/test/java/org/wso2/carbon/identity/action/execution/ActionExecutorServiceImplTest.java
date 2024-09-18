@@ -134,7 +134,7 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
-            expectedExceptionsMessageRegExp = "Only support list with single action Id.")
+            expectedExceptionsMessageRegExp = "No action Ids found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteWithActionIdsFailureWhenNotSingleActionIdAvailable() throws Exception {
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{}, new HashMap<>(),
@@ -159,6 +159,16 @@ public class ActionExecutorServiceImplTest {
 
         Action action = createAction();
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
+
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving action by action Id.")
+    public void testActionExecuteWithActionIdFailureWhenInvalidActionIdGiven() throws Exception {
+
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenThrow(
+                new ActionMgtException("Error occurred while retrieving action by action Id."));
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
     }
