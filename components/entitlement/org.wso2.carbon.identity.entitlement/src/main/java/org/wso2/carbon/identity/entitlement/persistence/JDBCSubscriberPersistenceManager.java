@@ -94,6 +94,8 @@ public class JDBCSubscriberPersistenceManager implements SubscriberPersistenceMa
         if (subscriberId == null) {
             throw new EntitlementException(ERROR_SUBSCRIBER_ID_NULL);
         }
+        PublisherPropertyDTO[] propertyDTOsWithEncryptedSecrets = encryptSecretProperties(holder.getPropertyDTOs());
+        holder.setPropertyDTOs(propertyDTOsWithEncryptedSecrets);
 
         if (isSubscriberExists(subscriberId)) {
             throw new EntitlementException("Subscriber ID already exists");
@@ -122,8 +124,8 @@ public class JDBCSubscriberPersistenceManager implements SubscriberPersistenceMa
             PublisherDataHolder oldHolder = getSubscriber(subscriberId, false);
             String updatedModuleName = getUpdatedModuleName(holder, oldHolder);
             PublisherPropertyDTO[] updatedPropertyDTOs = getUpdatedPropertyDTOs(holder, oldHolder);
-            updatedPropertyDTOs = encryptUpdatedSecretProperties(updatedPropertyDTOs);
-            subscriberDAO.updateSubscriber(subscriberId, updatedModuleName, updatedPropertyDTOs, tenantId);
+            PublisherPropertyDTO[] propertyDTOsWithEncryptedSecrets = encryptSecretProperties(updatedPropertyDTOs);
+            subscriberDAO.updateSubscriber(subscriberId, updatedModuleName, propertyDTOsWithEncryptedSecrets, tenantId);
         } else {
             throw new EntitlementException("Subscriber ID does not exist; update cannot be done");
         }
@@ -194,11 +196,11 @@ public class JDBCSubscriberPersistenceManager implements SubscriberPersistenceMa
     }
 
     /**
-     * Sets the base64 encoded secret value of the secret subscriber properties, if it has been updated.
+     * Sets the base64 encoded secret value of the secret subscriber properties.
      *
-     * @param propertyDTOs list of subscriber properties
+     * @param propertyDTOs list of subscriber properties.
      */
-    private PublisherPropertyDTO[] encryptUpdatedSecretProperties(PublisherPropertyDTO[] propertyDTOs)
+    private PublisherPropertyDTO[] encryptSecretProperties(PublisherPropertyDTO[] propertyDTOs)
             throws EntitlementException {
 
         if (propertyDTOs == null) {
