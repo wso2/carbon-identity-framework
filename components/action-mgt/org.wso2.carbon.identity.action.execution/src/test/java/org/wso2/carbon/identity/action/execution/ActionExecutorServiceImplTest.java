@@ -135,7 +135,7 @@ public class ActionExecutorServiceImplTest {
 
     @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "No action Ids found for action type: PRE_ISSUE_ACCESS_TOKEN")
-    public void testActionExecuteWithActionIdsFailureWhenNotSingleActionIdAvailable() throws Exception {
+    public void testActionExecuteWithActionIdsFailureWhenActionIdListIsEmpty() throws Exception {
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{}, new HashMap<>(),
                 "tenantDomain");
