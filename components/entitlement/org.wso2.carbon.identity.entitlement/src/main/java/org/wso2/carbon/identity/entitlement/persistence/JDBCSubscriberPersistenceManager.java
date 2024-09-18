@@ -58,7 +58,7 @@ public class JDBCSubscriberPersistenceManager implements SubscriberPersistenceMa
 
         PublisherDataHolder publisherDataHolder = subscriberDAO.getSubscriber(subscriberId, tenantId);
         if (publisherDataHolder == null) {
-            return null;
+            throw new EntitlementException("No Subscriber is defined for the given Id");
         }
         if (shouldDecryptSecrets) {
             decryptSecretProperties(publisherDataHolder.getPropertyDTOs());
