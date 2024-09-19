@@ -67,6 +67,7 @@ public class PersistenceManagerFactoryTest {
     public void tearDown() throws Exception {
 
         entitlementServiceComponent.close();
+        setPrivateStaticField(PersistenceManagerFactory.class, "POLICY_STORAGE_TYPE", "");
     }
 
     @Test

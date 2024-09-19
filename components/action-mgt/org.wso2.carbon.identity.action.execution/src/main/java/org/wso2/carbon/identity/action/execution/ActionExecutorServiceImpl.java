@@ -85,26 +85,87 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return ActionExecutorConfig.getInstance().isExecutionForActionTypeEnabled(actionType);
     }
 
+    /**
+     * Resolve the actions that need to be executed for the given action types and execute them.
+     *
+     * @param actionType    Action Type.
+     * @param eventContext  The event context of the corresponding flow.
+     * @param tenantDomain  Tenant domain.
+     * @return Action execution status.
+     */
     public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
         try {
             List<Action> actions = getActionsByActionType(actionType, tenantDomain);
             validateActions(actions, actionType);
-            ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
-            ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
-
-            Action action = actions.get(0); // As of now only one action is allowed.
-            return Optional.ofNullable(action)
-                    .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
-                    .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
-                            actionExecutionResponseProcessor))
-                    .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext));
+            // As of now only one action is allowed.
+            Action action = actions.get(0);
+            return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        }
+    }
 
+    /**
+     * Resolve the actions by given the action id list and execute them.
+     *
+     * @param actionType    Action Type.
+     * @param actionIdList     Lis of action Ids of the actions that need to be executed.
+     * @param eventContext  The event context of the corresponding flow.
+     * @param tenantDomain  Tenant domain.
+     * @return Action execution status.
+     */
+    public ActionExecutionStatus execute(ActionType actionType, String[] actionIdList, Map<String, Object> eventContext,
+                                         String tenantDomain) throws ActionExecutionException {
+
+        validateActionIdList(actionType, actionIdList);
+        Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
+        try {
+            return execute(action, eventContext);
+        } catch (ActionExecutionRuntimeException e) {
+            // todo: add to diagnostics
+            LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
+            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        }
+    }
+
+    private void validateActionIdList(ActionType actionType, String[] actionIdList) throws ActionExecutionException {
+
+        // As of now only one action is allowed.
+        if (actionIdList == null || actionIdList.length == 0) {
+            throw new ActionExecutionException("No action Ids found for action type: " + actionType.name());
+        }
+        if (actionIdList.length > 1) {
+            throw new ActionExecutionException("Multiple actions found for action type: " + actionType.name() +
+                    ". Current implementation doesn't support multiple actions for a single action type.");
+        }
+    }
+
+    private ActionExecutionStatus execute(Action action, Map<String, Object> eventContext)
+            throws ActionExecutionException {
+
+        ActionType actionType = ActionType.valueOf(action.getType().getActionType());
+        ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
+        ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
+
+        return Optional.ofNullable(action)
+                .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
+                .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
+                        actionExecutionResponseProcessor))
+                .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext));
+    }
+
+    private Action getActionByActionId(ActionType actionType, String actionId, String tenantDomain)
+            throws ActionExecutionException {
+
+        try {
+            return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService().getActionByActionId(
+                    Action.ActionTypes.valueOf(actionType.name()).getActionType(), actionId, tenantDomain);
+        } catch (ActionMgtException e) {
+            throw new ActionExecutionException("Error occurred while retrieving action by action Id.", e);
         }
     }
 

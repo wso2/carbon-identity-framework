@@ -53,11 +53,10 @@ public class HybridSubscriberPersistenceManager implements SubscriberPersistence
     public PublisherDataHolder getSubscriber(String subscriberId, boolean shouldDecryptSecrets)
             throws EntitlementException {
 
-        PublisherDataHolder holder = jdbcSubscriberPersistenceManager.getSubscriber(subscriberId, shouldDecryptSecrets);
-        if (holder == null) {
-            holder = registrySubscriberPersistenceManager.getSubscriber(subscriberId, shouldDecryptSecrets);
+        if (jdbcSubscriberPersistenceManager.isSubscriberExists(subscriberId)) {
+            return jdbcSubscriberPersistenceManager.getSubscriber(subscriberId, shouldDecryptSecrets);
         }
-        return holder;
+        return registrySubscriberPersistenceManager.getSubscriber(subscriberId, shouldDecryptSecrets);
     }
 
     @Override
