@@ -263,4 +263,37 @@ public class DefaultApplicationValidatorTest {
         Assert.assertTrue(validationErrors.isEmpty(), "Validation should be skipped and there should not be any " +
                 "error messages.");
     }
+
+    @DataProvider(name = "validateApplicationVersionDataProvider")
+    public Object[][] validateApplicationVersionDataProvider() {
+
+        return new Object[][]{
+                // version, valid status
+                {"v1.0.0", true},
+                {"v0.0.0", true},
+                {"v0.0.1", false},
+                {"v0.1.1", false},
+                {"v1.1.1", false},
+                {"dummy", false},
+        };
+    }
+
+    @Test(dataProvider = "validateApplicationVersionDataProvider")
+    public void testValidateApplicationVersion(String version, boolean isValid) throws NoSuchMethodException,
+            InvocationTargetException, IllegalAccessException {
+
+        // Prepare the service provider object.
+        ServiceProvider sp = new ServiceProvider();
+        sp.setApplicationVersion(version);
+        List<String> validationErrors = new ArrayList<>();
+
+        DefaultApplicationValidator defaultApplicationValidator = new DefaultApplicationValidator();
+        Method validateApplicationVersion = DefaultApplicationValidator.class.getDeclaredMethod(
+                "validateApplicationVersion", List.class, String.class);
+        validateApplicationVersion.setAccessible(true);
+        validateApplicationVersion.invoke(defaultApplicationValidator, validationErrors, sp.getApplicationVersion());
+
+        Assert.assertEquals(validationErrors.isEmpty(), isValid, "Valid app version has been introduced. " +
+                "Please update the test case accordingly.");
+    }
 }
