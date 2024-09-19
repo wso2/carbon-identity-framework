@@ -90,8 +90,10 @@ public class IdentityCoreConstants {
     // Pagination constants.
     public static final int DEFAULT_MAXIMUM_ITEMS_PRE_PAGE = 100;
     public static final int DEFAULT_ITEMS_PRE_PAGE = 15;
+    public static final int USERS_LIST_PER_ROLE_LOWER_BOUND = 1000;
     public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
     public static final String DEFAULT_ITEMS_PRE_PAGE_PROPERTY = "DefaultItemsPerPage";
+    public static final String MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY = "MaximumUsersListPerRole";
 
     //DB constants
     public static final String H2 = "H2";

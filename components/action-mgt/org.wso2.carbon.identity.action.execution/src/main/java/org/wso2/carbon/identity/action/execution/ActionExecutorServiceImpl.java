@@ -47,7 +47,7 @@ import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -174,7 +174,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                 ActionExecutionResponseProcessor actionExecutionResponseProcessor)
             throws ActionExecutionRuntimeException {
 
-        AuthType endpointAuthentication = action.getEndpoint().getAuthentication();
+        Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
         AuthMethods.AuthMethod authenticationMethod;
 
         try {
@@ -425,12 +425,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return allowedPerformableOperations;
     }
 
-    private AuthMethods.AuthMethod getAuthenticationMethod(String actionId, AuthType authType)
+    private AuthMethods.AuthMethod getAuthenticationMethod(String actionId, Authentication authentication)
             throws ActionMgtException {
 
-        List<AuthProperty> authProperties = authType.getPropertiesWithDecryptedValues(actionId);
+        List<AuthProperty> authProperties = authentication.getPropertiesWithDecryptedValues(actionId);
 
-        switch (authType.getType()) {
+        switch (authentication.getType()) {
             case BASIC:
                 return new AuthMethods.BasicAuth(authProperties);
             case BEARER:
@@ -440,7 +440,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             case NONE:
                 return null;
             default:
-                throw new ActionMgtException("Unsupported authentication type: " + authType.getType());
+                throw new ActionMgtException("Unsupported authentication type: " + authentication.getType());
 
         }
     }

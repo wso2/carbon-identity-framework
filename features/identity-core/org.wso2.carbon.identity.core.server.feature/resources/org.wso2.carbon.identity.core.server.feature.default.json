@@ -803,6 +803,7 @@
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
+  "pagination.max_users_list_per_role": "1000",
 
   "user_filtering.show_display_name_of_user": false,
   "analytics.publish_password_grant_logins": false,
@@ -1284,7 +1285,11 @@
   "console.insights.enabled": false,
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
-  "console.login_and_registration.scopes.read": ["internal_governance_view"],
+  "console.login_and_registration.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
+  ],
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
     "internal_validation_rule_mgt_update",

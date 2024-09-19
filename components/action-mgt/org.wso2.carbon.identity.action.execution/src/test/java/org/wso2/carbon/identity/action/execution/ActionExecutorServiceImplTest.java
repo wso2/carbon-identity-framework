@@ -52,8 +52,7 @@ import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.lang.reflect.Field;
@@ -392,26 +391,6 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
     }
 
-    private List<AuthProperty> createAuthProperties() {
-
-        List<AuthProperty> authPropertyList = new ArrayList<>();
-        for (AuthType.AuthenticationType.AuthenticationProperty property :
-                AuthType.AuthenticationType.BASIC.getProperties()) {
-            AuthProperty authProperty;
-            if (property.getName().equals("username")) {
-                authProperty = new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("testuser")
-                        .isConfidential(true).build();
-            } else if (property.getName().equals("password")) {
-                authProperty = new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("testpassword")
-                        .isConfidential(true).build();
-            } else {
-                authProperty = new AuthProperty.AuthPropertyBuilder().name(property.getName()).value("unknown").build();
-            }
-            authPropertyList.add(authProperty);
-        }
-        return authPropertyList;
-    }
-
     private String getJSONRequestPayload(ActionExecutionRequest actionExecutionRequest) throws JsonProcessingException {
 
         ObjectMapper requestObjectmapper = new ObjectMapper();
@@ -500,12 +479,14 @@ public class ActionExecutorServiceImplTest {
         when(action.getEndpoint()).thenReturn(endpointConfig);
         when(endpointConfig.getUri()).thenReturn("http://example.com");
 
-        // Mock AuthType and its properties
-        List<AuthProperty> authPropertyList = createAuthProperties();
-        AuthType authType = mock(AuthType.class);
-        when(authType.getPropertiesWithDecryptedValues(any())).thenReturn(authPropertyList);
-        when(authType.getType()).thenReturn(AuthType.AuthenticationType.BASIC);
-        when(endpointConfig.getAuthentication()).thenReturn(authType);
+        // Mock Authentication and its properties
+        Authentication mockAuthenticationConfig = new Authentication.BasicAuthBuilder("testuser",
+                "testpassword").build();
+        Authentication authenticationConfig = mock(Authentication.class);
+        when(authenticationConfig.getPropertiesWithDecryptedValues(any()))
+                .thenReturn(mockAuthenticationConfig.getProperties());
+        when(authenticationConfig.getType()).thenReturn(mockAuthenticationConfig.getType());
+        when(endpointConfig.getAuthentication()).thenReturn(authenticationConfig);
         return action;
     }
 
