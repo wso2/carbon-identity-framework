@@ -540,6 +540,27 @@ public class IdentityUtil {
         return serverUrl.toString();
     }
 
+    /**
+     * Checks whether the second domain is a subdomain of the first domain.
+     *
+     * @param domainName    Domain name.
+     * @param subdomainName Subdomain name.
+     * @return true if the second domain is a subdomain of the first domain.
+     */
+    public static boolean isSubdomain(String domainName, String subdomainName) {
+
+        if (StringUtils.isBlank(domainName) || StringUtils.isBlank(subdomainName)) {
+            return false;
+        }
+        subdomainName = subdomainName.toLowerCase();
+        domainName = domainName.toLowerCase();
+
+        if (subdomainName.equals(domainName)) {
+            return true;
+        }
+        return subdomainName.endsWith("." + domainName);
+    }
+
     private static StringBuilder getServerUrlWithPort(String hostName) {
 
         String mgtTransport = CarbonUtils.getManagementTransport();
