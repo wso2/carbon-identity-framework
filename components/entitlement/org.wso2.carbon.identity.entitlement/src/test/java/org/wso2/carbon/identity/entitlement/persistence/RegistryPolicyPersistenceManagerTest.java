@@ -57,24 +57,4 @@ public class RegistryPolicyPersistenceManagerTest extends PolicyPersistenceManag
                 isPolicyExistsInPap(samplePAPPolicy1.getPolicyId()));
         policyPersistenceManager.removePolicy(samplePAPPolicy1.getPolicyId());
     }
-
-    @Test
-    public void testGetPolicyIdentifiers() throws Exception {
-
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy2, true);
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy3, true);
-
-        String[] policyIdentifiersBeforePublishing = ((RegistryPolicyPersistenceManager) policyPersistenceManager)
-                .getPolicyIdentifiers();
-        assertEquals(policyIdentifiersBeforePublishing.length, 0);
-
-        policyPersistenceManager.addPolicy(samplePDPPolicy1);
-        policyPersistenceManager.addPolicy(samplePDPPolicy2);
-        policyPersistenceManager.addPolicy(samplePDPPolicy3);
-
-        String[] policyIdentifiersAfterPublishing = ((RegistryPolicyPersistenceManager) policyPersistenceManager).
-                getPolicyIdentifiers();
-        assertEquals(policyIdentifiersAfterPublishing.length, 3);
-    }
 }

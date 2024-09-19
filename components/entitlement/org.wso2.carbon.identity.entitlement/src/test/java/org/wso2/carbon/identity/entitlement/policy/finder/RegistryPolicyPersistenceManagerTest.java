@@ -16,40 +16,33 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.persistence;
+package org.wso2.carbon.identity.entitlement.policy.finder;
 
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
+import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
+import org.wso2.carbon.identity.entitlement.persistence.RegistryPolicyPersistenceManager;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import java.util.Properties;
 
 /**
- * This class tests the behavior of the JDBC Policy Persistence Manager class.
+ * This class tests the behavior of the Registry Policy Persistence Manager class.
  */
 @WithCarbonHome
-@WithRegistry
+@WithRegistry(injectToSingletons = {EntitlementServiceComponent.class})
 @WithRealmService(injectToSingletons = {EntitlementConfigHolder.class}, initUserStoreManager = true)
 @WithH2Database(files = {"dbscripts/h2.sql"})
-public class JDBCPolicyPersistenceManagerTest extends PolicyPersistenceManagerTest {
+public class RegistryPolicyPersistenceManagerTest extends PolicyPersistenceManagerTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
 
-        policyPersistenceManager = new JDBCPolicyPersistenceManager();
-    }
-
-    @Test
-    public void testIsPolicyExistsInPap() throws Exception {
-
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
-        assertTrue(((JDBCPolicyPersistenceManager) policyPersistenceManager).
-                isPolicyExistsInPap(samplePAPPolicy1.getPolicyId()));
-        policyPersistenceManager.removePolicy(samplePAPPolicy1.getPolicyId());
+        Properties storeProps = new Properties();
+        policyPersistenceManager = new RegistryPolicyPersistenceManager();
+        policyPersistenceManager.init(storeProps);
     }
 }

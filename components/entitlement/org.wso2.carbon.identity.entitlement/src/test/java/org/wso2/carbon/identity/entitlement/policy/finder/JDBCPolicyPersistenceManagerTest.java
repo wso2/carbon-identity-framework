@@ -16,18 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.persistence;
+package org.wso2.carbon.identity.entitlement.policy.finder;
 
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import org.wso2.carbon.identity.entitlement.persistence.JDBCPolicyPersistenceManager;
 
 /**
  * This class tests the behavior of the JDBC Policy Persistence Manager class.
@@ -42,14 +39,5 @@ public class JDBCPolicyPersistenceManagerTest extends PolicyPersistenceManagerTe
     public void setUp() throws Exception {
 
         policyPersistenceManager = new JDBCPolicyPersistenceManager();
-    }
-
-    @Test
-    public void testIsPolicyExistsInPap() throws Exception {
-
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
-        assertTrue(((JDBCPolicyPersistenceManager) policyPersistenceManager).
-                isPolicyExistsInPap(samplePAPPolicy1.getPolicyId()));
-        policyPersistenceManager.removePolicy(samplePAPPolicy1.getPolicyId());
     }
 }

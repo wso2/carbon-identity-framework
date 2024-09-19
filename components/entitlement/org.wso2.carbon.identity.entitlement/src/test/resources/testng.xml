@@ -28,6 +28,9 @@
             <class name="org.wso2.carbon.identity.entitlement.persistence.JDBCPolicyPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.RegistryPolicyPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.HybridPolicyPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.policy.finder.JDBCPolicyPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.policy.finder.RegistryPolicyPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.policy.finder.HybridPolicyPersistenceManagerTest"/>
         </classes>
     </test>
 </suite>

@@ -167,26 +167,6 @@ public class HybridPolicyPersistenceManagerTest extends PolicyPersistenceManager
         assertEquals(versionsFromRegistry.length, 2);
     }
 
-    @Test(priority = 18)
-    public void testGetPolicyIdentifiers() throws Exception {
-
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy2, true);
-        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy3, true);
-
-        String[] policyIdentifiersBeforePublishing = ((HybridPolicyPersistenceManager) policyPersistenceManager)
-                .getPolicyIdentifiers();
-        assertEquals(policyIdentifiersBeforePublishing.length, 0);
-
-        policyPersistenceManager.addPolicy(samplePDPPolicy1);
-        policyPersistenceManager.addPolicy(samplePDPPolicy2);
-        policyPersistenceManager.addPolicy(samplePDPPolicy3);
-
-        String[] policyIdentifiersAfterPublishing = ((HybridPolicyPersistenceManager) policyPersistenceManager).
-                getPolicyIdentifiers();
-        assertEquals(policyIdentifiersAfterPublishing.length, 3);
-    }
-
     @Test(priority = 19)
     public void testAddPDPPolicyInDatabase() throws Exception {
 
