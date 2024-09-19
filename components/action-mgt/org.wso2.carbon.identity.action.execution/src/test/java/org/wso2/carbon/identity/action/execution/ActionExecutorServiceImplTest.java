@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
+import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
@@ -84,6 +85,7 @@ public class ActionExecutorServiceImplTest {
     private APIClient apiClient;
     @InjectMocks
     private ActionExecutorServiceImpl actionExecutorService;
+    private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
 
     private MockedStatic<RequestFilter> requestFilter;
     private MockedStatic<ActionExecutionRequestBuilderFactory> actionExecutionRequestBuilderFactory;
@@ -92,6 +94,9 @@ public class ActionExecutorServiceImplTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
+        actionExecutorConfigStatic = mockStatic(ActionExecutorConfig.class);
+        ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
+        actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
         MockitoAnnotations.openMocks(this);
         ActionExecutionServiceComponentHolder actionExecutionServiceComponentHolder =
                 ActionExecutionServiceComponentHolder.getInstance();
@@ -110,6 +115,7 @@ public class ActionExecutorServiceImplTest {
         requestFilter.close();
         actionExecutionRequestBuilderFactory.close();
         actionExecutionResponseProcessorFactory.close();
+        actionExecutorConfigStatic.close();
     }
 
     @Test
