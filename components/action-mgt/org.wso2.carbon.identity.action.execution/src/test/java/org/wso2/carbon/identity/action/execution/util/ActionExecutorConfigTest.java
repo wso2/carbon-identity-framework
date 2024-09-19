@@ -359,4 +359,23 @@ public class ActionExecutorConfigTest {
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
         Assert.assertEquals(20, actionExecutorConfig.getHttpConnectionPoolSize());
     }
+
+    @Test
+    public void testGetHttpRequestRetryCount() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPRequestRetryCount", "2");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2, actionExecutorConfig.getHttpRequestRetryCount());
+    }
+
+    @Test
+    public void testGetHttpRequestRetryCountForInvalidConfig() {
+
+        //If the server configuration value is not a number, the default http request retry count value of 2 is parsed
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPRequestRetryCount", "value");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2, actionExecutorConfig.getHttpRequestRetryCount());
+    }
 }

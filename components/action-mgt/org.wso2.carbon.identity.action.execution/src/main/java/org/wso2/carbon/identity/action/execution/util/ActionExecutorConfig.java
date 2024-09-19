@@ -49,6 +49,8 @@ public class ActionExecutorConfig {
             "Actions.HTTPClient.HTTPConnectionRequestTimeout";
     private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPConnectionTimeout";
     private static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY = "Actions.HTTPClient.HTTPConnectionPoolSize";
+    private static final String HTTP_REQUEST_RETRY_COUNT_PROPERTY = "Actions.HTTPClient.HTTPRequestRetryCount";
+    private static final int DEFAULT_HTTP_REQUEST_RETRY_COUNT = 2;
     private static final int DEFAULT_HTTP_CONNECTION_POOL_SIZE = 20;
     private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = 5000;
     private static final int DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_IN_MILLIS = 2000;
@@ -80,6 +82,28 @@ public class ActionExecutorConfig {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Returns the HTTP request retry count based on the system configuration.
+     *
+     * @return The HTTP request retry count, or the default if the property is missing or invalid.
+     */
+    public int getHttpRequestRetryCount() {
+
+        int retryCountPropertyValue = DEFAULT_HTTP_REQUEST_RETRY_COUNT;
+        String retryCountValue = (String) IdentityConfigParser.getInstance().getConfiguration().
+                get(HTTP_REQUEST_RETRY_COUNT_PROPERTY);
+        if (StringUtils.isNotBlank(retryCountValue)) {
+            try {
+                retryCountPropertyValue = Integer.parseInt(retryCountValue);
+            } catch (NumberFormatException e) {
+                LOG.debug("Failed to read Http request retry count property in identity.xml." +
+                        " Expects a number. Using the default value: " +
+                        DEFAULT_HTTP_REQUEST_RETRY_COUNT, e);
+            }
+        }
+        return retryCountPropertyValue;
     }
 
     /**

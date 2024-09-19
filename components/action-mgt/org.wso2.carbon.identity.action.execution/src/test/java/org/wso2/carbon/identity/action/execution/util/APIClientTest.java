@@ -82,6 +82,7 @@ public class APIClientTest {
         ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
         actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
         MockitoAnnotations.openMocks(this);
+        when(actionExecutorConfig.getHttpRequestRetryCount()).thenReturn(2);
         setField(apiClient, "httpClient", httpClient);
     }
 

@@ -94,7 +94,7 @@ public class APIClient {
     private ActionInvocationResponse executeRequest(HttpPost request) {
 
         int attempts = 0;
-        int retryCount = 2; // todo: read from server configurations
+        int retryCount = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
         ActionInvocationResponse actionInvocationResponse = null;
 
         while (attempts < retryCount) {
