@@ -3818,6 +3818,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+                basicInfo.setApplicationVersion(appNameResultSet.getString(ApplicationTableColumns.APP_VERSION));
                 appInfo.add(basicInfo);
             }
 
@@ -4083,6 +4084,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+                basicInfo.setApplicationVersion(appNameResultSet.getString(ApplicationTableColumns.APP_VERSION));
                 appInfo.add(basicInfo);
             }
         } catch (SQLException e) {
@@ -4943,6 +4945,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            // Todo: change the query to something basic without getting all info.
             try (PreparedStatement checkAppExistence = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_BASIC_APP_INFO_BY_APP_NAME)) {
                 checkAppExistence.setString(1, serviceProviderName);
@@ -6319,6 +6322,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
         basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
         basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
+        basicInfo.setApplicationVersion(appNameResultSet.getString(ApplicationTableColumns.APP_VERSION));
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));

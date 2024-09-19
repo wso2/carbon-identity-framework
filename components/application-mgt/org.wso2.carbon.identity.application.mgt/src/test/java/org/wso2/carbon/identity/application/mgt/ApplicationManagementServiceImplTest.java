@@ -1210,7 +1210,6 @@ public class ApplicationManagementServiceImplTest {
 
         serviceProvider.setDescription("Created for testing");
         serviceProvider.setSaasApp(TRUE);
-        serviceProvider.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
 
         // Inbound Authentication Configurations.
         setApplicationInboundAuthConfigs(serviceProvider, "auth key", "oauth2");
