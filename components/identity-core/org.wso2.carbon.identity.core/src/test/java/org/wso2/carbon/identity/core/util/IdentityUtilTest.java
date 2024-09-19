@@ -824,6 +824,20 @@ public class IdentityUtilTest {
         };
     }
 
+    @DataProvider
+    public Object[][] getSubdomainData() {
+        return new Object[][] {
+                {"wso2.io", "dev.wso2.io", true},       // valid subdomain
+                {"wso2.io", "wso2.io", true},           // exact match
+                {"wso2.io", "dev.api.wso2.io", true},   // deeper subdomain
+                {"wso2.io", "niyo.io", false},          // different domain
+                {"wso2.io", "test.wso2.com", false},    // completely different domain
+                {null, "wso2.io", false},               // domainName null
+                {"wso2.io", null, false},               // hostName null
+                {null, null, false}                     // both null
+        };
+    }
+
     @Test(dataProvider = "getClockSkewData")
     public void testGetClockSkewInSeconds(String value, int expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
@@ -841,6 +855,12 @@ public class IdentityUtilTest {
         assertFalse(IdentityUtil.isSupportedByUserStore(mockUserStoreManager, "op2"), "Expected false for op2");
         assertTrue(IdentityUtil.isSupportedByUserStore(mockUserStoreManager, "op3"), "Expected true for op3");
         assertTrue(IdentityUtil.isSupportedByUserStore(null, "op4"), "Expected true for op4 in null userstore");
+    }
+
+    @Test(dataProvider = "getSubdomainData")
+    public void testCheckSubdomain(String domainName, String subdomainName, boolean expectedResult) throws Exception {
+        boolean result = IdentityUtil.isSubdomain(domainName, subdomainName);
+        assertEquals(result, expectedResult, "Subdomain check failed for: " + domainName + " and " + subdomainName);
     }
 
     private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
