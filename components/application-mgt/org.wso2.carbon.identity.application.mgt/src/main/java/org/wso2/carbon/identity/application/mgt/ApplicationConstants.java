@@ -42,6 +42,7 @@ public class ApplicationConstants {
     public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
     public static final String SERVICE_PROVIDERS = "ServiceProviders";
     public static final String LATEST_APP_VERSION = "v1.0.0";
+    public static final String BASE_APP_VERSION = "v0.0.0";
 
     public static final String AUTH_TYPE_DEFAULT = "default";
     public static final String AUTH_TYPE_LOCAL = "local";
