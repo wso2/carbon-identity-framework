@@ -23,6 +23,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -1038,7 +1039,8 @@ public class IdentityProviderManagementServiceTest {
         idpProperty1.setValue("20");
         residentIdp.setIdpProperties(new IdentityProviderProperty[]{idpProperty1});
 
-        identityProviderManagementService.addIdP(residentIdp);
+        IdentityProviderManager.getInstance().addResidentIdP(residentIdp,
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     private void addSharedIdp() throws SQLException, IdentityProviderManagementException {

@@ -617,6 +617,19 @@ public class ApplicationManagementServiceImplTest {
         AuthenticationStep[] steps = applicationManagementService.getConfiguredAuthenticators(resourceID,
                 SUPER_TENANT_DOMAIN_NAME);
 
+        for (AuthenticationStep step : steps) {
+            LocalAuthenticatorConfig[] localAuthenticators = step.getLocalAuthenticatorConfigs();
+            for (LocalAuthenticatorConfig localConfig : localAuthenticators) {
+                Assert.assertNotNull(localConfig.getDefinedByType());
+            }
+            IdentityProvider[] identityProviders = step.getFederatedIdentityProviders();
+            for (IdentityProvider idp : identityProviders) {
+                for (FederatedAuthenticatorConfig fedConfig: idp.getFederatedAuthenticatorConfigs()) {
+                    Assert.assertNotNull(fedConfig.getDefinedByType());
+                }
+            }
+        }
+
         Assert.assertEquals(steps.length, 1);
         Assert.assertEquals(steps[0].getStepOrder(), 1);
         applicationManagementService.deleteApplication(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
