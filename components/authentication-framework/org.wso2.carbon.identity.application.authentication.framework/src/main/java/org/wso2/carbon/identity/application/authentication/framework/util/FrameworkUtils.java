@@ -115,6 +115,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProviderPropert
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -4189,5 +4190,24 @@ public class FrameworkUtils {
     public static boolean isURLRelative(String uriString) throws URISyntaxException {
 
         return !new URI(uriString).isAbsolute();
+    }
+
+    /**
+     * This method return defined by type for the given authenticator name.
+     *
+     * @param authenticatorName     Name of the authenticator.
+     * @return The defined by type.
+     * @throws FrameworkException If no authenticator found for the given authenticator name.
+     */
+    public static IdentityConstants.DefinedByType getAuthenticatorDefinedByType(String authenticatorName)
+            throws FrameworkException {
+
+        for (ApplicationAuthenticator authenticator: FrameworkServiceComponent.getAuthenticators()) {
+            if (authenticator.getName().equals(authenticatorName)) {
+                return authenticator.getDefinedByType();
+            }
+        }
+
+        throw new FrameworkException("No authenticator instance is found for " + authenticatorName);
     }
 }

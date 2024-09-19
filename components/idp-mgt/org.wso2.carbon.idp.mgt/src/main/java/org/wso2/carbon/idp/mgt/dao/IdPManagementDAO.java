@@ -3419,6 +3419,8 @@ public class IdPManagementDAO {
                 String roleClaimUri = rs.getString("ROLE_CLAIM_URI");
 
                 String defaultAuthenticatorName = rs.getString("DEFAULT_AUTHENTICATOR_NAME");
+                // TODO: Read from database and set the DefinedBy property to the authenticator.
+                String defaultAuthenticatorDefinedByType = IdentityConstants.DefinedByType.SYSTEM.toString();
                 String defaultProvisioningConnectorConfigName = rs.getString("DEFAULT_PRO_CONNECTOR_NAME");
                 federatedIdp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
 
@@ -3453,8 +3455,8 @@ public class IdPManagementDAO {
                 if (defaultAuthenticatorName != null) {
                     FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
                     defaultAuthenticator.setName(defaultAuthenticatorName);
-                    // TODO: Check the authenticator type and set the DefinedBy property accordingly.
-                    defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+                    defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
+                            defaultAuthenticatorDefinedByType));
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 
@@ -3584,6 +3586,8 @@ public class IdPManagementDAO {
                 String roleClaimUri = rs.getString("ROLE_CLAIM_URI");
 
                 String defaultAuthenticatorName = rs.getString("DEFAULT_AUTHENTICATOR_NAME");
+                // TODO: Read from database and set the DefinedBy property to the authenticator.
+                String defaultAuthenticatorDefinedByType = IdentityConstants.DefinedByType.SYSTEM.toString();
                 String defaultProvisioningConnectorConfigName = rs.getString("DEFAULT_PRO_CONNECTOR_NAME");
                 federatedIdp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
 
@@ -3618,8 +3622,8 @@ public class IdPManagementDAO {
                 if (defaultAuthenticatorName != null) {
                     FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
                     defaultAuthenticator.setName(defaultAuthenticatorName);
-                    // TODO: Check the authenticator type and set the DefinedBy property accordingly.
-                    defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+                    defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
+                            defaultAuthenticatorDefinedByType));
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 

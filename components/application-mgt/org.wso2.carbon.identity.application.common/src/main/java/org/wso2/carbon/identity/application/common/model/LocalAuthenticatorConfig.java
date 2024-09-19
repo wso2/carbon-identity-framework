@@ -123,6 +123,7 @@ public class LocalAuthenticatorConfig implements Serializable {
         }
 
         if (localAuthenticatorConfig.getDefinedByType() == null) {
+            localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
             LOG.warn("The defined by type is not set for the : " + localAuthenticatorConfig.getName());
         }
 

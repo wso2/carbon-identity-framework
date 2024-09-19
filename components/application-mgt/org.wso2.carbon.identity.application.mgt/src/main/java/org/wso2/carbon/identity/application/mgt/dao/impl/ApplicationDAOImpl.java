@@ -3098,7 +3098,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     localAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
-                    localAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+                    localAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
+                            authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
                 } else {
                     Map<String, List<FederatedAuthenticatorConfig>> stepFedIdps = stepFedIdPAuthenticators
@@ -3117,7 +3118,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     fedAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
-                    fedAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+                    fedAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
+                            authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     idpAuths.add(fedAuthenticator);
                 }
 
@@ -5029,6 +5031,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 returnData
                         .put(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME, rs.getString(3));
             }
+            // TODO: Read from database and set the DefinedBy property to the authenticator.
+            returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE,
+                    IdentityConstants.DefinedByType.SYSTEM.toString());
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
         }
