@@ -112,6 +112,21 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final int MODE_MULTI_LINE = 5;
     private static final int DEFAULT_MAX_ANDROID_THUMBPRINT_COUNT = 20;
 
+    private enum ApplicationVersions {
+        V0("v0.0.0"),
+        V1("v1.0.0");
+
+        private final String value;
+
+        ApplicationVersions(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
     public DefaultApplicationValidator() {
 
         loopPattern = Pattern.compile("\\b(for|while|forEach)\\b");
@@ -128,6 +143,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                                             String username) throws IdentityApplicationManagementException {
 
         List<String> validationErrors = new ArrayList<>();
+        validateApplicationVersion(validationErrors, serviceProvider.getApplicationVersion());
         validateDiscoverabilityConfigs(validationErrors, serviceProvider);
         validateInboundAuthenticationConfig(serviceProvider.getInboundAuthenticationConfig(), tenantDomain,
                 serviceProvider.getApplicationID());
@@ -149,6 +165,13 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
 
         return validationErrors;
+    }
+
+    private void validateApplicationVersion(List<String> validationErrors, String applicationVersion) {
+
+        if (Stream.of(ApplicationVersions.values()).noneMatch(v -> v.getValue().equals(applicationVersion))) {
+            validationErrors.add("Invalid application version: " + applicationVersion);
+        }
     }
 
     private void validateDiscoverabilityConfigs(List<String> validationErrors,

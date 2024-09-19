@@ -41,6 +41,7 @@ public class ApplicationConstants {
     public static final String STANDARD_APPLICATION = "standardAPP";
     public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
     public static final String SERVICE_PROVIDERS = "ServiceProviders";
+    public static final String LATEST_APP_VERSION = "v1.0.0";
 
     public static final String AUTH_TYPE_DEFAULT = "default";
     public static final String AUTH_TYPE_LOCAL = "local";
@@ -150,6 +151,7 @@ public class ApplicationConstants {
 
         public static final String ID = "ID";
         public static final String APP_NAME = "APP_NAME";
+        public static final String APP_VERSION = "APP_VERSION";
         public static final String DESCRIPTION = "DESCRIPTION";
 
         public static final String USERNAME = "USERNAME";
