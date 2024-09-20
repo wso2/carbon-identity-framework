@@ -838,6 +838,18 @@ public class IdentityUtilTest {
         };
     }
 
+    @DataProvider(name = "rootDomainDataProvider")
+    public Object[][] getRootDomainData() {
+        return new Object[][] {
+                {"dev.api.wso2.io", "wso2.io"},             // Deeper subdomain
+                {"api.test.com", "test.com"},               // Typical subdomain
+                {"abc.com", "abc.com"},                     // Root domain itself
+                {"localhost", "localhost"},                 // Localhost
+                {null, null},                               // Null case
+                {"", ""}                                    // Empty string
+        };
+    }
+
     @Test(dataProvider = "getClockSkewData")
     public void testGetClockSkewInSeconds(String value, int expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
@@ -859,8 +871,16 @@ public class IdentityUtilTest {
 
     @Test(dataProvider = "getSubdomainData")
     public void testCheckSubdomain(String domainName, String subdomainName, boolean expectedResult) throws Exception {
+
         boolean result = IdentityUtil.isSubdomain(domainName, subdomainName);
         assertEquals(result, expectedResult, "Subdomain check failed for: " + domainName + " and " + subdomainName);
+    }
+
+    @Test(dataProvider = "rootDomainDataProvider")
+    public void testGetRootDomain(String domain, String expectedRootDomain) {
+
+        String actualRootDomain = IdentityUtil.getRootDomain(domain);
+        assertEquals(actualRootDomain, expectedRootDomain, "Root domain extraction failed for: " + domain);
     }
 
     private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
