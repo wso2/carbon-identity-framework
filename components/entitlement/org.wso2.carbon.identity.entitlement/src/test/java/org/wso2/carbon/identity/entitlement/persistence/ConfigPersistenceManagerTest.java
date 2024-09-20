@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.balana.combine.PolicyCombiningAlgorithm;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
+import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.cache.ConfigCache;
 
 import java.sql.Connection;
@@ -33,8 +35,8 @@ import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.DENY_
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.FIRST_APPLICABLE;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ONLY_ONE_APPLICABLE;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ORDERED_DENY_OVERRIDES;
-import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.PERMIT_OVERRIDES;
 import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.ORDERED_PERMIT_OVERRIDES;
+import static org.wso2.carbon.identity.entitlement.PDPConstants.Algorithms.PERMIT_OVERRIDES;
 
 /**
  * This is the parent test class for the Config Persistence Manager test classes.
@@ -48,6 +50,12 @@ public abstract class ConfigPersistenceManagerTest {
 
         String globalPolicyAlgorithmName = configPersistenceManager.getGlobalPolicyAlgorithmName();
         assertEquals(globalPolicyAlgorithmName, DENY_OVERRIDES);
+
+        //Get policy object from the storage.
+        PolicyCombiningAlgorithm globalPolicyAlgorithm = configPersistenceManager.getGlobalPolicyAlgorithm();
+        PolicyCombiningAlgorithm expectedPolicyCombiningAlgorithm =
+                EntitlementUtil.resolveGlobalPolicyAlgorithm(globalPolicyAlgorithmName);
+        assertEquals(globalPolicyAlgorithm.getIdentifier(), expectedPolicyCombiningAlgorithm.getIdentifier());
     }
 
     @DataProvider
