@@ -37,6 +37,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
+import static org.wso2.carbon.identity.entitlement.common.EntitlementConstants.PDP_SUBSCRIBER_ID;
 
 /**
  * This class tests the behavior of the Subscriber Persistence Manager class.
@@ -70,6 +71,7 @@ public abstract class SubscriberPersistenceManagerTest {
     public PublisherDataHolder sampleHolder1;
     public PublisherDataHolder sampleHolder2;
     public PublisherDataHolder updatedSampleHolder1;
+    public PublisherDataHolder invalidSampleHolder;
 
     @BeforeClass
     public void setUpClass() throws Exception {
@@ -97,6 +99,7 @@ public abstract class SubscriberPersistenceManagerTest {
         updatedSampleHolder1 =
                 createSampleHolder(SAMPLE_SUBSCRIBER_ID_1, SAMPLE_SUBSCRIBER_URL_2, SAMPLE_SUBSCRIBER_USERNAME_2,
                         SAMPLE_SUBSCRIBER_PASSWORD_2);
+        invalidSampleHolder = createSampleHolder(null, null, null, null);
     }
 
     @AfterMethod
@@ -135,8 +138,24 @@ public abstract class SubscriberPersistenceManagerTest {
                 SAMPLE_SUBSCRIBER_PASSWORD_1);
     }
 
+    @Test(priority = 1)
+    public void testAddInvalidSubscriber() throws Exception {
+
+        assertThrows(EntitlementException.class, () -> subscriberPersistenceManager.addSubscriber(invalidSampleHolder));
+    }
+
+    @Test(priority = 1)
+    public void testAddSubscriberWithDuplicateId() throws Exception {
+
+        subscriberPersistenceManager.addSubscriber(sampleHolder1);
+        assertThrows(EntitlementException.class, () -> subscriberPersistenceManager.addSubscriber(sampleHolder1));
+    }
+
     @Test(priority = 2)
-    public void listSubscriberIds() throws Exception {
+    public void testListSubscriberIds() throws Exception {
+
+        List<String> subscriberIds = subscriberPersistenceManager.listSubscriberIds("*");
+        assertEquals(subscriberIds.size(), 0);
 
         subscriberPersistenceManager.addSubscriber(sampleHolder1);
         subscriberPersistenceManager.addSubscriber(sampleHolder2);
@@ -174,6 +193,13 @@ public abstract class SubscriberPersistenceManagerTest {
                 SAMPLE_SUBSCRIBER_PASSWORD_2);
     }
 
+    @Test(priority = 3)
+    public void testUpdateInvalidSubscriber() throws Exception {
+
+        assertThrows(EntitlementException.class,
+                () -> subscriberPersistenceManager.updateSubscriber(invalidSampleHolder));
+    }
+
     @Test(priority = 4)
     public void testRemoveSubscriber() throws Exception {
 
@@ -181,6 +207,14 @@ public abstract class SubscriberPersistenceManagerTest {
         subscriberPersistenceManager.removeSubscriber(SAMPLE_SUBSCRIBER_ID_1);
         assertThrows(EntitlementException.class,
                 () -> subscriberPersistenceManager.getSubscriber(SAMPLE_SUBSCRIBER_ID_1, false));
+    }
+
+    @Test(priority = 4)
+    public void testRemoveInvalidSubscriber() {
+
+        assertThrows(EntitlementException.class, () -> subscriberPersistenceManager.removeSubscriber(null));
+        assertThrows(EntitlementException.class,
+                () -> subscriberPersistenceManager.removeSubscriber(PDP_SUBSCRIBER_ID));
     }
 
     private void mockSecretEncryption(String secret) throws org.wso2.carbon.core.util.CryptoException {
