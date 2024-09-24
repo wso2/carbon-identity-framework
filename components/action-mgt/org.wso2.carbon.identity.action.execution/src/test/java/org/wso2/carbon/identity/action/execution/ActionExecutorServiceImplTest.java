@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
+import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
@@ -84,6 +85,7 @@ public class ActionExecutorServiceImplTest {
     private APIClient apiClient;
     @InjectMocks
     private ActionExecutorServiceImpl actionExecutorService;
+    private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
 
     private MockedStatic<RequestFilter> requestFilter;
     private MockedStatic<ActionExecutionRequestBuilderFactory> actionExecutionRequestBuilderFactory;
@@ -92,6 +94,9 @@ public class ActionExecutorServiceImplTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
+        actionExecutorConfigStatic = mockStatic(ActionExecutorConfig.class);
+        ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
+        actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
         MockitoAnnotations.openMocks(this);
         ActionExecutionServiceComponentHolder actionExecutionServiceComponentHolder =
                 ActionExecutionServiceComponentHolder.getInstance();
@@ -110,6 +115,7 @@ public class ActionExecutorServiceImplTest {
         requestFilter.close();
         actionExecutionRequestBuilderFactory.close();
         actionExecutionResponseProcessorFactory.close();
+        actionExecutorConfigStatic.close();
     }
 
     @Test
@@ -134,20 +140,52 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "No action Ids found for action type: PRE_ISSUE_ACCESS_TOKEN")
+    public void testActionExecuteWithActionIdsFailureWhenActionIdListIsEmpty() throws Exception {
+
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{}, new HashMap<>(),
+                "tenantDomain");
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "No request builder found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenNoRegisteredRequestBuilderForActionType() throws Exception {
 
+        // Mock Action and its dependencies
+        Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
-                Collections.singletonList(mock(Action.class)));
+                Collections.singletonList(action));
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "No request builder found for action type: PRE_ISSUE_ACCESS_TOKEN")
+    public void testActionExecuteWithActionIdFailureWhenMultipleActionsAvailableForActionType() throws Exception {
+
+        Action action = createAction();
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
+
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving action by action Id.")
+    public void testActionExecuteWithActionIdFailureWhenInvalidActionIdGiven() throws Exception {
+
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenThrow(
+                new ActionMgtException("Error occurred while retrieving action by action Id."));
+
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
     }
 
     @Test
     public void testActionExecuteFailureAtExceptionFromRequestBuilderForActionType() throws Exception {
 
+        // Mock Action and its dependencies
+        Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
-                Collections.singletonList(mock(Action.class)));
+                Collections.singletonList(action));
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(ActionType.PRE_ISSUE_ACCESS_TOKEN);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenThrow(
                 new ActionExecutionRequestBuilderException("Error while executing request builder."));
@@ -155,18 +193,25 @@ public class ActionExecutorServiceImplTest {
         actionExecutionRequestBuilderFactory.when(
                         () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
                 .thenReturn(actionExecutionRequestBuilder);
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
         ActionExecutionStatus actionExecutionStatus =
                 actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
         assertEquals(actionExecutionStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
+
+        ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()},  any(), any());
+        assertEquals(actionExecutionStatusWithActionIds.getStatus(), ActionExecutionStatus.Status.FAILED);
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "No response processor found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenNoRegisteredResponseProcessorForActionType() throws Exception {
 
+        // Mock Action and its dependencies
+        Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
-                Collections.singletonList(mock(Action.class)));
+                Collections.singletonList(action));
 
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(ActionType.PRE_ISSUE_ACCESS_TOKEN);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenReturn(
@@ -177,6 +222,25 @@ public class ActionExecutorServiceImplTest {
                 .thenReturn(actionExecutionRequestBuilder);
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "No response processor found for action type: PRE_ISSUE_ACCESS_TOKEN")
+    public void testActionExecuteWithActionIdsFailureWhenNoRegisteredResponseProcessorForActionType() throws Exception {
+
+        // Mock Action and its dependencies
+        Action action = createAction();
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
+
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenReturn(
+                mock(ActionExecutionRequest.class));
+
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
     }
 
     @Test
@@ -297,11 +361,16 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processSuccessResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
         // Execute and assert
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+
+        ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
+                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+        assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
     @Test
@@ -340,11 +409,16 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processFailureResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
         // Execute and assert
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+
+        ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
+                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+        assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
     @Test
@@ -384,11 +458,16 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processErrorResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
         // Execute and assert
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+
+        ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
+                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+        assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
     private String getJSONRequestPayload(ActionExecutionRequest actionExecutionRequest) throws JsonProcessingException {
