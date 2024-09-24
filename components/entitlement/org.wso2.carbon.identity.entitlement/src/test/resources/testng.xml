@@ -34,6 +34,9 @@
             <class name="org.wso2.carbon.identity.entitlement.persistence.JDBCSubscriberPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.RegistrySubscriberPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.HybridSubscriberPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.JDBCSimplePAPStatusDataHandlerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.RegistrySimplePAPStatusDataHandlerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.HybridPAPStatusDataHandlerTest"/>
         </classes>
     </test>
 </suite>
