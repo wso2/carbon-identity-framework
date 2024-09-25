@@ -481,13 +481,13 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
     @Override
     public void updatePolicy(PolicyStoreDTO policy) throws EntitlementException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Updating policy %s", policy.getPolicyId()));
-        }
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-
         if (policy == null || StringUtils.isBlank(policy.getPolicyId())) {
             throw new EntitlementException("Policy and policy id can not be null");
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Updating policy %s", policy.getPolicyId()));
         }
         if (policy.isSetActive() != policy.isSetOrder()) {
             if (StringUtils.isBlank(policy.getVersion())) {
