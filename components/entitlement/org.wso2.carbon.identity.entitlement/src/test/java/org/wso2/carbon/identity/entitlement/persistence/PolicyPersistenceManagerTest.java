@@ -23,6 +23,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
@@ -30,7 +31,9 @@ import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -74,7 +77,7 @@ public abstract class PolicyPersistenceManagerTest {
     public void setUpClass() {
 
         Properties engineProperties = new Properties();
-        engineProperties.put(PDPConstants.MAX_NO_OF_POLICY_VERSIONS, "0");
+        engineProperties.put(PDPConstants.MAX_NO_OF_POLICY_VERSIONS, "4");
         EntitlementConfigHolder.getInstance().setEngineProperties(engineProperties);
 
         samplePAPPolicy1 = new PolicyDTO(SAMPLE_POLICY_ID_1);
@@ -149,6 +152,23 @@ public abstract class PolicyPersistenceManagerTest {
     }
 
     @Test(priority = 3)
+    public void testAddPolicyMoreThanMaxVersions() throws Exception {
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+
+        String[] policyVersions = policyPersistenceManager.getVersions(samplePAPPolicy1.getPolicyId());
+        assertEquals(policyVersions.length, 5);
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        String[] policyVersionsAfterMax = policyPersistenceManager.getVersions(samplePAPPolicy1.getPolicyId());
+        assertEquals(policyVersionsAfterMax.length, 5);
+    }
+
+    @Test(priority = 3)
     public void testGetPolicyForInvalidScenarios() throws EntitlementException {
 
         assertThrows(EntitlementException.class, () -> policyPersistenceManager.
@@ -169,10 +189,15 @@ public abstract class PolicyPersistenceManagerTest {
     @Test(priority = 5)
     public void testListPAPPolicy() throws Exception {
 
+        List<String> policyIds = new ArrayList<>();
+        List<PolicyDTO> papPolicies = policyPersistenceManager.getPAPPolicies(policyIds);
+        assertEquals(papPolicies.size(), 0);
+        papPolicies = policyPersistenceManager.getPAPPolicies(null);
+        assertEquals(papPolicies.size(), 0);
+
         policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
         policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy2, true);
 
-        List<String> policyIds = new ArrayList<>();
         policyIds.add(samplePAPPolicy1.getPolicyId());
         policyIds.add(samplePAPPolicy2.getPolicyId());
         List<PolicyDTO> papPoliciesFromStorage = policyPersistenceManager.getPAPPolicies(policyIds);
@@ -206,6 +231,20 @@ public abstract class PolicyPersistenceManagerTest {
         assertEquals(policyVersions.length, 2);
     }
 
+    @Test(priority = 6)
+    public void testGetPolicyWithoutVersion() throws Exception {
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        policyPersistenceManager.addOrUpdatePolicy(sampleUpdatedPAPPolicy1, true);
+
+        // Verify the policy version without defining the version.
+        PolicyDTO latestPolicy = policyPersistenceManager.getPolicy(samplePAPPolicy1.getPolicyId(), " ");
+        assertEquals(latestPolicy.getPolicy(), sampleUpdatedPAPPolicy1.getPolicy());
+
+        latestPolicy = policyPersistenceManager.getPolicy(samplePAPPolicy1.getPolicyId(), null);
+        assertEquals(latestPolicy.getPolicy(), sampleUpdatedPAPPolicy1.getPolicy());
+    }
+
     @Test(priority = 7)
     public void testAddPDPPolicy() throws Exception {
 
@@ -220,20 +259,40 @@ public abstract class PolicyPersistenceManagerTest {
     }
 
     @Test(priority = 7)
+    public void testIsPolicyExists() throws Exception {
+
+        assertFalse(policyPersistenceManager.isPolicyExist(null));
+        assertFalse(policyPersistenceManager.isPolicyExist(""));
+        assertFalse(policyPersistenceManager.isPolicyExist("sample_policy1"));
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        policyPersistenceManager.addPolicy(samplePDPPolicy1);
+        assertTrue(policyPersistenceManager.isPolicyExist(samplePDPPolicy1.getPolicyId()));
+    }
+
+    @Test(priority = 7)
     public void testAddInvalidPDPPolicy() throws Exception {
 
         assertThrows(EntitlementException.class, () -> policyPersistenceManager.addPolicy(pdpPolicyWithEmptyId));
         assertThrows(EntitlementException.class, () -> policyPersistenceManager.addPolicy(pdpPolicyWithEmptyVersion));
+        assertThrows(EntitlementException.class, () -> policyPersistenceManager.addPolicy(null));
     }
 
     @Test(priority = 8)
-    public void testDeletePDPPolicyInRegistry() throws Exception {
+    public void testDeletePDPPolicy() throws Exception {
 
         policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
         policyPersistenceManager.addPolicy(samplePDPPolicy1);
 
         policyPersistenceManager.deletePolicy(samplePDPPolicy1.getPolicyId());
         assertFalse(policyPersistenceManager.isPolicyExist(samplePDPPolicy1.getPolicyId()));
+    }
+
+    @Test(priority = 8)
+    public void testDeletePDPPolicyUsingBlankID() throws Exception {
+
+        assertFalse(policyPersistenceManager.deletePolicy(null));
+        assertFalse(policyPersistenceManager.deletePolicy(""));
     }
 
     @Test(priority = 9)
@@ -316,9 +375,30 @@ public abstract class PolicyPersistenceManagerTest {
     @Test(priority = 12)
     public void testUpdateInvalidPDPPolicy() throws Exception {
 
+        assertThrows(EntitlementException.class, () -> policyPersistenceManager.updatePolicy(null));
         assertThrows(EntitlementException.class, () -> policyPersistenceManager.updatePolicy(pdpPolicyWithEmptyId));
         assertThrows(EntitlementException.class, () -> policyPersistenceManager.
                 updatePolicy(pdpPolicyWithEmptyVersion));
+    }
+
+    @Test(priority = 13)
+    public void testGetSearchAttributes() throws Exception {
+
+        Map<String, Set<AttributeDTO>> attributes = policyPersistenceManager.getSearchAttributes("identifier", null);
+        assertEquals(attributes.size(), 0);
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        policyPersistenceManager.addPolicy(samplePDPPolicy1);
+        attributes = policyPersistenceManager.getSearchAttributes(null, null);
+        assertEquals(attributes.size(), 1);
+        assertEquals(attributes.get(samplePDPPolicy1.getPolicyId()).size(), 4);
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy3, true);
+        policyPersistenceManager.addPolicy(samplePDPPolicy3);
+        attributes = policyPersistenceManager.getSearchAttributes(null, null);
+        assertEquals(attributes.size(), 2);
+        assertEquals(attributes.get(samplePDPPolicy1.getPolicyId()).size(), 4);
+        assertEquals(attributes.get(samplePDPPolicy3.getPolicyId()).size(), 4);
     }
 
     private PolicyStoreDTO getPDPPolicy(String id, String policy, String version, boolean active, boolean setActive,

@@ -26,7 +26,8 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -47,9 +48,20 @@ public class JDBCPolicyPersistenceManagerTest extends PolicyPersistenceManagerTe
     @Test
     public void testIsPolicyExistsInPap() throws Exception {
 
+        assertFalse(((JDBCPolicyPersistenceManager) policyPersistenceManager).isPolicyExistsInPap(null));
+        assertFalse(((JDBCPolicyPersistenceManager) policyPersistenceManager).isPolicyExistsInPap(" "));
+        assertFalse(((JDBCPolicyPersistenceManager) policyPersistenceManager).isPolicyExistsInPap(
+                samplePAPPolicy1.getPolicyId()));
+
         policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
         assertTrue(((JDBCPolicyPersistenceManager) policyPersistenceManager).
                 isPolicyExistsInPap(samplePAPPolicy1.getPolicyId()));
-        policyPersistenceManager.removePolicy(samplePAPPolicy1.getPolicyId());
+    }
+
+    @Test(priority = 3)
+    public void testAddPAPPolicyNotFromPAP() throws Exception {
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, false);
+        assertNull(policyPersistenceManager.getPAPPolicy(samplePAPPolicy1.getPolicyId()));
     }
 }
