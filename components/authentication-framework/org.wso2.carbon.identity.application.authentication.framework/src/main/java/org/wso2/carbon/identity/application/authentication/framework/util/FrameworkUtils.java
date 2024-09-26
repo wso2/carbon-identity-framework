@@ -4197,10 +4197,8 @@ public class FrameworkUtils {
      *
      * @param authenticatorName     Name of the authenticator.
      * @return The defined by type.
-     * @throws FrameworkException If no authenticator found for the given authenticator name.
      */
-    public static IdentityConstants.DefinedByType getAuthenticatorDefinedByType(String authenticatorName)
-            throws FrameworkException {
+    public static IdentityConstants.DefinedByType getAuthenticatorDefinedByType(String authenticatorName) {
 
         for (ApplicationAuthenticator authenticator: FrameworkServiceComponent.getAuthenticators()) {
             if (authenticator.getName().equals(authenticatorName)) {
@@ -4208,6 +4206,6 @@ public class FrameworkUtils {
             }
         }
 
-        throw new FrameworkException("No authenticator instance is found for " + authenticatorName);
+        return null;
     }
 }

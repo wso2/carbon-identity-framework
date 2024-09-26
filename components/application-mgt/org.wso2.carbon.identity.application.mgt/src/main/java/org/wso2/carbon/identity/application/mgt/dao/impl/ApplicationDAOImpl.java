@@ -1569,7 +1569,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                         lclAuthenticator.getDisplayName());
                             } else {
                                 if (lclAuthenticator.getDefinedByType() == null) {
-                                    log.warn("Authenticator already exists. Updating the authenticator, but the " +
+                                    log.debug("Authenticator already exists. Updating the authenticator, but the " +
                                             "defined by type is not set.");
                                 } else {
                                     log.debug("Authenticator already exists. Updating the authenticator.The defined "

@@ -623,7 +623,7 @@ public class IdentityConstants {
     /**
      * The Authentication Type - SYSTEM: system define authenticator, CUSTOM: user defined authentication extension.
      */
-    public enum DefinedByType {
+    public static enum DefinedByType {
 
         SYSTEM,
         USER

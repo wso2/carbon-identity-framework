@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.dbcp.BasicDataSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -68,6 +70,7 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
@@ -96,16 +99,23 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
@@ -150,15 +160,18 @@ public class ApplicationManagementServiceImplTest {
     private static final String ANDROID_PACKAGE_NAME_1 = "com.wso2.sample.mobile.application";
     private static final String ANDROID_PACKAGE_NAME_2 = "com.wso2.sample.mobile.application2";
     private static final String APPLE_APP_ID = "APPLETEAMID.com.wso2.mobile.sample";
+    private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
+    private static final String DB_NAME = "action_mgt";
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
 
     @BeforeClass
-    public void setup() throws RegistryException, UserStoreException, SecretManagementException {
+    public void setup() throws RegistryException, UserStoreException, SecretManagementException, SQLException {
 
         setupConfiguration();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
+        initiateH2Database(getFilePath());
 
         SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
                 IdPSecretsProcessor.class);
@@ -184,6 +197,41 @@ public class ApplicationManagementServiceImplTest {
         SecretDAO secretDAO = new SecretDAOImpl();
         SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
+    }
+
+    @AfterClass
+    public void wrapUp() throws Exception {
+
+        closeH2Database();
+    }
+
+    private void initiateH2Database(String scriptPath) throws SQLException {
+
+        BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setDriverClassName("org.h2.Driver");
+        dataSource.setUsername("username");
+        dataSource.setPassword("password");
+        dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME);
+        dataSource.setTestOnBorrow(true);
+        dataSource.setValidationQuery("select 1");
+        try (Connection connection = dataSource.getConnection()) {
+            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
+        }
+        dataSourceMap.put(DB_NAME, dataSource);
+    }
+
+    private static String getFilePath() {
+
+        return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "identity.sql")
+                .toString();
+    }
+
+    private static void closeH2Database() throws SQLException {
+
+        BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
+        if (dataSource != null) {
+            dataSource.close();
+        }
     }
 
     @DataProvider(name = "addApplicationDataProvider")
@@ -603,39 +651,60 @@ public class ApplicationManagementServiceImplTest {
     }
 
     @Test
-    public void testGetConfiguredAuthenticators() throws IdentityApplicationManagementException {
+    public void testGetConfiguredAuthenticators() throws IdentityApplicationManagementException, SQLException {
 
         ServiceProvider inputSP1 = new ServiceProvider();
         inputSP1.setApplicationName(APPLICATION_NAME_1);
         addApplicationConfigurations(inputSP1);
+        MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
 
-        // Adding application.
-        applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        try {
+            identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+            mockDBConnection(identityDatabaseUtil);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
 
-        ApplicationBasicInfo applicationBasicInfo = applicationManagementService
-                .getApplicationBasicInfoByName(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME);
-        String resourceID = applicationBasicInfo.getApplicationResourceId();
-        AuthenticationStep[] steps = applicationManagementService.getConfiguredAuthenticators(resourceID,
-                SUPER_TENANT_DOMAIN_NAME);
+            // Adding application.
+            applicationManagementService.createApplication(inputSP1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
 
-        for (AuthenticationStep step : steps) {
-            LocalAuthenticatorConfig[] localAuthenticators = step.getLocalAuthenticatorConfigs();
-            for (LocalAuthenticatorConfig localConfig : localAuthenticators) {
-                Assert.assertNotNull(localConfig.getDefinedByType());
-            }
-            IdentityProvider[] identityProviders = step.getFederatedIdentityProviders();
-            for (IdentityProvider idp : identityProviders) {
-                for (FederatedAuthenticatorConfig fedConfig: idp.getFederatedAuthenticatorConfigs()) {
-                    Assert.assertNotNull(fedConfig.getDefinedByType());
+            ApplicationBasicInfo applicationBasicInfo = applicationManagementService
+                    .getApplicationBasicInfoByName(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME);
+            String resourceID = applicationBasicInfo.getApplicationResourceId();
+            AuthenticationStep[] steps = applicationManagementService.getConfiguredAuthenticators(resourceID,
+                    SUPER_TENANT_DOMAIN_NAME);
+            for (AuthenticationStep step : steps) {
+                LocalAuthenticatorConfig[] localAuthenticators = step.getLocalAuthenticatorConfigs();
+                for (LocalAuthenticatorConfig localConfig : localAuthenticators) {
+                    Assert.assertNotNull(localConfig.getDefinedByType());
+                }
+                IdentityProvider[] identityProviders = step.getFederatedIdentityProviders();
+                for (IdentityProvider idp : identityProviders) {
+                    for (FederatedAuthenticatorConfig fedConfig: idp.getFederatedAuthenticatorConfigs()) {
+                        Assert.assertNotNull(fedConfig.getDefinedByType());
+                    }
                 }
             }
-        }
 
-        Assert.assertEquals(steps.length, 1);
-        Assert.assertEquals(steps[0].getStepOrder(), 1);
-        applicationManagementService.deleteApplication(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+            Assert.assertEquals(steps.length, 1);
+            Assert.assertEquals(steps[0].getStepOrder(), 1);
+            identityDatabaseUtil.close();
+        } finally {
+            applicationManagementService.deleteApplication(APPLICATION_NAME_1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        }
     }
 
+    private void  mockDBConnection(MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil) {
+
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+    }
+
+    private Connection getConnection() throws Exception {
+
+        if (dataSourceMap.get(DB_NAME) != null) {
+            return dataSourceMap.get(DB_NAME).getConnection();
+        }
+        throw new RuntimeException("Invalid datasource.");
+    }
 
     @Test
     public void testGetCountOfAllApplications() throws IdentityApplicationManagementException {
