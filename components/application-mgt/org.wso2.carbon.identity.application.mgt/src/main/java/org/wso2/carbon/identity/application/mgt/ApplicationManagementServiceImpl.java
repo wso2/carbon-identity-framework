@@ -234,6 +234,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        // Set default application version.
+        serviceProvider.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
+
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
@@ -2542,6 +2545,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " of tenantDomain: " + tenantDomain);
             }
         }
+
+        // Set default application version.
+        application.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
 
         doPreAddApplicationChecks(application, tenantDomain, username);
         ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();

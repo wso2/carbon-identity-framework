@@ -5725,8 +5725,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
-            // Set application version to latest.
-            application.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
             // Create basic application.
             ApplicationCreateResult result = persistBasicApplicationInformation(connection, application, tenantDomain);
             int applicationId = result.getApplicationId();
