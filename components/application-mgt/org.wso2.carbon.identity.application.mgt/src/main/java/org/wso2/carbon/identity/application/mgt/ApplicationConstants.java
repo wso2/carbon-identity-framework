@@ -152,7 +152,7 @@ public class ApplicationConstants {
 
         public static final String ID = "ID";
         public static final String APP_NAME = "APP_NAME";
-        public static final String APP_VERSION = "APP_VERSION";
+        public static final String APP_VERSION = "VERSION";
         public static final String DESCRIPTION = "DESCRIPTION";
 
         public static final String USERNAME = "USERNAME";
