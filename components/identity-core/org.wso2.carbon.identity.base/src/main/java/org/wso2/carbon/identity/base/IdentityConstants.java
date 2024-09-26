@@ -621,7 +621,7 @@ public class IdentityConstants {
     }
 
     /**
-     * The Authentication Type - SYSTEM: system define authenticator, CUSTOM: user defined authentication extension.
+     * The Authentication Type - SYSTEM: system define authenticator, USER: user defined authentication extension.
      */
     public static enum DefinedByType {
 

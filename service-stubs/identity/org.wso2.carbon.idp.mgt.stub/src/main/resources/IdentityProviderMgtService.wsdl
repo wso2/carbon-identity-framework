@@ -316,6 +316,40 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="addIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2410:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="oldIdPName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2410:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2410:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="getIdPByName">
                 <xs:complexType>
                     <xs:sequence>
@@ -339,40 +373,6 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="ax2410:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllIdPs">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllIdPsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2410:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="addIdP">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2410:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="deleteIdP">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="updateIdP">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="oldIdPName" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2410:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -407,13 +407,12 @@
                     <xs:element minOccurs="0" name="errorCode" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="IdentityConstants_DefinedByType">
-                <xs:complexContent>
-                    <xs:extension base="xs:Enum">
-                        <xs:sequence/>
-                    </xs:extension>
-                </xs:complexContent>
-            </xs:complexType>
+            <xs:simpleType name="IdentityConstants_DefinedByType">
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="SYSTEM"/>
+                    <xs:enumeration value="USER"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:schema>
         <xs:schema xmlns:ax2406="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.idp.carbon.wso2.org/xsd">
             <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
