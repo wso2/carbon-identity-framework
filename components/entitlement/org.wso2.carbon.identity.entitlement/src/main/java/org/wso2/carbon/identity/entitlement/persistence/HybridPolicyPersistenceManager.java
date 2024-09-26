@@ -391,7 +391,7 @@ public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule i
     @Override
     public boolean deletePolicy(String policyId) {
 
-        if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policyId)) {
+        if (jdbcPolicyPersistenceManager.isPolicyExist(policyId)) {
             return jdbcPolicyPersistenceManager.deletePolicy(policyId);
         } else {
             return registryPolicyPersistenceManager.deletePolicy(policyId);

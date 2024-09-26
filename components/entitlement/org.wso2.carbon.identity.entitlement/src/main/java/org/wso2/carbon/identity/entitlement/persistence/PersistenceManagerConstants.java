@@ -309,6 +309,6 @@ public class PersistenceManagerConstants {
                 "SELECT MAX(VERSION) AS VERSION FROM IDN_XACML_POLICY " +
                         "WHERE IS_IN_PAP=:IS_IN_PAP; AND POLICY_ID=:POLICY_ID; AND TENANT_ID=:TENANT_ID;";
         public static final String GET_POLICY_VERSIONS_SQL = "SELECT VERSION FROM IDN_XACML_POLICY WHERE " +
-                "POLICY_ID=:POLICY_ID; AND TENANT_ID=:TENANT_ID;";
+                "IS_IN_PAP=:IS_IN_PAP; AND POLICY_ID=:POLICY_ID; AND TENANT_ID=:TENANT_ID;";
     }
 }
