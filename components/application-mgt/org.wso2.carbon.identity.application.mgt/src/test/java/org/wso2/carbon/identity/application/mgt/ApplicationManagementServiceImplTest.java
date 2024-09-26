@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInbo
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
@@ -810,6 +811,10 @@ public class ApplicationManagementServiceImplTest {
         LocalAuthenticatorConfig[] localAuthenticatorConfigs = applicationManagementService.getAllLocalAuthenticators
                 (SUPER_TENANT_DOMAIN_NAME);
 
+        for (LocalAuthenticatorConfig config: localAuthenticatorConfigs) {
+            Assert.assertNotNull(config.getDefinedByType(), "");
+        }
+
         Assert.assertEquals(localAuthenticatorConfigs[0], localAuthenticatorConfig);
     }
 
@@ -1245,11 +1250,13 @@ public class ApplicationManagementServiceImplTest {
         identityProvider.setIdentityProviderName(IDP_NAME_1);
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig.setName("Federated authenticator");
+        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         identityProvider.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
                 {federatedAuthenticatorConfig});
         authenticationStep.setFederatedIdentityProviders(new IdentityProvider[]{identityProvider});
         LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
         localAuthenticatorConfig.setName("Local authenticator");
+        localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
         authenticationStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticatorConfig});
         authenticationConfig.setAuthenticationSteps(new AuthenticationStep[]{authenticationStep});
         serviceProvider.setLocalAndOutBoundAuthenticationConfig(authenticationConfig);

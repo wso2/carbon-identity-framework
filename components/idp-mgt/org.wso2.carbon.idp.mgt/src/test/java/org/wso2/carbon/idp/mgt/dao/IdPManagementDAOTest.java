@@ -71,10 +71,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.*;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -1032,6 +1029,7 @@ public class IdPManagementDAOTest {
                     value, authenticator, tenantId, TENANT_DOMAIN);
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName);
+                assertNotNull(idpResult.getDefaultAuthenticatorConfig().getDefinedByType());
             } else {
                 assertNull(idpResult);
             }
@@ -1084,6 +1082,7 @@ public class IdPManagementDAOTest {
 
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName);
+                assertNotNull(idpResult.getDefaultAuthenticatorConfig().getDefinedByType());
             } else {
                 assertNull(idpResult);
             }
@@ -1748,6 +1747,7 @@ public class IdPManagementDAOTest {
         property2.setConfidential(false);
         federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
         idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
+        idp1.setDefaultAuthenticatorConfig(federatedAuthenticatorConfig);
 
         ProvisioningConnectorConfig provisioningConnectorConfig1 = new ProvisioningConnectorConfig();
         provisioningConnectorConfig1.setName("ProvisiningConfig1");
