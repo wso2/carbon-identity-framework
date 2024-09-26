@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution.util;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -301,5 +302,80 @@ public class ActionExecutorConfigTest {
         Set<String> excludedHeaders =
                 actionExecutorConfig.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
         assertEquals(excludedHeaders, Collections.emptySet());
+    }
+
+    @Test
+    public void testGetHttpReadTimeoutInMillis() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPReadTimeout", "5000");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(5000, actionExecutorConfig.getHttpReadTimeoutInMillis());
+    }
+
+    @Test
+    public void testGetHttpReadTimeoutInMillisForInvalidConfig() {
+
+        //If the server configuration value is not a number, the default http read timeout value of 5000 is parsed
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPReadTimeout", "value");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(5000, actionExecutorConfig.getHttpReadTimeoutInMillis());
+    }
+
+    @Test
+    public void testGetHttpConnectionRequestTimeoutInMillis() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPConnectionRequestTimeout", "2000");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2000, actionExecutorConfig.getHttpConnectionRequestTimeoutInMillis());
+    }
+
+    @Test
+    public void testGetHttpConnectionTimeoutInMillis() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPConnectionTimeout", "2000");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2000, actionExecutorConfig.getHttpConnectionTimeoutInMillis());
+    }
+
+    @Test
+    public void testGetHttpConnectionPoolSize() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPConnectionPoolSize", "20");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(20, actionExecutorConfig.getHttpConnectionPoolSize());
+    }
+
+    @Test
+    public void testGetHttpConnectionPoolSizeForInvalidConfig() {
+
+        //If the server configuration value is not a number, the default http connection pool size value of 20 is parsed
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPConnectionPoolSize", "value");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(20, actionExecutorConfig.getHttpConnectionPoolSize());
+    }
+
+    @Test
+    public void testGetHttpRequestRetryCount() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPRequestRetryCount", "2");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2, actionExecutorConfig.getHttpRequestRetryCount());
+    }
+
+    @Test
+    public void testGetHttpRequestRetryCountForInvalidConfig() {
+
+        //If the server configuration value is not a number, the default http request retry count value of 2 is parsed
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.HTTPClient.HTTPRequestRetryCount", "value");
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+        Assert.assertEquals(2, actionExecutorConfig.getHttpRequestRetryCount());
     }
 }

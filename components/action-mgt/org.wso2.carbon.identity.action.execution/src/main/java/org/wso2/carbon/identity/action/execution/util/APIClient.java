@@ -54,9 +54,9 @@ public class APIClient {
 
         // todo: read connection configurations related to the http client of actions from the server configuration.
         // Initialize the http client. Set connection time out to 2s and read time out to 5s.
-        int readTimeout = 5000;
-        int connectionRequestTimeout = 2000;
-        int connectionTimeout = 2000;
+        int readTimeout = ActionExecutorConfig.getInstance().getHttpReadTimeoutInMillis();
+        int connectionRequestTimeout = ActionExecutorConfig.getInstance().getHttpConnectionRequestTimeoutInMillis();
+        int connectionTimeout = ActionExecutorConfig.getInstance().getHttpConnectionTimeoutInMillis();
 
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(connectionTimeout)
@@ -66,7 +66,7 @@ public class APIClient {
                 .setRelativeRedirectsAllowed(false)
                 .build();
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(20);
+        connectionManager.setMaxTotal(ActionExecutorConfig.getInstance().getHttpConnectionPoolSize());
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
                 .build();
     }
@@ -94,7 +94,7 @@ public class APIClient {
     private ActionInvocationResponse executeRequest(HttpPost request) {
 
         int attempts = 0;
-        int retryCount = 2; // todo: read from server configurations
+        int retryCount = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
         ActionInvocationResponse actionInvocationResponse = null;
 
         while (attempts < retryCount) {

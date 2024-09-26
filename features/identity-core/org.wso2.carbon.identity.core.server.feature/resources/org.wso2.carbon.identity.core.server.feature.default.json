@@ -1571,6 +1571,11 @@
 
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
 
+  "actions.http_client.connection_timeout": 2000,
+  "actions.http_client.read_timeout": 5000,
+  "actions.http_client.request_timeout": 2000,
+  "actions.http_client.connection_pool_size": 20,
+  "actions.http_client.retry_count": 2,
   "actions.maximum_actions_per_action_type": 1,
   "actions.action_request.excluded_headers": [
     "authorization",

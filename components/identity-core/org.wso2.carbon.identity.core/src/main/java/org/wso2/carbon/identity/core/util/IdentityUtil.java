@@ -540,6 +540,50 @@ public class IdentityUtil {
         return serverUrl.toString();
     }
 
+    /**
+     * Checks whether the second domain is a subdomain of the first domain.
+     *
+     * @param domainName    Domain name.
+     * @param subdomainName Subdomain name.
+     * @return true if the second domain is a subdomain of the first domain.
+     */
+    public static boolean isSubdomain(String domainName, String subdomainName) {
+
+        if (StringUtils.isBlank(domainName) || StringUtils.isBlank(subdomainName)) {
+            return false;
+        }
+        subdomainName = subdomainName.toLowerCase();
+        domainName = domainName.toLowerCase();
+
+        if (subdomainName.equals(domainName)) {
+            return true;
+        }
+        return subdomainName.endsWith("." + domainName);
+    }
+
+    /**
+     * Get the root domain of the given domain.
+     * Note: this assumes that the root domain only consists of two parts (eg: wso2.io). The method will not work for
+     * TLDs with more than two parts (eg: wso2.co.uk).
+     *
+     * @param domain Domain.
+     * @return Root domain.
+     */
+    public static String getRootDomain(String domain) {
+
+        if (StringUtils.isBlank(domain)) {
+            return domain;
+        }
+        String[] domainParts = domain.split("\\.");
+        int length = domainParts.length;
+
+        if (length > 2) {
+            return domainParts[length - 2] + "." + domainParts[length - 1];
+        } else {
+            return domain;
+        }
+    }
+
     private static StringBuilder getServerUrlWithPort(String hostName) {
 
         String mgtTransport = CarbonUtils.getManagementTransport();
