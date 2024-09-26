@@ -552,7 +552,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     @Override
     public void updatePolicy(PolicyStoreDTO policy) throws EntitlementException {
 
-        if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled() && policy != null) {
             LOG.debug(String.format("Updating policy %s", policy.getPolicyId()));
         }
         addPolicy(policy);

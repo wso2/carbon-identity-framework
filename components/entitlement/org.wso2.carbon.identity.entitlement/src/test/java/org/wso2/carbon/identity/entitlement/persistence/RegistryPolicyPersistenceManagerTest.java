@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent
 
 import java.util.Properties;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -56,5 +56,7 @@ public class RegistryPolicyPersistenceManagerTest extends PolicyPersistenceManag
         assertTrue(((RegistryPolicyPersistenceManager) policyPersistenceManager).
                 isPolicyExistsInPap(samplePAPPolicy1.getPolicyId()));
         policyPersistenceManager.removePolicy(samplePAPPolicy1.getPolicyId());
+
+        assertFalse(((RegistryPolicyPersistenceManager) policyPersistenceManager).isPolicyExistsInPap(null));
     }
 }

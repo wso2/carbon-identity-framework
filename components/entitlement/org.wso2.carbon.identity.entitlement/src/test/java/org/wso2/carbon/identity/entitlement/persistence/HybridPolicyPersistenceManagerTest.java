@@ -216,7 +216,7 @@ public class HybridPolicyPersistenceManagerTest extends PolicyPersistenceManager
     }
 
     @Test(priority = 22)
-    public void testDeletePDPPolicyInRegistry() throws Exception {
+    public void testDeletePDPPolicy() throws Exception {
 
         registryPolicyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
         registryPolicyPersistenceManager.addPolicy(samplePDPPolicy1);
@@ -322,7 +322,6 @@ public class HybridPolicyPersistenceManagerTest extends PolicyPersistenceManager
         assertEquals(orderedPolicyIdentifiers.length, 3);
         String[] orderedPolicyIdentifiersFromDb = jdbcPolicyPersistenceManager.getOrderedPolicyIdentifiers();
         assertEquals(orderedPolicyIdentifiersFromDb.length, 3);
-
 
         // Verify the number of active policies.
         String[] activePolicies = policyPersistenceManager.getActivePolicies();
