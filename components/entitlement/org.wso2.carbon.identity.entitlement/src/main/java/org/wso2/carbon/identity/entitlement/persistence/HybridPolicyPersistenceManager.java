@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.entitlement.persistence;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
@@ -310,6 +311,9 @@ public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule i
     @Override
     public void addPolicy(PolicyStoreDTO policy) throws EntitlementException {
 
+        if (policy == null || StringUtils.isBlank(policy.getPolicyId())) {
+            throw new EntitlementException("Policy and policy id can not be null");
+        }
         if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policy.getPolicyId())) {
             jdbcPolicyPersistenceManager.addPolicy(policy);
         } else {
@@ -326,6 +330,9 @@ public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule i
     @Override
     public void updatePolicy(PolicyStoreDTO policy) throws EntitlementException {
 
+        if (policy == null || StringUtils.isBlank(policy.getPolicyId())) {
+            throw new EntitlementException("Policy and policy id can not be null");
+        }
         if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policy.getPolicyId())) {
             jdbcPolicyPersistenceManager.updatePolicy(policy);
         } else {
@@ -384,7 +391,7 @@ public class HybridPolicyPersistenceManager extends AbstractPolicyFinderModule i
     @Override
     public boolean deletePolicy(String policyId) {
 
-        if (jdbcPolicyPersistenceManager.isPolicyExistsInPap(policyId)) {
+        if (jdbcPolicyPersistenceManager.isPolicyExist(policyId)) {
             return jdbcPolicyPersistenceManager.deletePolicy(policyId);
         } else {
             return registryPolicyPersistenceManager.deletePolicy(policyId);

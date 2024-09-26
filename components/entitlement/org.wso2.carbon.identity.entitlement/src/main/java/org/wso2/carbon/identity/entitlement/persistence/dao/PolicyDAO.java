@@ -316,6 +316,7 @@ public class PolicyDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement prepStmt = new NamedPreparedStatement(connection, GET_POLICY_VERSIONS_SQL)) {
+                prepStmt.setBoolean(IS_IN_PAP, IN_PAP);
                 prepStmt.setString(POLICY_ID, policyId);
                 prepStmt.setInt(TENANT_ID, tenantId);
 
