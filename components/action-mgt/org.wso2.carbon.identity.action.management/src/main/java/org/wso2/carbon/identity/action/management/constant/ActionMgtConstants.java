@@ -40,6 +40,12 @@ public class ActionMgtConstants {
         ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ACTION_TYPE_AND_ID("60003",
                 "Unable to perform the operation.",
                 "No Action is configured on the given Action Type and Id."),
+        ERROR_EMPTY_ACTION_REQUEST_FIELD("60004", "Invalid action request.",
+                "One or more required action request fields are empty."),
+        ERROR_INVALID_ACTION_REQUEST_FIELD("60005", "Invalid action request.",
+                "One or more action request fields are invalid."),
+        ERROR_EMPTY_ENDPOINT_AUTHENTICATION_SCHEME("60006", "Invalid action request.",
+                "Endpoint authentication type is empty."),
 
         // Server errors.
         ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",

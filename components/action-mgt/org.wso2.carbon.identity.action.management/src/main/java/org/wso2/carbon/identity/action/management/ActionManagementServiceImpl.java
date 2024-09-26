@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
@@ -56,6 +57,15 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         return INSTANCE;
     }
 
+    /**
+     * Create a new action of the specified type in the given tenant.
+     *
+     * @param actionType   Action type.
+     * @param action       Action creation model.
+     * @param tenantDomain Tenant domain.
+     * @return Created action object.
+     * @throws ActionMgtException if an error occurred when creating the action.
+     */
     @Override
     public Action addAction(String actionType, Action action, String tenantDomain) throws ActionMgtException {
 
@@ -65,11 +75,20 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String resolvedActionType = getActionTypeFromPath(actionType);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
+        doPreAddActionValidations(resolvedActionType, action);
         String generatedActionId = UUID.randomUUID().toString();
         return CACHE_BACKED_DAO.addAction(resolvedActionType, generatedActionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Retrieve actions by the type in the given tenant.
+     *
+     * @param actionType   Action type.
+     * @param tenantDomain Tenant domain.
+     * @return A list of actions of the specified type.
+     * @throws ActionMgtException if an error occurred while retrieving actions.
+     */
     @Override
     public List<Action> getActionsByActionType(String actionType, String tenantDomain) throws ActionMgtException {
 
@@ -80,6 +99,19 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Update an action of specified type in the given tenant.
+     * This method performs an HTTP PATCH operation.
+     * Only the non-null and non-empty fields in the provided action model will be updated.
+     * Null or empty fields will be ignored.
+     *
+     * @param actionType   Action type.
+     * @param actionId     Action ID.
+     * @param action       Action update model.
+     * @param tenantDomain Tenant domain.
+     * @return
+     * @throws ActionMgtException
+     */
     @Override
     public Action updateAction(String actionType, String actionId, Action action, String tenantDomain)
             throws ActionMgtException {
@@ -89,10 +121,19 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        doPreUpdateActionValidations(resolvedActionType, action);
         return CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, action, existingAction,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Delete an action of the specified type in the given tenant.
+     *
+     * @param actionType   Action type.
+     * @param actionId     Action ID.
+     * @param tenantDomain Tenant domain.
+     * @throws ActionMgtException if an error occurred while deleting the action.
+     */
     @Override
     public void deleteAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
 
@@ -105,6 +146,15 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Activate a created action.
+     *
+     * @param actionType   Action type.
+     * @param actionId     Action ID.
+     * @param tenantDomain Tenant domain.
+     * @return Activated action.
+     * @throws ActionMgtException if an error occurred while activating the action.
+     */
     @Override
     public Action activateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
 
@@ -117,6 +167,15 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Deactivate an action.
+     *
+     * @param actionType   Action type.
+     * @param actionId     Action ID.
+     * @param tenantDomain Tenant domain.
+     * @return deactivated action.
+     * @throws ActionMgtException if an error occurred while deactivating the action.
+     */
     @Override
     public Action deactivateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
 
@@ -130,6 +189,13 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Retrieve number of actions per each type in a given tenant.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return A map of action count against action type.
+     * @throws ActionMgtException if an error occurred while retrieving actions.
+     */
     @Override
     public Map<String, Integer> getActionsCountPerType(String tenantDomain) throws ActionMgtException {
 
@@ -139,6 +205,15 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         return CACHE_BACKED_DAO.getActionsCountPerType(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Retrieve an action by action ID.
+     *
+     * @param actionType   Action type.
+     * @param actionId     Action ID.
+     * @param tenantDomain Tenant domain.
+     * @return Action object.
+     * @throws ActionMgtException if an error occurred while retrieving the action.
+     */
     @Override
     public Action getActionByActionId(String actionType, String actionId, String tenantDomain)
             throws ActionMgtException {
@@ -150,12 +225,25 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
+    /**
+     * Update endpoint authentication of a given action.
+     *
+     * @param actionType     Action type.
+     * @param actionId       Action ID.
+     * @param authentication Authentication Information to be updated.
+     * @param tenantDomain   Tenant domain.
+     * @return Updated action.
+     * @throws ActionMgtException if an error occurred while updating endpoint authentication information.
+     */
     @Override
     public Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
                                                      String tenantDomain) throws ActionMgtException {
 
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        // Validate endpoint authentication details in the request.
+        String endpointAuthenticationType = authentication.getType().getName();
+        doEndpointAuthenticationValidation(endpointAuthenticationType, authentication);
         if (existingAction.getEndpoint().getAuthentication().getType().equals(authentication.getType())) {
             // Only need to update the properties since the authentication type is same.
             return updateEndpointAuthenticationProperties(resolvedActionType, actionId, authentication, tenantDomain);
@@ -267,5 +355,85 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionType, actionId, authentication,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * Perform pre validations on action model when creating an action.
+     *
+     * @param actionType Action type.
+     * @param action     Action create model.
+     * @throws ActionMgtException if action model is invalid.
+     */
+    private void doPreAddActionValidations(String actionType, Action action) throws ActionMgtException {
+
+        if (actionType.equals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType())) {
+            ActionManagementUtil.isFieldEmpty(action.getName());
+            ActionManagementUtil.isFieldEmpty(action.getEndpoint().getUri());
+            ActionManagementUtil.isValidActionName(action.getName());
+            ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
+            // Validate endpoint authentication details in the request.
+            Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
+            String endpointAuthenticationType = endpointAuthentication.getType().getName();
+            doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
+
+        }
+    }
+
+    /**
+     * Perform pre validations on action model when updating an existing action.
+     * This is specifically used during HTTP PATCH operation and
+     * only validate non-null and non-empty fields.
+     *
+     * @param actionType Action type.
+     * @param action Action update model.
+     * @throws ActionMgtClientException if action model is invalid.
+     */
+    private void doPreUpdateActionValidations(String actionType, Action action) throws ActionMgtClientException {
+
+        if (actionType.equals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType())) {
+            // Validate the action name if present.
+            if (action.getName() != null) {
+                ActionManagementUtil.isValidActionName(action.getName());
+            }
+            // Validate the endpoint URI if present.
+            if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
+                ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
+            }
+            // Validate the endpoint authentication if present.
+            if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
+                Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
+                String endpointAuthenticationType = endpointAuthentication.getType().getName();
+                doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
+            }
+        }
+    }
+
+    /**
+     * Perform pre validations on endpoint authentication model.
+     *
+     * @param authenticationType Authentication type.
+     * @param authentication     Endpoint authentication model.
+     * @throws ActionMgtClientException if endpoint authentication model is invalid.
+     */
+    private void doEndpointAuthenticationValidation(String authenticationType, Authentication authentication)
+            throws ActionMgtClientException {
+
+        if (StringUtils.isBlank(authenticationType)) {
+            throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
+                    ERROR_EMPTY_ENDPOINT_AUTHENTICATION_SCHEME);
+        }
+        if (authenticationType.equals(Authentication.Type.BASIC.getName())) {
+            ActionManagementUtil.isFieldEmpty(authentication.getProperty(Authentication.Property.USERNAME).getValue());
+            ActionManagementUtil.isFieldEmpty(authentication.getProperty(Authentication.Property.PASSWORD).getValue());
+        } else if (authenticationType.equals(Authentication.Type.BEARER.getName())) {
+            String accessToken = authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue();
+            ActionManagementUtil.isFieldEmpty(accessToken);
+        } else if (authenticationType.equals(Authentication.Type.API_KEY.getName())) {
+            String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
+            ActionManagementUtil.isFieldEmpty(apiKeyHeader);
+            ActionManagementUtil.isValidHeader(apiKeyHeader);
+            String apiKeyValue = authentication.getProperty(Authentication.Property.VALUE).getValue();
+            ActionManagementUtil.isFieldEmpty(apiKeyValue);
+        }
     }
 }
