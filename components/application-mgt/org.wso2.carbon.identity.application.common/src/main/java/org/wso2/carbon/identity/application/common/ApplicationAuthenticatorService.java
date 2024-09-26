@@ -91,9 +91,8 @@ public class ApplicationAuthenticatorService {
 
     public void addLocalAuthenticator(LocalAuthenticatorConfig authenticator) {
         if (authenticator != null) {
-            //TODO: Remove warn log, once feature is ready.
             if (authenticator.getDefinedByType() == null) {
-                LOG.warn("The defined by type is not set for the : " + authenticator.getName());
+                LOG.debug("The defined by type is not set for the : " + authenticator.getName());
             }
             localAuthenticators.add(authenticator);
         }
@@ -107,9 +106,8 @@ public class ApplicationAuthenticatorService {
 
     public void addFederatedAuthenticator(FederatedAuthenticatorConfig authenticator) {
         if (authenticator != null) {
-            //TODO: Remove warn log, once feature is ready.
             if (authenticator.getDefinedByType() == null) {
-                LOG.warn("The defined by type is not set for the : " + authenticator.getName());
+                LOG.debug("The defined by type is not set for the : " + authenticator.getName());
             }
             federatedAuthenticators.add(authenticator);
         }

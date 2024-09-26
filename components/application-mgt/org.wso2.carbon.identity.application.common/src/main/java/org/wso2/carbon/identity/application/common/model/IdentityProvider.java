@@ -424,7 +424,7 @@ public class IdentityProvider implements Serializable {
         // TODO: Remove warn log, once feature is ready.
         for (FederatedAuthenticatorConfig config: federatedAuthenticatorConfigs) {
             if (config.getDefinedByType() == null) {
-                LOG.warn("The defined by type is not set for the : " + config.getName());
+                LOG.debug("The defined by type is not set for the : " + config.getName());
             }
         }
         Set<FederatedAuthenticatorConfig> propertySet =

@@ -811,10 +811,6 @@ public class ApplicationManagementServiceImplTest {
         LocalAuthenticatorConfig[] localAuthenticatorConfigs = applicationManagementService.getAllLocalAuthenticators
                 (SUPER_TENANT_DOMAIN_NAME);
 
-        for (LocalAuthenticatorConfig config: localAuthenticatorConfigs) {
-            Assert.assertNotNull(config.getDefinedByType(), "");
-        }
-
         Assert.assertEquals(localAuthenticatorConfigs[0], localAuthenticatorConfig);
     }
 

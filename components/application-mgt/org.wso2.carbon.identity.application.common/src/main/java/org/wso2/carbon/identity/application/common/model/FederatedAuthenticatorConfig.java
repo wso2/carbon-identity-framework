@@ -117,7 +117,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
         // TODO: Remove warn log, once feature is ready.
         if (federatedAuthenticatorConfig.getDefinedByType() == null) {
             federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            LOG.warn("The defined by type is not set for the : " + federatedAuthenticatorConfig.getName());
+            LOG.debug("The defined by type is not set for the : " + federatedAuthenticatorConfig.getName());
         }
 
         return federatedAuthenticatorConfig;
