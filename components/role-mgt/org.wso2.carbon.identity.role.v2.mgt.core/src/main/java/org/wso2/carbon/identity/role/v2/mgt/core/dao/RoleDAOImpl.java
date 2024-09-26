@@ -88,6 +88,7 @@ import javax.xml.namespace.QName;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.
         ErrorMessages.ERROR_CODE_INVALID_ORGANIZATION_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_ORG_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
@@ -102,7 +103,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.H2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INFORMIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_ORG_SCOPE_PREFIX;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.INTERNAL_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MARIADB;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MY_SQL;
@@ -1649,7 +1649,7 @@ public class RoleDAOImpl implements RoleDAO {
      */
     private boolean isValidSubOrgPermission(String permission) {
 
-        return permission.startsWith(INTERNAL_ORG_SCOPE_PREFIX) || !permission.startsWith(INTERNAL_SCOPE_PREFIX);
+        return (permission.startsWith(INTERNAL_ORG_SCOPE_PREFIX) || permission.startsWith(CONSOLE_ORG_SCOPE_PREFIX));
     }
 
     /**
