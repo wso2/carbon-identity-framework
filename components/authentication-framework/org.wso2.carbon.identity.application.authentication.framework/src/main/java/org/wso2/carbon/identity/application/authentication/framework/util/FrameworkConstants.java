@@ -765,6 +765,7 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATED_IDPS = "authenticated idps";
         public static final String IDP = "idp";
         public static final String SESSION_CONTEXT_KEY = "session context key";
+        public static final String ACTION_EXECUTION = "action-execution";
 
         /**
          * Define action IDs for diagnostic logs in the framework component.
@@ -782,6 +783,12 @@ public abstract class FrameworkConstants {
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
             public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
             public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
+            public static final String EXECUTE_ACTION = "execute-action";
+            public static final String PROCESS_ACTION_REQUEST = "process-action-request";
+            public static final String SEND_ACTION_REQUEST = "send-action-request";
+            public static final String RECEIVE_ACTION_RESPONSE = "receive-action-response";
+            public static final String VALIDATE_ACTION_OPERATIONS = "validate-action-operations";
+            public static final String EXECUTE_ACTION_OPERATIONS = "execute-action-operations";
         }
     }
 

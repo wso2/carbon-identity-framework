@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +58,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 /**
  * This class is responsible for executing the action based on the action type and the event context.
@@ -99,11 +103,33 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         try {
             List<Action> actions = getActionsByActionType(actionType, tenantDomain);
             validateActions(actions, actionType);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                        FrameworkConstants.LogConstants.ActionIDs.EXECUTE_ACTION);
+                diagLogBuilder
+                        .resultMessage(actionType + " action execution is initiated ")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .build();
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            }
             // As of now only one action is allowed.
             Action action = actions.get(0);
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                        FrameworkConstants.LogConstants.ActionIDs.EXECUTE_ACTION);
+                diagLogBuilder
+                        .resultMessage("Skip executing actions for " + actionType + " type")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                        .build();
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            }
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
         }
@@ -127,6 +153,17 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
             // todo: add to diagnostics
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                        FrameworkConstants.LogConstants.ActionIDs.EXECUTE_ACTION);
+                diagLogBuilder
+                        .resultMessage("Skip executing actions for " + actionType + " type")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                        .build();
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            }
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
         }
@@ -271,6 +308,23 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private void logActionRequest(Action action, String payload) {
 
         //todo: Add to diagnostics
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                    FrameworkConstants.LogConstants.ActionIDs.PROCESS_ACTION_REQUEST);
+            diagLogBuilder
+                    .configParam("action id", action.getId())
+                    .configParam("action type", action.getType().getActionType())
+                    .configParam("action endpoint", action.getEndpoint().getUri())
+                    .configParam("action endpoint authentication type",
+                            action.getEndpoint().getAuthentication().getType().getName())
+                    .resultMessage("Call external service endpoint " + action.getEndpoint().getUri() + " for "
+                            + action.getType().getActionType()+ " action ")
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                    .build();
+            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+        }
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Calling API: %s for action type: %s action id: %s with authentication: %s payload: %s",
@@ -321,7 +375,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
 
         List<PerformableOperation> allowedPerformableOperations =
-                validatePerformableOperations(actionRequest, successResponse);
+                validatePerformableOperations(actionRequest, successResponse, action);
         ActionInvocationSuccessResponse.Builder successResponseBuilder =
                 new ActionInvocationSuccessResponse.Builder().actionStatus(ActionInvocationResponse.Status.SUCCESS)
                         .operations(allowedPerformableOperations);
@@ -359,6 +413,23 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         try {
             String responseBody = serializeSuccessResponse(successResponse);
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                        FrameworkConstants.LogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
+                diagLogBuilder
+                        .configParam("action id", action.getId()+successResponse)
+                        .configParam("action type", action.getType().getActionType())
+                        .configParam("action endpoint", action.getEndpoint().getUri())
+                        .configParam("action endpoint authentication type",
+                                action.getEndpoint().getAuthentication().getType().getName())
+                        .resultMessage("Received success response from external endpoint " +
+                                action.getEndpoint().getUri() + " for " + action.getType().getActionType() + " action")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .build();
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            }
             LOG.debug(String.format(
                     "Received success response from API: %s for action type: %s action id: %s with authentication: %s. "
                             + "Response: %s",
@@ -379,6 +450,24 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             // todo: add to diagnostic logs
             try {
                 String responseBody = serializeErrorResponse(errorResponse);
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                            FrameworkConstants.LogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
+                    diagLogBuilder
+                            .configParam("action id", action.getId())
+                            .configParam("action type", action.getType().getActionType())
+                            .configParam("action endpoint", action.getEndpoint().getUri())
+                            .configParam("action endpoint authentication type",
+                                    action.getEndpoint().getAuthentication().getType().getName())
+                            .resultMessage("Received error response from external endpoint " +
+                                    action.getEndpoint().getUri() + " for " + action.getType().getActionType() +
+                                    " action")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                            .build();
+                    LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+                }
                 LOG.debug(String.format(
                         "Received error response from API: %s for action type: %s action id: %s with " +
                                 "authentication: %s. Response: %s",
@@ -400,6 +489,24 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             // todo: add to diagnostic logs
             try {
                 String responseBody = serializeFailureResponse(failureResponse);
+                if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                    DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                            FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                            FrameworkConstants.LogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
+                    diagLogBuilder
+                            .configParam("action id", action.getId())
+                            .configParam("action type", action.getType().getActionType())
+                            .configParam("action endpoint", action.getEndpoint().getUri())
+                            .configParam("action endpoint authentication type",
+                                    action.getEndpoint().getAuthentication().getType().getName())
+                            .resultMessage("Received failure response from external endpoint " +
+                                    action.getEndpoint().getUri() + " for " + action.getType().getActionType() +
+                                    " action")
+                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                            .build();
+                    LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+                }
                 LOG.debug(String.format(
                         "Received failure response from API: %s for action type: %s action id: %s with " +
                                 "authentication: %s. Response: %s",
@@ -417,6 +524,24 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logErrorResponse(Action action, ActionInvocationResponse actionInvocationResponse) {
         // todo: add to diagnostic logs
+        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                    FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                    FrameworkConstants.LogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
+            diagLogBuilder
+                    .configParam("action id", action.getId())
+                    .configParam("action type", action.getType().getActionType())
+                    .configParam("action endpoint", action.getEndpoint().getUri())
+                    .configParam("action endpoint authentication type",
+                            action.getEndpoint().getAuthentication().getType().getName())
+                    .resultMessage("Failed to call external endpoint for action. " +
+                            (actionInvocationResponse.getErrorLog() != null ? actionInvocationResponse.getErrorLog() :
+                            "Unknown error occured."))
+                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                    .build();
+            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+        }
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Failed to call API: %s for action type: %s action id: %s with authentication: %s. Error: %s",
@@ -456,7 +581,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private List<PerformableOperation> validatePerformableOperations(ActionExecutionRequest request,
-                                                                     ActionInvocationSuccessResponse response) {
+                                                                     ActionInvocationSuccessResponse response, Action action) {
 
         List<AllowedOperation> allowedOperations = request.getAllowedOperations();
 
@@ -466,8 +591,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                 performableOperation)))
                 .collect(Collectors.toList());
 
-        if (LOG.isDebugEnabled()) {
-            // todo: add to diagnostics
+        if(LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()){
             List<String> allowedOps = new ArrayList<>();
             List<String> notAllowedOps = new ArrayList<>();
 
@@ -479,8 +603,30 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     notAllowedOps.add(operationDetails);
                 }
             });
-            LOG.debug("Allowed Operations: " + String.join(", ", allowedOps) +
-                    ". Not Allowed Operations: " + String.join(", ", notAllowedOps));
+            if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                        FrameworkConstants.LogConstants.ACTION_EXECUTION,
+                        FrameworkConstants.LogConstants.ActionIDs.VALIDATE_ACTION_OPERATIONS);
+                diagLogBuilder
+                        .configParam("action id", action.getId())
+                        .configParam("action type", action.getType().getActionType())
+                        .configParam("action endpoint", action.getEndpoint().getUri())
+                        .configParam("action endpoint authentication type",
+                                action.getEndpoint().getAuthentication().getType().getName())
+                        .configParam("allowed operations", allowedOps.isEmpty() ? "empty" : allowedOps)
+                        .configParam("not allowed operations", notAllowedOps.isEmpty() ? "empty" : notAllowedOps)
+                        .resultMessage("Validated performable operations relevant to "+ action.getType().getActionType()
+                                + " action.")
+                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
+                        .build();
+                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+            }
+            if (LOG.isDebugEnabled()) {
+                // todo: add to diagnostics
+                LOG.debug("Allowed Operations: " + String.join(", ", allowedOps) +
+                        ". Not Allowed Operations: " + String.join(", ", notAllowedOps));
+            }
         }
 
         return allowedPerformableOperations;
