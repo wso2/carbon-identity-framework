@@ -86,6 +86,7 @@ public abstract class PolicyPersistenceManagerTest {
         samplePAPPolicy1.setPolicy(SAMPLE_POLICY_STRING_1);
         samplePAPPolicy1.setPolicyEditorData(new String[]{"category|Resource", "policyDescription|"});
         samplePAPPolicy1.setPolicyEditor("XML");
+        samplePAPPolicy1.setPolicyOrder(3);
 
         samplePAPPolicy2 = new PolicyDTO(SAMPLE_POLICY_ID_2);
         samplePAPPolicy2.setPolicy(SAMPLE_POLICY_STRING_2);
@@ -148,6 +149,7 @@ public abstract class PolicyPersistenceManagerTest {
         assertEquals(policyFromStorage.getPolicyId(), samplePAPPolicy1.getPolicyId());
         assertEquals(policyFromStorage.getVersion(), "1");
         assertEquals(policyFromStorage.getPolicyEditorData(), samplePAPPolicy1.getPolicyEditorData());
+        assertEquals(policyFromStorage.getPolicyOrder(), samplePAPPolicy1.getPolicyOrder());
     }
 
     @Test(priority = 3)
