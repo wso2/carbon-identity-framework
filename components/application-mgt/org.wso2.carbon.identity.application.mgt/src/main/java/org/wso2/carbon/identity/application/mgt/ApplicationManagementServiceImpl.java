@@ -3108,7 +3108,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider application;
         try {
-            startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain, username);
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
