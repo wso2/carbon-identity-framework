@@ -150,6 +150,7 @@ public abstract class PolicyPersistenceManagerTest {
         assertEquals(policyFromStorage.getVersion(), "1");
         assertEquals(policyFromStorage.getPolicyEditorData(), samplePAPPolicy1.getPolicyEditorData());
         assertEquals(policyFromStorage.getPolicyOrder(), samplePAPPolicy1.getPolicyOrder());
+        assertEquals(policyFromStorage.getAttributeDTOs().length, 4);
     }
 
     @Test(priority = 3)
