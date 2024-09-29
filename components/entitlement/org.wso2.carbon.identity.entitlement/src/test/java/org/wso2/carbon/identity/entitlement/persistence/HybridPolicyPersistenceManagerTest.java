@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.entitlement.persistence;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -49,8 +48,7 @@ public class HybridPolicyPersistenceManagerTest extends PolicyPersistenceManager
     private JDBCPolicyPersistenceManager jdbcPolicyPersistenceManager;
     private RegistryPolicyPersistenceManager registryPolicyPersistenceManager;
 
-    @BeforeMethod
-    public void setUp() throws Exception {
+    public PolicyPersistenceManager createPolicyPersistenceManager() {
 
         Properties storeProps = new Properties();
         policyPersistenceManager = new HybridPolicyPersistenceManager();
@@ -58,6 +56,7 @@ public class HybridPolicyPersistenceManagerTest extends PolicyPersistenceManager
         jdbcPolicyPersistenceManager = new JDBCPolicyPersistenceManager();
         registryPolicyPersistenceManager = new RegistryPolicyPersistenceManager();
         registryPolicyPersistenceManager.init(storeProps);
+        return policyPersistenceManager;
     }
 
     @Test(priority = 13)
