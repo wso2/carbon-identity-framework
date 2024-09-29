@@ -360,8 +360,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
-            // Set application version to latest.
-            application.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
+            // Set application version to the latest if not set.
+            if (application.getApplicationVersion() == null) {
+                application.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
+            }
             // Create basic application.
             ApplicationCreateResult result = persistBasicApplicationInformation(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
@@ -1844,6 +1846,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             localServiceProvider.setApplicationName(applicationName);
             localServiceProvider.setDescription("Local Service Provider");
             localServiceProvider.setSpProperties(prepareLocalSpProperties());
+            localServiceProvider.setApplicationVersion();
             applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
         return getApplication(applicationId);
