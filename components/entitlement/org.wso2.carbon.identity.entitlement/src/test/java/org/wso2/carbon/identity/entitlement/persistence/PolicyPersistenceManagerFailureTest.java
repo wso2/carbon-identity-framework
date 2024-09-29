@@ -33,11 +33,14 @@ import org.wso2.carbon.identity.entitlement.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
+import org.wso2.carbon.identity.entitlement.persistence.cache.CacheBackedPolicyDAO;
 import org.wso2.carbon.registry.core.CollectionImpl;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.exceptions.ResourceNotFoundException;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -59,7 +62,7 @@ import static org.testng.Assert.assertThrows;
  */
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {EntitlementConfigHolder.class}, initUserStoreManager = true)
-public class RegistryPolicyPersistenceManagerFailureTest {
+public class PolicyPersistenceManagerFailureTest {
 
     static final String SAMPLE_POLICY_STRING_1 =
             "<Policy xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\"  PolicyId=\"sample_policy1\" RuleCombiningAlgId=\"urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable\" Version=\"1.0\"><Target><AnyOf><AllOf><Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\"><AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">GET</AttributeValue><AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"true\"></AttributeDesignator></Match><Match MatchId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\"><AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">resourceA</AttributeValue><AttributeDesignator AttributeId=\"urn:oasis:names:tc:xacml:1.0:resource:resource-id\" Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"true\"></AttributeDesignator></Match></AllOf></AnyOf></Target><Rule Effect=\"Permit\" RuleId=\"rule1\"><Condition><Apply FunctionId=\"urn:oasis:names:tc:xacml:1.0:function:and\"><Apply FunctionId=\"urn:oasis:names:tc:xacml:1.0:function:string-equal\"><Apply FunctionId=\"urn:oasis:names:tc:xacml:1.0:function:string-one-and-only\"><AttributeDesignator AttributeId=\"http://wso2.org/claims/country\" Category=\"http://wso2.org/identity/user\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"true\"></AttributeDesignator></Apply><AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Sri Lanka</AttributeValue></Apply><Apply FunctionId=\"urn:oasis:names:tc:xacml:1.0:function:string-is-in\"><AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Engineer</AttributeValue><AttributeDesignator AttributeId=\"http://wso2.org/claims/role\" Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\" DataType=\"http://www.w3.org/2001/XMLSchema#string\" MustBePresent=\"true\"></AttributeDesignator></Apply></Apply></Condition></Rule><Rule Effect=\"Deny\" RuleId=\"rule2\"></Rule></Policy>";
@@ -69,10 +72,14 @@ public class RegistryPolicyPersistenceManagerFailureTest {
     PolicyStoreDTO samplePDPPolicy1;
 
     @Mock
+    private CacheBackedPolicyDAO mockedPolicyDAO;
+
+    @Mock
     private Registry mockedRegistry;
 
     MockedStatic<EntitlementServiceComponent> entitlementServiceComponent;
     private RegistryPolicyPersistenceManager registryPolicyPersistenceManager;
+    private JDBCPolicyPersistenceManager jdbcPolicyPersistenceManager;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -95,6 +102,8 @@ public class RegistryPolicyPersistenceManagerFailureTest {
         registryPolicyPersistenceManager = new RegistryPolicyPersistenceManager();
         storeProps.setProperty("policyStorePath", "/repository/identity/entitlement/policy/pdp/");
         registryPolicyPersistenceManager.init(storeProps);
+        jdbcPolicyPersistenceManager = new JDBCPolicyPersistenceManager();
+        setPrivateStaticFinalField(JDBCPolicyPersistenceManager.class, "policyDAO", mockedPolicyDAO);
 
         samplePAPPolicy1 = new PolicyDTO(SAMPLE_POLICY_ID_1);
         samplePAPPolicy1.setPolicy(SAMPLE_POLICY_STRING_1);
@@ -106,6 +115,72 @@ public class RegistryPolicyPersistenceManagerFailureTest {
 
         entitlementServiceComponent.close();
         registryPolicyPersistenceManager = null;
+        setPrivateStaticFinalField(JDBCPolicyPersistenceManager.class, "policyDAO",
+                CacheBackedPolicyDAO.getInstance());
+    }
+
+    @Test
+    public void testAddOrUpdatePolicyWhenDatabaseErrorHappened() throws Exception {
+
+        doThrow(new EntitlementException("")).when(mockedPolicyDAO).insertPolicy(any(), anyInt());
+        assertThrows(EntitlementException.class,
+                () -> jdbcPolicyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true));
+    }
+
+    @Test
+    public void testGetPAPPolicyWhenDatabaseErrorHappened() throws Exception {
+
+        when(mockedPolicyDAO.getPAPPolicy(anyString(), anyInt())).thenThrow(new EntitlementException(""));
+        when(mockedRegistry.resourceExists(anyString())).thenReturn(true);
+        assertThrows(EntitlementException.class,
+                () -> jdbcPolicyPersistenceManager.getPAPPolicy(samplePAPPolicy1.getPolicyId()));
+    }
+
+    @Test
+    public void testGetActivePoliciesWhenDatabaseErrorHappened() throws Exception {
+
+        when(mockedPolicyDAO.getAllPDPPolicies(anyInt())).thenThrow(new EntitlementException(""));
+        String[] activePolicies = jdbcPolicyPersistenceManager.getActivePolicies();
+        assertEquals(activePolicies.length, 0);
+    }
+
+    @Test
+    public void testGetOrderedPolicyIdentifiersWhenDatabaseErrorHappened() throws Exception {
+
+        when(mockedPolicyDAO.getAllPDPPolicies(anyInt())).thenThrow(new EntitlementException(""));
+        String[] orderedPolicies = jdbcPolicyPersistenceManager.getOrderedPolicyIdentifiers();
+        assertEquals(orderedPolicies.length, 0);
+    }
+
+    @Test
+    public void testGetPolicyIdentifiersWhenDatabaseErrorHappened() throws Exception {
+
+        when(mockedPolicyDAO.getPublishedPolicyIds(anyInt())).thenThrow(new EntitlementException(""));
+        assertNull(jdbcPolicyPersistenceManager.getPolicyIdentifiers());
+    }
+
+    @Test
+    public void testGetSearchAttributesWhenDatabaseErrorHappened() throws Exception {
+
+        when(mockedPolicyDAO.getAllPDPPolicies(anyInt())).thenThrow(new EntitlementException(""));
+        Map<String, Set<AttributeDTO>> attributes = jdbcPolicyPersistenceManager.getSearchAttributes(null, null);
+        assertEquals(attributes.size(), 0);
+    }
+
+    @Test
+    public void testRemovePolicyWhenDatabaseErrorHappened() throws Exception {
+
+        doThrow(new EntitlementException("")).when(mockedPolicyDAO).deletePAPPolicy(anyString(), anyInt());
+        assertThrows(EntitlementException.class,
+                () -> jdbcPolicyPersistenceManager.removePolicy(samplePAPPolicy1.getPolicyId()));
+    }
+
+    @Test
+    public void testAddPdPPolicyWhenDatabaseErrorHappened() throws Exception {
+
+        doThrow(new EntitlementException("")).when(mockedPolicyDAO).insertOrUpdatePolicy(any(), anyInt());
+        assertThrows(EntitlementException.class,
+                () -> jdbcPolicyPersistenceManager.addPolicy(samplePDPPolicy1));
     }
 
     @Test
@@ -165,8 +240,8 @@ public class RegistryPolicyPersistenceManagerFailureTest {
     @Test
     public void testGetOrderedPolicyIdentifiersWhenRegistryErrorHappened() throws Exception {
 
-        when(mockedRegistry.resourceExists(anyString())).thenReturn(false);
-        String[] orderedPolicies = registryPolicyPersistenceManager.getActivePolicies();
+        when(mockedRegistry.resourceExists(anyString())).thenThrow(new RegistryException(""));
+        String[] orderedPolicies = registryPolicyPersistenceManager.getOrderedPolicyIdentifiers();
         assertEquals(orderedPolicies.length, 0);
     }
 
@@ -258,5 +333,18 @@ public class RegistryPolicyPersistenceManagerFailureTest {
         }
         policyStoreDTO.setSetOrder(setOrder);
         return policyStoreDTO;
+    }
+
+    private static void setPrivateStaticFinalField(Class<?> clazz, String fieldName, Object newValue)
+            throws ReflectiveOperationException {
+
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+
+        Field modifiers = Field.class.getDeclaredField("modifiers");
+        modifiers.setAccessible(true);
+        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+        field.set(null, newValue);
     }
 }
