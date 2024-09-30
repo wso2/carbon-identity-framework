@@ -85,8 +85,7 @@ public class UserIdentityManagementUtil {
     private static UserChallengesCollectionDTO userChallengesCollectionDTO = new UserChallengesCollectionDTO();
     private static Log log = LogFactory.getLog(UserIdentityManagementUtil.class);
 
-    private UserIdentityManagementUtil() {
-    }
+    private VerificationBean vBeanInstance = new VerificationBean();
 
     /**
      * Returns the registration information such as the temporary password or
@@ -631,6 +630,10 @@ public class UserIdentityManagementUtil {
         }
     }
 
+    /**
+     * @deprecated Use {@link #retrieveCustomErrorMessagesForRegistration} instead.
+     */
+    @Deprecated
     public static VerificationBean getCustomErrorMessagesWhenRegistering(Exception e, String userName) {
         if (e.getMessage() != null) {
             if (e.getMessage().contains(PASSWORD_INVALID)) {
@@ -688,6 +691,68 @@ public class UserIdentityManagementUtil {
         }
     }
 
+    public VerificationBean retrieveCustomErrorMessagesForRegistration(Exception e, String userName) {
+
+        if (e.getMessage() != null) {
+            if (e.getMessage().contains(PASSWORD_INVALID)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_CREDENTIALS +
+                        " Credential not valid. Credential must be a non null for the user : " + userName, e);
+            } else if (e.getMessage().contains(EXISTING_USER)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_USER +
+                        " Username '" + userName + "' already exists in the system. Please enter another username.", e);
+            } else if (e.getMessage().contains(INVALID_CLAIM_URL)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Invalid claim uri has been provided.", e);
+            } else if (e.getMessage().contains(INVALID_USER_NAME)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_USER +
+                        " Username " + userName + " is not valid. User name must be a non null", e);
+            } else if (e.getMessage().contains(READ_ONLY_STORE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
+                        " Read-only UserStoreManager. Roles cannot be added or modified.", e);
+            } else if (e.getMessage().contains(READ_ONLY_PRIMARY_STORE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
+                        " Cannot add role to Read Only user store unless it is primary.", e);
+            } else if (e.getMessage().contains(INVALID_ROLE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
+                        " Invalid role name. Role name must be a non null string.", e);
+            } else if (e.getMessage().contains(NO_READ_WRITE_PERMISSIONS)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
+                        " Role cannot be added. User store is read only or cannot write groups.", e);
+            } else if (e.getMessage().contains(EXISTING_ROLE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
+                        " Role already exists in the system. Please enter another role name.", e);
+            } else if (e.getMessage().contains(SHARED_USER_ROLES)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
+                        " User store doesn't support shared user roles functionality.", e);
+            } else if (e.getMessage().contains(REMOVE_ADMIN_USER)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Cannot remove Admin user from Admin role.", e);
+            } else if (e.getMessage().contains(LOGGED_IN_USER)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Cannot remove Admin user from Admin role.", e);
+            } else if (e.getMessage().contains(ADMIN_USER)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Cannot remove Admin user from Admin role.", e);
+            } else if (e.getMessage().contains(ANONYMOUS_USER)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED +
+                        " Cannot delete anonymous user.", e);
+            } else if (e.getMessage().contains(INVALID_OPERATION)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Invalid operation. User store is read only.", e);
+            } else if (e.getMessage().contains(PASSWORD_POLICY_VIOLATION)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " " + e.getMessage(), e);
+            } else {
+                vBeanInstance = handleError(
+                        VerificationBean.ERROR_CODE_UNEXPECTED + " Error occurred while adding user : " + userName, e);
+                return vBeanInstance;
+            }
+            return vBeanInstance;
+        } else {
+            vBeanInstance = handleError(
+                    VerificationBean.ERROR_CODE_UNEXPECTED + " Error occurred while adding user : " + userName, e);
+            return vBeanInstance;
+        }
+    }
+
+    /**
+     * @deprecated Use {@link #getCustomErrorMessagesForCodeVerification} instead.
+     */
+    @Deprecated
     public static VerificationBean getCustomErrorMessagesToVerifyCode(IdentityException e, String userName) {
         if (e.getMessage() != null) {
             if (e.getMessage().contains(VerificationBean.ERROR_CODE_EXPIRED_CODE)) {
@@ -723,6 +788,45 @@ public class UserIdentityManagementUtil {
         } else {
             vBean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " No user account found for user", e);
             return vBean;
+        }
+    }
+
+    public VerificationBean getCustomErrorMessagesForCodeVerification(IdentityException e, String userName) {
+
+        if (e.getMessage() != null) {
+            if (e.getMessage().contains(VerificationBean.ERROR_CODE_EXPIRED_CODE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_EXPIRED_CODE + " The code is " + "expired", e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.INVALID_CONFIRMATION_CODE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
+                        IdentityMgtConstants.ErrorHandling.INVALID_CONFIRMATION_CODE, e);
+            } else if (e.getMessage().contains(VerificationBean.ERROR_CODE_LOADING_DATA_FAILURE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_LOADING_DATA_FAILURE + " Error" +
+                        " loading data for user : " + userName, e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.EXTERNAL_CODE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
+                        IdentityMgtConstants.ErrorHandling.EXTERNAL_CODE + ": " + userName, e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.NOTIFICATION_FAILURE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_RECOVERY_NOTIFICATION_FAILURE + " " + IdentityMgtConstants.
+                        ErrorHandling.NOTIFICATION_FAILURE + ": " + userName, e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.ERROR_LOADING_EMAIL_TEMP)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_RECOVERY_NOTIFICATION_FAILURE + ": " + IdentityMgtConstants.
+                        ErrorHandling.ERROR_LOADING_EMAIL_TEMP + " " + userName, e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.EXTERNAL_CODE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + ": " + IdentityMgtConstants.
+                        ErrorHandling.EXTERNAL_CODE + " " + userName, e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.CREATING_NOTIFICATION_ERROR)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_RECOVERY_NOTIFICATION_FAILURE + ": " + IdentityMgtConstants.
+                        ErrorHandling.CREATING_NOTIFICATION_ERROR + " " + userName, e);
+            } else if (e.getMessage().contains(VerificationBean.ERROR_CODE_LOADING_DATA_FAILURE)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_LOADING_DATA_FAILURE + " Error" +
+                        " loading data for user : " + userName, e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.USER_ACCOUNT)) {
+                vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " No user account found for user", e);
+            }
+            return vBeanInstance;
+        } else {
+            vBeanInstance = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " No user account found for user", e);
+            return vBeanInstance;
         }
     }
 
