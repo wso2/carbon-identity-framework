@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.entitlement.persistence;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -41,12 +40,12 @@ import static org.testng.Assert.assertTrue;
 @WithH2Database(files = {"dbscripts/h2.sql"})
 public class RegistryPolicyPersistenceManagerTest extends PolicyPersistenceManagerTest {
 
-    @BeforeMethod
-    public void setUp() throws Exception {
+    public PolicyPersistenceManager createPolicyPersistenceManager() {
 
         Properties storeProps = new Properties();
         policyPersistenceManager = new RegistryPolicyPersistenceManager();
         policyPersistenceManager.init(storeProps);
+        return policyPersistenceManager;
     }
 
     @Test

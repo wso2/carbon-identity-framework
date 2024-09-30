@@ -29,12 +29,14 @@
             <class name="org.wso2.carbon.identity.entitlement.persistence.JDBCPolicyPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.RegistryPolicyPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.HybridPolicyPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.PolicyPersistenceManagerFailureTest"/>
             <class name="org.wso2.carbon.identity.entitlement.policy.finder.JDBCPolicyPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.policy.finder.RegistryPolicyPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.policy.finder.HybridPolicyPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.JDBCSubscriberPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.RegistrySubscriberPersistenceManagerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.HybridSubscriberPersistenceManagerTest"/>
+            <class name="org.wso2.carbon.identity.entitlement.persistence.SubscriberPersistenceManagerFailureTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.JDBCSimplePAPStatusDataHandlerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.RegistrySimplePAPStatusDataHandlerTest"/>
             <class name="org.wso2.carbon.identity.entitlement.persistence.HybridPAPStatusDataHandlerTest"/>

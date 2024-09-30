@@ -90,9 +90,13 @@ public class ConfigPersistenceManagerFailureTest {
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown() throws Exception {
 
         entitlementServiceComponent.close();
+        setPrivateStaticFinalField(JDBCConfigPersistenceManager.class, "configDAO",
+                CacheBackedConfigDAO.getInstance());
+        setPrivateStaticFinalField(HybridConfigPersistenceManager.class, "configDAO",
+                CacheBackedConfigDAO.getInstance());
     }
 
     @Test

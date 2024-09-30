@@ -67,10 +67,12 @@ public abstract class SubscriberPersistenceManagerTest {
     static final String SAMPLE_SUBSCRIBER_PASSWORD_2 = "admin_password2";
     static final String SAMPLE_ENCRYPTED_PASSWORD1 = "encrypted_admin_password1";
     static final String SAMPLE_ENCRYPTED_PASSWORD2 = "encrypted_admin_password2";
+    static final String NEW_MODULE_NAME = "New Updated Module";
 
     public PublisherDataHolder sampleHolder1;
     public PublisherDataHolder sampleHolder2;
     public PublisherDataHolder updatedSampleHolder1;
+    private PublisherDataHolder moduleNameUpdatedSampleHolder1;
     public PublisherDataHolder invalidSampleHolder;
 
     @BeforeClass
@@ -99,6 +101,9 @@ public abstract class SubscriberPersistenceManagerTest {
         updatedSampleHolder1 =
                 createSampleHolder(SAMPLE_SUBSCRIBER_ID_1, SAMPLE_SUBSCRIBER_URL_2, SAMPLE_SUBSCRIBER_USERNAME_2,
                         SAMPLE_SUBSCRIBER_PASSWORD_2);
+        moduleNameUpdatedSampleHolder1 = createSampleHolder(SAMPLE_SUBSCRIBER_ID_1, SAMPLE_SUBSCRIBER_URL_1,
+                SAMPLE_SUBSCRIBER_USERNAME_1, SAMPLE_SUBSCRIBER_PASSWORD_1);
+        moduleNameUpdatedSampleHolder1.setModuleName(NEW_MODULE_NAME);
         invalidSampleHolder = createSampleHolder(null, null, null, null);
     }
 
@@ -191,6 +196,17 @@ public abstract class SubscriberPersistenceManagerTest {
                 subscriberPersistenceManager.getSubscriber(SAMPLE_SUBSCRIBER_ID_1, true);
         assertEquals(decryptedSubscriberFromStorage.getPropertyDTO(SUBSCRIBER_PASSWORD_KEY).getValue(),
                 SAMPLE_SUBSCRIBER_PASSWORD_2);
+    }
+
+    @Test(priority = 3)
+    public void testUpdateSubscriberModuleName() throws Exception {
+
+        subscriberPersistenceManager.addSubscriber(sampleHolder1);
+        subscriberPersistenceManager.updateSubscriber(moduleNameUpdatedSampleHolder1);
+
+        PublisherDataHolder subscriberFromStorage =
+                subscriberPersistenceManager.getSubscriber(SAMPLE_SUBSCRIBER_ID_1, false);
+        assertEquals(subscriberFromStorage.getModuleName(), moduleNameUpdatedSampleHolder1.getModuleName());
     }
 
     @Test(priority = 3)
