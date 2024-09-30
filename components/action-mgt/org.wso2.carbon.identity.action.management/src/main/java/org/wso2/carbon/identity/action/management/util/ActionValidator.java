@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
  * Action validator class.
  */
 public class ActionValidator {
+
     public static final String ACTION_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
     public static final String ENDPOINT_URI_REGEX = "^https://[^\\s/$.?#]\\S*";
     // According to RFC 9910 a header name must contain only alphanumeric characters, period (.) and hyphen (-),
