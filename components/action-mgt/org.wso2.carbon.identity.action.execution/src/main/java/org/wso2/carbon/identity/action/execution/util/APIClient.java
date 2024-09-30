@@ -111,8 +111,9 @@ public class APIClient {
                             ActionExecutionConstants.LogConstants.ACTION_EXECUTION,
                             ActionExecutionConstants.LogConstants.ActionIDs.SEND_ACTION_REQUEST);
                     diagLogBuilder
-                            .resultMessage("External endpoint " + request.getURI() + " for action execution seems to be "
-                                    + "unavailable. Retrying api call attempt " + (attempts + 1) + " of " + retryCount + ".")
+                            .resultMessage("External endpoint " + request.getURI() + " for action execution seems to " +
+                                    "be unavailable. Retrying api call attempt " + (attempts + 1) + " of "
+                                    + retryCount + ".")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                             .build();
@@ -128,7 +129,8 @@ public class APIClient {
                             ActionExecutionConstants.LogConstants.ActionIDs.SEND_ACTION_REQUEST);
                     diagLogBuilder
                             .resultMessage("Request for external endpont " + request.getURI() + " for action is " +
-                                    "timed out. Retrying api call attempt " + (attempts + 1) + " of " + retryCount + ".")
+                                    "timed out. Retrying api call attempt " + (attempts + 1) + " of "
+                                    + retryCount + ".")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                             .build();

@@ -321,7 +321,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     .configParam("action endpoint authentication type",
                             action.getEndpoint().getAuthentication().getType().getName())
                     .resultMessage("Call external service endpoint " + action.getEndpoint().getUri() + " for "
-                            + action.getType().getActionType()+ " action.")
+                            + action.getType().getActionType() + " action.")
                     .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                     .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
                     .build();
@@ -420,7 +420,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                         ActionExecutionConstants.LogConstants.ACTION_EXECUTION,
                         ActionExecutionConstants.LogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
                 diagLogBuilder
-                        .configParam("action id", action.getId()+successResponse)
+                        .configParam("action id", action.getId())
                         .configParam("action type", action.getType().getActionType())
                         .configParam("action endpoint", action.getEndpoint().getUri())
                         .configParam("action endpoint authentication type",
@@ -583,8 +583,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return objectMapper.writeValueAsString(response);
     }
 
-    private List<PerformableOperation> validatePerformableOperations(ActionExecutionRequest request,
-                                                                     ActionInvocationSuccessResponse response, Action action) {
+    private List<PerformableOperation> validatePerformableOperations(
+            ActionExecutionRequest request, ActionInvocationSuccessResponse response, Action action) {
 
         List<AllowedOperation> allowedOperations = request.getAllowedOperations();
 
@@ -595,7 +595,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 .collect(Collectors.toList());
 
             // todo: add to diagnostics
-            if(LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
+            if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
                 List<String> allowedOps = new ArrayList<>();
                 List<String> notAllowedOps = new ArrayList<>();
 
