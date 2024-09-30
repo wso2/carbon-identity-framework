@@ -75,7 +75,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String resolvedActionType = getActionTypeFromPath(actionType);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
-        doPreAddActionValidations(resolvedActionType, action);
+        doPreAddActionValidations(action);
         String generatedActionId = UUID.randomUUID().toString();
         return CACHE_BACKED_DAO.addAction(resolvedActionType, generatedActionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
@@ -121,7 +121,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        doPreUpdateActionValidations(resolvedActionType, action);
+        doPreUpdateActionValidations(action);
         return CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, action, existingAction,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
@@ -241,7 +241,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        // Validate endpoint authentication details in the request.
         String endpointAuthenticationType = authentication.getType().getName();
         doEndpointAuthenticationValidation(endpointAuthenticationType, authentication);
         if (existingAction.getEndpoint().getAuthentication().getType().equals(authentication.getType())) {
@@ -360,23 +359,19 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     /**
      * Perform pre validations on action model when creating an action.
      *
-     * @param actionType Action type.
      * @param action     Action create model.
      * @throws ActionMgtException if action model is invalid.
      */
-    private void doPreAddActionValidations(String actionType, Action action) throws ActionMgtException {
+    private void doPreAddActionValidations(Action action) throws ActionMgtException {
 
-        if (actionType.equals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType())) {
-            ActionManagementUtil.isFieldEmpty(action.getName());
-            ActionManagementUtil.isFieldEmpty(action.getEndpoint().getUri());
-            ActionManagementUtil.isValidActionName(action.getName());
-            ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
-            // Validate endpoint authentication details in the request.
-            Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
-            String endpointAuthenticationType = endpointAuthentication.getType().getName();
-            doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
-
-        }
+        ActionManagementUtil.isFieldEmpty(action.getName());
+        ActionManagementUtil.isFieldEmpty(action.getEndpoint().getUri());
+        ActionManagementUtil.isValidActionName(action.getName());
+        ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
+        // Validate endpoint authentication details in the request.
+        Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
+        String endpointAuthenticationType = endpointAuthentication.getType().getName();
+        doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
     }
 
     /**
@@ -384,27 +379,21 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * This is specifically used during HTTP PATCH operation and
      * only validate non-null and non-empty fields.
      *
-     * @param actionType Action type.
      * @param action Action update model.
      * @throws ActionMgtClientException if action model is invalid.
      */
-    private void doPreUpdateActionValidations(String actionType, Action action) throws ActionMgtClientException {
+    private void doPreUpdateActionValidations(Action action) throws ActionMgtClientException {
 
-        if (actionType.equals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType())) {
-            // Validate the action name if present.
-            if (action.getName() != null) {
-                ActionManagementUtil.isValidActionName(action.getName());
-            }
-            // Validate the endpoint URI if present.
-            if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
-                ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
-            }
-            // Validate the endpoint authentication if present.
-            if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
-                Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
-                String endpointAuthenticationType = endpointAuthentication.getType().getName();
-                doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
-            }
+        if (action.getName() != null) {
+            ActionManagementUtil.isValidActionName(action.getName());
+        }
+        if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
+            ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
+        }
+        if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
+            Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
+            String endpointAuthenticationType = endpointAuthentication.getType().getName();
+            doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
         }
     }
 
