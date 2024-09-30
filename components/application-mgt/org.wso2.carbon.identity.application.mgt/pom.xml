@@ -60,6 +60,18 @@
             <artifactId>axis2</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.wso2</groupId>
+            <artifactId>httpcore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+            <artifactId>httpasyncclient</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.utils</artifactId>
         </dependency>
@@ -267,6 +279,17 @@
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",
+
+                            org.apache.http; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
+                            org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
+                            org.apache.http.entity; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.message; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.protocol; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.util; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.impl.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
+                            org.apache.http.impl.nio.client; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.concurrent; version="${httpcore.version.osgi.import.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.application.mgt.internal,
