@@ -2,14 +2,21 @@ codecov:
   require_ci_to_pass: yes
   notify:
     wait_for_ci: yes
+  max_report_age: false
 coverage:
   status:
-    project: # checks the effect for the overall code coverage rate of the repository.
-      default:
-        enabled: yes
-        threshold: null
-        target: auto
-    patch:  # This status indicates the extent of code coverage achieved by the pull request.
-      default:
-        target: 80%
-        threshold: 40% # With a target of 80% and a threshold of 40%, the acceptable coverage range is 40% to 80%.
+    project: off
+    patch: off
+
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: unit
+      statuses:
+        - type: project # Checks the effect for the unit test coverage rate of the repository.
+          target: auto
+          threshold: null
+        - type: patch # This status indicates the extent of unit test coverage achieved by the pull request.
+          target: 80%
+          threshold: 40% # With a target of 80% and a threshold of 40%, the acceptable coverage range is 40% to 80%.
