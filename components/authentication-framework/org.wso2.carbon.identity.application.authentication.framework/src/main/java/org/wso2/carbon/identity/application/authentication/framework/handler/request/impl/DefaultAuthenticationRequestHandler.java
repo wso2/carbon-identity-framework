@@ -686,7 +686,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
             FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), analyticsSessionAction);
-            publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
+            publishAuthenticationSuccess(request, context, authenticationResult.getSubject());
         }
 
         // Passing the federated tokens to the authentication result.
