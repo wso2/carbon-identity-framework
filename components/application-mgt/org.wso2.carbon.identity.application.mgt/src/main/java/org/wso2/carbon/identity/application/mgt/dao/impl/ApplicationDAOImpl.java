@@ -1846,7 +1846,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             localServiceProvider.setApplicationName(applicationName);
             localServiceProvider.setDescription("Local Service Provider");
             localServiceProvider.setSpProperties(prepareLocalSpProperties());
-            localServiceProvider.setApplicationVersion();
+            localServiceProvider.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
             applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
         return getApplication(applicationId);
