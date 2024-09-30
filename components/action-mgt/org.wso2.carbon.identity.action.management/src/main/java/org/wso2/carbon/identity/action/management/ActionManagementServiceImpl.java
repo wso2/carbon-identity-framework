@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
@@ -30,6 +29,7 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
+import org.wso2.carbon.identity.action.management.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -47,7 +47,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private static final ActionManagementService INSTANCE = new ActionManagementServiceImpl();
     private static final CacheBackedActionMgtDAO CACHE_BACKED_DAO =
             new CacheBackedActionMgtDAO(new ActionManagementDAOImpl());
+    private static final ActionValidator ACTION_VALIDATOR = new ActionValidator();
     private static final ActionSecretProcessor ACTION_SECRET_PROCESSOR = new ActionSecretProcessor();
+
+    private static final String ACTION_NAME_FIELD = "Action name";
+    private static final String ENDPOINT_AUTHENTICATION_URI_FIELD = "Endpoint authentication URI";
+    private static final String ENDPOINT_AUTHENTICATION_TYPE_FIELD = "Endpoint authentication type";
+    private static final String USERNAME_FIELD = "Username";
+    private static final String PASSWORD_FIELD = "Password";
+    private static final String ACCESS_TOKEN_FIELD = "Access token";
+    private static final String API_KEY_HEADER_FIELD = "API key header name";
+    private static final String API_KEY_VALUE_FIELD = "API key value";
 
     private ActionManagementServiceImpl() {
     }
@@ -241,8 +251,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        String endpointAuthenticationType = authentication.getType().getName();
-        doEndpointAuthenticationValidation(endpointAuthenticationType, authentication);
+        doEndpointAuthenticationValidation(authentication);
         if (existingAction.getEndpoint().getAuthentication().getType().equals(authentication.getType())) {
             // Only need to update the properties since the authentication type is same.
             return updateEndpointAuthenticationProperties(resolvedActionType, actionId, authentication, tenantDomain);
@@ -359,19 +368,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     /**
      * Perform pre validations on action model when creating an action.
      *
-     * @param action     Action create model.
+     * @param action Action create model.
      * @throws ActionMgtException if action model is invalid.
      */
     private void doPreAddActionValidations(Action action) throws ActionMgtException {
 
-        ActionManagementUtil.isFieldEmpty(action.getName());
-        ActionManagementUtil.isFieldEmpty(action.getEndpoint().getUri());
-        ActionManagementUtil.isValidActionName(action.getName());
-        ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
-        // Validate endpoint authentication details in the request.
+        ACTION_VALIDATOR.isBlank(ACTION_NAME_FIELD, action.getName());
+        ACTION_VALIDATOR.isBlank(ENDPOINT_AUTHENTICATION_URI_FIELD, action.getEndpoint().getUri());
+        ACTION_VALIDATOR.isValidActionName(action.getName());
+        ACTION_VALIDATOR.isValidEndpointUri(action.getEndpoint().getUri());
         Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
-        String endpointAuthenticationType = endpointAuthentication.getType().getName();
-        doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
+        doEndpointAuthenticationValidation(endpointAuthentication);
     }
 
     /**
@@ -385,44 +392,42 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private void doPreUpdateActionValidations(Action action) throws ActionMgtClientException {
 
         if (action.getName() != null) {
-            ActionManagementUtil.isValidActionName(action.getName());
+            ACTION_VALIDATOR.isValidActionName(action.getName());
         }
         if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
-            ActionManagementUtil.isValidEndpointUri(action.getEndpoint().getUri());
+            ACTION_VALIDATOR.isValidEndpointUri(action.getEndpoint().getUri());
         }
         if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
             Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
-            String endpointAuthenticationType = endpointAuthentication.getType().getName();
-            doEndpointAuthenticationValidation(endpointAuthenticationType, endpointAuthentication);
+            doEndpointAuthenticationValidation(endpointAuthentication);
         }
     }
 
     /**
      * Perform pre validations on endpoint authentication model.
      *
-     * @param authenticationType Authentication type.
-     * @param authentication     Endpoint authentication model.
+     * @param authentication Endpoint authentication model.
      * @throws ActionMgtClientException if endpoint authentication model is invalid.
      */
-    private void doEndpointAuthenticationValidation(String authenticationType, Authentication authentication)
+    private void doEndpointAuthenticationValidation(Authentication authentication)
             throws ActionMgtClientException {
 
-        if (StringUtils.isBlank(authenticationType)) {
-            throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_EMPTY_ENDPOINT_AUTHENTICATION_SCHEME);
-        }
+        String authenticationType = authentication.getType().getName();
+        ACTION_VALIDATOR.isBlank(ENDPOINT_AUTHENTICATION_TYPE_FIELD, authenticationType);
         if (authenticationType.equals(Authentication.Type.BASIC.getName())) {
-            ActionManagementUtil.isFieldEmpty(authentication.getProperty(Authentication.Property.USERNAME).getValue());
-            ActionManagementUtil.isFieldEmpty(authentication.getProperty(Authentication.Property.PASSWORD).getValue());
+            ACTION_VALIDATOR.isBlank(USERNAME_FIELD,
+                    authentication.getProperty(Authentication.Property.USERNAME).getValue());
+            ACTION_VALIDATOR.isBlank(PASSWORD_FIELD,
+                    authentication.getProperty(Authentication.Property.PASSWORD).getValue());
         } else if (authenticationType.equals(Authentication.Type.BEARER.getName())) {
-            String accessToken = authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue();
-            ActionManagementUtil.isFieldEmpty(accessToken);
+            ACTION_VALIDATOR.isBlank(ACCESS_TOKEN_FIELD,
+                    authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue());
         } else if (authenticationType.equals(Authentication.Type.API_KEY.getName())) {
             String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
-            ActionManagementUtil.isFieldEmpty(apiKeyHeader);
-            ActionManagementUtil.isValidHeader(apiKeyHeader);
-            String apiKeyValue = authentication.getProperty(Authentication.Property.VALUE).getValue();
-            ActionManagementUtil.isFieldEmpty(apiKeyValue);
+            ACTION_VALIDATOR.isBlank(API_KEY_HEADER_FIELD, apiKeyHeader);
+            ACTION_VALIDATOR.isValidHeader(apiKeyHeader);
+            ACTION_VALIDATOR.isBlank(API_KEY_VALUE_FIELD,
+                    authentication.getProperty(Authentication.Property.VALUE).getValue());
         }
     }
 }
