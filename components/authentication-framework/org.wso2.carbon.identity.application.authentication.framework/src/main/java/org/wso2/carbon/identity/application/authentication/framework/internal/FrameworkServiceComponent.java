@@ -121,6 +121,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -128,6 +129,8 @@ import java.util.List;
 import javax.servlet.Servlet;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
+import static org.wso2.carbon.identity.base.IdentityConstants.AuthenticationType;
+import static org.wso2.carbon.identity.base.IdentityConstants.TAG_2FA;
 import static org.wso2.carbon.identity.base.IdentityConstants.TRUE;
 
 /**
@@ -508,6 +511,12 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             localAuthenticatorConfig.setTags(getTags(authenticator));
             localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+            if (localAuthenticatorConfig.getTags() != null &&
+                    Arrays.stream(localAuthenticatorConfig.getTags()).anyMatch(s -> s.equalsIgnoreCase(TAG_2FA))) {
+                localAuthenticatorConfig.setAuthenticationType(AuthenticationType.FACTOR_VERIFICATION);
+            } else {
+                localAuthenticatorConfig.setAuthenticationType(AuthenticationType.INTERNAL_ACCOUNT);
+            }
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
@@ -518,6 +527,7 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             federatedAuthenticatorConfig.setTags(getTags(authenticator));
             federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+            federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();

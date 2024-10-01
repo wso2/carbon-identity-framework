@@ -39,6 +39,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import static org.wso2.carbon.identity.base.IdentityConstants.TAG_2FA;
+
 /**
  * Local authenticator configuration of an application.
  */
@@ -68,6 +70,9 @@ public class LocalAuthenticatorConfig implements Serializable {
 
     @XmlElement(name = "DefinedBy")
     protected IdentityConstants.DefinedByType definedByType;
+
+    @XmlElement(name = "AuthenticationType")
+    protected IdentityConstants.AuthenticationType authenticationType;
 
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
@@ -119,12 +124,27 @@ public class LocalAuthenticatorConfig implements Serializable {
                 }
             } else if ("DefinedBy".equals(member.getLocalName())) {
                 localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.valueOf(member.getText()));
+            } else if ("AuthenticationType".equals(member.getLocalName())) {
+                localAuthenticatorConfig.setAuthenticationType(
+                        IdentityConstants.AuthenticationType.valueOf(member.getText()));
             }
         }
 
         if (localAuthenticatorConfig.getDefinedByType() == null) {
             localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            LOG.debug("The defined by type is not set for the : " + localAuthenticatorConfig.getName());
+            LOG.debug("The defined by type is not set for the {}. Hence setting default SYSTEM value.",
+                    localAuthenticatorConfig.getName());
+        }
+        if (localAuthenticatorConfig.getAuthenticationType() == null && localAuthenticatorConfig.getTags() != null) {
+            if (localAuthenticatorConfig.getTags() != null &&
+                    Arrays.stream(localAuthenticatorConfig.getTags()).anyMatch(s -> s.equalsIgnoreCase(TAG_2FA))) {
+                localAuthenticatorConfig.setAuthenticationType(
+                        IdentityConstants.AuthenticationType.FACTOR_VERIFICATION);
+            } else {
+                localAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.INTERNAL_ACCOUNT);
+            }
+            LOG.debug("The defined by type is not set for the: {}. Hence setting value based on the factor for the: {}",
+                    localAuthenticatorConfig.getName(), localAuthenticatorConfig.getAuthenticationType().toString());
         }
 
         return localAuthenticatorConfig;
@@ -240,9 +260,9 @@ public class LocalAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * Get the tag list of the Local authenticator.
+     * Get the defined by type of the Local authenticator config.
      *
-     * @return String[]
+     * @return IdentityConstants.DefinedByType
      */
     public IdentityConstants.DefinedByType getDefinedByType() {
 
@@ -250,12 +270,32 @@ public class LocalAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * Set the tag list for Local authenticator config.
+     * Set the defined by type of the Local authenticator config.
      *
-     * @param type  authenticator.
+     * @param type The defined by type of the authenticator config.
      */
     public void setDefinedByType(IdentityConstants.DefinedByType type) {
 
         definedByType = type;
+    }
+
+    /**
+     * Get the authentication type of the Local authenticator config .
+     *
+     * @return IdentityConstants.AuthenticationType
+     */
+    public IdentityConstants.AuthenticationType getAuthenticationType() {
+
+        return authenticationType;
+    }
+
+    /**
+     * Set the authentication type of the Local authenticator config.
+     *
+     * @param type  The authentication type.
+     */
+    public void setAuthenticationType(IdentityConstants.AuthenticationType type) {
+
+        authenticationType = type;
     }
 }

@@ -18,9 +18,17 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.wso2.carbon.identity.base.IdentityConstants;
+
 /**
  * Federated application authenticator.
  */
 public interface FederatedApplicationAuthenticator extends ApplicationAuthenticator {
+
+    @Override
+    default IdentityConstants.AuthenticationType getAuthenticationType() {
+
+        return IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT;
+    }
 
 }

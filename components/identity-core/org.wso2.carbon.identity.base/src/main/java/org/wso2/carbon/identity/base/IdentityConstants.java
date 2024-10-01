@@ -160,6 +160,8 @@ public class IdentityConstants {
 
     // Configuration constants of authentication authenticator in identity.xml file.
     public static final String TAGS = "Tags";
+    public static final String TAG_2FA = "2FA";
+
 
     // User account association constants
     public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
@@ -621,11 +623,27 @@ public class IdentityConstants {
     }
 
     /**
-     * The Authentication Type - SYSTEM: system define authenticator, USER: user defined authentication extension.
+     * The Defined by Types - SYSTEM: system define authenticator, USER: user defined authentication extension.
      */
     public static enum DefinedByType {
 
         SYSTEM,
         USER
+    }
+
+    /**
+     * The Authentication Types -
+     *      External User Account Authentication: This authenticator can authenticate federated users
+     *                                            and provision them.
+     *      Internal User Account Authentication: This authenticator collects the identifiers and authenticates user
+     *                                            accounts managed within the organization.
+     *      2FA Authentication: This authenticator can only verify users in the second or
+     *                          subsequent steps of the login process.
+     */
+    public static enum AuthenticationType {
+
+        EXTERNAL_ACCOUNT,
+        INTERNAL_ACCOUNT,
+        FACTOR_VERIFICATION
     }
 }

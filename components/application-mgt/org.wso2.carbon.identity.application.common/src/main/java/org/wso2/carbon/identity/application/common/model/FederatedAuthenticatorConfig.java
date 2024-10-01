@@ -70,6 +70,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @XmlElement(name = "DefinedBy")
     protected IdentityConstants.DefinedByType definedByType;
 
+    @XmlElement(name = "AuthenticationType")
+    protected IdentityConstants.AuthenticationType authenticationType;
+
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {
 
         if (federatedAuthenticatorConfigOM == null) {
@@ -114,11 +117,11 @@ public class FederatedAuthenticatorConfig implements Serializable {
             }
         }
 
-        // TODO: Remove warn log, once feature is ready.
         if (federatedAuthenticatorConfig.getDefinedByType() == null) {
             federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
             LOG.debug("The defined by type is not set for the : " + federatedAuthenticatorConfig.getName());
         }
+        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
 
         return federatedAuthenticatorConfig;
     }
@@ -248,9 +251,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * Get the tag list of the Local authenticator.
+     * Get the defined by type of the federated authenticator config.
      *
-     * @return String[]
+     * @return IdentityConstants.DefinedByType
      */
     public IdentityConstants.DefinedByType getDefinedByType() {
 
@@ -258,12 +261,32 @@ public class FederatedAuthenticatorConfig implements Serializable {
     }
 
     /**
-     * Set the tag list for Local authenticator config.
+     * Set the defined by type of the federated authenticator config.
      *
-     * @param type  authenticator.
+     * @param type The defined by type of the authenticator config.
      */
     public void setDefinedByType(IdentityConstants.DefinedByType type) {
 
         definedByType = type;
+    }
+
+    /**
+     * Get the authentication type of the federated authenticator config.
+     *
+     * @return IdentityConstants.AuthenticationType
+     */
+    public IdentityConstants.AuthenticationType getAuthenticationType() {
+
+        return authenticationType;
+    }
+
+    /**
+     * Set the authentication type of the federated authenticator config.
+     *
+     * @param type  The authentication type.
+     */
+    public void setAuthenticationType(IdentityConstants.AuthenticationType type) {
+
+        authenticationType = type;
     }
 }

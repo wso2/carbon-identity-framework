@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.common;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
@@ -33,7 +31,6 @@ import java.util.List;
 public class ApplicationAuthenticatorService {
 
     private static volatile ApplicationAuthenticatorService instance;
-    private static final Log LOG = LogFactory.getLog(ApplicationAuthenticatorService.class);
 
     private List<LocalAuthenticatorConfig> localAuthenticators = new ArrayList<>();
     private List<FederatedAuthenticatorConfig> federatedAuthenticators = new ArrayList<>();
@@ -91,9 +88,6 @@ public class ApplicationAuthenticatorService {
 
     public void addLocalAuthenticator(LocalAuthenticatorConfig authenticator) {
         if (authenticator != null) {
-            if (authenticator.getDefinedByType() == null) {
-                LOG.debug("The defined by type is not set for the : " + authenticator.getName());
-            }
             localAuthenticators.add(authenticator);
         }
     }
@@ -106,9 +100,6 @@ public class ApplicationAuthenticatorService {
 
     public void addFederatedAuthenticator(FederatedAuthenticatorConfig authenticator) {
         if (authenticator != null) {
-            if (authenticator.getDefinedByType() == null) {
-                LOG.debug("The defined by type is not set for the : " + authenticator.getName());
-            }
             federatedAuthenticators.add(authenticator);
         }
     }

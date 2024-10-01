@@ -3100,6 +3100,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
                     localAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
+                    localAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.valueOf(
+                            authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_AUTHENTICATION_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
                 } else {
                     Map<String, List<FederatedAuthenticatorConfig>> stepFedIdps = stepFedIdPAuthenticators
@@ -3120,6 +3122,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
                     fedAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
+                    fedAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
                     idpAuths.add(fedAuthenticator);
                 }
 
@@ -5031,7 +5034,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 returnData
                         .put(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME, rs.getString(3));
             }
-            // TODO: Read from database and set the DefinedBy property to the authenticator.
+            // TODO: Read from database and set the DefinedBy and authenticationType properties to the authenticator.
             returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE,
                     IdentityConstants.DefinedByType.SYSTEM.toString());
         } finally {
@@ -5068,6 +5071,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             prepStmt.setString(5, "1");
             prepStmt.setString(6, authenticatorDispalyName);
             //TODO: prepStmt.setString(7, IdentityConstants.DefinedByType.SYSTEM.toString());
+            //TODO: prepStmt.setString(8, IdentityConstants.AuthenticationType.<TYPE>.toString());
             prepStmt.execute();
             rs = prepStmt.getGeneratedKeys();
             if (rs.next()) {

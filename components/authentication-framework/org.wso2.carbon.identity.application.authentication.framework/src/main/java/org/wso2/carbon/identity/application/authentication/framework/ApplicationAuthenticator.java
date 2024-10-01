@@ -181,4 +181,14 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return IdentityConstants.DefinedByType.SYSTEM;
     }
+
+    /**
+     * Get the authenticator type. Default value will be SYSTEM.
+     *
+     * @return Authenticator Type.
+     */
+    default IdentityConstants.AuthenticationType getAuthenticationType() {
+
+        return null;
+    }
 }
