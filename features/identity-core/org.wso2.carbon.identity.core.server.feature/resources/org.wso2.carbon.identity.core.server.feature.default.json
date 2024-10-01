@@ -452,6 +452,7 @@
   "identity_mgt.user_onboarding.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
   "identity_mgt.user_onboarding.disable_random_value_for_credentials": false,
+  "identity_mgt.user_onboarding.disable_notify_unlock_state": false,
 
   "identity_mgt.tenant_registration.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 

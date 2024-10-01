@@ -1095,6 +1095,7 @@
 	        <PasswordGenerator>org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator</PasswordGenerator>
 	        <DisableRandomValueForCredentials>false</DisableRandomValueForCredentials>
         </AskPassword>
+        <DisableNotifyUnlockState>false</DisableNotifyUnlockState>
     </EmailVerification>
 
     <SelfRegistration>
