@@ -59,6 +59,9 @@ public class APIResourceManagementUtilTest {
         APIResource apiResource = apiResourceManager.getAPIResourceByIdentifier(ORG_LEVEL_SERVER_CONFIG_API,
                 MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
+        // Trigger System API register function on server startup. No API resource update yet.
+        APIResourceManagementUtil.addSystemAPIs();
+
         // Update the API resource type to CONSOLE_ORG_LEVEL to test API resource type change flow.
         APIResource updatedAPIResource = new APIResource.APIResourceBuilder()
                 .id(apiResource.getId())
