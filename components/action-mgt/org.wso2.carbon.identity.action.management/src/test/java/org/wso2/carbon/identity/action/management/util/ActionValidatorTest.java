@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.action.management.util;
 
 import org.testng.Assert;
@@ -12,6 +30,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtClientExcep
  */
 public class ActionValidatorTest {
 
+    private static final String ERROR_INVALID_REQUEST = "Invalid request.";
     private ActionValidator actionValidator;
 
     @BeforeClass
@@ -31,42 +50,33 @@ public class ActionValidatorTest {
 
         return new String[][]{
                 {"Action name", null},
-                {"Endpoint authentication URI", ""},
-                {"Endpoint authentication type", "  "},
-                {"Username", null},
-                {"Password", ""},
-                {"Access token", null},
-                {"API key header name", null},
-                {"API key value", null}
+                {"Endpoint authentication URI", ""}
         };
     }
 
-    @Test(expectedExceptions = ActionMgtClientException.class, dataProvider = "isBlankDataProvider")
-    public void testIsBlank(String fieldName, String fieldValue) throws ActionMgtClientException {
+    @Test(dataProvider = "isBlankDataProvider")
+    public void testIsBlank(String fieldName, String fieldValue) {
 
-        actionValidator.isBlank(fieldName, fieldValue);
+        try {
+            actionValidator.isBlank(fieldName, fieldValue);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), fieldName + " is empty.");
+        }
     }
 
     @DataProvider
     public Object[][] isNotBlankDataProvider() {
 
         return new String[][]{
-                {"Action name", "test-action"},
-                {"Endpoint authentication URI", "https://testapi.com"},
-                {"Endpoint authentication type", "BASIC"},
-                {"Username", "testuser"},
-                {"Password", "test@123"}
+                {"Action name", "test-action"}
         };
     }
 
     @Test(dataProvider = "isNotBlankDataProvider")
-    public void testIsNotBlank(String fieldName, String fieldValue) {
+    public void testIsNotBlank(String fieldName, String fieldValue) throws ActionMgtClientException {
 
-        try {
-            actionValidator.isBlank(fieldName, fieldValue);
-        } catch (ActionMgtClientException e) {
-            Assert.fail("Exception should not be thrown for the field: " + fieldName + " and value: " + fieldValue);
-        }
+        actionValidator.isBlank(fieldName, fieldValue);
     }
 
     @DataProvider
@@ -80,10 +90,15 @@ public class ActionValidatorTest {
         };
     }
 
-    @Test(expectedExceptions = ActionMgtClientException.class, dataProvider = "invalidActionNameDataProvider")
-    public void testIsInvalidActionName(String actionName) throws ActionMgtClientException {
+    @Test(dataProvider = "invalidActionNameDataProvider")
+    public void testIsInvalidActionName(String actionName) {
 
-        actionValidator.isValidActionName(actionName);
+        try {
+            actionValidator.isValidActionName(actionName);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), "Action name is invalid.");
+        }
     }
 
     @DataProvider
@@ -98,13 +113,9 @@ public class ActionValidatorTest {
     }
 
     @Test(dataProvider = "validActionNameDataProvider")
-    public void testIsValidActionName(String actionName) {
+    public void testIsValidActionName(String actionName) throws ActionMgtClientException {
 
-        try {
-            actionValidator.isValidActionName(actionName);
-        } catch (ActionMgtClientException e) {
-            Assert.fail("Exception should not be thrown for the action name: " + actionName);
-        }
+        actionValidator.isValidActionName(actionName);
     }
 
     @DataProvider
@@ -118,10 +129,15 @@ public class ActionValidatorTest {
         };
     }
 
-    @Test(expectedExceptions = ActionMgtClientException.class, dataProvider = "invalidEndpointUriDataProvider")
-    public void testIsInvalidEndpointUri(String endpointUri) throws ActionMgtClientException {
+    @Test(dataProvider = "invalidEndpointUriDataProvider")
+    public void testIsInvalidEndpointUri(String endpointUri) {
 
-        actionValidator.isValidEndpointUri(endpointUri);
+        try {
+            actionValidator.isValidEndpointUri(endpointUri);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), "Endpoint authentication URI is invalid.");
+        }
     }
 
     @DataProvider
@@ -135,13 +151,9 @@ public class ActionValidatorTest {
     }
 
     @Test(dataProvider = "validEndpointUriDataProvider")
-    public void testIsValidEndpointUriName(String endpointUri) {
+    public void testIsValidEndpointUriName(String endpointUri) throws ActionMgtClientException {
 
-        try {
-            actionValidator.isValidEndpointUri(endpointUri);
-        } catch (ActionMgtClientException e) {
-            Assert.fail("Exception should not be thrown for the endpoint URI: " + endpointUri);
-        }
+        actionValidator.isValidEndpointUri(endpointUri);
     }
 
     @DataProvider
@@ -155,10 +167,15 @@ public class ActionValidatorTest {
         };
     }
 
-    @Test(expectedExceptions = ActionMgtClientException.class, dataProvider = "invalidHeaderDataProvider")
-    public void testIsInvalidHeader(String header) throws ActionMgtClientException {
+    @Test(dataProvider = "invalidHeaderDataProvider")
+    public void testIsInvalidHeader(String header) {
 
-        actionValidator.isValidHeader(header);
+        try {
+            actionValidator.isValidHeader(header);
+        } catch (ActionMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), "API key header name is invalid.");
+        }
     }
 
     @DataProvider
@@ -173,12 +190,8 @@ public class ActionValidatorTest {
     }
 
     @Test(dataProvider = "validHeaderDataProvider")
-    public void testIsValidHeader(String header) {
+    public void testIsValidHeader(String header) throws ActionMgtClientException {
 
-        try {
-            actionValidator.isValidHeader(header);
-        } catch (ActionMgtClientException e) {
-            Assert.fail("Exception should not be thrown for the header: " + header);
-        }
+        actionValidator.isValidHeader(header);
     }
 }

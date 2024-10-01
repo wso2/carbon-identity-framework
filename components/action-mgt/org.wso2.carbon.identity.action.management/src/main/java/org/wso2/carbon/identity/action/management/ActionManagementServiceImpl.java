@@ -50,15 +50,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private static final ActionValidator ACTION_VALIDATOR = new ActionValidator();
     private static final ActionSecretProcessor ACTION_SECRET_PROCESSOR = new ActionSecretProcessor();
 
-    private static final String ACTION_NAME_FIELD = "Action name";
-    private static final String ENDPOINT_AUTHENTICATION_URI_FIELD = "Endpoint authentication URI";
-    private static final String ENDPOINT_AUTHENTICATION_TYPE_FIELD = "Endpoint authentication type";
-    private static final String USERNAME_FIELD = "Username";
-    private static final String PASSWORD_FIELD = "Password";
-    private static final String ACCESS_TOKEN_FIELD = "Access token";
-    private static final String API_KEY_HEADER_FIELD = "API key header name";
-    private static final String API_KEY_VALUE_FIELD = "API key value";
-
     private ActionManagementServiceImpl() {
     }
 
@@ -119,8 +110,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param actionId     Action ID.
      * @param action       Action update model.
      * @param tenantDomain Tenant domain.
-     * @return
-     * @throws ActionMgtException
+     * @return Updated action object.
+     * @throws ActionMgtException if an error occurred while updating the action.
      */
     @Override
     public Action updateAction(String actionType, String actionId, Action action, String tenantDomain)
@@ -373,12 +364,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      */
     private void doPreAddActionValidations(Action action) throws ActionMgtException {
 
-        ACTION_VALIDATOR.isBlank(ACTION_NAME_FIELD, action.getName());
-        ACTION_VALIDATOR.isBlank(ENDPOINT_AUTHENTICATION_URI_FIELD, action.getEndpoint().getUri());
+        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
+        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
         ACTION_VALIDATOR.isValidActionName(action.getName());
         ACTION_VALIDATOR.isValidEndpointUri(action.getEndpoint().getUri());
-        Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
-        doEndpointAuthenticationValidation(endpointAuthentication);
+        doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
     }
 
     /**
@@ -398,8 +388,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             ACTION_VALIDATOR.isValidEndpointUri(action.getEndpoint().getUri());
         }
         if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
-            Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
-            doEndpointAuthenticationValidation(endpointAuthentication);
+            doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         }
     }
 
@@ -413,20 +402,20 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             throws ActionMgtClientException {
 
         String authenticationType = authentication.getType().getName();
-        ACTION_VALIDATOR.isBlank(ENDPOINT_AUTHENTICATION_TYPE_FIELD, authenticationType);
+        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ENDPOINT_AUTHENTICATION_TYPE_FIELD, authenticationType);
         if (authenticationType.equals(Authentication.Type.BASIC.getName())) {
-            ACTION_VALIDATOR.isBlank(USERNAME_FIELD,
+            ACTION_VALIDATOR.isBlank(ActionMgtConstants.USERNAME_FIELD,
                     authentication.getProperty(Authentication.Property.USERNAME).getValue());
-            ACTION_VALIDATOR.isBlank(PASSWORD_FIELD,
+            ACTION_VALIDATOR.isBlank(ActionMgtConstants.PASSWORD_FIELD,
                     authentication.getProperty(Authentication.Property.PASSWORD).getValue());
         } else if (authenticationType.equals(Authentication.Type.BEARER.getName())) {
-            ACTION_VALIDATOR.isBlank(ACCESS_TOKEN_FIELD,
+            ACTION_VALIDATOR.isBlank(ActionMgtConstants.ACCESS_TOKEN_FIELD,
                     authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue());
         } else if (authenticationType.equals(Authentication.Type.API_KEY.getName())) {
             String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
-            ACTION_VALIDATOR.isBlank(API_KEY_HEADER_FIELD, apiKeyHeader);
+            ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
             ACTION_VALIDATOR.isValidHeader(apiKeyHeader);
-            ACTION_VALIDATOR.isBlank(API_KEY_VALUE_FIELD,
+            ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
                     authentication.getProperty(Authentication.Property.VALUE).getValue());
         }
     }

@@ -27,6 +27,15 @@ public class ActionMgtConstants {
     public static final String AUTHN_TYPE_ATTRIBUTE = "authnType";
     public static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_API_ENDPOINT_AUTH_SECRETS";
 
+    public static final String ACTION_NAME_FIELD = "Action name";
+    public static final String ENDPOINT_URI_FIELD = "Endpoint URI";
+    public static final String ENDPOINT_AUTHENTICATION_TYPE_FIELD = "Endpoint authentication type";
+    public static final String USERNAME_FIELD = "Username";
+    public static final String PASSWORD_FIELD = "Password";
+    public static final String ACCESS_TOKEN_FIELD = "Access token";
+    public static final String API_KEY_HEADER_FIELD = "API key header name";
+    public static final String API_KEY_VALUE_FIELD = "API key value";
+
     /**
      * Error messages.
      */
