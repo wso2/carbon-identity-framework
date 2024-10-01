@@ -984,8 +984,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws SQLException, UserStoreException, IdentityApplicationManagementException {
 
         int applicationId = serviceProvider.getApplicationID();
-        // Todo: use getApplicationUpdatedVersion(serviceProvider)
-        String applicationVersion = serviceProvider.getApplicationVersion();        String applicationName = serviceProvider.getApplicationName();
+        String applicationVersion = ApplicationMgtUtil.getApplicationUpdatedVersion(serviceProvider);
+        String applicationName = serviceProvider.getApplicationName();
         String description = serviceProvider.getDescription();
         boolean isSaasApp = serviceProvider.isSaasApp();
         boolean isDiscoverable = serviceProvider.isDiscoverable();
