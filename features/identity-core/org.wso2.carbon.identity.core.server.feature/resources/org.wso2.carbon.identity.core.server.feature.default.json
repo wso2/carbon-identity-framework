@@ -1425,6 +1425,10 @@
   ],
   "console.resident_outbound_provisioning.scopes.update": ["internal_application_mgt_update"],
   "console.console_settings.enabled": true,
+  "console.console_settings.disabled_features": [
+    "consoleSettings.invitedExternalAdmins",
+    "consoleSettings.privilegedUsers"
+  ],
   "console.console_settings.scopes.feature": ["console:settings"],
   "console.console_settings.scopes.create": ["internal_role_mgt_create"],
   "console.console_settings.scopes.read": [
