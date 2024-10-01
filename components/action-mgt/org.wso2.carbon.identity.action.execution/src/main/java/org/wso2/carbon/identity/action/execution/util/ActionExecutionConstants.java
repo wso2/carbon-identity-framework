@@ -18,14 +18,23 @@
 
 package org.wso2.carbon.identity.action.execution.util;
 
+/**
+ * Constants for Action execution service.
+ */
 public class ActionExecutionConstants {
 
     private ActionExecutionConstants() {}
 
+    /**
+     * Diagnostics Logs constants.
+     */
     public static class LogConstants {
 
         public static final String ACTION_EXECUTION = "action-execution";
 
+        /**
+         * Action IDs.
+         */
         public static class ActionIDs {
 
             public static final String EXECUTE_ACTION = "execute-action";
