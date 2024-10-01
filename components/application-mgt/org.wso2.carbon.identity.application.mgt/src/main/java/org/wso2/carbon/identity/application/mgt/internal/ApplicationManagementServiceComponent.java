@@ -265,7 +265,7 @@ public class ApplicationManagementServiceComponent {
                         ServiceProvider sp = ServiceProvider.build(documentElement);
                         if (sp != null) {
                             if (StringUtils.isBlank(sp.getApplicationVersion())) {
-                                sp.setApplicationVersion(ApplicationConstants.BASE_APP_VERSION);
+                                sp.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
                             }
                             fileBasedSPs.put(sp.getApplicationName(), sp);
                         }

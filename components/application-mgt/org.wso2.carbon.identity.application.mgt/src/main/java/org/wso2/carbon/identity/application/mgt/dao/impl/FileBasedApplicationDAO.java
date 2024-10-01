@@ -94,7 +94,7 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
             basicInfo.setApplicationName(entry.getValue().getApplicationName());
             basicInfo.setDescription(entry.getValue().getDescription());
             if (entry.getValue().getApplicationVersion() == null) {
-                basicInfo.setApplicationVersion(ApplicationConstants.BASE_APP_VERSION);
+                basicInfo.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
             } else {
                 basicInfo.setApplicationVersion(entry.getValue().getApplicationVersion());
             }
@@ -128,7 +128,7 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
             basicInfo.setApplicationName(entry.getValue().getApplicationName());
             basicInfo.setDescription(entry.getValue().getDescription());
             if (entry.getValue().getApplicationVersion() == null) {
-                basicInfo.setApplicationVersion(ApplicationConstants.BASE_APP_VERSION);
+                basicInfo.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
             } else {
                 basicInfo.setApplicationVersion(entry.getValue().getApplicationVersion());
             }

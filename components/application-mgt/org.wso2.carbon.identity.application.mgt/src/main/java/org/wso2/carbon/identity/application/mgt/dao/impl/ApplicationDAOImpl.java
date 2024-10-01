@@ -360,10 +360,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
-            // Set application version to the latest if not set.
-            if (application.getApplicationVersion() == null) {
-                application.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
-            }
             // Create basic application.
             ApplicationCreateResult result = persistBasicApplicationInformation(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
@@ -988,8 +984,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws SQLException, UserStoreException, IdentityApplicationManagementException {
 
         int applicationId = serviceProvider.getApplicationID();
-        String applicationVersion = serviceProvider.getApplicationVersion();
-        String applicationName = serviceProvider.getApplicationName();
+        // Todo: use getApplicationUpdatedVersion(serviceProvider)
+        String applicationVersion = serviceProvider.getApplicationVersion();        String applicationName = serviceProvider.getApplicationName();
         String description = serviceProvider.getDescription();
         boolean isSaasApp = serviceProvider.isSaasApp();
         boolean isDiscoverable = serviceProvider.isDiscoverable();
@@ -1846,7 +1842,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             localServiceProvider.setApplicationName(applicationName);
             localServiceProvider.setDescription("Local Service Provider");
             localServiceProvider.setSpProperties(prepareLocalSpProperties());
-            localServiceProvider.setApplicationVersion(ApplicationConstants.LATEST_APP_VERSION);
+            localServiceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
             applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
         return getApplication(applicationId);

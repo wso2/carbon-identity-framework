@@ -41,8 +41,6 @@ public class ApplicationConstants {
     public static final String STANDARD_APPLICATION = "standardAPP";
     public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
     public static final String SERVICE_PROVIDERS = "ServiceProviders";
-    public static final String LATEST_APP_VERSION = "v1.0.0";
-    public static final String BASE_APP_VERSION = "v0.0.0";
 
     public static final String AUTH_TYPE_DEFAULT = "default";
     public static final String AUTH_TYPE_LOCAL = "local";
@@ -143,6 +141,38 @@ public class ApplicationConstants {
         public static final String CREATE_APPLICATION = "create-application";
         public static final String UPDATE_APPLICATION = "update-application";
         public static final String DELETE_APPLICATION = "delete-application";
+    }
+
+    /**
+     * Group the constants related to application versioning.
+     */
+    public static class ApplicationVersion {
+
+        public static final String APP_VERSION_V0 = "v0.0.0";
+        public static final String APP_VERSION_V1 = "v1.0.0";
+
+        // Change the latest version when a new version is introduced.
+        public static final String LATEST_APP_VERSION = APP_VERSION_V1;
+        public static final String BASE_APP_VERSION = APP_VERSION_V0;
+
+        /**
+         * Application version enum.
+         */
+        public enum ApplicationVersions {
+
+            V0(APP_VERSION_V0),
+            V1(APP_VERSION_V1);
+
+            private final String value;
+
+            ApplicationVersions(String value) {
+                this.value = value;
+            }
+
+            public String getValue() {
+                return value;
+            }
+        }
     }
 
     /**
