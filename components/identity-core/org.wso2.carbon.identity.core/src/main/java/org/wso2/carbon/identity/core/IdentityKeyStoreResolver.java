@@ -535,6 +535,10 @@ public class IdentityKeyStoreResolver {
                 IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
                         IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
 
+        if (keyStoreMappingsElem == null) {
+            return;
+        }
+
         // Parse OAuth KeyStore Mapping.
         OMElement oauthKeyStoreMapping = keyStoreMappingsElem.getFirstChildWithName(
                 IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
