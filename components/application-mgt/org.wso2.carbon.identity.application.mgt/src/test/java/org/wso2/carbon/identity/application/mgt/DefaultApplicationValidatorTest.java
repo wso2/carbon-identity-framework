@@ -289,9 +289,9 @@ public class DefaultApplicationValidatorTest {
 
         DefaultApplicationValidator defaultApplicationValidator = new DefaultApplicationValidator();
         Method validateApplicationVersion = DefaultApplicationValidator.class.getDeclaredMethod(
-                "validateApplicationVersion", List.class, String.class);
+                "validateApplicationVersion", List.class, ServiceProvider.class);
         validateApplicationVersion.setAccessible(true);
-        validateApplicationVersion.invoke(defaultApplicationValidator, validationErrors, sp.getApplicationVersion());
+        validateApplicationVersion.invoke(defaultApplicationValidator, validationErrors, sp);
 
         Assert.assertEquals(validationErrors.isEmpty(), isValid, "Valid app version has been introduced. " +
                 "Please update the test case accordingly.");
