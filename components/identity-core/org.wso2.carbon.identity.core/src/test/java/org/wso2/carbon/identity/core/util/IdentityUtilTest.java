@@ -54,7 +54,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -172,19 +174,12 @@ public class IdentityUtilTest {
     }
 
     @Test(description = "Test converting a certificate to PEM format")
-    public void convertCertificateToPEM() throws CertificateException, KeyStoreException {
+    public void convertCertificateToPEM() throws CertificateException, KeyStoreException, IOException {
 
         Certificate validCertificate = primaryKeyStore.getCertificate(PRIMARY_KEY_STORE_ALIAS);
-        String expectedPEM = "-----BEGIN CERTIFICATE-----\n" +
-                "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJVUzELMAkGA1UECAwCQ0ExFjAUBgNVBAcMDU1" +
-                "vdW50YWluIFZpZXcxDTALBgNVBAoMBFdTTzIxEjAQBgNVBAMMCWxvY2FsaG9zdDAeFw0xMDAyMTkwNzAyMjZaFw0zNTAyMTMwNz" +
-                "AyMjZaMFUxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzENMAsGA1UECgwEV1NPMjESM" +
-                "BAGA1UEAwwJbG9jYWxob3N0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCUp/oV1vWc8/TkQSiAvTousMzOM4asB2iltr2Q" +
-                "Kozni5aVFu818MpOLZIr8LMnTzWllJvvaA5RAAdpbECb+48FjbBe0hseUdN5HpwvnH/DW8ZccGvk53I6Orq7hLCv1ZHtuOCokgh" +
-                "z/ATrhyPq+QktMfXnRS4HrKGJTzxaCcU7OQIDAQABoxIwEDAOBgNVHQ8BAf8EBAMCBPAwDQYJKoZIhvcNAQEFBQADgYEAW5wPR7" +
-                "cr1LAdq+IrR44iQlRG5ITCZXY9hI0PygLP2rHANh+PYfTmxbuOnykNGyhM6FjFLbW2uZHQTY1jMrPprjOrmyK5sjJRO4d1DeGHT" +
-                "/YnIjs9JogRKv4XHECwLtIVdAbIdWHEtVZJyMSktcyysFcvuhPQK8Qc/E/Wq8uHSCo=\n" +
-                "-----END CERTIFICATE-----";
+        Path pemPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
+                "repository", "resources", "security", "certificate.pem");
+        String expectedPEM = String.join("\n", Files.readAllLines(pemPath));
 
         assertEquals(IdentityUtil.convertCertificateToPEM(validCertificate), expectedPEM);
     }
