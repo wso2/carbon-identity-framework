@@ -1036,6 +1036,7 @@
                 </smsOtp>
             </Password>
             <Username>
+                <NonUniqueUsername>false</NonUniqueUsername>
                 <Enable>false</Enable>
             </Username>
             <InternallyManage>true</InternallyManage>
