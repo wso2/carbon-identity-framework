@@ -28,7 +28,7 @@ public interface FederatedApplicationAuthenticator extends ApplicationAuthentica
     @Override
     default IdentityConstants.AuthenticationType getAuthenticationType() {
 
-        return IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT;
+        return IdentityConstants.AuthenticationType.IDENTIFICATION;
     }
 
 }

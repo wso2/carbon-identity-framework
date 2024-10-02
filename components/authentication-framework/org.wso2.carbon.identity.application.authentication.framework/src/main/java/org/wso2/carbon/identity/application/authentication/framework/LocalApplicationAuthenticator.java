@@ -33,9 +33,9 @@ public interface LocalApplicationAuthenticator extends ApplicationAuthenticator 
     default IdentityConstants.AuthenticationType getAuthenticationType() {
 
         if (getTags() != null && Arrays.stream(getTags()).anyMatch(s -> s.equalsIgnoreCase(TAG_2FA))) {
-            return IdentityConstants.AuthenticationType.FACTOR_VERIFICATION;
+            return IdentityConstants.AuthenticationType.VERIFICATION_ONLY;
         }
 
-        return IdentityConstants.AuthenticationType.INTERNAL_ACCOUNT;
+        return IdentityConstants.AuthenticationType.IDENTIFICATION;
     }
 }

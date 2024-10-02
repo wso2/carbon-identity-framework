@@ -135,7 +135,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
         federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -562,7 +562,7 @@ public class IdentityProviderManagementServiceTest {
         newFederatedAuthenticatorConfig.setName("Name");
         newFederatedAuthenticatorConfig.setEnabled(true);
         newFederatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        newFederatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        newFederatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         Property newProperty1 = new Property();
         newProperty1.setName("Property1New");
         newProperty1.setValue("value1New");
@@ -803,7 +803,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setName("Name");
         facNew.setEnabled(true);
         facNew.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         idp2New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
         // Initialize New Resident Identity Provider 3.
@@ -902,7 +902,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
         facNew.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -926,7 +926,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
         facNew.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -963,7 +963,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
         federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1119,7 +1119,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setName("SAMLSSOAuthenticator");
         federatedAuthenticatorConfig.setEnabled(true);
         federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("SPEntityId");
         property1.setValue("wso2-is");

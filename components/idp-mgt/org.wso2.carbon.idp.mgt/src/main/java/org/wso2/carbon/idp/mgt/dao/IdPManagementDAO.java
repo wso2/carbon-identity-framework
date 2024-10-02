@@ -1150,7 +1150,7 @@ public class IdPManagementDAO {
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
                 // TODO: Read from database and set the DefinedBy property to the authenticator.
                 authnConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-                authnConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+                authnConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());
@@ -2336,7 +2336,7 @@ public class IdPManagementDAO {
             samlFederatedAuthConfig = new FederatedAuthenticatorConfig();
             samlFederatedAuthConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
             samlFederatedAuthConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            samlFederatedAuthConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+            samlFederatedAuthConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         }
 
         List<Property> propertiesList = new ArrayList<>();
@@ -2721,7 +2721,7 @@ public class IdPManagementDAO {
             openIdFedAuthn = new FederatedAuthenticatorConfig();
             openIdFedAuthn.setName(IdentityApplicationConstants.Authenticator.OpenID.NAME);
             openIdFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            openIdFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+            openIdFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         }
         propertiesList = new ArrayList<>(Arrays.asList(openIdFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(openIdFedAuthn.getProperties(),
@@ -2745,7 +2745,7 @@ public class IdPManagementDAO {
             oauth1FedAuthn = new FederatedAuthenticatorConfig();
             oauth1FedAuthn.setName(IdentityApplicationConstants.OAuth10A.NAME);
             oauth1FedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            oauth1FedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+            oauth1FedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         }
         propertiesList = new ArrayList<>(Arrays.asList(oauth1FedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
@@ -2782,7 +2782,7 @@ public class IdPManagementDAO {
             oidcFedAuthn = new FederatedAuthenticatorConfig();
             oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
             oidcFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            oidcFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+            oidcFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         }
         propertiesList = new ArrayList<>();
 
@@ -2855,7 +2855,7 @@ public class IdPManagementDAO {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
             passiveSTSFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            passiveSTSFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+            passiveSTSFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         }
 
         propertiesList = new ArrayList<>();
@@ -2896,7 +2896,7 @@ public class IdPManagementDAO {
             stsFedAuthn = new FederatedAuthenticatorConfig();
             stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
             stsFedAuthn.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            stsFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+            stsFedAuthn.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
         }
         propertiesList = new ArrayList<>(Arrays.asList(stsFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
@@ -2912,7 +2912,7 @@ public class IdPManagementDAO {
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
         sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
         sessionTimeoutConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        sessionTimeoutConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        sessionTimeoutConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
 
         propertiesList = new ArrayList<>(Arrays.asList(sessionTimeoutConfig.getProperties()));
 
@@ -3466,7 +3466,7 @@ public class IdPManagementDAO {
                     defaultAuthenticator.setName(defaultAuthenticatorName);
                     defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
                             defaultAuthenticatorDefinedByType));
-                    defaultAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+                    defaultAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 
@@ -3634,7 +3634,7 @@ public class IdPManagementDAO {
                     defaultAuthenticator.setName(defaultAuthenticatorName);
                     defaultAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
                             defaultAuthenticatorDefinedByType));
-                    defaultAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+                    defaultAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 

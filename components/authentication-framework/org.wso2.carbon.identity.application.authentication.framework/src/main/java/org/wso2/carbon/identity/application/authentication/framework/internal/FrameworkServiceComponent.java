@@ -513,9 +513,9 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
             if (localAuthenticatorConfig.getTags() != null &&
                     Arrays.stream(localAuthenticatorConfig.getTags()).anyMatch(s -> s.equalsIgnoreCase(TAG_2FA))) {
-                localAuthenticatorConfig.setAuthenticationType(AuthenticationType.FACTOR_VERIFICATION);
+                localAuthenticatorConfig.setAuthenticationType(AuthenticationType.VERIFICATION_ONLY);
             } else {
-                localAuthenticatorConfig.setAuthenticationType(AuthenticationType.INTERNAL_ACCOUNT);
+                localAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
             }
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
@@ -527,7 +527,7 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             federatedAuthenticatorConfig.setTags(getTags(authenticator));
             federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+            federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();

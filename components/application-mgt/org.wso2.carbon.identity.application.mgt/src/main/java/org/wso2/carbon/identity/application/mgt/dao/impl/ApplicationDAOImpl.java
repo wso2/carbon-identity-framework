@@ -3122,7 +3122,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
                     fedAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
-                    fedAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+                    fedAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
                     idpAuths.add(fedAuthenticator);
                 }
 

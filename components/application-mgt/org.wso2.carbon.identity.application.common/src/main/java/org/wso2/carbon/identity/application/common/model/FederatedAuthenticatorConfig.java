@@ -121,7 +121,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
             federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
             LOG.debug("The defined by type is not set for the : " + federatedAuthenticatorConfig.getName());
         }
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
 
         return federatedAuthenticatorConfig;
     }

@@ -642,8 +642,7 @@ public class IdentityConstants {
      */
     public static enum AuthenticationType {
 
-        EXTERNAL_ACCOUNT,
-        INTERNAL_ACCOUNT,
-        FACTOR_VERIFICATION
+        IDENTIFICATION,
+        VERIFICATION_ONLY
     }
 }

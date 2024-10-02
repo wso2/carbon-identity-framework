@@ -139,9 +139,9 @@ public class LocalAuthenticatorConfig implements Serializable {
             if (localAuthenticatorConfig.getTags() != null &&
                     Arrays.stream(localAuthenticatorConfig.getTags()).anyMatch(s -> s.equalsIgnoreCase(TAG_2FA))) {
                 localAuthenticatorConfig.setAuthenticationType(
-                        IdentityConstants.AuthenticationType.FACTOR_VERIFICATION);
+                        IdentityConstants.AuthenticationType.VERIFICATION_ONLY);
             } else {
-                localAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.INTERNAL_ACCOUNT);
+                localAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
             }
             LOG.debug("The defined by type is not set for the: {}. Hence setting value based on the factor for the: {}",
                     localAuthenticatorConfig.getName(), localAuthenticatorConfig.getAuthenticationType().toString());

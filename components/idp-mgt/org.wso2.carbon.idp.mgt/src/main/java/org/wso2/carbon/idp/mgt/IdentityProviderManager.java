@@ -173,7 +173,7 @@ public class IdentityProviderManager implements IdpManager {
             saml2SSOResidentAuthenticatorConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
             saml2SSOResidentAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
             saml2SSOResidentAuthenticatorConfig.setAuthenticationType(
-                    IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+                    IdentityConstants.AuthenticationType.IDENTIFICATION);
         }
         if (saml2SSOResidentAuthenticatorConfig.getProperties() == null) {
             saml2SSOResidentAuthenticatorConfig.setProperties(new Property[0]);
@@ -259,7 +259,7 @@ public class IdentityProviderManager implements IdpManager {
         oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
         oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
         oidcAuthenticationConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        oidcAuthenticationConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        oidcAuthenticationConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
 
         Property passiveStsProperty = new Property();
         passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
@@ -269,7 +269,7 @@ public class IdentityProviderManager implements IdpManager {
         passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
         passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
         passiveStsAuthenticationConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        passiveStsAuthenticationConfig.setAuthenticationType(IdentityConstants.AuthenticationType.EXTERNAL_ACCOUNT);
+        passiveStsAuthenticationConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
 
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
                 passiveStsAuthenticationConfig, oidcAuthenticationConfig};
