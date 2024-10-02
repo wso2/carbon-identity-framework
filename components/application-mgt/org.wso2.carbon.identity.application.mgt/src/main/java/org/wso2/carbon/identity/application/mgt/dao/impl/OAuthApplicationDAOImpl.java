@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,6 +49,18 @@ public class OAuthApplicationDAOImpl implements OAuthApplicationDAO {
             prepStmt = connection.prepareStatement(ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION_WITH_TENANT);
             prepStmt.setString(1, clientIdentifier);
             prepStmt.setInt(2, IdentityTenantUtil.getLoginTenantId());
+            String appOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getApplicationResidentOrganizationId();
+            if (StringUtils.isNotEmpty(appOrgId)) {
+                try {
+                    String tenantDomain = ApplicationManagementServiceComponentHolder.getInstance()
+                            .getOrganizationManager().resolveTenantDomain(appOrgId);
+                    prepStmt.setInt(2, IdentityTenantUtil.getTenantId(tenantDomain));
+                } catch (OrganizationManagementException e) {
+                    throw new IdentityApplicationManagementException("Error occurred while resolving tenant domain " +
+                            "for organization id: " + appOrgId, e);
+                }
+            }
             prepStmt.execute();
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {

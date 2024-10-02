@@ -63,4 +63,9 @@ public class RoleManagementUtils {
 
         return roleDAO.getRoleAudienceRefId(audience, audienceId);
     }
+
+    public static boolean isSharedRole (String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.isSharedRole(roleId, tenantDomain);
+    }
 }

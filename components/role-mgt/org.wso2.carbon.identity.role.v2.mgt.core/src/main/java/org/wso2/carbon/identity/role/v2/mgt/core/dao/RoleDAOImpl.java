@@ -93,6 +93,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVA
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_FORBIDDEN;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.OPERATION_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.PERMISSION_ALREADY_ADDED;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
@@ -518,7 +519,7 @@ public class RoleDAOImpl implements RoleDAO {
     public List<Permission> getPermissionListOfRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (isOrganization(tenantDomain)) {
+        if (isOrganization(tenantDomain) && isSharedRole(roleId, tenantDomain)) {
             return getPermissionsOfSharedRole(roleId, tenantDomain);
         } else {
             return getPermissions(roleId, tenantDomain);
@@ -567,6 +568,10 @@ public class RoleDAOImpl implements RoleDAO {
                                            List<Permission> deletedPermissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
+        if (isSharedRole(roleId, tenantDomain)) {
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(),
+                    "Invalid operation. Role: " + roleId + " Permissions cannot be updated since it's a shared role.");
+        }
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             addPermissions(roleId, addedPermissions, tenantDomain, connection);
             for (Permission permission : deletedPermissions) {
@@ -655,6 +660,15 @@ public class RoleDAOImpl implements RoleDAO {
     @Override
     public void deleteRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
 
+        boolean preDeleteApp = false;
+        if (IdentityUtil.threadLocalProperties.get().get("doPreDeleteApplication") != null) {
+            preDeleteApp = (boolean) IdentityUtil.threadLocalProperties.get().get("doPreDeleteApplication");
+            IdentityUtil.threadLocalProperties.get().remove("doPreDeleteApplication");
+        }
+        if (!preDeleteApp && isSharedRole(roleId, tenantDomain)) {
+            throw new IdentityRoleManagementClientException(OPERATION_NOT_SUPPORTED.getCode(),
+                    "Invalid operation. Role: " + roleId + " Cannot be deleted since it's a shared role.");
+        }
         String roleName = getRoleNameByID(roleId, tenantDomain);
         if (systemRoles.contains(roleName) && !isOrganization(tenantDomain)) {
             throw new IdentityRoleManagementClientException(OPERATION_FORBIDDEN.getCode(),
@@ -1556,7 +1570,7 @@ public class RoleDAOImpl implements RoleDAO {
      * @return is Shared role.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    private boolean isSharedRole(String roleId, String tenantDomain)
+    public boolean isSharedRole(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);

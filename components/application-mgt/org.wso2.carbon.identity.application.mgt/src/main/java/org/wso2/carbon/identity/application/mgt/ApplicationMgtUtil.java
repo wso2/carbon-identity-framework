@@ -850,11 +850,13 @@ public class ApplicationMgtUtil {
     public static void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
 
         String userId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        String appOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationResidentOrganizationId();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUserId(userId);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setApplicationResidentOrganizationId(appOrgId);
     }
 
     /**

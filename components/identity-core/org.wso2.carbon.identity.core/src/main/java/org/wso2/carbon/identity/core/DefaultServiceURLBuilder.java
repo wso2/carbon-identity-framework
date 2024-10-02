@@ -151,7 +151,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
-            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
+            String applicationResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .getApplicationResidentOrganizationId();
+            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)
+                    || (StringUtils.isNotEmpty(applicationResidentOrgId)
+                    && !StringUtils.contains(resolvedUrlContext, "/api/server/v1/branding-preference/"))) {
                 setURL(resolvedUrlStringBuilder, tenantDomain);
             }
         }
@@ -520,6 +524,13 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
         if (StringUtils.isNotEmpty(organizationId)) {
             resolvedUrlStringBuilder.append("/o/").append(organizationId);
+            return;
+        }
+        // ####### Organizational level tenant perspective resource URL building.
+        String applicationResidentOrgId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getApplicationResidentOrganizationId();
+        if (StringUtils.isNotEmpty(applicationResidentOrgId)) {
+            resolvedUrlStringBuilder.append("/t/").append(tenantDomain).append("/o/").append(applicationResidentOrgId);
             return;
         }
         // ####### Tenant perspective resource URL building.

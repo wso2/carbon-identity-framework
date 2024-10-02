@@ -473,4 +473,9 @@ public interface RoleDAO {
 
         return null;
     }
+
+    default boolean isSharedRole (String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return false;
+    }
 }

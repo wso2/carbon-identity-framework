@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAO;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -35,6 +36,9 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -93,6 +97,22 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         String getAPIResourcesCountSqlStmtTail = SQLConstants.GET_API_RESOURCES_COUNT_TAIL;
+
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+                String orgId = APIResourceManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                        .resolveOrganizationId(tenantDomain);
+                String rootOrganizationId = APIResourceManagementServiceComponentHolder.getInstance()
+                        .getOrganizationManager().getPrimaryOrganizationId(orgId);
+                String rootTenantDomain = APIResourceManagementServiceComponentHolder.getInstance()
+                        .getOrganizationManager().resolveTenantDomain(rootOrganizationId);
+                tenantId = IdentityTenantUtil.getTenantId(rootTenantDomain);
+                getAPIResourcesCountSqlStmtTail = SQLConstants.GET_API_RESOURCES_COUNT_FOR_ORGANIZATIONS_TAIL;
+            }
+        } catch (OrganizationManagementException e) {
+            throw new APIResourceMgtException("error");
+        }
 
         String sqlStmt = SQLConstants.GET_API_RESOURCES_COUNT + filterQueryBuilder.getFilterQuery() +
                 getAPIResourcesCountSqlStmtTail;
@@ -228,8 +248,25 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     @Override
     public APIResource getAPIResourceById(String apiId, Integer tenantId) throws APIResourceMgtException {
 
+        String query = SQLConstants.GET_API_RESOURCE_BY_ID;
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                // Get the root organization id.
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+                String orgId = APIResourceManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                        .resolveOrganizationId(tenantDomain);
+                String rootOrganizationId = APIResourceManagementServiceComponentHolder.getInstance()
+                        .getOrganizationManager().getPrimaryOrganizationId(orgId);
+                String rootTenantDomain = APIResourceManagementServiceComponentHolder.getInstance()
+                        .getOrganizationManager().resolveTenantDomain(rootOrganizationId);
+                tenantId = IdentityTenantUtil.getTenantId(rootTenantDomain);
+                query = SQLConstants.GET_API_RESOURCE_BY_ID_FOR_ORGANIZATIONS;
+            }
+        } catch (OrganizationManagementException e) {
+            throw new APIResourceMgtException("error");
+        }
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement preparedStatement = dbConnection.prepareStatement(SQLConstants.GET_API_RESOURCE_BY_ID)) {
+             PreparedStatement preparedStatement = dbConnection.prepareStatement(query)) {
             preparedStatement.setString(1, apiId);
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -445,6 +482,22 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             appendFilterQuery(expressionNodes, filterQueryBuilder, true);
             String query = SQLConstants.GET_SCOPES_BY_TENANT_ID + filterQueryBuilder.getFilterQuery() +
                     SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL;
+            try {
+                if (OrganizationManagementUtil.isOrganization(tenantId) && !isInternalFiltering(filterQueryBuilder)) {
+                    // Get the root organization id.
+                    String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+                    String orgId = APIResourceManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                            .resolveOrganizationId(tenantDomain);
+                    String rootOrganizationId = APIResourceManagementServiceComponentHolder.getInstance()
+                            .getOrganizationManager().getPrimaryOrganizationId(orgId);
+                    String rootTenantDomain = APIResourceManagementServiceComponentHolder.getInstance()
+                            .getOrganizationManager().resolveTenantDomain(rootOrganizationId);
+                    tenantId = IdentityTenantUtil.getTenantId(rootTenantDomain);
+                    query = SQLConstants.GET_SCOPES_BY_TENANT_ID_FOR_ORGANIZATIONS;
+                }
+            } catch (OrganizationManagementException e) {
+                throw new APIResourceMgtException("error");
+            }
             PreparedStatement preparedStatement = dbConnection.prepareStatement(query);
             preparedStatement.setInt(1, tenantId);
             int filterAttrSize = 0;
@@ -473,6 +526,15 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_GETTING_SCOPES, e);
         }
+    }
+
+    private static boolean isInternalFiltering(FilterQueryBuilder filterQueryBuilder) {
+
+        if (filterQueryBuilder.getFilterAttributeValue() != null) {
+            return filterQueryBuilder.getFilterAttributeValue().get(1).contains("internal") ||
+                    filterQueryBuilder.getFilterAttributeValue().get(1).contains("console");
+        }
+        return false;
     }
 
     @Override
@@ -778,14 +840,38 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @return SQL statement to retrieve API resources.
      */
     private String buildGetAPIResourcesSqlStatement(String databaseName, Integer tenantId, String filterQuery,
-                                                    String sortOrder, Integer limit) {
+                                                    String sortOrder, Integer limit) throws APIResourceMgtException {
 
         String sqlStmtHead = SQLConstants.GET_API_RESOURCES;
         String sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL;
 
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                // Get the root organization id.
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+                String orgId = APIResourceManagementServiceComponentHolder.getInstance().getOrganizationManager()
+                        .resolveOrganizationId(tenantDomain);
+                String rootOrganizationId = APIResourceManagementServiceComponentHolder.getInstance()
+                        .getOrganizationManager().getPrimaryOrganizationId(orgId);
+                String rootTenantDomain = APIResourceManagementServiceComponentHolder.getInstance()
+                        .getOrganizationManager().resolveTenantDomain(rootOrganizationId);
+                tenantId = IdentityTenantUtil.getTenantId(rootTenantDomain);
+                sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL_FOR_ORGANIZATIONS;
+            }
+        } catch (OrganizationManagementException e) {
+            throw new APIResourceMgtException("error");
+        }
+
         if (databaseName.contains(SQLConstants.MICROSOFT)) {
             sqlStmtHead = SQLConstants.GET_API_RESOURCES_MSSQL;
             sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL_MSSQL;
+            try {
+                if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                    sqlStmtTail = SQLConstants.GET_API_RESOURCES_TAIL_MSSQL_FOR_ORGANIZATIONS;
+                }
+            } catch (OrganizationManagementException e) {
+                throw new APIResourceMgtException("error");
+            }
 
             return String.format(sqlStmtHead, limit) + filterQuery + String.format(sqlStmtTail, tenantId, sortOrder);
         } else if (databaseName.contains(SQLConstants.ORACLE)) {
@@ -796,7 +882,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     private String buildGetAPIResourcesWithPropertiesSqlStatement(String databaseName, Integer tenantId,
-                                                                  String filterQuery, String sortOrder, Integer limit) {
+                                                                  String filterQuery, String sortOrder, Integer limit)
+            throws APIResourceMgtException {
 
         String selectionQuery = databaseName.contains(SQLConstants.H2)
                 ? SQLConstants.GET_API_RESOURCES_WITH_PROPERTIES_SELECTION_H2
