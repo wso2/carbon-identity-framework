@@ -81,6 +81,18 @@ public abstract class ConfigPersistenceManagerTest {
     }
 
     @Test(dataProvider = "globalPolicyAlgorithmData")
+    public void testGetGlobalPolicyAlgorithmWhenCacheMisses(String policyAlgorithmName) throws Exception {
+
+        // Add the first global policy combining algorithm.
+        configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(policyAlgorithmName);
+        // Clear the cache.
+        ConfigCache.getInstance().clear(-1234);
+
+        String policyAlgorithmNameFromStorage = configPersistenceManager.getGlobalPolicyAlgorithmName();
+        assertEquals(policyAlgorithmNameFromStorage, policyAlgorithmName);
+    }
+
+    @Test(dataProvider = "globalPolicyAlgorithmData")
     public void testUpdateGlobalPolicyAlgorithm(String policyAlgorithmName) throws Exception {
 
         configPersistenceManager.addOrUpdateGlobalPolicyAlgorithm(DENY_OVERRIDES);

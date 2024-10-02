@@ -56,6 +56,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -86,8 +87,8 @@ public class KeyStoreAdmin {
     public KeyStoreAdmin(int tenantId, Registry registry) {
 
         ServerConfiguration config = ServerConfiguration.getInstance();
-        TRUST_STORE_LOCATION = config.getFirstProperty("Security.TrustStore.Location");
-        TRUST_STORE_PASSWORD = config.getFirstProperty("Security.TrustStore.Password");
+        TRUST_STORE_LOCATION = config.getFirstProperty(SERVER_TRUSTSTORE_FILE);
+        TRUST_STORE_PASSWORD = config.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD);
         this.registry = registry;
         this.tenantId = tenantId;
     }
@@ -227,7 +228,7 @@ public class KeyStoreAdmin {
                 throw new SecurityConfigException("Key store " + filename + " already available");
             }
 
-            KeyStore keyStore = KeyStore.getInstance(type);
+            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(type);
             keyStore.load(new ByteArrayInputStream(content), password.toCharArray());
 
             // check for more private keys
@@ -288,7 +289,7 @@ public class KeyStoreAdmin {
                 throw new SecurityConfigException("Key store " + filename + " already available");
             }
 
-            KeyStore keyStore = KeyStore.getInstance(type);
+            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(type);
             keyStore.load(new ByteArrayInputStream(content), password.toCharArray());
             CryptoUtil cryptoUtil = CryptoUtil.getDefaultCryptoUtil();
             Resource resource = registry.newResource();
@@ -963,8 +964,8 @@ public class KeyStoreAdmin {
 
         KeyStore store;
         try {
-            store = KeyStore.getInstance(serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_TYPE));
-        } catch (KeyStoreException e) {
+            store = KeystoreUtils.getKeystoreInstance(serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_TYPE));
+        } catch (KeyStoreException | NoSuchProviderException e) {
             throw new SecurityConfigException("Error occurred while loading keystore.", e);
         }
 
