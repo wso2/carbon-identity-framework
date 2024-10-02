@@ -18,6 +18,7 @@
   -->
 
 <APIResources>
+    <!--  API resources added by the deployment.toml configs -->
     <APIResource name="Server Configuration Management API" identifier="/o/api/server/v1/configs"
                  requiresAuthorization="true" description="API representation of the Server Config Management API"
                  type="ORGANIZATION">
@@ -32,6 +33,8 @@
                    description="Delete server configurations of the organization"/>
         </Scopes>
     </APIResource>
+
+    <!--  API resources available from the system-api-resource.xml.j2 file -->
     <APIResource name="Admin Advisory Management API"
                  identifier="/api/server/v1/admin-advisory-management/banner" requiresAuthorization="true"
                  description="API representation of the Admin Advisory Management API" type="SYSTEM">
