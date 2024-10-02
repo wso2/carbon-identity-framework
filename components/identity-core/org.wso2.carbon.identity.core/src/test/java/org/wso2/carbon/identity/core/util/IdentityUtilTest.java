@@ -53,9 +53,15 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
+import java.io.FileInputStream;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,6 +88,10 @@ import static org.testng.Assert.assertTrue;
 @Listeners(MockitoTestNGListener.class)
 public class IdentityUtilTest {
 
+    private static final String PRIMARY_KEY_STORE = "wso2carbon.jks";
+    private static final String PRIMARY_KEY_STORE_PASSWORD = "wso2carbon";
+    private static final String PRIMARY_KEY_STORE_ALIAS = "wso2carbon";
+
     @Mock
     private IdentityConfigParser mockConfigParser;
     @Mock
@@ -104,6 +114,8 @@ public class IdentityUtilTest {
     private RealmConfiguration mockRealmConfiguration;
     @Mock
     private HttpServletRequest mockRequest;
+
+    private KeyStore primaryKeyStore;
 
     MockedStatic<CarbonUtils> carbonUtils;
     MockedStatic<ServerConfiguration> serverConfiguration;
@@ -139,6 +151,8 @@ public class IdentityUtilTest {
 
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY, "9763");
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY, "9443");
+
+        primaryKeyStore = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD);
     }
 
     @AfterMethod
@@ -155,6 +169,24 @@ public class IdentityUtilTest {
         identityCoreServiceComponent.close();
         identityConfigParser.close();
         identityTenantUtil.close();
+    }
+
+    @Test(description = "Test converting a certificate to PEM format")
+    public void convertCertificateToPEM() throws CertificateException, KeyStoreException {
+
+        Certificate validCertificate = primaryKeyStore.getCertificate(PRIMARY_KEY_STORE_ALIAS);
+        String expectedPEM = "-----BEGIN CERTIFICATE-----\n" +
+                "MIICNTCCAZ6gAwIBAgIES343gjANBgkqhkiG9w0BAQUFADBVMQswCQYDVQQGEwJVUzELMAkGA1UECAwCQ0ExFjAUBgNVBAcMDU1" +
+                "vdW50YWluIFZpZXcxDTALBgNVBAoMBFdTTzIxEjAQBgNVBAMMCWxvY2FsaG9zdDAeFw0xMDAyMTkwNzAyMjZaFw0zNTAyMTMwNz" +
+                "AyMjZaMFUxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzENMAsGA1UECgwEV1NPMjESM" +
+                "BAGA1UEAwwJbG9jYWxob3N0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCUp/oV1vWc8/TkQSiAvTousMzOM4asB2iltr2Q" +
+                "Kozni5aVFu818MpOLZIr8LMnTzWllJvvaA5RAAdpbECb+48FjbBe0hseUdN5HpwvnH/DW8ZccGvk53I6Orq7hLCv1ZHtuOCokgh" +
+                "z/ATrhyPq+QktMfXnRS4HrKGJTzxaCcU7OQIDAQABoxIwEDAOBgNVHQ8BAf8EBAMCBPAwDQYJKoZIhvcNAQEFBQADgYEAW5wPR7" +
+                "cr1LAdq+IrR44iQlRG5ITCZXY9hI0PygLP2rHANh+PYfTmxbuOnykNGyhM6FjFLbW2uZHQTY1jMrPprjOrmyK5sjJRO4d1DeGHT" +
+                "/YnIjs9JogRKv4XHECwLtIVdAbIdWHEtVZJyMSktcyysFcvuhPQK8Qc/E/Wq8uHSCo=\n" +
+                "-----END CERTIFICATE-----";
+
+        assertEquals(IdentityUtil.convertCertificateToPEM(validCertificate), expectedPEM);
     }
 
     @DataProvider
@@ -898,4 +930,14 @@ public class IdentityUtilTest {
         field.setAccessible(true);
         return field.get(null);
     }
+
+    private KeyStore getKeyStoreFromFile(String keystoreName, String password) throws Exception {
+
+        Path tenantKeystorePath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "repository", "resources", "security", keystoreName);
+        FileInputStream file = new FileInputStream(tenantKeystorePath.toString());
+        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keystore.load(file, password.toCharArray());
+        return keystore;
+    }
+
 }
