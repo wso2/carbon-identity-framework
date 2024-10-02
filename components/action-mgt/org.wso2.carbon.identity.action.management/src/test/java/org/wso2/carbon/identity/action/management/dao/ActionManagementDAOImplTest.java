@@ -66,7 +66,7 @@ public class ActionManagementDAOImplTest {
     private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    private static final String DB_NAME = "action_mgt";
+    private static final String DB_NAME = "action_mgt_dao";
     private static final String PRE_ISSUE_ACCESS_TOKEN = "PRE_ISSUE_ACCESS_TOKEN";
     private static final int TENANT_ID = 2;
     private Action action;
