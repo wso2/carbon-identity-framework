@@ -24,7 +24,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -68,10 +69,10 @@ public class FederatedAuthenticatorConfig implements Serializable {
     protected String[] tags;
 
     @XmlElement(name = "DefinedBy")
-    protected IdentityConstants.DefinedByType definedByType;
+    protected DefinedByType definedByType;
 
     @XmlElement(name = "AuthenticationType")
-    protected IdentityConstants.AuthenticationType authenticationType;
+    protected AuthenticationType authenticationType;
 
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {
 
@@ -113,15 +114,14 @@ public class FederatedAuthenticatorConfig implements Serializable {
                 }
             } else if ("DefinedBy".equals(elementName)) {
                 federatedAuthenticatorConfig.setDefinedByType(
-                        IdentityConstants.DefinedByType.valueOf(element.getText()));
+                        DefinedByType.valueOf(element.getText()));
             }
         }
 
         if (federatedAuthenticatorConfig.getDefinedByType() == null) {
-            federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-            LOG.debug("The defined by type is not set for the : " + federatedAuthenticatorConfig.getName());
+            federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
 
         return federatedAuthenticatorConfig;
     }
@@ -253,9 +253,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
     /**
      * Get the defined by type of the federated authenticator config.
      *
-     * @return IdentityConstants.DefinedByType
+     * @return DefinedByType
      */
-    public IdentityConstants.DefinedByType getDefinedByType() {
+    public DefinedByType getDefinedByType() {
 
         return definedByType;
     }
@@ -265,7 +265,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
      *
      * @param type The defined by type of the authenticator config.
      */
-    public void setDefinedByType(IdentityConstants.DefinedByType type) {
+    public void setDefinedByType(DefinedByType type) {
 
         definedByType = type;
     }
@@ -273,9 +273,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
     /**
      * Get the authentication type of the federated authenticator config.
      *
-     * @return IdentityConstants.AuthenticationType
+     * @return AuthenticationType
      */
-    public IdentityConstants.AuthenticationType getAuthenticationType() {
+    public AuthenticationType getAuthenticationType() {
 
         return authenticationType;
     }
@@ -285,7 +285,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
      *
      * @param type  The authentication type.
      */
-    public void setAuthenticationType(IdentityConstants.AuthenticationType type) {
+    public void setAuthenticationType(AuthenticationType type) {
 
         authenticationType = type;
     }

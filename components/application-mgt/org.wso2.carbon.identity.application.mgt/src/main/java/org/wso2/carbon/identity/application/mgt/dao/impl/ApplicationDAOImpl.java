@@ -77,7 +77,8 @@ import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
@@ -1568,14 +1569,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                         lclAuthenticator.getName(),
                                         lclAuthenticator.getDisplayName());
                             } else {
-                                if (lclAuthenticator.getDefinedByType() == null) {
-                                    log.debug("Authenticator already exists. Updating the authenticator, but the " +
-                                            "defined by type is not set.");
-                                } else {
-                                    log.debug("Authenticator already exists. Updating the authenticator.The defined "
+                                /* On demand migration for already saved local authenticators to save definedBy and
+                                 authenticationType properties to the database.
+                                 Remove this else block, once on-demand migration is done.*/
+                                log.debug("Authenticator already exists. Updating the authenticator.The defined "
                                             + "by type is set to: " + lclAuthenticator.getDefinedByType().toString());
-                                    //TODO: Update database with defined by properties for local authenticators.
-                                }
+                                //TODO: Update database with defined by properties for local authenticators.
                             }
                             if (authenticatorId > 0) {
                                 // ID, TENANT_ID, AUTHENTICATOR_ID
@@ -3098,9 +3097,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     localAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
-                    localAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
+                    localAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
-                    localAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.valueOf(
+                    localAuthenticator.setAuthenticationType(AuthenticationType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_AUTHENTICATION_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
                 } else {
@@ -3120,9 +3119,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     fedAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
-                    fedAuthenticator.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
+                    fedAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
-                    fedAuthenticator.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+                    fedAuthenticator.setAuthenticationType(AuthenticationType.IDENTIFICATION);
                     idpAuths.add(fedAuthenticator);
                 }
 
@@ -5036,7 +5035,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             // TODO: Read from database and set the DefinedBy and authenticationType properties to the authenticator.
             returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE,
-                    IdentityConstants.DefinedByType.SYSTEM.toString());
+                    DefinedByType.SYSTEM.toString());
+            returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_AUTHENTICATION_TYPE,
+                    AuthenticationType.IDENTIFICATION.toString());
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
         }
@@ -5070,8 +5071,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             prepStmt.setString(4, authenticatorName);
             prepStmt.setString(5, "1");
             prepStmt.setString(6, authenticatorDispalyName);
-            //TODO: prepStmt.setString(7, IdentityConstants.DefinedByType.SYSTEM.toString());
-            //TODO: prepStmt.setString(8, IdentityConstants.AuthenticationType.<TYPE>.toString());
+            //TODO: prepStmt.setString(7, DefinedByType.SYSTEM.toString());
+            //TODO: prepStmt.setString(8, AuthenticationType.<TYPE>.toString());
             prepStmt.execute();
             rs = prepStmt.getGeneratedKeys();
             if (rs.next()) {

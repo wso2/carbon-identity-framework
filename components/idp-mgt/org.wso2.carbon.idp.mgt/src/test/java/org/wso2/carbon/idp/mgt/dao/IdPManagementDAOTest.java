@@ -40,7 +40,8 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -586,8 +587,8 @@ public class IdPManagementDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1106,8 +1107,8 @@ public class IdPManagementDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1165,8 +1166,8 @@ public class IdPManagementDAOTest {
         newFederatedAuthenticatorConfig.setDisplayName("DisplayName1New");
         newFederatedAuthenticatorConfig.setName("Name");
         newFederatedAuthenticatorConfig.setEnabled(true);
-        newFederatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        newFederatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        newFederatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        newFederatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1New = new Property();
         property1New.setName("Property1New");
         property1New.setValue("value1New");
@@ -1739,8 +1740,8 @@ public class IdPManagementDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1873,8 +1874,8 @@ public class IdPManagementDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");

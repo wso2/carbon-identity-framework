@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -74,6 +76,10 @@ public class RequestPathAuthenticatorConfig extends LocalAuthenticatorConfig {
                 }
             }
         }
+
+        requestPathAuthenticatorConfig.setAuthenticationType(AuthenticationType.REQUEST_PATH);
+        requestPathAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+
         return requestPathAuthenticatorConfig;
     }
 

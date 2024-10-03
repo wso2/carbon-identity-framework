@@ -38,7 +38,8 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -134,8 +135,8 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -561,8 +562,8 @@ public class IdentityProviderManagementServiceTest {
         newFederatedAuthenticatorConfig.setDisplayName("DisplayName1New");
         newFederatedAuthenticatorConfig.setName("Name");
         newFederatedAuthenticatorConfig.setEnabled(true);
-        newFederatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        newFederatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        newFederatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        newFederatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property newProperty1 = new Property();
         newProperty1.setName("Property1New");
         newProperty1.setValue("value1New");
@@ -802,8 +803,8 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("DisplayName1New");
         facNew.setName("Name");
         facNew.setEnabled(true);
-        facNew.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
+        facNew.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         idp2New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
         // Initialize New Resident Identity Provider 3.
@@ -901,8 +902,8 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
-        facNew.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
+        facNew.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -925,8 +926,8 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
-        facNew.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        facNew.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
+        facNew.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -962,8 +963,8 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1118,8 +1119,8 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName");
         federatedAuthenticatorConfig.setName("SAMLSSOAuthenticator");
         federatedAuthenticatorConfig.setEnabled(true);
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
-        federatedAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         Property property1 = new Property();
         property1.setName("SPEntityId");
         property1.setValue("wso2-is");

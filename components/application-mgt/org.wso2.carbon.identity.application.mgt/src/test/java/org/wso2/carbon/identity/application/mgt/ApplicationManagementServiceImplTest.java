@@ -65,7 +65,8 @@ import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInbo
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
-import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
@@ -673,12 +674,14 @@ public class ApplicationManagementServiceImplTest {
             for (AuthenticationStep step : steps) {
                 LocalAuthenticatorConfig[] localAuthenticators = step.getLocalAuthenticatorConfigs();
                 for (LocalAuthenticatorConfig localConfig : localAuthenticators) {
-                    Assert.assertNotNull(localConfig.getDefinedByType());
+                    Assert.assertEquals(localConfig.getDefinedByType(), DefinedByType.SYSTEM);
+                    Assert.assertEquals(localConfig.getAuthenticationType(), AuthenticationType.IDENTIFICATION);
                 }
                 IdentityProvider[] identityProviders = step.getFederatedIdentityProviders();
                 for (IdentityProvider idp : identityProviders) {
                     for (FederatedAuthenticatorConfig fedConfig: idp.getFederatedAuthenticatorConfigs()) {
-                        Assert.assertNotNull(fedConfig.getDefinedByType());
+                        Assert.assertEquals(fedConfig.getDefinedByType(), DefinedByType.SYSTEM);
+                        Assert.assertEquals(fedConfig.getAuthenticationType(), AuthenticationType.IDENTIFICATION);
                     }
                 }
             }
@@ -1314,13 +1317,15 @@ public class ApplicationManagementServiceImplTest {
         identityProvider.setIdentityProviderName(IDP_NAME_1);
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig.setName("Federated authenticator");
-        federatedAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         identityProvider.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
                 {federatedAuthenticatorConfig});
         authenticationStep.setFederatedIdentityProviders(new IdentityProvider[]{identityProvider});
         LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
         localAuthenticatorConfig.setName("Local authenticator");
-        localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+        localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        federatedAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
         authenticationStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticatorConfig});
         authenticationConfig.setAuthenticationSteps(new AuthenticationStep[]{authenticationStep});
         serviceProvider.setLocalAndOutBoundAuthenticationConfig(authenticationConfig);

@@ -24,6 +24,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.io.Serializable;
@@ -69,10 +71,10 @@ public class LocalAuthenticatorConfig implements Serializable {
     protected String[] tags;
 
     @XmlElement(name = "DefinedBy")
-    protected IdentityConstants.DefinedByType definedByType;
+    protected DefinedByType definedByType;
 
     @XmlElement(name = "AuthenticationType")
-    protected IdentityConstants.AuthenticationType authenticationType;
+    protected AuthenticationType authenticationType;
 
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
@@ -123,15 +125,15 @@ public class LocalAuthenticatorConfig implements Serializable {
                     localAuthenticatorConfig.setProperties(propertiesArr);
                 }
             } else if ("DefinedBy".equals(member.getLocalName())) {
-                localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.valueOf(member.getText()));
+                localAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(member.getText()));
             } else if ("AuthenticationType".equals(member.getLocalName())) {
                 localAuthenticatorConfig.setAuthenticationType(
-                        IdentityConstants.AuthenticationType.valueOf(member.getText()));
+                        AuthenticationType.valueOf(member.getText()));
             }
         }
 
         if (localAuthenticatorConfig.getDefinedByType() == null) {
-            localAuthenticatorConfig.setDefinedByType(IdentityConstants.DefinedByType.SYSTEM);
+            localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
             LOG.debug("The defined by type is not set for the {}. Hence setting default SYSTEM value.",
                     localAuthenticatorConfig.getName());
         }
@@ -139,9 +141,9 @@ public class LocalAuthenticatorConfig implements Serializable {
             if (localAuthenticatorConfig.getTags() != null &&
                     Arrays.stream(localAuthenticatorConfig.getTags()).anyMatch(s -> s.equalsIgnoreCase(TAG_2FA))) {
                 localAuthenticatorConfig.setAuthenticationType(
-                        IdentityConstants.AuthenticationType.VERIFICATION_ONLY);
+                        AuthenticationType.VERIFICATION_ONLY);
             } else {
-                localAuthenticatorConfig.setAuthenticationType(IdentityConstants.AuthenticationType.IDENTIFICATION);
+                localAuthenticatorConfig.setAuthenticationType(AuthenticationType.IDENTIFICATION);
             }
             LOG.debug("The defined by type is not set for the: {}. Hence setting value based on the factor for the: {}",
                     localAuthenticatorConfig.getName(), localAuthenticatorConfig.getAuthenticationType().toString());
@@ -262,9 +264,9 @@ public class LocalAuthenticatorConfig implements Serializable {
     /**
      * Get the defined by type of the Local authenticator config.
      *
-     * @return IdentityConstants.DefinedByType
+     * @return DefinedByType
      */
-    public IdentityConstants.DefinedByType getDefinedByType() {
+    public DefinedByType getDefinedByType() {
 
         return definedByType;
     }
@@ -274,7 +276,7 @@ public class LocalAuthenticatorConfig implements Serializable {
      *
      * @param type The defined by type of the authenticator config.
      */
-    public void setDefinedByType(IdentityConstants.DefinedByType type) {
+    public void setDefinedByType(DefinedByType type) {
 
         definedByType = type;
     }
@@ -282,9 +284,9 @@ public class LocalAuthenticatorConfig implements Serializable {
     /**
      * Get the authentication type of the Local authenticator config .
      *
-     * @return IdentityConstants.AuthenticationType
+     * @return AuthenticationType
      */
-    public IdentityConstants.AuthenticationType getAuthenticationType() {
+    public AuthenticationType getAuthenticationType() {
 
         return authenticationType;
     }
@@ -294,7 +296,7 @@ public class LocalAuthenticatorConfig implements Serializable {
      *
      * @param type  The authentication type.
      */
-    public void setAuthenticationType(IdentityConstants.AuthenticationType type) {
+    public void setAuthenticationType(AuthenticationType type) {
 
         authenticationType = type;
     }

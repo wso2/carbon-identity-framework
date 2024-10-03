@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
 
 import java.util.Arrays;
 
@@ -30,12 +30,12 @@ import static org.wso2.carbon.identity.base.IdentityConstants.TAG_2FA;
 public interface LocalApplicationAuthenticator extends ApplicationAuthenticator {
 
     @Override
-    default IdentityConstants.AuthenticationType getAuthenticationType() {
+    default AuthenticationType getAuthenticationType() {
 
         if (getTags() != null && Arrays.stream(getTags()).anyMatch(s -> s.equalsIgnoreCase(TAG_2FA))) {
-            return IdentityConstants.AuthenticationType.VERIFICATION_ONLY;
+            return AuthenticationType.VERIFICATION_ONLY;
         }
 
-        return IdentityConstants.AuthenticationType.IDENTIFICATION;
+        return AuthenticationType.IDENTIFICATION;
     }
 }

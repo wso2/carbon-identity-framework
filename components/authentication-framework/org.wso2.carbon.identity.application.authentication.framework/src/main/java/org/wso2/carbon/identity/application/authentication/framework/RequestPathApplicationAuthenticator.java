@@ -18,9 +18,16 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.AuthenticationType;
+
 /**
  * Request path application authenticator.
  */
 public interface RequestPathApplicationAuthenticator extends ApplicationAuthenticator {
 
+    @Override
+    default AuthenticationType getAuthenticationType() {
+
+        return AuthenticationType.REQUEST_PATH;
+    }
 }

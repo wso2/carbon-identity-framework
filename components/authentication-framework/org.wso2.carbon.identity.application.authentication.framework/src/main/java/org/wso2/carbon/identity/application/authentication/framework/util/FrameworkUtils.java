@@ -115,7 +115,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProviderPropert
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -4198,7 +4198,7 @@ public class FrameworkUtils {
      * @param authenticatorName     Name of the authenticator.
      * @return The defined by type.
      */
-    public static IdentityConstants.DefinedByType getAuthenticatorDefinedByType(String authenticatorName) {
+    public static DefinedByType getAuthenticatorDefinedByType(String authenticatorName) {
 
         for (ApplicationAuthenticator authenticator: FrameworkServiceComponent.getAuthenticators()) {
             if (authenticator.getName().equals(authenticatorName)) {
