@@ -202,7 +202,9 @@ public class KeyStoreAdmin {
         try {
             keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
         } catch (CarbonException e) {
-            throw new SecurityConfigException(e.getMessage());
+            String msg = "Error when adding a keyStore";
+            log.error(msg, e);
+            throw new SecurityConfigException(msg, e);
         }
     }
 
@@ -213,77 +215,45 @@ public class KeyStoreAdmin {
         try {
             keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
         } catch (CarbonException e) {
-            throw new SecurityConfigException(e.getMessage());
+            String msg = "Error when adding a keyStore";
+            log.error(msg, e);
+            throw new SecurityConfigException(msg, e);
         }
     }
 
+    @Deprecated
     public void addTrustStore(String fileData, String filename, String password, String provider,
                               String type) throws SecurityConfigException {
+
         byte[] content = Base64.decode(fileData);
-        addTrustStore(content, filename, password, provider, type);
-    }
-
-    public void addTrustStore(byte[] content, String filename, String password, String provider, String type) throws SecurityConfigException {
-        if (filename == null) {
-            throw new SecurityConfigException("Key Store name can't be null");
-        }
         try {
-            if (KeyStoreUtil.isPrimaryStore(filename)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-
-            String path = SecurityConstants.KEY_STORES + "/" + filename;
-            if (registry.resourceExists(path)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-
-            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(type);
-            keyStore.load(new ByteArrayInputStream(content), password.toCharArray());
-            CryptoUtil cryptoUtil = CryptoUtil.getDefaultCryptoUtil();
-            Resource resource = registry.newResource();
-            resource.addProperty(SecurityConstants.PROP_PASSWORD, cryptoUtil
-                    .encryptAndBase64Encode(password.getBytes()));
-            resource.addProperty(SecurityConstants.PROP_PROVIDER, provider);
-            resource.addProperty(SecurityConstants.PROP_TYPE, type);
-            resource.setContent(content);
-            registry.put(path, resource);
-        } catch (SecurityConfigException e) {
-            throw e;
-        } catch (Exception e) {
+            keyStoreManager.addTrustStore(content, filename, password, provider, type);
+        } catch (CarbonException e) {
             String msg = "Error when adding a trustStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
         }
     }
 
-    public void deleteStore(String keyStoreName) throws SecurityConfigException {
+    @Deprecated
+    public void addTrustStore(byte[] content, String filename, String password, String provider, String type)
+            throws SecurityConfigException {
+
         try {
+            keyStoreManager.addTrustStore(content, filename, password, provider, type);
+        } catch (CarbonException e) {
+            String msg = "Error when adding a trustStore";
+            log.error(msg, e);
+            throw new SecurityConfigException(msg, e);
+        }
+    }
 
-            if (StringUtils.isBlank(keyStoreName)) {
-                throw new SecurityConfigException("Key Store name can't be null");
-            }
+    @Deprecated
+    public void deleteStore(String keyStoreName) throws SecurityConfigException {
 
-            if (KeyStoreUtil.isPrimaryStore(keyStoreName)) {
-                throw new SecurityConfigException("Not allowed to delete the primary key store : "
-                        + keyStoreName);
-            }
-            if (KeyStoreUtil.isTrustStore(keyStoreName)) {
-                throw new SecurityConfigException("Not allowed to delete the trust store : "
-                        + keyStoreName);
-            }
-            String path = SecurityConstants.KEY_STORES + "/" + keyStoreName;
-            boolean isFound = false;
-            Association[] assocs = registry.getAllAssociations(path);
-            if (assocs.length > 0) {
-                isFound = true;
-            }
-
-            if (isFound) {
-                throw new SecurityConfigException("Key store : " + keyStoreName +
-                        " is already in use and can't be deleted");
-            }
-            registry.delete(path);
-        } catch (RegistryException e) {
+        try {
+            keyStoreManager.deleteStore(keyStoreName);
+        } catch (CarbonException e) {
             String msg = "Error when deleting a keyStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
