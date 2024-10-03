@@ -1709,6 +1709,53 @@ public class IdentityUtil {
     }
 
     /**
+     * This will return a map of system roles and the list of api resource collection configured for each system role.
+     *
+     * @return A map of system roles against the api resource collection list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithAPIResources() {
+
+        Map<String, Set<String>> systemRolesWithAPIResources = new HashMap<>();
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser.getConfigElement(IdentityConstants.SystemRoles
+                .SYSTEM_ROLES_CONFIG_ELEMENT);
+
+        if (systemRolesConfig != null) {
+            Iterator roleIdentifierIterator = systemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles
+                    .ROLE_CONFIG_ELEMENT);
+
+            while (roleIdentifierIterator != null && roleIdentifierIterator.hasNext()) {
+                OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+                String roleName = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+                OMElement mandatoryScopesIdentifierIterator = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT));
+
+                Iterator scopeIdentifierIterator = mandatoryScopesIdentifierIterator.getChildrenWithLocalName(
+                        IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT);
+
+                Set<String> apiResourceCollections = new HashSet<>();
+                while (scopeIdentifierIterator.hasNext()) {
+                    OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
+                    String apiResource = scopeIdentifierConfig.getText();
+                    if (StringUtils.isNotBlank(apiResource)) {
+                        apiResourceCollections.add(apiResource.trim());
+                    }
+                }
+                if (StringUtils.isNotBlank(roleName)) {
+                    systemRolesWithAPIResources.put(roleName.trim(), apiResourceCollections);
+                }
+            }
+        } else {
+            log.debug(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + " config cannot be found.");
+        }
+        return systemRolesWithAPIResources;
+    }
+
+    /**
      * Check whether the system roles are enabled in the environment.
      *
      * @return {@code true} if the the system roles are enabled.
