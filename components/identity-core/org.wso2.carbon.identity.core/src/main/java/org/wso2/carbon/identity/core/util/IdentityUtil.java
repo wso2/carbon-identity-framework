@@ -64,7 +64,6 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -1368,8 +1367,8 @@ public class IdentityUtil {
 
         byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
 
-        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
-                X509Factory.END_CERT);
+        String encodedPEM = String.format("%s\n%s\n%s", PEM_BEGIN_CERTFICATE, new String(encodedCertificate),
+                PEM_END_CERTIFICATE);
 
         return encodedPEM;
     }
