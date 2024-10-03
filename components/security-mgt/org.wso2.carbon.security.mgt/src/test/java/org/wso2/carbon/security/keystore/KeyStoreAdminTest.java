@@ -89,7 +89,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
 
         try (MockedStatic<CryptoUtil>cryptoUtilMockedStatic = mockStatic(CryptoUtil.class);
+             MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
+
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(false);
@@ -113,7 +116,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
 
         try (MockedStatic<CryptoUtil>cryptoUtilMockedStatic = mockStatic(CryptoUtil.class);
+             MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
+
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(true);
