@@ -32,133 +32,143 @@ public class SAMLSSOServiceProviderConstants {
 
         }
 
-        // IDN_SAML2_SSO table
+        // IDN_SAML2_SERVICE_PROVIDER table
         public static final String ID = "ID";
-        public static final String TENANT_UUID = "TENANT_UUID";
         public static final String ISSUER = "ISSUER";
         public static final String DEFAULT_ASSERTION_CONSUMER_URL = "DEFAULT_ASSERTION_CONSUMER_URL";
-        public static final String ISSUER_CERT_ALIAS = "ISSUER_CERT_ALIAS";
         public static final String NAME_ID_FORMAT = "NAME_ID_FORMAT";
-        public static final String SIGNING_ALGORITHM = "SIGNING_ALGORITHM";
-        public static final String DIGEST_ALGORITHM = "DIGEST_ALGORITHM";
-        public static final String ASSERTION_ENCRYPTION_ALGORITHM = "ASSERTION_ENCRYPTION_ALGORITHM";
-        public static final String KEY_ENCRYPTION_ALGORITHM = "KEY_ENCRYPTION_ALGORITHM";
-        public static final String ENABLE_SINGLE_LOGOUT = "ENABLE_SINGLE_LOGOUT";
-        public static final String ENABLE_SIGN_RESPONSE = "ENABLE_SIGN_RESPONSE";
-        public static final String ENABLE_ASSERTION_QUERY_REQUEST_PROFILE = "ENABLE_ASSERTION_QUERY_REQUEST_PROFILE";
-        public static final String ENABLE_SAML2_ARTIFACT_BINDING = "ENABLE_SAML2_ARTIFACT_BINDING";
-        public static final String ENABLE_SIGN_ASSERTIONS = "ENABLE_SIGN_ASSERTIONS";
-        public static final String ENABLE_ECP = "ENABLE_ECP";
-        public static final String ENABLE_ATTRIBUTES_BY_DEFAULT = "ENABLE_ATTRIBUTES_BY_DEFAULT";
-        public static final String ENABLE_IDP_INIT_SSO = "ENABLE_IDP_INIT_SSO";
-        public static final String ENABLE_IDP_INIT_SLO = "ENABLE_IDP_INIT_SLO";
-        public static final String ENABLE_ENCRYPTED_ASSERTION = "ENABLE_ENCRYPTED_ASSERTION";
-        public static final String VALIDATE_SIGNATURE_IN_REQUESTS = "VALIDATE_SIGNATURE_IN_REQUESTS";
-        public static final String VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE = "VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE";
+        public static final String CERT_ALIAS = "CERT_ALIAS";
+        public static final String REQ_SIG_VALIDATION = "REQ_SIG_VALIDATION";
+        public static final String SIGN_RESPONSE = "SIGN_RESPONSE";
+        public static final String SIGNING_ALGO = "SIGNING_ALGO";
+        public static final String DIGEST_ALGO = "DIGEST_ALGO";
+        public static final String ENCRYPT_ASSERTION = "ENCRYPT_ASSERTION";
+        public static final String ASSERTION_ENCRYPTION_ALGO = "ASSERTION_ENCRYPTION_ALGO";
+        public static final String KEY_ENCRYPTION_ALGO = "KEY_ENCRYPTION_ALGO";
+        public static final String ATTR_PROFILE_ENABLED = "ATTR_PROFILE_ENABLED";
+        public static final String ATTR_SERVICE_INDEX = "ATTR_SERVICE_INDEX";
+        public static final String SLO_PROFILE_ENABLED = "SLO_PROFILE_ENABLED";
+        public static final String SLO_METHOD = "SLO_METHOD";
+        public static final String SLO_RESPONSE_URL = "SLO_RESPONSE_URL";
+        public static final String SLO_REQUEST_URL = "SLO_REQUEST_URL";
+        public static final String IDP_INIT_SSO_ENABLED = "IDP_INIT_SSO_ENABLED";
+        public static final String IDP_INIT_SLO_ENABLED = "IDP_INIT_SLO_ENABLED";
+        public static final String QUERY_REQUEST_PROFILE_ENABLED = "QUERY_REQUEST_PROFILE_ENABLED";
+        public static final String ECP_ENABLED = "ECP_ENABLED";
+        public static final String ARTIFACT_BINDING_ENABLED = "ARTIFACT_BINDING_ENABLED";
+        public static final String ARTIFACT_RESOLVE_REQ_SIG_VALIDATION = "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION";
+        public static final String IDP_ENTITY_ID_ALIAS = "IDP_ENTITY_ID_ALIAS";
+        public static final String ISSUER_QUALIFIER = "ISSUER_QUALIFIER";
+        public static final String SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES";
+        public static final String TENANT_ID = "TENANT_ID";
 
-        // IDN_SAML2_SSO_ATTRIBUTE table
-        public static final String SAML2_SSO_ID = "SAML2_SSO_ID";
-        public static final String ATTR_NAME = "ATTR_NAME";
-        public static final String ATTR_VALUE = "ATTR_VALUE";
+        // IDN_SAML2_SP_PROPERTIES table
+        public static final String PROPERTY_NAME = "PROPERTY_NAME";
+        public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
+        public static final String SP_ID = "SP_ID";
 
     }
 
-    public static class SqlQueries {
+    public static class SQLQueries {
 
-        private SqlQueries() {
+        private SQLQueries() {
 
         }
 
         public static final String ADD_SAML2_SSO_CONFIG =
-                "INSERT INTO IDN_SAML2_SSO " +
-                        "(ID, TENANT_UUID, ISSUER, DEFAULT_ASSERTION_CONSUMER_URL, ISSUER_CERT_ALIAS, " +
-                        "NAME_ID_FORMAT, SIGNING_ALGORITHM, DIGEST_ALGORITHM, ASSERTION_ENCRYPTION_ALGORITHM, " +
-                        "KEY_ENCRYPTION_ALGORITHM, ENABLE_SINGLE_LOGOUT, ENABLE_SIGN_RESPONSE, " +
-                        "ENABLE_ASSERTION_QUERY_REQUEST_PROFILE, ENABLE_SAML2_ARTIFACT_BINDING, " +
-                        "ENABLE_SIGN_ASSERTIONS, ENABLE_ECP, ENABLE_ATTRIBUTES_BY_DEFAULT, ENABLE_IDP_INIT_SSO, " +
-                        "ENABLE_IDP_INIT_SLO, ENABLE_ENCRYPTED_ASSERTION, VALIDATE_SIGNATURE_IN_REQUESTS, " +
-                        "VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE) " +
-                        "VALUES (:ID;, :TENANT_UUID;, :ISSUER;, :DEFAULT_ASSERTION_CONSUMER_URL;, " +
-                        ":ISSUER_CERT_ALIAS;, :NAME_ID_FORMAT;, :SIGNING_ALGORITHM;, :DIGEST_ALGORITHM;, " +
-                        ":ASSERTION_ENCRYPTION_ALGORITHM;, :KEY_ENCRYPTION_ALGORITHM;, :ENABLE_SINGLE_LOGOUT;, " +
-                        ":ENABLE_SIGN_RESPONSE;, :ENABLE_ASSERTION_QUERY_REQUEST_PROFILE;, " +
-                        ":ENABLE_SAML2_ARTIFACT_BINDING;, :ENABLE_SIGN_ASSERTIONS;, :ENABLE_ECP;, " +
-                        ":ENABLE_ATTRIBUTES_BY_DEFAULT;, :ENABLE_IDP_INIT_SSO;, :ENABLE_IDP_INIT_SLO;, " +
-                        ":ENABLE_ENCRYPTED_ASSERTION;, :VALIDATE_SIGNATURE_IN_REQUESTS;, " +
-                        ":VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE;)";
+                "INSERT INTO IDN_SAML2_SERVICE_PROVIDER " +
+                        "(ISSUER, DEFAULT_ASSERTION_CONSUMER_URL, NAME_ID_FORMAT, CERT_ALIAS, REQ_SIG_VALIDATION, " +
+                        "SIGN_RESPONSE, SIGNING_ALGO, DIGEST_ALGO, ENCRYPT_ASSERTION, ASSERTION_ENCRYPTION_ALGO, " +
+                        "KEY_ENCRYPTION_ALGO, ATTR_PROFILE_ENABLED, ATTR_SERVICE_INDEX, SLO_PROFILE_ENABLED, " +
+                        "SLO_METHOD, SLO_RESPONSE_URL, SLO_REQUEST_URL, IDP_INIT_SSO_ENABLED, IDP_INIT_SLO_ENABLED, " +
+                        "QUERY_REQUEST_PROFILE_ENABLED, ECP_ENABLED, ARTIFACT_BINDING_ENABLED, " +
+                        "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION, IDP_ENTITY_ID_ALIAS, ISSUER_QUALIFIER, " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID) " +
+                        "VALUES (:ISSUER;, :DEFAULT_ASSERTION_CONSUMER_URL;, :NAME_ID_FORMAT;, :CERT_ALIAS;, " +
+                        ":REQ_SIG_VALIDATION;, :SIGN_RESPONSE;, :SIGNING_ALGO;, :DIGEST_ALGO;, :ENCRYPT_ASSERTION;, " +
+                        ":ASSERTION_ENCRYPTION_ALGO;, :KEY_ENCRYPTION_ALGO;, :ATTR_PROFILE_ENABLED;, " +
+                        ":ATTR_SERVICE_INDEX;, :SLO_PROFILE_ENABLED;, :SLO_METHOD;, :SLO_RESPONSE_URL;, " +
+                        ":SLO_REQUEST_URL;, :IDP_INIT_SSO_ENABLED;, :IDP_INIT_SLO_ENABLED;, " +
+                        ":QUERY_REQUEST_PROFILE_ENABLED;, :ECP_ENABLED;, :ARTIFACT_BINDING_ENABLED;, " +
+                        ":ARTIFACT_RESOLVE_REQ_SIG_VALIDATION;, :IDP_ENTITY_ID_ALIAS;, :ISSUER_QUALIFIER;, " +
+                        ":SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;, :TENANT_ID;)";
 
         public static final String UPDATE_SAML2_SSO_CONFIG =
-                "UPDATE IDN_SAML2_SSO " +
+                "UPDATE IDN_SAML2_SERVICE_PROVIDER " +
                         "SET ISSUER = :ISSUER;, DEFAULT_ASSERTION_CONSUMER_URL = :DEFAULT_ASSERTION_CONSUMER_URL;, " +
-                        "ISSUER_CERT_ALIAS = :ISSUER_CERT_ALIAS;, NAME_ID_FORMAT = :NAME_ID_FORMAT;, " +
-                        "SIGNING_ALGORITHM = :SIGNING_ALGORITHM;, DIGEST_ALGORITHM = :DIGEST_ALGORITHM;, " +
-                        "ASSERTION_ENCRYPTION_ALGORITHM = :ASSERTION_ENCRYPTION_ALGORITHM;, " +
-                        "KEY_ENCRYPTION_ALGORITHM = :KEY_ENCRYPTION_ALGORITHM;, ENABLE_SINGLE_LOGOUT = " +
-                        ":ENABLE_SINGLE_LOGOUT;, ENABLE_SIGN_RESPONSE = :ENABLE_SIGN_RESPONSE;, " +
-                        "ENABLE_ASSERTION_QUERY_REQUEST_PROFILE = :ENABLE_ASSERTION_QUERY_REQUEST_PROFILE;, " +
-                        "ENABLE_SAML2_ARTIFACT_BINDING = :ENABLE_SAML2_ARTIFACT_BINDING;, ENABLE_SIGN_ASSERTIONS = " +
-                        ":ENABLE_SIGN_ASSERTIONS;, ENABLE_ECP = :ENABLE_ECP;, ENABLE_ATTRIBUTES_BY_DEFAULT = " +
-                        ":ENABLE_ATTRIBUTES_BY_DEFAULT;, ENABLE_IDP_INIT_SSO = :ENABLE_IDP_INIT_SSO;, " +
-                        "ENABLE_IDP_INIT_SLO = :ENABLE_IDP_INIT_SLO;, ENABLE_ENCRYPTED_ASSERTION = " +
-                        ":ENABLE_ENCRYPTED_ASSERTION;, VALIDATE_SIGNATURE_IN_REQUESTS = :VALIDATE_SIGNATURE_IN_REQUESTS;, " +
-                        "VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE = :VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE; " +
-                        "WHERE ID = :ID; AND TENANT_UUID = :TENANT_UUID;";
+                        "NAME_ID_FORMAT = :NAME_ID_FORMAT;, CERT_ALIAS = :CERT_ALIAS;, " +
+                        "REQ_SIG_VALIDATION = :REQ_SIG_VALIDATION;, SIGN_RESPONSE = :SIGN_RESPONSE;, " +
+                        "SIGNING_ALGO = :SIGNING_ALGO;, DIGEST_ALGO = :DIGEST_ALGO;, " +
+                        "ENCRYPT_ASSERTION = :ENCRYPT_ASSERTION;, " +
+                        "ASSERTION_ENCRYPTION_ALGO = :ASSERTION_ENCRYPTION_ALGO;, " +
+                        "KEY_ENCRYPTION_ALGO = :KEY_ENCRYPTION_ALGO;, ATTR_PROFILE_ENABLED = :ATTR_PROFILE_ENABLED;, " +
+                        "ATTR_SERVICE_INDEX = :ATTR_SERVICE_INDEX;, SLO_PROFILE_ENABLED = :SLO_PROFILE_ENABLED;, " +
+                        "SLO_METHOD = :SLO_METHOD;, SLO_RESPONSE_URL = :SLO_RESPONSE_URL;, " +
+                        "SLO_REQUEST_URL = :SLO_REQUEST_URL;, IDP_INIT_SSO_ENABLED = :IDP_INIT_SSO_ENABLED;, " +
+                        "IDP_INIT_SLO_ENABLED = :IDP_INIT_SLO_ENABLED;, " +
+                        "QUERY_REQUEST_PROFILE_ENABLED = :QUERY_REQUEST_PROFILE_ENABLED;, " +
+                        "ECP_ENABLED = :ECP_ENABLED;, ARTIFACT_BINDING_ENABLED = :ARTIFACT_BINDING_ENABLED;, " +
+                        "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION = :ARTIFACT_RESOLVE_REQ_SIG_VALIDATION;, " +
+                        "IDP_ENTITY_ID_ALIAS = :IDP_ENTITY_ID_ALIAS;, ISSUER_QUALIFIER = :ISSUER_QUALIFIER;, " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = :SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;, " +
+                        "TENANT_ID = :TENANT_ID; " +
+                        "WHERE ID = :ID; AND TENANT_ID = :TENANT_ID;";
 
         public static final String DELETE_SAML2_SSO_CONFIG_BY_ISSUER =
-                "DELETE FROM IDN_SAML2_SSO " +
-                        "WHERE ISSUER = :ISSUER; AND TENANT_UUID = :TENANT_UUID;";
+                "DELETE FROM IDN_SAML2_SERVICE_PROVIDER " +
+                        "WHERE ISSUER = :ISSUER; AND TENANT_ID = :TENANT_ID;";
 
         public static final String GET_SAML2_SSO_CONFIG_BY_ISSUER =
-                "SELECT ID, ISSUER, DEFAULT_ASSERTION_CONSUMER_URL, ISSUER_CERT_ALIAS, NAME_ID_FORMAT, " +
-                        "SIGNING_ALGORITHM, DIGEST_ALGORITHM, ASSERTION_ENCRYPTION_ALGORITHM, " +
-                        "KEY_ENCRYPTION_ALGORITHM, ENABLE_SINGLE_LOGOUT, ENABLE_SIGN_RESPONSE, " +
-                        "ENABLE_ASSERTION_QUERY_REQUEST_PROFILE, ENABLE_SAML2_ARTIFACT_BINDING, " +
-                        "ENABLE_SIGN_ASSERTIONS, ENABLE_ECP, ENABLE_ATTRIBUTES_BY_DEFAULT, ENABLE_IDP_INIT_SSO, " +
-                        "ENABLE_IDP_INIT_SLO, ENABLE_ENCRYPTED_ASSERTION, VALIDATE_SIGNATURE_IN_REQUESTS, " +
-                        "VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE " +
-                        "FROM IDN_SAML2_SSO " +
+                "SELECT ID, ISSUER, DEFAULT_ASSERTION_CONSUMER_URL, NAME_ID_FORMAT, CERT_ALIAS, REQ_SIG_VALIDATION, " +
+                        "SIGN_RESPONSE, SIGNING_ALGO, DIGEST_ALGO, ENCRYPT_ASSERTION, ASSERTION_ENCRYPTION_ALGO, " +
+                        "KEY_ENCRYPTION_ALGO, ATTR_PROFILE_ENABLED, ATTR_SERVICE_INDEX, SLO_PROFILE_ENABLED, " +
+                        "SLO_METHOD, SLO_RESPONSE_URL, SLO_REQUEST_URL, IDP_INIT_SSO_ENABLED, IDP_INIT_SLO_ENABLED, " +
+                        "QUERY_REQUEST_PROFILE_ENABLED, ECP_ENABLED, ARTIFACT_BINDING_ENABLED, " +
+                        "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION, IDP_ENTITY_ID_ALIAS, ISSUER_QUALIFIER, " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID " +
+                        "FROM IDN_SAML2_SERVICE_PROVIDER " +
                         "WHERE ISSUER = :ISSUER; " +
-                        "AND TENANT_UUID = :TENANT_UUID;";
+                        "AND TENANT_ID = :TENANT_ID;";
 
         public static final String GET_SAML2_SSO_CONFIGS =
-                "SELECT ID, ISSUER, DEFAULT_ASSERTION_CONSUMER_URL, ISSUER_CERT_ALIAS, NAME_ID_FORMAT, " +
-                        "SIGNING_ALGORITHM, DIGEST_ALGORITHM, ASSERTION_ENCRYPTION_ALGORITHM, " +
-                        "KEY_ENCRYPTION_ALGORITHM, ENABLE_SINGLE_LOGOUT, ENABLE_SIGN_RESPONSE, " +
-                        "ENABLE_ASSERTION_QUERY_REQUEST_PROFILE, ENABLE_SAML2_ARTIFACT_BINDING, " +
-                        "ENABLE_SIGN_ASSERTIONS, ENABLE_ECP, ENABLE_ATTRIBUTES_BY_DEFAULT, ENABLE_IDP_INIT_SSO, " +
-                        "ENABLE_IDP_INIT_SLO, ENABLE_ENCRYPTED_ASSERTION, VALIDATE_SIGNATURE_IN_REQUESTS, " +
-                        "VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE " +
-                        "FROM IDN_SAML2_SSO " +
-                        "WHERE TENANT_UUID = :TENANT_UUID;";
+                "SELECT ID, ISSUER, DEFAULT_ASSERTION_CONSUMER_URL, NAME_ID_FORMAT, CERT_ALIAS, REQ_SIG_VALIDATION, " +
+                        "SIGN_RESPONSE, SIGNING_ALGO, DIGEST_ALGO, ENCRYPT_ASSERTION, ASSERTION_ENCRYPTION_ALGO, " +
+                        "KEY_ENCRYPTION_ALGO, ATTR_PROFILE_ENABLED, ATTR_SERVICE_INDEX, SLO_PROFILE_ENABLED, " +
+                        "SLO_METHOD, SLO_RESPONSE_URL, SLO_REQUEST_URL, IDP_INIT_SSO_ENABLED, IDP_INIT_SLO_ENABLED, " +
+                        "QUERY_REQUEST_PROFILE_ENABLED, ECP_ENABLED, ARTIFACT_BINDING_ENABLED, " +
+                        "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION, IDP_ENTITY_ID_ALIAS, ISSUER_QUALIFIER, " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID " +
+                        "FROM IDN_SAML2_SERVICE_PROVIDER " +
+                        "WHERE TENANT_ID = :TENANT_ID;";
 
-        public static final String GET_SAML2_SSO_CONFIG_ID_BY_ISSUER =
+        public static final String GET_SAML_SP_ID_BY_ISSUER =
                 "SELECT ID " +
-                        "FROM IDN_SAML2_SSO " +
+                        "FROM IDN_SAML2_SERVICE_PROVIDER " +
                         "WHERE ISSUER = :ISSUER; " +
-                        "AND TENANT_UUID = :TENANT_UUID;";
+                        "AND TENANT_ID = :TENANT_ID;";
 
         public static final String ADD_SAML_SSO_ATTR =
-                "INSERT INTO IDN_SAML2_SSO_ATTRIBUTE " +
-                        "(ID, SAML2_SSO_ID, ATTR_NAME, ATTR_VALUE) " +
-                        "VALUES (:ID;, :SAML2_SSO_ID;, :ATTR_NAME;, :ATTR_VALUE;)";
+                "INSERT INTO IDN_SAML2_SP_PROPERTIES " +
+                        "(PROPERTY_NAME, PROPERTY_VALUE, SP_ID) " +
+                        "VALUES (:PROPERTY_NAME;, :PROPERTY_VALUE;, :SP_ID;)";
 
         public static final String UPDATE_SAML_SSO_ATTR_BY_ID =
-                "UPDATE IDN_SAML2_SSO_ATTRIBUTE " +
-                        "SET ATTR_NAME = :ATTR_NAME;, ATTR_VALUE = :ATTR_VALUE; " +
-                        "WHERE ID = :ID; AND SAML2_SSO_ID = :SAML2_SSO_ID;";
+                "UPDATE IDN_SAML2_SP_PROPERTIES " +
+                        "SET PROPERTY_NAME = :PROPERTY_NAME;, PROPERTY_VALUE; = :PROPERTY_VALUE;, " +
+                        "WHERE ID = :ID; AND SP_ID = :SP_ID;";
 
         public static final String DELETE_SAML_SSO_ATTR =
-                "DELETE FROM IDN_SAML2_SSO_ATTRIBUTE " +
-                        "WHERE SAML2_SSO_ID IN (" + GET_SAML2_SSO_CONFIG_ID_BY_ISSUER + ")";
+                "DELETE FROM IDN_SAML2_SP_PROPERTIES " +
+                        "WHERE SP_ID IN (" + GET_SAML_SP_ID_BY_ISSUER + ")";
 
         public static final String DELETE_SAML_SSO_ATTR_BY_ID =
-                "DELETE FROM IDN_SAML2_SSO_ATTRIBUTE " +
-                        "WHERE SAML2_SSO_ID = :SAML2_SSO_ID;";
+                "DELETE FROM IDN_SAML2_SP_PROPERTIES " +
+                        "WHERE SP_ID = :SP_ID;";
 
         public static final String GET_SAML_SSO_ATTR_BY_ID =
-                "SELECT ID, ATTR_NAME, ATTR_VALUE " +
-                        "FROM IDN_SAML2_SSO_ATTRIBUTE " +
-                        "WHERE SAML2_SSO_ID = :SAML2_SSO_ID;";
+                "SELECT ID, PROPERTY_NAME, PROPERTY_VALUE " +
+                        "FROM IDN_SAML2_SP_PROPERTIES " +
+                        "WHERE SP_ID = :SP_ID;";
 
     }
 
