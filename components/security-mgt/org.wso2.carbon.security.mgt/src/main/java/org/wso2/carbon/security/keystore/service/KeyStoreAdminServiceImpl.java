@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.security.keystore.service;
 
+import org.apache.axiom.om.util.Base64;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 
@@ -38,9 +41,14 @@ public class KeyStoreAdminServiceImpl extends AbstractAdmin implements KeyStoreA
     @Override
     public void addKeyStore(String fileData, String filename, String password, String provider,
                             String type, String pvtkeyPass) throws SecurityConfigException {
-        KeyStoreAdmin admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext().getTenantId(),
-                getGovernanceSystemRegistry());
-        admin.addKeyStore(fileData, filename, password, provider, type, pvtkeyPass);
+
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(
+                CarbonContext.getThreadLocalCarbonContext().getTenantId());
+        try {
+            keyStoreManager.addKeyStore(Base64.decode(fileData), filename, password, provider, type, pvtkeyPass);
+        } catch (CarbonException e) {
+            throw new SecurityConfigException(e.getMessage());
+        }
     }
 
     @Override

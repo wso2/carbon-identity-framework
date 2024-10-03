@@ -182,77 +182,38 @@ public class KeyStoreAdmin {
         }
     }
 
+    @Deprecated
     public void addKeyStoreWithFilePath(String filePath, String filename, String password,
                                         String provider, String type, String pvtkeyPass) throws SecurityConfigException {
+
         try {
-            addKeyStore(readBytesFromFile(filePath), filename, password, provider, type, pvtkeyPass);
-        } catch (IOException e) {
+            keyStoreManager.addKeyStore(readBytesFromFile(filePath), filename, password, provider, type, pvtkeyPass);
+        } catch (CarbonException | IOException e) {
             throw new SecurityConfigException("Error while loading keystore from file " + filePath, e);
         }
 
     }
 
+    @Deprecated
     public void addKeyStore(String fileData, String filename, String password, String provider,
                             String type, String pvtkeyPass) throws SecurityConfigException {
+
         byte[] content = Base64.decode(fileData);
-        addKeyStore(content, filename, password, provider, type, pvtkeyPass);
+        try {
+            keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
+        } catch (CarbonException e) {
+            throw new SecurityConfigException(e.getMessage());
+        }
     }
 
+    @Deprecated
     public void addKeyStore(byte[] content, String filename, String password, String provider,
                             String type, String pvtkeyPass) throws SecurityConfigException {
-        if (filename == null) {
-            throw new SecurityConfigException("Key Store name can't be null");
-        }
+
         try {
-            if (KeyStoreUtil.isPrimaryStore(filename)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-            if (KeyStoreUtil.isTrustStore(filename)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-            String path = SecurityConstants.KEY_STORES + "/" + filename;
-            if (registry.resourceExists(path)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-
-            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(type);
-            keyStore.load(new ByteArrayInputStream(content), password.toCharArray());
-
-            // check for more private keys
-            Enumeration enumeration = keyStore.aliases();
-            String pvtKeyAlias = null;
-            while (enumeration.hasMoreElements()) {
-                String alias = (String) enumeration.nextElement();
-                if (keyStore.isKeyEntry(alias)) {
-                    pvtKeyAlias = alias;
-                }
-            }
-
-            // just to test weather pvt key password is correct.
-            keyStore.getKey(pvtKeyAlias, pvtkeyPass.toCharArray());
-
-            CryptoUtil cryptoUtil = CryptoUtil.getDefaultCryptoUtil();
-
-            Resource resource = registry.newResource();
-            resource.addProperty(SecurityConstants.PROP_PASSWORD, cryptoUtil
-                    .encryptAndBase64Encode(password.getBytes()));
-            resource.addProperty(SecurityConstants.PROP_PROVIDER, provider);
-            resource.addProperty(SecurityConstants.PROP_TYPE, type);
-
-            if (pvtKeyAlias != null) {
-                resource.addProperty(SecurityConstants.PROP_PRIVATE_KEY_ALIAS, pvtKeyAlias);
-                resource.addProperty(SecurityConstants.PROP_PRIVATE_KEY_PASS, cryptoUtil
-                        .encryptAndBase64Encode(pvtkeyPass.getBytes()));
-            }
-
-            resource.setContent(content);
-            registry.put(path, resource);
-        } catch (SecurityConfigException e) {
-            throw e;
-        } catch (Exception e) {
-            String msg = "Error when adding a keyStore";
-            log.error(msg, e);
-            throw new SecurityConfigException(msg, e);
+            keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
+        } catch (CarbonException e) {
+            throw new SecurityConfigException(e.getMessage());
         }
     }
 
