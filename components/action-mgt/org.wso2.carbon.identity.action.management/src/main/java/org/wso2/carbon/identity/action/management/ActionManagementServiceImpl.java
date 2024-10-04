@@ -398,25 +398,28 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param authentication Endpoint authentication model.
      * @throws ActionMgtClientException if endpoint authentication model is invalid.
      */
-    private void doEndpointAuthenticationValidation(Authentication authentication)
-            throws ActionMgtClientException {
+    private void doEndpointAuthenticationValidation(Authentication authentication) throws ActionMgtClientException {
 
-        String authenticationType = authentication.getType().getName();
-        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ENDPOINT_AUTHENTICATION_TYPE_FIELD, authenticationType);
-        if (authenticationType.equals(Authentication.Type.BASIC.getName())) {
-            ACTION_VALIDATOR.isBlank(ActionMgtConstants.USERNAME_FIELD,
-                    authentication.getProperty(Authentication.Property.USERNAME).getValue());
-            ACTION_VALIDATOR.isBlank(ActionMgtConstants.PASSWORD_FIELD,
-                    authentication.getProperty(Authentication.Property.PASSWORD).getValue());
-        } else if (authenticationType.equals(Authentication.Type.BEARER.getName())) {
-            ACTION_VALIDATOR.isBlank(ActionMgtConstants.ACCESS_TOKEN_FIELD,
-                    authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue());
-        } else if (authenticationType.equals(Authentication.Type.API_KEY.getName())) {
-            String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
-            ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
-            ACTION_VALIDATOR.isValidHeader(apiKeyHeader);
-            ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
-                    authentication.getProperty(Authentication.Property.VALUE).getValue());
+        Authentication.Type authenticationType = authentication.getType();
+        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ENDPOINT_AUTHENTICATION_TYPE_FIELD, authenticationType.getName());
+        switch (authenticationType) {
+            case BASIC:
+                ACTION_VALIDATOR.isBlank(ActionMgtConstants.USERNAME_FIELD,
+                        authentication.getProperty(Authentication.Property.USERNAME).getValue());
+                ACTION_VALIDATOR.isBlank(ActionMgtConstants.PASSWORD_FIELD,
+                        authentication.getProperty(Authentication.Property.PASSWORD).getValue());
+                break;
+            case BEARER:
+                ACTION_VALIDATOR.isBlank(ActionMgtConstants.ACCESS_TOKEN_FIELD,
+                        authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue());
+                break;
+            case API_KEY:
+                String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
+                ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
+                ACTION_VALIDATOR.isValidHeader(apiKeyHeader);
+                ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
+                        authentication.getProperty(Authentication.Property.VALUE).getValue());
+                break;
         }
     }
 }
