@@ -1236,11 +1236,7 @@ public class ApplicationMgtUtil {
     public static String getApplicationUpdatedVersion(ServiceProvider serviceProvider) {
 
         String currentVersion = serviceProvider.getApplicationVersion();
-        String inboundConfigType = StringUtils.EMPTY;
-        if (serviceProvider.getInboundAuthenticationConfig() != null) {
-            inboundConfigType = serviceProvider.getInboundAuthenticationConfig()
-                    .getInboundAuthenticationRequestConfigs()[0].getInboundConfigType();
-        }
+        String inboundConfigType = getInboundConfigType(serviceProvider);
 
         // Since there will be new versions onboarded in the future, initialized this as a switch not if.
         if (currentVersion.equals(ApplicationConstants.ApplicationVersion.APP_VERSION_V0)) {
@@ -1249,5 +1245,19 @@ public class ApplicationMgtUtil {
             }
         }
         return currentVersion;
+    }
+
+    private static String getInboundConfigType(ServiceProvider serviceProvider) {
+
+        String inboundConfigType = StringUtils.EMPTY;
+        if (serviceProvider.getInboundAuthenticationConfig() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs().length != 0) {
+            inboundConfigType = serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
+        }
+        return inboundConfigType;
     }
 }
