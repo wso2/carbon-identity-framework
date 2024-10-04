@@ -22,6 +22,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -46,6 +49,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class FederatedAuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = -2361107623257323257L;
+    private static final Logger LOG = LoggerFactory.getLogger(LocalAuthenticatorConfig.class);
 
     @XmlElement(name = "Name")
     protected String name;
@@ -62,6 +66,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
 
     @XmlElement(name = "Tags")
     protected String[] tags;
+
+    @XmlElement(name = "DefinedBy")
+    protected DefinedByType definedByType;
 
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {
 
@@ -101,7 +108,15 @@ public class FederatedAuthenticatorConfig implements Serializable {
                     Property[] propertiesArr = propertiesArrList.toArray(new Property[propertiesArrList.size()]);
                     federatedAuthenticatorConfig.setProperties(propertiesArr);
                 }
+            } else if ("DefinedBy".equals(elementName)) {
+                federatedAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(element.getText()));
             }
+        }
+
+        if (federatedAuthenticatorConfig.getDefinedByType() == null) {
+            federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            LOG.debug("The defined by type is not set for the {}. Hence setting default SYSTEM value.",
+                    federatedAuthenticatorConfig.getName());
         }
 
         return federatedAuthenticatorConfig;
@@ -229,5 +244,25 @@ public class FederatedAuthenticatorConfig implements Serializable {
     public void setTags(String[] tagList) {
 
         tags = tagList;
+    }
+
+    /**
+     * Get the defined by type of the federated authenticator config.
+     *
+     * @return DefinedByType
+     */
+    public DefinedByType getDefinedByType() {
+
+        return definedByType;
+    }
+
+    /**
+     * Set the defined by type of the federated authenticator config.
+     *
+     * @param type The defined by type of the federated authenticator config.
+     */
+    public void setDefinedByType(DefinedByType type) {
+
+        definedByType = type;
     }
 }

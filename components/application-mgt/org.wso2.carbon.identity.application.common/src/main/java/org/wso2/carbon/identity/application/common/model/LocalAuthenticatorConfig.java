@@ -22,6 +22,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.io.Serializable;
@@ -46,6 +49,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class LocalAuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = 3363298518257599291L;
+    private static final Logger LOG = LoggerFactory.getLogger(LocalAuthenticatorConfig.class);
 
     @XmlElement(name = "Name")
     protected String name;
@@ -62,6 +66,9 @@ public class LocalAuthenticatorConfig implements Serializable {
 
     @XmlElement(name = "Tags")
     protected String[] tags;
+
+    @XmlElement(name = "DefinedBy")
+    protected DefinedByType definedByType;
 
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
@@ -111,8 +118,17 @@ public class LocalAuthenticatorConfig implements Serializable {
                     Property[] propertiesArr = propertiesArrList.toArray(new Property[0]);
                     localAuthenticatorConfig.setProperties(propertiesArr);
                 }
+            } else if ("DefinedBy".equals(member.getLocalName())) {
+                localAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(member.getText()));
             }
         }
+
+        if (localAuthenticatorConfig.getDefinedByType() == null) {
+            localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            LOG.debug("The defined by type is not set for the {}. Hence setting default SYSTEM value.",
+                    localAuthenticatorConfig.getName());
+        }
+
         return localAuthenticatorConfig;
     }
 
@@ -223,5 +239,25 @@ public class LocalAuthenticatorConfig implements Serializable {
     public void setTags(String[] tagList) {
 
         tags = tagList;
+    }
+
+    /**
+     * Get the defined by type of the Local authenticator config.
+     *
+     * @return DefinedByType
+     */
+    public DefinedByType getDefinedByType() {
+
+        return definedByType;
+    }
+
+    /**
+     * Set the defined by type of the Local authenticator config.
+     *
+     * @param type The defined by type of the local authenticator config.
+     */
+    public void setDefinedByType(DefinedByType type) {
+
+        definedByType = type;
     }
 }

@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.SubProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -171,6 +172,7 @@ public class IdentityProviderManager implements IdpManager {
         if (saml2SSOResidentAuthenticatorConfig == null) {
             saml2SSOResidentAuthenticatorConfig = new FederatedAuthenticatorConfig();
             saml2SSOResidentAuthenticatorConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+            saml2SSOResidentAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
         if (saml2SSOResidentAuthenticatorConfig.getProperties() == null) {
             saml2SSOResidentAuthenticatorConfig.setProperties(new Property[0]);
@@ -255,6 +257,7 @@ public class IdentityProviderManager implements IdpManager {
         FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
         oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
         oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+        oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 
         Property passiveStsProperty = new Property();
         passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
@@ -263,6 +266,7 @@ public class IdentityProviderManager implements IdpManager {
         FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
         passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
         passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+        passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
                 passiveStsAuthenticationConfig, oidcAuthenticationConfig};
