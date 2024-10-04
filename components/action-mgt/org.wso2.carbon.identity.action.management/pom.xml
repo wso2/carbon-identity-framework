@@ -77,11 +77,18 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
                             org.wso2.carbon.identity.action.management.internal,
-                            org.wso2.carbon.identity.action.management.util.ActionValidator
+                            org.wso2.carbon.identity.action.management.cache,
+                            org.wso2.carbon.identity.action.management.dao,
+                            org.wso2.carbon.identity.action.management.dao.impl,
+                            org.wso2.carbon.identity.action.management.util
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.action.management.internal,
-                            org.wso2.carbon.identity.action.management.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.action.management.*; version="${carbon.identity.package.export.version}",
+                            !org.wso2.carbon.identity.action.management.cache,
+                            !org.wso2.carbon.identity.action.management.dao,
+                            !org.wso2.carbon.identity.action.management.dao.impl,
+                            !org.wso2.carbon.identity.action.management.util
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
