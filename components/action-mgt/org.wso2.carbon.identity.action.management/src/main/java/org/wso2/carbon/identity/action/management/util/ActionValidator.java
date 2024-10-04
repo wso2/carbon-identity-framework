@@ -34,9 +34,6 @@ public class ActionValidator {
     // According to RFC 9910 a header name must contain only alphanumeric characters, period (.) and hyphen (-),
     // and should start with an alphanumeric character.
     public static final String HEADER_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-.]+$";
-    private static final String ACTION_NAME_FIELD = "Action name";
-    private static final String ENDPOINT_AUTHENTICATION_URI_FIELD = "Endpoint authentication URI";
-    private static final String API_KEY_HEADER_FIELD = "API key header name";
 
     /**
      * Validate whether required fields exist.
@@ -64,7 +61,7 @@ public class ActionValidator {
         boolean isValidName = regexPattern.matcher(name).matches();
         if (!isValidName) {
             throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_INVALID_ACTION_REQUEST_FIELD, ACTION_NAME_FIELD);
+                    ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ACTION_NAME_FIELD);
         }
     }
 
@@ -80,7 +77,7 @@ public class ActionValidator {
         boolean isValidUri = regexPattern.matcher(uri).matches();
         if (!isValidUri) {
             throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_INVALID_ACTION_REQUEST_FIELD, ENDPOINT_AUTHENTICATION_URI_FIELD);
+                    ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ENDPOINT_URI_FIELD);
         }
     }
 
@@ -96,7 +93,7 @@ public class ActionValidator {
         boolean isValidHeader = regexPattern.matcher(header).matches();
         if (!isValidHeader) {
             throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_INVALID_ACTION_REQUEST_FIELD, API_KEY_HEADER_FIELD);
+                    ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.API_KEY_HEADER_FIELD);
         }
     }
 }

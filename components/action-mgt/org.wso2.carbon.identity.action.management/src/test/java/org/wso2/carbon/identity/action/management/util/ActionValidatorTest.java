@@ -136,7 +136,7 @@ public class ActionValidatorTest {
             actionValidator.isValidEndpointUri(endpointUri);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
-            Assert.assertEquals(e.getDescription(), "Endpoint authentication URI is invalid.");
+            Assert.assertEquals(e.getDescription(), "Endpoint URI is invalid.");
         }
     }
 
