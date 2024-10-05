@@ -390,6 +390,7 @@
   "identity_mgt.password_reset_email.otp.use_lowercase_in_otp": true,
   "identity_mgt.password_reset_email.otp.use_numeric_in_otp": true,
   "identity_mgt.password_reset_email.otp.otp_length": "6",
+  "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": "false",
   "identity_mgt.password_reset_sms.sms_otp_regex": "[a-zA-Z0-9]{6}",
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -434,6 +435,7 @@
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
 
+  "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
@@ -452,6 +454,7 @@
   "identity_mgt.user_onboarding.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
   "identity_mgt.user_onboarding.disable_random_value_for_credentials": false,
+  "identity_mgt.user_onboarding.disable_notify_unlock_state": false,
 
   "identity_mgt.tenant_registration.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 
@@ -1425,6 +1428,10 @@
   ],
   "console.resident_outbound_provisioning.scopes.update": ["internal_application_mgt_update"],
   "console.console_settings.enabled": true,
+  "console.console_settings.disabled_features": [
+    "consoleSettings.invitedExternalAdmins",
+    "consoleSettings.privilegedUsers"
+  ],
   "console.console_settings.scopes.feature": ["console:settings"],
   "console.console_settings.scopes.create": ["internal_role_mgt_create"],
   "console.console_settings.scopes.read": [

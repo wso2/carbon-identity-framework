@@ -89,6 +89,14 @@
         <XACML>{{data_storage_type.xacml}}</XACML>
     </DataStorageType>
 
+    <NotificationTemplates>
+        <LegacyTenants>
+            {% for tenant in notification_templates.legacy_tenants %}
+            <Tenant>{{tenant}}</Tenant>
+            {% endfor %}
+        </LegacyTenants>
+    </NotificationTemplates>
+
     <!-- Time configurations are in minutes -->
     <TimeConfig>
         <SessionIdleTimeout>{{session.timeout.idle_session_timeout}}</SessionIdleTimeout>
@@ -1620,6 +1628,7 @@
                     <UseLowercaseInOtp>{{identity_mgt.password_reset_email.otp.use_lowercase_in_otp}}</UseLowercaseInOtp>
                     <UseNumericInOtp>{{identity_mgt.password_reset_email.otp.use_numeric_in_otp}}</UseNumericInOtp>
                     <OTPLength>{{identity_mgt.password_reset_email.otp.otp_length}}</OTPLength>
+                    <SendOnlyOTPAsConfirmationCode>{{identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code}}</SendOnlyOTPAsConfirmationCode>
                 </OTP>
                 <smsOtp>
                     <Regex>{{identity_mgt.password_reset_sms.sms_otp_regex}}</Regex>
@@ -1640,6 +1649,7 @@
                 </Email>
             </Password>
             <Username>
+                <NonUniqueUsername>{{identity_mgt.username_recovery.non_unique_user.enabled}}</NonUniqueUsername>
                 <Enable>{{identity_mgt.username_recovery.email.enable_username_recovery}}</Enable>
             </Username>
             <InternallyManage>{{identity_mgt.recovery.notification.manage_internally}}</InternallyManage>
@@ -1738,6 +1748,7 @@
                 {% endif %}
             </Notification>
         </AskPassword>
+        <DisableNotifyUnlockState>{{identity_mgt.user_onboarding.disable_notify_unlock_state}}</DisableNotifyUnlockState>
     </EmailVerification>
 
     <TenantRegistrationVerification>

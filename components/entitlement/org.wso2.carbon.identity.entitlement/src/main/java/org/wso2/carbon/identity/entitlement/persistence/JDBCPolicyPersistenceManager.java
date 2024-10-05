@@ -149,7 +149,7 @@ public class JDBCPolicyPersistenceManager extends AbstractPolicyFinderModule imp
 
         // Find policy attributes
         List<AttributeDTO> attributeDTOs = null;
-        if (StringUtils.isNotBlank(policy.getPolicy())) {
+        if (StringUtils.isNotBlank(policy.getPolicy()) && EntitlementUtil.isPolicyMetadataStoringEnabled()) {
             PolicyAttributeBuilder policyAttributeBuilder = new PolicyAttributeBuilder(policy.getPolicy());
             attributeDTOs = policyAttributeBuilder.getAttributesFromPolicy();
         }

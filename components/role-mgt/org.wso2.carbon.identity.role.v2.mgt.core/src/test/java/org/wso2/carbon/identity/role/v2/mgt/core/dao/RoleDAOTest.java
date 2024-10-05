@@ -65,6 +65,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -756,6 +757,31 @@ public class RoleDAOTest {
         when(IdentityUtil.getMaximumUsersListPerRole()).thenReturn(1000);
         List<UserBasicInfo> users = roleDAO.getUserListOfRole(role.getId(), SAMPLE_TENANT_DOMAIN);
         assertEquals(getUserNamesList(users), userNamesList);
+    }
+
+    @Test
+    void testIsValidSubOrgPermission() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        // Get the private method using reflection
+        Method isValidSubOrgPermissionMethod = RoleDAOImpl.class.getDeclaredMethod("isValidSubOrgPermission",
+                String.class);
+        isValidSubOrgPermissionMethod.setAccessible(true);
+
+        // Test case: permission starts with INTERNAL_ORG_SCOPE_PREFIX
+        assertTrue((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "internal_org_application_mgt_view"));
+
+        // Test case: permission starts with CONSOLE_ORG_SCOPE_PREFIX
+        assertTrue((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "console:org:applications"));
+
+        // Test case: permission does not start with INTERNAL_SCOPE_PREFIX or CONSOLE_SCOPE_PREFIX
+        assertTrue((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "read"));
+
+        // Test case: permission starts with INTERNAL_SCOPE_PREFIX
+        assertFalse((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "internal_application_mgt_view"));
+
+        // Test case: permission starts with CONSOLE_SCOPE_PREFIX
+        assertFalse((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "console:applications"));
     }
 
     private List<String> getUserNamesList(List<UserBasicInfo> users) {

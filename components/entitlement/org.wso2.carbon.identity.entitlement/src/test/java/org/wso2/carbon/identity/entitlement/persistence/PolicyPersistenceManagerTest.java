@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.entitlement.persistence;
 
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
@@ -75,12 +75,13 @@ public abstract class PolicyPersistenceManagerTest {
     PolicyStoreDTO pdpPolicyWithEmptyId;
     PolicyStoreDTO pdpPolicyWithEmptyVersion;
 
-    @BeforeClass
-    public void setUpClass() {
+    @BeforeMethod
+    public void setUp() {
 
         Properties engineProperties = new Properties();
         engineProperties.put(PDPConstants.MAX_NO_OF_POLICY_VERSIONS, "4");
         EntitlementConfigHolder.getInstance().setEngineProperties(engineProperties);
+        policyPersistenceManager = createPolicyPersistenceManager();
 
         samplePAPPolicy1 = new PolicyDTO(SAMPLE_POLICY_ID_1);
         samplePAPPolicy1.setPolicy(SAMPLE_POLICY_STRING_1);
@@ -151,6 +152,22 @@ public abstract class PolicyPersistenceManagerTest {
         assertEquals(policyFromStorage.getPolicyEditorData(), samplePAPPolicy1.getPolicyEditorData());
         assertEquals(policyFromStorage.getPolicyOrder(), samplePAPPolicy1.getPolicyOrder());
         assertEquals(policyFromStorage.getAttributeDTOs().length, 4);
+    }
+
+    @Test(priority = 3, dependsOnMethods = {"testAddPAPPolicy"})
+    public void testAddPAPPolicyWhenPolicyMetaDataStoringDisabled() throws Exception {
+
+        Properties properties = EntitlementConfigHolder.getInstance().getEngineProperties();
+        properties.setProperty(PDPConstants.STORE_POLICY_META_DATA, "false");
+        EntitlementConfigHolder.getInstance().setEngineProperties(properties);
+
+        policyPersistenceManager.addOrUpdatePolicy(samplePAPPolicy1, true);
+        // Verify weather the policy meta-data was not stored for PAP policy.
+        PolicyDTO papPolicyFromStorage = policyPersistenceManager.getPAPPolicy(samplePDPPolicy1.getPolicyId());
+        assertEquals(papPolicyFromStorage.getAttributeDTOs().length, 0);
+
+        properties.setProperty(PDPConstants.STORE_POLICY_META_DATA, "true");
+        EntitlementConfigHolder.getInstance().setEngineProperties(properties);
     }
 
     @Test(priority = 3)
@@ -479,4 +496,11 @@ public abstract class PolicyPersistenceManagerTest {
         policyStoreDTO.setSetOrder(setOrder);
         return policyStoreDTO;
     }
+
+    /**
+     * Abstract method to create the policy persistence manager.
+     *
+     * @return The policy persistence manager.
+     */
+    public abstract PolicyPersistenceManager createPolicyPersistenceManager();
 }
