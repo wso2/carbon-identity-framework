@@ -27,7 +27,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
-import org.wso2.carbon.identity.core.model.IdentityKeyStoreMapping;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.ServerConstants;
@@ -86,9 +85,6 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     private IdentityConfigParser mockIdentityConfigParser;
 
     private IdentityKeyStoreResolver identityKeyStoreResolver;
-
-    // Test key store mappings.
-    Map<InboundProtocol, IdentityKeyStoreMapping> keyStoreMappings = new ConcurrentHashMap<>();
 
     private MockedStatic<IdentityConfigParser> identityConfigParser;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
@@ -206,12 +202,12 @@ public class IdentityKeyStoreResolverTest extends TestCase {
             String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
                     fileName).toString();
             System.setProperty(ServerConstants.CARBON_HOME, ".");
-            mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
 
             // Mock IdentityConfigParser.
+            mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
             identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
 
-            // Test for singleton instance.
+            // Test instance creation --> Config read.
             IdentityKeyStoreResolver identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
         } catch (Exception e) {
             fail();
