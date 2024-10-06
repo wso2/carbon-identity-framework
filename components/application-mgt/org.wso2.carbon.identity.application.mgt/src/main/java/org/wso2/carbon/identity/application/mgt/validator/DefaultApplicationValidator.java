@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -128,6 +130,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                                             String username) throws IdentityApplicationManagementException {
 
         List<String> validationErrors = new ArrayList<>();
+        validateApplicationVersion(validationErrors, serviceProvider);
         validateDiscoverabilityConfigs(validationErrors, serviceProvider);
         validateInboundAuthenticationConfig(serviceProvider.getInboundAuthenticationConfig(), tenantDomain,
                 serviceProvider.getApplicationID());
@@ -149,6 +152,27 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
 
         return validationErrors;
+    }
+
+    /**
+     * Validating whether,
+     * 1. Application version is a valid version.
+     * 2. Application version is not any lesser than the applicable latest versions.
+     *
+     * @param validationErrors List of validation errors.
+     * @param serviceProvider  Service provider.
+     */
+    private void validateApplicationVersion(List<String> validationErrors, ServiceProvider serviceProvider) {
+
+        String currentVersion = serviceProvider.getApplicationVersion();
+        String latestPossibleVersion = ApplicationMgtUtil.getApplicationUpdatedVersion(serviceProvider);
+
+        if (Stream.of(ApplicationConstants.ApplicationVersion.ApplicationVersions.values())
+                .noneMatch(v -> v.getValue().equals(serviceProvider.getApplicationVersion()))) {
+            validationErrors.add("Invalid application version: " + serviceProvider.getApplicationVersion());
+        } else if (!Objects.equals(currentVersion, latestPossibleVersion)) {
+            validationErrors.add("Invalid application version: " + serviceProvider.getApplicationVersion());
+        }
     }
 
     private void validateDiscoverabilityConfigs(List<String> validationErrors,
