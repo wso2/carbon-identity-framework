@@ -19,10 +19,12 @@
 package org.wso2.carbon.identity.core;
 
 import junit.framework.TestCase;
-import org.apache.axiom.om.OMElement;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.model.IdentityKeyStoreMapping;
@@ -33,8 +35,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Key;
@@ -43,8 +43,6 @@ import java.security.cert.Certificate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -86,9 +84,6 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
     @Mock
     private IdentityConfigParser mockIdentityConfigParser;
-
-    @Mock
-    private OMElement mockConfig;
 
     private IdentityKeyStoreResolver identityKeyStoreResolver;
 
@@ -186,6 +181,41 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         IdentityKeyStoreResolver identityKeyStoreResolver1 = IdentityKeyStoreResolver.getInstance();
         IdentityKeyStoreResolver identityKeyStoreResolver2 = IdentityKeyStoreResolver.getInstance();
         assertEquals(identityKeyStoreResolver1, identityKeyStoreResolver2);
+    }
+
+    @DataProvider(name = "MissingConfigDataProvider")
+    public String[] missingConfigDataProvider() {
+
+        return new String[] {
+                "identity_err1.xml",
+                "identity_err2.xml",
+                "identity.xml" // Finally loading correct identity.xml file to be used for other tests.
+        };
+    }
+
+    @Test(dataProvider = "MissingConfigDataProvider")
+    public void testMissingConfigs(String fileName) {
+
+        try {
+            // Set instance to null for creating a new instance
+            Field identityKeyStoreResolverInstance = IdentityKeyStoreResolver.class.getDeclaredField("instance");
+            identityKeyStoreResolverInstance.setAccessible(true);
+            identityKeyStoreResolverInstance.set(null, null);
+
+            // Use custom identity.xml file from test resources.
+            String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
+                    fileName).toString();
+            System.setProperty(ServerConstants.CARBON_HOME, ".");
+            mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
+
+            // Mock IdentityConfigParser.
+            identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
+
+            // Test for singleton instance.
+            IdentityKeyStoreResolver identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @DataProvider(name = "KeyStoreDataProvider")
