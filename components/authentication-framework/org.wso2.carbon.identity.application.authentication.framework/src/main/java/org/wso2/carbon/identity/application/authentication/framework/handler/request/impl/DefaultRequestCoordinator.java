@@ -78,7 +78,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -128,9 +127,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
     private static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
-    private static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
-    private static final String QUERY_ATTRIBUTE_SEPARATOR = "&";
-    private static final String REQUEST_PARAM_KEY_AUTHENTICATOR = "authenticator";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -397,15 +393,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
-                    if (!ORGANIZATION_AUTHENTICATOR.equals(request.getParameter(REQUEST_PARAM_KEY_AUTHENTICATOR))) {
-                        String redirectURL = responseWrapper.getRedirectURL();
-                        if (!StringUtils.contains(redirectURL, "spId=")) {
-                            redirectURL += QUERY_ATTRIBUTE_SEPARATOR + FrameworkConstants.REQUEST_PARAM_SP_UUID + "=" +
-                                    URLEncoder.encode(context.getServiceProviderResourceId(),
-                                            StandardCharsets.UTF_8.name());
-                            responseWrapper.sendRedirect(redirectURL);
-                        }
-                    }
                 } else {
                     FrameworkUtils.getLogoutRequestHandler().handle(request, responseWrapper, context);
                 }
