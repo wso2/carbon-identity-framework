@@ -105,14 +105,13 @@ public class APIClient {
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
-                //todo: add to diagnostic logs
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                            ActionExecutionConstants.LogConstants.ACTION_EXECUTION,
-                            ActionExecutionConstants.LogConstants.ActionIDs.SEND_ACTION_REQUEST);
+                            ActionExecutionLogConstants.ACTION_EXECUTION,
+                            ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST);
                     diagLogBuilder
                             .resultMessage("External endpoint " + request.getURI() + " for action execution seems to " +
-                                    "be unavailable. Retrying api call attempt " + (attempts + 1) + " of "
+                                    "be unavailable. Retrying API call attempt " + (attempts + 1) + " of "
                                     + retryCount + ".")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
@@ -122,14 +121,13 @@ public class APIClient {
                 LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
-                //todo: add to diagnostic logs
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                            ActionExecutionConstants.LogConstants.ACTION_EXECUTION,
-                            ActionExecutionConstants.LogConstants.ActionIDs.SEND_ACTION_REQUEST);
+                            ActionExecutionLogConstants.ACTION_EXECUTION,
+                            ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST);
                     diagLogBuilder
                             .resultMessage("Request for external endpont " + request.getURI() + " for action is " +
-                                    "timed out. Retrying api call attempt " + (attempts + 1) + " of "
+                                    "timed out. Retrying API call attempt " + (attempts + 1) + " of "
                                     + retryCount + ".")
                             .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                             .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
@@ -139,11 +137,10 @@ public class APIClient {
                 LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (Exception e) {
-                //todo: add to diagnostic logs
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
                     DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                            ActionExecutionConstants.LogConstants.ACTION_EXECUTION,
-                            ActionExecutionConstants.LogConstants.ActionIDs.SEND_ACTION_REQUEST);
+                            ActionExecutionLogConstants.ACTION_EXECUTION,
+                            ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST);
                     diagLogBuilder
                             .resultMessage("Request for external endpoint " + request.getURI() + " for action failed" +
                                     " due to an error.")
@@ -187,11 +184,11 @@ public class APIClient {
             case HttpStatus.SC_SERVICE_UNAVAILABLE:
             case HttpStatus.SC_GATEWAY_TIMEOUT:
                 actionInvocationResponseBuilder.errorLog(
-                        "Failed to execute the action request for status code " + statusCode + ".");
+                        "Failed to execute the action request. Received status code: " + statusCode + ".");
                 actionInvocationResponseBuilder.retry(true);
                 break;
             default:
-                actionInvocationResponseBuilder.errorLog("Unexpected response received for status code " + statusCode
+                actionInvocationResponseBuilder.errorLog("Unexpected response received with status code " + statusCode
                         + ".");
                 break;
         }
@@ -204,7 +201,7 @@ public class APIClient {
         try {
             builder.response(handleSuccessResponse(entity));
         } catch (ActionInvocationException e) {
-            builder.errorLog("Unexpected error occured on action execution response for status code " + statusCode
+            builder.errorLog("Unexpected response for status code " + statusCode
                     + ". " + e.getMessage());
         }
     }
@@ -216,14 +213,12 @@ public class APIClient {
             if (errorResponse != null) {
                 builder.response(errorResponse);
             } else {
-                builder.errorLog("Failed to execute the action request for status code " + statusCode
-                        + " due to no error response is available.");
+                builder.errorLog("Failed to execute the action request. Received status code: " + statusCode + ".");
             }
         } catch (ActionInvocationException e) {
-            //todo: add to diagnostic logs
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Failed to execute the action request for status code " + statusCode + ". "
+            builder.errorLog("Unexpected error response received for the status code " + statusCode + ". "
                     + e.getMessage());
         }
     }
@@ -235,15 +230,13 @@ public class APIClient {
             if (errorResponse != null) {
                 builder.response(errorResponse);
             } else {
-                builder.errorLog("Failed to execute the action request for status code " + statusCode
-                        + " due to no error response is available.");
+                builder.errorLog("Failed to execute the action request. Received status code: " + statusCode + ".");
                 builder.retry(true);
             }
         } catch (ActionInvocationException e) {
-            //todo: add to diagnostic logs
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Failed to execute the action request for status code " + statusCode + ". "
+            builder.errorLog("Unexpected error response received for the status code " + statusCode + ". "
                     + e.getMessage());
             builder.retry(true);
         }
