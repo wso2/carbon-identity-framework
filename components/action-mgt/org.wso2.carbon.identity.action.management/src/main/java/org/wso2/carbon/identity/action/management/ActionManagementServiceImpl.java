@@ -362,12 +362,12 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      * @param action Action create model.
      * @throws ActionMgtException if action model is invalid.
      */
-    private void doPreAddActionValidations(Action action) throws ActionMgtException {
+    private void doPreAddActionValidations(Action action) throws ActionMgtClientException {
 
-        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
-        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
-        ACTION_VALIDATOR.isValidActionName(action.getName());
-        ACTION_VALIDATOR.isValidEndpointUri(action.getEndpoint().getUri());
+        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
+        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
+        ACTION_VALIDATOR.validateActionName(action.getName());
+        ACTION_VALIDATOR.validateEndpointUri(action.getEndpoint().getUri());
         doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
     }
 
@@ -382,10 +382,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private void doPreUpdateActionValidations(Action action) throws ActionMgtClientException {
 
         if (action.getName() != null) {
-            ACTION_VALIDATOR.isValidActionName(action.getName());
+            ACTION_VALIDATOR.validateActionName(action.getName());
         }
         if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
-            ACTION_VALIDATOR.isValidEndpointUri(action.getEndpoint().getUri());
+            ACTION_VALIDATOR.validateEndpointUri(action.getEndpoint().getUri());
         }
         if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
             doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
@@ -401,23 +401,24 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private void doEndpointAuthenticationValidation(Authentication authentication) throws ActionMgtClientException {
 
         Authentication.Type authenticationType = authentication.getType();
-        ACTION_VALIDATOR.isBlank(ActionMgtConstants.ENDPOINT_AUTHENTICATION_TYPE_FIELD, authenticationType.getName());
+        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ENDPOINT_AUTHENTICATION_TYPE_FIELD,
+                authenticationType.getName());
         switch (authenticationType) {
             case BASIC:
-                ACTION_VALIDATOR.isBlank(ActionMgtConstants.USERNAME_FIELD,
+                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.USERNAME_FIELD,
                         authentication.getProperty(Authentication.Property.USERNAME).getValue());
-                ACTION_VALIDATOR.isBlank(ActionMgtConstants.PASSWORD_FIELD,
+                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.PASSWORD_FIELD,
                         authentication.getProperty(Authentication.Property.PASSWORD).getValue());
                 break;
             case BEARER:
-                ACTION_VALIDATOR.isBlank(ActionMgtConstants.ACCESS_TOKEN_FIELD,
+                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ACCESS_TOKEN_FIELD,
                         authentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue());
                 break;
             case API_KEY:
                 String apiKeyHeader = authentication.getProperty(Authentication.Property.HEADER).getValue();
-                ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
-                ACTION_VALIDATOR.isValidHeader(apiKeyHeader);
-                ACTION_VALIDATOR.isBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
+                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.API_KEY_HEADER_FIELD, apiKeyHeader);
+                ACTION_VALIDATOR.validateHeader(apiKeyHeader);
+                ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
                         authentication.getProperty(Authentication.Property.VALUE).getValue());
                 break;
         }

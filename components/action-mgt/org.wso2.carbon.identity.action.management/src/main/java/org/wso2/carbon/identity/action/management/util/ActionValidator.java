@@ -29,11 +29,15 @@ import java.util.regex.Pattern;
  */
 public class ActionValidator {
 
-    public static final String ACTION_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
-    public static final String ENDPOINT_URI_REGEX = "^https://[^\\s/$.?#]\\S*";
+    private static final String ACTION_NAME_REGEX = "^[a-zA-Z0-9-_][a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]$";
+    private static final String ENDPOINT_URI_REGEX = "^https?://[^\\s/$.?#]\\S*";
     // According to RFC 9910 a header name must contain only alphanumeric characters, period (.) and hyphen (-),
     // and should start with an alphanumeric character.
-    public static final String HEADER_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-.]+$";
+    private static final String HEADER_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-.]+$";
+
+    private Pattern actionNameRegexPattern = Pattern.compile(ACTION_NAME_REGEX);
+    private Pattern endpointUriRegexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
+    private Pattern headerRegexPattern = Pattern.compile(HEADER_REGEX);
 
     /**
      * Validate whether required fields exist.
@@ -41,7 +45,7 @@ public class ActionValidator {
      * @param fieldValue Field value.
      * @throws ActionMgtClientException if the provided field is empty.
      */
-    public void isBlank(String fieldName, String fieldValue) throws ActionMgtClientException {
+    public void validateForBlank(String fieldName, String fieldValue) throws ActionMgtClientException {
 
         if (StringUtils.isBlank(fieldValue)) {
             throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
@@ -55,10 +59,9 @@ public class ActionValidator {
      * @param name Action name.
      * @throws ActionMgtClientException if the name is not valid.
      */
-    public void isValidActionName(String name) throws ActionMgtClientException {
+    public void validateActionName(String name) throws ActionMgtClientException {
 
-        Pattern regexPattern = Pattern.compile(ACTION_NAME_REGEX);
-        boolean isValidName = regexPattern.matcher(name).matches();
+        boolean isValidName = actionNameRegexPattern.matcher(name).matches();
         if (!isValidName) {
             throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
                     ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ACTION_NAME_FIELD);
@@ -71,10 +74,9 @@ public class ActionValidator {
      * @param uri Endpoint uri.
      * @throws ActionMgtClientException if the uri is not valid.
      */
-    public void isValidEndpointUri(String uri) throws ActionMgtClientException {
+    public void validateEndpointUri(String uri) throws ActionMgtClientException {
 
-        Pattern regexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
-        boolean isValidUri = regexPattern.matcher(uri).matches();
+        boolean isValidUri = endpointUriRegexPattern.matcher(uri).matches();
         if (!isValidUri) {
             throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
                     ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ENDPOINT_URI_FIELD);
@@ -87,10 +89,9 @@ public class ActionValidator {
      * @param header Header name.
      * @throws ActionMgtClientException if the header is invalid.
      */
-    public void isValidHeader(String header) throws ActionMgtClientException {
+    public void validateHeader(String header) throws ActionMgtClientException {
 
-        Pattern regexPattern = Pattern.compile(HEADER_REGEX);
-        boolean isValidHeader = regexPattern.matcher(header).matches();
+        boolean isValidHeader = headerRegexPattern.matcher(header).matches();
         if (!isValidHeader) {
             throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
                     ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.API_KEY_HEADER_FIELD);

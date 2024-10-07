@@ -58,7 +58,7 @@ public class ActionValidatorTest {
     public void testIsBlank(String fieldName, String fieldValue) {
 
         try {
-            actionValidator.isBlank(fieldName, fieldValue);
+            actionValidator.validateForBlank(fieldName, fieldValue);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), fieldName + " is empty.");
@@ -76,7 +76,7 @@ public class ActionValidatorTest {
     @Test(dataProvider = "isNotBlankDataProvider")
     public void testIsNotBlank(String fieldName, String fieldValue) throws ActionMgtClientException {
 
-        actionValidator.isBlank(fieldName, fieldValue);
+        actionValidator.validateForBlank(fieldName, fieldValue);
     }
 
     @DataProvider
@@ -94,7 +94,7 @@ public class ActionValidatorTest {
     public void testIsInvalidActionName(String actionName) {
 
         try {
-            actionValidator.isValidActionName(actionName);
+            actionValidator.validateActionName(actionName);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), "Action name is invalid.");
@@ -115,7 +115,7 @@ public class ActionValidatorTest {
     @Test(dataProvider = "validActionNameDataProvider")
     public void testIsValidActionName(String actionName) throws ActionMgtClientException {
 
-        actionValidator.isValidActionName(actionName);
+        actionValidator.validateActionName(actionName);
     }
 
     @DataProvider
@@ -133,7 +133,7 @@ public class ActionValidatorTest {
     public void testIsInvalidEndpointUri(String endpointUri) {
 
         try {
-            actionValidator.isValidEndpointUri(endpointUri);
+            actionValidator.validateEndpointUri(endpointUri);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), "Endpoint URI is invalid.");
@@ -153,7 +153,7 @@ public class ActionValidatorTest {
     @Test(dataProvider = "validEndpointUriDataProvider")
     public void testIsValidEndpointUriName(String endpointUri) throws ActionMgtClientException {
 
-        actionValidator.isValidEndpointUri(endpointUri);
+        actionValidator.validateEndpointUri(endpointUri);
     }
 
     @DataProvider
@@ -171,7 +171,7 @@ public class ActionValidatorTest {
     public void testIsInvalidHeader(String header) {
 
         try {
-            actionValidator.isValidHeader(header);
+            actionValidator.validateHeader(header);
         } catch (ActionMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), "API key header name is invalid.");
@@ -192,6 +192,6 @@ public class ActionValidatorTest {
     @Test(dataProvider = "validHeaderDataProvider")
     public void testIsValidHeader(String header) throws ActionMgtClientException {
 
-        actionValidator.isValidHeader(header);
+        actionValidator.validateHeader(header);
     }
 }
