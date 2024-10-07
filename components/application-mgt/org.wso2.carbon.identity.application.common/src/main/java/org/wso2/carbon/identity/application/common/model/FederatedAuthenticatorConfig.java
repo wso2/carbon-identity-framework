@@ -22,9 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -49,7 +47,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class FederatedAuthenticatorConfig implements Serializable {
 
     private static final long serialVersionUID = -2361107623257323257L;
-    private static final Logger LOG = LoggerFactory.getLogger(LocalAuthenticatorConfig.class);
 
     @XmlElement(name = "Name")
     protected String name;
@@ -115,8 +112,6 @@ public class FederatedAuthenticatorConfig implements Serializable {
 
         if (federatedAuthenticatorConfig.getDefinedByType() == null) {
             federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
-            LOG.debug("The defined by type is not set for the {}. Hence setting default SYSTEM value.",
-                    federatedAuthenticatorConfig.getName());
         }
 
         return federatedAuthenticatorConfig;

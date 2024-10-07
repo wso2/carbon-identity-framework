@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.base;
 
-public class AuthenticatorPropertiesConstant {
+public class AuthenticatorPropertyConstants {
 
     /**
      * The Defined by Types - SYSTEM: system define authenticator, USER: user defined authentication extension.

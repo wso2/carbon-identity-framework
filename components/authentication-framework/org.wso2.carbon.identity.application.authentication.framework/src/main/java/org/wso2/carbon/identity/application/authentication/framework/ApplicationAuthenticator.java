@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant.DefinedByType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.io.Serializable;
 import java.util.List;

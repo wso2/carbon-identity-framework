@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
-import org.wso2.carbon.identity.base.AuthenticatorPropertiesConstant;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -77,7 +77,7 @@ public class RequestPathAuthenticatorConfig extends LocalAuthenticatorConfig {
         }
 
         // Since custom request path authenticators are not allowed, the definedBy type will always be set to SYSTEM.
-        requestPathAuthenticatorConfig.setDefinedByType(AuthenticatorPropertiesConstant.DefinedByType.SYSTEM);
+        requestPathAuthenticatorConfig.setDefinedByType(AuthenticatorPropertyConstants.DefinedByType.SYSTEM);
 
         return requestPathAuthenticatorConfig;
     }
