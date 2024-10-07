@@ -543,8 +543,7 @@ public class IdentityKeyStoreResolver {
         }
 
         if (keyStoreMappingsElem == null) {
-            LOG.warn(String.format("%s.%s element not found in identity.xml file. " +
-                            "You may ne using an outdated or  identity.xml.j2 file.",
+            LOG.warn(String.format("%s.%s element not found in identity.xml file.",
                     IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY,
                     IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
             return;

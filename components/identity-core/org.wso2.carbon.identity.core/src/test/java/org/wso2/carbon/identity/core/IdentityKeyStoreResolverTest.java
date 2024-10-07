@@ -29,17 +29,15 @@ import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
 import java.security.KeyStore;
-import java.security.cert.Certificate;
-import java.util.Map;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.mockito.Mockito.mock;
@@ -73,40 +71,38 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     private KeyStore tenantKeyStore;
     private KeyStore customKeyStore;
 
-    private static Key primaryKey;
-    private static Key tenantKey;
-    private static Key customKey;
+    private static PrivateKey primaryKey;
+    private static PrivateKey tenantKey;
+    private static PrivateKey customKey;
 
-    private static Certificate primaryCertificate;
-    private static Certificate tenantCertificate;
-    private static Certificate customCertificate;
+    private static X509Certificate primaryCertificate;
+    private static X509Certificate tenantCertificate;
+    private static X509Certificate customCertificate;
 
     @Mock
     private IdentityConfigParser mockIdentityConfigParser;
 
-    private IdentityKeyStoreResolver identityKeyStoreResolver;
-
     private MockedStatic<IdentityConfigParser> identityConfigParser;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+
+    private IdentityKeyStoreResolver identityKeyStoreResolver;
 
     @BeforeClass
     public void setUp() throws Exception {
 
-        // Use identity.xml file from test resources.
+        // Set test resource path.
         String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
                 "identity.xml").toString();
-        System.setProperty(ServerConstants.CARBON_HOME, ".");
-        mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
 
         // Mock IdentityConfigParser.
+        mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
         identityConfigParser = mockStatic(IdentityConfigParser.class);
         identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
 
+        // Mock IdentityTenantUtil.
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN)).thenReturn(Integer.valueOf(SUPER_TENANT_ID));
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(TENANT_DOMAIN)).thenReturn(Integer.valueOf(TENANT_ID));
-
-        identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
 
         // Mock getKeyStore method of key store manager.
         System.setProperty(CarbonBaseConstants.CARBON_HOME,
@@ -119,6 +115,14 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         customKeyStore = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
                 System.getProperty(CarbonBaseConstants.CARBON_HOME));
 
+        primaryKey = (PrivateKey) primaryKeyStore.getKey(PRIMARY_KEY_STORE_ALIAS, PRIMARY_KEY_STORE_PASSWORD.toCharArray());
+        tenantKey = (PrivateKey) tenantKeyStore.getKey(TENANT_KEY_STORE_ALIAS, TENANT_KEY_STORE_PASSWORD.toCharArray());
+        customKey = (PrivateKey) customKeyStore.getKey(CUSTOM_KEY_STORE_ALIAS, CUSTOM_KEY_STORE_PASSWORD.toCharArray());
+
+        primaryCertificate = (X509Certificate) primaryKeyStore.getCertificate(PRIMARY_KEY_STORE_ALIAS);
+        tenantCertificate = (X509Certificate) tenantKeyStore.getCertificate(TENANT_KEY_STORE_ALIAS);
+        customCertificate = (X509Certificate) customKeyStore.getCertificate(CUSTOM_KEY_STORE_ALIAS);
+
         KeyStoreManager keyStoreManager = mock(KeyStoreManager.class);
         ConcurrentHashMap<String, KeyStoreManager> mtKeyStoreManagers = new ConcurrentHashMap();
 
@@ -130,37 +134,15 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         when(keyStoreManager.getKeyStore(TENANT_KEY_STORE)).thenReturn(tenantKeyStore);
         when(keyStoreManager.getKeyStore("CUSTOM/" + CUSTOM_KEY_STORE)).thenReturn(customKeyStore);
 
-        // Mock set private keys.
-        primaryKey = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(PRIMARY_KEY_STORE_ALIAS, PRIMARY_KEY_STORE_PASSWORD.toCharArray());
-        tenantKey = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(TENANT_KEY_STORE_ALIAS, TENANT_KEY_STORE_PASSWORD.toCharArray());
-        customKey = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getKey(CUSTOM_KEY_STORE_ALIAS, CUSTOM_KEY_STORE_PASSWORD.toCharArray());
+        when(keyStoreManager.getDefaultPrivateKey()).thenReturn(primaryKey);
+        when(keyStoreManager.getPrivateKey(TENANT_KEY_STORE, TENANT_KEY_STORE_ALIAS)).thenReturn(tenantKey);
+        when(keyStoreManager.getPrivateKey("CUSTOM/" + CUSTOM_KEY_STORE, null)).thenReturn(customKey);
 
-        Map<String, Key> privateKeys = new ConcurrentHashMap<>();
-        privateKeys.put(SUPER_TENANT_ID, primaryKey);
-        privateKeys.put(TENANT_ID, tenantKey);
-        privateKeys.put(InboundProtocol.OAUTH.toString(), customKey);
-        privateKeys.put(InboundProtocol.WS_TRUST.toString(), customKey);
+        when(keyStoreManager.getDefaultPrimaryCertificate()).thenReturn(primaryCertificate);
+        when(keyStoreManager.getCertificate(TENANT_KEY_STORE, TENANT_KEY_STORE_ALIAS)).thenReturn(tenantCertificate);
+        when(keyStoreManager.getCertificate("CUSTOM/" + CUSTOM_KEY_STORE, null)).thenReturn(customCertificate);
 
-        setPrivateStaticField(IdentityKeyStoreResolver.class, "privateKeys", privateKeys);
-
-        // Mock set certificates.
-        primaryCertificate = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(PRIMARY_KEY_STORE_ALIAS);
-        tenantCertificate = getKeyStoreFromFile(TENANT_KEY_STORE, TENANT_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(TENANT_KEY_STORE_ALIAS);
-        customCertificate = getKeyStoreFromFile(CUSTOM_KEY_STORE, CUSTOM_KEY_STORE_PASSWORD,
-                System.getProperty(CarbonBaseConstants.CARBON_HOME)).getCertificate(CUSTOM_KEY_STORE_ALIAS);
-
-        Map<String, Certificate> publicCerts = new ConcurrentHashMap<>();
-        publicCerts.put(SUPER_TENANT_ID, primaryCertificate);
-        publicCerts.put(TENANT_ID, tenantCertificate);
-        publicCerts.put(InboundProtocol.OAUTH.toString(), customCertificate);
-        publicCerts.put(InboundProtocol.WS_TRUST.toString(), customCertificate);
-
-        setPrivateStaticField(IdentityKeyStoreResolver.class, "publicCerts", publicCerts);
+        identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
     }
 
     @AfterClass
@@ -201,14 +183,13 @@ public class IdentityKeyStoreResolverTest extends TestCase {
             // Use custom identity.xml file from test resources.
             String identityXmlPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
                     fileName).toString();
-            System.setProperty(ServerConstants.CARBON_HOME, ".");
 
             // Mock IdentityConfigParser.
             mockIdentityConfigParser = IdentityConfigParser.getInstance(identityXmlPath);
             identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
 
             // Test instance creation --> Config read.
-            IdentityKeyStoreResolver identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
+            IdentityKeyStoreResolver.getInstance();
         } catch (Exception e) {
             fail();
         }
@@ -247,7 +228,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     }
 
     @Test(dataProvider = "PrivateKeyDataProvider")
-    public void testGetPrivateKey(String tenantDomain, InboundProtocol inboundProtocol, Key expectedKey)  throws Exception {
+    public void testGetPrivateKey(String tenantDomain, InboundProtocol inboundProtocol, PrivateKey expectedKey)  throws Exception {
 
         assertEquals(expectedKey, identityKeyStoreResolver.getPrivateKey(tenantDomain, inboundProtocol));
     }
@@ -266,7 +247,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     }
 
     @Test(dataProvider = "PublicCertificateDataProvider")
-    public void testGetCertificate(String tenantDomain, InboundProtocol inboundProtocol, Certificate expectedCert) throws Exception {
+    public void testGetCertificate(String tenantDomain, InboundProtocol inboundProtocol, X509Certificate expectedCert) throws Exception {
 
         assertEquals(expectedCert, identityKeyStoreResolver.getCertificate(tenantDomain, inboundProtocol));
     }
