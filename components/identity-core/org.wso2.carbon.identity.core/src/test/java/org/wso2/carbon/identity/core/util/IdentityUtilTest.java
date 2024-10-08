@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -67,10 +68,13 @@ import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -78,6 +82,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -924,6 +929,96 @@ public class IdentityUtilTest {
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
         return field.get(null);
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where the SystemRole config " +
+            "is empty.")
+    public void testSystemRolesConfigWithAPIResourcesWithEmptyConfig() throws Exception {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+        OMElement mockOAuthConfigElement = mock(OMElement.class);
+        lenient().when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles
+                .SYSTEM_ROLES_CONFIG_ELEMENT)).thenReturn(null);
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithScopes();
+
+        // Verify that the result is an empty map
+        assertEquals(result.size(), 0, "Expected empty map");
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where there is no roles " +
+            "configured.")
+    public void testGetSystemRolesWithAPIResourcesWithNoRoleConfigElement() {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+
+        OMElement mockSystemRolesConfig = mock(OMElement.class);
+        // Mock the config parser to return a valid systemRolesConfig but no roles
+        when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT)).thenReturn(mockSystemRolesConfig);
+        when(mockSystemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT)).thenReturn(null);
+
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithScopes();
+
+        // Verify that the result is an empty map
+        assertTrue(result.isEmpty());
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where proper roles and " +
+            "corresponding api resources are configured.")
+    public void testGetSystemRolesWithAPIResources() {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+
+        OMElement mockSystemRolesConfig = mock(OMElement.class);
+        OMElement mockRoleIdentifierConfig = mock(OMElement.class);
+        OMElement mockRoleNameConfig = mock(OMElement.class);
+        OMElement mockMandatoryAPIResources = mock(OMElement.class);
+        OMElement mockAPIResourceIdentifier = mock(OMElement.class);
+
+        // Mock systemRolesConfig and role elements
+        when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT))
+                .thenReturn(mockSystemRolesConfig);
+        Iterator<OMElement> roleIterator = mock(Iterator.class);
+        when(mockSystemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT))
+                .thenReturn(roleIterator);
+        when(roleIterator.hasNext()).thenReturn(true, false);
+        when(roleIterator.next()).thenReturn(mockRoleIdentifierConfig);
+
+        // Mock the role name element
+        String roleName = "admin";
+        String apiResource1 = "applications.write";
+        String apiResource2 = "applications.read";
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)))
+                .thenReturn(mockRoleNameConfig);
+        when(mockRoleNameConfig.getText()).thenReturn(roleName);
+
+        // Mock the scopes
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT)))
+                .thenReturn(mockMandatoryAPIResources);
+        Iterator<OMElement> apiResourcesIterator = mock(Iterator.class);
+        when(mockMandatoryAPIResources.getChildrenWithLocalName(IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT))
+                .thenReturn(apiResourcesIterator);
+        when(apiResourcesIterator.hasNext()).thenReturn(true, true, false);
+        when(apiResourcesIterator.next()).thenReturn(mockAPIResourceIdentifier);
+        when(mockAPIResourceIdentifier.getText()).thenReturn(apiResource1, apiResource2);
+
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
+
+        // Verify the result
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey(roleName));
+        Set<String> scopes = result.get(roleName);
+        assertEquals(2, scopes.size());
+        assertTrue(scopes.contains(apiResource1));
+        assertTrue(scopes.contains(apiResource2));
     }
 
     private KeyStore getKeyStoreFromFile(String keystoreName, String password) throws Exception {
