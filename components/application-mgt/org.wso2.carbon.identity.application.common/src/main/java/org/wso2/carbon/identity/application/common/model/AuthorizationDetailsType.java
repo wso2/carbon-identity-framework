@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+/**
+ * Authorized authorization details types model class.
+ */
 public class AuthorizationDetailsType {
 
     private String id;
@@ -25,28 +28,17 @@ public class AuthorizationDetailsType {
     private String name;
     private String description;
     private String schema;
-    private String apiId;
-    private Integer orgId;
 
     public AuthorizationDetailsType() {
     }
 
     public AuthorizationDetailsType(final String id, final String type, final String name,
                                     final String description, final String schema) {
-
-        this(id, type, name, description, schema, null, null);
-    }
-
-    public AuthorizationDetailsType(final String id, final String type, final String name, final String description,
-                                    final String schema, final String apiId, final Integer orgId) {
-
         this.id = id;
         this.type = type;
         this.name = name;
         this.description = description;
         this.schema = schema;
-        this.apiId = apiId;
-        this.orgId = orgId;
     }
 
     public String getId() {
@@ -89,20 +81,50 @@ public class AuthorizationDetailsType {
         this.schema = schema;
     }
 
-    public String getApiId() {
-        return this.apiId;
-    }
+    /**
+     * Builder class for {@link AuthorizationDetailsType}.
+     */
+    public static class AuthorizationDetailsTypesBuilder {
 
-    public void setApiID(final String apiId) {
-        this.apiId = apiId;
-    }
+        private String id;
+        private String type;
+        private String name;
+        private String description;
+        private String schema;
 
-    public Integer getOrgId() {
-        return this.orgId;
-    }
+        public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder id(String id) {
 
-    public void setOrgId(final Integer orgId) {
-        this.orgId = orgId;
+            this.id = id;
+            return this;
+        }
+
+        public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder type(String type) {
+
+            this.type = type;
+            return this;
+        }
+
+        public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder name(String name) {
+
+            this.name = name;
+            return this;
+        }
+
+        public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder description(String description) {
+
+            this.description = description;
+            return this;
+        }
+
+        public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder schema(String schema) {
+
+            this.schema = schema;
+            return this;
+        }
+
+        public AuthorizationDetailsType build() {
+
+            return new AuthorizationDetailsType(this.id, this.type, this.name, this.description, this.schema);
+        }
     }
 }
-

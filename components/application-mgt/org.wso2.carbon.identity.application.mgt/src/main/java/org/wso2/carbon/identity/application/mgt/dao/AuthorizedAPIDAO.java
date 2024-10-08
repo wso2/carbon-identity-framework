@@ -19,10 +19,12 @@
 package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.Scope;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,6 +32,7 @@ import java.util.List;
  */
 public interface AuthorizedAPIDAO {
 
+    @Deprecated
     void addAuthorizedAPI(String applicationId, String apiId, String policyId, List<Scope> scopes,
                           int tenantId)
             throws IdentityApplicationManagementException;
@@ -37,6 +40,7 @@ public interface AuthorizedAPIDAO {
     List<AuthorizedAPI> getAuthorizedAPIs(String applicationId, int tenantId)
             throws IdentityApplicationManagementException;
 
+    @Deprecated
     void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
                             List<String> removedScopes, int tenantId)
             throws IdentityApplicationManagementException;
@@ -49,4 +53,19 @@ public interface AuthorizedAPIDAO {
 
     AuthorizedAPI getAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException;
+
+    default void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, int tenantId)
+            throws IdentityApplicationManagementException {
+    }
+
+    default void patchAuthorizedAPI(String appId, String apiId, List<String> scopesToAdd, List<String> scopesToRemove,
+            List<String> authorizationDetailsTypesToAdd, List<String> authorizationDetailsTypesToRemove, int tenantId)
+            throws IdentityApplicationManagementException {
+    }
+
+    default List<AuthorizationDetailsType> getAuthorizedAuthorizationDetailsTypes(String applicationId, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        return Collections.emptyList();
+    }
 }

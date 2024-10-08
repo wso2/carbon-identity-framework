@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,9 +19,11 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -72,6 +74,7 @@ public interface AuthorizedAPIManagementService {
      * @param tenantDomain  Tenant Domain.
      * @throws IdentityApplicationManagementException if an error occurs while patching the authorized API.
      */
+    @Deprecated
     public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
                                    List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException;
@@ -97,4 +100,23 @@ public interface AuthorizedAPIManagementService {
      */
     public AuthorizedAPI getAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException;
+
+    default void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
+                                   List<String> removedScopes, List<String> addedAuthorizationDetailsTypes,
+                                    List<String> removedAuthorizationDetailsTypes, String tenantDomain)
+            throws IdentityApplicationManagementException {
+    }
+
+    /**
+     * Get a list of authorized {@link AuthorizationDetailsType} for the provided application ID.
+     *
+     * @param appId        Application ID.
+     * @param tenantDomain Tenant Domain.
+     * @throws IdentityApplicationManagementException if an error occurs while retrieving.
+     */
+    default List<AuthorizationDetailsType> getAuthorizedAuthorizationDetailsTypes(String appId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return Collections.emptyList();
+    }
 }

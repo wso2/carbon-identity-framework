@@ -1,10 +1,28 @@
+/*
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.identity.api.resource.mgt.dao.AuthorizationDetailsTypeMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.AuthorizationDetailsTypeMgtDAOImpl;
+import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAuthorizationDetailsTypeMgtDAOImpl;
 import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
-import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.Collections;
 import java.util.List;
@@ -12,13 +30,17 @@ import java.util.List;
 import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getExpressionNodes;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.getTenantId;
 
+/**
+ * Implementation of the {@link AuthorizationDetailsTypeManager} interface that provides
+ * management functionalities for authorization detail types associated with APIs.
+ */
 public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetailsTypeManager {
 
     private final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO;
 
     public AuthorizationDetailsTypeManagerImpl() {
 
-        this(new AuthorizationDetailsTypeMgtDAOImpl());
+        this(new CacheBackedAuthorizationDetailsTypeMgtDAOImpl(new AuthorizationDetailsTypeMgtDAOImpl()));
     }
 
     public AuthorizationDetailsTypeManagerImpl(AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO) {
@@ -27,27 +49,35 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
     }
 
     @Override
-    public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndType(
-            String apiId, String type, String tenantDomain) throws APIResourceMgtException {
+    public List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
+            String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes, String tenantDomain)
+            throws APIResourceMgtException {
 
-        return this.authorizationDetailsTypeMgtDAO
-                .getAuthorizationDetailsTypeByApiIdAndType(apiId, type, getTenantId(tenantDomain));
-    }
-
-    @Override
-    public void addAuthorizationDetailsTypes(String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes,
-                                             String tenantDomain) throws APIResourceMgtException {
-
-        this.authorizationDetailsTypeMgtDAO.addAuthorizationDetailsTypes(apiId, authorizationDetailsTypes,
+        return this.authorizationDetailsTypeMgtDAO.addAuthorizationDetailsTypes(apiId, authorizationDetailsTypes,
                 getTenantId(tenantDomain));
     }
 
     @Override
-    public List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(String apiId, String tenantDomain)
+    public void deleteAuthorizationDetailsTypeByApiIdAndTypeId(String apiId, String typeId, String tenantDomain)
             throws APIResourceMgtException {
 
+        this.authorizationDetailsTypeMgtDAO
+                .deleteAuthorizationDetailsTypeByApiIdAndTypeId(apiId, typeId, getTenantId(tenantDomain));
+    }
+
+    @Override
+    public void deleteAuthorizationDetailsTypesByApiId(String apiId, String tenantDomain)
+            throws APIResourceMgtException {
+
+        this.authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(apiId, getTenantId(tenantDomain));
+    }
+
+    @Override
+    public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndTypeId(
+            String apiId, String typeId, String tenantDomain) throws APIResourceMgtException {
+
         return this.authorizationDetailsTypeMgtDAO
-                .getAuthorizationDetailsTypesByApiId(apiId, getTenantId(tenantDomain));
+                .getAuthorizationDetailsTypeByApiIdAndTypeId(apiId, typeId, getTenantId(tenantDomain));
     }
 
     @Override
@@ -59,26 +89,17 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
     }
 
     @Override
-    public void deleteAuthorizationDetailsTypesByApiId(String apiId, String tenantDomain)
+    public List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(String apiId, String tenantDomain)
             throws APIResourceMgtException {
 
-        this.authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(apiId, getTenantId(tenantDomain));
+        return this.authorizationDetailsTypeMgtDAO
+                .getAuthorizationDetailsTypesByApiId(apiId, getTenantId(tenantDomain));
     }
 
     @Override
-    public void deleteAuthorizationDetailsTypeByApiIdAndType(String apiId, String type, String tenantDomain)
-            throws APIResourceMgtException {
+    public boolean isAuthorizationDetailsTypeExists(String filter, String tenantDomain) throws APIResourceMgtException {
 
-        this.authorizationDetailsTypeMgtDAO
-                .deleteAuthorizationDetailsTypeByApiIdAndType(apiId, type, getTenantId(tenantDomain));
-    }
-
-    @Override
-    public void updateAuthorizationDetailsType(String apiId, AuthorizationDetailsType authorizationDetailsType,
-                                               String tenantDomain) throws APIResourceMgtException {
-
-        this.authorizationDetailsTypeMgtDAO.updateAuthorizationDetailsTypes(apiId,
-                Collections.singletonList(authorizationDetailsType), getTenantId(tenantDomain));
+        return CollectionUtils.isNotEmpty(this.getAuthorizationDetailsTypes(filter, tenantDomain));
     }
 
     @Override
@@ -90,8 +111,7 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
     }
 
     @Override
-    public void replaceAuthorizationDetailsTypes(String apiId,
-                                                 List<String> removedAuthorizationDetailsTypes,
+    public void replaceAuthorizationDetailsTypes(String apiId, List<String> removedAuthorizationDetailsTypes,
                                                  List<AuthorizationDetailsType> addedAuthorizationDetailsTypes,
                                                  String tenantDomain) throws APIResourceMgtException {
 
@@ -106,5 +126,13 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
             this.authorizationDetailsTypeMgtDAO
                     .addAuthorizationDetailsTypes(apiId, addedAuthorizationDetailsTypes, getTenantId(tenantDomain));
         }
+    }
+
+    @Override
+    public void updateAuthorizationDetailsType(String apiId, AuthorizationDetailsType authorizationDetailsType,
+                                               String tenantDomain) throws APIResourceMgtException {
+
+        this.authorizationDetailsTypeMgtDAO.updateAuthorizationDetailsTypes(apiId,
+                Collections.singletonList(authorizationDetailsType), getTenantId(tenantDomain));
     }
 }

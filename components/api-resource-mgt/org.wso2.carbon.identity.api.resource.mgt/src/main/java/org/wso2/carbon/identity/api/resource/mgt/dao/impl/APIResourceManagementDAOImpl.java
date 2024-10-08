@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -62,7 +62,13 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     private final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO;
 
     public APIResourceManagementDAOImpl() {
-        this.authorizationDetailsTypeMgtDAO = new AuthorizationDetailsTypeMgtDAOImpl();
+
+        this(new AuthorizationDetailsTypeMgtDAOImpl());
+    }
+
+    public APIResourceManagementDAOImpl(final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO) {
+
+        this.authorizationDetailsTypeMgtDAO = authorizationDetailsTypeMgtDAO;
     }
 
     @Override
@@ -247,8 +253,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
             List<APIResourceProperty> apiResourceProperties = getAPIResourcePropertiesByAPIId(dbConnection, apiId);
-            List<AuthorizationDetailsType> authorizationDetailsTypes =
-                    this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(apiId, tenantId);
+            List<AuthorizationDetailsType> authorizationDetailsTypes = this.authorizationDetailsTypeMgtDAO
+                    .getAuthorizationDetailsTypesByApiId(dbConnection, apiId, tenantId);
 
             return getApiResource(resultSet, apiResourceProperties, authorizationDetailsTypes);
         } catch (SQLException e) {
@@ -347,7 +353,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
-                authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(apiId, tenantId);
+                authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(dbConnection, apiId, tenantId);
 
                 PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.DELETE_SCOPES_BY_API);
                 prepStmt.setString(1, apiId);

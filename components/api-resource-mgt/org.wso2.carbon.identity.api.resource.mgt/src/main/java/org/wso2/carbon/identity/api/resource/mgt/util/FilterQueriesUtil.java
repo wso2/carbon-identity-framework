@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.api.resource.mgt.util;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -18,6 +36,10 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * FilterQueriesUtil.
+ * <p> Utility class for working with filter queries in conjunction with the {@link FilterQueryBuilder}.</p>
+ */
 public class FilterQueriesUtil {
 
     public static FilterQueryBuilder getScopeFilterQueryBuilder(List<ExpressionNode> expressionNodes)
@@ -42,7 +64,7 @@ public class FilterQueriesUtil {
     /**
      * Append the filter query to the query builder.
      *
-     * @param expressionNodes    List of expression nodes.
+     * @param expressionNodes           List of expression nodes.
      * @param supportedAttributeColumns supported attribute columns map.
      * @throws APIResourceMgtClientException If an error occurs while appending the filter query.
      */
@@ -130,7 +152,7 @@ public class FilterQueriesUtil {
 
 
     private static void equalFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                    FilterQueryBuilder filterQueryBuilder) {
+                                           FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " = ? AND ";
         filter.append(attributeName).append(filterString);
@@ -138,7 +160,7 @@ public class FilterQueriesUtil {
     }
 
     private static void notEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                       FilterQueryBuilder filterQueryBuilder) {
+                                              FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " <> ? AND ";
         filter.append(attributeName).append(filterString);
@@ -146,7 +168,7 @@ public class FilterQueriesUtil {
     }
 
     private static void startWithFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                        FilterQueryBuilder filterQueryBuilder) {
+                                               FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " LIKE ? AND ";
         filter.append(attributeName).append(filterString);
@@ -154,7 +176,7 @@ public class FilterQueriesUtil {
     }
 
     private static void endWithFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                      FilterQueryBuilder filterQueryBuilder) {
+                                             FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " LIKE ? AND ";
         filter.append(attributeName).append(filterString);
@@ -162,23 +184,25 @@ public class FilterQueriesUtil {
     }
 
     private static void containsFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                       FilterQueryBuilder filterQueryBuilder) {
+                                              FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " LIKE ? AND ";
         filter.append(attributeName).append(filterString);
         filterQueryBuilder.setFilterAttributeValue(count, "%" + value + "%");
     }
 
-    private static void greaterThanOrEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                                 FilterQueryBuilder filterQueryBuilder) {
+    private static void greaterThanOrEqualFilterBuilder(int count, String value, String attributeName,
+                                                        StringBuilder filter,
+                                                        FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " >= ? AND ";
         filter.append(attributeName).append(filterString);
         filterQueryBuilder.setFilterAttributeValue(count, value);
     }
 
-    private static void lessThanOrEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                              FilterQueryBuilder filterQueryBuilder) {
+    private static void lessThanOrEqualFilterBuilder(int count, String value, String attributeName,
+                                                     StringBuilder filter,
+                                                     FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " <= ? AND ";
         filter.append(attributeName).append(filterString);
@@ -186,7 +210,7 @@ public class FilterQueriesUtil {
     }
 
     private static void greaterThanFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                          FilterQueryBuilder filterQueryBuilder) {
+                                                 FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " > ? AND ";
         filter.append(attributeName).append(filterString);
@@ -194,7 +218,7 @@ public class FilterQueriesUtil {
     }
 
     private static void lessThanFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                       FilterQueryBuilder filterQueryBuilder) {
+                                              FilterQueryBuilder filterQueryBuilder) {
 
         String filterString = " < ? AND ";
         filter.append(attributeName).append(filterString);
@@ -237,8 +261,8 @@ public class FilterQueriesUtil {
      * @return Filter string.
      * @throws APIResourceMgtClientException Error when validate filters.
      */
-    private static String getPaginatedFilter(String paginatedFilter, String after, String before) throws
-            APIResourceMgtClientException {
+    private static String getPaginatedFilter(String paginatedFilter, String after, String before)
+            throws APIResourceMgtClientException {
 
         try {
             if (StringUtils.isNotBlank(before)) {

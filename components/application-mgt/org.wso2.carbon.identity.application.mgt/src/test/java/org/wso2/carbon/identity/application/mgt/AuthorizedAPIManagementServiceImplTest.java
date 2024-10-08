@@ -35,7 +35,9 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.APIResource;
+import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -105,12 +107,12 @@ public class AuthorizedAPIManagementServiceImplTest {
         doNothing().when(identityEventService).handleEvent(any());
         ApplicationManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
         APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
-        CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
         applicationManagementService.deleteApplication("TestApp", tenantDomain, "user 1");
     }
 
@@ -262,6 +264,11 @@ public class AuthorizedAPIManagementServiceImplTest {
         authzAPI = authorizedAPIManagementService.getAuthorizedAPI(authorizedAPI.getAppId(),
                 authorizedAPI.getAPIId(), tenantDomain);
         Assert.assertNull(authzAPI);
+
+        List<AuthorizationDetailsType> fetchedTypes =
+                authorizedAPIManagementService.getAuthorizedAuthorizationDetailsTypes(appId, tenantDomain);
+        Assert.assertNotNull(fetchedTypes);
+        Assert.assertTrue(fetchedTypes.isEmpty());
     }
 
     private void setupConfiguration() throws UserStoreException, RegistryException {
@@ -352,13 +359,27 @@ public class AuthorizedAPIManagementServiceImplTest {
                 .displayName("displayName 2 " + postfix)
                 .description("description 2 " + postfix).build());
 
+        List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
+        authorizationDetailsTypes.add(new AuthorizationDetailsType.AuthorizationDetailsTypesBuilder()
+                .type("type 1 " + postfix)
+                .name("name 1 " + postfix)
+                .description("description 1 " + postfix)
+                .build());
+        authorizationDetailsTypes.add(new AuthorizationDetailsType.AuthorizationDetailsTypesBuilder()
+                .type("type 2 " + postfix)
+                .name("name 2 " + postfix)
+                .description("description 2 " + postfix)
+                .build());
+
         APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
                 .name("testAPIResource name " + postfix)
                 .identifier("testAPIResource identifier " + postfix)
                 .description("testAPIResource description " + postfix)
                 .type("BUSINESS")
                 .requiresAuthorization(true)
-                .scopes(scopes);
+                .scopes(scopes)
+                .authorizationDetailsTypes(authorizationDetailsTypes);
+
         return apiResourceManager.addAPIResource(apiResourceBuilder.build(), tenantDomain);
     }
 
@@ -383,5 +404,133 @@ public class AuthorizedAPIManagementServiceImplTest {
                 );
     }
 
+    @Test
+    public void shouldCreateAuthorizedAPIWithNoScopes() throws Exception {
 
+        String appId = addApplication();
+        APIResource apiResource = addTestAPIResource("test-create-1");
+        AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
+                .apiId(apiResource.getId())
+                .appId(appId)
+                .policyId("RBAC")
+                .build();
+
+        authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        List<AuthorizedAPI> authorizedAPIs =
+                authorizedAPIManagementService.getAuthorizedAPIs(authorizedAPI.getAppId(), tenantDomain);
+
+        Assert.assertFalse(authorizedAPIs.isEmpty());
+        Assert.assertEquals(authorizedAPIs.size(), 1);
+        Assert.assertEquals(authorizedAPIs.get(0).getScopes().size(), 0);
+        Assert.assertEquals(authorizedAPIs.get(0).getAuthorizationDetailsTypes().size(), 0);
+    }
+
+    @Test
+    public void shouldCreateAuthorizedAPIWithAuthorizationDetails() throws Exception {
+
+        String appId = addApplication();
+        APIResource apiResource = addTestAPIResource("test-create-2");
+        AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
+                .apiId(apiResource.getId())
+                .appId(appId)
+                .policyId("RBAC")
+                .authorizationDetailsTypes(apiResource.getAuthorizationDetailsTypes())
+                .build();
+
+        authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        List<AuthorizedAPI> authorizedAPIs =
+                authorizedAPIManagementService.getAuthorizedAPIs(authorizedAPI.getAppId(), tenantDomain);
+
+        Assert.assertFalse(authorizedAPIs.isEmpty());
+        Assert.assertEquals(authorizedAPIs.size(), 1);
+        Assert.assertEquals(authorizedAPIs.get(0).getScopes().size(), 0);
+        Assert.assertEquals(authorizedAPIs.get(0).getAuthorizationDetailsTypes().size(), 2);
+    }
+
+    @Test
+    public void shouldCreateAuthorizedAPIWithScopesAndAuthorizationDetails() throws Exception {
+
+        String appId = addApplication();
+        APIResource apiResource = addTestAPIResource("test-create-3");
+        AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
+                .apiId(apiResource.getId())
+                .appId(appId)
+                .policyId("RBAC")
+                .scopes(apiResource.getScopes())
+                .authorizationDetailsTypes(apiResource.getAuthorizationDetailsTypes())
+                .build();
+
+        authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
+        ApplicationManagementServiceComponentHolder.getInstance().setAPIResourceManager(apiResourceManager);
+        List<AuthorizedAPI> authorizedAPIs =
+                authorizedAPIManagementService.getAuthorizedAPIs(authorizedAPI.getAppId(), tenantDomain);
+
+        Assert.assertFalse(authorizedAPIs.isEmpty());
+        Assert.assertEquals(authorizedAPIs.size(), 1);
+        Assert.assertEquals(authorizedAPIs.get(0).getScopes().size(), 2);
+        Assert.assertEquals(authorizedAPIs.get(0).getAuthorizationDetailsTypes().size(), 2);
+    }
+
+    @Test
+    public void shouldPatchAuthorizedApiWithValidAuthorizationDetailsType() throws Exception {
+
+        final String appId = addApplication();
+        final String postfix = "test-create-4";
+        final String type1 = "type 1 " + postfix;
+        final String type2 = "type 2 " + postfix;
+
+        APIResource apiResource = addTestAPIResource(postfix);
+        AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
+                .apiId(apiResource.getId())
+                .appId(appId)
+                .policyId("RBAC")
+                .scopes(apiResource.getScopes())
+                .authorizationDetailsTypes(apiResource.getAuthorizationDetailsTypes())
+                .build();
+
+        authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
+
+        authorizedAPIManagementService.patchAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI.getAPIId(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                Collections.singletonList(type1), tenantDomain);
+
+        List<AuthorizationDetailsType> fetchedTypes =
+                authorizedAPIManagementService.getAuthorizedAuthorizationDetailsTypes(appId, tenantDomain);
+        Assert.assertFalse(fetchedTypes.isEmpty());
+        Assert.assertEquals(fetchedTypes.size(), 1);
+        Assert.assertFalse(fetchedTypes.stream().map(AuthorizationDetailsType::getType).anyMatch(type1::equals));
+        Assert.assertTrue(fetchedTypes.stream().map(AuthorizationDetailsType::getType).anyMatch(type2::equals));
+
+        authorizedAPIManagementService.patchAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI.getAPIId(),
+                Collections.emptyList(), Collections.emptyList(), Collections.singletonList(type1),
+                Collections.emptyList(), tenantDomain);
+
+        fetchedTypes = authorizedAPIManagementService.getAuthorizedAuthorizationDetailsTypes(appId, tenantDomain);
+        Assert.assertFalse(fetchedTypes.isEmpty());
+        Assert.assertEquals(fetchedTypes.size(), 2);
+        Assert.assertTrue(fetchedTypes.stream().map(AuthorizationDetailsType::getType).anyMatch(type1::equals));
+    }
+
+    @Test(expectedExceptions = {IdentityApplicationManagementException.class})
+    public void shouldThrowExceptionWhenAddingInvalidAuthorizationDetailsType() throws Exception {
+
+        final String appId = addApplication();
+        List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
+        authorizationDetailsTypes.add(new AuthorizationDetailsType.AuthorizationDetailsTypesBuilder()
+                .type("invalid type")
+                .build());
+
+        APIResource apiResource = addTestAPIResource("test-create-5");
+        AuthorizedAPI authorizedAPI = new AuthorizedAPI.AuthorizedAPIBuilder()
+                .apiId(apiResource.getId())
+                .appId(appId)
+                .policyId("RBAC")
+                .scopes(apiResource.getScopes())
+                .authorizationDetailsTypes(authorizationDetailsTypes)
+                .build();
+
+        authorizedAPIManagementService.addAuthorizedAPI(authorizedAPI.getAppId(), authorizedAPI, tenantDomain);
+    }
 }

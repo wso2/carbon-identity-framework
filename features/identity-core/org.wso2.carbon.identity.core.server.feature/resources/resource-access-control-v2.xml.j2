@@ -1055,7 +1055,7 @@
         <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="DELETE">
             <Scopes>internal_api_resource_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="GET, HEAD">
+        <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="GET">
             <Scopes>internal_api_resource_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/scopes(.*)" secured="true" http-method="GET">
@@ -1063,7 +1063,7 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/meta/api-resource-collections(.*)" secured="false" http-method="GET">
         </Resource>
-        <Resource context="(.*)/api/server/v1/authorization-details-types(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/authorization-details-types(.*)" secured="true" http-method="GET, HEAD">
             <Scopes>internal_api_resource_view</Scopes>
         </Resource>
 

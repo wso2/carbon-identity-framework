@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.application.common.model.APIResource;
-import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.Scope;
 
 import java.util.List;
