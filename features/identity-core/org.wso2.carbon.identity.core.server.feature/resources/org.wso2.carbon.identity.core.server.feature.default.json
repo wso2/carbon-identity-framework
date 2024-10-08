@@ -491,6 +491,7 @@
   "identity_mgt.user_claim_update.uniqueness.enable": false,
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
+  "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": false,
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
@@ -1278,7 +1279,7 @@
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
   "console.identity_provider_groups.enabled": true,
-  "console.identity_verification_providers.enabled": false,
+  "console.identity_verification_providers.enabled": true,
   "console.identity_verification_providers.scopes.feature": ["console:idvps"],
   "console.identity_verification_providers.scopes.create": ["internal_idvp_add"],
   "console.identity_verification_providers.scopes.read": ["internal_idvp_view"],

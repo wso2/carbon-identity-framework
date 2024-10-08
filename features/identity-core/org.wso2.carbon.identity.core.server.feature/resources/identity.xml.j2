@@ -1869,6 +1869,9 @@
           <!-- When updating the claim value, it can be validated against the provided regex pattern.
           To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
           <EnableUserClaimInputRegexValidation>{{identity_mgt.enable_user_claim_input_regex_validation}}</EnableUserClaimInputRegexValidation>
+
+        <!-- Enable support for storing multiple email addresses and mobile numbers per user. -->
+        <EnableMultipleEmailsAndMobileNumbers>{{identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers}}</EnableMultipleEmailsAndMobileNumbers>
     </UserClaimUpdate>
 
      <AccountSuspension>
@@ -4032,6 +4035,11 @@
         {% for role in system_roles.read_only_roles %}
         <Role>
             <Name>{{role.name}}</Name>
+            <MandatoryAPIResources>
+                {% for api_resource in role.api_resources %}
+                <APIResource>{{api_resource}}</APIResource>
+                {% endfor %}
+            </MandatoryAPIResources>
             <MandatoryScopes>
                 {% for scope in role.scopes %}
                 <Scope>{{scope}}</Scope>

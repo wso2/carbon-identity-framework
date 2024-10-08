@@ -610,6 +610,9 @@ public class IdentityConstants {
         public static final String ROLE_NAME_CONFIG_ELEMENT = "Name";
         public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
         public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
+        public static final String API_RESOURCE_CONFIG_ELEMENT = "APIResource";
+        public static final String ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT = "MandatoryAPIResources";
+
     }
 
     /**
