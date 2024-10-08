@@ -23,6 +23,7 @@
                 <classes>
                         <class name="org.wso2.carbon.identity.action.management.dao.ActionManagementDAOImplTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.ActionManagementServiceImplTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.util.ActionValidatorTest"></class>
                 </classes>
         </test>
 </suite>
