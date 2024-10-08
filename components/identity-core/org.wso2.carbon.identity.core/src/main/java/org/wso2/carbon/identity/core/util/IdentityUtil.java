@@ -1734,6 +1734,10 @@ public class IdentityUtil {
                         new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
                                 IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT));
 
+                if (mandatoryApiResourcesIdentifier == null) {
+                    continue;
+                }
+
                 Iterator apiResourceIdentifier = mandatoryApiResourcesIdentifier.getChildrenWithLocalName(
                         IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT);
 

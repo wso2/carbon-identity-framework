@@ -941,7 +941,7 @@ public class IdentityUtilTest {
         lenient().when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles
                 .SYSTEM_ROLES_CONFIG_ELEMENT)).thenReturn(null);
         // Call the method under test
-        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithScopes();
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
 
         // Verify that the result is an empty map
         assertEquals(result.size(), 0, "Expected empty map");
@@ -960,7 +960,44 @@ public class IdentityUtilTest {
         when(mockSystemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT)).thenReturn(null);
 
         // Call the method under test
-        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithScopes();
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
+
+        // Verify that the result is an empty map
+        assertTrue(result.isEmpty());
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where there is api resources " +
+            "config is not added.")
+    public void testGetSystemRolesWithAPIResourcesWithNoAPIResourceConfigElement() {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+
+        OMElement mockSystemRolesConfig = mock(OMElement.class);
+        OMElement mockRoleIdentifierConfig = mock(OMElement.class);
+        OMElement mockRoleNameConfig = mock(OMElement.class);
+
+        // Mock systemRolesConfig and role elements
+        when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT))
+                .thenReturn(mockSystemRolesConfig);
+        Iterator<OMElement> roleIterator = mock(Iterator.class);
+        when(mockSystemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT))
+                .thenReturn(roleIterator);
+        when(roleIterator.hasNext()).thenReturn(true, false);
+        when(roleIterator.next()).thenReturn(mockRoleIdentifierConfig);
+
+        // Mock the role name element
+        String roleName = "admin";
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)))
+                .thenReturn(mockRoleNameConfig);
+        when(mockRoleNameConfig.getText()).thenReturn(roleName);
+
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT)))
+                .thenReturn(null);
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
 
         // Verify that the result is an empty map
         assertTrue(result.isEmpty());
