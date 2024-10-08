@@ -1730,17 +1730,21 @@ public class IdentityUtil {
                         new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
                                 IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
 
-                OMElement mandatoryScopesIdentifierIterator = roleIdentifierConfig.getFirstChildWithName(
+                OMElement mandatoryApiResourcesIdentifier = roleIdentifierConfig.getFirstChildWithName(
                         new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
                                 IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT));
 
-                Iterator scopeIdentifierIterator = mandatoryScopesIdentifierIterator.getChildrenWithLocalName(
+                if (mandatoryApiResourcesIdentifier == null) {
+                    continue;
+                }
+
+                Iterator apiResourceIdentifier = mandatoryApiResourcesIdentifier.getChildrenWithLocalName(
                         IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT);
 
                 Set<String> apiResourceCollections = new HashSet<>();
-                while (scopeIdentifierIterator.hasNext()) {
-                    OMElement scopeIdentifierConfig = (OMElement) scopeIdentifierIterator.next();
-                    String apiResource = scopeIdentifierConfig.getText();
+                while (apiResourceIdentifier != null && apiResourceIdentifier.hasNext()) {
+                    OMElement apiResourceConfig = (OMElement) apiResourceIdentifier.next();
+                    String apiResource = apiResourceConfig.getText();
                     if (StringUtils.isNotBlank(apiResource)) {
                         apiResourceCollections.add(apiResource.trim());
                     }
