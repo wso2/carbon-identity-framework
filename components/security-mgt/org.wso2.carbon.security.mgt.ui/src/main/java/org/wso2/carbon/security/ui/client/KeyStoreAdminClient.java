@@ -205,9 +205,8 @@ public class KeyStoreAdminClient {
     public boolean isPrivateKeyStore(byte[] content, String password, String type)
             throws java.lang.Exception {
 
-        try {
-            boolean isPrivateStore = false;
-            ByteArrayInputStream stream = new ByteArrayInputStream(content);
+        boolean isPrivateStore = false;
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(content)) {
             KeyStore store = KeystoreUtils.getKeystoreInstance(type);
             store.load(stream, password.toCharArray());
             Enumeration<String> aliases = store.aliases();
@@ -218,11 +217,11 @@ public class KeyStoreAdminClient {
                     break;
                 }
             }
-            return isPrivateStore;
-        } catch (java.lang.Exception e) {
+        } catch (Exception e) {
             log.error("Error in checking private key store.", e);
             throw e;
         }
+        return isPrivateStore;
     }
 
     public KeyStoreData getKeystoreInfo(String keyStoreName) throws java.lang.Exception {
