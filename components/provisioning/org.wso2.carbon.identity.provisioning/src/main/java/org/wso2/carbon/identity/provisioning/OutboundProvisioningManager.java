@@ -878,6 +878,11 @@ public class OutboundProvisioningManager {
             // we apply restrictions only for users.
             // if service provider's out-bound provisioning configuration does not define any roles
             // to be provisioned then we apply no restrictions.
+            // Internal role provisioning should be blocked.
+            if (provisioningEntity.getEntityName().startsWith(RoleConstants.INTERNAL_DOMAIN +
+                    UserCoreConstants.DOMAIN_SEPARATOR)) {
+                return false;
+            }
             return true;
         }
 
