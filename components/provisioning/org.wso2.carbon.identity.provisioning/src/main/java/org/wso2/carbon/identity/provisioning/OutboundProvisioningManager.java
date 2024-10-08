@@ -42,7 +42,11 @@ import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningCo
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
+import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.wso2.carbon.identity.provisioning.rules.XACMLBasedRuleHandler;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -51,6 +55,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -65,6 +70,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
@@ -73,6 +79,7 @@ import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstant
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SELF_SIGNUP_ROLE;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isApplicationBasedOutboundProvisioningEnabled;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.INTERNAL_DOMAIN;
 
 /**
  *
@@ -494,9 +501,15 @@ public class OutboundProvisioningManager {
                     List<String> newUsersList = attributes.get(ClaimMapping.build(
                             IdentityProvisioningConstants.NEW_USER_CLAIM_URI, null, null, false));
 
+                    if (newUsersList == null) {
+                        newUsersList = new ArrayList<>();
+                    }
                     List<String> deletedUsersList = attributes.get(ClaimMapping.build(
                             IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null, null, false));
 
+                    if (deletedUsersList == null) {
+                        deletedUsersList = new ArrayList<>();
+                    }
                     Map<ClaimMapping, List<String>> mappedUserClaims;
                     ProvisionedIdentifier provisionedUserIdentifier;
 
@@ -679,10 +692,10 @@ public class OutboundProvisioningManager {
                     IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                                    Arrays.asList(new String[]{userName}));
         }
-        List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
-        if (roleListOfUser != null) {
+        List<String> groupListOfUser = getUserGroups(userName, tenantDomain);
+        if (groupListOfUser != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    GROUP_CLAIM_URI, null, null, false), roleListOfUser);
+                    GROUP_CLAIM_URI, null, null, false), groupListOfUser);
         }
 
         String domainAwareName = userName;
@@ -865,6 +878,11 @@ public class OutboundProvisioningManager {
             // we apply restrictions only for users.
             // if service provider's out-bound provisioning configuration does not define any roles
             // to be provisioned then we apply no restrictions.
+            // Internal role provisioning should be blocked.
+            if (provisioningEntity.getEntityName().startsWith(RoleConstants.INTERNAL_DOMAIN +
+                    UserCoreConstants.DOMAIN_SEPARATOR)) {
+                return false;
+            }
             return true;
         }
 
@@ -873,14 +891,21 @@ public class OutboundProvisioningManager {
             String userName = provisioningEntity.getEntityName();
             List<String> provisioningRoleList = Arrays.asList(provisionByRoleList);
 
+            /* Both user groups and roles are considered when deciding to outbound provisioning.
+               The roles have "Internal/" prefix compared to the groups. */
+            List<String> roleGroupListOfUser = new ArrayList<>();
+            List<String> groupListOfUser = getUserGroups(userName, tenantDomain);
+            // Only fetch directly assigned roles to the user.
             List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
-            if (userHasProvisioningRoles(roleListOfUser, provisioningRoleList, userName)) {
+            roleGroupListOfUser.addAll(roleListOfUser);
+            roleGroupListOfUser.addAll(groupListOfUser);
+            if (userHasProvisioningRoles(roleGroupListOfUser, provisioningRoleList, userName)) {
                 return true;
             }
-            List<String> newRoleListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
+            List<String> newGroupListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
                         (GROUP_CLAIM_URI, null, null, false));
 
-            if (userHasProvisioningRoles(newRoleListOfUser, provisioningRoleList, userName)) {
+            if (userHasProvisioningRoles(newGroupListOfUser, provisioningRoleList, userName)) {
                 return true;
             }
         }
@@ -913,7 +938,7 @@ public class OutboundProvisioningManager {
      * @throws CarbonException
      * @throws UserStoreException
      */
-    private List<String> getUserRoles(String userName, String tenantDomain) throws UserStoreException {
+    private List<String> getUserGroups(String userName, String tenantDomain) throws UserStoreException {
 
         RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
         int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -922,7 +947,37 @@ public class OutboundProvisioningManager {
 
         UserStoreManager userstore = realm.getUserStoreManager();
         String[] newRoles = userstore.getRoleListOfUser(userName);
-        return Arrays.asList(newRoles);
+        return Arrays.stream(newRoles).filter(role -> !role.startsWith(INTERNAL_DOMAIN)).collect(Collectors.toList());
+    }
+
+    private List<String> getUserRoles(String username, String tenantDomain) throws UserStoreException {
+
+        List<String> userRoleList = new ArrayList<>();
+        RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
+        int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+        UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
+        AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
+        String userId = userStoreManager.getUserIDFromUserName(username);
+        if (userId == null) {
+            return userRoleList;
+        }
+        try {
+            List<String> userRoleIdList = ProvisioningServiceDataHolder.getInstance().getRoleManagementService()
+                    .getRoleIdListOfUser(userId, tenantDomain);
+            for (String roleId : userRoleIdList) {
+                RoleBasicInfo roleBasicInfo = ProvisioningServiceDataHolder.getInstance().getRoleManagementService()
+                        .getRoleBasicInfoById(roleId, tenantDomain);
+                // Only organization audience roles are supported for role based outbound provisioning.
+                if (!RoleConstants.ORGANIZATION.equals(roleBasicInfo.getAudience())) {
+                    continue;
+                }
+                userRoleList.add(roleBasicInfo.getName());
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
+        String internalRolePrefix = RoleConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR;
+        return userRoleList.stream().map(role -> internalRolePrefix + role).collect(Collectors.toList());
     }
 
     /**
