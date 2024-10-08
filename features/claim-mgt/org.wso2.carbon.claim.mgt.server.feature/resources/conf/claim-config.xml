@@ -804,42 +804,6 @@
 				<ReadOnly>true</ReadOnly>
 				<Description>Set the user preferred MFA option</Description>
 			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/emailAddresses</ClaimURI>
-				<DisplayName>Email Addresses</DisplayName>
-				<AttributeID>emailAddresses</AttributeID>
-				<Description>Claim to store email addresses of the user</Description>
-				<ReadOnly>false</ReadOnly>
-				<DisplayOrder>11</DisplayOrder>
-				<SupportedByDefault />
-			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/verifiedEmailAddresses</ClaimURI>
-				<DisplayName>Verified Email Addresses</DisplayName>
-				<AttributeID>verifiedEmailAddresses</AttributeID>
-				<Description>Claim to store verified email addresses of the user</Description>
-				<ReadOnly>false</ReadOnly>
-				<DisplayOrder>12</DisplayOrder>
-				<SupportedByDefault />
-			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/mobileNumbers</ClaimURI>
-				<DisplayName>Mobile Numbers</DisplayName>
-				<AttributeID>mobileNumbers</AttributeID>
-				<Description>Claim to store mobile numbers of the user</Description>
-				<ReadOnly>false</ReadOnly>
-				<DisplayOrder>13</DisplayOrder>
-				<SupportedByDefault />
-			</Claim>
-			<Claim>
-				<ClaimURI>http://wso2.org/claims/verifiedMobileNumbers</ClaimURI>
-				<DisplayName>Verified Mobile Numbers</DisplayName>
-				<AttributeID>verifiedMobileNumbers</AttributeID>
-				<Description>Claim to store verified mobile numbers of the user</Description>
-				<ReadOnly>false</ReadOnly>
-				<DisplayOrder>14</DisplayOrder>
-				<SupportedByDefault />
-			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -2684,44 +2648,6 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault/>
 				<MappedLocalClaim>http://wso2.org/claims/identity/preferredMFAOption</MappedLocalClaim>
-			</Claim>
-		</Dialect>
-		<Dialect dialectURI="urn:scim:wso2:schema">
-			<Claim>
-				<ClaimURI>urn:scim:wso2:schema:emailAddresses</ClaimURI>
-				<DisplayName>Email Addresses</DisplayName>
-				<AttributeID>emailAddresses</AttributeID>
-				<Description>Email Addresses</Description>
-				<SupportedByDefault />
-				<DisplayOrder>11</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/emailAddresses</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:scim:wso2:schema:verifiedEmailAddresses</ClaimURI>
-				<DisplayName>Verified Email Addresses</DisplayName>
-				<AttributeID>verifiedEmailAddresses</AttributeID>
-				<Description>Verified Email Addresses</Description>
-				<SupportedByDefault />
-				<DisplayOrder>12</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/verifiedEmailAddresses</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:scim:wso2:schema:mobileNumbers</ClaimURI>
-				<DisplayName>Mobile Numbers</DisplayName>
-				<AttributeID>mobileNumbers</AttributeID>
-				<Description>Mobile Numbers</Description>
-				<SupportedByDefault />
-				<DisplayOrder>13</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/mobileNumbers</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:scim:wso2:schema:verifiedMobileNumbers</ClaimURI>
-				<DisplayName>Verified Mobile Numbers</DisplayName>
-				<AttributeID>verifiedMobileNumbers</AttributeID>
-				<Description>Verified Mobile Numbers</Description>
-				<SupportedByDefault />
-				<DisplayOrder>14</DisplayOrder>
-				<MappedLocalClaim>http://wso2.org/claims/verifiedMobileNumbers</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 	</Dialects>
