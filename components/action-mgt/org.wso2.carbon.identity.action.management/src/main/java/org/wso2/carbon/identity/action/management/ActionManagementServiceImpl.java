@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOIm
 import org.wso2.carbon.identity.action.management.dao.impl.CacheBackedActionMgtDAO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
+import org.wso2.carbon.identity.action.management.listener.ActionManagementListener;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
@@ -78,8 +80,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         doPreAddActionValidations(action);
         String generatedActionId = UUID.randomUUID().toString();
-        return CACHE_BACKED_DAO.addAction(resolvedActionType, generatedActionId, action,
+        Action createdAction = CACHE_BACKED_DAO.addAction(resolvedActionType, generatedActionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        // Configure a listener for audit logs v2 // TODO: add unit tests
+        List<ActionManagementListener> actionManagementListenerList = ActionMgtServiceComponentHolder.getInstance()
+                .getActionManagementListenerList();
+        for (ActionManagementListener actionManagementListener : actionManagementListenerList) {
+            if (actionManagementListener.isEnable()) {
+                actionManagementListener.postAddAction(actionType, action, tenantDomain);
+            }
+        }
+        return createdAction;
     }
 
     /**
@@ -123,8 +134,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         doPreUpdateActionValidations(action);
-        return CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, action, existingAction,
+        Action updatedAction = CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, action, existingAction,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        // Configure a listener for audit logs v2 // TODO: add unit tests
+        List<ActionManagementListener> actionManagementListenerList = ActionMgtServiceComponentHolder.getInstance()
+                .getActionManagementListenerList();
+        for (ActionManagementListener actionManagementListener : actionManagementListenerList) {
+            if (actionManagementListener.isEnable()) {
+                actionManagementListener.postUpdateAction(actionType, actionType, action, tenantDomain);
+            }
+        }
+        return updatedAction;
     }
 
     /**
@@ -145,6 +165,14 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action action = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         CACHE_BACKED_DAO.deleteAction(resolvedActionType, actionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        // Configure a listener for audit logs v2 // TODO: add unit tests
+        List<ActionManagementListener> actionManagementListenerList = ActionMgtServiceComponentHolder.getInstance()
+                .getActionManagementListenerList();
+        for (ActionManagementListener actionManagementListener : actionManagementListenerList) {
+            if (actionManagementListener.isEnable()) {
+                actionManagementListener.postDeleteAction(actionType, actionId, tenantDomain);
+            }
+        }
     }
 
     /**
@@ -164,8 +192,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        return CACHE_BACKED_DAO.activateAction(resolvedActionType, actionId,
+        Action action = CACHE_BACKED_DAO.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        // Configure a listener for audit logs v2 // TODO: add unit tests
+        List<ActionManagementListener> actionManagementListenerList = ActionMgtServiceComponentHolder.getInstance()
+                .getActionManagementListenerList();
+        for (ActionManagementListener actionManagementListener : actionManagementListenerList) {
+            if (actionManagementListener.isEnable()) {
+                actionManagementListener.postActivateAction(actionType, actionId, tenantDomain);
+            }
+        }
+        return action;
     }
 
     /**
@@ -186,8 +223,17 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        return CACHE_BACKED_DAO.deactivateAction(resolvedActionType, actionId,
+        Action action = CACHE_BACKED_DAO.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        // Configure a listener for audit logs v2 // TODO: add unit tests
+        List<ActionManagementListener> actionManagementListenerList = ActionMgtServiceComponentHolder.getInstance()
+                .getActionManagementListenerList();
+        for (ActionManagementListener actionManagementListener : actionManagementListenerList) {
+            if (actionManagementListener.isEnable()) {
+                actionManagementListener.postDeactivateAction(actionType, actionId, tenantDomain);
+            }
+        }
+        return action;
     }
 
     /**

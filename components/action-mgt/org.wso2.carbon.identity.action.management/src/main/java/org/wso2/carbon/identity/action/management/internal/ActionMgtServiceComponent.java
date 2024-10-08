@@ -30,6 +30,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.ActionManagementServiceImpl;
+import org.wso2.carbon.identity.action.management.listener.ActionManagementListener;
+import org.wso2.carbon.identity.action.management.listener.ActionManagementV2AuditLogger;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
@@ -50,6 +53,8 @@ public class ActionMgtServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(ActionManagementService.class, ActionManagementServiceImpl.getInstance(), null);
+            bundleCtx.registerService(ActionManagementListener.class, new ActionManagementV2AuditLogger(), null);
+
             LOG.debug("Action management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing Action management component.", e);
@@ -62,6 +67,7 @@ public class ActionMgtServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.ungetService(bundleCtx.getServiceReference(ActionManagementService.class));
+            bundleCtx.ungetService(bundleCtx.getServiceReference(ActionManagementListener.class));
             LOG.debug("Action management bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating Action management component.", e);
@@ -100,5 +106,58 @@ public class ActionMgtServiceComponent {
     private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(null);
+    }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        LOG.debug("IdentityEventService set in Action Management bundle");
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setIdentityEventService(null);
+        LOG.debug("IdentityEventService set in Action Management bundle");
+    }
+
+    @Reference(
+            name = "action.management.listener",
+            service = ActionManagementListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionManagementListener"
+    )
+    protected void setActionManagementListener(ActionManagementListener actionManagementListener) {
+
+        ActionMgtServiceComponentHolder.getInstance().addActionManagementListener(actionManagementListener);
+    }
+
+    protected void unsetActionManagementListener(ActionManagementListener actionManagementListener) {
+
+        ActionMgtServiceComponentHolder.getInstance().setActionManagementListenerList(null);
+    }
+
+    @Reference(
+            name = "action.management.audit.v2.logger",
+            service = ActionManagementV2AuditLogger.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionManagementAuditV2Logger"
+    )
+    protected void setActionManagementAuditV2Logger(ActionManagementV2AuditLogger actionManagementV2AuditLogger) {
+
+        ActionMgtServiceComponentHolder.getInstance().addActionManagementListener(actionManagementV2AuditLogger);
+    }
+
+    protected void unsetActionManagementAuditV2Logger(ActionManagementV2AuditLogger actionManagementListener) {
+
+        ActionMgtServiceComponentHolder.getInstance().setActionManagementListenerList(null);
     }
 }

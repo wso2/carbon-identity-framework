@@ -159,4 +159,29 @@ public class LogConstants {
         public static final String DELETED_PERMISSIONS_FIELD = "DeletedPermissions";
         public static final String DELETED_IDP_GROUPS_FIELD = "DeletedIdpGroups";
     }
+
+    /**
+     * Action management related log constants.
+     */
+    public static class ActionManagement {
+        public static final String ADD_ACTION = "add-action";
+        public static final String UPDATE_ACTION = "update-action";
+        public static final String DELETE_ACTION = "delete-action";
+        public static final String ACTIVATE_ACTION = "activate-action";
+        public static final String DEACTIVATE_ACTION = "deactivate-action";
+
+        public static final String ACTION_TYPE_FIELD = "ActionType";
+        public static final String ACTION_NAME_FIELD = "ActionName";
+        public static final String ACTION_ID_FIELD = "ActionId";
+        public static final String ACTION_DESCRIPTION_FIELD = "ActionDescription";
+        public static final String ACTION_STATUS_FIELD = "ActionStatus";
+        public static final String ENDPOINT_CONFIG_FIELD = "EndpointConfiguration";
+        public static final String ENDPOINT_URI_FIELD = "EndpointUri";
+        public static final String ENDPOINT_AUTHENTICATION_SCHEME_FIELD = "EndpointAuthenticationScheme";
+        public static final String USERNAME_FIELD = "Username";
+        public static final String PASSWORD_FIELD = "Password";
+        public static final String ACCESS_TOKEN_FIELD = "AccessToken";
+        public static final String API_KEY_HEADER_FIELD = "ApiKeyHeader";
+        public static final String API_KEY_VALUE_FIELD = "ApiKeyValue";
+    }
 }

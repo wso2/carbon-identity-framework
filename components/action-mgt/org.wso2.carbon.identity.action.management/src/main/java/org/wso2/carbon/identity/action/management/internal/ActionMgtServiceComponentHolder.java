@@ -18,8 +18,13 @@
 
 package org.wso2.carbon.identity.action.management.internal;
 
+import org.wso2.carbon.identity.action.management.listener.ActionManagementListener;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service component Holder for the Action management.
@@ -28,6 +33,8 @@ public class ActionMgtServiceComponentHolder {
 
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
+    private IdentityEventService identityEventService;
+    private List<ActionManagementListener> actionManagementListenerList = new ArrayList<>();
 
     public static final ActionMgtServiceComponentHolder INSTANCE = new ActionMgtServiceComponentHolder();
 
@@ -83,5 +90,55 @@ public class ActionMgtServiceComponentHolder {
     public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         this.secretResolveManager = secretResolveManager;
+    }
+
+    /**
+     * Get instance of IdentityEventService.
+     *
+     * @return IdentityEventService.
+     */
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    /**
+     * Set instance of IdentityEventService.
+     *
+     * @param identityEventService Instance of IdentityEventService.
+     */
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Get the ActionManagementListener.
+     *
+     * @return ActionManagementListener.
+     */
+    public List<ActionManagementListener> getActionManagementListenerList() {
+
+        return actionManagementListenerList;
+    }
+
+    /**
+     * Set the ActionManagementListener.
+     *
+     * @param actionManagementListenerList ActionManagementListener
+     */
+    public void setActionManagementListenerList(List<ActionManagementListener> actionManagementListenerList) {
+
+        this.actionManagementListenerList = actionManagementListenerList;
+    }
+
+    /**
+     * Add a ActionManagementListener.
+     *
+     * @param actionManagementListener ActionManagementListener
+     */
+    public void addActionManagementListener(ActionManagementListener actionManagementListener) {
+
+        this.actionManagementListenerList.add(actionManagementListener);
     }
 }
