@@ -166,8 +166,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
         return new String[] {
                 "identity_err1.xml",
-                "identity_err2.xml",
-                "identity.xml" // Finally loading correct identity.xml file to be used for other tests.
+                "identity_err2.xml"
         };
     }
 
@@ -175,7 +174,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     public void testMissingConfigs(String fileName) {
 
         try {
-            // Set instance to null for creating a new instance
+            // Set current instance to null before creating a new instance
             Field identityKeyStoreResolverInstance = IdentityKeyStoreResolver.class.getDeclaredField("instance");
             identityKeyStoreResolverInstance.setAccessible(true);
             identityKeyStoreResolverInstance.set(null, null);
@@ -191,7 +190,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
             // Test instance creation --> Config read.
             IdentityKeyStoreResolver.getInstance();
         } catch (Exception e) {
-            fail();
+            fail("Test failed due to exception: " + e);
         }
     }
 
@@ -268,5 +267,4 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         field.setAccessible(true);
         field.set(null, newValue);
     }
-
 }
