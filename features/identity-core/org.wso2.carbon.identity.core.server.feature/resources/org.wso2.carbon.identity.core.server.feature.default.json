@@ -1189,6 +1189,7 @@
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
     "branding.ai",
+    "branding.applicationLevelBranding",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
