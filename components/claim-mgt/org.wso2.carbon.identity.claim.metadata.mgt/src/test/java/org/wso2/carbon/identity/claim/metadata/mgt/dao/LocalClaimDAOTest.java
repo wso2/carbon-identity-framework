@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.w3c.dom.Attr;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -29,14 +28,12 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
@@ -198,12 +195,41 @@ public class LocalClaimDAOTest {
                 };
     }
 
+    @Test(dataProvider = "updateLocalClaimMappings")
+    public void testUpdateLocalClaimMappings(List<LocalClaim> claimsToBeUpdated, List<LocalClaim> claimsInDB,
+                                             List<LocalClaim> resultClaims, String userStoreDomain)
+            throws ClaimMetadataException {
+
+        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+
+        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+        for (LocalClaim localClaim : claimsInDB) {
+            localClaimDAO.addLocalClaim(localClaim, TEST_LOCAL_TENANT_ID);
+        }
+
+        localClaimDAO.updateLocalClaimMappings(claimsToBeUpdated, TEST_LOCAL_TENANT_ID, userStoreDomain);
+
+        List<LocalClaim> localClaimsFromDB = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
+        assertEquals(localClaimsFromDB.size(), resultClaims.size(), "Failed to update local claim mappings");
+
+        for (LocalClaim localClaimInResultSet : resultClaims) {
+            LocalClaim localClaimFromDB = localClaimsFromDB.stream()
+                    .filter(claim -> claim.getClaimURI().equals(localClaimInResultSet.getClaimURI()))
+                    .findFirst()
+                    .orElse(null);
+            assert localClaimFromDB != null;
+            assertEquals(localClaimInResultSet, localClaimFromDB);
+        }
+    }
+
     @DataProvider(name = "updateLocalClaimMappings")
     public Object[][] testUpdateLocalClaimMappingsData() {
 
         String testUserStoreDomain = "TEST_DOMAIN";
 
-        // Local claims to be updated
+        // Local claims to be updated.
         List<LocalClaim> localClaimsToBeUpdated = Arrays.asList(
                 createLocalClaim("http://wso2.org/claims/test1", "TestDescription1",
                         createAttributeMappings("PRIMARY", "givenname", "TEST_DOMAIN", "firstname")),
@@ -215,7 +241,7 @@ public class LocalClaimDAOTest {
                         createAttributeMappings("TEST_DOMAIN", "firstname"))
         );
 
-        // Local claims in DB
+        // Local claims in DB.
         List<LocalClaim> localClaimsInDB = Arrays.asList(
                 createLocalClaim("http://wso2.org/claims/test2", "TestDescription2",
                         createAttributeMappings("PRIMARY", "firstname", "TEST_DOMAIN", "givenname")),
@@ -225,7 +251,7 @@ public class LocalClaimDAOTest {
                         null)
         );
 
-        // Expected result local claims
+        // Expected result local claims.
         List<LocalClaim> resultLocalClaims = Arrays.asList(
                 createLocalClaim("http://wso2.org/claims/test1", "TestDescription1",
                         createAttributeMappings("PRIMARY", "givenname", "TEST_DOMAIN", "firstname")),
@@ -261,33 +287,5 @@ public class LocalClaimDAOTest {
             attributeMappings.add(new AttributeMapping(mappings[i], mappings[i + 1]));
         }
         return attributeMappings;
-    }
-
-    @Test(dataProvider = "updateLocalClaimMappings")
-    public void testUpdateLocalClaimMappings(List<LocalClaim> claimsToBeUpdated, List<LocalClaim> claimsInDB,
-            List<LocalClaim> resultClaims, String userStoreDomain) throws ClaimMetadataException {
-
-        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
-        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
-        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
-
-        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
-        for (LocalClaim localClaim : claimsInDB) {
-            localClaimDAO.addLocalClaim(localClaim, TEST_LOCAL_TENANT_ID);
-        }
-
-        localClaimDAO.updateLocalClaimMappings(claimsToBeUpdated, TEST_LOCAL_TENANT_ID, userStoreDomain);
-
-        List<LocalClaim> localClaimsFromDB = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
-        assertEquals(localClaimsFromDB.size(), resultClaims.size(), "Failed to update local claim mappings");
-
-        for (LocalClaim localClaimInResultSet : resultClaims) {
-            LocalClaim localClaimFromDB = localClaimsFromDB.stream()
-                    .filter(claim -> claim.getClaimURI().equals(localClaimInResultSet.getClaimURI()))
-                    .findFirst()
-                    .orElse(null);
-            assert localClaimFromDB != null;
-            assertEquals(localClaimInResultSet, localClaimFromDB);
-        }
     }
 }
