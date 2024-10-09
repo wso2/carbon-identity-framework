@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents the metadata of a local claim.
@@ -66,5 +67,22 @@ public class LocalClaim extends Claim {
 
     public void setMappedAttribute(AttributeMapping mappedAttribute) {
         this.mappedAttributes.add(mappedAttribute);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LocalClaim that = (LocalClaim) o;
+        return Objects.equals(this.getClaimURI(), that.getClaimURI())
+                && Objects.equals(this.getMappedAttributes(), that.getMappedAttributes())
+                && Objects.equals(this.getClaimProperties(), that.getClaimProperties());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(this.getClaimURI(), this.getMappedAttributes(), this.getClaimProperties());
     }
 }
