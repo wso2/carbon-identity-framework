@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.api.resource.mgt.internal;
 
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 
 /**
  * Service component holder for the API resource management.
@@ -26,6 +27,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 public class APIResourceManagementServiceComponentHolder {
 
     private IdentityEventService identityEventService;
+    private OrganizationManager organizationManager;
 
     private static final APIResourceManagementServiceComponentHolder instance =
             new APIResourceManagementServiceComponentHolder();
@@ -62,5 +64,25 @@ public class APIResourceManagementServiceComponentHolder {
     public void setIdentityEventService(IdentityEventService identityEventService) {
 
         this.identityEventService = identityEventService;
+    }
+
+    /**
+     * Get the OrganizationManager.
+     *
+     * @return OrganizationManager instance.
+     */
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    /**
+     * Set the OrganizationManager.
+     *
+     * @param organizationManager OrganizationManager instance.
+     */
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
     }
 }
