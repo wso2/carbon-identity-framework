@@ -1148,6 +1148,8 @@ public class IdPManagementDAO {
                 }
 
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
+                authnConfig.setDefinedByType(IdentityConstants.DefinedByType.valueOf(
+                        rs.getString("DEFINED_BY")));
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());
@@ -1424,6 +1426,7 @@ public class IdPManagementDAO {
             }
             prepStmt1.setString(4, authnConfig.getName());
             prepStmt1.setString(5, authnConfig.getDisplayName());
+            prepStmt1.setString(6, authnConfig.getDefinedByType().toString());
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());

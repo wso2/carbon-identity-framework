@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -63,6 +64,8 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @XmlElement(name = "Tags")
     protected String[] tags;
 
+    protected IdentityConstants.DefinedByType definedByType;
+
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {
 
         if (federatedAuthenticatorConfigOM == null) {
@@ -101,6 +104,9 @@ public class FederatedAuthenticatorConfig implements Serializable {
                     Property[] propertiesArr = propertiesArrList.toArray(new Property[propertiesArrList.size()]);
                     federatedAuthenticatorConfig.setProperties(propertiesArr);
                 }
+            } else if ("DefinedBy".equals(elementName)) {
+                federatedAuthenticatorConfig.setDefinedByType(
+                        IdentityConstants.DefinedByType.valueOf(element.getText()));
             }
         }
 
@@ -229,5 +235,25 @@ public class FederatedAuthenticatorConfig implements Serializable {
     public void setTags(String[] tagList) {
 
         tags = tagList;
+    }
+
+    /**
+     * Get the tag list of the Local authenticator.
+     *
+     * @return String[]
+     */
+    public IdentityConstants.DefinedByType getDefinedByType() {
+
+        return definedByType;
+    }
+
+    /**
+     * Set the tag list for Local authenticator config.
+     *
+     * @param type  authenticator.
+     */
+    public void setDefinedByType(IdentityConstants.DefinedByType type) {
+
+        definedByType = type;
     }
 }

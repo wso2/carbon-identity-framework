@@ -36,6 +36,7 @@
                     <LocalAuthenticatorConfig>
                         <Name>BasicMockAuthenticator</Name>
                         <DisplayName>basicauth</DisplayName>
+                        <DefinedBy>SYSTEM</DefinedBy>
                         <IsEnabled>true</IsEnabled>
                     </LocalAuthenticatorConfig>
                 </LocalAuthenticatorConfigs>
@@ -85,6 +86,7 @@
                         <Name>BasicFailingMockAuthenticator</Name>
                         <DisplayName>basicauthfialing</DisplayName>
                         <IsEnabled>true</IsEnabled>
+                        <DefinedBy>SYSTEM</DefinedBy>
                     </LocalAuthenticatorConfig>
                 </LocalAuthenticatorConfigs>
                 <SubjectStep>true</SubjectStep>
