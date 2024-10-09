@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.action.execution.model.Param;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -41,8 +40,7 @@ public class RequestFilter {
                 .getExcludedHeadersInActionRequestForActionType(actionType);
 
         headers.forEach(header -> {
-            // Headers are case-insensitive. Therefore, convert the key to lowercase before comparing.
-            if (!excludedHeaders.contains(header.getName().toLowerCase(Locale.ROOT))) {
+            if (!excludedHeaders.contains(header.getName())) {
                 filteredHeaders.add(header);
             }
         });
