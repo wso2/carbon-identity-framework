@@ -41,8 +41,10 @@ import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.model.Application;
 import org.wso2.carbon.identity.action.execution.model.Event;
+import org.wso2.carbon.identity.action.execution.model.Header;
 import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.execution.model.Organization;
+import org.wso2.carbon.identity.action.execution.model.Param;
 import org.wso2.carbon.identity.action.execution.model.Request;
 import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
@@ -265,8 +267,8 @@ public class ActionExecutorServiceImplTest {
                 .thenReturn(actionExecutionResponseProcessor);
 
         // Mock RequestFilter used in Request class
-        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new HashMap<>());
-        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new HashMap<>());
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new ArrayList<Header>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new ArrayList<Param>());
 
         ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
 
@@ -520,16 +522,16 @@ public class ActionExecutorServiceImplTest {
 
     private ActionExecutionRequest createActionExecutionRequest(ActionType actionType) throws Exception {
 
-        Map<String, String[]> headers = new HashMap<>();
-        headers.put("Content-Type", new String[]{"application/json"});
-        headers.put("X-Header-1", new String[]{"X-header-1-value"});
-        headers.put("X-Header-2", new String[]{"X-header-2-value"});
-        headers.put("X-Header-3", new String[]{"X-header-3-value"});
+        List<Header> headers = new ArrayList<>();
+        headers.add(new Header("Content-Type", new String[]{"application/json"}));
+        headers.add(new Header("X-Header-1", new String[]{"X-header-1-value"}));
+        headers.add(new Header("X-Header-2", new String[]{"X-header-2-value"}));
+        headers.add(new Header("X-Header-3", new String[]{"X-header-3-value"}));
 
-        Map<String, String[]> params = new HashMap<>();
-        params.put("x-param-1", new String[]{"X-param-1-value"});
-        params.put("x-param-2", new String[]{"X-param-2-value"});
-        params.put("x-param-3", new String[]{"X-param-3-value"});
+        List<Param> params = new ArrayList<>();
+        params.add(new Param("x-param-1", new String[]{"X-param-1-value"}));
+        params.add(new Param("x-param-2", new String[]{"X-param-2-value"}));
+        params.add(new Param("x-param-3", new String[]{"X-param-3-value"}));
 
         Request request = spy(mock(ConcreteRequest.class));
         setField(request, "additionalHeaders", headers);

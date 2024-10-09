@@ -24,10 +24,12 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.Header;
+import org.wso2.carbon.identity.action.execution.model.Param;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.Mockito.mockStatic;
@@ -62,16 +64,21 @@ public class RequestFilterTest {
         Mockito.when(config.getExcludedHeadersInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(excludedHeaders);
 
-        Map<String, String[]> headers = new HashMap<>();
-        headers.put("Content-Type", new String[]{"application/json"});
-        headers.put("X-Header-1", new String[]{"X-header-1-value"});
-        headers.put("X-Header-3", new String[]{"X-header-3-value"});
+        List<Header> headers = new ArrayList<>();
+        headers.add(new Header("Content-Type", new String[]{"application/json"}));
+        headers.add(new Header("X-Header-1", new String[]{"X-header-1-value"}));
+        headers.add(new Header("X-Header-3", new String[]{"X-header-3-value"}));
 
-        Map<String, String[]> filteredHeaders =
+        List<Header> filteredHeaders =
                 RequestFilter.getFilteredHeaders(headers, ActionType.PRE_ISSUE_ACCESS_TOKEN);
         assertEquals(filteredHeaders.size(), 2);
-        assertEquals(filteredHeaders.get("Content-Type"), new String[]{"application/json"});
-        assertEquals(filteredHeaders.get("X-Header-3"), new String[]{"X-header-3-value"});
+        filteredHeaders.forEach(filteredHeader -> {
+            if (filteredHeader.getName().equalsIgnoreCase("Content-Type")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"application/json"});
+            } else if (filteredHeader.getName().equalsIgnoreCase("X-Header-3")) {
+                assertEquals(filteredHeader.getValue(), new String[]{"X-header-3-value"});
+            }
+        });
     }
 
     @Test
@@ -85,15 +92,20 @@ public class RequestFilterTest {
         Mockito.when(config.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN))
                 .thenReturn(excludedParams);
 
-        Map<String, String[]> params = new HashMap<>();
-        params.put("x-param-1", new String[]{"X-param-1-value"});
-        params.put("X-Param-2", new String[]{"X-Param-2-Value"});
-        params.put("x-param-3", new String[]{"X-param-3-value"});
+        List<Param> params = new ArrayList<>();
+        params.add(new Param("x-param-1", new String[]{"X-param-1-value"}));
+        params.add(new Param("X-Param-2", new String[]{"X-Param-2-Value"}));
+        params.add(new Param("x-param-3", new String[]{"X-param-3-value"}));
 
-        Map<String, String[]> filteredParams =
+        List<Param> filteredParams =
                 RequestFilter.getFilteredParams(params, ActionType.PRE_ISSUE_ACCESS_TOKEN);
         assertEquals(filteredParams.size(), 2);
-        assertEquals(filteredParams.get("x-param-3"), new String[]{"X-param-3-value"});
-        assertEquals(filteredParams.get("X-Param-2"), new String[]{"X-Param-2-Value"});
+        filteredParams.forEach(filteredParam -> {
+            if (filteredParam.getName().equalsIgnoreCase("x-param-3")) {
+                assertEquals(filteredParam.getValue(), new String[]{"X-param-3-value"});
+            } else if (filteredParam.getName().equalsIgnoreCase("X-Param-2")) {
+                assertEquals(filteredParam.getValue(), new String[]{"X-Param-2-Value"});
+            }
+        });
     }
 }
