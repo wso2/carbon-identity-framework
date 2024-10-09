@@ -47,3 +47,4 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: target/site/jacoco/jacoco.xml
+          flags: unit

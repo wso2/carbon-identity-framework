@@ -22,6 +22,8 @@ import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
@@ -262,5 +264,64 @@ public class DefaultApplicationValidatorTest {
 
         Assert.assertTrue(validationErrors.isEmpty(), "Validation should be skipped and there should not be any " +
                 "error messages.");
+    }
+
+    @DataProvider(name = "validateApplicationVersionDataProvider")
+    public Object[][] validateApplicationVersionDataProvider() {
+
+        return new Object[][]{
+                // version, valid status
+                {"v1.0.0", "oauth2", true},
+                // if auth type is samlsso, the downgrading should not be allowed.
+                {"v0.0.0", "oauth2", true},
+                {"v0.0.1", "oauth2", false},
+                {"v0.1.1", "oauth2", false},
+                {"v1.1.1", "oauth2", false},
+                {"dummy", "oauth2", false},
+                {"v1.0.0", "samlsso", true},
+                // if auth type is samlsso, the downgrading should not be allowed.
+                {"v0.0.0", "samlsso", false},
+                {"v0.0.1", "samlsso", false},
+                {"v0.1.1", "samlsso", false},
+                {"v1.1.1", "samlsso", false},
+                {"dummy", "samlsso", false},
+                {"v1.0.0", null, true},
+                // if no auth type is marked, the downgrading should not be allowed.
+                {"v0.0.0", null, false},
+                {"v0.0.1", null, false},
+                {"v0.1.1", null, false},
+                {"v1.1.1", null, false},
+                {"dummy", null, false},
+
+        };
+    }
+
+    @Test(dataProvider = "validateApplicationVersionDataProvider")
+    public void testValidateApplicationVersion(String version, String authType, boolean isValid)
+            throws NoSuchMethodException,
+            InvocationTargetException, IllegalAccessException {
+
+        // Prepare the service provider object.
+        ServiceProvider sp = new ServiceProvider();
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        if (authType != null) {
+            InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig
+                    = new InboundAuthenticationRequestConfig();
+            inboundAuthenticationRequestConfig.setInboundAuthType(authType);
+            inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(
+                    new InboundAuthenticationRequestConfig[]{ inboundAuthenticationRequestConfig});
+            sp.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+        }
+        sp.setApplicationVersion(version);
+        List<String> validationErrors = new ArrayList<>();
+
+        DefaultApplicationValidator defaultApplicationValidator = new DefaultApplicationValidator();
+        Method validateApplicationVersion = DefaultApplicationValidator.class.getDeclaredMethod(
+                "validateApplicationVersion", List.class, ServiceProvider.class);
+        validateApplicationVersion.setAccessible(true);
+        validateApplicationVersion.invoke(defaultApplicationValidator, validationErrors, sp);
+
+        Assert.assertEquals(validationErrors.isEmpty(), isValid, "Valid app version has been introduced. " +
+                "Please update the test case accordingly.");
     }
 }

@@ -21,6 +21,13 @@
     {% for collection in api_resource_collections %}
     <APIResourceCollection name="{{ collection.name }}" displayName="{{ collection.displayName }}" type="{{ collection.type | default('Unknown') }}" enabled="{{ collection.enabled | default('true') }}">
         <Scopes>
+            {% if collection.scopes.feature %}
+            <Feature>
+                {% for scope in collection.scopes.feature %}
+                <Scope name="{{ scope.name }}"/>
+                {% endfor %}
+            </Feature>
+            {% endif %}
             {% if collection.scopes.create %}
             <Create>
                 {% for scope in collection.scopes.create %}
