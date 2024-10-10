@@ -28,8 +28,7 @@ public class Header {
     private final String[] value;
 
     public Header(String name, String[] value) {
-
-        // Headers are case-insensitive. Therefore, convert the key to lowercase before initiating.
+        
         this.name = name;
         this.value = value;
     }
