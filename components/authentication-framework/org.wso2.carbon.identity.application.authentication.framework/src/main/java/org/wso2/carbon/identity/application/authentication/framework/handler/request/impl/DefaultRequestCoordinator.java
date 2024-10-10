@@ -246,6 +246,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
                         request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
                     context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
+                    context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
                     context.initializeAnalyticsData();
                     String contextIdIncludedQueryParams = context.getContextIdIncludedQueryParams();
                     contextIdIncludedQueryParams += FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS;
