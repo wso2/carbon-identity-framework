@@ -63,4 +63,17 @@ public class RoleManagementUtils {
 
         return roleDAO.getRoleAudienceRefId(audience, audienceId);
     }
+
+    /**
+     * Checks whether the given role is a shared role in the given tenant domain.
+     *
+     * @param roleId The role ID.
+     * @param tenantDomain The tenant domain.
+     * @return Whether the role is a shared role or not.
+     * @throws IdentityRoleManagementException If an error occurs while checking the shared role.
+     */
+    public static boolean isSharedRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.isSharedRole(roleId, tenantDomain);
+    }
 }
