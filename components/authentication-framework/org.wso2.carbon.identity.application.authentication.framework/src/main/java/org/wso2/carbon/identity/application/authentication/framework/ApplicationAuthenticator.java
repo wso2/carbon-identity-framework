@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -171,4 +172,13 @@ public interface ApplicationAuthenticator extends Serializable {
         return StringUtils.EMPTY;
     }
 
+    /**
+     * Get the authenticator type. Default value will be SYSTEM.
+     *
+     * @return Authenticator Type.
+     */
+    default DefinedByType getDefinedByType() {
+
+        return DefinedByType.SYSTEM;
+    }
 }
