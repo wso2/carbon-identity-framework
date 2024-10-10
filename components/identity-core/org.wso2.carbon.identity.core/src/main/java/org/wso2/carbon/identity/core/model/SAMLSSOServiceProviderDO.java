@@ -1,12 +1,12 @@
 /*
  * Copyright 2005-2007 WSO2, Inc. (http://wso2.com)
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -79,6 +79,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private String idpEntityIDAlias;
     private boolean doFrontChannelLogout;
     private String frontChannelLogoutBinding;
+
+    private String backChannelLogoutBinding = "BackChannel";
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -654,6 +656,15 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         this.idpEntityIDAlias = idpEntityIDAlias;
     }
 
+    public String getSingleLogoutMethod() {
+
+        if (doFrontChannelLogout) {
+            return frontChannelLogoutBinding;
+        } else {
+            return backChannelLogoutBinding;
+        }
+    }
+
     /**
      * Get optional configs of the SAML SSO IdP.
      *
@@ -663,53 +674,16 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
         List<ConfigTuple> customAttributes = new ArrayList<>();
 
-        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS,
-                idpEntityIDAlias);
-        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER,
-                issuerQualifier);
-        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL,
-                loginPageURL);
-        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX,
-                attributeConsumingServiceIndex);
-        putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
-                supportedAssertionQueryRequestTypes);
-
         // Multi-valued attributes.
         getAssertionConsumerUrlList().forEach(assertionConUrl ->
                 putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS,
                         assertionConUrl));
         getRequestedRecipientsList().forEach(requestedRecipient ->
-                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS, requestedRecipient));
+                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS,
+                        requestedRecipient));
         getRequestedAudiencesList().forEach(requestedAudience ->
-                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES, requestedAudience));
-        getRequestedClaimsList().forEach(requestedClaim ->
-                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS, requestedClaim));
-
-        if (isIdPInitSLOEnabled()) {
-            getIdpInitSLOReturnToURLList().forEach(idpInitSLOReturnToURL ->
-                    putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS,
-                            idpInitSLOReturnToURL));
-        }
-
-        if (isDoSingleLogout()) {
-            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SLO_RESPONSE_URL,
-                    sloResponseURL);
-            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SLO_REQUEST_URL,
-                    sloRequestURL);
-            // Convert boolean to string.
-            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT,
-                    String.valueOf(doFrontChannelLogout));
-
-            if (doFrontChannelLogout) {
-                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING,
-                        frontChannelLogoutBinding);
-            }
-        }
-
-        if (nameIdClaimUri != null && nameIdClaimUri.trim().length() > 0) {
-            putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI,
-                    nameIdClaimUri);
-        }
+                putIfNotNull(customAttributes, IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES,
+                        requestedAudience));
 
         return customAttributes;
     }
@@ -741,17 +715,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         String key = customAttribute.getKey();
         String value = customAttribute.getValue();
 
-        if (IdentityRegistryResources.PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS.equals(key)) {
-            setIdpEntityIDAlias(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_ISSUER_QUALIFIER.equals(key)) {
-            setIssuerQualifier(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_LOGIN_PAGE_URL.equals(key)) {
-            setLoginPageURL(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX.equals(key)) {
-            setAttributeConsumingServiceIndex(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES.equals(key)) {
-            setSupportedAssertionQueryRequestTypes(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS.equals(key)) {
+        if (IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS.equals(key)) {
             List<String> attributeList = getAssertionConsumerUrlList();
             if (attributeList.isEmpty()) {
                 attributeList = new ArrayList<>();
@@ -772,13 +736,6 @@ public class SAMLSSOServiceProviderDO implements Serializable {
             }
             attributeList.add(value);
             setRequestedAudiences(attributeList);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS.equals(key)) {
-            List<String> attributeList = getRequestedClaimsList();
-            if (attributeList.isEmpty()) {
-                attributeList = new ArrayList<>();
-            }
-            attributeList.add(value);
-            setRequestedClaims(attributeList);
         } else if (IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS.equals(key)) {
             List<String> attributeList = getIdpInitSLOReturnToURLList();
             if (attributeList.isEmpty()) {
@@ -786,16 +743,6 @@ public class SAMLSSOServiceProviderDO implements Serializable {
             }
             attributeList.add(value);
             setIdpInitSLOReturnToURLs(attributeList);
-        } else if (IdentityRegistryResources.PROP_SAML_SLO_RESPONSE_URL.equals(key)) {
-            setSloResponseURL(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SLO_REQUEST_URL.equals(key)) {
-            setSloRequestURL(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT.equals(key)) {
-            setDoFrontChannelLogout(Boolean.parseBoolean(value));
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING.equals(key)) {
-            setFrontChannelLogoutBinding(value);
-        } else if (IdentityRegistryResources.PROP_SAML_SSO_NAMEID_CLAIMURI.equals(key)) {
-            setNameIdClaimUri(value);
         }
     }
 
