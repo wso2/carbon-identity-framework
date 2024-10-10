@@ -40,7 +40,7 @@ public class SystemDefaultClaimMetadataManagerTest {
     private SystemDefaultClaimMetadataManager claimMetadataManager;
     private MockedStatic<IdentityClaimManagementServiceDataHolder> dataHolderStaticMock;
     private MockedStatic<IdentityUtil> identityUtilStaticMock;
-    private final String LOCAL_CLAIM_DIALECT_URI = "http://wso2.org/claims";
+    private final String LOCAL_CLAIM_DIALECT = "http://wso2.org/claims";
     private final String LOCAL_CLAIM_1 = "http://wso2.org/claims/username";
     private final String LOCAL_CLAIM_2 = "http://wso2.org/claims/email";
     private final String LOCAL_CLAIM_3 = "http://wso2.org/claims/country";
@@ -90,7 +90,7 @@ public class SystemDefaultClaimMetadataManagerTest {
 
     @Test
     public void testGetClaimDialect() throws ClaimMetadataException {
-        String claimDialectURI = LOCAL_CLAIM_DIALECT_URI;
+        String claimDialectURI = LOCAL_CLAIM_DIALECT;
         ClaimDialect claimDialect = claimMetadataManager.getClaimDialect(claimDialectURI, 1);
         assertNotNull(claimDialect);
         assertEquals(claimDialectURI, claimDialect.getClaimDialectURI());
@@ -108,7 +108,7 @@ public class SystemDefaultClaimMetadataManagerTest {
     @Test
     public void testAddClaimDialect() throws ClaimMetadataException {
 
-        ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT_URI);
+        ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
         assertThrows(UnsupportedOperationException.class, () -> {
             claimMetadataManager.addClaimDialect(claimDialect, 1);
         });
@@ -120,19 +120,19 @@ public class SystemDefaultClaimMetadataManagerTest {
     @Test
     public void testRenameClaimDialect() throws ClaimMetadataException {
 
-        ClaimDialect oldClaimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT_URI);
+        ClaimDialect oldClaimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
         ClaimDialect newClaimDialect = new ClaimDialect("http://abc.org/claims");
         assertThrows(UnsupportedOperationException.class, () -> {
             claimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, 1);
         });
-        ClaimDialect claimDialect = claimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT_URI, 1);
+        ClaimDialect claimDialect = claimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 1);
         assertNotNull(claimDialect);
     }
 
     @Test
     public void testRemoveClaimDialect() throws ClaimMetadataException {
 
-        ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT_URI);
+        ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
         assertThrows(UnsupportedOperationException.class, () -> {
             claimMetadataManager.removeClaimDialect(claimDialect, 1);
         });
@@ -401,12 +401,12 @@ public class SystemDefaultClaimMetadataManagerTest {
         Map<ClaimKey, ClaimMapping> claims = new HashMap<>();
         Map<ClaimKey, Map<String, String>> propertyHolder = new HashMap<>();
         List<ClaimKey> claimKeys = Arrays.asList(
-                new ClaimKey(LOCAL_CLAIM_1, LOCAL_CLAIM_DIALECT_URI),
-                new ClaimKey(LOCAL_CLAIM_2, LOCAL_CLAIM_DIALECT_URI),
-                new ClaimKey(LOCAL_CLAIM_3, LOCAL_CLAIM_DIALECT_URI),
-                new ClaimKey(LOCAL_CLAIM_4, LOCAL_CLAIM_DIALECT_URI),
-                new ClaimKey(LOCAL_CLAIM_5, LOCAL_CLAIM_DIALECT_URI),
-                new ClaimKey(LOCAL_CLAIM_6, LOCAL_CLAIM_DIALECT_URI),
+                new ClaimKey(LOCAL_CLAIM_1, LOCAL_CLAIM_DIALECT),
+                new ClaimKey(LOCAL_CLAIM_2, LOCAL_CLAIM_DIALECT),
+                new ClaimKey(LOCAL_CLAIM_3, LOCAL_CLAIM_DIALECT),
+                new ClaimKey(LOCAL_CLAIM_4, LOCAL_CLAIM_DIALECT),
+                new ClaimKey(LOCAL_CLAIM_5, LOCAL_CLAIM_DIALECT),
+                new ClaimKey(LOCAL_CLAIM_6, LOCAL_CLAIM_DIALECT),
                 new ClaimKey(EXT_CLAIM_DIALECT_1_CLAIM_1, EXT_CLAIM_DIALECT_1),
                 new ClaimKey(EXT_CLAIM_DIALECT_1_CLAIM_2, EXT_CLAIM_DIALECT_1),
                 new ClaimKey(EXT_CLAIM_DIALECT_1_CLAIM_3, EXT_CLAIM_DIALECT_1),

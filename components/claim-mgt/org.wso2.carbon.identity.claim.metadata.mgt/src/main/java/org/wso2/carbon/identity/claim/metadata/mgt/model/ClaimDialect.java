@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.claim.metadata.mgt.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Represents the simplest form of the metadata of a claim dialect.
@@ -35,4 +36,25 @@ public class ClaimDialect implements Serializable {
         return claimDialectURI;
     }
 
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ClaimDialect claimDialect = (ClaimDialect) o;
+        if (this.claimDialectURI == null) {
+            return claimDialect.claimDialectURI == null;
+        } else return this.claimDialectURI.equals(claimDialect.claimDialectURI);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(claimDialectURI);
+    }
 }

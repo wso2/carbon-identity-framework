@@ -52,13 +52,10 @@ public class DBBasedClaimMetadataManagerTest {
     private final String EXT_CLAIM_DIALECT_1_CLAIM_1 = "http://abc.org/claim1";
     private final String EXT_CLAIM_DIALECT_1_CLAIM_2 = "http://abc.org/claim2";
     private final String EXT_CLAIM_DIALECT_1_CLAIM_3 = "http://abc.org/claim3";
-    private final String EXT_CLAIM_DIALECT_1_CLAIM_4 = "http://abc.org/claim4";
-    private final String EXT_CLAIM_DIALECT_1_CLAIM_5 = "http://abc.org/claim5";
     private final String EXT_CLAIM_DIALECT_2_CLAIM_1 = "http://def.org/claim1";
     private final String EXT_CLAIM_DIALECT_2_CLAIM_2 = "http://def.org/claim2";
-    private final String EXT_CLAIM_DIALECT_2_CLAIM_3 = "http://def.org/claim3";
     private final String NON_EXISTING_CLAIM_DIALECT_URI = "http://nonexisting.org";
-    private final String TEST_USERSTORE_DOMAIN = "TEST_USERSTORE_DOMAIN";
+    private final String TEST_USER_STORE_DOMAIN = "TEST_USER_STORE_DOMAIN";
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -237,8 +234,8 @@ public class DBBasedClaimMetadataManagerTest {
 
         List<LocalClaim> updatedLocalClaims = new ArrayList<>();
         updatedLocalClaims.add(new LocalClaim(LOCAL_CLAIM_6));
-        claimMetadataManager.updateLocalClaimMappings(updatedLocalClaims, 1, TEST_USERSTORE_DOMAIN);
-        verify(mockLocalClaimDAO, times(1)).updateLocalClaimMappings(updatedLocalClaims, 1, TEST_USERSTORE_DOMAIN);
+        claimMetadataManager.updateLocalClaimMappings(updatedLocalClaims, 1, TEST_USER_STORE_DOMAIN);
+        verify(mockLocalClaimDAO, times(1)).updateLocalClaimMappings(updatedLocalClaims, 1, TEST_USER_STORE_DOMAIN);
     }
 
     @Test
@@ -252,13 +249,13 @@ public class DBBasedClaimMetadataManagerTest {
     @Test
     public void testRemoveClaimMappingAttributes() throws ClaimMetadataException, UserStoreException {
 
-        claimMetadataManager.removeClaimMappingAttributes(1, TEST_USERSTORE_DOMAIN);
-        verify(mockLocalClaimDAO, times(1)).removeClaimMappingAttributes(1, TEST_USERSTORE_DOMAIN);
+        claimMetadataManager.removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
+        verify(mockLocalClaimDAO, times(1)).removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
 
         doThrow(new UserStoreException("User store error")).when(mockLocalClaimDAO)
-                .removeClaimMappingAttributes(1, TEST_USERSTORE_DOMAIN);
+                .removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
         assertThrows(ClaimMetadataServerException.class, () -> {
-            claimMetadataManager.removeClaimMappingAttributes(1, TEST_USERSTORE_DOMAIN);
+            claimMetadataManager.removeClaimMappingAttributes(1, TEST_USER_STORE_DOMAIN);
         });
     }
 
