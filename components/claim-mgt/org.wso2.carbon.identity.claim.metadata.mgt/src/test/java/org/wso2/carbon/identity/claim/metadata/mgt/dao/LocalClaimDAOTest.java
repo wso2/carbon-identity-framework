@@ -222,6 +222,8 @@ public class LocalClaimDAOTest {
             assert localClaimFromDB != null;
             assertEquals(localClaimInResultSet, localClaimFromDB);
         }
+
+        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
     }
 
     @DataProvider(name = "updateLocalClaimMappings")
