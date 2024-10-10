@@ -101,9 +101,9 @@ public class RequestFilterTest {
                 RequestFilter.getFilteredParams(params, ActionType.PRE_ISSUE_ACCESS_TOKEN);
         assertEquals(filteredParams.size(), 2);
         filteredParams.forEach(filteredParam -> {
-            if (filteredParam.getName().equalsIgnoreCase("x-param-3")) {
+            if (filteredParam.getName().equals("x-param-3")) {
                 assertEquals(filteredParam.getValue(), new String[]{"X-param-3-value"});
-            } else if (filteredParam.getName().equalsIgnoreCase("X-Param-2")) {
+            } else if (filteredParam.getName().equals("X-Param-2")) {
                 assertEquals(filteredParam.getValue(), new String[]{"X-Param-2-Value"});
             }
         });
