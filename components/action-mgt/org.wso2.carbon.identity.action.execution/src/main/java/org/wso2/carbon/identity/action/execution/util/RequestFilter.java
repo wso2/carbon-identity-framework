@@ -19,12 +19,10 @@
 package org.wso2.carbon.identity.action.execution.util;
 
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Header;
-import org.wso2.carbon.identity.action.execution.model.Param;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,30 +32,31 @@ import java.util.Set;
  */
 public class RequestFilter {
 
-    public static List<Header> getFilteredHeaders(List<Header> headers, ActionType actionType) {
+    public static Map<String, String[]> getFilteredHeaders(Map<String, String[]> headers, ActionType actionType) {
 
-        List<Header> filteredHeaders = new ArrayList<>();
+        Map<String, String[]> filteredHeaders = new HashMap<>();
         Set<String> excludedHeaders = ActionExecutorConfig.getInstance()
                 .getExcludedHeadersInActionRequestForActionType(actionType);
 
-        headers.forEach(header -> {
-            if (!excludedHeaders.contains(header.getName().toLowerCase(Locale.ROOT))) {
-                filteredHeaders.add(header);
+        headers.forEach((key, value) -> {
+            // Headers are case-insensitive. Therefore, convert the key to lowercase before comparing.
+            if (!excludedHeaders.contains(key.toLowerCase(Locale.ROOT))) {
+                filteredHeaders.put(key, value);
             }
         });
 
         return filteredHeaders;
     }
 
-    public static List<Param> getFilteredParams(List<Param> params, ActionType actionType) {
+    public static Map<String, String[]> getFilteredParams(Map<String, String[]> params, ActionType actionType) {
 
-        List<Param> filteredParams = new ArrayList<>();
+        Map<String, String[]> filteredParams = new HashMap<>();
         Set<String> excludedParams = ActionExecutorConfig.getInstance()
                 .getExcludedParamsInActionRequestForActionType(actionType);
 
-        params.forEach(param -> {
-            if (!excludedParams.contains(param.getName())) {
-                filteredParams.add(param);
+        params.forEach((key, value) -> {
+            if (!excludedParams.contains(key)) {
+                filteredParams.put(key, value);
             }
         });
 

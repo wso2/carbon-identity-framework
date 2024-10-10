@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.action.execution.model;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class models the Request.
@@ -30,25 +30,25 @@ import java.util.List;
  */
 public abstract class Request {
 
-    protected List<Header> additionalHeaders = new ArrayList<>();
-    protected List<Param> additionalParams = new ArrayList<>();
+    protected Map<String, String[]> additionalHeaders = new HashMap<>();
+    protected Map<String, String[]> additionalParams = new HashMap<>();
 
-    public List<Header> getAdditionalHeaders() {
+    public Map<String, String[]> getAdditionalHeaders() {
 
-        return additionalHeaders != null ? Collections.unmodifiableList(additionalHeaders) : Collections.emptyList();
+        return additionalHeaders != null ? Collections.unmodifiableMap(additionalHeaders) : Collections.emptyMap();
     }
 
-    public void setAdditionalHeaders(List<Header> additionalHeaders) {
+    public void setAdditionalHeaders(Map<String, String[]> additionalHeaders) {
 
         this.additionalHeaders = additionalHeaders;
     }
 
-    public List<Param> getAdditionalParams() {
+    public Map<String, String[]> getAdditionalParams() {
 
-        return additionalParams != null ? Collections.unmodifiableList(additionalParams) : Collections.emptyList();
+        return additionalParams != null ? Collections.unmodifiableMap(additionalParams) : Collections.emptyMap();
     }
 
-    public void setAdditionalParams(List<Param> additionalParams) {
+    public void setAdditionalParams(Map<String, String[]> additionalParams) {
 
         this.additionalParams = additionalParams;
     }
