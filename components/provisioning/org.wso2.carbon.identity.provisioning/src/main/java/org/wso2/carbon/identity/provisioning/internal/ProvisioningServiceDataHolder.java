@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.provisioning.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
+import org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 
@@ -32,9 +32,9 @@ public class ProvisioningServiceDataHolder {
     private static ProvisioningServiceDataHolder instance = new ProvisioningServiceDataHolder();
     private RealmService realmService;
     private BundleContext bundleContext;
-    private EntitlementService entitlementService;
     private RolePermissionManagementService rolePermissionManagementService;
     private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<String, AbstractProvisioningConnectorFactory>();
+    private ProvisioningHandler provisioningHandler;
 
     private ProvisioningServiceDataHolder() {
     }
@@ -67,15 +67,6 @@ public class ProvisioningServiceDataHolder {
         return connectorFactories;
     }
 
-    public EntitlementService getEntitlementService() {
-
-        return entitlementService;
-    }
-
-    public void setEntitlementService(EntitlementService entitlementService) {
-
-        this.entitlementService = entitlementService;
-    }
 
     public void setRolePermissionManagementService(RolePermissionManagementService rolePermissionManagementService) {
 
@@ -93,6 +84,14 @@ public class ProvisioningServiceDataHolder {
             throw new RuntimeException("Role permission management service cannot be found.");
         }
         return rolePermissionManagementService;
+    }
+
+    public ProvisioningHandler getProvisioningHandler() {
+        return provisioningHandler;
+    }
+
+    public void setProvisioningHandler(ProvisioningHandler provisioningHandler) {
+        this.provisioningHandler = provisioningHandler;
     }
 }
 

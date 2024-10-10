@@ -30,12 +30,12 @@ import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
-import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgtListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningErrorListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningIdentityProviderMgtListener;
+import org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
@@ -158,31 +158,31 @@ public class IdentityProvisionServiceComponent {
         }
     }
 
-    /**
-     * @param entitlementService
-     */
     @Reference(
-             name = "identity.entitlement.service", 
-             service = org.wso2.carbon.identity.entitlement.EntitlementService.class, 
-             cardinality = ReferenceCardinality.AT_LEAST_ONE, 
-             policy = ReferencePolicy.DYNAMIC, 
-             unbind = "unsetEntitlementService")
-    protected void setEntitlementService(EntitlementService entitlementService) {
+            name = "identity.provisioning.rule.handler.xacml",
+            service = org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler.class,
+            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOutboundProvisioningHandler"
+    )
+    protected void setOutboundProvisioningHandler(ProvisioningHandler provisioningHandler) {
+
         if (log.isDebugEnabled()) {
-            log.debug("EntitlementService is set in the Application Authentication Framework bundle");
+            log.debug("Outbound provisioning handler is set in the Identity Provisioning bundle");
         }
-        ProvisioningServiceDataHolder.getInstance().setEntitlementService(entitlementService);
+        ProvisioningServiceDataHolder.getInstance().setProvisioningHandler(provisioningHandler);
     }
 
-    /**
-     * @param entitlementService
-     */
-    protected void unsetEntitlementService(EntitlementService entitlementService) {
+    protected void unsetOutboundProvisioningHandler(ProvisioningHandler provisioningHandler) {
 
         if (log.isDebugEnabled()) {
-            log.debug("EntitlementService is unset in the Application Authentication Framework bundle");
+            log.debug("Outbound provisioning handler is unset in the Identity Provisioning bundle");
         }
-        ProvisioningServiceDataHolder.getInstance().setEntitlementService(null);
+        ProvisioningServiceDataHolder.getInstance().setProvisioningHandler(null);
+    }
+
+    public static ProvisioningHandler getProvisioningHandler() {
+        return ProvisioningServiceDataHolder.getInstance().getProvisioningHandler();
     }
 
     @Reference(

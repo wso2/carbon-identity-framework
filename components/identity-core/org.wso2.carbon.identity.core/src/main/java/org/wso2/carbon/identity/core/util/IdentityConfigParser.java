@@ -206,6 +206,7 @@ public class IdentityConfigParser {
             buildCookiesToInvalidateConfig();
             buildStoreProcedureBasedDAOConfig();
 
+
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
         } finally {
@@ -634,7 +635,7 @@ public class IdentityConfigParser {
      * @param localPart local part name
      * @return Corresponding OMElement
      */
-    public OMElement getConfigElement(String localPart) {
+    public OMElement  getConfigElement(String localPart) {
         return rootElement.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,localPart));
     }
 

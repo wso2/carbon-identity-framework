@@ -100,7 +100,6 @@ public class IdentityConstants {
     public final static String EVENT_LISTENER_PROPERTY = "Property";
     public final static String EVENT_LISTENER_PROPERTY_NAME = "name";
 
-
     // Cache Config constants
     public final static String CACHE_CONFIG = "CacheConfig";
     public final static String CACHE_MANAGER = "CacheManager";

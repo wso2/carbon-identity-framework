@@ -1997,6 +1997,9 @@
         <balana.version>1.2.13</balana.version>
         <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>
 
+        <!-- Outbound Provisioning XACML -->
+        <outbound.provisioning.xacml.version.range>[2.0.0,3.0.0]</outbound.provisioning.xacml.version.range>
+
         <!-- Equinox -->
         <version.equinox.osgi.services>3.3.100.v20130513-1956</version.equinox.osgi.services>
         <version.equinox.osgi>3.9.1.v20130814-1242</version.equinox.osgi>
