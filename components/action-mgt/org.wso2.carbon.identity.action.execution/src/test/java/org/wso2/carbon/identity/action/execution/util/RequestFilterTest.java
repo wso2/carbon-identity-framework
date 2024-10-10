@@ -73,9 +73,9 @@ public class RequestFilterTest {
                 RequestFilter.getFilteredHeaders(headers, ActionType.PRE_ISSUE_ACCESS_TOKEN);
         assertEquals(filteredHeaders.size(), 2);
         filteredHeaders.forEach(filteredHeader -> {
-            if (filteredHeader.getName().equalsIgnoreCase("Content-Type")) {
+            if (filteredHeader.getName().equals("Content-Type")) {
                 assertEquals(filteredHeader.getValue(), new String[]{"application/json"});
-            } else if (filteredHeader.getName().equalsIgnoreCase("X-Header-3")) {
+            } else if (filteredHeader.getName().equals("X-Header-3")) {
                 assertEquals(filteredHeader.getValue(), new String[]{"X-header-3-value"});
             }
         });
