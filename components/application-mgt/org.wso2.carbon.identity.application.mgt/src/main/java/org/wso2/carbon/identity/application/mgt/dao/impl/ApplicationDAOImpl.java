@@ -77,6 +77,7 @@ import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
@@ -1565,7 +1566,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                 authenticatorId = addAuthenticator(connection, tenantID,
                                         ApplicationConstants.LOCAL_IDP_NAME,
                                         lclAuthenticator.getName(),
-                                        lclAuthenticator.getDisplayName());
+                                        lclAuthenticator.getDisplayName(),
+                                        lclAuthenticator.getDefinedByType().toString());
                             }
                             if (authenticatorId > 0) {
                                 // ID, TENANT_ID, AUTHENTICATOR_ID
@@ -3088,6 +3090,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     localAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
+                    localAuthenticator.setDefinedByType(DefinedByType.valueOf(
+                            authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
                 } else {
                     Map<String, List<FederatedAuthenticatorConfig>> stepFedIdps = stepFedIdPAuthenticators
@@ -3106,6 +3110,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     fedAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
+                    fedAuthenticator.setDefinedByType(DefinedByType.valueOf(
+                            authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     idpAuths.add(fedAuthenticator);
                 }
 
@@ -5016,6 +5022,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_NAME, rs.getString(2));
                 returnData
                         .put(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME, rs.getString(3));
+                returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE, rs.getString(4));
             }
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -5032,13 +5039,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws SQLException
      */
-    private int addAuthenticator(Connection conn, int tenantId, String idpName,
-                                 String authenticatorName, String authenticatorDispalyName) throws SQLException {
+    private int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
+                                 String authenticatorDispalyName, String definedByType) throws SQLException {
 
         int authenticatorId = -1;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        // TENANT_ID, IDP_ID, NAME,IS_ENABLED, DISPLAY_NAME
         String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR;
         try {
             String dbProductName = conn.getMetaData().getDatabaseProductName();
@@ -5050,6 +5056,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             prepStmt.setString(4, authenticatorName);
             prepStmt.setString(5, "1");
             prepStmt.setString(6, authenticatorDispalyName);
+            prepStmt.setString(7, definedByType);
             prepStmt.execute();
             rs = prepStmt.getGeneratedKeys();
             if (rs.next()) {

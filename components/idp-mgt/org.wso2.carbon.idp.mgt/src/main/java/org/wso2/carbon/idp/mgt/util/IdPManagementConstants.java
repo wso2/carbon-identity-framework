@@ -235,7 +235,7 @@ public class IdPManagementConstants {
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
-        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME FROM " +
+        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY FROM " +
                 "IDP_AUTHENTICATOR WHERE IDP_ID = ?";
 
         public static final String GET_IDP_AUTH_SQL = "SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = ? AND NAME = ?";
@@ -357,7 +357,7 @@ public class IdPManagementConstants {
         public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.\"VALUE\" = 'true' AND ";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
-                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
+                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY) VALUES (?,?,?,?,?,?)";
 
         public static final String DELETE_IDP_AUTH_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE IDP_ID=? AND NAME=?";
 
@@ -448,7 +448,8 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME " +
+                "idp.DISPLAY_NAME, " +
+                "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
                 "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID =?";
@@ -460,7 +461,8 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME " +
+                "idp.DISPLAY_NAME, " +
+                "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
                 "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID " +
