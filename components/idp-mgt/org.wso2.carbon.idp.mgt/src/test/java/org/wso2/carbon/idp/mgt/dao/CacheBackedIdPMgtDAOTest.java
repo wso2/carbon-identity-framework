@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -47,7 +48,6 @@ import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.idp.mgt.cache.IdPCacheByAuthProperty;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByHRI;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByMetadataProperty;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByName;
@@ -742,6 +742,7 @@ public class CacheBackedIdPMgtDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -845,6 +846,7 @@ public class CacheBackedIdPMgtDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -902,6 +904,7 @@ public class CacheBackedIdPMgtDAOTest {
         newFederatedAuthenticatorConfig.setDisplayName("DisplayName1New");
         newFederatedAuthenticatorConfig.setName("Name");
         newFederatedAuthenticatorConfig.setEnabled(true);
+        newFederatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1New = new Property();
         property1New.setName("Property1New");
         property1New.setValue("value1New");
@@ -1450,6 +1453,7 @@ public class CacheBackedIdPMgtDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");

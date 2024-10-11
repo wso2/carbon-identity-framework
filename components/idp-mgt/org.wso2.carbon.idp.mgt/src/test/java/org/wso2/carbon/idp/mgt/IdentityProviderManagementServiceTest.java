@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -132,6 +133,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -557,6 +559,7 @@ public class IdentityProviderManagementServiceTest {
         newFederatedAuthenticatorConfig.setDisplayName("DisplayName1New");
         newFederatedAuthenticatorConfig.setName("Name");
         newFederatedAuthenticatorConfig.setEnabled(true);
+        newFederatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property newProperty1 = new Property();
         newProperty1.setName("Property1New");
         newProperty1.setValue("value1New");
@@ -694,6 +697,7 @@ public class IdentityProviderManagementServiceTest {
                 identityProviderManagementService.getAllFederatedAuthenticators();
         Assert.assertEquals(allFederatedAuthenticators.length, 0);
 
+
         FederatedAuthenticatorConfig federatedAuthenticatorConfig1 = mock(FederatedAuthenticatorConfig.class);
         federatedAuthenticatorConfig1.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig1.setName("Name1");
@@ -796,6 +800,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("DisplayName1New");
         facNew.setName("Name");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         idp2New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
         // Initialize New Resident Identity Provider 3.
@@ -893,6 +898,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -915,6 +921,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -950,6 +957,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1103,6 +1111,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName");
         federatedAuthenticatorConfig.setName("SAMLSSOAuthenticator");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("SPEntityId");
         property1.setValue("wso2-is");
