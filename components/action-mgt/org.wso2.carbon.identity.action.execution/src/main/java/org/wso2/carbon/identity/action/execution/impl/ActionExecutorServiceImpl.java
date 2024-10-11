@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
@@ -61,6 +62,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +76,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private static final ActionExecutorServiceImpl INSTANCE = new ActionExecutorServiceImpl();
     private final APIClient apiClient;
+    private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(1);
 
     private ActionExecutorServiceImpl() {
 
@@ -309,7 +312,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         String apiEndpoint = action.getEndpoint().getUri();
         CompletableFuture<ActionInvocationResponse> actionExecutor = CompletableFuture.supplyAsync(
-                () -> apiClient.callAPI(apiEndpoint, authenticationMethod, payload));
+                () -> apiClient.callAPI(apiEndpoint, authenticationMethod, payload), executorService);
         try {
             return actionExecutor.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -381,7 +384,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                                  actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
-        if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
             logSuccessResponse(action, successResponse);
         }
 
@@ -441,14 +444,16 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                         .build();
                 LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
             }
-            LOG.debug(String.format(
-                    "Received success response from API: %s for action type: %s action id: %s with authentication: %s. "
-                            + "Response: %s",
-                    action.getEndpoint().getUri(),
-                    action.getType().getActionType(),
-                    action.getId(),
-                    action.getEndpoint().getAuthentication().getType(),
-                    responseBody));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format(
+                        "Received success response from API: %s for action type: %s action id: %s with " +
+                                "authentication: %s. Response: %s",
+                        action.getEndpoint().getUri(),
+                        action.getType().getActionType(),
+                        action.getId(),
+                        action.getEndpoint().getAuthentication().getType(),
+                        responseBody));
+            }
         } catch (JsonProcessingException e) {
             LOG.error("Error occurred while deserializing the success response for action: " +
                     action.getId() + " for action type: " + action.getType().getActionType(), e);
@@ -457,7 +462,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logErrorResponse(Action action, ActionInvocationErrorResponse errorResponse) {
 
-        if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
             try {
                 String responseBody = serializeErrorResponse(errorResponse);
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -478,14 +483,16 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                             .build();
                     LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                 }
-                LOG.debug(String.format(
-                        "Received error response from API: %s for action type: %s action id: %s with " +
-                                "authentication: %s. Response: %s",
-                        action.getEndpoint().getUri(),
-                        action.getType().getActionType(),
-                        action.getId(),
-                        action.getEndpoint().getAuthentication().getType(),
-                        responseBody));
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format(
+                            "Received error response from API: %s for action type: %s action id: %s with " +
+                                    "authentication: %s. Response: %s",
+                            action.getEndpoint().getUri(),
+                            action.getType().getActionType(),
+                            action.getId(),
+                            action.getEndpoint().getAuthentication().getType(),
+                            responseBody));
+                }
             } catch (JsonProcessingException e) {
                 LOG.debug("Error occurred while deserializing the error response for action: " +
                         action.getId() + " for action type: " + action.getType().getActionType(), e);
@@ -495,7 +502,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logFailureResponse(Action action, ActionInvocationFailureResponse failureResponse) {
 
-        if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
             try {
                 String responseBody = serializeFailureResponse(failureResponse);
                 if (LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -516,14 +523,16 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                             .build();
                     LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                 }
-                LOG.debug(String.format(
-                        "Received failure response from API: %s for action type: %s action id: %s with " +
-                                "authentication: %s. Response: %s",
-                        action.getEndpoint().getUri(),
-                        action.getType().getActionType(),
-                        action.getId(),
-                        action.getEndpoint().getAuthentication().getType(),
-                        responseBody));
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format(
+                            "Received failure response from API: %s for action type: %s action id: %s with " +
+                                    "authentication: %s. Response: %s",
+                            action.getEndpoint().getUri(),
+                            action.getType().getActionType(),
+                            action.getId(),
+                            action.getEndpoint().getAuthentication().getType(),
+                            responseBody));
+                }
             } catch (JsonProcessingException e) {
                 LOG.debug("Error occurred while deserializing the failure response for action: " +
                         action.getId() + " for action type: " + action.getType().getActionType(), e);
@@ -633,7 +642,6 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
                 }
                 if (LOG.isDebugEnabled()) {
-                    // todo: add to diagnostics
                     LOG.debug("Allowed Operations: " + String.join(", ", allowedOps) +
                             ". Not Allowed Operations: " + String.join(", ", notAllowedOps));
                 }
