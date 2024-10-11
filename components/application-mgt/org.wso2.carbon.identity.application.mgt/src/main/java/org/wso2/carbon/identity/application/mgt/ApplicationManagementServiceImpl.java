@@ -1870,7 +1870,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             DocumentBuilderFactory docBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             Document document = docBuilderFactory.newDocumentBuilder().newDocument();
             marshaller.marshal(serviceProvider, document);
-            TransformerFactory transformerFactory = IdentityUtil.getSecuredTransformerFactory();
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
@@ -2171,7 +2171,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             Document document = docBuilderFactory.newDocumentBuilder().newDocument();
             marshaller.marshal(serviceProvider, document);
 
-            TransformerFactory transformerFactory = IdentityUtil.getSecuredTransformerFactory();
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");

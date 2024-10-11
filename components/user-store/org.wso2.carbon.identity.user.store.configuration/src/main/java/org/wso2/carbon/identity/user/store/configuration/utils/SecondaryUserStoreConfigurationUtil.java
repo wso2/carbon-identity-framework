@@ -366,7 +366,7 @@ public class SecondaryUserStoreConfigurationUtil {
 
     private static Transformer transformProperties() throws TransformerException {
 
-        TransformerFactory transformerFactory = IdentityUtil.getSecuredTransformerFactory();
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
