@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ~ Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~ Copyright (c) 2010-2024, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  ~
  ~ WSO2 Inc. licenses this file to you under the Apache License,
  ~ Version 2.0 (the "License"); you may not use this file except
@@ -85,18 +85,6 @@
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.balana</groupId>
-            <artifactId>org.wso2.balana.utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -128,8 +116,6 @@
                             org.wso2.carbon.identity.provisioning.internal,
                         </Private-Package>
                         <Import-Package>
-                            org.wso2.balana.*;
-                            version="${balana.imp.pkg.version.range}",
                             org.wso2.carbon.identity.entitlement.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
@@ -163,6 +149,9 @@
                             org.wso2.carbon.user.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.json;version="${json.wso2.version.range}",
+                            org.wso2.carbon.identity.provisioning.rule.handler.xacml.*;
+                            version="${outbound.provisioning.xacml.version.range}",
+                            *;resolution:=optional,
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.internal,
