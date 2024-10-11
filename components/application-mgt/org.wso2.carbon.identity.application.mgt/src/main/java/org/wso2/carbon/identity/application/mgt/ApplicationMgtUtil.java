@@ -1240,14 +1240,15 @@ public class ApplicationMgtUtil {
 
         switch (currentVersion) {
             case ApplicationConstants.ApplicationVersion.APP_VERSION_V0:
-                if (!inboundConfigType.equals(IdentityApplicationConstants.OAuth2.NAME)) {
-                    currentVersion = ApplicationConstants.ApplicationVersion.APP_VERSION_V1;
-                }
             case ApplicationConstants.ApplicationVersion.APP_VERSION_V1:
                 if (!inboundConfigType.equals(IdentityApplicationConstants.OAuth2.NAME)) {
                     currentVersion = ApplicationConstants.ApplicationVersion.APP_VERSION_V2;
                 }
                 break;
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V2:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + currentVersion);
         }
         return currentVersion;
     }
