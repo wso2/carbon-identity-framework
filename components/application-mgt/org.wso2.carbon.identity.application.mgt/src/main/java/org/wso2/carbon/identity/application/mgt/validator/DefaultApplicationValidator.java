@@ -164,13 +164,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      */
     private void validateApplicationVersion(List<String> validationErrors, ServiceProvider serviceProvider) {
 
-        String currentVersion = serviceProvider.getApplicationVersion();
-        String latestPossibleVersion = ApplicationMgtUtil.getApplicationUpdatedVersion(serviceProvider);
-
         if (Stream.of(ApplicationConstants.ApplicationVersion.ApplicationVersions.values())
                 .noneMatch(v -> v.getValue().equals(serviceProvider.getApplicationVersion()))) {
-            validationErrors.add("Invalid application version: " + serviceProvider.getApplicationVersion());
-        } else if (!Objects.equals(currentVersion, latestPossibleVersion)) {
             validationErrors.add("Invalid application version: " + serviceProvider.getApplicationVersion());
         }
     }
