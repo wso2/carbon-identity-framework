@@ -205,6 +205,9 @@ public class IdentityProviderManagementServiceTest {
         identityProviderManagementService.addIdP(((IdentityProvider) identityProvider));
 
         IdentityProvider idpFromDb = identityProviderManagementService.getIdPByName(idpName);
+        for (FederatedAuthenticatorConfig config: idpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
@@ -254,6 +257,9 @@ public class IdentityProviderManagementServiceTest {
         addTestIdps();
 
         IdentityProvider idpFromDb = identityProviderManagementService.getIdPByName(idpName);
+        for (FederatedAuthenticatorConfig config: idpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
@@ -620,7 +626,11 @@ public class IdentityProviderManagementServiceTest {
         String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
 
         Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
+        IdentityProvider newIdpFromDb = identityProviderManagementService.getIdPByName(newIdpName);
+        Assert.assertNotNull(newIdpFromDb);
+        for (FederatedAuthenticatorConfig config: newIdpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
     }
 
     @Test(dataProvider = "updateIdPData")
@@ -633,7 +643,11 @@ public class IdentityProviderManagementServiceTest {
         String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
 
         Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
+        IdentityProvider newIdpFromDb = identityProviderManagementService.getIdPByName(newIdpName);
+        Assert.assertNotNull(newIdpFromDb);
+        for (FederatedAuthenticatorConfig config: newIdpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
     }
 
     @DataProvider

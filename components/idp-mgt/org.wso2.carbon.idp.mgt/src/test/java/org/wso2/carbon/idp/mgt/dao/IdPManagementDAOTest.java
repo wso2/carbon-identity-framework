@@ -827,6 +827,9 @@ public class IdPManagementDAOTest {
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIdPByName' method fails");
+                for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
+                    assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+                }
             } else {
                 assertNull(idpResult, "'getIdPByName' method fails");
             }
@@ -856,6 +859,9 @@ public class IdPManagementDAOTest {
             IdentityProvider idpResult = idPManagementDAO.getIDPbyId(connection, idpId, tenantId, TENANT_DOMAIN);
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyId' method fails");
+                for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
+                    assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+                }
             } else {
                 assertNull(idpResult, "'getIDPbyId' method fails");
             }
@@ -891,6 +897,9 @@ public class IdPManagementDAOTest {
             IdentityProvider idpResult = idPManagementDAO.getIDPbyResourceId(connection, uuid, tenantId, TENANT_DOMAIN);
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyResourceId' method fails");
+                for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
+                    assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+                }
             } else {
                 assertNull(idpResult, "'getIDPbyResourceId' method fails");
             }
@@ -1238,6 +1247,9 @@ public class IdPManagementDAOTest {
 
             String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, newIdpName, tenantId, TENANT_DOMAIN);
+            for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
+                assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+            }
             assertEquals(idpResult.getIdentityProviderName(), newIdpName);
         }
     }
