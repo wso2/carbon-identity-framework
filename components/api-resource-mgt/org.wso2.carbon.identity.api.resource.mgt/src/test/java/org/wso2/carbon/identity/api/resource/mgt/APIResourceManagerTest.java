@@ -25,6 +25,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -57,6 +58,10 @@ public class APIResourceManagerTest {
     private APIResourceManager apiResourceManager;
     @Mock
     private IdentityEventService identityEventService;
+
+    private static final String TENANT_TYPE = "TENANT";
+    private static final String ORGANIZATION_TYPE = "ORGANIZATION";
+    private static final String CONSOLE_ORG_LEVEL_TYPE = "CONSOLE_ORG_LEVEL";
 
     @BeforeMethod
     public void setUp() throws IdentityEventException {
@@ -176,24 +181,52 @@ public class APIResourceManagerTest {
     }
 
     @DataProvider
-    public Object[][] updateAPIResourceTestData() {
-
-        APIResource apiResource1 = createAPIResource("test1");
-        APIResource apiResource2 = createAPIResource("test2");
+    public Object[][] updateAPIResourceScopeAddition() {
 
         return new Object[][]{
-                // Update API resource with scopes.
-                {apiResource1, null, null, Arrays.asList(createScope("updated1"),
-                        createScope("update2"))},
-                // Update API resource with name and description.
-                {apiResource2, "test2 updated name", "test2 updated description", null}
+                {APIResourceManagementConstants.BUSINESS_TYPE},
+                {APIResourceManagementConstants.SYSTEM_TYPE},
+                /* For the following types, tenant id of the API resource should be set to 0 while updating,
+                since they are not tenant specific. */
+                {ORGANIZATION_TYPE},
+                {TENANT_TYPE},
+                {CONSOLE_ORG_LEVEL_TYPE}
         };
     }
 
-    @Test(dataProvider = "updateAPIResourceTestData")
-    public void testUpdateAPIResource(APIResource apiResource, String updatedName, String updatedDescription,
-                                      List<Scope> addedScopes) throws Exception {
+    @Test(dataProvider = "updateAPIResourceScopeAddition")
+    public void testUpdateAPIResourceForScopeAddition(String type) throws Exception {
 
+        // Add API resource to database.
+        String apiNamePostFix = "update-scope-addition-test";
+        List<Scope> scopes = new ArrayList<>();
+        scopes.add(createScope("test_scope_1_" + apiNamePostFix));
+        scopes.add(createScope("test_scope_2_" + apiNamePostFix));
+        APIResource apiResource = createAPIResource(apiNamePostFix, scopes, type);
+        APIResource createdAPIResource = apiResourceManager.addAPIResource(apiResource, tenantDomain);
+
+        Scope newScope1 = createScope("test_scope_3_" + apiNamePostFix);
+        Scope newScope2 = createScope("test_scope_4_" + apiNamePostFix);
+        createdAPIResource.getScopes().add(newScope1);
+        createdAPIResource.getScopes().add(newScope2);
+
+        List<Scope> addedScopes = new ArrayList<>();
+        addedScopes.add(newScope1);
+        addedScopes.add(newScope2);
+
+        // Update API resource with a new scope.
+        apiResourceManager.updateAPIResource(createdAPIResource, addedScopes, null, tenantDomain);
+
+        // Validate updated scopes count.
+        validateScopesCount(createdAPIResource.getId(), 4);
+
+        apiResourceManager.deleteAPIScopesById(createdAPIResource.getId(), tenantDomain);
+    }
+
+    @Test
+    public void testUpdateAPIResourceForNameAndDescriptionUpdate() throws Exception {
+
+        APIResource apiResource = createAPIResource("name-description-update-test");
         APIResource createdAPIResource = apiResourceManager.addAPIResource(apiResource, tenantDomain);
         APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
                 .id(createdAPIResource.getId())
@@ -204,25 +237,20 @@ public class APIResourceManagerTest {
                 .identifier(createdAPIResource.getIdentifier())
                 .requiresAuthorization(createdAPIResource.isAuthorizationRequired());
 
-        if (updatedName != null) {
-            apiResourceBuilder.name(updatedName);
-        }
-        if (updatedDescription != null) {
-            apiResourceBuilder.description(updatedDescription);
-        }
+        String updatedName = "Updated Name";
+        String updatedDescription = "Updated description";
+
+        apiResourceBuilder.name(updatedName);
+        apiResourceBuilder.description(updatedDescription);
         createdAPIResource = apiResourceBuilder.build();
-        apiResourceManager.updateAPIResource(createdAPIResource, addedScopes, null, tenantDomain);
+        apiResourceManager.updateAPIResource(createdAPIResource, null, null, tenantDomain);
         APIResource updatedAPIResource = apiResourceManager.getAPIResourceById(createdAPIResource.getId(),
                 tenantDomain);
-        if (addedScopes != null) {
-            Assert.assertEquals(updatedAPIResource.getScopes().size(), 4);
-        }
-        if (updatedName != null) {
-            Assert.assertEquals(updatedAPIResource.getName(), updatedName);
-        }
-        if (updatedDescription != null) {
-            Assert.assertEquals(updatedAPIResource.getDescription(), updatedDescription);
-        }
+
+        Assert.assertEquals(updatedAPIResource.getName(), updatedName);
+        Assert.assertEquals(updatedAPIResource.getDescription(), updatedDescription);
+
+        apiResourceManager.deleteAPIScopesById(createdAPIResource.getId(), tenantDomain);
     }
 
     @DataProvider(name = "getAPIResourceByIdentifierDataProvider")
@@ -353,6 +381,26 @@ public class APIResourceManagerTest {
         return apiResourceBuilder.build();
     }
 
+    /**
+     * Create API resource with the given postfix, scopes and type.
+     *
+     * @param postFix Postfix to be appended to each API resource and scope information.
+     * @param scopes  List of scopes.
+     * @param type    API resource type.
+     * @return API resource.
+     */
+    private static APIResource createAPIResource(String postFix, List<Scope> scopes, String type) {
+
+        APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
+                .name("Test API Resource Name " + postFix)
+                .identifier("/test/api/path/" + postFix)
+                .description("Test API Resource Description " + postFix)
+                .type(type)
+                .requiresAuthorization(true)
+                .scopes(scopes);
+        return apiResourceBuilder.build();
+    }
+
     private void addTestAPIResources() throws Exception {
 
         APIResource apiResource1 = createAPIResource("test1");
@@ -375,5 +423,18 @@ public class APIResourceManagerTest {
                             }
                         }
                 );
+    }
+
+    /**
+     * Method to validate the number of scopes for a given API.
+     *
+     * @param apiId                  API resource ID.
+     * @param expectedNumberOfScopes Expected number of scopes.
+     * @throws Exception Error when validating scopes count.
+     */
+    private void validateScopesCount(String apiId, int expectedNumberOfScopes) throws Exception {
+
+        APIResource apiResource = apiResourceManager.getAPIResourceById(apiId, tenantDomain);
+        Assert.assertEquals(apiResource.getScopes().size(), expectedNumberOfScopes);
     }
 }

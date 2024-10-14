@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceCacheEntry;
 import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdCacheKey;
 import org.wso2.carbon.identity.api.resource.mgt.cache.APIResourceIdentifierCacheKey;
 import org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAO;
+import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -217,7 +218,10 @@ public class CacheBackedAPIResourceMgtDAO implements APIResourceManagementDAO {
     public void updateAPIResource(APIResource apiResource, List<Scope> addedScopes, List<String> removedScopes,
                                   Integer tenantId) throws APIResourceMgtException {
 
-        clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
+        // System APIs are updated only at the server startup. Hence, no need to clear cache for system APIs.
+        if (!APIResourceManagementUtil.isSystemAPI(apiResource.getType())) {
+            clearAPIResourceCache(apiResource.getIdentifier(), apiResource.getId(), tenantId);
+        }
         apiResourceManagementDAO.updateAPIResource(apiResource, addedScopes, removedScopes, tenantId);
     }
 

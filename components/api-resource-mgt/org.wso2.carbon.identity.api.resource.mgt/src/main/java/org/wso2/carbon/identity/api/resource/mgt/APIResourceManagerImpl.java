@@ -156,8 +156,14 @@ public class APIResourceManagerImpl implements APIResourceManager {
 
         APIResourceManagerEventPublisherProxy publisherProxy = APIResourceManagerEventPublisherProxy.getInstance();
         publisherProxy.publishPreUpdateAPIResourceWithException(apiResource, addedScopes, removedScopes, tenantDomain);
-        CACHE_BACKED_DAO.updateAPIResource(apiResource, addedScopes, removedScopes,
-                IdentityTenantUtil.getTenantId(tenantDomain));
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        // If the API resource is a system API, set the tenant id to 0 since they are not tenant specific.
+        if (APIResourceManagementUtil.isSystemAPI(apiResource.getType())) {
+            tenantId = 0;
+        }
+
+        CACHE_BACKED_DAO.updateAPIResource(apiResource, addedScopes, removedScopes, tenantId);
         publisherProxy.publishPostUpdateAPIResource(apiResource, addedScopes, removedScopes, tenantDomain);
     }
 
