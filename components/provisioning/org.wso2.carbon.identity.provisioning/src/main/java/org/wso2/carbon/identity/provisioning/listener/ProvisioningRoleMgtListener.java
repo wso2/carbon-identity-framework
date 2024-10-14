@@ -56,17 +56,6 @@ public class ProvisioningRoleMgtListener extends AbstractRoleManagementListener 
     }
 
     @Override
-    public int getExecutionOrderId() {
-
-        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (RoleManagementListener.class.getName(), this.getClass().getName());
-        if (identityEventListenerConfig == null) {
-            return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
-        }
-        return identityEventListenerConfig.getOrder();
-    }
-
-    @Override
     public int getDefaultOrderId() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
