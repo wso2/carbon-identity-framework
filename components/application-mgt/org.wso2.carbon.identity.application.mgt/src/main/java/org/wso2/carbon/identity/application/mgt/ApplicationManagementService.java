@@ -471,6 +471,14 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
                                                           int offset, int limit)
             throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo(tenantDomain, username, filter, offset, limit, false);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                          int offset, int limit, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
         return new ApplicationBasicInfo[0];
     }
 

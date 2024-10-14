@@ -558,6 +558,26 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                           int offset, int limit)
             throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo(tenantDomain, username, filter, offset, limit, false);
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param filter       Application name filter.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                          int offset, int limit, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
         ApplicationBasicInfo[] applicationBasicInfoArray;
 
         try {
@@ -580,7 +600,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
 
                 applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO).
-                        getApplicationBasicInfo(filter, offset, limit);
+                        getApplicationBasicInfo(filter, offset, limit, excludeSystemPortals);
 
                 // Invoking post listeners.
                 for (ApplicationMgtListener listener : listeners) {
@@ -671,11 +691,29 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public int getCountOfApplications(String tenantDomain, String username, String filter) throws
             IdentityApplicationManagementException {
 
+        return getCountOfApplications(tenantDomain, username, filter, false);
+    }
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param filter       Application name filter
+     * @param excludeSystemPortals  Exclude system portals
+     * @return int
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public int getCountOfApplications(String tenantDomain, String username, String filter, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
         try {
             startTenantFlow(tenantDomain, username);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             if (appDAO instanceof PaginatableFilterableApplicationDAO) {
-                return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfApplications(filter);
+                return ((PaginatableFilterableApplicationDAO) appDAO)
+                        .getCountOfApplications(filter, excludeSystemPortals);
             } else {
                 throw new UnsupportedOperationException("Application count is not supported. " + "Tenant domain: " +
                         tenantDomain);
