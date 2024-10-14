@@ -363,6 +363,7 @@
                     <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="applicationVersion" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="associatedRolesConfig" nillable="true" type="ax2161:AssociatedRolesConfig"/>
                     <xs:element minOccurs="0" name="b2BSelfServiceApp" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
@@ -699,6 +700,7 @@
                     <xs:element minOccurs="0" name="applicationId" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="applicationVersion" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="clientId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>

@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
@@ -1224,5 +1225,39 @@ public class ApplicationMgtUtil {
     public static boolean isTrustedAppConsentRequired() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY));
+    }
+
+    /**
+     * Get the latest applicable version of the application.
+     *
+     * @param serviceProvider Service provider object.
+     * @return The latest applicable version.
+     */
+    public static String getApplicationUpdatedVersion(ServiceProvider serviceProvider) {
+
+        String currentVersion = serviceProvider.getApplicationVersion();
+        String inboundConfigType = getInboundConfigType(serviceProvider);
+
+        // Since there will be new versions onboarded in the future, initialized this as a switch not if.
+        if (currentVersion.equals(ApplicationConstants.ApplicationVersion.APP_VERSION_V0)) {
+            if (!inboundConfigType.equals(IdentityApplicationConstants.OAuth2.NAME)) {
+                currentVersion = ApplicationConstants.ApplicationVersion.APP_VERSION_V1;
+            }
+        }
+        return currentVersion;
+    }
+
+    private static String getInboundConfigType(ServiceProvider serviceProvider) {
+
+        String inboundConfigType = StringUtils.EMPTY;
+        if (serviceProvider.getInboundAuthenticationConfig() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs().length != 0) {
+            inboundConfigType = serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
+        }
+        return inboundConfigType;
     }
 }
