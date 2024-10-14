@@ -79,7 +79,7 @@ public class ProvisioningRoleMgtListener extends AbstractRoleManagementListener 
 
             String[] newUserNames = resolveUserNameFromUserIds(newUserIDList, userStoreManager);
 
-            if (deletedUserNames.length > 0 && newUserNames.length > 0) {
+            if (deletedUserNames.length == 0 && newUserNames.length == 0) {
                 return;
             }
 
