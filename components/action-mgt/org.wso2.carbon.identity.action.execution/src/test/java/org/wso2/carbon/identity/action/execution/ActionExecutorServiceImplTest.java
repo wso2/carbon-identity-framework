@@ -99,6 +99,7 @@ public class ActionExecutorServiceImplTest {
         actionExecutorConfigStatic = mockStatic(ActionExecutorConfig.class);
         ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
         actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
+        when(actionExecutorConfig.getHttpConnectionPoolSize()).thenReturn(20);
         MockitoAnnotations.openMocks(this);
         ActionExecutionServiceComponentHolder actionExecutionServiceComponentHolder =
                 ActionExecutionServiceComponentHolder.getInstance();
