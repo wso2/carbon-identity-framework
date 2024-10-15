@@ -142,7 +142,8 @@ public class APIResourceManagementConstants {
                 "properties.", "Error while adding API resource properties to the database."),
         ERROR_CODE_ERROR_WHILE_UPDATING_SCOPE_METADATA("65015", "Error while updating scope metadata.",
                 "Error while updating scope metadata in the database."),
-        ;
+        ERROR_CODE_ERROR_WHILE_RESOLVING_TENANT_FOR_ORGANIZATION("65016", "Error while resolving tenant",
+                "Error while resolving tenant domain for organization."),;
 
         private final String code;
         private final String message;
