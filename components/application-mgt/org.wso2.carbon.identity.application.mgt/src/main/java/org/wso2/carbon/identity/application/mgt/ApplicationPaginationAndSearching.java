@@ -103,12 +103,12 @@ public interface ApplicationPaginationAndSearching {
     /**
      * Get all basic application information for a matching filter with pagination based on the offset and limit.
      *
-     * @param tenantDomain Tenant Domain.
-     * @param username     User name.
-     * @param filter       Application name filter.
-     * @param offset       Starting index of the count.
-     * @param limit        Counting value.
-     * @param excludeSystemPortals  Exclude system portals
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User name.
+     * @param filter                Application name filter.
+     * @param offset                Starting index of the count.
+     * @param limit                 Counting value.
+     * @param excludeSystemPortals  Exclude system portals.
      * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
      */
@@ -135,7 +135,7 @@ public interface ApplicationPaginationAndSearching {
      * @param filter       Application name filter
      * @return int
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
-     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response
+     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response.
      * use {@link ApplicationPaginationAndSearching#getCountOfApplications(String, String, String, Boolean)}.
      */
     int getCountOfApplications(String tenantDomain, String username, String filter)
@@ -144,11 +144,11 @@ public interface ApplicationPaginationAndSearching {
     /**
      * Get count of all basic application information for a matching filter.
      *
-     * @param tenantDomain Tenant Domain
-     * @param username     User Name
-     * @param filter       Application name filter
-     * @param excludeSystemPortals  Exclude system portals
-     * @return int
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User Name.
+     * @param filter                Application name filter.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return int Count of applications.
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     int getCountOfApplications(String tenantDomain, String username, String filter, Boolean excludeSystemPortals)

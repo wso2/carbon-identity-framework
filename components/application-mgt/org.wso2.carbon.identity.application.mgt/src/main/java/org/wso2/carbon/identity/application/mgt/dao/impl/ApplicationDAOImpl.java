@@ -175,9 +175,9 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_PORTALS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.UNION_SEPARATOR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
@@ -2189,21 +2189,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private String populateSystemPortalsExcludeQuery(Boolean excludeSystemPortals) {
 
-        return excludeSystemPortals ?
-                String.format(ApplicationMgtDBQueries.EXCLUDE_SYSTEM_PORTALS_BY_NAME,
-                        getApplications(SYSTEM_PORTALS).stream()
-                                .map(s -> "'" + s + "'")
-                                .collect(Collectors.joining(", ")))
-                : "";
+        if (excludeSystemPortals) {
+            Set<String> systemPortals = getSystemPortalsFromConfiguration(SYSTEM_PORTALS);
+            return systemPortals.isEmpty() ? "" :
+                    String.format(ApplicationMgtDBQueries.EXCLUDE_SYSTEM_PORTALS_BY_NAME,
+                            systemPortals.stream()
+                                    .map(s -> "'" + s + "'")
+                                    .collect(Collectors.joining(", ")));
+        } else {
+            return "";
+        }
     }
 
     /**
      * Get system portals from configuration.
      *
-     * @param parentElement
-     * @return
+     * @param parentElement Configuration tag name.
+     * @return Set of system portals from default.json.
      */
-    private static Set<String> getApplications(String parentElement) {
+    private static Set<String> getSystemPortalsFromConfiguration(String parentElement) {
 
         IdentityConfigParser configParser = IdentityConfigParser.getInstance();
         OMElement systemApplicationsConfig = configParser.getConfigElement(parentElement);
@@ -2215,10 +2219,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         Iterator applicationIdentifierIterator = systemApplicationsConfig
-                .getChildrenWithLocalName(APPLICATION_NAME_CONFIG_ELEMENT);
+                .getChildrenWithLocalName(PORTAL_NAME_CONFIG_ELEMENT);
         if (applicationIdentifierIterator == null) {
             if (log.isDebugEnabled()) {
-                log.debug("'" + APPLICATION_NAME_CONFIG_ELEMENT + "' config not found.");
+                log.debug("'" + PORTAL_NAME_CONFIG_ELEMENT + "' config not found.");
             }
             return Collections.emptySet();
         }
@@ -2231,7 +2235,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 applications.add(applicationName.trim());
             }
         }
-
         return applications;
     }
 
@@ -4036,8 +4039,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Get count of applications for user which has the filter string
      *
-     * @param filter
-     * @return
+     * @param filter                Filter string.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return  int Count of applications.
      * @throws IdentityApplicationManagementException
      */
     @Override

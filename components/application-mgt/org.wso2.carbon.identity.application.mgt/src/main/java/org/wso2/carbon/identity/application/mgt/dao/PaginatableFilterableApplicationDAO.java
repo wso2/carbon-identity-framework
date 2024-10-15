@@ -46,7 +46,7 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
      * @param limit  Count value.
      * @return An array of {@link ApplicationBasicInfo} instances within the limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
-     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response
+     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response.
      * use {@link PaginatableFilterableApplicationDAO#getApplicationBasicInfo(int, int, Boolean)}.
      */
     ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws IdentityApplicationManagementException;
@@ -54,8 +54,8 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
     /**
      * Get all the basic application information based on the offset and the limit.
      *
-     * @param offset Starting index of the count.
-     * @param limit  Count value.
+     * @param offset                Starting index of the count.
+     * @param limit                 Count value.
      * @param excludeSystemPortals  Exclude system portals.
      * @return An array of {@link ApplicationBasicInfo} instances within the limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
@@ -84,7 +84,7 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
      * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information based on the
      *                                                given filter within the given limit.
-     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response
+     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response.
      * use {@link PaginatableFilterableApplicationDAO#getApplicationBasicInfo(String, int, int, Boolean)}.
      */
     ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit) throws
@@ -93,9 +93,9 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
     /**
      * Get all basic application information for a matching filter based on the offset and the limit.
      *
-     * @param filter Application name filter.
-     * @param offset Starting index of the count.
-     * @param limit  Count value.
+     * @param filter                Application name filter.
+     * @param offset                Starting index of the count.
+     * @param limit                 Count value.
      * @param excludeSystemPortals  Exclude system portals
      * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information based on the
@@ -119,7 +119,7 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
      * @param filter application search filter
      * @return matched application count in a int value
      * @throws IdentityApplicationManagementException
-     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response
+     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response.
      * use {@link PaginatableFilterableApplicationDAO#getCountOfApplications(String, Boolean)}.
      */
     int getCountOfApplications(String filter) throws IdentityApplicationManagementException;

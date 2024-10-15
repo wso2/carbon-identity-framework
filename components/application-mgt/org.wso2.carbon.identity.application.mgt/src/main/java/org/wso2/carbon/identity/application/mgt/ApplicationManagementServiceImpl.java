@@ -567,11 +567,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Get all basic application information for a matching filter with pagination based on the offset and limit.
      *
-     * @param tenantDomain Tenant Domain.
-     * @param username     User name.
-     * @param filter       Application name filter.
-     * @param offset       Starting index of the count.
-     * @param limit        Counting value.
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User name.
+     * @param filter                Application name filter.
+     * @param offset                Starting index of the count.
+     * @param limit                 Counting value.
      * @param excludeSystemPortals  Exclude system portals.
      * @return An array of {@link ApplicationBasicInfo} instances within the limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
@@ -700,11 +700,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Get count of all basic application information for a matching filter.
      *
-     * @param tenantDomain Tenant Domain
-     * @param username     User Name
-     * @param filter       Application name filter
-     * @param excludeSystemPortals  Exclude system portals
-     * @return int
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User Name.
+     * @param filter                Application name filter.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return int Count of applications.
      * @throws IdentityApplicationManagementException
      */
     @Override
