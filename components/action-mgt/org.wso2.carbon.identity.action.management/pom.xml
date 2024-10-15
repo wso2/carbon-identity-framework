@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>action-mgt</artifactId>
-        <version>7.5.44-SNAPSHOT</version>
+        <version>7.5.67-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -77,9 +77,17 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
                             org.wso2.carbon.identity.action.management.internal,
+                            org.wso2.carbon.identity.action.management.cache,
+                            org.wso2.carbon.identity.action.management.dao,
+                            org.wso2.carbon.identity.action.management.dao.impl,
+                            org.wso2.carbon.identity.action.management.util
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.action.management.internal,
+                            !org.wso2.carbon.identity.action.management.cache,
+                            !org.wso2.carbon.identity.action.management.dao,
+                            !org.wso2.carbon.identity.action.management.dao.impl,
+                            !org.wso2.carbon.identity.action.management.util,
                             org.wso2.carbon.identity.action.management.*; version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
@@ -151,14 +159,14 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.50</minimum>
+                                            <minimum>0.80</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
                                                 <!-- Temp decreasing this. There is an ongoing effort to improve
                                                 the code complexity coverage.  -->
-                                            <minimum>0.49</minimum>
+                                            <minimum>0.60</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

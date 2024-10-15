@@ -361,6 +361,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
+            // Create basic application.
             ApplicationCreateResult result = persistBasicApplicationInformation(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
             return result.getApplicationId();
@@ -405,6 +406,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         String username = UserCoreUtil.removeDomainFromName(qualifiedUsername);
         String userStoreDomain = IdentityUtil.extractDomainFromName(qualifiedUsername);
         String applicationName = application.getApplicationName();
+        String applicationVersion = application.getApplicationVersion();
         String description = application.getDescription();
 
         if (log.isDebugEnabled()) {
@@ -439,6 +441,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(10, resourceId);
             storeAppPrepStmt.setString(11, application.getImageUrl());
             storeAppPrepStmt.setString(12, templatedAccessUrl);
+            storeAppPrepStmt.setString(13, applicationVersion);
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -982,6 +985,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws SQLException, UserStoreException, IdentityApplicationManagementException {
 
         int applicationId = serviceProvider.getApplicationID();
+        String applicationVersion = ApplicationMgtUtil.getApplicationUpdatedVersion(serviceProvider);
         String applicationName = serviceProvider.getApplicationName();
         String description = serviceProvider.getDescription();
         boolean isSaasApp = serviceProvider.isSaasApp();
@@ -1057,6 +1061,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             statement.setInt(ApplicationTableColumns.TENANT_ID, tenantID);
             statement.setInt(ApplicationTableColumns.ID, applicationId);
+            statement.setString(ApplicationTableColumns.APP_VERSION, applicationVersion);
 
             statement.executeUpdate();
         }
@@ -1839,6 +1844,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             localServiceProvider.setApplicationName(applicationName);
             localServiceProvider.setDescription("Local Service Provider");
             localServiceProvider.setSpProperties(prepareLocalSpProperties());
+            localServiceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
             applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
         return getApplication(applicationId);
@@ -2610,6 +2616,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setApplicationID(rs.getInt(ApplicationTableColumns.ID));
                 serviceProvider.setApplicationResourceId(rs.getString(ApplicationTableColumns.UUID));
                 serviceProvider.setApplicationName(rs.getString(ApplicationTableColumns.APP_NAME));
+                serviceProvider.setApplicationVersion(rs.getString(ApplicationTableColumns.APP_VERSION));
                 serviceProvider.setDescription(rs.getString(ApplicationTableColumns.DESCRIPTION));
                 serviceProvider.setImageUrl(rs.getString(ApplicationTableColumns.IMAGE_URL));
 
@@ -3816,6 +3823,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+                basicInfo.setApplicationVersion(appNameResultSet.getString(ApplicationTableColumns.APP_VERSION));
                 appInfo.add(basicInfo);
             }
 
@@ -4081,6 +4089,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+                basicInfo.setApplicationVersion(appNameResultSet.getString(ApplicationTableColumns.APP_VERSION));
                 appInfo.add(basicInfo);
             }
         } catch (SQLException e) {
@@ -4941,6 +4950,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            // Todo: change the query to something basic without getting all info.
             try (PreparedStatement checkAppExistence = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_BASIC_APP_INFO_BY_APP_NAME)) {
                 checkAppExistence.setString(1, serviceProviderName);
@@ -6257,6 +6267,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
         basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
         basicInfo.setUuid(appNameResultSet.getString(ApplicationTableColumns.UUID));
+        basicInfo.setApplicationVersion(appNameResultSet.getString(ApplicationTableColumns.APP_VERSION));
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
@@ -6315,6 +6326,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
         basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
         basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
+        basicInfo.setApplicationVersion(appNameResultSet.getString(ApplicationTableColumns.APP_VERSION));
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));

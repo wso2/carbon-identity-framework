@@ -530,10 +530,24 @@ public class IdentityKeyStoreResolver {
 
     private void parseIdentityKeyStoreMappingConfigs() {
 
-        OMElement keyStoreMappingsElem = IdentityConfigParser.getInstance().getConfigElement(
-                IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY).getFirstChildWithName(
-                IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
-                        IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
+        OMElement keyStoreMappingsElem = null;
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        if (configParser != null) {
+            OMElement securityElem = configParser.getConfigElement(
+                    IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY);
+            if (securityElem != null) {
+                keyStoreMappingsElem = securityElem.getFirstChildWithName(
+                        IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace(
+                                IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
+            }
+        }
+
+        if (keyStoreMappingsElem == null) {
+            LOG.warn(String.format("%s.%s element not found in identity.xml file.",
+                    IdentityKeyStoreResolverConstants.CONFIG_ELEM_SECURITY,
+                    IdentityKeyStoreResolverConstants.CONFIG_ELEM_KEYSTORE_MAPPING));
+            return;
+        }
 
         // Parse OAuth KeyStore Mapping.
         OMElement oauthKeyStoreMapping = keyStoreMappingsElem.getFirstChildWithName(

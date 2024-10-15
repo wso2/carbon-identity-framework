@@ -234,6 +234,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        // Set default application version.
+        serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
@@ -1506,6 +1509,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
                             new IdentityApplicationManagementException("Error resolving service provider owner.")));
             serviceProvider.setSpProperties(savedSP.getSpProperties());
+            serviceProvider.setApplicationVersion(savedSP.getApplicationVersion());
 
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {
@@ -1660,6 +1664,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            // Set default application version.
+            if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+            }
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -1762,6 +1770,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             validateSPTemplateExists(oldTemplateName, spTemplate, tenantDomain);
 
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            // Set default application version.
+            if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+            }
             validateUnsupportedTemplateConfigs(serviceProvider);
 
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -2542,6 +2554,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " of tenantDomain: " + tenantDomain);
             }
         }
+
+        // Set default application version.
+        application.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         doPreAddApplicationChecks(application, tenantDomain, username);
         ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
