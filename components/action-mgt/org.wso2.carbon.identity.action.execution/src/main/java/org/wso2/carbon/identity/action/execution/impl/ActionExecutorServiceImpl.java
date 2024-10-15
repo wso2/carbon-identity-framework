@@ -43,7 +43,7 @@ import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.model.Request;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
-import org.wso2.carbon.identity.action.execution.util.ActionExecutionLogConstants;
+import org.wso2.carbon.identity.action.execution.util.ActionExecutionDiagnosticLogger;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.util.AuthMethods;
 import org.wso2.carbon.identity.action.execution.util.OperationComparator;
@@ -54,7 +54,6 @@ import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
-import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +74,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private static final Log LOG = LogFactory.getLog(ActionExecutorServiceImpl.class);
 
     private static final ActionExecutorServiceImpl INSTANCE = new ActionExecutorServiceImpl();
+    private static final ActionExecutionDiagnosticLogger diagnosticLogger = new ActionExecutionDiagnosticLogger();
     private final APIClient apiClient;
     private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(1);
 
@@ -108,32 +108,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         try {
             List<Action> actions = getActionsByActionType(actionType, tenantDomain);
             validateActions(actions, actionType);
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ACTION_EXECUTION,
-                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION);
-                diagLogBuilder
-                        .resultMessage(actionType + " action execution is initiated.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
-                        .build();
-                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-            }
             // As of now only one action is allowed.
             Action action = actions.get(0);
+            diagnosticLogger.printDiagnosticLogActionInitiation(action);
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ACTION_EXECUTION,
-                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION);
-                diagLogBuilder
-                        .resultMessage("Skip executing action for " + actionType + " type.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED)
-                        .build();
-                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-            }
+            diagnosticLogger.printDiagnosticLogActionSkip(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
         }
@@ -153,33 +133,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         validateActionIdList(actionType, actionIdList);
         Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    ActionExecutionLogConstants.ACTION_EXECUTION,
-                    ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION);
-            diagLogBuilder
-                    .resultMessage(actionType + " action execution is initiated.")
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
-                    .build();
-            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-        }
+        diagnosticLogger.printDiagnosticLogActionInitiation(action);
         try {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ACTION_EXECUTION,
-                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION);
-                diagLogBuilder
-                        .configParam("action id", action.getId())
-                        .configParam("action name", action.getName())
-                        .resultMessage("Skip executing action for " + actionType + " type.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.FAILED)
-                        .build();
-                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-            }
+            diagnosticLogger.printDiagnosticLogActionSkip(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
         }
@@ -323,23 +281,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logActionRequest(Action action, String payload) {
 
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    ActionExecutionLogConstants.ACTION_EXECUTION,
-                    ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST);
-            diagLogBuilder
-                    .configParam("action id", action.getId())
-                    .configParam("action type", action.getType().getActionType())
-                    .configParam("action endpoint", action.getEndpoint().getUri())
-                    .configParam("action endpoint authentication type",
-                            action.getEndpoint().getAuthentication().getType().getName())
-                    .resultMessage("Call external service endpoint " + action.getEndpoint().getUri() + " for "
-                            + action.getType().getActionType() + " action.")
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
-                    .build();
-            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-        }
+        diagnosticLogger.printDiagnosticLogActionRequest(action);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Calling API: %s for action type: %s action id: %s with authentication: %s payload: %s",
@@ -427,23 +369,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         try {
             String responseBody = serializeSuccessResponse(successResponse);
-            if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ACTION_EXECUTION,
-                        ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
-                diagLogBuilder
-                        .configParam("action id", action.getId())
-                        .configParam("action type", action.getType().getActionType())
-                        .configParam("action endpoint", action.getEndpoint().getUri())
-                        .configParam("action endpoint authentication type",
-                                action.getEndpoint().getAuthentication().getType().getName())
-                        .resultMessage("Received success response from external endpoint " +
-                                action.getEndpoint().getUri() + " for " + action.getType().getActionType() + " action.")
-                        .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                        .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
-                        .build();
-                LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-            }
+            diagnosticLogger.printDiagnosticLogSuccessResponse(action);
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format(
                         "Received success response from API: %s for action type: %s action id: %s with " +
@@ -465,24 +391,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
             try {
                 String responseBody = serializeErrorResponse(errorResponse);
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                            ActionExecutionLogConstants.ACTION_EXECUTION,
-                            ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
-                    diagLogBuilder
-                            .configParam("action id", action.getId())
-                            .configParam("action type", action.getType().getActionType())
-                            .configParam("action endpoint", action.getEndpoint().getUri())
-                            .configParam("action endpoint authentication type",
-                                    action.getEndpoint().getAuthentication().getType().getName())
-                            .resultMessage("Received error response from external endpoint " +
-                                    action.getEndpoint().getUri() + " for " + action.getType().getActionType() +
-                                    " action.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
-                            .build();
-                    LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-                }
+                diagnosticLogger.printDiagnosticLogErrorResponse(action);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format(
                             "Received error response from API: %s for action type: %s action id: %s with " +
@@ -505,24 +414,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
             try {
                 String responseBody = serializeFailureResponse(failureResponse);
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                            ActionExecutionLogConstants.ACTION_EXECUTION,
-                            ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
-                    diagLogBuilder
-                            .configParam("action id", action.getId())
-                            .configParam("action type", action.getType().getActionType())
-                            .configParam("action endpoint", action.getEndpoint().getUri())
-                            .configParam("action endpoint authentication type",
-                                    action.getEndpoint().getAuthentication().getType().getName())
-                            .resultMessage("Received failure response from external endpoint " +
-                                    action.getEndpoint().getUri() + " for " + action.getType().getActionType() +
-                                    " action.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.FAILED)
-                            .build();
-                    LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-                }
+                diagnosticLogger.printDiagnosticLogFailureResponse(action);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(String.format(
                             "Received failure response from API: %s for action type: %s action id: %s with " +
@@ -541,25 +433,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private void logErrorResponse(Action action, ActionInvocationResponse actionInvocationResponse) {
-        if (LoggerUtils.isDiagnosticLogsEnabled()) {
-            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                    ActionExecutionLogConstants.ACTION_EXECUTION,
-                    ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE);
-            diagLogBuilder
-                    .configParam("action id", action.getId())
-                    .configParam("action type", action.getType().getActionType())
-                    .configParam("action endpoint", action.getEndpoint().getUri())
-                    .configParam("action endpoint authentication type",
-                            action.getEndpoint().getAuthentication().getType().getName())
-                    .resultMessage("Failed to call external endpoint for " + action.getType().getActionType()
-                            + " action. " +
-                            (actionInvocationResponse.getErrorLog() != null ? actionInvocationResponse.getErrorLog() :
-                                    "Unknown error occured."))
-                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
-                    .build();
-            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-        }
+
+        diagnosticLogger.printDiagnosticLogErrorResponse(action, actionInvocationResponse);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Failed to call API: %s for action type: %s action id: %s with authentication: %s. Error: %s",
@@ -621,26 +496,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                         notAllowedOps.add(operationDetails);
                     }
                 });
-                if (LoggerUtils.isDiagnosticLogsEnabled()) {
-                    DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                            ActionExecutionLogConstants.ACTION_EXECUTION,
-                            ActionExecutionLogConstants.ActionIDs.VALIDATE_ACTION_OPERATIONS);
-                    diagLogBuilder
-                            .configParam("action id", action.getId())
-                            .configParam("action type", action.getType().getActionType())
-                            .configParam("action endpoint", action.getEndpoint().getUri())
-                            .configParam("action endpoint authentication type",
-                                    action.getEndpoint().getAuthentication().getType().getName())
-                            .configParam("allowed operations", allowedOps.isEmpty() ? "empty" : allowedOps)
-                            .configParam("not allowed operations", notAllowedOps.isEmpty() ? "empty" : notAllowedOps)
-                            .resultMessage(
-                                    "Validated operations to perform on " + action.getType().getActionType()
-                                            + " action.")
-                            .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
-                            .resultStatus(DiagnosticLog.ResultStatus.SUCCESS)
-                            .build();
-                    LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
-                }
+                diagnosticLogger.printDiagnosticLogPerformableOperations(action, allowedOps, notAllowedOps);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Allowed Operations: " + String.join(", ", allowedOps) +
                             ". Not Allowed Operations: " + String.join(", ", notAllowedOps));
