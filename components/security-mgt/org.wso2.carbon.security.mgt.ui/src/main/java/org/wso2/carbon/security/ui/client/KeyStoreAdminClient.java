@@ -217,11 +217,11 @@ public class KeyStoreAdminClient {
                     break;
                 }
             }
-        } catch (Exception e) {
+            return isPrivateStore;
+        } catch (java.lang.Exception e) {
             log.error("Error in checking private key store.", e);
             throw e;
         }
-        return isPrivateStore;
     }
 
     public KeyStoreData getKeystoreInfo(String keyStoreName) throws java.lang.Exception {
