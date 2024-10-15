@@ -18,9 +18,17 @@
 
 package org.wso2.carbon.identity.application.common;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtConstants.ErrorMessages;
+import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
+import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +39,9 @@ import java.util.List;
 public class ApplicationAuthenticatorService {
 
     private static volatile ApplicationAuthenticatorService instance;
+    private static final Log LOG = LogFactory.getLog(ApplicationAuthenticatorService.class);
+    private static final CacheBackedAuthenticatorMgtDAO CACHE_BACKED_DAO =
+            new CacheBackedAuthenticatorMgtDAO(new AuthenticatorManagementDAOImpl());
 
     private List<LocalAuthenticatorConfig> localAuthenticators = new ArrayList<>();
     private List<FederatedAuthenticatorConfig> federatedAuthenticators = new ArrayList<>();
@@ -120,5 +131,60 @@ public class ApplicationAuthenticatorService {
         if (authenticator != null) {
             requestPathAuthenticators.remove(authenticator);
         }
+    }
+
+    public LocalAuthenticatorConfig createUserDefinedLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig,
+            String tenantDomain) throws AuthenticatorMgtException {
+
+        // set definedby type to USER.
+        LocalAuthenticatorConfig createdConfig = CACHE_BACKED_DAO.addUserDefinedLocalAuthenticator(
+                authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
+        localAuthenticators.add(createdConfig);
+        return authenticatorConfig;
+    }
+
+    public LocalAuthenticatorConfig updateUserDefinedLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig,
+            String tenantDomain) throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig existingAuthenticatorConfig = getLocalAuthenticatorByName(authenticatorConfig.getName());
+        if (existingAuthenticatorConfig == null) {
+            ErrorMessages error = ErrorMessages.ERROR_NOT_FOUND_AUTHENTICATOR;
+            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
+                    String.format(error.getDescription(), authenticatorConfig.getName()));
+        }
+        validateAuthenticatorDefinedByType(authenticatorConfig);
+
+        LocalAuthenticatorConfig updatedConfig = CACHE_BACKED_DAO.updateUserDefinedLocalAuthenticator(
+                existingAuthenticatorConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
+        localAuthenticators.remove(existingAuthenticatorConfig);
+        localAuthenticators.add(updatedConfig);
+        return authenticatorConfig;
+    }
+
+    public void deleteUserDefinedLocalAuthenticator(String authenticatorName, String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig authenticatorConfig = getLocalAuthenticatorByName(authenticatorName);
+        if (authenticatorConfig == null) {
+            ErrorMessages error = ErrorMessages.ERROR_NOT_FOUND_AUTHENTICATOR;
+            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
+                    String.format(error.getDescription(), authenticatorName));
+        }
+
+        CACHE_BACKED_DAO.deleteUserDefinedLocalAuthenticator(authenticatorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+        localAuthenticators.remove(authenticatorConfig);
+    }
+
+    private void validateAuthenticatorDefinedByType(LocalAuthenticatorConfig authenticatorConfig)
+            throws AuthenticatorMgtClientException {
+
+        if (authenticatorConfig.getDefinedByType()) {
+            return;
+        }
+
+        ErrorMessages error = ErrorMessages.ERROR_OP_ON_SYSTEM_AUTHENTICATOR;
+        throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
+                String.format(error.getDescription(), authenticatorConfig.getName()));
     }
 }

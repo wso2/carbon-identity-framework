@@ -16,41 +16,38 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management.exception;
+package org.wso2.carbon.identity.application.common.exception;
 
-/**
- * Action management exception.
- */
-public class AuthenticatorMgtServerExceptionActionMgtException extends Exception {
+public class AuthenticatorMgtException extends Exception {
 
     private String errorCode;
     private String description;
 
-    public ActionMgtException(String message) {
+    public AuthenticatorMgtException(String message) {
 
         super(message);
     }
 
-    public ActionMgtException(String message, String errorCode) {
+    public AuthenticatorMgtException(String message, String errorCode) {
 
         super(message);
         this.errorCode = errorCode;
     }
 
-    public ActionMgtException(String message, String errorCode, Throwable cause) {
+    public AuthenticatorMgtException(String message, String errorCode, Throwable cause) {
 
         super(message, cause);
         this.errorCode = errorCode;
     }
 
-    public ActionMgtException(String message, String description, String errorCode) {
+    public AuthenticatorMgtException(String message, String description, String errorCode) {
 
         super(message);
         this.errorCode = errorCode;
         this.description = description;
     }
 
-    public ActionMgtException(String message, String description, String errorCode, Throwable cause) {
+    public AuthenticatorMgtException(String message, String description, String errorCode, Throwable cause) {
 
         super(message, cause);
         this.errorCode = errorCode;
