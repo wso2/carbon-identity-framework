@@ -67,10 +67,6 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     private KeyStoreManager keyStoreManager;
     @Mock
     private Registry registry;
-    @Mock
-    private CryptoUtil cryptoUtil;
-    @Mock
-    private Resource resource;
     private KeyStoreAdmin keyStoreAdmin;
     private final int tenantID = -1234;
 
@@ -88,22 +84,13 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
 
-        try (MockedStatic<CryptoUtil>cryptoUtilMockedStatic = mockStatic(CryptoUtil.class);
-             MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
             keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(false);
-
-            // Mocking Registry interactions
-            when(registry.newResource()).thenReturn(resource);
-
-            // Mocking password encryption
-            cryptoUtilMockedStatic.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(cryptoUtil);
-            when(cryptoUtil.encryptAndBase64Encode(any())).thenReturn("encryptedPassword");
-
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             keyStoreAdmin.addKeyStore(keyStoreContent, "new_keystore.jks", KEYSTORE_PASSWORD, " ", "JKS", KEYSTORE_PASSWORD);
@@ -115,21 +102,13 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
 
-        try (MockedStatic<CryptoUtil>cryptoUtilMockedStatic = mockStatic(CryptoUtil.class);
-             MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
             keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(true);
-
-            // Mocking Registry interactions
-            when(registry.newResource()).thenReturn(resource);
-
-            // Mocking password encryption
-            cryptoUtilMockedStatic.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(cryptoUtil);
-            when(cryptoUtil.encryptAndBase64Encode(any())).thenReturn("encryptedPassword");
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             keyStoreAdmin.addTrustStore(keyStoreContent, "new_truststore.jks", KEYSTORE_PASSWORD, " ", "JKS");
