@@ -57,9 +57,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
     private static final Log log = LogFactory.getLog(DefaultClaimMetadataStore.class);
 
-    private ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
-    private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
-    private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
+    private final UnifiedClaimMetadataManager unifiedClaimMetadataManager = new UnifiedClaimMetadataManager();
 
     private int tenantId;
 
@@ -71,7 +69,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     public DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
         try {
-            if (claimDialectDAO.getClaimDialects(tenantId).size() == 0) {
+            if (unifiedClaimMetadataManager.getClaimDialects(tenantId).size() == 0) {
                 IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO()
                         .initClaimConfig(claimConfig, tenantId);
             }
@@ -96,7 +94,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
         try {
 
-            List<LocalClaim> localClaimList = this.localClaimDAO.getLocalClaims(tenantId);
+            List<LocalClaim> localClaimList = this.unifiedClaimMetadataManager.getLocalClaims(tenantId);
 
             localClaims = new String[localClaimList.size()];
 
@@ -136,7 +134,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         try {
             // Add listener
 
-            List<LocalClaim> localClaimList = this.localClaimDAO.getLocalClaims(tenantId);
+            List<LocalClaim> localClaimList = this.unifiedClaimMetadataManager.getLocalClaims(tenantId);
 
             // Add listener
 
@@ -148,14 +146,14 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
 
             // For backward compatibility
-            List<ClaimDialect> claimDialects = claimDialectDAO.getClaimDialects(tenantId);
+            List<ClaimDialect> claimDialects = unifiedClaimMetadataManager.getClaimDialects(tenantId);
 
             for (ClaimDialect claimDialect : claimDialects) {
                 if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialect.getClaimDialectURI())) {
                     continue;
                 }
 
-                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(claimDialect
+                List<ExternalClaim> externalClaims = unifiedClaimMetadataManager.getExternalClaims(claimDialect
                         .getClaimDialectURI(), tenantId);
 
                 for (ExternalClaim externalClaim : externalClaims) {
@@ -247,7 +245,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     @Deprecated
     public Claim getClaim(String claimURI) throws UserStoreException {
         try {
-            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+            List<LocalClaim> localClaims = unifiedClaimMetadataManager.getLocalClaims(this.tenantId);
 
             for (LocalClaim localClaim : localClaims) {
                 if (localClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
@@ -258,14 +256,14 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
 
             // For backward compatibility
-            List<ClaimDialect> claimDialects = claimDialectDAO.getClaimDialects(tenantId);
+            List<ClaimDialect> claimDialects = unifiedClaimMetadataManager.getClaimDialects(tenantId);
 
             for (ClaimDialect claimDialect : claimDialects) {
                 if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialect.getClaimDialectURI())) {
                     continue;
                 }
 
-                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(claimDialect
+                List<ExternalClaim> externalClaims = unifiedClaimMetadataManager.getExternalClaims(claimDialect
                         .getClaimDialectURI(), tenantId);
 
                 for (ExternalClaim externalClaim : externalClaims) {
@@ -294,7 +292,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     @Deprecated
     public ClaimMapping getClaimMapping(String claimURI) throws UserStoreException {
         try {
-            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+            List<LocalClaim> localClaims = unifiedClaimMetadataManager.getLocalClaims(this.tenantId);
 
             for (LocalClaim localClaim : localClaims) {
                 if (localClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
@@ -305,14 +303,14 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
 
             // For backward compatibility
-            List<ClaimDialect> claimDialects = claimDialectDAO.getClaimDialects(tenantId);
+            List<ClaimDialect> claimDialects = unifiedClaimMetadataManager.getClaimDialects(tenantId);
 
             for (ClaimDialect claimDialect : claimDialects) {
                 if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialect.getClaimDialectURI())) {
                     continue;
                 }
 
-                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(claimDialect
+                List<ExternalClaim> externalClaims = unifiedClaimMetadataManager.getExternalClaims(claimDialect
                         .getClaimDialectURI(), tenantId);
 
                 for (ExternalClaim externalClaim : externalClaims) {
@@ -345,7 +343,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
         if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(dialectUri)) {
             try {
-                List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+                List<LocalClaim> localClaims = unifiedClaimMetadataManager.getLocalClaims(this.tenantId);
 
                 List<ClaimMapping> claimMappings = new ArrayList<>();
 
@@ -365,8 +363,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
         } else {
             try {
-                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(dialectUri, this.tenantId);
-                List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+                List<ExternalClaim> externalClaims = unifiedClaimMetadataManager.getExternalClaims(dialectUri,
+                        this.tenantId);
+                List<LocalClaim> localClaims = unifiedClaimMetadataManager.getLocalClaims(this.tenantId);
 
                 List<ClaimMapping> claimMappings = new ArrayList<>();
 
@@ -414,7 +413,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     public ClaimMapping[] getAllSupportClaimMappingsByDefault() throws UserStoreException {
 
         try {
-            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+            List<LocalClaim> localClaims = unifiedClaimMetadataManager.getLocalClaims(this.tenantId);
 
             List<ClaimMapping> claimMappings = new ArrayList<>();
 
@@ -442,7 +441,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     public ClaimMapping[] getAllRequiredClaimMappings() throws UserStoreException {
 
         try {
-            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+            List<LocalClaim> localClaims = unifiedClaimMetadataManager.getLocalClaims(this.tenantId);
 
             List<ClaimMapping> claimMappings = new ArrayList<>();
 
