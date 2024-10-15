@@ -1567,7 +1567,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                         ApplicationConstants.LOCAL_IDP_NAME,
                                         lclAuthenticator.getName(),
                                         lclAuthenticator.getDisplayName(),
-                                        lclAuthenticator.getDefinedByType().toString());
+                                        DefinedByType.SYSTEM.toString());
                             }
                             if (authenticatorId > 0) {
                                 // ID, TENANT_ID, AUTHENTICATOR_ID

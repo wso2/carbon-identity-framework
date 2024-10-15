@@ -1523,6 +1523,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         handleMetadata(tenantId, identityProvider);
+        resolveAuthenticatorDefinedByProperty(identityProvider, true);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
@@ -1872,6 +1873,7 @@ public class IdentityProviderManager implements IdpManager {
 
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
+        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
     }
 
@@ -2656,5 +2658,29 @@ public class IdentityProviderManager implements IdpManager {
             return true;
         }
         return false;
+    }
+
+    private void resolveAuthenticatorDefinedByProperty(IdentityProvider idp, boolean isNewFederatedAuthenticator) {
+
+        /* For new federated authenticators: If 'definedByType' is null, set it to default to SYSTEM. */
+        if (isNewFederatedAuthenticator) {
+            for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                if (federatedAuthConfig.getDefinedByType() == null) {
+                    federatedAuthConfig.setDefinedByType(DefinedByType.SYSTEM);
+                }
+            }
+        }
+
+        /* For existing federated authenticators, disregard any value provided in the request payload.
+         Instead, resolve and retrieve the 'definedBy' type of the corresponding existing authenticator.
+         If the authenticator config is present in the ApplicationAuthenticatorService list, return its type,
+         if not return USER. */
+        for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+            if (federatedAuthConfig.getDefinedByType() == null) {
+                FederatedAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
+                        .getFederatedAuthenticatorByName(federatedAuthConfig.getName());
+                federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
+            }
+        }
     }
 }
