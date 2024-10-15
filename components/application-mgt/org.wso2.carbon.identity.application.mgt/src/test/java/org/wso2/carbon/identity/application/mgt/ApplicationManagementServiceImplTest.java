@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInbo
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
@@ -105,6 +106,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
@@ -183,6 +185,8 @@ public class ApplicationManagementServiceImplTest {
         SecretDAO secretDAO = new SecretDAOImpl();
         SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
+        MockedStatic<DefinedByType> definedByType = mockStatic(DefinedByType.class);
+        definedByType.when(() -> DefinedByType.valueOf(anyString())).thenReturn(DefinedByType.SYSTEM);
     }
 
     @DataProvider(name = "addApplicationDataProvider")
@@ -1232,10 +1236,12 @@ public class ApplicationManagementServiceImplTest {
         identityProvider.setIdentityProviderName(IDP_NAME_1);
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig.setName("Federated authenticator");
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         identityProvider.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
                 {federatedAuthenticatorConfig});
         authenticationStep.setFederatedIdentityProviders(new IdentityProvider[]{identityProvider});
         LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
+        localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         localAuthenticatorConfig.setName("Local authenticator");
         authenticationStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticatorConfig});
         authenticationConfig.setAuthenticationSteps(new AuthenticationStep[]{authenticationStep});
@@ -1244,6 +1250,7 @@ public class ApplicationManagementServiceImplTest {
         // Request Path Authenticator Configuration.
         RequestPathAuthenticatorConfig requestPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
         requestPathAuthenticatorConfig.setName("Request path authenticator");
+        requestPathAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         serviceProvider.setRequestPathAuthenticatorConfigs(new RequestPathAuthenticatorConfig[]{
                 requestPathAuthenticatorConfig});
 
