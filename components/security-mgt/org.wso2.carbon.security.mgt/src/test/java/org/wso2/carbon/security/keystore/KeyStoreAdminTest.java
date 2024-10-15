@@ -67,6 +67,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     private KeyStoreManager keyStoreManager;
     @Mock
     private Registry registry;
+    @Mock
+    private CryptoUtil cryptoUtil;
+    @Mock
+    private Resource resource;
     private KeyStoreAdmin keyStoreAdmin;
     private final int tenantID = -1234;
 

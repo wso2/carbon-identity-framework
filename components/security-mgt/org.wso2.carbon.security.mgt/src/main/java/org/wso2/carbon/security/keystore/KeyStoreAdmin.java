@@ -221,26 +221,18 @@ public class KeyStoreAdmin {
         }
     }
 
-    @Deprecated
     public void addTrustStore(String fileData, String filename, String password, String provider,
                               String type) throws SecurityConfigException {
 
         byte[] content = Base64.decode(fileData);
-        try {
-            keyStoreManager.addTrustStore(content, filename, password, provider, type);
-        } catch (CarbonException e) {
-            String msg = "Error when adding a trustStore";
-            log.error(msg, e);
-            throw new SecurityConfigException(msg, e);
-        }
+        addTrustStore(content, filename, password, provider, type);
     }
 
-    @Deprecated
     public void addTrustStore(byte[] content, String filename, String password, String provider, String type)
             throws SecurityConfigException {
 
         try {
-            keyStoreManager.addTrustStore(content, filename, password, provider, type);
+            keyStoreManager.addKeyStore(content, filename, password, provider, type, null);
         } catch (CarbonException e) {
             String msg = "Error when adding a trustStore";
             log.error(msg, e);

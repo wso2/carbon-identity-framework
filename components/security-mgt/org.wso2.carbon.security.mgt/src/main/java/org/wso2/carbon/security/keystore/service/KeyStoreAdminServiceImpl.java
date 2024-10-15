@@ -54,14 +54,9 @@ public class KeyStoreAdminServiceImpl extends AbstractAdmin implements KeyStoreA
     @Override
     public void addTrustStore(String fileData, String filename, String password, String provider,
                               String type) throws SecurityConfigException {
-
-        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(
-                CarbonContext.getThreadLocalCarbonContext().getTenantId());
-        try {
-            keyStoreManager.addTrustStore(Base64.decode(fileData), filename, password, provider, type);
-        } catch (CarbonException e) {
-            throw new SecurityConfigException(e.getMessage());
-        }
+        KeyStoreAdmin admin = new KeyStoreAdmin(CarbonContext.getThreadLocalCarbonContext().getTenantId(),
+                getGovernanceSystemRegistry());
+        admin.addTrustStore(fileData, filename, password, provider, type);
     }
 
     @Override
