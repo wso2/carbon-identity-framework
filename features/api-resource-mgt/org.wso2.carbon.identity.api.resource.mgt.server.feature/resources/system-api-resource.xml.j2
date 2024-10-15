@@ -292,6 +292,34 @@
                     description="Delete identity provider connectors in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Identity Verification Provider Management API"
+                identifier="/api/server/v1/idv-providers" requiresAuthorization="true"
+                description="API representation of the Identity Verification Provider Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Identity Verification Provider" name="internal_idvp_view"
+                    description="View identity verification provider connectors in the organization (root)"/>
+            <Scope displayName="Create Identity Verification Provider" name="internal_idvp_add"
+                    description="Add new identity verification provider connectors in the organization (root)"/>
+            <Scope displayName="Update Identity Verification Provider" name="internal_idvp_update"
+                    description="Update identity verification provider connectors in the organization (root)"/>
+            <Scope displayName="Delete Identity Verification Provider" name="internal_idvp_delete"
+                    description="Delete identity verification provider connectors in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Verification Claim Management API"
+                identifier="/api/users/v1/(.*)/idv" requiresAuthorization="true"
+                description="API representation of the Identity Verification Claim Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Identity Verification Claim" name="internal_idv_claim_view"
+                    description="View identity verification claims of a user in the organization (root)"/>
+            <Scope displayName="Create Identity Verification Claim" name="internal_idv_claim_add"
+                    description="Add new identity verification claim for a user in the organization (root)"/>
+            <Scope displayName="Update Identity Verification Claim" name="internal_idv_claim_update"
+                    description="Update identity verification claim of a user in the organization (root)"/>
+            <Scope displayName="Verify Identity Verification Claim" name="internal_idv_claim_verify"
+                    description="Veirfy identity verification claim of a user in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Validation Rules API" identifier="/api/server/v1/validation-rules"
                  requiresAuthorization="true" description="API representation of the Validation Rules API" type="TENANT">
         <Scopes>

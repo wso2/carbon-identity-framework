@@ -220,6 +220,8 @@ public class ApplicationManagementServiceImplTest {
 
         Assert.assertEquals(retrievedSP.getApplicationID(), inputSP.getApplicationID());
         Assert.assertEquals(retrievedSP.getOwner().getUserName(), inputSP.getOwner().getUserName());
+        Assert.assertEquals(retrievedSP.getApplicationVersion(),
+                ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
         Assert.assertFalse(retrievedSP.isManagementApp());
 
         // Deleting added application.
@@ -333,6 +335,8 @@ public class ApplicationManagementServiceImplTest {
                 (tenantDomain, username, "name eq " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationVersion(),
+                ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
@@ -352,6 +356,8 @@ public class ApplicationManagementServiceImplTest {
                 (tenantDomain, username, 1, "name co " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationVersion(),
+                ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
@@ -853,6 +859,7 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertEquals(actual.getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(actual.getOwner().getUserName(), USERNAME_1);
         Assert.assertEquals(actual.getDescription(), inputSP.getDescription());
+        Assert.assertEquals(actual.getApplicationVersion(), ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         // Deleting all added application.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
