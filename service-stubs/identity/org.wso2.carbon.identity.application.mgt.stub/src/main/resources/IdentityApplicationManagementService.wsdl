@@ -365,7 +365,7 @@
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationVersion" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="associatedRolesConfig" nillable="true" type="ax2161:AssociatedRolesConfig"/>
+                    <xs:element minOccurs="0" name="associatedRolesConfig" nillable="true" type="ax2163:AssociatedRolesConfig"/>
                     <xs:element minOccurs="0" name="b2BSelfServiceApp" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="certificateContent" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2163:ClaimConfig"/>
