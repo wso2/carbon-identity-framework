@@ -196,7 +196,7 @@ public class ActionExecutionDiagnosticLogger {
 
         return diagnosticLogBuilder
                 .configParam("action id", action.getId())
-                .configParam("action type", action.getType().getActionType())
+                .configParam("action type", action.getType().getDisplayName())
                 .configParam("action endpoint", action.getEndpoint().getUri())
                 .configParam("action endpoint authentication type",
                         action.getEndpoint().getAuthentication().getType().getName());
