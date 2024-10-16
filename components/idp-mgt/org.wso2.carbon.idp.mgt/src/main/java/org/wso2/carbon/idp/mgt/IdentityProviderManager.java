@@ -2672,15 +2672,11 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         /* For existing federated authenticators, disregard any value provided in the request payload.
-         Instead, resolve and retrieve the 'definedBy' type of the corresponding existing authenticator.
-         If the authenticator config is present in the ApplicationAuthenticatorService list, return its type,
-         if not return USER. */
+         Instead, resolve and retrieve the 'definedBy' type of the corresponding existing authenticator. */
         for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
-            if (federatedAuthConfig.getDefinedByType() == null) {
-                FederatedAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
-                        .getFederatedAuthenticatorByName(federatedAuthConfig.getName());
-                federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
-            }
+            FederatedAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
+                    .getFederatedAuthenticatorByName(federatedAuthConfig.getName());
+            federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
         }
     }
 }
