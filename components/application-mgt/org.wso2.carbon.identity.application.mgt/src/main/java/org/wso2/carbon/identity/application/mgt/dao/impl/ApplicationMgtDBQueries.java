@@ -259,7 +259,8 @@ public class ApplicationMgtDBQueries {
             "THUMBPRINTS, IS_FIDO_TRUSTED FROM SP_TRUSTED_APPS WHERE SP_ID = ? AND TENANT_ID = ?";
     public static final String LOAD_TRUSTED_APPS_BY_PLATFORM_TYPE = "SELECT APP_IDENTIFIER, THUMBPRINTS, " +
             "IS_FIDO_TRUSTED FROM SP_TRUSTED_APPS WHERE PLATFORM_TYPE = ?";
-    public static final String EXCLUDE_SYSTEM_PORTALS_BY_NAME = "AND SP_APP.APP_NAME NOT IN (%s)";
+    public static final String EXCLUDE_SYSTEM_PORTALS_BY_TABLE_NAME_AND_NAME = "AND SP_APP.APP_NAME NOT IN (%s)";
+    public static final String EXCLUDE_SYSTEM_PORTALS_BY_NAME = "AND APP_NAME NOT IN (%s)";
 
     // DELETE queries
     public static final String REMOVE_APP_FROM_APPMGT_APP = "DELETE FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";

@@ -113,7 +113,7 @@ import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_PORTALS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -505,7 +505,7 @@ public class ApplicationManagementServiceImplTest {
         OMElement mockPortalsOMElement = mock(OMElement.class);
 
         when(mockConfigParser.getConfigElement(SYSTEM_PORTALS)).thenReturn(mockOMElement);
-        when(mockOMElement.getChildrenWithLocalName(APPLICATION_NAME_CONFIG_ELEMENT)).thenReturn(portals);
+        when(mockOMElement.getChildrenWithLocalName(PORTAL_NAME_CONFIG_ELEMENT)).thenReturn(portals);
         when(portals.hasNext()).thenReturn(true).thenReturn(false);
         when(portals.next()).thenReturn(mockPortalsOMElement);
         when(mockPortalsOMElement.getText()).thenReturn(APPLICATION_NAME_3);

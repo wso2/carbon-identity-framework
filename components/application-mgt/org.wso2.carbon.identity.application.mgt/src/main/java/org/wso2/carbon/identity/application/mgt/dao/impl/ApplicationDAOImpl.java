@@ -2107,7 +2107,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             List<String> filterValues = filterData.getFilterValues();
             String filterString = filterData.getFilterString();
-            String excludeSystemPortalsQueryString = populateSystemPortalsExcludeQuery(excludeSystemPortals);
+            String excludeSystemPortalsQueryString = populateSystemPortalsExcludeQuery(excludeSystemPortals, true);
 
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             if (databaseProductName.contains("MySQL")
@@ -2184,16 +2184,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Get query to exclude system portals if excludeSystemPortals is true.
      *
-     * @param excludeSystemPortals Exclude system portals.
-     * @return
+     * @param excludeSystemPortals  Exclude system portals.
+     * @param useTableNameInQuery   Use the table name in query.
+     * @return String Query to exclude system portals.
      */
-    private String populateSystemPortalsExcludeQuery(Boolean excludeSystemPortals) {
+    private String populateSystemPortalsExcludeQuery(Boolean excludeSystemPortals, Boolean useTableNameInQuery) {
 
         if (excludeSystemPortals) {
+            String excludeSystemPortalsQuery = useTableNameInQuery ?
+                    ApplicationMgtDBQueries.EXCLUDE_SYSTEM_PORTALS_BY_TABLE_NAME_AND_NAME :
+                    ApplicationMgtDBQueries.EXCLUDE_SYSTEM_PORTALS_BY_NAME;
             Set<String> systemPortals = getSystemPortalsFromConfiguration(SYSTEM_PORTALS);
             return systemPortals.isEmpty() ? "" :
-                    String.format(ApplicationMgtDBQueries.EXCLUDE_SYSTEM_PORTALS_BY_NAME,
-                            systemPortals.stream()
+                    String.format(excludeSystemPortalsQuery, systemPortals.stream()
                                     .map(s -> "'" + s + "'")
                                     .collect(Collectors.joining(", ")));
         } else {
@@ -4061,7 +4064,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         FilterData filterData = getFilterDataForDBQuery(filter);
         String filterString = filterData.getFilterString();
-        String excludeSystemPortalsQueryString = populateSystemPortalsExcludeQuery(excludeSystemPortals);
+        String excludeSystemPortalsQueryString = populateSystemPortalsExcludeQuery(excludeSystemPortals, true);
 
         try {
             String filterValueResolvedForSQL;
@@ -4223,7 +4226,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ResultSet appNameResultSet = null;
         String sqlQuery;
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
-        String excludeSystemPortalsQueryString = populateSystemPortalsExcludeQuery(excludeSystemPortals);
+        String excludeSystemPortalsQueryString = populateSystemPortalsExcludeQuery(excludeSystemPortals, false);
 
         try {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
