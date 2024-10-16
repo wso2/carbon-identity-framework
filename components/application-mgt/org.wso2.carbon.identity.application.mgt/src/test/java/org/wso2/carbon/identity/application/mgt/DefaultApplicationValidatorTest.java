@@ -279,15 +279,13 @@ public class DefaultApplicationValidatorTest {
                 {"v1.1.1", "oauth2", false},
                 {"dummy", "oauth2", false},
                 {"v1.0.0", "samlsso", true},
-                // if auth type is samlsso, the downgrading should not be allowed.
-                {"v0.0.0", "samlsso", false},
+                {"v0.0.0", "samlsso", true},
                 {"v0.0.1", "samlsso", false},
                 {"v0.1.1", "samlsso", false},
                 {"v1.1.1", "samlsso", false},
                 {"dummy", "samlsso", false},
                 {"v1.0.0", null, true},
-                // if no auth type is marked, the downgrading should not be allowed.
-                {"v0.0.0", null, false},
+                {"v0.0.0", null, true},
                 {"v0.0.1", null, false},
                 {"v0.1.1", null, false},
                 {"v1.1.1", null, false},

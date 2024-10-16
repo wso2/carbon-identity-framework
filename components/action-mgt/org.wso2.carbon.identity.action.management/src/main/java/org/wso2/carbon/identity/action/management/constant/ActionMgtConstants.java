@@ -27,6 +27,15 @@ public class ActionMgtConstants {
     public static final String AUTHN_TYPE_ATTRIBUTE = "authnType";
     public static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_API_ENDPOINT_AUTH_SECRETS";
 
+    public static final String ACTION_NAME_FIELD = "Action name";
+    public static final String ENDPOINT_URI_FIELD = "Endpoint URI";
+    public static final String ENDPOINT_AUTHENTICATION_TYPE_FIELD = "Endpoint authentication type";
+    public static final String USERNAME_FIELD = "Username";
+    public static final String PASSWORD_FIELD = "Password";
+    public static final String ACCESS_TOKEN_FIELD = "Access token";
+    public static final String API_KEY_HEADER_FIELD = "API key header name";
+    public static final String API_KEY_VALUE_FIELD = "API key value";
+
     /**
      * Error messages.
      */
@@ -40,6 +49,10 @@ public class ActionMgtConstants {
         ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ACTION_TYPE_AND_ID("60003",
                 "Unable to perform the operation.",
                 "No Action is configured on the given Action Type and Id."),
+        ERROR_EMPTY_ACTION_REQUEST_FIELD("60004", "Invalid request.",
+                "%s is empty."),
+        ERROR_INVALID_ACTION_REQUEST_FIELD("60005", "Invalid request.",
+                "%s is invalid."),
 
         // Server errors.
         ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
