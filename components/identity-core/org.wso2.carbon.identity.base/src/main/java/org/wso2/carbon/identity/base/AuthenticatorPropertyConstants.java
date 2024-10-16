@@ -23,7 +23,7 @@ public class AuthenticatorPropertyConstants {
     /**
      * The Defined by Types - SYSTEM: system define authenticator, USER: user defined authentication extension.
      */
-    public enum DefinedByType {
+    public static enum DefinedByType {
 
         SYSTEM,
         USER
