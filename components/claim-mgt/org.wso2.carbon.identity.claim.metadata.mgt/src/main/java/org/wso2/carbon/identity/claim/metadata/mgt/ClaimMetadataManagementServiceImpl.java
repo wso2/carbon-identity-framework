@@ -148,6 +148,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     String.format(ERROR_CODE_NO_RENAME_SYSTEM_DIALECT.getMessage(), oldClaimDialect.getClaimDialectURI()));
         }
 
+        boolean isRenamedDialectAlreadyTaken = isExistingClaimDialect(newClaimDialect.getClaimDialectURI(), tenantId);
+        if (isRenamedDialectAlreadyTaken) {
+            throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_CLAIM_DIALECT.getCode(),
+                    String.format(ERROR_CODE_EXISTING_CLAIM_DIALECT.getMessage(), newClaimDialect.getClaimDialectURI()));
+        }
+
         ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateClaimDialect(tenantId, oldClaimDialect, newClaimDialect);
 
         this.unifiedClaimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
