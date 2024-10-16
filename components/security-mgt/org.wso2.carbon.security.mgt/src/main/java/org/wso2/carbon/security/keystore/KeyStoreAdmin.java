@@ -182,33 +182,22 @@ public class KeyStoreAdmin {
         }
     }
 
-    @Deprecated
     public void addKeyStoreWithFilePath(String filePath, String filename, String password,
                                         String provider, String type, String pvtkeyPass) throws SecurityConfigException {
-
         try {
-            keyStoreManager.addKeyStore(readBytesFromFile(filePath), filename, password, provider, type, pvtkeyPass);
-        } catch (SecurityException | IOException e) {
+            addKeyStore(readBytesFromFile(filePath), filename, password, provider, type, pvtkeyPass);
+        } catch (IOException e) {
             throw new SecurityConfigException("Error while loading keystore from file " + filePath, e);
         }
 
     }
 
-    @Deprecated
     public void addKeyStore(String fileData, String filename, String password, String provider,
                             String type, String pvtkeyPass) throws SecurityConfigException {
-
         byte[] content = Base64.decode(fileData);
-        try {
-            keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
-        } catch (SecurityException e) {
-            String msg = "Error when adding a keyStore";
-            log.error(msg, e);
-            throw new SecurityConfigException(msg, e);
-        }
+        addKeyStore(content, filename, password, provider, type, pvtkeyPass);
     }
 
-    @Deprecated
     public void addKeyStore(byte[] content, String filename, String password, String provider,
                             String type, String pvtkeyPass) throws SecurityConfigException {
 
@@ -223,7 +212,6 @@ public class KeyStoreAdmin {
 
     public void addTrustStore(String fileData, String filename, String password, String provider,
                               String type) throws SecurityConfigException {
-
         byte[] content = Base64.decode(fileData);
         addTrustStore(content, filename, password, provider, type);
     }
@@ -240,7 +228,6 @@ public class KeyStoreAdmin {
         }
     }
 
-    @Deprecated
     public void deleteStore(String keyStoreName) throws SecurityConfigException {
 
         try {
@@ -337,7 +324,6 @@ public class KeyStoreAdmin {
             }
 
             ks.deleteEntry(alias);
-
             this.keyStoreManager.updateKeyStore(keyStoreName, ks);
 
             if (KeyStoreUtil.isTrustStore(keyStoreName)) {
@@ -420,12 +406,53 @@ public class KeyStoreAdmin {
                 keyStore = this.keyStoreManager.getKeyStore(keyStoreName);
                 keyStoreType = resource.getProperty(SecurityConstants.PROP_TYPE);
 
-                String encPass = resource.getProperty(SecurityConstants.PROP_PRIVATE_KEY_PASS);
-                if (StringUtils.isNotBlank(encPass)) {
-                    privateKeyPassword = new String(CryptoUtil.getDefaultCryptoUtil().base64DecodeAndDecrypt(encPass));
+                String encpass = resource.getProperty(SecurityConstants.PROP_PRIVATE_KEY_PASS);
+                if (encpass != null) {
+                    CryptoUtil util = CryptoUtil.getDefaultCryptoUtil();
+                    privateKeyPassword = new String(util.base64DecodeAndDecrypt(encpass));
                 }
             }
-            return createKeyStoreData(keyStoreName, keyStoreType, privateKeyPassword, keyStore);
+            // Fill the information about the certificates
+            Enumeration<String> aliases = keyStore.aliases();
+            List<org.wso2.carbon.security.keystore.service.CertData> certDataList = new ArrayList<>();
+            Format formatter = new SimpleDateFormat("dd/MM/yyyy");
+
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                if (keyStore.isCertificateEntry(alias)) {
+                    X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
+                    certDataList.add(fillCertData(cert, alias, formatter));
+                }
+            }
+
+            // Create a cert array
+            CertData[] certs = certDataList.toArray(new CertData[certDataList.size()]);
+
+            // Create a KeyStoreData bean, set the name and fill in the cert information
+            KeyStoreData keyStoreData = new KeyStoreData();
+            keyStoreData.setKeyStoreName(keyStoreName);
+            keyStoreData.setCerts(certs);
+            keyStoreData.setKeyStoreType(keyStoreType);
+
+            aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                // There be only one entry in WSAS related keystores
+                if (keyStore.isKeyEntry(alias)) {
+                    X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
+                    keyStoreData.setKey(fillCertData(cert, alias, formatter));
+                    PrivateKey key = (PrivateKey) keyStore.getKey(alias, privateKeyPassword
+                            .toCharArray());
+                    String pemKey;
+                    pemKey = "-----BEGIN PRIVATE KEY-----\n";
+                    pemKey += Base64.encode(key.getEncoded());
+                    pemKey += "\n-----END PRIVATE KEY-----";
+                    keyStoreData.setKeyValue(pemKey);
+                    break;
+
+                }
+            }
+            return keyStoreData;
         } catch (Exception e) {
             String msg = "Error has encounted while loading the keystore to the given keystore name "
                     + keyStoreName;
@@ -433,50 +460,6 @@ public class KeyStoreAdmin {
             throw new SecurityConfigException(msg);
         }
 
-    }
-
-    private KeyStoreData createKeyStoreData(String keyStoreName, String keyStoreType, String privateKeyPassword,
-                                            KeyStore keyStore) throws Exception {
-
-        // Fill the information about the certificates
-        Enumeration<String> aliases = keyStore.aliases();
-        List<CertData> certDataList = new ArrayList<>();
-        Format formatter = new SimpleDateFormat("dd/MM/yyyy");
-
-        while (aliases.hasMoreElements()) {
-            String alias = aliases.nextElement();
-            if (keyStore.isCertificateEntry(alias)) {
-                X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
-                certDataList.add(fillCertData(cert, alias, formatter));
-            }
-        }
-
-        // Create a cert array
-        CertData[] certs = certDataList.toArray(new CertData[0]);
-
-        // Create a KeyStoreData bean, set the name and fill in the cert information
-        KeyStoreData keyStoreData = new KeyStoreData();
-        keyStoreData.setKeyStoreName(keyStoreName);
-        keyStoreData.setCerts(certs);
-        keyStoreData.setKeyStoreType(keyStoreType);
-
-        while (aliases.hasMoreElements()) {
-            String alias = aliases.nextElement();
-            // There be only one entry in WSAS related keystores
-            if (keyStore.isKeyEntry(alias)) {
-                X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
-                keyStoreData.setKey(fillCertData(cert, alias, formatter));
-                PrivateKey key = (PrivateKey) keyStore.getKey(alias, privateKeyPassword
-                        .toCharArray());
-                String pemKey;
-                pemKey = "-----BEGIN PRIVATE KEY-----\n";
-                pemKey += Base64.encode(key.getEncoded());
-                pemKey += "\n-----END PRIVATE KEY-----";
-                keyStoreData.setKeyValue(pemKey);
-                break;
-            }
-        }
-        return keyStoreData;
     }
 
     public Key getPrivateKey(String alias, boolean isSuperTenant) throws SecurityConfigException {
@@ -842,10 +825,7 @@ public class KeyStoreAdmin {
      *
      * @return trust store object
      * @throws SecurityConfigException if retrieving the truststore fails.
-     *
-     * @deprecated Use {@link KeyStoreManager#getTrustStore()} instead.
      */
-    @Deprecated
     public KeyStore getTrustStore() throws SecurityConfigException {
     
         try {
@@ -861,10 +841,7 @@ public class KeyStoreAdmin {
      * @param keyStoreName name of the keystore.
      * @return {@link KeyStore} object.
      * @throws Exception if retrieving the keystore fails.
-     *
-     * @deprecated Use {@link KeyStoreManager#getKeyStore(String)} instead.
      */
-    @Deprecated
     public KeyStore getKeyStore(String keyStoreName) throws Exception {
 
         return this.keyStoreManager.getKeyStore(keyStoreName);
