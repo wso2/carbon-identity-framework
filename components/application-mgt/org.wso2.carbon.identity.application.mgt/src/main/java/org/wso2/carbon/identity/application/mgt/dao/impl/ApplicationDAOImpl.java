@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
-import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -87,7 +86,6 @@ import org.wso2.carbon.identity.core.model.FilterData;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
-import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -124,7 +122,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -177,8 +174,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAME_CONFIG_ELEMENT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_PORTALS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.UNION_SEPARATOR;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
@@ -2075,6 +2071,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return getApplicationBasicInfo(filter, offset, limit);
     }
 
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
             throws IdentityApplicationManagementException {
@@ -2194,51 +2191,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String excludeSystemPortalsQuery = useTableNameInQuery ?
                     ApplicationMgtDBQueries.EXCLUDE_SYSTEM_PORTALS_BY_TABLE_NAME_AND_NAME :
                     ApplicationMgtDBQueries.EXCLUDE_SYSTEM_PORTALS_BY_NAME;
-            Set<String> systemPortals = getSystemPortalsFromConfiguration(SYSTEM_PORTALS);
-            return systemPortals.isEmpty() ? "" :
+            List<String> systemPortals = IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT);
+            return systemPortals.isEmpty() ? StringUtils.EMPTY :
                     String.format(excludeSystemPortalsQuery, systemPortals.stream()
                                     .map(s -> "'" + s + "'")
                                     .collect(Collectors.joining(", ")));
         } else {
-            return "";
+            return StringUtils.EMPTY;
         }
-    }
-
-    /**
-     * Get system portals from configuration.
-     *
-     * @param parentElement Configuration tag name.
-     * @return Set of system portals from default.json.
-     */
-    private static Set<String> getSystemPortalsFromConfiguration(String parentElement) {
-
-        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
-        OMElement systemApplicationsConfig = configParser.getConfigElement(parentElement);
-        if (systemApplicationsConfig == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + parentElement + "' config not found.");
-            }
-            return Collections.emptySet();
-        }
-
-        Iterator applicationIdentifierIterator = systemApplicationsConfig
-                .getChildrenWithLocalName(PORTAL_NAME_CONFIG_ELEMENT);
-        if (applicationIdentifierIterator == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + PORTAL_NAME_CONFIG_ELEMENT + "' config not found.");
-            }
-            return Collections.emptySet();
-        }
-
-        Set<String> applications = new HashSet<>();
-        while (applicationIdentifierIterator.hasNext()) {
-            OMElement applicationIdentifierConfig = (OMElement) applicationIdentifierIterator.next();
-            String applicationName = applicationIdentifierConfig.getText();
-            if (StringUtils.isNotBlank(applicationName)) {
-                applications.add(applicationName.trim());
-            }
-        }
-        return applications;
     }
 
     /**
@@ -4033,6 +3993,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws IdentityApplicationManagementException
      */
+    @Deprecated
     @Override
     public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
 
@@ -4206,6 +4167,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return getApplicationBasicInfo(offset, limit);
     }
 
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit)
             throws IdentityApplicationManagementException {

@@ -102,7 +102,7 @@ public class ApplicationConstants {
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
     public static final String DEFAULT_APPLICATIONS_CONFIG_ELEMENT = "DefaultApplications";
     public static final String APPLICATION_NAME_CONFIG_ELEMENT = "ApplicationName";
-    public static final String PORTAL_NAME_CONFIG_ELEMENT = "PortalName";
+    public static final String PORTAL_NAMES_CONFIG_ELEMENT = "SystemPortals.PortalName";
 
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";

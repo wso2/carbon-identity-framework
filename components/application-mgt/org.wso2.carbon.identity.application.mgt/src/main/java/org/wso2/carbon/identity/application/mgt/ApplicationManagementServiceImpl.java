@@ -556,6 +556,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return An array of {@link ApplicationBasicInfo} instances within the limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
      */
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
                                                           int offset, int limit)
@@ -690,6 +691,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return int
      * @throws IdentityApplicationManagementException
      */
+    @Deprecated
     @Override
     public int getCountOfApplications(String tenantDomain, String username, String filter) throws
             IdentityApplicationManagementException {

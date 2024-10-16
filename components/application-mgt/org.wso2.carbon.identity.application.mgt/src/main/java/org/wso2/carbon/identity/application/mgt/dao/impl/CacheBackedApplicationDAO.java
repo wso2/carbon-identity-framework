@@ -289,6 +289,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit)
             throws IdentityApplicationManagementException {
@@ -336,9 +337,11 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
             throws IdentityApplicationManagementException {
+
         return getApplicationBasicInfo(filter, offset, limit, false);
     }
 
@@ -367,6 +370,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
+    @Deprecated
     public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
 
         return getCountOfApplications(filter, false);
