@@ -46,7 +46,7 @@ public class KeyStoreAdminServiceImpl extends AbstractAdmin implements KeyStoreA
                 CarbonContext.getThreadLocalCarbonContext().getTenantId());
         try {
             keyStoreManager.addKeyStore(Base64.decode(fileData), filename, password, provider, type, pvtkeyPass);
-        } catch (CarbonException e) {
+        } catch (SecurityException e) {
             throw new SecurityConfigException(e.getMessage());
         }
     }
@@ -66,7 +66,7 @@ public class KeyStoreAdminServiceImpl extends AbstractAdmin implements KeyStoreA
                 CarbonContext.getThreadLocalCarbonContext().getTenantId());
         try {
             keyStoreManager.deleteStore(keyStoreName);
-        } catch (CarbonException e) {
+        } catch (SecurityException e) {
             throw new SecurityConfigException(e.getMessage());
         }
     }

@@ -188,7 +188,7 @@ public class KeyStoreAdmin {
 
         try {
             keyStoreManager.addKeyStore(readBytesFromFile(filePath), filename, password, provider, type, pvtkeyPass);
-        } catch (CarbonException | IOException e) {
+        } catch (SecurityException | IOException e) {
             throw new SecurityConfigException("Error while loading keystore from file " + filePath, e);
         }
 
@@ -201,7 +201,7 @@ public class KeyStoreAdmin {
         byte[] content = Base64.decode(fileData);
         try {
             keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
-        } catch (CarbonException e) {
+        } catch (SecurityException e) {
             String msg = "Error when adding a keyStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -214,7 +214,7 @@ public class KeyStoreAdmin {
 
         try {
             keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
-        } catch (CarbonException e) {
+        } catch (SecurityException e) {
             String msg = "Error when adding a keyStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -233,7 +233,7 @@ public class KeyStoreAdmin {
 
         try {
             keyStoreManager.addKeyStore(content, filename, password, provider, type, null);
-        } catch (CarbonException e) {
+        } catch (SecurityException e) {
             String msg = "Error when adding a trustStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -245,7 +245,7 @@ public class KeyStoreAdmin {
 
         try {
             keyStoreManager.deleteStore(keyStoreName);
-        } catch (CarbonException e) {
+        } catch (SecurityException e) {
             String msg = "Error when deleting a keyStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -850,7 +850,7 @@ public class KeyStoreAdmin {
     
         try {
             return this.keyStoreManager.getTrustStore();
-        } catch (CarbonException e) {
+        } catch (CarbonException | SecurityException e) {
             throw new SecurityConfigException("Error occurred while loading keystore.", e);
         }
     }
