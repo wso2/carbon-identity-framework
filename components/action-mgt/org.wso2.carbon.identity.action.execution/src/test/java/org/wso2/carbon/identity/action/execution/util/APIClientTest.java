@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResp
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.Operation;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
@@ -71,6 +72,7 @@ public class APIClientTest {
     private StatusLine statusLine;
 
     private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
+    private MockedStatic<LoggerUtils> loggerUtils;
 
     @InjectMocks
     private APIClient apiClient;
@@ -79,6 +81,8 @@ public class APIClientTest {
     public void setUp() throws Exception {
 
         actionExecutorConfigStatic = mockStatic(ActionExecutorConfig.class);
+        loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(() -> LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
         ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
         actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
         when(actionExecutorConfig.getHttpConnectionPoolSize()).thenReturn(20);
@@ -91,6 +95,7 @@ public class APIClientTest {
     public void tearDown() {
 
         actionExecutorConfigStatic.close();
+        loggerUtils.close();
     }
 
     @Test
@@ -186,19 +191,23 @@ public class APIClientTest {
 
         return new Object[][]{
                 {HttpStatus.SC_BAD_REQUEST, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Failed to execute the action request. Received: 400"},
+                        "", "Failed to execute the action request. Received status code: 400."},
                 {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
-                        "{}", "Failed to execute the action request. Received: 401"},
+                        "{}", "Unexpected error response received for the status code: 401. " +
+                        "Parsing JSON response failed."},
                 {HttpStatus.SC_BAD_REQUEST, ContentType.APPLICATION_JSON.getMimeType(),
-                        "{\"actionStatus\":\"ERROR\"}", "Failed to execute the action request. Received: 400"},
+                        "{\"actionStatus\":\"ERROR\"}", "Unexpected error response received for the status " +
+                        "code: 400. Parsing JSON response failed."},
                 {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
-                        "{\"actionStatus\":\"SUCCESS\"}", "Failed to execute the action request. Received: 401"},
+                        "{\"actionStatus\":\"SUCCESS\"}", "Unexpected error response received for the status " +
+                        "code: 401. Parsing JSON response failed."},
                 {HttpStatus.SC_INTERNAL_SERVER_ERROR, ContentType.APPLICATION_JSON.getMimeType(),
-                        "server_error", "Failed to execute the action request. Received: 500"},
+                        "server_error", "Unexpected error response received for the status " +
+                        "code: 500. Parsing JSON response failed."},
                 {HttpStatus.SC_BAD_GATEWAY, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Failed to execute the action request. Received: 502"},
+                        "", "Failed to execute the action request. Received status code: 502."},
                 {HttpStatus.SC_CONFLICT, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Unexpected response status code: 409"}
+                        "", "Unexpected response received with status code: 409."}
         };
     }
 
