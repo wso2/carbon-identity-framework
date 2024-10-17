@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.util.ActionManagementAuditLogger;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.action.management.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -48,6 +49,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private static final CacheBackedActionMgtDAO CACHE_BACKED_DAO =
             new CacheBackedActionMgtDAO(new ActionManagementDAOImpl());
     private static final ActionValidator ACTION_VALIDATOR = new ActionValidator();
+    private static final ActionManagementAuditLogger auditLogger = new ActionManagementAuditLogger();
     private static final ActionSecretProcessor ACTION_SECRET_PROCESSOR = new ActionSecretProcessor();
 
     private ActionManagementServiceImpl() {
@@ -78,8 +80,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         doPreAddActionValidations(action);
         String generatedActionId = UUID.randomUUID().toString();
-        return CACHE_BACKED_DAO.addAction(resolvedActionType, generatedActionId, action,
+        Action createdAction = CACHE_BACKED_DAO.addAction(resolvedActionType, generatedActionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, createdAction);
+        return createdAction;
     }
 
     /**
@@ -123,8 +127,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String resolvedActionType = getActionTypeFromPath(actionType);
         Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         doPreUpdateActionValidations(action);
-        return CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, action, existingAction,
+        Action updatedAction = CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, action, existingAction,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, actionId, action);
+        return updatedAction;
     }
 
     /**
@@ -145,6 +151,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Action action = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         CACHE_BACKED_DAO.deleteAction(resolvedActionType, actionId, action,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId);
     }
 
     /**
@@ -164,8 +171,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        return CACHE_BACKED_DAO.activateAction(resolvedActionType, actionId,
+        Action activatedAction = CACHE_BACKED_DAO.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, actionType, actionId);
+        return activatedAction;
     }
 
     /**
@@ -186,8 +195,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        return CACHE_BACKED_DAO.deactivateAction(resolvedActionType, actionId,
+        Action deactivatedAction = CACHE_BACKED_DAO.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, actionType, actionId);
+        return deactivatedAction;
     }
 
     /**
