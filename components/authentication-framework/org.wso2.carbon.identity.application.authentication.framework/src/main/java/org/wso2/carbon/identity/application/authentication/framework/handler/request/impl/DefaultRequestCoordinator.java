@@ -75,9 +75,11 @@ import org.wso2.carbon.utils.DiagnosticLog;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -96,6 +98,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
@@ -243,6 +246,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
                         request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
                     context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
+                    context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
                     context.initializeAnalyticsData();
                     String contextIdIncludedQueryParams = context.getContextIdIncludedQueryParams();
                     contextIdIncludedQueryParams += FrameworkConstants.RESTART_LOGIN_FLOW_QUERY_PARAMS;
@@ -393,6 +397,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
+                    // Adding spIp param to the redirect URL if the authenticator is not the organization authenticator.
+                    if (!ORGANIZATION_AUTHENTICATOR.equals(request.getParameter(AUTHENTICATOR))) {
+                        addServiceProviderIdToRedirectUrl(responseWrapper, context);
+                    }
                 } else {
                     FrameworkUtils.getLogoutRequestHandler().handle(request, responseWrapper, context);
                 }
@@ -1324,5 +1332,36 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         return false;
+    }
+
+    private void addServiceProviderIdToRedirectUrl(CommonAuthResponseWrapper responseWrapper,
+                                                   AuthenticationContext context) {
+
+        if (responseWrapper == null || context == null) {
+            return;
+        }
+        try {
+            String redirectURL = responseWrapper.getRedirectURL();
+            String serviceProviderID = context.getServiceProviderResourceId();
+            if (StringUtils.isNotBlank(redirectURL) && StringUtils.isNotBlank(serviceProviderID)) {
+                URI uri = new URI(redirectURL);
+                String query = uri.getRawQuery();
+                if (StringUtils.isNotBlank(query)) {
+                    if (!query.contains(FrameworkConstants.REQUEST_PARAM_SP_UUID + "=")) {
+                        redirectURL = redirectURL + "&" + FrameworkConstants.REQUEST_PARAM_SP_UUID
+                                + "=" + URLEncoder.encode(serviceProviderID,
+                                StandardCharsets.UTF_8.name());
+                    }
+                } else {
+                    redirectURL = redirectURL + "?" + FrameworkConstants.REQUEST_PARAM_SP_UUID
+                            + "=" + URLEncoder.encode(serviceProviderID, StandardCharsets.UTF_8.name());
+                }
+                responseWrapper.sendRedirect(redirectURL);
+            }
+        } catch (URISyntaxException | IOException e) {
+            // No need to break the flow due to this error since added spId to redirect URL is used only
+            // for branding purposes.
+            log.debug("Error while adding spId to redirect URL.");
+        }
     }
 }

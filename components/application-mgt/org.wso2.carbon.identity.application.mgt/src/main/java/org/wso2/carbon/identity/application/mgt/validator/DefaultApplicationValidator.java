@@ -64,7 +64,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -164,13 +163,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      */
     private void validateApplicationVersion(List<String> validationErrors, ServiceProvider serviceProvider) {
 
-        String currentVersion = serviceProvider.getApplicationVersion();
-        String latestPossibleVersion = ApplicationMgtUtil.getApplicationUpdatedVersion(serviceProvider);
-
         if (Stream.of(ApplicationConstants.ApplicationVersion.ApplicationVersions.values())
                 .noneMatch(v -> v.getValue().equals(serviceProvider.getApplicationVersion()))) {
-            validationErrors.add("Invalid application version: " + serviceProvider.getApplicationVersion());
-        } else if (!Objects.equals(currentVersion, latestPossibleVersion)) {
             validationErrors.add("Invalid application version: " + serviceProvider.getApplicationVersion());
         }
     }
