@@ -34,128 +34,127 @@ import java.util.List;
  */
 public class ActionExecutionDiagnosticLogger {
 
-    public void printDiagnosticLogActionInitiation(Action action) {
+    public void logActionInitiation(Action action) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
 
-        buildDiagnosticLog(
-                setDiagnosticLog(
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
                         ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION,
                         action.getType().getDisplayName() + " action execution is initiated.",
                         DiagnosticLog.ResultStatus.SUCCESS));
     }
 
-    public void printDiagnosticLogActionSkip(ActionType actionType) {
+    public void logSkippedActionExecution(ActionType actionType) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
 
-        buildDiagnosticLog(
-                setDiagnosticLog(
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
                         ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION,
                         "Skip executing action for " + actionType + " type.",
                         DiagnosticLog.ResultStatus.FAILED));
     }
 
-    public void printDiagnosticLogActionRequest(Action action) {
+    public void logActionRequest(Action action) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
 
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = setDiagnosticLog(
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
                 ActionExecutionLogConstants.ActionIDs.PROCESS_ACTION_REQUEST,
                 "Call external service endpoint " + action.getEndpoint().getUri() + " for "
                         + action.getType().getDisplayName() + " action.",
                 DiagnosticLog.ResultStatus.SUCCESS);
 
-        buildDiagnosticLog(addActionConfigParams(diagnosticLogBuilder, action));
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
-    public void printDiagnosticLogSuccessResponse(Action action) {
+    public void logSuccessResponse(Action action) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = setDiagnosticLog(
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
                 ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE,
                 "Received success response from external endpoint " +
                         action.getEndpoint().getUri() + " for " +
                         action.getType().getDisplayName() + " action.",
                 DiagnosticLog.ResultStatus.SUCCESS);
-        buildDiagnosticLog(addActionConfigParams(diagnosticLogBuilder, action));
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
-    public void printDiagnosticLogErrorResponse(Action action) {
+    public void logErrorResponse(Action action) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = setDiagnosticLog(
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
                 ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE,
                 "Received error response from external endpoint " +
                         action.getEndpoint().getUri() + " for " +
                         action.getType().getDisplayName() + " action.",
                 DiagnosticLog.ResultStatus.FAILED);
-        buildDiagnosticLog(addActionConfigParams(diagnosticLogBuilder, action));
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
-    public void printDiagnosticLogFailureResponse(Action action) {
+    public void logFailureResponse(Action action) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = setDiagnosticLog(
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
                 ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE,
                 "Received failure response from external endpoint " +
                         action.getEndpoint().getUri() + " for " +
                         action.getType().getDisplayName() + " action.",
                 DiagnosticLog.ResultStatus.FAILED);
-        buildDiagnosticLog(addActionConfigParams(diagnosticLogBuilder, action));
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
-    public void printDiagnosticLogErrorResponse(Action action, ActionInvocationResponse actionInvocationResponse) {
+    public void logErrorResponse(Action action, ActionInvocationResponse actionInvocationResponse) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = setDiagnosticLog(
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
                 ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE,
                 "Failed to call external endpoint for " + action.getType().getDisplayName()
                         + " action. " +
                         (actionInvocationResponse.getErrorLog() != null ?
                                 actionInvocationResponse.getErrorLog() : "Unknown error occured."),
                 DiagnosticLog.ResultStatus.FAILED);
-        buildDiagnosticLog(addActionConfigParams(diagnosticLogBuilder, action));
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
-    public void printDiagnosticLogPerformableOperations(Action action, List<String> allowedOps,
-                                                        List<String> notAllowedOps) {
+    public void logPerformableOperations(Action action, List<String> allowedOps, List<String> notAllowedOps) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
-        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = setDiagnosticLog(
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
                 ActionExecutionLogConstants.ActionIDs.VALIDATE_ACTION_OPERATIONS,
                 "Validated operations to perform on " + action.getType().getDisplayName() + " action.",
                 DiagnosticLog.ResultStatus.SUCCESS);
-        buildDiagnosticLog(
+        triggerLogEvent(
                 addActionConfigParams(diagnosticLogBuilder, action)
                         .configParam("allowed operations", allowedOps.isEmpty() ? "empty" : allowedOps)
                         .configParam("not allowed operations", notAllowedOps.isEmpty() ? "empty" : notAllowedOps));
     }
 
-    public void printDiagnosticLogAPICallRetry(HttpPost request, int attempts, int retryCount) {
+    public void logAPICallRetry(HttpPost request, int attempts, int retryCount) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
 
-        buildDiagnosticLog(
-                setDiagnosticLog(
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
                         ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
                         "External endpoint " + request.getURI() + " for action " +
                                 "execution seems to be unavailable. Retrying API call attempt " +
@@ -163,14 +162,14 @@ public class ActionExecutionDiagnosticLogger {
                         DiagnosticLog.ResultStatus.SUCCESS));
     }
 
-    public void printDiagnosticLogAPICallTimeout(HttpPost request, int attempts, int retryCount) {
+    public void logAPICallTimeout(HttpPost request, int attempts, int retryCount) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
 
-        buildDiagnosticLog(
-                setDiagnosticLog(
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
                         ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
                         "Request for external endpont " + request.getURI() + " for action is " +
                                 "timed out. Retrying API call attempt " + (attempts + 1) + " of "
@@ -178,14 +177,14 @@ public class ActionExecutionDiagnosticLogger {
                         DiagnosticLog.ResultStatus.SUCCESS));
     }
 
-    public void printDiagnosticLogAPICallError(HttpPost request) {
+    public void logAPICallError(HttpPost request) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
 
-        buildDiagnosticLog(
-                setDiagnosticLog(
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
                         ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
                         "Request for external endpoint " + request.getURI() + " for action failed" +
                                 " due to an error.",
@@ -204,8 +203,8 @@ public class ActionExecutionDiagnosticLogger {
 
     }
 
-    private DiagnosticLog.DiagnosticLogBuilder setDiagnosticLog(String actionID, String message,
-                                                               DiagnosticLog.ResultStatus resultStatus) {
+    private DiagnosticLog.DiagnosticLogBuilder initializeDiagnosticLogBuilder(String actionID, String message,
+                                                                              DiagnosticLog.ResultStatus resultStatus) {
 
         DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
                 ActionExecutionLogConstants.ACTION_EXECUTION,
@@ -217,10 +216,8 @@ public class ActionExecutionDiagnosticLogger {
         return diagLogBuilder;
     }
 
-    private void buildDiagnosticLog(DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder) {
+    private void triggerLogEvent(DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder) {
 
-        diagnosticLogBuilder.build();
         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
     }
-
 }
