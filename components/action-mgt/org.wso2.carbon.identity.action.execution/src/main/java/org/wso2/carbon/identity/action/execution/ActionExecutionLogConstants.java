@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.util;
+package org.wso2.carbon.identity.action.execution;
 
 /**
  * Diagnostics Logs Constants for Action execution service.
