@@ -339,7 +339,7 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
     private boolean isExternalClaimInDB(String claimURI, String claimDialectURI, int tenantId)
             throws ClaimMetadataException {
 
-        return this.dbBasedClaimMetadataManager.getExternalClaim(claimURI, claimDialectURI, tenantId) != null;
+        return this.dbBasedClaimMetadataManager.getExternalClaim(claimDialectURI, claimURI, tenantId) != null;
     }
 
     private void addSystemDefaultDialectToDB(String claimDialectURI, int tenantId) throws ClaimMetadataException {
