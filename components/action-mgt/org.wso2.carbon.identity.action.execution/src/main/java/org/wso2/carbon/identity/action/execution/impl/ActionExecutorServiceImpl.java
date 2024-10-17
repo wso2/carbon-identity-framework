@@ -489,7 +489,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 List<String> notAllowedOps = new ArrayList<>();
 
                 response.getOperations().forEach(operation -> {
-                    String operationDetails = "Operation: " + operation.getOp() + " with path: " + operation.getPath();
+                    String operationDetails = "Operation: " + operation.getOp() + " Path: " + operation.getPath();
                     if (allowedPerformableOperations.contains(operation)) {
                         allowedOps.add(operationDetails);
                     } else {
