@@ -536,13 +536,13 @@ public class UnifiedClaimMetadataManagerTest {
     public void testUpdateExternalClaim() throws ClaimMetadataException {
 
         ExternalClaim updatedExternalClaim = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_2);
-        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1_CLAIM_1, EXT_CLAIM_DIALECT_1, 1))
+        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
                 .thenReturn(null);
         claimMetadataManager.updateExternalClaim(updatedExternalClaim, 1);
         verify(dbBasedClaimMetadataManager, times(1)).addExternalClaim(updatedExternalClaim, 1);
         clearInvocations(dbBasedClaimMetadataManager);
 
-        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1_CLAIM_1, EXT_CLAIM_DIALECT_1, 1))
+        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
                 .thenReturn(new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1));
         claimMetadataManager.updateExternalClaim(updatedExternalClaim, 1);
         verify(dbBasedClaimMetadataManager, times(1))
