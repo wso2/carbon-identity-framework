@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -132,6 +133,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -203,6 +205,9 @@ public class IdentityProviderManagementServiceTest {
         identityProviderManagementService.addIdP(((IdentityProvider) identityProvider));
 
         IdentityProvider idpFromDb = identityProviderManagementService.getIdPByName(idpName);
+        for (FederatedAuthenticatorConfig config: idpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
@@ -252,6 +257,9 @@ public class IdentityProviderManagementServiceTest {
         addTestIdps();
 
         IdentityProvider idpFromDb = identityProviderManagementService.getIdPByName(idpName);
+        for (FederatedAuthenticatorConfig config: idpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
@@ -557,6 +565,7 @@ public class IdentityProviderManagementServiceTest {
         newFederatedAuthenticatorConfig.setDisplayName("DisplayName1New");
         newFederatedAuthenticatorConfig.setName("Name");
         newFederatedAuthenticatorConfig.setEnabled(true);
+        newFederatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property newProperty1 = new Property();
         newProperty1.setName("Property1New");
         newProperty1.setValue("value1New");
@@ -617,7 +626,11 @@ public class IdentityProviderManagementServiceTest {
         String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
 
         Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
+        IdentityProvider newIdpFromDb = identityProviderManagementService.getIdPByName(newIdpName);
+        Assert.assertNotNull(newIdpFromDb);
+        for (FederatedAuthenticatorConfig config: newIdpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
     }
 
     @Test(dataProvider = "updateIdPData")
@@ -630,7 +643,11 @@ public class IdentityProviderManagementServiceTest {
         String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
 
         Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
+        IdentityProvider newIdpFromDb = identityProviderManagementService.getIdPByName(newIdpName);
+        Assert.assertNotNull(newIdpFromDb);
+        for (FederatedAuthenticatorConfig config: newIdpFromDb.getFederatedAuthenticatorConfigs()) {
+            Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+        }
     }
 
     @DataProvider
@@ -693,6 +710,7 @@ public class IdentityProviderManagementServiceTest {
         FederatedAuthenticatorConfig[] allFederatedAuthenticators =
                 identityProviderManagementService.getAllFederatedAuthenticators();
         Assert.assertEquals(allFederatedAuthenticators.length, 0);
+
 
         FederatedAuthenticatorConfig federatedAuthenticatorConfig1 = mock(FederatedAuthenticatorConfig.class);
         federatedAuthenticatorConfig1.setDisplayName("DisplayName1");
@@ -796,6 +814,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("DisplayName1New");
         facNew.setName("Name");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         idp2New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
         // Initialize New Resident Identity Provider 3.
@@ -893,6 +912,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -915,6 +935,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -950,6 +971,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1103,6 +1125,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName");
         federatedAuthenticatorConfig.setName("SAMLSSOAuthenticator");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("SPEntityId");
         property1.setValue("wso2-is");
