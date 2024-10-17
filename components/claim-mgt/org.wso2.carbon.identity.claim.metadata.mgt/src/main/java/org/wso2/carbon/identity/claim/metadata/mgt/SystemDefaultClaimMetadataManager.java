@@ -308,6 +308,9 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataManager {
                 || !claims.containsKey(externalClaimDialectURI)) {
             return false;
         }
+        if (mappedLocalClaim == null || StringUtils.isBlank(mappedLocalClaim)) {
+            return false;
+        }
         return claims.get(externalClaimDialectURI).stream()
                 .filter(claim -> claim instanceof ExternalClaim)
                 .map(ExternalClaim.class::cast)
