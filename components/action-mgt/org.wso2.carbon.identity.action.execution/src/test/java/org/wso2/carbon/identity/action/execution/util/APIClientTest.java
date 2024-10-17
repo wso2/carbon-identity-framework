@@ -117,7 +117,7 @@ public class APIClientTest {
         assertTrue(apiResponse.isError());
         assertNotNull(apiResponse.getErrorLog());
         assertEquals(apiResponse.getErrorLog(),
-                "Unexpected response for status code 200. The response content type is not application/json.");
+                "Unexpected response for status code: 200. The response content type is not application/json.");
     }
 
     @DataProvider(name = "unacceptableSuccessResponsePayloads")
@@ -144,7 +144,7 @@ public class APIClientTest {
         assertFalse(apiResponse.isRetry());
         assertNotNull(apiResponse.getErrorLog());
         assertEquals(apiResponse.getErrorLog(),
-                "Unexpected response for status code 200. Parsing JSON response failed.");
+                "Unexpected response for status code: 200. Parsing JSON response failed.");
     }
 
     @Test
@@ -193,21 +193,21 @@ public class APIClientTest {
                 {HttpStatus.SC_BAD_REQUEST, ContentType.DEFAULT_TEXT.getMimeType(),
                         "", "Failed to execute the action request. Received status code: 400."},
                 {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
-                        "{}", "Unexpected error response received for the status code 401. " +
+                        "{}", "Unexpected error response received for the status code: 401. " +
                         "Parsing JSON response failed."},
                 {HttpStatus.SC_BAD_REQUEST, ContentType.APPLICATION_JSON.getMimeType(),
                         "{\"actionStatus\":\"ERROR\"}", "Unexpected error response received for the status " +
-                        "code 400. Parsing JSON response failed."},
+                        "code: 400. Parsing JSON response failed."},
                 {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
                         "{\"actionStatus\":\"SUCCESS\"}", "Unexpected error response received for the status " +
-                        "code 401. Parsing JSON response failed."},
+                        "code: 401. Parsing JSON response failed."},
                 {HttpStatus.SC_INTERNAL_SERVER_ERROR, ContentType.APPLICATION_JSON.getMimeType(),
                         "server_error", "Unexpected error response received for the status " +
-                        "code 500. Parsing JSON response failed."},
+                        "code: 500. Parsing JSON response failed."},
                 {HttpStatus.SC_BAD_GATEWAY, ContentType.DEFAULT_TEXT.getMimeType(),
                         "", "Failed to execute the action request. Received status code: 502."},
                 {HttpStatus.SC_CONFLICT, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Unexpected response received with status code 409."}
+                        "", "Unexpected response received with status code: 409."}
         };
     }
 

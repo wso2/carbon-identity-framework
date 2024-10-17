@@ -48,7 +48,7 @@ import java.nio.charset.StandardCharsets;
 public class APIClient {
 
     private static final Log LOG = LogFactory.getLog(APIClient.class);
-    private static final ActionExecutionDiagnosticLogger diagnosticLogger = new ActionExecutionDiagnosticLogger();
+    private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
     private final CloseableHttpClient httpClient;
 
     public APIClient() {
@@ -104,15 +104,15 @@ public class APIClient {
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
-                diagnosticLogger.printDiagnosticLogAPICallRetry(request, attempts, retryCount);
+                DIAGNOSTIC_LOGGER.logAPICallRetry(request, attempts, retryCount);
                 LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
-                diagnosticLogger.printDiagnosticLogAPICallTimeout(request, retryCount, attempts);
+                DIAGNOSTIC_LOGGER.logAPICallTimeout(request, retryCount, attempts);
                 LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (Exception e) {
-                diagnosticLogger.printDiagnosticLogAPICallError(request);
+                DIAGNOSTIC_LOGGER.logAPICallError(request);
                 LOG.error("Request for API: " + request.getURI() + " failed due to an error.", e);
                 break;
             } finally {
@@ -152,7 +152,7 @@ public class APIClient {
                 actionInvocationResponseBuilder.retry(true);
                 break;
             default:
-                actionInvocationResponseBuilder.errorLog("Unexpected response received with status code " + statusCode
+                actionInvocationResponseBuilder.errorLog("Unexpected response received with status code: " + statusCode
                         + ".");
                 break;
         }
@@ -165,8 +165,7 @@ public class APIClient {
         try {
             builder.response(handleSuccessResponse(entity));
         } catch (ActionInvocationException e) {
-            builder.errorLog("Unexpected response for status code " + statusCode
-                    + ". " + e.getMessage());
+            builder.errorLog("Unexpected response for status code: " + statusCode + ". " + e.getMessage());
         }
     }
 
@@ -182,7 +181,7 @@ public class APIClient {
         } catch (ActionInvocationException e) {
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Unexpected error response received for the status code " + statusCode + ". "
+            builder.errorLog("Unexpected error response received for the status code: " + statusCode + ". "
                     + e.getMessage());
         }
     }
@@ -200,7 +199,7 @@ public class APIClient {
         } catch (ActionInvocationException e) {
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Unexpected error response received for the status code " + statusCode + ". "
+            builder.errorLog("Unexpected error response received for the status code: " + statusCode + ". "
                     + e.getMessage());
             builder.retry(true);
         }

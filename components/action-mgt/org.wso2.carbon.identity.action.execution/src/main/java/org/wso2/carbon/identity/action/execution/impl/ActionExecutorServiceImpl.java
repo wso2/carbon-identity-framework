@@ -74,9 +74,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private static final Log LOG = LogFactory.getLog(ActionExecutorServiceImpl.class);
 
     private static final ActionExecutorServiceImpl INSTANCE = new ActionExecutorServiceImpl();
-    private static final ActionExecutionDiagnosticLogger diagnosticLogger = new ActionExecutionDiagnosticLogger();
+    private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
     private final APIClient apiClient;
-    private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(1);
+    private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors() * 2);
 
     private ActionExecutorServiceImpl() {
 
@@ -110,10 +111,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             validateActions(actions, actionType);
             // As of now only one action is allowed.
             Action action = actions.get(0);
-            diagnosticLogger.printDiagnosticLogActionInitiation(action);
+            DIAGNOSTIC_LOGGER.logActionInitiation(action);
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            diagnosticLogger.printDiagnosticLogActionSkip(actionType);
+            DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
         }
@@ -133,11 +134,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         validateActionIdList(actionType, actionIdList);
         Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
-        diagnosticLogger.printDiagnosticLogActionInitiation(action);
+        DIAGNOSTIC_LOGGER.logActionInitiation(action);
         try {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            diagnosticLogger.printDiagnosticLogActionSkip(actionType);
+            DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
         }
@@ -281,7 +282,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logActionRequest(Action action, String payload) {
 
-        diagnosticLogger.printDiagnosticLogActionRequest(action);
+        DIAGNOSTIC_LOGGER.logActionRequest(action);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Calling API: %s for action type: %s action id: %s with authentication: %s payload: %s",
@@ -367,10 +368,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logSuccessResponse(Action action, ActionInvocationSuccessResponse successResponse) {
 
-        try {
-            String responseBody = serializeSuccessResponse(successResponse);
-            diagnosticLogger.printDiagnosticLogSuccessResponse(action);
-            if (LOG.isDebugEnabled()) {
+        DIAGNOSTIC_LOGGER.logSuccessResponse(action);
+        if (LOG.isDebugEnabled()) {
+            try {
+                String responseBody = serializeSuccessResponse(successResponse);
                 LOG.debug(String.format(
                         "Received success response from API: %s for action type: %s action id: %s with " +
                                 "authentication: %s. Response: %s",
@@ -379,29 +380,27 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                         action.getId(),
                         action.getEndpoint().getAuthentication().getType(),
                         responseBody));
+            } catch (JsonProcessingException e) {
+                LOG.error("Error occurred while deserializing the success response for action: " +
+                        action.getId() + " for action type: " + action.getType().getActionType(), e);
             }
-        } catch (JsonProcessingException e) {
-            LOG.error("Error occurred while deserializing the success response for action: " +
-                    action.getId() + " for action type: " + action.getType().getActionType(), e);
         }
     }
 
     private void logErrorResponse(Action action, ActionInvocationErrorResponse errorResponse) {
 
-        if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
+        DIAGNOSTIC_LOGGER.logErrorResponse(action);
+        if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeErrorResponse(errorResponse);
-                diagnosticLogger.printDiagnosticLogErrorResponse(action);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "Received error response from API: %s for action type: %s action id: %s with " +
-                                    "authentication: %s. Response: %s",
-                            action.getEndpoint().getUri(),
-                            action.getType().getActionType(),
-                            action.getId(),
-                            action.getEndpoint().getAuthentication().getType(),
-                            responseBody));
-                }
+                LOG.debug(String.format(
+                        "Received error response from API: %s for action type: %s action id: %s with " +
+                                "authentication: %s. Response: %s",
+                        action.getEndpoint().getUri(),
+                        action.getType().getActionType(),
+                        action.getId(),
+                        action.getEndpoint().getAuthentication().getType(),
+                        responseBody));
             } catch (JsonProcessingException e) {
                 LOG.debug("Error occurred while deserializing the error response for action: " +
                         action.getId() + " for action type: " + action.getType().getActionType(), e);
@@ -411,20 +410,18 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logFailureResponse(Action action, ActionInvocationFailureResponse failureResponse) {
 
-        if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
+        DIAGNOSTIC_LOGGER.logFailureResponse(action);
+        if (LOG.isDebugEnabled()) {
             try {
                 String responseBody = serializeFailureResponse(failureResponse);
-                diagnosticLogger.printDiagnosticLogFailureResponse(action);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format(
-                            "Received failure response from API: %s for action type: %s action id: %s with " +
-                                    "authentication: %s. Response: %s",
-                            action.getEndpoint().getUri(),
-                            action.getType().getActionType(),
-                            action.getId(),
-                            action.getEndpoint().getAuthentication().getType(),
-                            responseBody));
-                }
+                LOG.debug(String.format(
+                        "Received failure response from API: %s for action type: %s action id: %s with " +
+                                "authentication: %s. Response: %s",
+                        action.getEndpoint().getUri(),
+                        action.getType().getActionType(),
+                        action.getId(),
+                        action.getEndpoint().getAuthentication().getType(),
+                        responseBody));
             } catch (JsonProcessingException e) {
                 LOG.debug("Error occurred while deserializing the failure response for action: " +
                         action.getId() + " for action type: " + action.getType().getActionType(), e);
@@ -434,7 +431,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private void logErrorResponse(Action action, ActionInvocationResponse actionInvocationResponse) {
 
-        diagnosticLogger.printDiagnosticLogErrorResponse(action, actionInvocationResponse);
+        DIAGNOSTIC_LOGGER.logErrorResponse(action, actionInvocationResponse);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Failed to call API: %s for action type: %s action id: %s with authentication: %s. Error: %s",
@@ -496,7 +493,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                         notAllowedOps.add(operationDetails);
                     }
                 });
-                diagnosticLogger.printDiagnosticLogPerformableOperations(action, allowedOps, notAllowedOps);
+                DIAGNOSTIC_LOGGER.logPerformableOperations(action, allowedOps, notAllowedOps);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Allowed Operations: " + String.join(", ", allowedOps) +
                             ". Not Allowed Operations: " + String.join(", ", notAllowedOps));
