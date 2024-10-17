@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -272,6 +272,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 preparedStatement.setString(3, apiResource.getType());
                 preparedStatement.setString(4, apiResource.getId());
                 preparedStatement.executeUpdate();
+
+                // If the API resource is a system API, set the tenant id to 0 since they are not tenant specific.
+                if (APIResourceManagementUtil.isSystemAPI(apiResource.getType())) {
+                    tenantId = 0;
+                }
 
                 if (CollectionUtils.isNotEmpty(removedScopes)) {
                     // Delete Scopes.
