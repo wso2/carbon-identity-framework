@@ -302,6 +302,82 @@ public class ClaimMetadataManagementServiceImplTest {
         });
     }
 
+    @Test
+    public void testUpdateExternalClaim() throws ClaimMetadataException {
+
+        ClaimDialect externalDialect = new ClaimDialect(EXTERNAL_CLAIM_DIALECT_URI);
+        ExternalClaim externalClaim = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, EXTERNAL_CLAIM_URI, LOCAL_CLAIM_1);
+        when(unifiedClaimMetadataManager.getClaimDialects(SUPER_TENANT_ID))
+                .thenReturn(Collections.singletonList(externalDialect));
+        when(unifiedClaimMetadataManager.getExternalClaims(EXTERNAL_CLAIM_DIALECT_URI, SUPER_TENANT_ID))
+                .thenReturn(Collections.singletonList(externalClaim));
+        service.updateExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+        verify(unifiedClaimMetadataManager, times(1)).updateExternalClaim(externalClaim, SUPER_TENANT_ID);
+
+        when(unifiedClaimMetadataManager.getExternalClaims(EXTERNAL_CLAIM_DIALECT_URI, SUPER_TENANT_ID))
+                .thenReturn(Collections.emptyList());
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.updateExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+        });
+
+        when(unifiedClaimMetadataManager.getClaimDialects(SUPER_TENANT_ID))
+                .thenReturn(Collections.emptyList());
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.updateExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testRemoveExternalClaim() throws ClaimMetadataException {
+
+        service.removeExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, EXTERNAL_CLAIM_URI, SUPER_TENANT_DOMAIN_NAME);
+        verify(unifiedClaimMetadataManager, times(1))
+                .removeExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, EXTERNAL_CLAIM_URI, SUPER_TENANT_ID);
+
+        when(unifiedClaimMetadataManager.isSystemDefaultExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, EXTERNAL_CLAIM_URI, SUPER_TENANT_ID))
+                .thenReturn(Boolean.TRUE);
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.removeExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, EXTERNAL_CLAIM_URI, SUPER_TENANT_DOMAIN_NAME);
+        });
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.removeExternalClaim(null, EXTERNAL_CLAIM_URI, SUPER_TENANT_DOMAIN_NAME);
+        });
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.removeExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, null, SUPER_TENANT_DOMAIN_NAME);
+        });
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.removeExternalClaim(LOCAL_CLAIM_DIALECT, LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testRemoveClaimMappingAttributes() throws ClaimMetadataException {
+
+        String testUserStoreDomain = "TEST_DOMAIN";
+        service.removeClaimMappingAttributes(SUPER_TENANT_ID, testUserStoreDomain);
+        verify(unifiedClaimMetadataManager, times(1))
+                .removeClaimMappingAttributes(SUPER_TENANT_ID, testUserStoreDomain);
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.removeClaimMappingAttributes(SUPER_TENANT_ID, null);
+        });
+    }
+
+    @Test
+    public void testRemoveAllClaims() throws ClaimMetadataException {
+
+        service.removeAllClaims(SUPER_TENANT_ID);
+        verify(unifiedClaimMetadataManager, times(1)).removeAllClaimDialects(SUPER_TENANT_ID);
+    }
+
+    @Test
+    public void testGetMappedExternalClaimsForLocalClaim() throws ClaimMetadataException {
+
+        service.getMappedExternalClaimsForLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME);
+        verify(unifiedClaimMetadataManager, times(1)).getMappedExternalClaims(LOCAL_CLAIM_1, SUPER_TENANT_ID);
+    }
+
     @AfterMethod
     public void tearDown() {
 
