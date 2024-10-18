@@ -771,7 +771,7 @@
             <Scope displayName="View Notification Template" name="internal_template_mgt_view"
                    description="View notification templates and types in the organization (root)"/>
             <Scope displayName="Create Notification Template" name="internal_template_mgt_create"
-                   description="Create new notification template and types in the organization (root)"/>
+                   description="Create new notification templates and types in the organization (root)"/>
             <Scope displayName="Update Notification Template" name="internal_template_mgt_update"
                    description="Update notification templates and types in the organization (root)"/>
             <Scope displayName="Delete Notification Template" name="internal_template_mgt_delete"
