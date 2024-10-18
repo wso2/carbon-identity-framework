@@ -58,7 +58,6 @@ public class PreferenceRetrievalClient {
     private static final String PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance/preferences";
     private static final String GOVERNANCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance";
     private static final String SELF_REGISTRATION_PROPERTY = "SelfRegistration.Enable";
-
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
