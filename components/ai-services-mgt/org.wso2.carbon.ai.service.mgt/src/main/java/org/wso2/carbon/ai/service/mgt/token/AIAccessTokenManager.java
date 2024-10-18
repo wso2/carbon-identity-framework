@@ -56,7 +56,6 @@ public class AIAccessTokenManager {
     public static final String LOGIN_FLOW_AI_KEY = IdentityUtil.getProperty("AIServices.Key");
     public static final String LOGIN_FLOW_AI_TOKEN_ENDPOINT = IdentityUtil.getProperty("AIServices.TokenEndpoint");
 
-    private static AIAccessTokenManager instance;
     private AccessTokenRequestHelper accessTokenRequestHelper;
 
     private String accessToken;
@@ -66,6 +65,11 @@ public class AIAccessTokenManager {
         // Prevent from initialization.
     }
 
+    private static final class AIAccessTokenInstanceHolder {
+
+        private static final AIAccessTokenManager instance = new AIAccessTokenManager();
+    }
+
     /**
      * Get the singleton instance of the LoginFlowAITokenService.
      *
@@ -73,14 +77,7 @@ public class AIAccessTokenManager {
      */
     public static AIAccessTokenManager getInstance() {
 
-        if (instance == null) {
-            synchronized (AIAccessTokenManager.class) {
-                if (instance == null) {
-                    instance = new AIAccessTokenManager();
-                }
-            }
-        }
-        return instance;
+        return AIAccessTokenInstanceHolder.instance;
     }
 
     /**
@@ -246,8 +243,11 @@ public class AIAccessTokenManager {
                         LOG.error("Retry sleep interrupted: " + e.getMessage(), e);
                     }
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 throw new AIServerException("Failed to close HTTP client: " + e.getMessage(), e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new AIServerException("Token request interrupted: " + e.getMessage(), e);
             } finally {
                 try {
                     client.close();

@@ -25,7 +25,7 @@ import org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil;
  */
 public class AIClientException extends Exception {
 
-    private String errorCode;
+    private final String errorCode;
     private AIHttpClientUtil.HttpResponseWrapper loginFlowAIResponse;
 
     public AIClientException(String message, String errorCode) {
@@ -40,11 +40,6 @@ public class AIClientException extends Exception {
         super(message);
         this.errorCode = errorCode;
         this.loginFlowAIResponse = httpResponseWrapper;
-    }
-
-    public AIClientException(String message, Throwable cause) {
-
-        super(cause);
     }
 
     public AIClientException(String message, String errorCode, Throwable cause) {
