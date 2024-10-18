@@ -678,6 +678,9 @@
     <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types/(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_template_mgt_delete</Scopes>
     </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/reset-template-type" secured="true" http-method="POST">
+        <Scopes>internal_template_mgt_delete</Scopes>
+    </Resource>
 
     <!-- Keystore Management API -->
     <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
