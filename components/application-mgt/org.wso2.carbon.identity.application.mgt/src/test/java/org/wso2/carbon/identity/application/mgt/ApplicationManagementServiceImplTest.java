@@ -110,6 +110,7 @@ import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
@@ -124,6 +125,7 @@ public class ApplicationManagementServiceImplTest {
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
     private static final String APPLICATION_NAME_1 = "Test application1";
     private static final String APPLICATION_NAME_2 = "Test application2";
+    private static final String APPLICATION_NAME_3 = "Test application3";
     private static final String APPLICATION_TEMPLATE_ID_1 = "Test_template_1";
     private static final String APPLICATION_TEMPLATE_ID_2 = "Test_template_2";
     private static final String APPLICATION_TEMPLATE_VERSION_1 = "v1.0.0";
@@ -132,6 +134,7 @@ public class ApplicationManagementServiceImplTest {
     private static final String APPLICATION_INBOUND_AUTH_KEY_2 = "Test_auth_key2";
     private static final String APPLICATION_NAME_FILTER_1 = "name ew application1";
     private static final String APPLICATION_NAME_FILTER_2 = "name co 2";
+    private static final String APPLICATION_NAME_FILTER_3 = "name ew application3";
     private static final String APPLICATION_CLIENT_ID_FILTER = "clientId co %s";
     private static final String APPLICATION_ISSUER_FILTER = "issuer co %s";
     private static final String APPLICATION_NAME_OR_CLIENT_ID_FILTER = "name co sampleAppName or clientId eq %s";
@@ -461,6 +464,99 @@ public class ApplicationManagementServiceImplTest {
                 (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 5);
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), expectedResult);
 
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @DataProvider(name = "getAppsExcludingSystemPortalsDataProvider")
+    public Object[][] getAppsExcludingSystemPortals() {
+
+        return new Object[][]{
+                {APPLICATION_NAME_FILTER_1, 1},
+                {APPLICATION_NAME_FILTER_3, 0}
+        };
+    }
+
+    private void setupExcludeSystemPortalsEnv()
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName(APPLICATION_NAME_1);
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName(APPLICATION_NAME_2);
+
+        ServiceProvider serviceProvider3 = new ServiceProvider();
+        serviceProvider3.setApplicationName(APPLICATION_NAME_3);
+
+        applicationManagementService.addApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.addApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.addApplication(serviceProvider3, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+    }
+
+    @Test
+    public void testGetApplicationBasicInfoExcludingSystemPortals() throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                    (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, "", 0, 10, true);
+            Assert.assertEquals(applicationBasicInfo.length, 2);
+        }
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
+    public void testGetApplicationBasicInfoWithFilterExcludingSystemPortals(String filter, int expectedResult)
+            throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                    (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 10, true);
+            Assert.assertEquals(applicationBasicInfo.length, expectedResult);
+        }
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test
+    public void testGetCountOfApplicationsExcludingSystemPortals()
+            throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            Assert.assertEquals(
+                    applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                            "", true), 2);
+        }
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
+    public void testGetCountOfApplicationsWithFilterExcludingSystemPortals(String filter, int expectedResult)
+            throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            Assert.assertEquals(
+                    applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                            filter, true), expectedResult);
+        }
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }

@@ -1625,6 +1625,8 @@
   ],
   "actions.types.authentication.enable": true,
 
-  "oauth.authorize_all_scopes": false
+  "oauth.authorize_all_scopes": false,
+
+  "system_applications.system_portals": ["Console", "My Account"]
 }
 
