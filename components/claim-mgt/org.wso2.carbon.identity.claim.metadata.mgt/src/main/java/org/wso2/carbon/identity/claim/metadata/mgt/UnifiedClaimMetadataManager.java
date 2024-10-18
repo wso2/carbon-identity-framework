@@ -36,13 +36,12 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 
-public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
+public class UnifiedClaimMetadataManager {
 
     private final SystemDefaultClaimMetadataManager systemDefaultClaimMetadataManager =
             new SystemDefaultClaimMetadataManager();
     private final DBBasedClaimMetadataManager dbBasedClaimMetadataManager = new DBBasedClaimMetadataManager();
 
-    @Override
     public List<ClaimDialect> getClaimDialects(int tenantId) throws ClaimMetadataException {
 
         List<ClaimDialect> claimDialectsInDB = this.dbBasedClaimMetadataManager.getClaimDialects(tenantId);
@@ -58,7 +57,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return finalClaimDialects;
     }
 
-    @Override
     public ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
         ClaimDialect claimDialectInDB = this.dbBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId);
@@ -68,26 +66,22 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return this.systemDefaultClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId);
     }
 
-    @Override
     public void addClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.addClaimDialect(claimDialect, tenantId);
     }
 
-    @Override
     public void renameClaimDialect(ClaimDialect oldClaimDialect, ClaimDialect newClaimDialect, int tenantId)
             throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
     }
 
-    @Override
     public void removeClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeClaimDialect(claimDialect, tenantId);
     }
 
-    @Override
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
         List<LocalClaim> localClaimsInSystem = this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId);
@@ -105,7 +99,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return finalLocalClaims;
     }
 
-    @Override
     public LocalClaim getLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         LocalClaim localClaim = this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
@@ -115,7 +108,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return localClaim;
     }
 
-    @Override
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         if (!isClaimDialectInDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId)) {
@@ -124,7 +116,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         this.dbBasedClaimMetadataManager.addLocalClaim(localClaim, tenantId);
     }
 
-    @Override
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         if (isLocalClaimInDB(localClaim.getClaimURI(), tenantId)) {
@@ -134,7 +125,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         }
     }
 
-    @Override
     public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain)
             throws ClaimMetadataException {
 
@@ -159,13 +149,11 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         this.dbBasedClaimMetadataManager.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
     }
 
-    @Override
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeLocalClaim(localClaimURI, tenantId);
     }
 
-    @Override
     public List<ExternalClaim> getExternalClaims(String externalClaimDialectURI, int tenantId)
             throws ClaimMetadataException {
 
@@ -191,7 +179,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return finalExternalClaims;
     }
 
-    @Override
     public ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
             throws ClaimMetadataException {
 
@@ -204,7 +191,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return externalClaim;
     }
 
-    @Override
     public void addExternalClaim(ExternalClaim externalClaim, int tenantId)
             throws ClaimMetadataException {
 
@@ -217,7 +203,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         this.dbBasedClaimMetadataManager.addExternalClaim(externalClaim, tenantId);
     }
 
-    @Override
     public void updateExternalClaim(ExternalClaim externalClaim, int tenantId)
             throws ClaimMetadataException {
 
@@ -228,14 +213,12 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         }
     }
 
-    @Override
     public void removeExternalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId)
             throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
     }
 
-    @Override
     public boolean isMappedLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         List<ClaimDialect> claimDialects = this.getClaimDialects(tenantId);
@@ -254,19 +237,16 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return false;
     }
 
-    @Override
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeClaimMappingAttributes(tenantId, userstoreDomain);
     }
 
-    @Override
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
     }
 
-    @Override
     public List<Claim> getMappedExternalClaims(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         List<Claim> mappedExternalClaims = new ArrayList<>();
@@ -286,7 +266,6 @@ public class UnifiedClaimMetadataManager implements ClaimMetadataManager {
         return mappedExternalClaims;
     }
 
-    @Override
     public boolean isLocalClaimMappedWithinDialect(String mappedLocalClaim, String externalClaimDialectURI,
                                                    int tenantId) throws ClaimMetadataException {
 
