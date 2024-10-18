@@ -146,6 +146,30 @@ public class ActionManagementServiceImplTest {
 
     @Test(priority = 2, expectedExceptions = ActionMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
+    public void testAddActionWithInvalidData() throws ActionMgtException {
+        Action creatingAction = buildMockAction(
+                "PreIssueAccessToken_#1",
+                "To configure PreIssueAccessToken",
+                "https://example.com",
+                buildMockAPIKeyAuthentication("-test-header", "thisisapikey"));
+        Action action = serviceImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction, tenantDomain);
+        Assert.assertNull(action);
+    }
+
+    @Test(priority = 3, expectedExceptions = ActionMgtException.class,
+            expectedExceptionsMessageRegExp = "Unable to create an Action.")
+    public void testAddActionWithEmptyData() throws ActionMgtException {
+        Action creatingAction = buildMockAction(
+                "",
+                "To configure PreIssueAccessToken",
+                "https://example.com",
+                buildMockBasicAuthentication(null, "admin"));
+        Action action = serviceImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction, tenantDomain);
+        Assert.assertNull(action);
+    }
+
+    @Test(priority = 4, expectedExceptions = ActionMgtException.class,
+            expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddMaximumActionsPerType() throws ActionMgtException {
 
         Action creatingAction = buildMockAction(
@@ -157,7 +181,7 @@ public class ActionManagementServiceImplTest {
                 tenantDomain);
     }
 
-    @Test(priority = 3)
+    @Test(priority = 5)
     public void testGetActionsByActionType() throws ActionMgtException, SecretManagementException {
 
         List<Action> actions = serviceImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, tenantDomain);
@@ -181,7 +205,7 @@ public class ActionManagementServiceImplTest {
         }
     }
 
-    @Test(priority = 4)
+    @Test(priority = 6)
     public void testGetActionByActionId() throws ActionMgtException, SecretManagementException {
 
         Action result = serviceImpl.getActionByActionId(action.getType().getPathParam(), action.getId(), tenantDomain);
@@ -202,7 +226,7 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.PASSWORD.getName()));
     }
 
-    @Test(priority = 5)
+    @Test(priority = 7)
     public void testGetActionsByActionTypeFromCache() throws ActionMgtException, SecretManagementException {
 
         // Verify that the action is retrieved from the cache based on action type.
@@ -227,7 +251,7 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.PASSWORD.getName()));
     }
 
-    @Test(priority = 6)
+    @Test(priority = 8)
     public void testUpdateAction() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = buildMockAction(
@@ -255,7 +279,7 @@ public class ActionManagementServiceImplTest {
         action = result;
     }
 
-    @Test(priority = 7)
+    @Test(priority = 9)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(Action.Status.ACTIVE, action.getStatus());
@@ -264,7 +288,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(Action.Status.INACTIVE, deactivatedAction.getStatus());
     }
 
-    @Test(priority = 8)
+    @Test(priority = 10)
     public void testActivateAction() throws ActionMgtException {
 
         Action result = serviceImpl.activateAction(
@@ -272,7 +296,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertEquals(Action.Status.ACTIVE, result.getStatus());
     }
 
-    @Test(priority = 9)
+    @Test(priority = 11)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = serviceImpl.getActionsCountPerType(tenantDomain);
@@ -286,7 +310,7 @@ public class ActionManagementServiceImplTest {
         }
     }
 
-    @Test(priority = 10)
+    @Test(priority = 12)
     public void testUpdateEndpointConfigWithSameAuthenticationType()
             throws ActionMgtException, SecretManagementException {
 
@@ -302,7 +326,7 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.VALUE.getName()));
     }
 
-    @Test(priority = 11)
+    @Test(priority = 13)
     public void testUpdateEndpointConfigWithDifferentAuthenticationType()
             throws ActionMgtException, SecretManagementException {
 
@@ -316,7 +340,7 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.ACCESS_TOKEN.getName()));
     }
 
-    @Test(priority = 12)
+    @Test(priority = 14)
     public void testDeleteAction() throws ActionMgtException {
 
         serviceImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), tenantDomain);

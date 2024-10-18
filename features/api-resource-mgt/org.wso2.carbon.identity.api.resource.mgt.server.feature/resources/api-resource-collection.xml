@@ -262,6 +262,7 @@
                 <Scope name="internal_authenticator_view"/>
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_extensions_view"/>
+                <Scope name="internal_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -578,6 +579,7 @@
                 <Scope name="internal_org_authenticator_view"/>
                 <Scope name="internal_org_governance_view"/>
                 <Scope name="internal_org_extensions_view"/>
+                <Scope name="internal_org_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

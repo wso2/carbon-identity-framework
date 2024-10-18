@@ -24,6 +24,7 @@
             <class name="org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAOImplTest"/>
             <class name="org.wso2.carbon.identity.api.resource.mgt.dao.CacheBackedAPIResourceManagementDAOTest"/>
             <class name="org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerTest"/>
+            <class name="org.wso2.carbon.identity.api.resource.mgt.APIResourceManagementUtilTest"></class>
         </classes>
     </test>
 </suite>

@@ -50,6 +50,7 @@ public class ApplicationConstants {
     public static final String IDP_NAME = "idpName";
     public static final String IDP_AUTHENTICATOR_NAME = "authenticatorName";
     public static final String IDP_AUTHENTICATOR_DISPLAY_NAME = "authenticatorDisplayName";
+    public static final String IDP_AUTHENTICATOR_DEFINED_BY_TYPE = "definedByType";
     public static final String APPLICATION_DOMAIN = "Application";
     // Regex for validating application name.
     public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
@@ -102,6 +103,7 @@ public class ApplicationConstants {
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
     public static final String DEFAULT_APPLICATIONS_CONFIG_ELEMENT = "DefaultApplications";
     public static final String APPLICATION_NAME_CONFIG_ELEMENT = "ApplicationName";
+    public static final String PORTAL_NAMES_CONFIG_ELEMENT = "SystemPortals.PortalName";
 
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
@@ -126,6 +128,7 @@ public class ApplicationConstants {
     public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
     public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
     public static final String RBAC = "RBAC";
+    public static final String SYSTEM_PORTALS = "SystemPortals";
 
     /**
      * Group the constants related to logs.
@@ -144,12 +147,45 @@ public class ApplicationConstants {
     }
 
     /**
+     * Group the constants related to application versioning.
+     */
+    public static class ApplicationVersion {
+
+        public static final String APP_VERSION_V0 = "v0.0.0";
+        public static final String APP_VERSION_V1 = "v1.0.0";
+
+        // Change the latest version when a new version is introduced.
+        public static final String LATEST_APP_VERSION = APP_VERSION_V1;
+        public static final String BASE_APP_VERSION = APP_VERSION_V0;
+
+        /**
+         * Application version enum.
+         */
+        public enum ApplicationVersions {
+
+            V0(APP_VERSION_V0),
+            V1(APP_VERSION_V1);
+
+            private final String value;
+
+            ApplicationVersions(String value) {
+                this.value = value;
+            }
+
+            public String getValue() {
+                return value;
+            }
+        }
+    }
+
+    /**
      * Grouping of constants related to database SP_APP table.
      */
     public static class ApplicationTableColumns {
 
         public static final String ID = "ID";
         public static final String APP_NAME = "APP_NAME";
+        public static final String APP_VERSION = "VERSION";
         public static final String DESCRIPTION = "DESCRIPTION";
 
         public static final String USERNAME = "USERNAME";
