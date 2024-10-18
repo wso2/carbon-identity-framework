@@ -41,6 +41,9 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 
+/**
+ * System default claim metadata manager.
+ */
 public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
 
     private static final List<ClaimDialect> claimDialects;
