@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.ai.service.mgt.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.logging.Log;
@@ -38,6 +37,7 @@ import org.wso2.carbon.ai.service.mgt.token.AIAccessTokenManager;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -88,7 +88,11 @@ public class AIHttpClientUtil {
                 handleErrorResponse(statusCode, responseBody, tenantDomain);
             }
             return convertJsonStringToMap(responseBody);
-        } catch (IOException | InterruptedException | ExecutionException e) {
+        } catch (IOException | ExecutionException e) {
+            throw new AIServerException("An error occurred while connecting to the AI Service.",
+                    SERVER_ERROR_WHILE_CONNECTING_TO_AI_SERVICE.getCode(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new AIServerException("An error occurred while connecting to the AI Service.",
                     SERVER_ERROR_WHILE_CONNECTING_TO_AI_SERVICE.getCode(), e);
         }
@@ -192,7 +196,8 @@ public class AIHttpClientUtil {
     /**
      * Wrapper class for HTTP response.
      */
-    public static class HttpResponseWrapper {
+    public static class HttpResponseWrapper implements Serializable {
+
         private final int statusCode;
         private final String responseBody;
 

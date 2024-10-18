@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil.executeRequest;
+import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.ErrorMessages.SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE;
 
 /**
  * Implementation of the LoginFlowAIManager interface to communicate with the LoginFlowAI service.
@@ -83,10 +84,11 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
             requestBody.put("available_authenticators", authenticatorsMap);
         } catch (JsonSyntaxException | IOException e) {
             throw new AIClientException("Error occurred while parsing the user claims or available " +
-                    "authenticators.", e);
+                    "authenticators.", SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getCode(), e);
         }
 
-        Map<String, Object> stringObjectMap = executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_GENERATE_PATH, HttpPost.class, requestBody);
+        Map<String, Object> stringObjectMap = executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_GENERATE_PATH,
+                HttpPost.class, requestBody);
         return (String) stringObjectMap.get("operation_id");
     }
 
@@ -121,157 +123,4 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
 
         return executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_RESULT_PATH + "/" + operationId, HttpGet.class, null);
     }
-
-//    private Object executeRequest(String endpoint, Class<? extends HttpUriRequest> requestType, Object requestBody)
-//            throws LoginFlowAIServerException, LoginFlowAIClientException {
-//
-//        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-//
-//        try (CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
-//            client.start();
-//            String accessToken = LoginFlowAITokenService.getInstance().getAccessToken(false);
-//            String orgName = LoginFlowAITokenService.getInstance().getClientId();
-//
-//            HttpUriRequest request = createRequest(LOGINFLOW_AI_ENDPOINT + "/t/" + orgName + endpoint, requestType,
-//                    accessToken, requestBody);
-//            HttpResponseWrapper loginFlowAIServiceResponse = executeRequestWithRetry(client, request);
-//
-//            int statusCode = loginFlowAIServiceResponse.getStatusCode();
-//            String responseBody = loginFlowAIServiceResponse.getResponseBody();
-//
-//            if (statusCode >= 400) {
-//                handleErrorResponse(statusCode, responseBody, tenantDomain);
-//            }
-//            return convertJsonStringToObject(responseBody);
-//        } catch (IOException | InterruptedException | ExecutionException e) {
-//            throw new LoginFlowAIServerException("An error occurred while connecting to the LoginFlow AI Service.",
-//                    ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getCode(), e);
-//        }
-//    }
-//
-//    private HttpUriRequest createRequest(String url, Class<? extends HttpUriRequest> requestType, String accessToken,
-//                                         Object requestBody)
-//            throws IOException {
-//
-//        HttpUriRequest request;
-//        if (requestType == HttpPost.class) {
-//            HttpPost post = new HttpPost(url);
-//            if (requestBody != null) {
-//                post.setEntity(new StringEntity(objectMapper.writeValueAsString(requestBody)));
-//            }
-//            request = post;
-//        } else if (requestType == HttpGet.class) {
-//            request = new HttpGet(url);
-//        } else {
-//            throw new IllegalArgumentException("Unsupported request type: " + requestType.getName());
-//        }
-//
-//        request.setHeader("Authorization", "Bearer " + accessToken);
-//        request.setHeader("Content-Type", "application/json");
-//        return request;
-//    }
-//
-//    private HttpResponseWrapper executeRequestWithRetry(CloseableHttpAsyncClient client, HttpUriRequest request)
-//            throws InterruptedException, ExecutionException, IOException, LoginFlowAIServerException {
-//
-//        HttpResponseWrapper response = HttpClientHelper.executeRequest(client, request);
-//
-//        if (response.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-//            String newAccessToken = LoginFlowAITokenService.getInstance().getAccessToken(true);
-//            if (newAccessToken == null) {
-//                throw new LoginFlowAIServerException("Failed to renew access token.",
-//                        ERROR_RETRIEVING_ACCESS_TOKEN.getCode());
-//            }
-//            request.setHeader("Authorization", "Bearer " + newAccessToken);
-//            response = HttpClientHelper.executeRequest(client, request);
-//        }
-//
-//        return response;
-//    }
-//
-//    private void handleErrorResponse(int statusCode, String responseBody, String tenantDomain)
-//            throws LoginFlowAIServerException, LoginFlowAIClientException {
-//
-//        if (statusCode == HttpStatus.SC_UNAUTHORIZED) {
-//            throw new LoginFlowAIServerException("Failed to access AI service with renewed access token for " +
-//                    "the tenant domain: " + tenantDomain,
-//                    UNABLE_TO_ACCESS_AI_SERVICE_WITH_RENEW_ACCESS_TOKEN.getCode());
-//        } else if (statusCode >= 400 && statusCode < 500) {
-//            throw new LoginFlowAIClientException(new HttpResponseWrapper(statusCode, responseBody), String.format(
-//                    CLIENT_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getMessage(), tenantDomain),
-//                    CLIENT_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getCode());
-//        } else if (statusCode >= 500) {
-//            throw new LoginFlowAIServerException(new HttpResponseWrapper(statusCode, responseBody),
-//                   String.format(SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getMessage(), tenantDomain),
-//                    SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getCode());
-//        }
-//    }
-//
-//    private Object convertJsonStringToObject(String jsonString) throws LoginFlowAIServerException {
-//
-//        try {
-//            return objectMapper.readValue(jsonString, Object.class);
-//        } catch (IOException e) {
-//            throw new LoginFlowAIServerException("Error occurred while parsing the JSON response from the AI service.",
-//                    ERROR_WHILE_GENERATING_AUTHENTICATION_SEQUENCE.getCode(), e);
-//        }
-//    }
-//
-//    /**
-//     * Wrapper class to hold the HTTP response status code and the response body.
-//     */
-//    public static class HttpResponseWrapper {
-//        private final int statusCode;
-//        private final String responseBody;
-//
-//        public HttpResponseWrapper(int statusCode, String responseBody) {
-//
-//            this.statusCode = statusCode;
-//            this.responseBody = responseBody;
-//        }
-//
-//        public int getStatusCode() {
-//
-//            return statusCode;
-//        }
-//
-//        public String getResponseBody() {
-//
-//            return responseBody;
-//        }
-//    }
-//
-//    /**
-//     * Helper class to execute HTTP requests asynchronously.
-//     */
-//    public static class HttpClientHelper {
-//        public static HttpResponseWrapper executeRequest(CloseableHttpAsyncClient client, HttpUriRequest httpRequest)
-//                throws InterruptedException, ExecutionException, IOException {
-//
-//            Future<HttpResponse> apiResponse = client.execute(httpRequest, new FutureCallback<HttpResponse>() {
-//                @Override
-//                public void completed(HttpResponse response) {
-//
-//                    LOG.info("API request completed with status code: " + response.getStatusLine().getStatusCode());
-//                }
-//
-//                @Override
-//                public void failed(Exception e) {
-//
-//                    LOG.error("API request failed: " + e.getMessage(), e);
-//                }
-//
-//                @Override
-//                public void cancelled() {
-//
-//                    LOG.warn("API request was cancelled");
-//                }
-//            });
-//
-//            HttpResponse httpResponse = apiResponse.get();
-//            int status = httpResponse.getStatusLine().getStatusCode();
-//            String response = EntityUtils.toString(httpResponse.getEntity());
-//            return new HttpResponseWrapper(status, response);
-//        }
-//    }
 }
