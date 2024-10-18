@@ -56,6 +56,9 @@ public class RecoveryApiV2 {
     private static final String PATH_PASSWORD_RECOVERY_RESEND = "/password/resend";
     private static final String PATH_PASSWORD_RECOVERY_CONFIRM = "/password/confirm";
     private static final String PATH_PASSWORD_RECOVERY_RESET = "/password/reset";
+    private static final String PATH_USERNAME_RECOVERY_INIT = "/username/init";
+    private static final String PATH_USERNAME_RECOVERY_RECOVER = "/username/recover";
+
     String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
             .UserInfoRecovery.RECOVERY_API_V2_RELATIVE_PATH);
     private ApiClient apiClient;
@@ -78,6 +81,35 @@ public class RecoveryApiV2 {
     public void setApiClient(ApiClient apiClient) {
 
         this.apiClient = apiClient;
+    }
+
+    /**
+     * Initiate recovering the forgotten username.
+     *
+     * @param recoveryInitRequest Username recovery initiating request. (required)
+     * @param tenantDomain        Tenant Domain which user belongs. Default "carbon.super" (optional)
+     * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
+     * @return Account recovery options response object.
+     * @throws ApiException If fails to make API call.
+     */
+    public List<AccountRecoveryType> initiateUsernameRecovery(RecoveryInitRequest recoveryInitRequest,
+                                                              String tenantDomain, Map<String, String> headers)
+            throws ApiException {
+
+        return initiateRecovery(recoveryInitRequest, tenantDomain, headers, PATH_USERNAME_RECOVERY_INIT);
+    }
+
+    /**
+     * @param recoveryRequest Recovery request. (required)
+     * @param tenantDomain    Tenant Domain which user belongs. Default "carbon.super" (optional)
+     * @param headers         Any additional headers to be embedded. (optional)
+     * @return Recovery response.
+     * @throws ApiException If fails to make API call.
+     */
+    public RecoveryResponse recoverUsername(RecoveryRequest recoveryRequest, String tenantDomain,
+                                            Map<String, String> headers) throws ApiException {
+
+        return recover(recoveryRequest, tenantDomain, headers, PATH_USERNAME_RECOVERY_RECOVER);
     }
 
     /**
