@@ -1017,7 +1017,12 @@
             Default value : true
         -->
         <!--<EnableGroupBasedUserFilteringImprovements>true</EnableGroupBasedUserFilteringImprovements>-->
-
+        <!--
+            This configuration is added to consider the server-wide user endpoint max limit when the count query parameter is used.
+            Default value : true
+            Supported versions : IS 7.1.0 onwards
+        -->
+        <ConsiderServerWideUserEndpointMaxLimit>true</ConsiderServerWideUserEndpointMaxLimit>
     </SCIM2>
 
     <!--Recovery>

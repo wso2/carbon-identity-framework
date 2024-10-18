@@ -1595,6 +1595,12 @@
              Supported versions : IS 7.0.0 onwards
         -->
         <UserEndpointMaxItemsPerPageEnabled>{{scim2.user_endpoint_max_items_per_page.enable}}</UserEndpointMaxItemsPerPageEnabled>
+        <!--
+            This configuration is added to consider the server-wide user endpoint max limit when the count query parameter is used.
+            Default value : true
+            Supported versions : IS 7.1.0 onwards
+        -->
+        <ConsiderServerWideUserEndpointMaxLimit>{{scim2.consider_server_wide_user_endpoint_max_limit}}</ConsiderServerWideUserEndpointMaxLimit>
     </SCIM2>
 
       <PasswordPolicy>
