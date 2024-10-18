@@ -135,6 +135,8 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.claim.metadata.mgt.internal,
+                            !org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataReader,
+                            !org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataWriter,
                             org.wso2.carbon.identity.claim.metadata.mgt.*;version="${carbon.identity.package.export.version}"
                         </Export-Package>
                     </instructions>
