@@ -16,11 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.ai;
+package org.wso2.carbon.ai.service.mgt.token;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -33,6 +33,7 @@ import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
@@ -42,25 +43,26 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages.MAXIMUM_RETRIES_EXCEEDED;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.getTenantDomainFromContext;
 
 /**
- * This class is responsible for obtaining the access token for the Login Flow AI service.
+ * The purpose of this class is to retrieve an active token to access the AI service.
  */
-public class LoginFlowAITokenService {
+public class AIAccessTokenManager {
 
-    private static final Log log = LogFactory.getLog(LoginFlowAITokenService.class);
+    private static final Log LOG = LogFactory.getLog(AIAccessTokenManager.class);
 
     public static final String LOGIN_FLOW_AI_KEY = IdentityUtil.getProperty("AIServices.Key");
     public static final String LOGIN_FLOW_AI_TOKEN_ENDPOINT = IdentityUtil.getProperty("AIServices.TokenEndpoint");
 
-    private static LoginFlowAITokenService instance;
+    private static AIAccessTokenManager instance;
     private AccessTokenRequestHelper accessTokenRequestHelper;
 
     private String accessToken;
     private String clientId;
 
-    private LoginFlowAITokenService() {
+    private AIAccessTokenManager() {
         // Prevent from initialization.
     }
 
@@ -69,12 +71,12 @@ public class LoginFlowAITokenService {
      *
      * @return The singleton instance.
      */
-    public static LoginFlowAITokenService getInstance() {
+    public static AIAccessTokenManager getInstance() {
 
         if (instance == null) {
-            synchronized (LoginFlowAITokenService.class) {
+            synchronized (AIAccessTokenManager.class) {
                 if (instance == null) {
-                    instance = new LoginFlowAITokenService();
+                    instance = new AIAccessTokenManager();
                 }
             }
         }
@@ -96,12 +98,12 @@ public class LoginFlowAITokenService {
      *
      * @param renewAccessToken Whether to renew the access token.
      * @return The access token.
-     * @throws LoginFlowAIServerException If an error occurs while obtaining the access token.
+     * @throws AIServerException If an error occurs while obtaining the access token.
      */
-    public String getAccessToken(boolean renewAccessToken) throws LoginFlowAIServerException {
+    public String getAccessToken(boolean renewAccessToken) throws AIServerException {
 
         if (StringUtils.isEmpty(accessToken) || renewAccessToken) {
-            synchronized (LoginFlowAITokenService.class) {
+            synchronized (AIAccessTokenManager.class) {
                 if (StringUtils.isEmpty(accessToken) || renewAccessToken) {
                     this.accessToken = accessTokenRequestHelper != null ?
                             accessTokenRequestHelper.requestAccessToken() : createDefaultHelper().requestAccessToken();
@@ -165,12 +167,12 @@ public class LoginFlowAITokenService {
          * Request access token to access the Login Flow AI service.
          *
          * @return the JWT access token.
-         * @throws LoginFlowAIServerException If an error occurs while requesting the access token.
+         * @throws AIServerException If an error occurs while requesting the access token.
          */
-        public String requestAccessToken() throws LoginFlowAIServerException {
+        public String requestAccessToken() throws AIServerException {
 
             String tenantDomain = getTenantDomainFromContext();
-            log.info("Initiating access token request for Login Flow AI service from tenant: " + tenantDomain);
+            LOG.info("Initiating access token request for Login Flow AI service from tenant: " + tenantDomain);
             try {
                 client.start();
                 for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -201,14 +203,14 @@ public class LoginFlowAITokenService {
                                                 StandardCharsets.UTF_8);
                                         Map<String, Object> payloadMap = gson.fromJson(payloadJson, Map.class);
                                         String clientId = (String) payloadMap.get("client_id");
-                                        LoginFlowAITokenService.getInstance().setClientId(clientId);
+                                        AIAccessTokenManager.getInstance().setClientId(clientId);
                                     }
                                 } else {
-                                    log.error("Token request failed with status code: " +
+                                    LOG.error("Token request failed with status code: " +
                                             response.getStatusLine().getStatusCode());
                                 }
                             } catch (IOException e) {
-                                log.error("Error parsing token response: " + e.getMessage(), e);
+                                LOG.error("Error parsing token response: " + e.getMessage(), e);
                             } finally {
                                 latch.countDown();
                             }
@@ -217,14 +219,14 @@ public class LoginFlowAITokenService {
                         @Override
                         public void failed(Exception e) {
 
-                            log.error("Token request failed: " + e.getMessage(), e);
+                            LOG.error("Token request failed: " + e.getMessage(), e);
                             latch.countDown();
                         }
 
                         @Override
                         public void cancelled() {
 
-                            log.warn("Token request was cancelled");
+                            LOG.warn("Token request was cancelled");
                             latch.countDown();
                         }
                     });
@@ -234,28 +236,28 @@ public class LoginFlowAITokenService {
                             return accessToken[0];
                         }
                     } else {
-                        log.error("Token request timed out");
+                        LOG.error("Token request timed out");
                     }
                     // Wait before retrying.
                     try {
                         TimeUnit.MILLISECONDS.sleep(500);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        log.error("Retry sleep interrupted: " + e.getMessage(), e);
+                        LOG.error("Retry sleep interrupted: " + e.getMessage(), e);
                     }
                 }
             } catch (IOException | InterruptedException e) {
-                throw new LoginFlowAIServerException("Failed to close HTTP client: " + e.getMessage(), e);
+                throw new AIServerException("Failed to close HTTP client: " + e.getMessage(), e);
             } finally {
                 try {
                     client.close();
                 } catch (IOException e) {
-                    log.error("Failed to close HTTP client: " + e.getMessage(), e);
+                    LOG.error("Failed to close HTTP client: " + e.getMessage(), e);
                 }
             }
             // If it reaches this point.
-            throw new LoginFlowAIServerException("Failed to obtain access token after " + MAX_RETRIES +
-                    " attempts.", "MAXIMUM_RETRIES_EXCEEDED");
+            throw new AIServerException("Failed to obtain access token after " + MAX_RETRIES +
+                    " attempts.", MAXIMUM_RETRIES_EXCEEDED.getCode());
         }
     }
 }

@@ -16,36 +16,38 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.ai;
+package org.wso2.carbon.ai.service.mgt.exceptions;
+
+import org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil;
 
 /**
- * Service Exception class for BrandingAI service.
+ * Client Exception class for AI service.
  */
-public class LoginFlowAIServerException extends Exception {
+public class AIServerException extends Exception {
 
     private String errorCode;
-    private LoginFlowAIManagerImpl.HttpResponseWrapper loginFlowAIResponse;
+    private AIHttpClientUtil.HttpResponseWrapper loginFlowAIResponse;
 
-    public LoginFlowAIServerException(String message, String errorCode) {
+    public AIServerException(String message, String errorCode) {
 
         super(message);
         this.errorCode = errorCode;
     }
 
-    public LoginFlowAIServerException(LoginFlowAIManagerImpl.HttpResponseWrapper httpResponseWrapper,
-                                      String message, String errorCode) {
+    public AIServerException(AIHttpClientUtil.HttpResponseWrapper httpResponseWrapper,
+                             String message, String errorCode) {
 
         super(message);
         this.errorCode = errorCode;
         this.loginFlowAIResponse = httpResponseWrapper;
     }
 
-    public LoginFlowAIServerException(String message, Throwable cause) {
+    public AIServerException(String message, Throwable cause) {
 
         super(cause);
     }
 
-    public LoginFlowAIServerException(String message, String errorCode, Throwable cause) {
+    public AIServerException(String message, String errorCode, Throwable cause) {
 
         super(message, cause);
         this.errorCode = errorCode;
@@ -56,7 +58,7 @@ public class LoginFlowAIServerException extends Exception {
         return errorCode;
     }
 
-    public LoginFlowAIManagerImpl.HttpResponseWrapper getBrandingAIResponse() {
+    public AIHttpClientUtil.HttpResponseWrapper getBrandingAIResponse() {
 
         return loginFlowAIResponse;
     }

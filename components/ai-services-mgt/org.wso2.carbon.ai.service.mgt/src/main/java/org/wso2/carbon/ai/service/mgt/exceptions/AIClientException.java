@@ -16,23 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.ai;
+package org.wso2.carbon.ai.service.mgt.exceptions;
+
+import org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil;
 
 /**
- * Client Exception class for BrandingAI service.
+ * Client Exception class for AI service.
  */
-public class LoginFlowAIClientException extends Exception {
+public class AIClientException extends Exception {
 
     private String errorCode;
-    private LoginFlowAIManagerImpl.HttpResponseWrapper loginFlowAIResponse;
+    private AIHttpClientUtil.HttpResponseWrapper loginFlowAIResponse;
 
-    public LoginFlowAIClientException(String message, String errorCode) {
+    public AIClientException(String message, String errorCode) {
 
         super(message);
         this.errorCode = errorCode;
     }
 
-    public LoginFlowAIClientException(LoginFlowAIManagerImpl.HttpResponseWrapper httpResponseWrapper,
+    public AIClientException(AIHttpClientUtil.HttpResponseWrapper httpResponseWrapper,
                                       String message, String errorCode) {
 
         super(message);
@@ -40,12 +42,12 @@ public class LoginFlowAIClientException extends Exception {
         this.loginFlowAIResponse = httpResponseWrapper;
     }
 
-    public LoginFlowAIClientException(String message, Throwable cause) {
+    public AIClientException(String message, Throwable cause) {
 
         super(cause);
     }
 
-    public LoginFlowAIClientException(String message, String errorCode, Throwable cause) {
+    public AIClientException(String message, String errorCode, Throwable cause) {
 
         super(message, cause);
         this.errorCode = errorCode;
@@ -56,7 +58,7 @@ public class LoginFlowAIClientException extends Exception {
         return errorCode;
     }
 
-    public LoginFlowAIManagerImpl.HttpResponseWrapper getLoginFlowAIResponse() {
+    public AIHttpClientUtil.HttpResponseWrapper getLoginFlowAIResponse() {
 
         return loginFlowAIResponse;
     }
