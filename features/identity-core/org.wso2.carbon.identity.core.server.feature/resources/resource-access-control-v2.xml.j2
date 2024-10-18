@@ -804,6 +804,11 @@
             <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
 
+        <!-- Application LoginFlow AI management API -->
+        <Resource context="(.*)/api/server/v1/applications/loginflow(.*)" secured="true" http-method="POST, GET">
+            <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+
         <!-- Admin Application Management API -->
         <Resource context="(.*)/api/server/v1/applications/(.*)/owner(.*)" secured="true" http-method="PUT">
             <Scopes>internal_organization_admin</Scopes>

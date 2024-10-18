@@ -4459,4 +4459,14 @@
         {% endif %}
     </AdminServices>
 
+    <AIServices>
+        <TokenEndpoint>{{ai_services.token_endpoint}}</TokenEndpoint>
+        <Key>{{ai_services.key}}</Key>
+        <TokenRequestRetryCount>{{ai_services.token_request_retry_count}}</TokenRequestRetryCount>
+        <TokenRequestTimeout>{{ai_services.token_request_timeout}}</TokenRequestTimeout>
+        <LoginFlowAI>
+            <LoginFlowAIEndpoint>{{ai_services.login_flow_ai.endpoint}}</LoginFlowAIEndpoint>
+        </LoginFlowAI>
+    </AIServices>
+
 </Server>
