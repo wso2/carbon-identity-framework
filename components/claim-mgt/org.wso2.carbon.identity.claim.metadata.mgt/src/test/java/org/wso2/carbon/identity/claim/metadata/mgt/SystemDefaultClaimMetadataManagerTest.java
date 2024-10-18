@@ -124,42 +124,6 @@ public class SystemDefaultClaimMetadataManagerTest {
     }
 
     @Test
-    public void testAddClaimDialect() throws ClaimMetadataException {
-
-        ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.addClaimDialect(claimDialect, 1);
-        });
-        List<ClaimDialect> claimDialects = claimMetadataManager.getClaimDialects(1);
-        assertNotNull(claimDialects);
-        assertEquals(claimDialects.size(), 3);
-    }
-
-    @Test
-    public void testRenameClaimDialect() throws ClaimMetadataException {
-
-        ClaimDialect oldClaimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
-        ClaimDialect newClaimDialect = new ClaimDialect("http://abc.org/claims");
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, 1);
-        });
-        ClaimDialect claimDialect = claimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 1);
-        assertNotNull(claimDialect);
-    }
-
-    @Test
-    public void testRemoveClaimDialect() throws ClaimMetadataException {
-
-        ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.removeClaimDialect(claimDialect, 1);
-        });
-        List<ClaimDialect> claimDialects = claimMetadataManager.getClaimDialects(1);
-        assertNotNull(claimDialects);
-        assertEquals(claimDialects.size(), 3);
-    }
-
-    @Test
     public void testGetLocalClaims() throws ClaimMetadataException {
 
         List<LocalClaim> claims = claimMetadataManager.getLocalClaims(1);
@@ -190,74 +154,6 @@ public class SystemDefaultClaimMetadataManagerTest {
 
         LocalClaim emptyClaim = claimMetadataManager.getLocalClaim("", 1);
         assertNull(emptyClaim);
-    }
-
-    @Test
-    public void testAddLocalClaim() throws ClaimMetadataException {
-
-        LocalClaim claim = new LocalClaim("http://wso2.org/claims/active");
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.addLocalClaim(claim, 1);
-        });
-        List<LocalClaim> claims = claimMetadataManager.getLocalClaims(1);
-        assertNotNull(claims);
-        assertEquals(claims.size(), 6);
-    }
-
-    @Test
-    public void testUpdateLocalClaim() throws ClaimMetadataException {
-
-        LocalClaim updatedLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
-        List<AttributeMapping> newMappedAttributes = updatedLocalClaim.getMappedAttributes();
-        newMappedAttributes.add(new AttributeMapping("newDomain", "newValue"));
-        updatedLocalClaim.setMappedAttributes(newMappedAttributes);
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.updateLocalClaim(updatedLocalClaim, 1);
-        });
-        LocalClaim existingLocalClaim = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
-        assertNotNull(existingLocalClaim);
-        assertEquals(existingLocalClaim.getMappedAttributes().size(), 1);
-        assertNotNull(existingLocalClaim.getMappedAttribute(PRIMARY_DOMAIN));
-    }
-
-    @Test
-    public void updateLocalClaimMappings() throws ClaimMetadataException {
-
-        LocalClaim updatedLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
-        List<AttributeMapping> newMappedAttributes = new ArrayList<>();
-        newMappedAttributes.add(new AttributeMapping("newDomain", "newValue"));
-        updatedLocalClaim.setMappedAttributes(newMappedAttributes);
-        List<LocalClaim> updatedLocalClaimList = new ArrayList<>();
-        updatedLocalClaimList.add(updatedLocalClaim);
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.updateLocalClaimMappings(updatedLocalClaimList, 1, "newDomain");
-        });
-        LocalClaim existingLocalClaim = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
-        assertNotNull(existingLocalClaim);
-        assertEquals(existingLocalClaim.getMappedAttributes().size(), 1);
-        assertNotNull(existingLocalClaim.getMappedAttribute(PRIMARY_DOMAIN));
-    }
-
-    @Test
-    public void testRemoveLocalClaim() throws ClaimMetadataException {
-
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.removeLocalClaim(LOCAL_CLAIM_3, 1);
-        });
-        List<LocalClaim> claims = claimMetadataManager.getLocalClaims(1);
-        assertNotNull(claims);
-        assertEquals(claims.size(), 6);
-    }
-
-    @Test
-    public void removeClaimMappingAttributes() throws ClaimMetadataException {
-
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.removeClaimMappingAttributes(1, PRIMARY_DOMAIN);
-        });
-        List<LocalClaim> claims = claimMetadataManager.getLocalClaims(1);
-        assertNotNull(claims);
-        claims.forEach(claim -> assertNotNull(claim.getMappedAttribute(PRIMARY_DOMAIN)));
     }
 
     @Test
@@ -327,47 +223,6 @@ public class SystemDefaultClaimMetadataManagerTest {
     }
 
     @Test
-    public void testAddExternalClaim() throws ClaimMetadataException {
-
-        ExternalClaim externalClaim = new ExternalClaim(EXT_CLAIM_DIALECT_1, "http://abc.org/claim6", LOCAL_CLAIM_1);
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.addExternalClaim(externalClaim, 1);
-        });
-        List<ExternalClaim> externalClaims = claimMetadataManager.getExternalClaims(EXT_CLAIM_DIALECT_1, 1);
-        List<String> externalClaimURIs = externalClaims.stream()
-                .map(ExternalClaim::getClaimURI)
-                .collect(Collectors.toList());
-        assertNotNull(externalClaims);
-        assertEquals(externalClaims.size(), 5);
-        assertFalse(externalClaimURIs.contains("http://abc.org/claim6"));
-    }
-
-    @Test
-    public void testUpdateExternalClaim() throws ClaimMetadataException {
-
-        ExternalClaim updatedExternalClaim = new ExternalClaim(
-                EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_6);
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.updateExternalClaim(updatedExternalClaim, 1);
-        });
-        ExternalClaim existingExternalClaim = claimMetadataManager.getExternalClaim(
-                EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNotNull(existingExternalClaim);
-        assertEquals(existingExternalClaim.getMappedLocalClaim(), LOCAL_CLAIM_2);
-    }
-
-    @Test
-    public void testRemoveExternalClaim() throws ClaimMetadataException {
-
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.removeExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        });
-        List<ExternalClaim> externalClaims = claimMetadataManager.getExternalClaims(EXT_CLAIM_DIALECT_1, 1);
-        assertNotNull(externalClaims);
-        assertEquals(externalClaims.size(), 5);
-    }
-
-    @Test
     public void testGetMappedExternalClaims() throws ClaimMetadataException {
 
         List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim> externalClaims = claimMetadataManager
@@ -393,17 +248,6 @@ public class SystemDefaultClaimMetadataManagerTest {
         List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim> emptyExternalClaims =
                 claimMetadataManager.getMappedExternalClaims("", 1);
         assertNull(emptyExternalClaims);
-    }
-
-    @Test
-    public void testRemoveAllClaimDialects() throws ClaimMetadataException {
-
-        assertThrows(UnsupportedOperationException.class, () -> {
-            claimMetadataManager.removeAllClaimDialects(1);
-        });
-        List<ClaimDialect> claimDialects = claimMetadataManager.getClaimDialects(1);
-        assertNotNull(claimDialects);
-        assertEquals(claimDialects.size(), 3);
     }
 
     @Test

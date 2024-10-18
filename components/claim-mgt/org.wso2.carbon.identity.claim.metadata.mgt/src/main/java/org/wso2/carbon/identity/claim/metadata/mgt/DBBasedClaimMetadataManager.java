@@ -36,7 +36,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.List;
 
-public class DBBasedClaimMetadataManager implements ClaimMetadataManager {
+public class DBBasedClaimMetadataManager implements ClaimMetadataReader, ClaimMetadataWriter {
 
     private final ClaimDialectDAO claimDialectDAO = new CacheBackedClaimDialectDAO();
     private final CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());

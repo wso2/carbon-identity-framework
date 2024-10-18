@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 
-public class SystemDefaultClaimMetadataManager implements ClaimMetadataManager {
+public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
 
     private static final List<ClaimDialect> claimDialects;
     private static final Map<String, List<Claim>> claims;
@@ -119,25 +119,6 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataManager {
     }
 
     @Override
-    public void addClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void renameClaimDialect(ClaimDialect oldClaimDialect, ClaimDialect newClaimDialect, int tenantId)
-            throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void removeClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
         List<Claim> localClaims = claims.get(LOCAL_CLAIM_DIALECT_URI);
@@ -163,37 +144,6 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataManager {
                 .map(LocalClaim.class::cast)
                 .findFirst()
                 .orElse(null);
-    }
-
-    @Override
-    public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain)
-            throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
     }
 
     @Override
@@ -233,25 +183,6 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataManager {
     }
 
     @Override
-    public void addExternalClaim(ExternalClaim externalClaim, int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void updateExternalClaim(ExternalClaim externalClaim, int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
-    public void removeExternalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId)
-            throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
-    }
-
-    @Override
     public List<Claim> getMappedExternalClaims(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         if (localClaimURI == null || StringUtils.isBlank(localClaimURI)) {
@@ -271,12 +202,6 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataManager {
             mappedExternalClaims.addAll(externalClaims);
         }
         return mappedExternalClaims;
-    }
-
-    @Override
-    public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
-
-        throw new UnsupportedOperationException("Unsupported operation for SystemDefaultClaimMetadataManager.");
     }
 
     @Override
