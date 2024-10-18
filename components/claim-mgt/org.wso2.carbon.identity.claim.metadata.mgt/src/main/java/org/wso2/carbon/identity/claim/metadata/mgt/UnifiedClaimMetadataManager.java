@@ -36,6 +36,9 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 
+/**
+ * Unified claim metadata manager.
+ */
 public class UnifiedClaimMetadataManager {
 
     private final SystemDefaultClaimMetadataManager systemDefaultClaimMetadataManager =
