@@ -2222,20 +2222,20 @@ public class FrameworkUtils {
             cookieBuilder.setDomain(cookieConfig.getDomain());
         }
 
-        if (cookieConfig.getPath() != null) {
-            cookieBuilder.setPath(cookieConfig.getPath());
-        } else if (StringUtils.isNotBlank(path)) {
+        if (StringUtils.isNotBlank(path)) {
             cookieBuilder.setPath(path);
+        } else if (cookieConfig.getPath() != null) {
+            cookieBuilder.setPath(cookieConfig.getPath());
         }
 
         if (cookieConfig.getComment() != null) {
             cookieBuilder.setComment(cookieConfig.getComment());
         }
 
-        if (cookieConfig.getMaxAge() > 0) {
-            cookieBuilder.setMaxAge(cookieConfig.getMaxAge());
-        } else if (age != null) {
+        if (age != null) {
             cookieBuilder.setMaxAge(age);
+        } else if (cookieConfig.getMaxAge() > 0) {
+            cookieBuilder.setMaxAge(cookieConfig.getMaxAge());
         }
 
         if (cookieConfig.getVersion() > 0) {
@@ -4027,16 +4027,16 @@ public class FrameworkUtils {
         }
         // Config is not set. Hence going with class for name approach.
         try {
-            Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
-            return new JsOpenJdkNashornGraphBuilderFactory();
+            Class.forName(GRAALJS_SCRIPTER_CLASS_NAME);
+            return new JsGraalGraphBuilderFactory();
         } catch (ClassNotFoundException e) {
             try {
-                Class.forName(JDK_SCRIPTER_CLASS_NAME);
-                return new JsGraphBuilderFactory();
+                Class.forName(OPENJDK_SCRIPTER_CLASS_NAME);
+                return new JsOpenJdkNashornGraphBuilderFactory();
             } catch (ClassNotFoundException classNotFoundException) {
                 try {
-                    Class.forName(GRAALJS_SCRIPTER_CLASS_NAME);
-                    return new JsGraalGraphBuilderFactory();
+                    Class.forName(JDK_SCRIPTER_CLASS_NAME);
+                    return new JsGraphBuilderFactory();
                 } catch (ClassNotFoundException ex) {
                     return null;
                 }

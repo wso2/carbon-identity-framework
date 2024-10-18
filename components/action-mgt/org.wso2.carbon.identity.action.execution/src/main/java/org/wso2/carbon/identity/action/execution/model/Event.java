@@ -31,6 +31,7 @@ public abstract class Event {
     protected Organization organization;
     protected User user;
     protected UserStore userStore;
+    protected Application application;
 
     public Tenant getTenant() {
 
@@ -55,5 +56,10 @@ public abstract class Event {
     public UserStore getUserStore() {
 
         return userStore;
+    }
+
+    public Application getApplication() {
+
+        return application;
     }
 }

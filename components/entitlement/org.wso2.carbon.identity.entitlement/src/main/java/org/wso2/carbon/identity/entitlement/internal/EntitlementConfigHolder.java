@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.entitlement.policy.finder.PolicyFinderModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PolicyPublisherModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PostPublisherModule;
 import org.wso2.carbon.identity.entitlement.policy.publisher.PublisherVerificationModule;
+import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
 import javax.xml.validation.Schema;
 
 /**
@@ -109,8 +111,12 @@ public class EntitlementConfigHolder {
     /**
      * This holds all the policy storing logic of entitlement engine
      */
-    private Map<PolicyStoreManageModule, Properties> policyStore =
-            new HashMap<PolicyStoreManageModule, Properties>();
+    private Map<PolicyStoreManageModule, Properties> policyStore = new HashMap<>();
+
+    /**
+     * This holds all the policy versioning of PAP
+     */
+    private Map<PolicyDataStore, Properties> policyDataStore = new HashMap<>();
 
     /**
      * This holds the policy schema against its version
@@ -260,6 +266,14 @@ public class EntitlementConfigHolder {
     public void addNotificationHandler(PAPStatusDataHandler notificationHandler,
                                        Properties properties) {
         this.papStatusDataHandlers.put(notificationHandler, properties);
+    }
+
+    public Map<PolicyDataStore, Properties> getPolicyDataStore() {
+        return policyDataStore;
+    }
+
+    public void addPolicyDataStore(PolicyDataStore policyDataStore, Properties properties) {
+        this.policyDataStore.put(policyDataStore, properties);
     }
 
     public ConfigurationContextService getConfigurationContextService() {

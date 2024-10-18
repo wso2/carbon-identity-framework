@@ -67,6 +67,7 @@
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_shared_application_view"/>
+                <Scope name="internal_extensions_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -261,6 +262,7 @@
                 <Scope name="internal_authenticator_view"/>
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_extensions_view"/>
+                <Scope name="internal_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -297,6 +299,8 @@
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_validation_rule_mgt_update"/>
                 <Scope name="internal_config_update"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -575,6 +579,7 @@
                 <Scope name="internal_org_authenticator_view"/>
                 <Scope name="internal_org_governance_view"/>
                 <Scope name="internal_org_extensions_view"/>
+                <Scope name="internal_org_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -719,6 +724,7 @@
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_extensions_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

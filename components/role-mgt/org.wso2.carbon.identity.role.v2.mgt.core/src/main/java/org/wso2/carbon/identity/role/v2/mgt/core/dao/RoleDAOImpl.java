@@ -88,6 +88,8 @@ import javax.xml.namespace.QName;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.
         ErrorMessages.ERROR_CODE_INVALID_ORGANIZATION_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_ORG_SCOPE_PREFIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.CONSOLE_SCOPE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.DB2;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_OFFSET;
@@ -143,6 +145,10 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIE
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_AUDIENCE_REF_BY_ID_FROM_UM_HYBRID_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_GROUP_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_IDP_GROUPS_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMITED_USER_LIST_OF_ROLE_DB2;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMITED_USER_LIST_OF_ROLE_MSSQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMITED_USER_LIST_OF_ROLE_ORACLE;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMITED_USER_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_APP_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_DB2;
@@ -181,7 +187,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARE
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_USER_LIST_OF_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL;
@@ -1646,7 +1651,8 @@ public class RoleDAOImpl implements RoleDAO {
      */
     private boolean isValidSubOrgPermission(String permission) {
 
-        return permission.startsWith(INTERNAL_ORG_SCOPE_PREFIX) || !permission.startsWith(INTERNAL_SCOPE_PREFIX);
+        return permission.startsWith(INTERNAL_ORG_SCOPE_PREFIX) || permission.startsWith(CONSOLE_ORG_SCOPE_PREFIX) ||
+                (!permission.startsWith(INTERNAL_SCOPE_PREFIX) && !permission.startsWith(CONSOLE_SCOPE_PREFIX));
     }
 
     /**
@@ -2498,6 +2504,34 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     /**
+     * Retrieves the type-specific SQL query for fetching a user list by role.
+     *
+     * @param databaseProductName DB type.
+     * @return SQL query.
+     * @throws IdentityRoleManagementException If the database type is unsupported.
+     */
+    private String getDBTypeSpecificUserListByRoleQuery(String databaseProductName)
+            throws IdentityRoleManagementException {
+
+        if (MY_SQL.equals(databaseProductName)
+                || MARIADB.equals(databaseProductName)
+                || POSTGRE_SQL.equals(databaseProductName)
+                || H2.equals(databaseProductName)) {
+            return GET_LIMITED_USER_LIST_OF_ROLE_SQL;
+        } else if (databaseProductName != null && databaseProductName.contains(RoleConstants.DB2)) {
+            return GET_LIMITED_USER_LIST_OF_ROLE_DB2;
+        } else if (ORACLE.equals(databaseProductName)) {
+            return GET_LIMITED_USER_LIST_OF_ROLE_ORACLE;
+        } else if (MICROSOFT.equals(databaseProductName)) {
+            return GET_LIMITED_USER_LIST_OF_ROLE_MSSQL;
+        }
+
+        throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                "Error while listing users by role from DB. Database driver for " + databaseProductName
+                        + " could not be identified or not supported.");
+    }
+
+    /**
      * Process list of roles query.
      *
      * @param limit        Limit.
@@ -2727,11 +2761,13 @@ public class RoleDAOImpl implements RoleDAO {
         List<UserBasicInfo> userList = new ArrayList<>();
         String roleName = getRoleNameByID(roleId, tenantDomain);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        int limit = IdentityUtil.getMaximumUsersListPerRole();
+        int offset = 0;
         try {
             UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
             if (UserCoreUtil.isEveryoneRole(roleName, userRealm.getRealmConfiguration())) {
                 List<org.wso2.carbon.user.core.common.User> users = ((AbstractUserStoreManager) userRealm
-                        .getUserStoreManager()).listUsersWithID(RoleConstants.WILDCARD_CHARACTER, -1);
+                        .getUserStoreManager()).listUsersWithID(RoleConstants.WILDCARD_CHARACTER, limit);
                 for (org.wso2.carbon.user.core.common.User user : users) {
                     userList.add(new UserBasicInfo(user.getUserID(), user.getDomainQualifiedUsername()));
                 }
@@ -2743,41 +2779,50 @@ public class RoleDAOImpl implements RoleDAO {
 
         List<String> disabledDomainName = getDisabledDomainNames();
         int audienceRefId = getAudienceRefByID(roleId, tenantDomain);
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_USER_LIST_OF_ROLE_SQL)) {
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            String query = getDBTypeSpecificUserListByRoleQuery(databaseProductName);
 
-            statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    String name = resultSet.getString(1);
-                    String domain = resultSet.getString(2);
-                    if (!disabledDomainName.contains(domain)) {
-                        if (StringUtils.isNotEmpty(domain)) {
-                            name = UserCoreUtil.addDomainToName(name, domain);
-                        }
-                        String userId;
-                        try {
-                            userId = getUserIDByName(name, tenantDomain);
-                        } catch (IdentityRoleManagementClientException roleManagementClientException) {
-                            String errorMessage = String.format(USER_NOT_FOUND_ERROR_MESSAGE, name, tenantDomain);
-                            if (roleManagementClientException.getMessage().equals(errorMessage)) {
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug(errorMessage);
-                                }
-                                continue;
-                            } else {
-                                throw roleManagementClientException;
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+                statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
+                statement.setInt(RoleConstants.LIMIT, limit);
+                statement.setInt(RoleConstants.OFFSET, offset);
+                statement.setInt(RoleConstants.ZERO_BASED_START_INDEX, offset);
+                statement.setInt(RoleConstants.END_INDEX, offset + limit);
+                statement.setInt(RoleConstants.ONE_BASED_START_INDEX, offset + 1);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String name = resultSet.getString(1);
+                        String domain = resultSet.getString(2);
+                        if (!disabledDomainName.contains(domain)) {
+                            if (StringUtils.isNotEmpty(domain)) {
+                                name = UserCoreUtil.addDomainToName(name, domain);
                             }
+                            String userId;
+                            try {
+                                userId = getUserIDByName(name, tenantDomain);
+                            } catch (IdentityRoleManagementClientException roleManagementClientException) {
+                                String errorMessage = String.format(USER_NOT_FOUND_ERROR_MESSAGE, name, tenantDomain);
+                                if (roleManagementClientException.getMessage().equals(errorMessage)) {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug(errorMessage);
+                                    }
+                                    continue;
+                                } else {
+                                    throw roleManagementClientException;
+                                }
+                            }
+                            userList.add(new UserBasicInfo(userId, name));
                         }
-                        userList.add(new UserBasicInfo(userId, name));
                     }
                 }
             }
         } catch (SQLException e) {
             String errorMessage =
-                    "Error while while getting the user list of role for role name: %s in the " + "tenantDomain: %s";
+                    "Error while getting the user list of role for role name: %s in the tenantDomain: %s";
             throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
                     String.format(errorMessage, roleName, tenantDomain), e);
         }

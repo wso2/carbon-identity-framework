@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.action.execution.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * This class models the Request.
@@ -30,16 +30,26 @@ import java.util.Map;
  */
 public abstract class Request {
 
-    protected Map<String, String[]> additionalHeaders = new HashMap<>();
-    protected Map<String, String[]> additionalParams = new HashMap<>();
+    protected List<Header> additionalHeaders = new ArrayList<>();
+    protected List<Param> additionalParams = new ArrayList<>();
 
-    public Map<String, String[]> getAdditionalHeaders() {
+    public List<Header> getAdditionalHeaders() {
 
-        return additionalHeaders != null ? additionalHeaders : Collections.emptyMap();
+        return additionalHeaders != null ? Collections.unmodifiableList(additionalHeaders) : Collections.emptyList();
     }
 
-    public Map<String, String[]> getAdditionalParams() {
+    public void setAdditionalHeaders(List<Header> additionalHeaders) {
 
-        return additionalParams != null ? additionalParams : Collections.emptyMap();
+        this.additionalHeaders = additionalHeaders;
+    }
+
+    public List<Param> getAdditionalParams() {
+
+        return additionalParams != null ? Collections.unmodifiableList(additionalParams) : Collections.emptyList();
+    }
+
+    public void setAdditionalParams(List<Param> additionalParams) {
+
+        this.additionalParams = additionalParams;
     }
 }

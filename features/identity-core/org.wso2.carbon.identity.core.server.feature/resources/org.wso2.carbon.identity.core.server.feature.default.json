@@ -65,6 +65,7 @@
   "oauth.token_validation.refresh_token_validity": "1d",
   "oauth.timestamp_skew": "0m",
   "oauth.token_renewal.renew_refresh_token": true,
+  "oauth.token_renewal.validate_authenticated_user_for_refresh_grant": false,
   "oauth.enable_password_grant_enhancements": false,
   "oauth.token_renewal.extend_refresh_token_expiry_time_on_renewal": true,
   "oauth.token_renewal.renew_access_token_per_request": false,
@@ -258,6 +259,7 @@
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
+  "oauth.oidc.enable_claims_separation_for_access_tokens": false,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -390,6 +392,7 @@
   "identity_mgt.password_reset_email.otp.use_lowercase_in_otp": true,
   "identity_mgt.password_reset_email.otp.use_numeric_in_otp": true,
   "identity_mgt.password_reset_email.otp.otp_length": "6",
+  "identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code": "false",
   "identity_mgt.password_reset_sms.sms_otp_regex": "[a-zA-Z0-9]{6}",
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -434,6 +437,7 @@
   "identity_mgt.login_identifiers.enable": false,
   "identity_mgt.login_identifiers.primary_claim": "http://wso2.org/claims/username",
 
+  "identity_mgt.username_recovery.non_unique_user.enabled" : false,
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
@@ -452,6 +456,7 @@
   "identity_mgt.user_onboarding.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
   "identity_mgt.user_onboarding.disable_random_value_for_credentials": false,
+  "identity_mgt.user_onboarding.disable_notify_unlock_state": false,
 
   "identity_mgt.tenant_registration.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 
@@ -488,6 +493,7 @@
   "identity_mgt.user_claim_update.uniqueness.enable": false,
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
+  "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": false,
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
@@ -784,6 +790,7 @@
   "authentication.adaptive.execution_supervisor.timeout": "500ms",
   "authentication.adaptive.authenticator_name_in_auth_config.enable": true,
   "authentication.adaptive.graaljs.script_statements_limit": "0",
+  "AdaptiveAuth.ScriptEngine": "graaljs",
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
@@ -802,6 +809,7 @@
 
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
+  "pagination.max_users_list_per_role": "1000",
 
   "user_filtering.show_display_name_of_user": false,
   "analytics.publish_password_grant_logins": false,
@@ -1089,6 +1097,7 @@
     "OAuthRequestPathAuthenticator"
   ],
   "console.ui.hiddenConnectionTemplates": [ "swe-idp" ],
+  "console.ui.hiddenApplicationTemplates": [],
   "console.ui.google_one_tap_enabled_tenants": [],
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
@@ -1151,8 +1160,7 @@
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
     "applications.loginFlow.ai",
-    "applications.loginFlow.legacyEditor",
-    "applications.myaccount.saasMyaccountSettings"
+    "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
   "console.application_roles.enabled": false,
@@ -1184,6 +1192,7 @@
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
     "branding.ai",
+    "branding.applicationLevelBranding",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
@@ -1273,7 +1282,7 @@
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
   "console.identity_provider_groups.enabled": true,
-  "console.identity_verification_providers.enabled": false,
+  "console.identity_verification_providers.enabled": true,
   "console.identity_verification_providers.scopes.feature": ["console:idvps"],
   "console.identity_verification_providers.scopes.create": ["internal_idvp_add"],
   "console.identity_verification_providers.scopes.read": ["internal_idvp_view"],
@@ -1282,7 +1291,11 @@
   "console.insights.enabled": false,
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
-  "console.login_and_registration.scopes.read": ["internal_governance_view"],
+  "console.login_and_registration.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
+  ],
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
     "internal_validation_rule_mgt_update",
@@ -1419,6 +1432,10 @@
   ],
   "console.resident_outbound_provisioning.scopes.update": ["internal_application_mgt_update"],
   "console.console_settings.enabled": true,
+  "console.console_settings.disabled_features": [
+    "consoleSettings.invitedExternalAdmins",
+    "consoleSettings.privilegedUsers"
+  ],
   "console.console_settings.scopes.feature": ["console:settings"],
   "console.console_settings.scopes.create": ["internal_role_mgt_create"],
   "console.console_settings.scopes.read": [
@@ -1565,9 +1582,53 @@
 
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
 
+  "actions.http_client.connection_timeout": 2000,
+  "actions.http_client.read_timeout": 5000,
+  "actions.http_client.request_timeout": 2000,
+  "actions.http_client.connection_pool_size": 20,
+  "actions.http_client.retry_count": 2,
   "actions.maximum_actions_per_action_type": 1,
-  "actions.types.pre_issue_access_token.enable": false,
+  "actions.action_request.excluded_headers": [
+    "authorization",
+    "cookie",
+    "set-cookie",
+    "accept-encoding",
+    "accept-language",
+    "content-length",
+    "content-type",
+    "connection",
+    "host",
+    "referer",
+    "user-agent",
+    "origin",
+    "x-forwarded-for",
+    "x-forwarded-host",
+    "x-forwarded-proto",
+    "x-forwarded-port",
+    "x-forwarded-server",
+    "x-forwarded-uri"
+  ],
+  "actions.types.pre_issue_access_token.enable": true,
+  "actions.types.pre_issue_access_token.action_request.excluded_headers": [
+    "dpop"
+  ],
+  "actions.types.pre_issue_access_token.action_request.excluded_parameters": [
+    "code",
+    "redirect_uri",
+    "grant_type",
+    "scope",
+    "username",
+    "password",
+    "refresh_token",
+    "client_id",
+    "client_secret",
+    "client_assertion_type",
+    "client_assertion"
+  ],
+  "actions.types.authentication.enable": true,
 
-  "oauth.authorize_all_scopes": false
+  "oauth.authorize_all_scopes": false,
+
+  "system_applications.system_portals": ["Console", "My Account"]
 }
 

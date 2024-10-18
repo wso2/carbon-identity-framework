@@ -62,12 +62,9 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
         private List<PerformableOperation> operations;
 
         @JsonProperty("actionStatus")
-        public Builder actionStatus(String actionStatus) {
+        public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
 
-            if (!ActionInvocationResponse.Status.SUCCESS.name().equals(actionStatus)) {
-                throw new IllegalArgumentException("actionStatus must be SUCCESS");
-            }
-            this.actionStatus = ActionInvocationResponse.Status.SUCCESS;
+            this.actionStatus = actionStatus;
             return this;
         }
 
@@ -79,6 +76,18 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
         }
 
         public ActionInvocationSuccessResponse build() {
+
+            if (this.actionStatus == null) {
+                throw new IllegalArgumentException("actionStatus must not be null.");
+            }
+
+            if (!ActionInvocationResponse.Status.SUCCESS.equals(actionStatus)) {
+                throw new IllegalArgumentException("actionStatus must be SUCCESS.");
+            }
+
+            if (this.operations == null) {
+                throw new IllegalArgumentException("operations must not be null.");
+            }
 
             return new ActionInvocationSuccessResponse(this);
         }

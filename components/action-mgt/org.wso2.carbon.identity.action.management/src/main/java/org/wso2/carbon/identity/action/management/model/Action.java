@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.action.management.model;
 
+import java.util.Arrays;
+
 /**
  * Action.
  */
@@ -32,35 +34,47 @@ public class Action  {
                 "preIssueAccessToken",
                 "PRE_ISSUE_ACCESS_TOKEN",
                 "Pre Issue Access Token.",
-                "Configure an extension point for modifying access token via a custom service."),
+                "Configure an extension point for modifying access token via a custom service.",
+                Category.PRE_POST),
         PRE_UPDATE_PASSWORD(
                 "preUpdatePassword",
                 "PRE_UPDATE_PASSWORD",
                 "Pre Update Password.",
-                "Configure an extension point for modifying user " +
-                        "password via a custom service."),
+                "Configure an extension point for modifying user password via a custom service.",
+                Category.PRE_POST),
         PRE_UPDATE_PROFILE(
                 "preUpdateProfile",
                 "PRE_UPDATE_PROFILE",
                 "Pre Update Profile.",
-                "Configure an extension point for modifying user profile via a custom service."),
+                "Configure an extension point for modifying user profile via a custom service.",
+                Category.PRE_POST),
         PRE_REGISTRATION(
                 "preRegistration",
                 "PRE_REGISTRATION",
                 "Pre Registration.",
-                "Configure an extension point for modifying user registration via a custom service.");
+                "Configure an extension point for modifying user registration via a custom service.",
+                Category.PRE_POST),
+        AUTHENTICATION(
+                "authentication",
+                "AUTHENTICATION",
+                "Authentication.",
+                "Configure an extension point for user authentication via a custom service.",
+                Category.IN_FLOW);
 
         private final String pathParam;
         private final String actionType;
         private final String displayName;
         private final String description;
 
-        ActionTypes(String pathParam, String actionType, String displayName, String description) {
+        private final Category category;
+
+        ActionTypes(String pathParam, String actionType, String displayName, String description, Category category) {
 
             this.pathParam = pathParam;
             this.actionType = actionType;
             this.displayName = displayName;
             this.description = description;
+            this.category = category;
         }
 
         public String getPathParam() {
@@ -81,6 +95,27 @@ public class Action  {
         public String getDescription() {
 
             return description;
+        }
+
+        public Category getCategory() {
+
+            return category;
+        }
+
+        public static ActionTypes[] filterByCategory(Category category) {
+
+            return Arrays.stream(ActionTypes.values())
+                    .filter(actionType -> actionType.category.equals(category))
+                    .toArray(ActionTypes[]::new);
+        }
+
+        /**
+         * Category Enum.
+         * Defines the category of the action types.
+         */
+        public enum Category {
+            PRE_POST,
+            IN_FLOW;
         }
     }
 

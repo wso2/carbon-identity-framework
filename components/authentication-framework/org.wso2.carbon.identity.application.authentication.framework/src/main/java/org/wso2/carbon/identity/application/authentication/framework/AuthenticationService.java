@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -266,6 +266,11 @@ public class AuthenticationService {
     private String getErrorMessage(AuthServiceResponseWrapper response) throws AuthServiceException {
 
         Map<String, String> queryParams = AuthServiceUtils.extractQueryParams(response.getRedirectURL());
+
+        if (queryParams.containsKey(AuthServiceConstants.PASSWORD_EXPIRED_PARAM)
+                && queryParams.containsKey(AuthServiceConstants.PASSWORD_EXPIRED_MSG_PARAM)) {
+            return queryParams.get(AuthServiceConstants.PASSWORD_EXPIRED_MSG_PARAM);
+        }
         return queryParams.get(AuthServiceConstants.AUTH_FAILURE_MSG_PARAM);
     }
 
@@ -336,7 +341,7 @@ public class AuthenticationService {
             throws AuthServiceException {
 
         return AuthenticatorFlowStatus.FAIL_COMPLETED == request.getAuthFlowStatus() || response.isErrorResponse() ||
-                isSentToRetryPage(request);
+                isSentToRetryPage(request) || response.isPasswordExpiredResponse();
     }
 
     private boolean isAuthFlowIncomplete(AuthServiceRequestWrapper request) {
