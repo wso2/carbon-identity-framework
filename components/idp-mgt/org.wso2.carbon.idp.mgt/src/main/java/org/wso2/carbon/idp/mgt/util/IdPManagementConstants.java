@@ -129,7 +129,7 @@ public class IdPManagementConstants {
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.smsOtp.Enable";
 
-    // Resident IDP Username Recovery Configs
+    // Resident IDP Username Recovery Configs.
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     public static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
