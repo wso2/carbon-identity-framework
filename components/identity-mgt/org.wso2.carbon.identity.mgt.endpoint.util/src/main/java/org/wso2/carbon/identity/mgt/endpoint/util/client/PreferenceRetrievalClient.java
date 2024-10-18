@@ -58,7 +58,7 @@ public class PreferenceRetrievalClient {
     private static final String PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance/preferences";
     private static final String GOVERNANCE_API_RELATIVE_PATH = "/api/server/v1/identity-governance";
     private static final String SELF_REGISTRATION_PROPERTY = "SelfRegistration.Enable";
-    private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
+
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     private static final String SELF_SIGN_UP_LOCK_ON_CREATION_PROPERTY = "SelfRegistration.LockOnCreation";
     private static final String MULTI_ATTRIBUTE_LOGIN_PROPERTY = "account.multiattributelogin.handler.enable";
@@ -125,11 +125,35 @@ public class PreferenceRetrievalClient {
      *
      * @param tenant tenant domain name.
      * @return returns true if  username recovery enabled.
-     * @throws PreferenceRetrievalClientException
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
      */
     public boolean checkUsernameRecovery(String tenant) throws PreferenceRetrievalClientException {
 
-        return checkPreference(tenant, RECOVERY_CONNECTOR, USERNAME_RECOVERY_PROPERTY);
+        return checkPreference(tenant, RECOVERY_CONNECTOR, IdPManagementConstants.USERNAME_RECOVERY_PROPERTY);
+    }
+
+    /**
+     * Check email based username recovery is enabled or not.
+     *
+     * @param tenant tenant domain name.
+     * @return returns true if email based username recovery enabled.
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
+     */
+    public boolean checkEmailBasedUsernameRecovery(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, RECOVERY_CONNECTOR, IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY);
+    }
+
+    /**
+     * Check SMS based username recovery is enabled or not.
+     *
+     * @param tenant tenant domain name.
+     * @return returns true if SMS based username recovery enabled.
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
+     */
+    public boolean checkSMSBasedUsernameRecovery(String tenant) throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, RECOVERY_CONNECTOR, IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY);
     }
 
     /**
