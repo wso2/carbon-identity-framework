@@ -207,7 +207,7 @@ public class ActionExecutionDiagnosticLogger {
                                                                               DiagnosticLog.ResultStatus resultStatus) {
 
         DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
-                ActionExecutionLogConstants.ACTION_EXECUTION,
+                ActionExecutionLogConstants.ACTION_EXECUTION_COMPONENT_ID,
                 actionID);
         diagLogBuilder
                 .resultMessage(message)

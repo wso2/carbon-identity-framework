@@ -73,11 +73,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
     private static final Log LOG = LogFactory.getLog(ActionExecutorServiceImpl.class);
 
+    private static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     private static final ActionExecutorServiceImpl INSTANCE = new ActionExecutorServiceImpl();
     private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
     private final APIClient apiClient;
-    private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors() * 2);
+    private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(THREAD_POOL_SIZE);
 
     private ActionExecutorServiceImpl() {
 
@@ -327,9 +327,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                                  actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
-        if (LOG.isDebugEnabled() || LoggerUtils.isDiagnosticLogsEnabled()) {
-            logSuccessResponse(action, successResponse);
-        }
+        logSuccessResponse(action, successResponse);
 
         List<PerformableOperation> allowedPerformableOperations =
                 validatePerformableOperations(actionRequest, successResponse, action);
