@@ -59,6 +59,7 @@ public class IdentityManagementEndpointConstants {
         public static final String FIRST_NAME_CLAIM = "http://wso2.org/claims/givenname";
         public static final String LAST_NAME_CLAIM = "http://wso2.org/claims/lastname";
         public static final String EMAIL_CLAIM = "http://wso2.org/claims/emailaddress";
+        public static final String MOBILE_CLAIM = "http://wso2.org/claims/mobile";
         public static final String CHALLENGE_QUESTION_URI_CLAIM = "http://wso2.org/claims/challengeQuestionUris";
         public static final String CHALLENGE_QUESTION_1_CLAIM = "http://wso2.org/claims/challengeQuestion1";
         public static final String CHALLENGE_QUESTION_2_CLAIM = "http://wso2.org/claims/challengeQuestion2";
