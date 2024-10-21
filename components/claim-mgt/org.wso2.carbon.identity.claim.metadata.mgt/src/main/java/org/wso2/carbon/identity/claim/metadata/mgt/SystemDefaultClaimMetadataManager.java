@@ -22,20 +22,15 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ClaimMetadataReader;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
-import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
-import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.user.core.claim.ClaimKey;
-import org.wso2.carbon.user.core.claim.ClaimMapping;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,55 +47,11 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
 
     static {
 
-        claimDialects = new ArrayList<>();
-        claims = new HashMap<>();
-
         ClaimConfig claimConfig = IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfig();
-        if (claimConfig != null && claimConfig.getClaimMap() != null) {
-            String primaryDomainName = IdentityUtil.getPrimaryDomainName();
-
-            for (Map.Entry<ClaimKey, ClaimMapping> entry : claimConfig.getClaimMap().entrySet()) {
-                ClaimKey claimKey = entry.getKey();
-                ClaimMapping claimMapping = entry.getValue();
-                String claimDialectURI = claimKey.getDialectUri();
-                String claimURI = claimKey.getClaimUri();
-                Claim claim;
-
-                boolean dialectExists = claimDialects.stream()
-                        .anyMatch(claimDialect -> claimDialect.getClaimDialectURI().equals(claimDialectURI));
-                if (!dialectExists) {
-                    claimDialects.add(new ClaimDialect(claimDialectURI));
-                }
-
-                if (claimDialectURI.equals(LOCAL_CLAIM_DIALECT_URI)) {
-                    List<AttributeMapping> mappedAttributes = new ArrayList<>();
-                    if (StringUtils.isNotBlank(claimMapping.getMappedAttribute())) {
-                        mappedAttributes
-                                .add(new AttributeMapping(primaryDomainName, claimMapping.getMappedAttribute()));
-                    }
-
-                    if (claimMapping.getMappedAttributes() != null) {
-                        for (Map.Entry<String, String> claimMappingEntry : claimMapping.getMappedAttributes()
-                                .entrySet()) {
-                            mappedAttributes.add(new AttributeMapping(claimMappingEntry.getKey(),
-                                    claimMappingEntry.getValue()));
-                        }
-                    }
-
-                    Map<String, String> claimProperties = filterClaimProperties(claimConfig.getPropertyHolderMap()
-                            .get(claimKey));
-                    claim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
-                } else {
-                    String mappedLocalClaimURI = claimConfig.getPropertyHolderMap().get(claimKey).get(ClaimConstants
-                            .MAPPED_LOCAL_CLAIM_PROPERTY);
-                    Map<String, String> claimProperties = filterClaimProperties(claimConfig.getPropertyHolderMap()
-                            .get(claimKey));
-                    claim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI, claimProperties);
-                }
-                claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>());
-                claims.get(claimDialectURI).add(claim);
-            }
-        }
+        claims = ClaimMetadataUtils.getClaimsMapFromClaimConfig(claimConfig);
+        claimDialects = claims.keySet().stream()
+                .map(ClaimDialect::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -243,35 +194,5 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
                 .filter(claim -> claim instanceof ExternalClaim)
                 .map(ExternalClaim.class::cast)
                 .anyMatch(claim -> mappedLocalClaim.equals(claim.getMappedLocalClaim()));
-    }
-
-    private static Map<String, String> filterClaimProperties(Map<String, String> claimProperties) {
-
-        claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
-        claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
-        claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
-
-        if (!claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
-            claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
-        }
-
-        if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
-            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
-                claimProperties.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "true");
-            }
-        }
-
-        if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
-            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
-                claimProperties.put(ClaimConstants.READ_ONLY_PROPERTY, "true");
-            }
-        }
-
-        if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
-            if (StringUtils.isBlank(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
-                claimProperties.put(ClaimConstants.REQUIRED_PROPERTY, "true");
-            }
-        }
-        return claimProperties;
     }
 }
