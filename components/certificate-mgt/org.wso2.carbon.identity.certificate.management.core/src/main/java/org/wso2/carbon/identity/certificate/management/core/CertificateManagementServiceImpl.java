@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.certificate.management.core.dao.impl.Certificate
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
-import org.wso2.carbon.identity.certificate.management.core.util.CertificateMgtUtil;
+import org.wso2.carbon.identity.certificate.management.core.util.CertificateMgtExceptionHandler;
 import org.wso2.carbon.identity.certificate.management.core.util.CertificateValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
@@ -83,7 +83,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
         Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the id: " + certificateId);
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     certificateId);
         }
 
@@ -161,7 +161,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
 
         Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     certificateId);
         }
     }

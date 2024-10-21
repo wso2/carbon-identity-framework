@@ -154,6 +154,7 @@ public class TestUtil {
             "-----END CERTIFICATE-----";
     public static final String NAME_FIELD = "Name";
     public static final String CERTIFICATE_FIELD = "Certificate";
+    public static final String TEST_UUID = "d6b08d41-65fb-46ff-9e87-1d62aaaace6c";
 
     public static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 

@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.certificate.management.core.util.CertificateVali
 public class CertificateValidatorTest {
 
     private static final String ERROR_INVALID_REQUEST = "Invalid request.";
-    private static final String ERROR_INVALID_CERTIFICATE = "Invalid certificate provided.";
     private CertificateValidator certificateValidator;
 
     @BeforeClass

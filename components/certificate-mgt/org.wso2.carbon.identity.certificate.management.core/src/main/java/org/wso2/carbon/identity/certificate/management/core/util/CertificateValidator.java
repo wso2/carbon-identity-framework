@@ -46,7 +46,7 @@ public class CertificateValidator {
     public void validateForBlank(String fieldName, String fieldValue) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(fieldValue)) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_EMPTY_FIELD, fieldName);
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_EMPTY_FIELD, fieldName);
         }
     }
 
@@ -59,7 +59,7 @@ public class CertificateValidator {
     public void validateCertificateName(String name) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(name)) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_INVALID_FIELD, NAME_FIELD);
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_INVALID_FIELD, NAME_FIELD);
         }
     }
 
@@ -72,7 +72,8 @@ public class CertificateValidator {
     public void validateCertificateContent(String certificate) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(certificate)) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_INVALID_FIELD, CERTIFICATE_FIELD);
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_INVALID_FIELD,
+                    CERTIFICATE_FIELD);
         }
         validatePemFormat(certificate);
     }
@@ -86,8 +87,8 @@ public class CertificateValidator {
     public void validatePemFormat(String certificate) throws CertificateMgtClientException {
 
         if (!certificate.startsWith(BEGIN_CERTIFICATE) || !certificate.endsWith(END_CERTIFICATE)) {
-            throw CertificateMgtUtil.raiseClientException(
-                    CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS);
+            CertificateMgtExceptionHandler
+                    .throwClientException(CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS);
         }
 
         try {
@@ -98,7 +99,7 @@ public class CertificateValidator {
 
             CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(bytes));
         } catch (CertificateException e) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT);
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT);
         }
     }
 }

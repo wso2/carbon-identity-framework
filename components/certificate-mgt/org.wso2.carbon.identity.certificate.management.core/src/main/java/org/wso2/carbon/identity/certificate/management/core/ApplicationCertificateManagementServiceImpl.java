@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.certificate.management.core.dao.impl.Application
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
-import org.wso2.carbon.identity.certificate.management.core.util.CertificateMgtUtil;
+import org.wso2.carbon.identity.certificate.management.core.util.CertificateMgtExceptionHandler;
 import org.wso2.carbon.identity.certificate.management.core.util.CertificateValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
@@ -85,8 +85,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
         Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the id: " + certificateId);
-            throw CertificateMgtUtil.raiseClientException(
-                    CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     String.valueOf(certificateId));
         }
 
@@ -111,7 +110,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the name: " + certificateName);
-            throw CertificateMgtUtil.raiseClientException(
+            CertificateMgtExceptionHandler.throwClientException(
                     CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST_WITH_GIVEN_NAME, certificateName);
         }
 
@@ -175,7 +174,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
 
         Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
+            CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     String.valueOf(certificateId));
         }
     }

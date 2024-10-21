@@ -26,11 +26,15 @@ import org.wso2.carbon.identity.certificate.management.core.constant.Certificate
 import org.wso2.carbon.identity.certificate.management.core.dao.CertificateManagementDAO;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
-import org.wso2.carbon.identity.certificate.management.core.util.CertificateMgtUtil;
+import org.wso2.carbon.identity.certificate.management.core.util.CertificateMgtExceptionHandler;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,7 +50,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            InputStream certByteStream = CertificateMgtUtil.getCertificateByteStream(certificate.getCertificate());
+            InputStream certByteStream = getCertificateByteStream(certificate.getCertificate());
             int certificateLength = certByteStream.available();
             jdbcTemplate.withTransaction(template -> {
                 template.executeInsert(CertificateMgtSQLConstants.Query.ADD_CERTIFICATE,
@@ -60,7 +64,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_ADDING_CERTIFICATE, e,
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_ADDING_CERTIFICATE, e,
                     certificate.getName());
         }
     }
@@ -69,13 +73,14 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
     public Certificate getCertificate(String certificateId, int tenantId) throws CertificateMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        Map<String, Object> certificateMap = new HashMap<>();
+        Map<String, Object> attributeMap = new HashMap<>();
+        Certificate certificate = null;
         try {
             jdbcTemplate.fetchSingleRecord(CertificateMgtSQLConstants.Query.GET_CERTIFICATE_BY_ID,
                 (resultSet, rowNumber) -> {
-                    certificateMap.put(CertificateMgtSQLConstants.Column.NAME,
+                    attributeMap.put(CertificateMgtSQLConstants.Column.NAME,
                             resultSet.getString(CertificateMgtSQLConstants.Column.NAME));
-                    certificateMap.put(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM,
+                    attributeMap.put(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM,
                             resultSet.getBinaryStream(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM));
                     return null;
                 }, preparedStatement -> {
@@ -83,21 +88,19 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                     preparedStatement.setInt(2, tenantId);
                 }
             );
-            Certificate certificate = null;
-            if (!certificateMap.isEmpty()) {
+            if (!attributeMap.isEmpty()) {
                 certificate = new Certificate.Builder()
                         .id(certificateId)
-                        .name((String) certificateMap.get(CertificateMgtSQLConstants.Column.NAME))
-                        .certificate(CertificateMgtUtil.getStringValueFromBlob((InputStream)
-                                certificateMap.get(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
+                        .name((String) attributeMap.get(CertificateMgtSQLConstants.Column.NAME))
+                        .certificate(getStringValueFromBlob((InputStream)
+                                attributeMap.get(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
                         .build();
             }
-
-            return certificate;
         } catch (DataAccessException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE, e,
-                    certificateId);
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE,
+                    e, certificateId);
         }
+        return certificate;
     }
 
     @Override
@@ -106,7 +109,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            InputStream certByteStream = CertificateMgtUtil.getCertificateByteStream(certificate.getCertificate());
+            InputStream certByteStream = getCertificateByteStream(certificate.getCertificate());
             int certificateLength = certByteStream.available();
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(CertificateMgtSQLConstants.Query.UPDATE_CERTIFICATE_NAME_AND_CONTENT,
@@ -120,8 +123,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE, e,
-                    certificateId);
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE,
+                    e, certificateId);
         }
     }
 
@@ -142,8 +145,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE, e,
-                    certificateId);
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE,
+                    e, certificateId);
         }
     }
 
@@ -153,7 +156,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            InputStream certByteStream = CertificateMgtUtil.getCertificateByteStream(certificateContent);
+            InputStream certByteStream = getCertificateByteStream(certificateContent);
             int certificateLength = certByteStream.available();
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(CertificateMgtSQLConstants.Query.UPDATE_CERTIFICATE_CONTENT,
@@ -166,8 +169,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE, e,
-                    certificateId);
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE,
+                    e, certificateId);
         }
     }
 
@@ -185,8 +188,43 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_DELETING_CERTIFICATE, e,
-                    certificateId);
+            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_DELETING_CERTIFICATE,
+                    e, certificateId);
         }
+    }
+
+    /**
+     * Converts the given certificate content into a stream of bytes using UTF-8 encoding.
+     *
+     * @param certificateContent Certificate content to be converted to blob.
+     * @return InputStream of the certificate content.
+     */
+    private InputStream getCertificateByteStream(String certificateContent) {
+
+        return new ByteArrayInputStream(certificateContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Get the string representation of the content from the given InputStream of a blob.
+     *
+     * @param stream InputStream containing blob data.
+     * @return String content of the blob, or null if the input stream is null.
+     * @throws IOException If an I/O error occurs while reading the stream.
+     */
+    private String getStringValueFromBlob(InputStream stream) throws IOException {
+
+        if (stream == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+
+        return sb.toString();
     }
 }
