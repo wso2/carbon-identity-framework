@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.claim.metadata.mgt;
+package org.wso2.carbon.identity.claim.metadata.mgt.internal;
 
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
