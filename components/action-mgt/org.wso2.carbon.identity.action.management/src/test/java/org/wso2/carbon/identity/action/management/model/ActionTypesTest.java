@@ -32,20 +32,20 @@ public class ActionTypesTest {
 
         return new Object[][]{
                 {Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN, "preIssueAccessToken", "PRE_ISSUE_ACCESS_TOKEN",
-                        "Pre Issue Access Token.",
+                        "Pre Issue Access Token",
                         "Configure an extension point for modifying access token via a custom service.",
                         Action.ActionTypes.Category.PRE_POST},
                 {Action.ActionTypes.PRE_UPDATE_PASSWORD, "preUpdatePassword", "PRE_UPDATE_PASSWORD",
-                        "Pre Update Password.",
+                        "Pre Update Password",
                         "Configure an extension point for modifying user password via a custom service.",
                         Action.ActionTypes.Category.PRE_POST},
-                {Action.ActionTypes.PRE_UPDATE_PROFILE, "preUpdateProfile", "PRE_UPDATE_PROFILE", "Pre Update Profile.",
+                {Action.ActionTypes.PRE_UPDATE_PROFILE, "preUpdateProfile", "PRE_UPDATE_PROFILE", "Pre Update Profile",
                         "Configure an extension point for modifying user profile via a custom service.",
                         Action.ActionTypes.Category.PRE_POST},
-                {Action.ActionTypes.PRE_REGISTRATION, "preRegistration", "PRE_REGISTRATION", "Pre Registration.",
+                {Action.ActionTypes.PRE_REGISTRATION, "preRegistration", "PRE_REGISTRATION", "Pre Registration",
                         "Configure an extension point for modifying user registration via a custom service.",
                         Action.ActionTypes.Category.PRE_POST},
-                {Action.ActionTypes.AUTHENTICATION, "authentication", "AUTHENTICATION", "Authentication.",
+                {Action.ActionTypes.AUTHENTICATION, "authentication", "AUTHENTICATION", "Authentication",
                         "Configure an extension point for user authentication via a custom service.",
                         Action.ActionTypes.Category.IN_FLOW}
         };
