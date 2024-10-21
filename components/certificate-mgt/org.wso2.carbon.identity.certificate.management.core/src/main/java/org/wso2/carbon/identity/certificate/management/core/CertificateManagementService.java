@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
 
 /**
  * This interface defines the Certificate Management Service.
- * Certificate Management Service is the component that is responsible for managing certificates of a tenant.
+ * Certificate Management Service is the component that is responsible for managing trusted certificates of a tenant.
  */
 public interface CertificateManagementService {
 

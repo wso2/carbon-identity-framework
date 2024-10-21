@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.util.UUID;
 
 /**
- * This class is responsible for managing certificates of a tenant.
+ * This class is responsible for managing trusted certificates of a tenant.
  */
 public class CertificateManagementServiceImpl implements CertificateManagementService {
 
@@ -92,6 +92,8 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
 
     /**
      * Update a certificate with given id.
+     * Only the non-null and non-empty fields in the provided certificate will be updated.
+     * Null or empty fields will be ignored.
      *
      * @param certificateId Certificate ID.
      * @param certificate   Certificate content.

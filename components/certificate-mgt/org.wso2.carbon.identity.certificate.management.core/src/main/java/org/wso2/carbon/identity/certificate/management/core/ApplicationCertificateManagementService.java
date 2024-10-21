@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
 
 /**
  * This interface defines the Application Certificate Management Service.
- * Application Certificate Management Service is the component that is responsible for managing certificates of
+ * Application Certificate Management Service is the component that is responsible for managing trusted certificates of
  * the applications of a tenant.
  * @deprecated Use {@link CertificateManagementService} instead.
  */
