@@ -50,6 +50,7 @@ public class ApplicationConstants {
     public static final String IDP_NAME = "idpName";
     public static final String IDP_AUTHENTICATOR_NAME = "authenticatorName";
     public static final String IDP_AUTHENTICATOR_DISPLAY_NAME = "authenticatorDisplayName";
+    public static final String IDP_AUTHENTICATOR_DEFINED_BY_TYPE = "definedByType";
     public static final String APPLICATION_DOMAIN = "Application";
     // Regex for validating application name.
     public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
@@ -102,6 +103,7 @@ public class ApplicationConstants {
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
     public static final String DEFAULT_APPLICATIONS_CONFIG_ELEMENT = "DefaultApplications";
     public static final String APPLICATION_NAME_CONFIG_ELEMENT = "ApplicationName";
+    public static final String PORTAL_NAMES_CONFIG_ELEMENT = "SystemPortals.PortalName";
 
     // Application Management Service Configurations.
     public static final String ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY = "ApplicationMgt.EnableRoleValidation";
@@ -126,6 +128,7 @@ public class ApplicationConstants {
     public static final String MYACCOUNT_PORTAL_PATH = "MyAccount.AppBaseName";
     public static final String AUTHORIZE_ALL_SCOPES = "OAuth.AuthorizeAllScopes";
     public static final String RBAC = "RBAC";
+    public static final String SYSTEM_PORTALS = "SystemPortals";
 
     /**
      * Group the constants related to logs.

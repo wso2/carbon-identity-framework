@@ -435,6 +435,8 @@
         <TimestampSkew>{{oauth.timestamp_skew}}</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>{{oauth.token_renewal.renew_refresh_token}}</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable the authenticated user validation config for refresh grant -->
+        <ValidateAuthenticatedUserForRefreshGrant>{{oauth.token_renewal.validate_authenticated_user_for_refresh_grant}}</ValidateAuthenticatedUserForRefreshGrant>
         <!-- Enable password grant to go through the framework -->
         <EnablePasswordFlowEnhancements>{{oauth.enable_password_grant_enhancements}}</EnablePasswordFlowEnhancements>
         <!-- Enable Extend renews refresh token expiry time -->
@@ -4026,6 +4028,15 @@
         <ApplicationName>{{application}}</ApplicationName>
         {% endfor %}
     </DefaultApplications>
+    {% endif %}
+
+    <!-- System Portals -->
+    {% if system_applications.system_portals is defined %}
+    <SystemPortals>
+        {% for application in system_applications.system_portals %}
+        <PortalName>{{application}}</PortalName>
+        {% endfor %}
+    </SystemPortals>
     {% endif %}
 
     <!-- System Roles -->
