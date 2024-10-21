@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +44,13 @@ public class UnifiedClaimMetadataManager {
             new SystemDefaultClaimMetadataManager();
     private final DBBasedClaimMetadataManager dbBasedClaimMetadataManager = new DBBasedClaimMetadataManager();
 
+    /**
+     * Get all claim dialects.
+     *
+     * @param tenantId Tenant ID.
+     * @return List of claim dialects.
+     * @throws ClaimMetadataException If an error occurs while retrieving claim dialects.
+     */
     public List<ClaimDialect> getClaimDialects(int tenantId) throws ClaimMetadataException {
 
         List<ClaimDialect> claimDialectsInDB = this.dbBasedClaimMetadataManager.getClaimDialects(tenantId);
@@ -53,13 +59,21 @@ public class UnifiedClaimMetadataManager {
                 .map(ClaimDialect::getClaimDialectURI)
                 .collect(Collectors.toSet());
 
-        List<ClaimDialect> finalClaimDialects = new ArrayList<>(claimDialectsInDB);
+        List<ClaimDialect> allClaimDialects = new ArrayList<>(claimDialectsInDB);
         claimDialectsInSystem.stream()
                 .filter(claimDialect -> !claimDialectURIsInDB.contains(claimDialect.getClaimDialectURI()))
-                .forEach(finalClaimDialects::add);
-        return finalClaimDialects;
+                .forEach(allClaimDialects::add);
+        return allClaimDialects;
     }
 
+    /**
+     * Get a claim dialect by URI.
+     *
+     * @param claimDialectURI Claim dialect URI.
+     * @param tenantId        Tenant ID.
+     * @return Claim dialect.
+     * @throws ClaimMetadataException If an error occurs while retrieving claim dialect.
+     */
     public ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
         ClaimDialect claimDialectInDB = this.dbBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId);
@@ -69,22 +83,51 @@ public class UnifiedClaimMetadataManager {
         return this.systemDefaultClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId);
     }
 
+    /**
+     * Add a claim dialect.
+     *
+     * @param claimDialect Claim dialect.
+     * @param tenantId     Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while adding claim dialect.
+     */
     public void addClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.addClaimDialect(claimDialect, tenantId);
     }
 
+    /**
+     * Rename a claim dialect.
+     *
+     * @param oldClaimDialect Old claim dialect.
+     * @param newClaimDialect New claim dialect.
+     * @param tenantId        Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while renaming claim dialect.
+     */
     public void renameClaimDialect(ClaimDialect oldClaimDialect, ClaimDialect newClaimDialect, int tenantId)
             throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
     }
 
+    /**
+     * Remove a claim dialect.
+     *
+     * @param claimDialect Claim dialect.
+     * @param tenantId     Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while removing claim dialect.
+     */
     public void removeClaimDialect(ClaimDialect claimDialect, int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeClaimDialect(claimDialect, tenantId);
     }
 
+    /**
+     * Get all local claims.
+     *
+     * @param tenantId Tenant ID.
+     * @return List of local claims.
+     * @throws ClaimMetadataException If an error occurs while retrieving local claims.
+     */
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
         List<LocalClaim> localClaimsInSystem = this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId);
@@ -94,14 +137,22 @@ public class UnifiedClaimMetadataManager {
                 .map(LocalClaim::getClaimURI)
                 .collect(Collectors.toSet());
 
-        List<LocalClaim> finalLocalClaims = new ArrayList<>(localClaimsInDB);
+        List<LocalClaim> allLocalClaims = new ArrayList<>(localClaimsInDB);
         localClaimsInSystem.stream()
                 .filter(localClaim -> !claimURIsInDB.contains(localClaim.getClaimURI()))
-                .forEach(finalLocalClaims::add);
+                .forEach(allLocalClaims::add);
 
-        return finalLocalClaims;
+        return allLocalClaims;
     }
 
+    /**
+     * Get a local claim by URI.
+     *
+     * @param localClaimURI Local claim URI.
+     * @param tenantId      Tenant ID.
+     * @return Local claim.
+     * @throws ClaimMetadataException If an error occurs while retrieving local claim.
+     */
     public LocalClaim getLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         LocalClaim localClaim = this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
@@ -111,6 +162,13 @@ public class UnifiedClaimMetadataManager {
         return localClaim;
     }
 
+    /**
+     * Add a local claim.
+     *
+     * @param localClaim Local claim.
+     * @param tenantId   Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while adding local claim.
+     */
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         if (!isClaimDialectInDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId)) {
@@ -119,6 +177,13 @@ public class UnifiedClaimMetadataManager {
         this.dbBasedClaimMetadataManager.addLocalClaim(localClaim, tenantId);
     }
 
+    /**
+     * Update a local claim.
+     *
+     * @param localClaim Local claim.
+     * @param tenantId   Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while updating local claim.
+     */
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         if (isLocalClaimInDB(localClaim.getClaimURI(), tenantId)) {
@@ -128,6 +193,14 @@ public class UnifiedClaimMetadataManager {
         }
     }
 
+    /**
+     * Update local claim mappings.
+     *
+     * @param localClaimList  List of local claims.
+     * @param tenantId        Tenant ID.
+     * @param userStoreDomain User store domain.
+     * @throws ClaimMetadataException If an error occurs while updating local claim mappings.
+     */
     public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain)
             throws ClaimMetadataException {
 
@@ -155,11 +228,26 @@ public class UnifiedClaimMetadataManager {
         this.dbBasedClaimMetadataManager.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
     }
 
+    /**
+     * Remove a local claim.
+     *
+     * @param localClaimURI Local claim URI.
+     * @param tenantId      Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while removing local claim.
+     */
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeLocalClaim(localClaimURI, tenantId);
     }
 
+    /**
+     * Get all external claims.
+     *
+     * @param externalClaimDialectURI External claim dialect URI.
+     * @param tenantId                Tenant ID.
+     * @return List of external claims.
+     * @throws ClaimMetadataException If an error occurs while retrieving external claims.
+     */
     public List<ExternalClaim> getExternalClaims(String externalClaimDialectURI, int tenantId)
             throws ClaimMetadataException {
 
@@ -171,20 +259,29 @@ public class UnifiedClaimMetadataManager {
         Map<String, ExternalClaim> externalClaimsInDBMap = externalClaimsInDB.stream()
                 .collect(Collectors.toMap(ExternalClaim::getClaimURI, claim -> claim));
 
-        List<ExternalClaim> finalExternalClaims = new ArrayList<>();
+        List<ExternalClaim> allExternalClaims = new ArrayList<>();
         for (ExternalClaim externalClaimInSystem : externalClaimsInSystem) {
             ExternalClaim matchingClaimInDB = externalClaimsInDBMap.get(externalClaimInSystem.getClaimURI());
             if (matchingClaimInDB != null) {
-                finalExternalClaims.add(matchingClaimInDB);
+                allExternalClaims.add(matchingClaimInDB);
                 externalClaimsInDBMap.remove(externalClaimInSystem.getClaimURI());
             } else {
-                finalExternalClaims.add(externalClaimInSystem);
+                allExternalClaims.add(externalClaimInSystem);
             }
         }
-        finalExternalClaims.addAll(externalClaimsInDBMap.values());
-        return finalExternalClaims;
+        allExternalClaims.addAll(externalClaimsInDBMap.values());
+        return allExternalClaims;
     }
 
+    /**
+     * Get an external claim by URI.
+     *
+     * @param externalClaimDialectURI External claim dialect URI.
+     * @param claimURI                Claim URI.
+     * @param tenantId                Tenant ID.
+     * @return External claim.
+     * @throws ClaimMetadataException If an error occurs while retrieving external claim.
+     */
     public ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
             throws ClaimMetadataException {
 
@@ -197,6 +294,13 @@ public class UnifiedClaimMetadataManager {
         return externalClaim;
     }
 
+    /**
+     * Add an external claim.
+     *
+     * @param externalClaim External claim.
+     * @param tenantId      Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while adding external claim.
+     */
     public void addExternalClaim(ExternalClaim externalClaim, int tenantId)
             throws ClaimMetadataException {
 
@@ -209,6 +313,13 @@ public class UnifiedClaimMetadataManager {
         this.dbBasedClaimMetadataManager.addExternalClaim(externalClaim, tenantId);
     }
 
+    /**
+     * Update an external claim.
+     *
+     * @param externalClaim External claim.
+     * @param tenantId      Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while updating external claim.
+     */
     public void updateExternalClaim(ExternalClaim externalClaim, int tenantId)
             throws ClaimMetadataException {
 
@@ -219,18 +330,33 @@ public class UnifiedClaimMetadataManager {
         }
     }
 
+    /**
+     * Remove an external claim.
+     *
+     * @param externalClaimDialectURI External claim dialect URI.
+     * @param externalClaimURI        External claim URI.
+     * @param tenantId                Tenant ID.
+     * @throws ClaimMetadataException If an error occurs while removing external claim.
+     */
     public void removeExternalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId)
             throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
     }
 
+    /**
+     * Check whether any external claim maps to a given local claim.
+     * @param localClaimURI Local claim URI.
+     * @param tenantId      Tenant ID.
+     * @return True if the local claim is mapped.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public boolean isMappedLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         List<ClaimDialect> claimDialects = this.getClaimDialects(tenantId);
 
         for (ClaimDialect claimDialect : claimDialects) {
-            if (claimDialect.getClaimDialectURI().equals(ClaimConstants.LOCAL_CLAIM_DIALECT_URI)) {
+            if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equals(claimDialect.getClaimDialectURI())) {
                 continue;
             }
             List<ExternalClaim> externalClaims = getExternalClaims(claimDialect.getClaimDialectURI(), tenantId);
@@ -243,22 +369,40 @@ public class UnifiedClaimMetadataManager {
         return false;
     }
 
+    /**
+     * Remove mapped user store attributes of a user store domain.
+     * @param tenantId        Tenant ID.
+     * @param userstoreDomain User Store Domain name.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeClaimMappingAttributes(tenantId, userstoreDomain);
     }
 
+    /**
+     * Remove all claim dialects.
+     * @param tenantId  Tenant ID.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
 
         this.dbBasedClaimMetadataManager.removeAllClaimDialects(tenantId);
     }
 
+    /**
+     * Get all external claims mapped to a local claim.
+     * @param localClaimURI Local claim URI.
+     * @param tenantId      Tenant ID.
+     * @return List of mapped external claims.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public List<Claim> getMappedExternalClaims(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         List<Claim> mappedExternalClaims = new ArrayList<>();
         List<ClaimDialect> claimDialects = getClaimDialects(tenantId);
         for (ClaimDialect claimDialect : claimDialects) {
-            if (claimDialect.getClaimDialectURI().equals(ClaimConstants.LOCAL_CLAIM_DIALECT_URI)) {
+            if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equals(claimDialect.getClaimDialectURI())) {
                 continue;
             }
             List<ExternalClaim> externalClaimsInDialect = getExternalClaims(claimDialect.getClaimDialectURI(),
@@ -272,18 +416,28 @@ public class UnifiedClaimMetadataManager {
         return mappedExternalClaims;
     }
 
+    /**
+     * Check whether a local claim is mapped within a dialect.
+     * @param mappedLocalClaim         Mapped local claim.
+     * @param externalClaimDialectURI  External claim dialect URI.
+     * @param tenantId                 Tenant ID.
+     * @return True if the local claim is mapped.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public boolean isLocalClaimMappedWithinDialect(String mappedLocalClaim, String externalClaimDialectURI,
                                                    int tenantId) throws ClaimMetadataException {
 
-        List<ExternalClaim> externalClaims = getExternalClaims(externalClaimDialectURI, tenantId);
-        for (ExternalClaim externalClaim : externalClaims) {
-            if (externalClaim.getMappedLocalClaim().equals(mappedLocalClaim)) {
-                return true;
-            }
-        }
-        return false;
+        return getExternalClaims(externalClaimDialectURI, tenantId).stream()
+                .anyMatch(externalClaim -> externalClaim.getMappedLocalClaim().equals(mappedLocalClaim));
     }
 
+    /**
+     * Check whether a claim dialect is a system default claim dialect.
+     * @param claimDialectURI Claim dialect URI.
+     * @param tenantId        Tenant ID.
+     * @return True if the claim dialect is a system default claim dialect.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public boolean isSystemDefaultClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
         ClaimDialect claimDialectInSystem = this.systemDefaultClaimMetadataManager.getClaimDialect(claimDialectURI,
@@ -291,24 +445,32 @@ public class UnifiedClaimMetadataManager {
         return claimDialectInSystem != null;
     }
 
+    /**
+     * Check whether a local claim is a system default local claim.
+     * @param localClaimURI Local claim URI.
+     * @param tenantId      Tenant ID.
+     * @return True if the local claim is a system default local claim.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public boolean isSystemDefaultLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
-        LocalClaim localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId).stream()
-                .filter(localClaim -> localClaim.getClaimURI().equals(localClaimURI))
-                .findFirst()
-                .orElse(null);
-        return localClaimInSystem != null;
+        return this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId).stream()
+                .anyMatch(localClaim -> localClaim.getClaimURI().equals(localClaimURI));
     }
 
+    /**
+     * Check whether an external claim is a system default external claim.
+     * @param externalClaimDialectURI External claim dialect URI.
+     * @param externalClaimURI        External claim URI.
+     * @param tenantId                Tenant ID.
+     * @return True if the external claim is a system default external claim.
+     * @throws ClaimMetadataException if an error occurs during the operation.
+     */
     public boolean isSystemDefaultExternalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId)
             throws ClaimMetadataException {
 
-        ExternalClaim externalClaimInSystem = this.systemDefaultClaimMetadataManager.getExternalClaims(
-                        externalClaimDialectURI, tenantId).stream()
-                .filter(externalClaim -> externalClaim.getClaimURI().equals(externalClaimURI))
-                .findFirst()
-                .orElse(null);
-        return externalClaimInSystem != null;
+        return this.systemDefaultClaimMetadataManager.getExternalClaims(externalClaimDialectURI,tenantId).stream()
+                .anyMatch(externalClaim -> externalClaim.getClaimURI().equals(externalClaimURI));
     }
 
     private boolean isClaimDialectInDB(String claimDialectURI, int tenantId) throws ClaimMetadataException {
