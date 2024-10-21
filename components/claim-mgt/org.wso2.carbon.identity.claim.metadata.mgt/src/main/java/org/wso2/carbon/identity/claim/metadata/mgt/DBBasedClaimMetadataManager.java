@@ -54,7 +54,7 @@ public class DBBasedClaimMetadataManager implements ClaimMetadataReader, ClaimMe
     @Override
     public ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        if (claimDialectURI == null || StringUtils.isBlank(claimDialectURI)) {
+        if (StringUtils.isBlank(claimDialectURI)) {
             return null;
         }
 
@@ -88,7 +88,7 @@ public class DBBasedClaimMetadataManager implements ClaimMetadataReader, ClaimMe
     @Override
     public LocalClaim getLocalClaim(String localClaimURI , int tenantId) throws ClaimMetadataException {
 
-        if (localClaimURI == null || StringUtils.isBlank(localClaimURI)) {
+        if (StringUtils.isBlank(localClaimURI)) {
             return null;
         }
 
@@ -109,7 +109,7 @@ public class DBBasedClaimMetadataManager implements ClaimMetadataReader, ClaimMe
     public ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
             throws ClaimMetadataException {
 
-        if (claimURI == null || StringUtils.isBlank(claimURI)) {
+        if (StringUtils.isBlank(claimURI)) {
             return null;
         }
 

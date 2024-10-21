@@ -111,7 +111,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     @Override
     public ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        if (claimDialectURI == null || StringUtils.isBlank(claimDialectURI)) {
+        if (StringUtils.isBlank(claimDialectURI)) {
             return null;
         }
 
@@ -138,7 +138,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     @Override
     public LocalClaim getLocalClaim(String localClaimURI ,int tenantId) throws ClaimMetadataException {
 
-        if (localClaimURI == null || StringUtils.isBlank(localClaimURI)) {
+        if (StringUtils.isBlank(localClaimURI)) {
             return null;
         }
 
@@ -153,7 +153,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     public List<ExternalClaim> getExternalClaims(String externalClaimDialectURI, int tenantId)
             throws ClaimMetadataException {
 
-        if (externalClaimDialectURI == null || StringUtils.isBlank(externalClaimDialectURI)) {
+        if (StringUtils.isBlank(externalClaimDialectURI)) {
             return null;
         }
 
@@ -169,8 +169,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     @Override
     public ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId) throws ClaimMetadataException {
 
-        if (externalClaimDialectURI == null || StringUtils.isBlank(externalClaimDialectURI) || claimURI == null ||
-                StringUtils.isBlank(claimURI)) {
+        if (StringUtils.isBlank(externalClaimDialectURI) || StringUtils.isBlank(claimURI)) {
             return null;
         }
 
@@ -188,7 +187,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     @Override
     public List<Claim> getMappedExternalClaims(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
-        if (localClaimURI == null || StringUtils.isBlank(localClaimURI)) {
+        if (StringUtils.isBlank(localClaimURI)) {
             return null;
         }
 
@@ -210,7 +209,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     @Override
     public boolean isMappedLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
-        if (localClaimURI == null || StringUtils.isBlank(localClaimURI)) {
+        if (StringUtils.isBlank(localClaimURI)) {
             return false;
         }
 
@@ -218,11 +217,12 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
             if (LOCAL_CLAIM_DIALECT_URI.equals(entry.getKey())) {
                 continue;
             }
-            List<Claim> externalClaims = entry.getValue().stream()
+            boolean isMapped = entry.getValue().stream()
+                    .filter(claim -> claim instanceof ExternalClaim)
                     .map(ExternalClaim.class::cast)
-                    .filter(claim -> localClaimURI.equals(claim.getMappedLocalClaim()))
-                    .collect(Collectors.toList());
-            if (!externalClaims.isEmpty()) {
+                    .anyMatch(claim -> localClaimURI.equals(claim.getMappedLocalClaim()));
+
+            if (isMapped) {
                 return true;
             }
         }
@@ -232,11 +232,10 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     @Override
     public boolean isLocalClaimMappedWithinDialect(String mappedLocalClaim, String externalClaimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        if (externalClaimDialectURI == null || StringUtils.isBlank(externalClaimDialectURI)
-                || !claims.containsKey(externalClaimDialectURI)) {
+        if (StringUtils.isBlank(externalClaimDialectURI) || !claims.containsKey(externalClaimDialectURI)) {
             return false;
         }
-        if (mappedLocalClaim == null || StringUtils.isBlank(mappedLocalClaim)) {
+        if (StringUtils.isBlank(mappedLocalClaim)) {
             return false;
         }
         return claims.get(externalClaimDialectURI).stream()
