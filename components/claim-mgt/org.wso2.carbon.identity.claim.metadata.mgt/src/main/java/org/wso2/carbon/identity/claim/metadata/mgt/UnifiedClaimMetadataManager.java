@@ -131,6 +131,9 @@ public class UnifiedClaimMetadataManager {
     public void updateLocalClaimMappings(List<LocalClaim> localClaimList, int tenantId, String userStoreDomain)
             throws ClaimMetadataException {
 
+        if (localClaimList == null) {
+            return;
+        }
         if (!localClaimList.isEmpty() && !isClaimDialectInDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId)) {
             addSystemDefaultDialectToDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
         }
