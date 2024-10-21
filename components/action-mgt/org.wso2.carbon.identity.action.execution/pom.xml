@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>action-mgt</artifactId>
-        <version>7.5.73-SNAPSHOT</version>
+        <version>7.5.75-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -77,9 +77,13 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
                             org.wso2.carbon.identity.action.execution.internal,
+                            org.wso2.carbon.identity.action.execution.impl,
+                            org.wso2.carbon.identity.action.execution.util,
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.action.execution.internal,
+                            !org.wso2.carbon.identity.action.execution.impl,
+                            !org.wso2.carbon.identity.action.execution.util,
                             org.wso2.carbon.identity.action.execution.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
