@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.exception;
 
+/**
+ * Authenticator configuration management client exception.
+ */
 public class AuthenticatorMgtClientException extends AuthenticatorMgtException {
 
     public AuthenticatorMgtClientException(String errorCode, String message, String description) {

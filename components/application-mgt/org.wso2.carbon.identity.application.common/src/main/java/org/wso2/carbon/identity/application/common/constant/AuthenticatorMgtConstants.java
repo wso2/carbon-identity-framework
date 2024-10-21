@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.constant;
 
+/**
+ * Constants for authenticator configuration management service.
+ */
 public class AuthenticatorMgtConstants {
 
     /**
@@ -28,8 +31,14 @@ public class AuthenticatorMgtConstants {
         // Client errors.
         ERROR_NOT_FOUND_AUTHENTICATOR("60001", "No Authenticator is found.",
                 "No authenticator is found by given authenticator name: %s."),
-        ERROR_OP_ON_SYSTEM_AUTHENTICATOR("60002", "No operations allowed",
+        ERROR_OP_ON_SYSTEM_AUTHENTICATOR("60002", "No operations allowed on system authenticators.",
                 "Do not allow to perform any operation on system defined authenticator: %s."),
+        ERROR_AUTHENTICATOR_ALREADY_EXIST("60003", "There is already an authenticator.",
+                "There is already an authenticator by the given name: %s."),
+        ERROR_INVALID_AUTHENTICATOR_NAME("60004", "Invalid authenticator name is provided.",
+                "The provided authenticator name %s is not in the expected format %s."),
+        ERROR_BLANK_FIELD_VALUE("60004", "Blank field value is provided.",
+                "The provided authenticator field value %s should not be empty."),
 
         // Server errors.
         ERROR_WHILE_ADDING_AUTHENTICATOR("65001", "Error while adding authenticator.",

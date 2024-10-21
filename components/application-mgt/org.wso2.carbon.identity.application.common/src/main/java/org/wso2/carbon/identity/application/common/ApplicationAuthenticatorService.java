@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtExc
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.util.UserDefinedLocalAuthenticatorValidator;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.ArrayList;
@@ -46,6 +49,8 @@ public class ApplicationAuthenticatorService {
     private List<LocalAuthenticatorConfig> localAuthenticators = new ArrayList<>();
     private List<FederatedAuthenticatorConfig> federatedAuthenticators = new ArrayList<>();
     private List<RequestPathAuthenticatorConfig> requestPathAuthenticators = new ArrayList<>();
+    private UserDefinedLocalAuthenticatorValidator authenticatorValidator =
+            new UserDefinedLocalAuthenticatorValidator();
 
     public static ApplicationAuthenticatorService getInstance() {
         if (instance == null) {
@@ -70,6 +75,14 @@ public class ApplicationAuthenticatorService {
         return this.requestPathAuthenticators;
     }
 
+    /**
+     * This returns only SYSTEM defined local authenticators.
+     *
+     * @param name  The name of the Local Application Authenticator configuration.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    @Deprecated
     public LocalAuthenticatorConfig getLocalAuthenticatorByName(String name) {
         for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
             if (localAuthenticator.getName().equals(name)) {
@@ -77,6 +90,28 @@ public class ApplicationAuthenticatorService {
             }
         }
         return null;
+    }
+
+    /**
+     * Retrieve both USER and SYSTEM defined Local Application Authenticator configuration.
+     *
+     * @param name  The name of the Local Application Authenticator configuration.
+     * @param tenantDomain         Tenant domain.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration by name.
+     */
+    public LocalAuthenticatorConfig getLocalAuthenticatorByName(String name, String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        /* First, heck whether an authenticator by the given name is in the system defined authenticators list.
+         If not, check in user defined authenticators. */
+        for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
+            if (localAuthenticator.getName().equals(name)) {
+                return localAuthenticator;
+            }
+        }
+        return getUserDefinedLocalAuthenticator(name, tenantDomain);
     }
 
     public FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String name) {
@@ -133,58 +168,107 @@ public class ApplicationAuthenticatorService {
         }
     }
 
+    /**
+     * Create a user defined Local Application Authenticator configuration.
+     *
+     * @param authenticatorConfig  The Local Application Authenticator configuration.
+     * @param type                 Authentication type of the authenticator.
+     * @param tenantDomain         Tenant domain.
+     *
+     * @return Updated LocalAuthenticatorConfig.
+     * @throws AuthenticatorMgtException If an error occurs while creating the authenticator configuration.
+     */
     public LocalAuthenticatorConfig createUserDefinedLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig,
-            String tenantDomain) throws AuthenticatorMgtException {
+               AuthenticationType type, String tenantDomain) throws AuthenticatorMgtException {
 
-        // set definedby type to USER.
-        LocalAuthenticatorConfig createdConfig = CACHE_BACKED_DAO.addUserDefinedLocalAuthenticator(
-                authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
-        localAuthenticators.add(createdConfig);
-        return authenticatorConfig;
-    }
-
-    public LocalAuthenticatorConfig updateUserDefinedLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig,
-            String tenantDomain) throws AuthenticatorMgtException {
-
-        LocalAuthenticatorConfig existingAuthenticatorConfig = getLocalAuthenticatorByName(authenticatorConfig.getName());
-        if (existingAuthenticatorConfig == null) {
-            ErrorMessages error = ErrorMessages.ERROR_NOT_FOUND_AUTHENTICATOR;
+        LocalAuthenticatorConfig config = getLocalAuthenticatorByName(authenticatorConfig.getName(), tenantDomain);
+        if (config != null) {
+            ErrorMessages error = ErrorMessages.ERROR_AUTHENTICATOR_ALREADY_EXIST;
             throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
                     String.format(error.getDescription(), authenticatorConfig.getName()));
         }
-        validateAuthenticatorDefinedByType(authenticatorConfig);
+        authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
+        authenticatorValidator.validateForBlank("Display name", authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateDefinedByType(authenticatorConfig);
 
-        LocalAuthenticatorConfig updatedConfig = CACHE_BACKED_DAO.updateUserDefinedLocalAuthenticator(
-                existingAuthenticatorConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
-        localAuthenticators.remove(existingAuthenticatorConfig);
-        localAuthenticators.add(updatedConfig);
-        return authenticatorConfig;
+        return CACHE_BACKED_DAO.addUserDefinedLocalAuthenticator(
+                authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain), type);
     }
 
+    /**
+     * Update a user defined Local Application Authenticator configuration.
+     *
+     * @param authenticatorConfig   The Local Application Authenticator configuration.
+     * @param tenantDomain          Tenant Domain.
+     *
+     * @return Updated LocalAuthenticatorConfig.
+     * @throws AuthenticatorMgtException If an error occurs while updating the authenticator configuration.
+     */
+    public LocalAuthenticatorConfig updateUserDefinedLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig,
+            String tenantDomain) throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig existingConfig = resolveExistingAuthenticator(
+                authenticatorConfig.getName(), tenantDomain);
+        authenticatorValidator.validateDefinedByType(existingConfig);
+        authenticatorValidator.validateForBlank("Display name", authenticatorConfig.getDisplayName());
+
+        return CACHE_BACKED_DAO.updateUserDefinedLocalAuthenticator(
+                existingConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * Update a Local Application Authenticator configuration.
+     *
+     * @param authenticatorName   Name of Local Application Authenticator configuration to be deleted.
+     * @param tenantDomain        Tenant domain.
+     *
+     * @throws AuthenticatorMgtException If an error occurs while deleting the authenticator configuration.
+     */
     public void deleteUserDefinedLocalAuthenticator(String authenticatorName, String tenantDomain)
             throws AuthenticatorMgtException {
 
-        LocalAuthenticatorConfig authenticatorConfig = getLocalAuthenticatorByName(authenticatorName);
-        if (authenticatorConfig == null) {
+        LocalAuthenticatorConfig existingConfig = resolveExistingAuthenticator(authenticatorName, tenantDomain);
+        authenticatorValidator.validateDefinedByType(existingConfig);
+
+        CACHE_BACKED_DAO.deleteUserDefinedLocalAuthenticator(authenticatorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * Retrieve a Local Application Authenticator configuration by name.
+     *
+     * @param authenticatorName   Name of Local Application Authenticator configuration to be deleted.
+     * @param tenantDomain        Tenant domain.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration.
+     */
+    public LocalAuthenticatorConfig getUserDefinedLocalAuthenticator(String authenticatorName, String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig config = CACHE_BACKED_DAO.getUserDefinedLocalAuthenticator(authenticatorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+
+        if (config != null && !config.getDefinedByType().equals(DefinedByType.USER)) {
+            return null;
+        }
+
+        return config;
+
+    }
+
+    private LocalAuthenticatorConfig resolveExistingAuthenticator(String authenticatorName, String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig existingAuthenticatorConfig = CACHE_BACKED_DAO.getUserDefinedLocalAuthenticator(
+                authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
+
+        if (existingAuthenticatorConfig == null) {
             ErrorMessages error = ErrorMessages.ERROR_NOT_FOUND_AUTHENTICATOR;
             throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
                     String.format(error.getDescription(), authenticatorName));
         }
 
-        CACHE_BACKED_DAO.deleteUserDefinedLocalAuthenticator(authenticatorName,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-        localAuthenticators.remove(authenticatorConfig);
-    }
-
-    private void validateAuthenticatorDefinedByType(LocalAuthenticatorConfig authenticatorConfig)
-            throws AuthenticatorMgtClientException {
-
-        if (authenticatorConfig.getDefinedByType()) {
-            return;
-        }
-
-        ErrorMessages error = ErrorMessages.ERROR_OP_ON_SYSTEM_AUTHENTICATOR;
-        throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
-                String.format(error.getDescription(), authenticatorConfig.getName()));
+        return  existingAuthenticatorConfig;
     }
 }

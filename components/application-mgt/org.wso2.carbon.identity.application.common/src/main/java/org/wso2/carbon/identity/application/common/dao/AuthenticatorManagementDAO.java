@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.common.dao;
 
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 
 /**
  * This interface performs CRUD operations for the Local Application Authenticator configurations.
@@ -36,7 +37,7 @@ public interface AuthenticatorManagementDAO {
      * @throws AuthenticatorMgtException If an error occurs while adding the authenticator configuration.
      */
     LocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
-            LocalAuthenticatorConfig authenticatorConfig, Integer tenantId)
+            LocalAuthenticatorConfig authenticatorConfig, Integer tenantId, AuthenticationType type)
             throws AuthenticatorMgtException;
 
     /**

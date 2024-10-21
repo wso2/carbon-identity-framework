@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.action.management.exception;
 /**
  * Action management exception.
  */
-public class AuthenticatorMgtServerExceptionActionMgtException extends Exception {
+public class ActionMgtException extends Exception {
 
     private String errorCode;
     private String description;

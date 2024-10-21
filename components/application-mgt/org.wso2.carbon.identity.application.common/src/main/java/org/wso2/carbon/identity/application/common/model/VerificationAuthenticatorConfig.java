@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.common.model;
 /**
  * Verification authenticator configuration.
  */
-public class VerificationAuthenticatorConfig extends LocalAuthenticatorConfig{
+public class VerificationAuthenticatorConfig extends LocalAuthenticatorConfig {
 
     @Override
     public String[] getTags() {

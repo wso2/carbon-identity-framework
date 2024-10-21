@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.constant;
 
+/**
+ * SQL constants for authenticator configuration management service.
+ */
 public class AuthenticatorMgtSQLConstants {
 
     private AuthenticatorMgtSQLConstants() {
@@ -29,13 +32,19 @@ public class AuthenticatorMgtSQLConstants {
      */
     public static class Column {
 
-        public static final String IDP_ID = "IDP_ID";
+        public static final String IDP_ID = "ID";
+        public static final String IDP_NAME = "IDP_NAME";
         public static final String TENANT_ID = "TENANT_ID";
         public static final String NAME = "NAME";
         public static final String IS_ENABLED = "IS_ENABLED";
         public static final String DEFINED_BY = "DEFINED_BY";
         public static final String AUTHENTICATOR_TYPE = "AUTHENTICATOR_TYPE";
         public static final String DISPLAY_NAME = "DISPLAY_NAME";
+        public static final String ID = "ID";
+        public static final String AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
+        public static final String PROPERTY_KEY = "PROPERTY_KEY";
+        public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
+        public static final String IS_SECRET = "IS_SECRET";
 
         private Column() {
 
@@ -47,10 +56,26 @@ public class AuthenticatorMgtSQLConstants {
      */
     public static class Query {
 
-        public static final String ADD_USER_DEFINED_AUTHENTICATOR= "INSERT INTO IDP_AUTHENTICATOR " +
+        public static final String ADD_AUTHENTICATOR_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(TENANT_ID, IDP_ID, NAME, IS_ENABLED, DEFINED_BY, AUTHENTICATOR_TYPE, DISPLAY_NAME) VALUES" +
-                " (:TENANT_ID, (SELECT ID FROM IDP WHERE IDP.NAME=? AND IDP.TENANT_ID =?), " +
-                ":NAME, :IS_ENABLED, :DEFINED_BY, :AUTHENTICATOR_TYPE, :DISPLAY_NAME)";
+                " (:TENANT_ID;, (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; AND IDP.TENANT_ID = :TENANT_ID;), " +
+                ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AUTHENTICATOR_TYPE;, :DISPLAY_NAME;);";
+        public static final String UPDATE_AUTHENTICATOR_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED = " +
+                ":IS_ENABLED;, DISPLAY_NAME = :DISPLAY_NAME; WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
+        public static final String GET_AUTHENTICATOR_SQL = "SELECT * FROM IDP_AUTHENTICATOR WHERE NAME = :NAME; " +
+                " AND TENANT_ID = :TENANT_ID;";
+        public static final String DELETE_AUTHENTICATOR_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE NAME = :NAME; " +
+                " AND TENANT_ID = :TENANT_ID;";
+        public static final String GET_AUTHENTICATOR_ID_SQL = "SELECT ID FROM IDP_AUTHENTICATOR " +
+                "WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
+        public static final String ADD_AUTHENTICATOR_PROP_SQL = "INSERT INTO IDP_AUTHENTICATOR_PROPERTY " +
+                "(AUTHENTICATOR_ID, TENANT_ID, PROPERTY_KEY, PROPERTY_VALUE, IS_SECRET) VALUES " +
+                "(:AUTHENTICATOR_ID;, :TENANT_ID;, :PROPERTY_KEY;, :PROPERTY_VALUE;, :IS_SECRET;);";
+        public static final String DELETE_AUTHENTICATOR_PROP_SQL = "DELETE FROM IDP_AUTHENTICATOR_PROPERTY " +
+                "WHERE AUTHENTICATOR_ID = :AUTHENTICATOR_ID; AND TENANT_ID = :TENANT_ID;";
+        public static final String GET_AUTHENTICATOR_PROP_SQL = "SELECT PROPERTY_KEY, PROPERTY_VALUE, IS_SECRET" +
+                " FROM IDP_AUTHENTICATOR_PROPERTY " +
+                "WHERE AUTHENTICATOR_ID = :AUTHENTICATOR_ID; AND TENANT_ID = :TENANT_ID;";
 
         private Query() {
 

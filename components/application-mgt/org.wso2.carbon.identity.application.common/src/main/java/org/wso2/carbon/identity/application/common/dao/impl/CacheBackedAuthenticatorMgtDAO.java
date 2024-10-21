@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.cache.AuthenticatorCacheKey;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 
 
 /**
@@ -37,18 +38,18 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
     private final AuthenticatorCache authenticatorCache;
     private final AuthenticatorManagementDAO authenticatorManagementDAO;
 
-    public CacheBackedAuthenticatorMgtDAO(AuthenticatorManagementDAO actionManagementDAO) {
+    public CacheBackedAuthenticatorMgtDAO(AuthenticatorManagementDAO authenticatorManagementDAO) {
 
-        this.authenticatorManagementDAO = actionManagementDAO;
+        this.authenticatorManagementDAO = authenticatorManagementDAO;
         authenticatorCache = AuthenticatorCache.getInstance();
     }
 
     @Override
     public LocalAuthenticatorConfig addUserDefinedLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig,
-                  Integer tenantId) throws AuthenticatorMgtException {
+                  Integer tenantId, AuthenticationType type) throws AuthenticatorMgtException {
 
         LocalAuthenticatorConfig createdConfig = authenticatorManagementDAO.addUserDefinedLocalAuthenticator(
-                authenticatorConfig, tenantId);
+                authenticatorConfig, tenantId, type);
 
         AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(authenticatorConfig.getName());
         authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(createdConfig), tenantId);
