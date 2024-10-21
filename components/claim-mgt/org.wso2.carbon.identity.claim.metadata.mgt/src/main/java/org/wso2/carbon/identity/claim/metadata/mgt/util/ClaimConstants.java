@@ -92,6 +92,8 @@ public class ClaimConstants {
         ERROR_CODE_NO_DELETE_SYSTEM_DIALECT("CMT-60008", "Cannot delete dialect %s as it is a system dialect"),
         ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT_URI("CMT-60009", "Invalid external claim dialect URI: %s"),
         ERROR_CODE_NON_EXISTING_EXTERNAL_CLAIM_URI("CMT-600010", "External claim URI: %s in dialect: %s does not exist."),
+        ERROR_CODE_NON_EXISTING_LOCAL_CLAIM("CMT-600011", "Local claim URI: %s  does not exist."),
+        ERROR_CODE_EXISTING_EXTERNAL_CLAIM("CMT-600012", "External claim URI: %s in dialect: %s already exists."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +

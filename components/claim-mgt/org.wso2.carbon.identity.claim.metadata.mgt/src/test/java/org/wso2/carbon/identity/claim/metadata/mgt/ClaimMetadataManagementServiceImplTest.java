@@ -100,6 +100,8 @@ public class ClaimMetadataManagementServiceImplTest {
         List<ClaimDialect> claimDialects = new ArrayList<>();
         claimDialects.add(new ClaimDialect(EXTERNAL_CLAIM_DIALECT_URI));
         when(unifiedClaimMetadataManager.getClaimDialects(anyInt())).thenReturn(claimDialects);
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt()))
+                .thenReturn(Collections.singletonList(new LocalClaim(MAPPED_LOCAL_CLAIM_URI)));
 
         service.addExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
         verify(unifiedClaimMetadataManager, times(1)).addExternalClaim(any(), anyInt());
@@ -311,6 +313,8 @@ public class ClaimMetadataManagementServiceImplTest {
                 .thenReturn(Collections.singletonList(externalDialect));
         when(unifiedClaimMetadataManager.getExternalClaims(EXTERNAL_CLAIM_DIALECT_URI, SUPER_TENANT_ID))
                 .thenReturn(Collections.singletonList(externalClaim));
+        when(unifiedClaimMetadataManager.getLocalClaims(SUPER_TENANT_ID))
+                .thenReturn(Collections.singletonList(new LocalClaim(LOCAL_CLAIM_1)));
         service.updateExternalClaim(externalClaim, SUPER_TENANT_DOMAIN_NAME);
         verify(unifiedClaimMetadataManager, times(1)).updateExternalClaim(externalClaim, SUPER_TENANT_ID);
 
