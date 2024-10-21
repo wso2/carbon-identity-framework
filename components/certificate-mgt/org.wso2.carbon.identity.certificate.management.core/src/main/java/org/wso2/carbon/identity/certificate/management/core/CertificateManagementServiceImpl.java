@@ -60,12 +60,11 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     @Override
     public String addCertificate(Certificate certificate, String tenantDomain) throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Adding certificate with name: " + certificate.getName());
-        }
+        LOG.debug("Adding certificate with name: " + certificate.getName());
         doPreAddCertificateValidations(certificate);
         String generatedCertificateId = UUID.randomUUID().toString();
         DAO.addCertificate(generatedCertificateId, certificate, IdentityTenantUtil.getTenantId(tenantDomain));
+
         return generatedCertificateId;
     }
 
@@ -80,14 +79,10 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     @Override
     public Certificate getCertificate(String certificateId, String tenantDomain) throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving certificate with id: " + certificateId);
-        }
+        LOG.debug("Retrieving certificate with id: " + certificateId);
         Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No certificate found for the id: " + certificateId);
-            }
+            LOG.debug("No certificate found for the id: " + certificateId);
             throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     certificateId);
         }
@@ -107,9 +102,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     public void updateCertificate(String certificateId, Certificate certificate, String tenantDomain)
             throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Updating certificate with id: " + certificateId);
-        }
+        LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
         if (certificate.getName() != null && certificate.getCertificate() != null) {
             CERTIFICATE_VALIDATOR.validateCertificateName(certificate.getName());
@@ -141,9 +134,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     @Override
     public void deleteCertificate(String certificateId, String tenantDomain) throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Deleting certificate with id: " + certificateId);
-        }
+        LOG.debug("Deleting certificate with id: " + certificateId);
         DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 

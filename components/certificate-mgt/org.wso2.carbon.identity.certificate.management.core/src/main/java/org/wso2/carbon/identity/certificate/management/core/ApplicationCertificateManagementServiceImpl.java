@@ -63,9 +63,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     @Deprecated
     public int addCertificate(Certificate certificate, String tenantDomain) throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Adding certificate with name: " + certificate.getName());
-        }
+        LOG.debug("Adding certificate with name: " + certificate.getName());
         doPreAddCertificateValidations(certificate);
         String generatedCertificateId = UUID.randomUUID().toString();
         return DAO.addCertificate(generatedCertificateId, certificate, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -83,14 +81,10 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     @Deprecated
     public Certificate getCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving certificate with id: " + certificateId);
-        }
+        LOG.debug("Retrieving certificate with id: " + certificateId);
         Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No certificate found for the id: " + certificateId);
-            }
+            LOG.debug("No certificate found for the id: " + certificateId);
             throw CertificateMgtUtil.raiseClientException(
                     CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     String.valueOf(certificateId));
@@ -112,15 +106,11 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     public Certificate getCertificateByName(String certificateName, String tenantDomain)
             throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving certificate with name: " + certificateName);
-        }
+        LOG.debug("Retrieving certificate with name: " + certificateName);
         Certificate certificate = DAO.getCertificateByName(certificateName,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("No certificate found for the name: " + certificateName);
-            }
+            LOG.debug("No certificate found for the name: " + certificateName);
             throw CertificateMgtUtil.raiseClientException(
                     CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST_WITH_GIVEN_NAME, certificateName);
         }
@@ -141,9 +131,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     public void updateCertificateContent(int certificateId, String certificateContent, String tenantDomain)
             throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Updating certificate with id: " + certificateId);
-        }
+        LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
         CERTIFICATE_VALIDATOR.validateCertificateContent(certificateContent);
         DAO.updateCertificateContent(certificateId, certificateContent, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -160,9 +148,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     @Deprecated
     public void deleteCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Deleting certificate with id: " + certificateId);
-        }
+        LOG.debug("Deleting certificate with id: " + certificateId);
         DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
