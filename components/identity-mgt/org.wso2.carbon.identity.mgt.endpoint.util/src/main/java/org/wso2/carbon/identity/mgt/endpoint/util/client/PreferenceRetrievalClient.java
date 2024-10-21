@@ -76,6 +76,7 @@ public class PreferenceRetrievalClient {
     private static final String TYPING_DNA_PROPERTY = "adaptive_authentication.tdna.enable";
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
+    public static final String HANDLE_EXISTING_USERNAME = "SelfRegistration.HandleExistingUsername";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
     private static final String RECOVERY_CALLBACK_REGEX_PROP = "Recovery.CallbackRegex";
     private static final String SELF_REG_CALLBACK_REGEX_PROP = "SelfRegistration.CallbackRegex";
@@ -118,6 +119,19 @@ public class PreferenceRetrievalClient {
     public boolean checkSelfRegistrationSendConfirmationOnCreation(String tenant) throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SEND_CONFIRMATION_ON_CREATION);
+    }
+
+    /**
+     * Check if handle existing username is enabled or not.
+     *
+     * @param tenant Tenant domain name.
+     * @return returns True if handle existing username is enabled.
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
+     */
+    public boolean checkSelfRegistrationHandleExistingUsername(String tenant)
+            throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, HANDLE_EXISTING_USERNAME);
     }
 
     /**
