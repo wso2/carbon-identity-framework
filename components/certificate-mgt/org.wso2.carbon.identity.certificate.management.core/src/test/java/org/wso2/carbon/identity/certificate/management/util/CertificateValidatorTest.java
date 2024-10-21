@@ -1,0 +1,229 @@
+/*
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.certificate.management.util;
+
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtConstants;
+import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
+import org.wso2.carbon.identity.certificate.management.core.util.CertificateValidator;
+
+/**
+ * This class is a test suite for the CertificateValidator class.
+ * It contains unit tests to verify the functionality of the methods
+ * in the CertificateValidator class.
+ */
+public class CertificateValidatorTest {
+
+    private static final String ERROR_INVALID_REQUEST = "Invalid request.";
+    private static final String ERROR_INVALID_CERTIFICATE = "Invalid certificate provided.";
+    private CertificateValidator certificateValidator;
+
+    @BeforeClass
+    public void setUp() {
+
+        certificateValidator = new CertificateValidator();
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        certificateValidator = null;
+    }
+
+    @DataProvider
+    public Object[][] isBlankDataProvider() {
+
+        return new String[][]{
+                {CertificateMgtConstants.NAME_FIELD, null},
+                {CertificateMgtConstants.NAME_FIELD, ""},
+                {CertificateMgtConstants.CERTIFICATE_FIELD, "  "}
+        };
+    }
+
+    @Test(dataProvider = "isBlankDataProvider")
+    public void testIsBlank(String fieldName, String fieldValue) {
+
+        try {
+            certificateValidator.validateForBlank(fieldName, fieldValue);
+        } catch (CertificateMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), fieldName + " cannot be empty.");
+        }
+    }
+
+    @DataProvider
+    public Object[][] isNotBlankDataProvider() {
+
+        return new String[][]{
+                {CertificateMgtConstants.NAME_FIELD, TestUtil.CERTIFICATE_NAME},
+                {CertificateMgtConstants.CERTIFICATE_FIELD, TestUtil.CERTIFICATE}
+        };
+    }
+
+    @Test(dataProvider = "isNotBlankDataProvider")
+    public void testIsNotBlank(String fieldName, String fieldValue) {
+
+        try {
+            certificateValidator.validateForBlank(fieldName, fieldValue);
+        } catch (CertificateMgtClientException e) {
+            Assert.fail();
+        }
+    }
+
+    @DataProvider
+    public Object[][] invalidCertificateNameDataProvider() {
+
+        return new String[][]{
+                {""},
+                {"   "}
+        };
+    }
+
+    @Test(dataProvider = "invalidCertificateNameDataProvider")
+    public void testIsInvalidCertificateName(String certificateName) {
+
+        try {
+            certificateValidator.validateCertificateName(certificateName);
+        } catch (CertificateMgtClientException e) {
+            Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
+            Assert.assertEquals(e.getDescription(), "Name is invalid.");
+        }
+    }
+
+    @DataProvider
+    public Object[][] validCertificateNameDataProvider() {
+
+        return new String[][]{
+                {"test"},
+                {"test certificate"}
+        };
+    }
+
+    @Test(dataProvider = "validCertificateNameDataProvider")
+    public void testIsValidCertificateName(String certificateName) {
+
+        try {
+            certificateValidator.validateCertificateName(certificateName);
+        } catch (CertificateMgtClientException e) {
+            Assert.fail();
+        }
+    }
+
+    @DataProvider
+    public Object[][] invalidPEMFormatDataProvider() {
+
+        return new Object[][]{
+                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS,
+                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_MARKER,
+                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.CERTIFICATE_WITHOUT_END_MARKER,
+                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.INVALID_CERTIFICATE, CertificateMgtConstants.ErrorMessages.ERROR_INVALID_CERTIFICATE_CONTENT}
+        };
+    }
+
+    @Test(dataProvider = "invalidPEMFormatDataProvider")
+    public void testIsInvalidPEMFormat(String certificateName, CertificateMgtConstants.ErrorMessages error) {
+
+        try {
+            certificateValidator.validatePemFormat(certificateName);
+        } catch (CertificateMgtClientException e) {
+            Assert.assertEquals(e.getErrorCode(), error.getCode());
+            Assert.assertEquals(e.getMessage(), error.getMessage());
+            Assert.assertEquals(e.getDescription(), error.getDescription());
+        }
+    }
+
+    @DataProvider
+    public Object[][] validPEMFormatDataProvider() {
+
+        return new String[][]{
+                {TestUtil.CERTIFICATE},
+                {TestUtil.UPDATED_CERTIFICATE}
+        };
+    }
+
+    @Test(dataProvider = "validPEMFormatDataProvider")
+    public void testIsValidPEMFormat(String certificateName) {
+
+        try {
+            certificateValidator.validatePemFormat(certificateName);
+        } catch (CertificateMgtClientException e) {
+            Assert.fail();
+        }
+    }
+
+    @DataProvider
+    public Object[][] invalidCertificateContentDataProvider() {
+
+        return new Object[][]{
+                {"", CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD},
+                {"   ", CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD},
+                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS,
+                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_MARKER,
+                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.CERTIFICATE_WITHOUT_END_MARKER,
+                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.INVALID_CERTIFICATE, CertificateMgtConstants.ErrorMessages.ERROR_INVALID_CERTIFICATE_CONTENT}
+        };
+    }
+
+    @Test(dataProvider = "invalidCertificateContentDataProvider")
+    public void testIsInvalidCertificateContent(String certificateName, CertificateMgtConstants.ErrorMessages error) {
+
+        try {
+            certificateValidator.validateCertificateContent(certificateName);
+        } catch (CertificateMgtClientException e) {
+            Assert.assertEquals(e.getErrorCode(), error.getCode());
+            Assert.assertEquals(e.getMessage(), error.getMessage());
+            if (error == CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD) {
+                Assert.assertEquals(e.getDescription(), String.format(error.getDescription(),
+                        CertificateMgtConstants.CERTIFICATE_FIELD));
+            } else {
+                Assert.assertEquals(e.getDescription(), error.getDescription());
+            }
+
+        }
+    }
+
+    @DataProvider
+    public Object[][] validCertificateContentDataProvider() {
+
+        return new String[][]{
+                {TestUtil.CERTIFICATE},
+                {TestUtil.UPDATED_CERTIFICATE}
+        };
+    }
+
+    @Test(dataProvider = "validCertificateContentDataProvider")
+    public void testIsValidCertificateContent(String certificateName) {
+
+        try {
+            certificateValidator.validateCertificateContent(certificateName);
+        } catch (CertificateMgtClientException e) {
+            Assert.fail();
+        }
+    }
+}
