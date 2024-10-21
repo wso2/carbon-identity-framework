@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.certificate.management.dao.ApplicationCertificateManagementDAOImplTest"></class>
             <class name="org.wso2.carbon.identity.certificate.management.util.CertificateValidatorTest"></class>
             <class name="org.wso2.carbon.identity.certificate.management.CertificateManagementServiceImplTest"></class>
+            <class name="org.wso2.carbon.identity.certificate.management.ApplicationCertificateManagementServiceImplTest"></class>
         </classes>
     </test>
 </suite>

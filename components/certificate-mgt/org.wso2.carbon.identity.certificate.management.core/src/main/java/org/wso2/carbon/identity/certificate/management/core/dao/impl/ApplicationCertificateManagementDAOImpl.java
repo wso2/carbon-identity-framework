@@ -21,7 +21,8 @@ package org.wso2.carbon.identity.certificate.management.core.dao.impl;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
-import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtConstants;
+import org.wso2.carbon.identity.certificate.management.core.constant.ApplicationCertificateMgtSQLQueries;
+import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtSQLConstants;
 import org.wso2.carbon.identity.certificate.management.core.dao.ApplicationCertificateManagementDAO;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
@@ -59,8 +60,8 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                                 preparedStatement.setInt(index, tenantId);
                             }, certificate, true));
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_CERTIFICATE, e, certificate.getName());
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_ADDING_CERTIFICATE, e,
+                    certificate.getName());
         }
     }
 
@@ -71,7 +72,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         Map<String, Object> certificateMap = new HashMap<>();
         try {
-            jdbcTemplate.fetchSingleRecord(CertificateMgtSQLConstants.QueryWithIntId.GET_CERTIFICATE_BY_ID,
+            jdbcTemplate.fetchSingleRecord(ApplicationCertificateMgtSQLQueries.GET_CERTIFICATE_BY_ID,
                     (resultSet, rowNumber) -> {
                         certificateMap.put(CertificateMgtSQLConstants.Column.NAME,
                                 resultSet.getString(CertificateMgtSQLConstants.Column.NAME));
@@ -95,8 +96,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
 
             return certificate;
         } catch (DataAccessException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_CERTIFICATE, e,
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE, e,
                     String.valueOf(certificateId));
         }
     }
@@ -108,7 +108,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         Map<String, Object> certificateMap = new HashMap<>();
         try {
-            jdbcTemplate.fetchSingleRecord(CertificateMgtSQLConstants.QueryWithIntId.GET_CERTIFICATE_BY_NAME,
+            jdbcTemplate.fetchSingleRecord(ApplicationCertificateMgtSQLQueries.GET_CERTIFICATE_BY_NAME,
                     (resultSet, rowNumber) -> {
                         certificateMap.put(CertificateMgtSQLConstants.Column.ID,
                                 resultSet.getString(CertificateMgtSQLConstants.Column.ID));
@@ -133,7 +133,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
             return certificate;
         } catch (DataAccessException | IOException e) {
             throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_CERTIFICATE_BY_NAME, e,
+                    CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE_BY_NAME, e,
                     certificateName);
         }
     }
@@ -148,7 +148,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
             InputStream certByteStream = CertificateMgtUtil.getCertificateByteStream(certificateContent);
             int certificateLength = certByteStream.available();
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(CertificateMgtSQLConstants.QueryWithIntId.UPDATE_CERTIFICATE_CONTENT,
+                template.executeUpdate(ApplicationCertificateMgtSQLQueries.UPDATE_CERTIFICATE_CONTENT,
                         preparedStatement -> {
                             int index = 1;
                             preparedStatement.setBlob(index++, certByteStream, certificateLength);
@@ -158,8 +158,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                 return null;
             });
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_CERTIFICATE, e,
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE, e,
                     String.valueOf(certificateId));
         }
     }
@@ -171,7 +170,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(CertificateMgtSQLConstants.QueryWithIntId.DELETE_CERTIFICATE,
+                template.executeUpdate(ApplicationCertificateMgtSQLQueries.DELETE_CERTIFICATE,
                         preparedStatement -> {
                             preparedStatement.setInt(1, certificateId);
                             preparedStatement.setInt(2, tenantId);
@@ -179,8 +178,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                 return null;
             });
         } catch (TransactionException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_DELETING_CERTIFICATE, e,
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_DELETING_CERTIFICATE, e,
                     String.valueOf(certificateId));
         }
     }

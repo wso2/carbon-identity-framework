@@ -36,7 +36,6 @@ public class CertificateMgtSQLConstants {
         public static final String CERTIFICATE_IN_PEM = "CERTIFICATE_IN_PEM";
 
         private Column() {
-
         }
     }
 
@@ -58,29 +57,6 @@ public class CertificateMgtSQLConstants {
         public static final String DELETE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE UUID = ? AND TENANT_ID = ?";
 
         private Query() {
-        }
-    }
-
-    /**
-     * Queries.
-     * @deprecated Use {@link Query} instead.
-     */
-    public static class QueryWithIntId {
-
-        @Deprecated
-        public static final String GET_CERTIFICATE_BY_ID = "SELECT NAME, CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE " +
-                "WHERE ID = ? AND TENANT_ID = ?";
-        @Deprecated
-        public static final String GET_CERTIFICATE_BY_NAME = "SELECT ID, CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE " +
-                "WHERE NAME = ? AND TENANT_ID = ?";
-        @Deprecated
-        public static final String UPDATE_CERTIFICATE_CONTENT = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? " +
-                "WHERE ID = ? AND TENANT_ID = ?";
-        @Deprecated
-        public static final String DELETE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE ID = ? AND TENANT_ID = ?";
-
-        @Deprecated
-        private QueryWithIntId() {
         }
     }
 }

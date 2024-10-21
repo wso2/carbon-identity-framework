@@ -23,7 +23,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtConstants;
+import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.core.util.CertificateValidator;
 
@@ -54,9 +54,9 @@ public class CertificateValidatorTest {
     public Object[][] isBlankDataProvider() {
 
         return new String[][]{
-                {CertificateMgtConstants.NAME_FIELD, null},
-                {CertificateMgtConstants.NAME_FIELD, ""},
-                {CertificateMgtConstants.CERTIFICATE_FIELD, "  "}
+                {TestUtil.NAME_FIELD, null},
+                {TestUtil.NAME_FIELD, ""},
+                {TestUtil.CERTIFICATE_FIELD, "  "}
         };
     }
 
@@ -75,8 +75,8 @@ public class CertificateValidatorTest {
     public Object[][] isNotBlankDataProvider() {
 
         return new String[][]{
-                {CertificateMgtConstants.NAME_FIELD, TestUtil.CERTIFICATE_NAME},
-                {CertificateMgtConstants.CERTIFICATE_FIELD, TestUtil.CERTIFICATE}
+                {TestUtil.NAME_FIELD, TestUtil.CERTIFICATE_NAME},
+                {TestUtil.CERTIFICATE_FIELD, TestUtil.CERTIFICATE}
         };
     }
 
@@ -134,17 +134,17 @@ public class CertificateValidatorTest {
 
         return new Object[][]{
                 {TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS,
-                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
                 {TestUtil.CERTIFICATE_WITHOUT_BEGIN_MARKER,
-                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
                 {TestUtil.CERTIFICATE_WITHOUT_END_MARKER,
-                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
-                {TestUtil.INVALID_CERTIFICATE, CertificateMgtConstants.ErrorMessages.ERROR_INVALID_CERTIFICATE_CONTENT}
+                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.INVALID_CERTIFICATE, CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT}
         };
     }
 
     @Test(dataProvider = "invalidPEMFormatDataProvider")
-    public void testIsInvalidPEMFormat(String certificateName, CertificateMgtConstants.ErrorMessages error) {
+    public void testIsInvalidPEMFormat(String certificateName, CertificateMgtErrors error) {
 
         try {
             certificateValidator.validatePemFormat(certificateName);
@@ -178,29 +178,29 @@ public class CertificateValidatorTest {
     public Object[][] invalidCertificateContentDataProvider() {
 
         return new Object[][]{
-                {"", CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD},
-                {"   ", CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD},
+                {"", CertificateMgtErrors.ERROR_INVALID_FIELD},
+                {"   ", CertificateMgtErrors.ERROR_INVALID_FIELD},
                 {TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS,
-                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
                 {TestUtil.CERTIFICATE_WITHOUT_BEGIN_MARKER,
-                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
                 {TestUtil.CERTIFICATE_WITHOUT_END_MARKER,
-                        CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
-                {TestUtil.INVALID_CERTIFICATE, CertificateMgtConstants.ErrorMessages.ERROR_INVALID_CERTIFICATE_CONTENT}
+                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.INVALID_CERTIFICATE, CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT}
         };
     }
 
     @Test(dataProvider = "invalidCertificateContentDataProvider")
-    public void testIsInvalidCertificateContent(String certificateName, CertificateMgtConstants.ErrorMessages error) {
+    public void testIsInvalidCertificateContent(String certificateName, CertificateMgtErrors error) {
 
         try {
             certificateValidator.validateCertificateContent(certificateName);
         } catch (CertificateMgtClientException e) {
             Assert.assertEquals(e.getErrorCode(), error.getCode());
             Assert.assertEquals(e.getMessage(), error.getMessage());
-            if (error == CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD) {
+            if (error == CertificateMgtErrors.ERROR_INVALID_FIELD) {
                 Assert.assertEquals(e.getDescription(), String.format(error.getDescription(),
-                        CertificateMgtConstants.CERTIFICATE_FIELD));
+                        TestUtil.CERTIFICATE_FIELD));
             } else {
                 Assert.assertEquals(e.getDescription(), error.getDescription());
             }

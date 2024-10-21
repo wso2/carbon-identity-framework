@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>certificate-mgt</artifactId>
-        <version>7.5.73-SNAPSHOT</version>
+        <version>7.5.75-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -76,8 +76,18 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
+                            org.wso2.carbon.identity.certificate.management.core.constant,
+                            org.wso2.carbon.identity.certificate.management.core.dao,
+                            org.wso2.carbon.identity.certificate.management.core.internal,
+                            org.wso2.carbon.identity.certificate.management.core.util,
                         </Private-Package>
                         <Export-Package>
+                            !org.wso2.carbon.identity.certificate.management.core.constant,
+                            !org.wso2.carbon.identity.certificate.management.core.dao,
+                            !org.wso2.carbon.identity.certificate.management.core.internal,
+                            !org.wso2.carbon.identity.certificate.management.core.util,
+                            org.wso2.carbon.identity.certificate.management.core.*;
+                            version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",

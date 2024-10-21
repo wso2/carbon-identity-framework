@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.certificate.management.core.util;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtConstants;
+import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 
 import java.io.ByteArrayInputStream;
@@ -34,6 +34,8 @@ public class CertificateValidator {
 
     private static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
     private static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
+    public static final String NAME_FIELD = "Name";
+    public static final String CERTIFICATE_FIELD = "Certificate";
 
     /**
      * Validate whether required fields exist.
@@ -44,8 +46,7 @@ public class CertificateValidator {
     public void validateForBlank(String fieldName, String fieldValue) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(fieldValue)) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtConstants.ErrorMessages.ERROR_EMPTY_FIELD,
-                    fieldName);
+            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_EMPTY_FIELD, fieldName);
         }
     }
 
@@ -58,8 +59,7 @@ public class CertificateValidator {
     public void validateCertificateName(String name) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(name)) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD,
-                    CertificateMgtConstants.NAME_FIELD);
+            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_INVALID_FIELD, NAME_FIELD);
         }
     }
 
@@ -72,8 +72,7 @@ public class CertificateValidator {
     public void validateCertificateContent(String certificate) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(certificate)) {
-            throw CertificateMgtUtil.raiseClientException(CertificateMgtConstants.ErrorMessages.ERROR_INVALID_FIELD,
-                    CertificateMgtConstants.CERTIFICATE_FIELD);
+            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_INVALID_FIELD, CERTIFICATE_FIELD);
         }
         validatePemFormat(certificate);
     }
@@ -88,7 +87,7 @@ public class CertificateValidator {
 
         if (!certificate.startsWith(BEGIN_CERTIFICATE) || !certificate.endsWith(END_CERTIFICATE)) {
             throw CertificateMgtUtil.raiseClientException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS);
+                    CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS);
         }
 
         try {
@@ -99,8 +98,7 @@ public class CertificateValidator {
 
             CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(bytes));
         } catch (CertificateException e) {
-            throw CertificateMgtUtil.raiseClientException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_INVALID_CERTIFICATE_CONTENT);
+            throw CertificateMgtUtil.raiseClientException(CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT);
         }
     }
 }

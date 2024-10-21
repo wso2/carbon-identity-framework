@@ -27,8 +27,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.certificate.management.core.CertificateManagementService;
-import org.wso2.carbon.identity.certificate.management.core.CertificateManagementServiceImpl;
+import org.wso2.carbon.identity.certificate.management.core.ApplicationCertificateManagementService;
+import org.wso2.carbon.identity.certificate.management.core.ApplicationCertificateManagementServiceImpl;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
@@ -52,31 +52,31 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERT
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.INVALID_CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE_NAME;
 
 /**
- * This class is a test suite for the CertificateManagementServiceImpl class.
+ * This class is a test suite for the ApplicationCertificateManagementServiceImpl class.
  * It contains unit tests to verify the functionality of the methods
- * in the CertificateManagementServiceImpl class.
+ * in the ApplicationCertificateManagementServiceImpl class.
  */
 @WithAxisConfiguration
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
-public class CertificateManagementServiceImplTest {
+public class ApplicationCertificateManagementServiceImplTest {
 
-    private static final String DB_NAME = "certificate_mgt";
+    private static final String DB_NAME = "application_certificate_mgt";
 
-    private String certificateId;
+    private int certificateIntId;
     private String tenantDomain;
     private DataSource dataSource;
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
-    private CertificateManagementService certificateManagementService;
+    private ApplicationCertificateManagementService applicationCertificateManagementService;
 
     @BeforeClass
     public void setUpClass() throws Exception {
 
-        certificateManagementService = CertificateManagementServiceImpl.getInstance();
+        applicationCertificateManagementService = ApplicationCertificateManagementServiceImpl.getInstance();
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        certificateIntId = 0;
         TestUtil.initiateH2Database(DB_NAME);
     }
 
@@ -108,16 +108,28 @@ public class CertificateManagementServiceImplTest {
                 .name(CERTIFICATE_NAME)
                 .certificate(CERTIFICATE)
                 .build();
-        certificateId = certificateManagementService.addCertificate(creatingCertificate, tenantDomain);
-        Assert.assertNotNull(certificateId);
+        certificateIntId = applicationCertificateManagementService.addCertificate(creatingCertificate, tenantDomain);
+        Assert.assertNotEquals(certificateIntId, 0);
     }
 
     @Test(priority = 2)
     public void testGetCertificate() throws CertificateMgtException {
 
-        Certificate certificate = certificateManagementService.getCertificate(certificateId, tenantDomain);
+        Certificate certificate = applicationCertificateManagementService.getCertificate(certificateIntId,
+                tenantDomain);
         Assert.assertNotNull(certificate);
-        Assert.assertEquals(certificate.getId(), certificateId);
+        Assert.assertEquals(certificate.getId(), String.valueOf(certificateIntId));
+        Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
+        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
+    }
+
+    @Test(priority = 3)
+    public void testGetCertificateByName() throws CertificateMgtException {
+
+        Certificate certificate = applicationCertificateManagementService.getCertificateByName(CERTIFICATE_NAME,
+                tenantDomain);
+        Assert.assertNotNull(certificate);
+        Assert.assertEquals(certificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
         Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
     }
@@ -136,7 +148,7 @@ public class CertificateManagementServiceImplTest {
         };
     }
 
-    @Test(priority = 3, dataProvider = "invalidCertificateDataProvider",
+    @Test(priority = 4, dataProvider = "invalidCertificateDataProvider",
             expectedExceptions = CertificateMgtClientException.class)
     public void testAddInvalidCertificate(String certificateName, String certificateContent)
             throws CertificateMgtException {
@@ -145,88 +157,69 @@ public class CertificateManagementServiceImplTest {
                 .name(certificateName)
                 .certificate(certificateContent)
                 .build();
-        certificateManagementService.addCertificate(creatingCertificate, tenantDomain);
+        applicationCertificateManagementService.addCertificate(creatingCertificate, tenantDomain);
     }
 
-    @Test(priority = 4, expectedExceptions = CertificateMgtException.class,
+    @Test(priority = 5, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to perform the operation.")
     public void testGetCertificateWithInvalidId() throws CertificateMgtException {
 
-        certificateManagementService.getCertificate("invalid_id", tenantDomain);
+        applicationCertificateManagementService.getCertificate(100, tenantDomain);
     }
 
-    @Test(priority = 5)
-    public void testUpdateCertificate() throws CertificateMgtException {
+    @Test(priority = 6, expectedExceptions = CertificateMgtException.class,
+            expectedExceptionsMessageRegExp = "Unable to perform the operation.")
+    public void testGetCertificateWithInvalidName() throws CertificateMgtException {
 
-        Certificate updatingCertificate = new Certificate.Builder()
-                .name(UPDATED_CERTIFICATE_NAME)
-                .certificate(UPDATED_CERTIFICATE)
-                .build();
-        certificateManagementService.updateCertificate(certificateId, updatingCertificate, tenantDomain);
-
-        Certificate updatedCertificate = certificateManagementService.getCertificate(certificateId, tenantDomain);
-        Assert.assertEquals(updatedCertificate.getId(), certificateId);
-        Assert.assertEquals(updatedCertificate.getName(), UPDATED_CERTIFICATE_NAME);
-        Assert.assertEquals(updatedCertificate.getCertificate(), UPDATED_CERTIFICATE);
-    }
-
-    @Test(priority = 6)
-    public void testUpdateCertificateNameOnly() throws CertificateMgtException {
-
-        Certificate updatingCertificate = new Certificate.Builder()
-                .name(CERTIFICATE_NAME)
-                .build();
-        certificateManagementService.updateCertificate(certificateId, updatingCertificate, tenantDomain);
-
-        Certificate updatedCertificate = certificateManagementService.getCertificate(certificateId, tenantDomain);
-        Assert.assertEquals(updatedCertificate.getId(), certificateId);
-        Assert.assertEquals(updatedCertificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(updatedCertificate.getCertificate(), UPDATED_CERTIFICATE);
+        applicationCertificateManagementService.getCertificateByName("Invalid_name", tenantDomain);
     }
 
     @Test(priority = 7)
-    public void testUpdateCertificateContentOnly() throws CertificateMgtException {
+    public void testUpdateCertificateWithId() throws CertificateMgtException {
 
-        Certificate updatingCertificate = new Certificate.Builder()
-                .certificate(CERTIFICATE)
-                .build();
-        certificateManagementService.updateCertificate(certificateId, updatingCertificate, tenantDomain);
+        applicationCertificateManagementService.updateCertificateContent(certificateIntId, UPDATED_CERTIFICATE,
+                tenantDomain);
 
-        Certificate updatedCertificate = certificateManagementService.getCertificate(certificateId, tenantDomain);
-        Assert.assertEquals(updatedCertificate.getId(), certificateId);
+        Certificate updatedCertificate = applicationCertificateManagementService.getCertificate(certificateIntId,
+                tenantDomain);
+        Assert.assertEquals(updatedCertificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(updatedCertificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(updatedCertificate.getCertificate(), CERTIFICATE);
+        Assert.assertEquals(updatedCertificate.getCertificate(), UPDATED_CERTIFICATE);
     }
 
     @Test(priority = 8, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to perform the operation.")
-    public void testUpdateCertificateWithInvalidId() throws CertificateMgtException {
+    public void testUpdateCertificateWithInvalidIntId() throws CertificateMgtException {
 
-        Certificate updatingCertificate = new Certificate.Builder()
-                .name(UPDATED_CERTIFICATE_NAME)
-                .certificate(UPDATED_CERTIFICATE)
-                .build();
-        certificateManagementService.updateCertificate("invalid_id", updatingCertificate, tenantDomain);
+        applicationCertificateManagementService.updateCertificateContent(100, CERTIFICATE, tenantDomain);
     }
 
-    @Test(priority = 9, dataProvider = "invalidCertificateDataProvider",
+    @DataProvider
+    public Object[][] invalidCertificateContentDataProvider() {
+
+        return new Object[][]{
+                {""},
+                {" "},
+                {CERTIFICATE_WITHOUT_BEGIN_END_MARKERS},
+                {INVALID_CERTIFICATE}
+        };
+    }
+
+    @Test(priority = 9, dataProvider = "invalidCertificateContentDataProvider",
             expectedExceptions = CertificateMgtClientException.class)
-    public void testUpdateInvalidCertificate(String certificateName, String certificateContent)
+    public void testUpdateInvalidCertificateWithIntId(String certificateContent)
             throws CertificateMgtException {
 
-        Certificate updatingCertificate = new Certificate.Builder()
-                .name(certificateName)
-                .certificate(certificateContent)
-                .build();
-        certificateManagementService.updateCertificate(certificateId, updatingCertificate, tenantDomain);
+        applicationCertificateManagementService.updateCertificateContent(certificateIntId, certificateContent,
+                tenantDomain);
     }
 
     @Test(priority = 10, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to perform the operation.")
-    public void testDeleteCertificate() throws CertificateMgtException {
+    public void testDeleteCertificateWithIntId() throws CertificateMgtException {
 
-        certificateManagementService.deleteCertificate(certificateId, tenantDomain);
-        certificateManagementService.getCertificate(certificateId, tenantDomain);
+        applicationCertificateManagementService.deleteCertificate(certificateIntId, tenantDomain);
+        applicationCertificateManagementService.getCertificate(certificateIntId, tenantDomain);
     }
 
     private void mockDBConnection() throws SQLException {

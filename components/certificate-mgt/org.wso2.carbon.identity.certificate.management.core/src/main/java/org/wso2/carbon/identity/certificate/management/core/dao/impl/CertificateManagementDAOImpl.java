@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.certificate.management.core.dao.impl;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
-import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtConstants;
+import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtSQLConstants;
 import org.wso2.carbon.identity.certificate.management.core.dao.CertificateManagementDAO;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
@@ -60,8 +60,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_CERTIFICATE, e, certificate.getName());
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_ADDING_CERTIFICATE, e,
+                    certificate.getName());
         }
     }
 
@@ -95,8 +95,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
 
             return certificate;
         } catch (DataAccessException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_CERTIFICATE, e, certificateId);
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE, e,
+                    certificateId);
         }
     }
 
@@ -120,8 +120,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_CERTIFICATE, e, certificateId);
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE, e,
+                    certificateId);
         }
     }
 
@@ -142,8 +142,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_CERTIFICATE, e, certificateId);
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE, e,
+                    certificateId);
         }
     }
 
@@ -166,8 +166,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException | IOException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_CERTIFICATE, e, certificateId);
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE, e,
+                    certificateId);
         }
     }
 
@@ -185,8 +185,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw CertificateMgtUtil.raiseServerException(
-                    CertificateMgtConstants.ErrorMessages.ERROR_WHILE_DELETING_CERTIFICATE, e, certificateId);
+            throw CertificateMgtUtil.raiseServerException(CertificateMgtErrors.ERROR_WHILE_DELETING_CERTIFICATE, e,
+                    certificateId);
         }
     }
 }

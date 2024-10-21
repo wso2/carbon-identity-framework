@@ -152,6 +152,8 @@ public class TestUtil {
             "X+lFEoWDUoE5qkTpMjsR1q/+2j9eTyi9xGj5sby4yFvmXf8jS5L6zMkkezSb6QAv" +
             "tSHcLfefKeidq6NDBJ8DhWHi/zvC9YbT0KkCToEgvCTBpRZgdSFxTJcUksqoFA==" +
             "-----END CERTIFICATE-----";
+    public static final String NAME_FIELD = "Name";
+    public static final String CERTIFICATE_FIELD = "Certificate";
 
     public static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 

@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.certificate.management.core.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtConstants;
+import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtServerException;
 
@@ -77,8 +77,7 @@ public class CertificateMgtUtil {
      * @param data  Data.
      * @return CertificateMgtClientException If an error occurs from the client.
      */
-    public static CertificateMgtClientException raiseClientException(CertificateMgtConstants.ErrorMessages error,
-                                                                     String... data) {
+    public static CertificateMgtClientException raiseClientException(CertificateMgtErrors error, String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
@@ -96,8 +95,8 @@ public class CertificateMgtUtil {
      * @param data  Data.
      * @return CertificateMgtServerException If an error occurs from the server.
      */
-    public static CertificateMgtServerException raiseServerException(CertificateMgtConstants.ErrorMessages error,
-                                                                     Throwable e, String... data) {
+    public static CertificateMgtServerException raiseServerException(CertificateMgtErrors error, Throwable e,
+                                                                     String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {

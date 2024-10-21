@@ -25,6 +25,8 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.wso2.carbon.identity.certificate.management.core.ApplicationCertificateManagementService;
+import org.wso2.carbon.identity.certificate.management.core.ApplicationCertificateManagementServiceImpl;
 import org.wso2.carbon.identity.certificate.management.core.CertificateManagementService;
 import org.wso2.carbon.identity.certificate.management.core.CertificateManagementServiceImpl;
 
@@ -46,6 +48,8 @@ public class CertificateMgtServiceComponent {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(CertificateManagementService.class.getName(),
                     CertificateManagementServiceImpl.getInstance(), null);
+            bundleCtx.registerService(ApplicationCertificateManagementService.class.getName(),
+                    ApplicationCertificateManagementServiceImpl.getInstance(), null);
             LOG.debug("Certificate management bundle is activated.");
         } catch (Throwable e) {
             LOG.error("Error while initializing Certificate management component.", e);
@@ -58,10 +62,10 @@ public class CertificateMgtServiceComponent {
         try {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.ungetService(bundleCtx.getServiceReference(CertificateManagementService.class));
+            bundleCtx.ungetService(bundleCtx.getServiceReference(ApplicationCertificateManagementService.class));
             LOG.debug("Certificate management bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating Certificate management component.", e);
         }
     }
-
 }
