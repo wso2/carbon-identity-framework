@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Database based claim metadata manager.
@@ -54,16 +55,15 @@ public class DBBasedClaimMetadataManager implements ClaimMetadataReader, ClaimMe
     }
 
     @Override
-    public ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
+    public Optional<ClaimDialect> getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(claimDialectURI)) {
-            return null;
+            throw new ClaimMetadataException("Invalid claim dialect URI: " + claimDialectURI);
         }
 
         return this.claimDialectDAO.getClaimDialects(tenantId).stream()
                 .filter(claimDialect -> claimDialectURI.equals(claimDialect.getClaimDialectURI()))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     @Override
@@ -88,16 +88,16 @@ public class DBBasedClaimMetadataManager implements ClaimMetadataReader, ClaimMe
     }
 
     @Override
-    public LocalClaim getLocalClaim(String localClaimURI , int tenantId) throws ClaimMetadataException {
+    public Optional<LocalClaim> getLocalClaim(String localClaimURI , int tenantId) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(localClaimURI)) {
-            return null;
+            throw new ClaimMetadataException("Invalid local claim URI: " + localClaimURI);
         }
 
         List<LocalClaim> localClaims = this.localClaimDAO.getLocalClaims(tenantId);
         return localClaims.stream()
                 .filter(localClaim -> localClaimURI.equals(localClaim.getClaimURI()))
-                .findFirst().orElse(null);
+                .findFirst();
     }
 
     @Override
@@ -108,16 +108,16 @@ public class DBBasedClaimMetadataManager implements ClaimMetadataReader, ClaimMe
     }
 
     @Override
-    public ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
+    public Optional<ExternalClaim> getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
             throws ClaimMetadataException {
 
-        if (StringUtils.isBlank(claimURI)) {
-            return null;
+        if (StringUtils.isBlank(externalClaimDialectURI) || StringUtils.isBlank(claimURI)) {
+            throw new ClaimMetadataException("Invalid external claim dialect URI or claim URI");
         }
 
         return this.externalClaimDAO.getExternalClaims(externalClaimDialectURI, tenantId).stream()
                 .filter(externalClaim -> claimURI.equals(externalClaim.getClaimURI()))
-                .findFirst().orElse(null);
+                .findFirst();
     }
 
     @Override

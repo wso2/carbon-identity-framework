@@ -36,6 +36,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
@@ -120,18 +122,20 @@ public class DBBasedClaimMetadataManagerTest {
         claimDialects.add(new ClaimDialect(EXT_CLAIM_DIALECT_2));
         when(mockClaimDialectDAO.getClaimDialects(anyInt())).thenReturn(claimDialects);
 
-        ClaimDialect returnedClaimDialect = claimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_2, 1);
-        assertNotNull(returnedClaimDialect);
-        assertEquals(returnedClaimDialect.getClaimDialectURI(), EXT_CLAIM_DIALECT_2);
+        Optional<ClaimDialect> returnedClaimDialect = claimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_2, 1);
+        assertTrue(returnedClaimDialect.isPresent());
+        assertEquals(returnedClaimDialect.get().getClaimDialectURI(), EXT_CLAIM_DIALECT_2);
 
         returnedClaimDialect = claimMetadataManager.getClaimDialect(NON_EXISTING_CLAIM_DIALECT_URI, 1);
-        assertNull(returnedClaimDialect);
+        assertFalse(returnedClaimDialect.isPresent());
 
-        returnedClaimDialect = claimMetadataManager.getClaimDialect(null, 1);
-        assertNull(returnedClaimDialect);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getClaimDialect(null, 1);
+        });
 
-        returnedClaimDialect = claimMetadataManager.getClaimDialect("", 1);
-        assertNull(returnedClaimDialect);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getClaimDialect("", 1);
+        });
     }
 
     @Test
@@ -182,18 +186,20 @@ public class DBBasedClaimMetadataManagerTest {
         localClaims.add(new LocalClaim(LOCAL_CLAIM_3));
         when(mockLocalClaimDAO.getLocalClaims(anyInt())).thenReturn(localClaims);
 
-        LocalClaim returnedLocalClaim = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
-        assertNotNull(returnedLocalClaim);
-        assertEquals(returnedLocalClaim.getClaimURI(), LOCAL_CLAIM_1);
+        Optional<LocalClaim> returnedLocalClaim = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
+        assertTrue(returnedLocalClaim.isPresent());
+        assertEquals(returnedLocalClaim.get().getClaimURI(), LOCAL_CLAIM_1);
 
-        returnedLocalClaim = claimMetadataManager.getLocalClaim(null, 1);
-        assertNull(returnedLocalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getLocalClaim(null, 1);
+        });
 
-        returnedLocalClaim = claimMetadataManager.getLocalClaim("", 1);
-        assertNull(returnedLocalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getLocalClaim("", 1);
+        });
 
         returnedLocalClaim = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 1);
-        assertNull(returnedLocalClaim);
+        assertFalse(returnedLocalClaim.isPresent());
     }
 
     @Test
@@ -225,16 +231,18 @@ public class DBBasedClaimMetadataManagerTest {
         externalClaims.add(new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_3, LOCAL_CLAIM_3));
         when(mockExternalClaimDAO.getExternalClaims(EXT_CLAIM_DIALECT_1, 1)).thenReturn(externalClaims);
 
-        ExternalClaim returnedExternalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1,
+        Optional<ExternalClaim> returnedExternalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1,
                 EXT_CLAIM_DIALECT_1_CLAIM_2, 1);
-        assertNotNull(returnedExternalClaim);
-        assertEquals(returnedExternalClaim.getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_2);
+        assertTrue(returnedExternalClaim.isPresent());
+        assertEquals(returnedExternalClaim.get().getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_2);
 
-        returnedExternalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, null, 1);
-        assertNull(returnedExternalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, null, 1);
+        });
 
-        returnedExternalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, "", 1);
-        assertNull(returnedExternalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, "", 1);
+        });
     }
 
     @Test

@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Claim metadata reader.
@@ -48,7 +49,7 @@ public interface ClaimMetadataReader {
      * @return Claim dialect.
      * @throws ClaimMetadataException if an error occurs during the operation.
      */
-    ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException;
+    Optional<ClaimDialect> getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException;
 
     /**
      * Get all local claims.
@@ -67,7 +68,7 @@ public interface ClaimMetadataReader {
      * @return Local claim.
      * @throws ClaimMetadataException if an error occurs during the operation.
      */
-    LocalClaim getLocalClaim(String localClaimURI ,int tenantId) throws ClaimMetadataException;
+    Optional<LocalClaim> getLocalClaim(String localClaimURI ,int tenantId) throws ClaimMetadataException;
 
     /**
      * Get all external claims.
@@ -88,7 +89,7 @@ public interface ClaimMetadataReader {
      * @return External claim.
      * @throws ClaimMetadataException if an error occurs during the operation.
      */
-    ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
+    Optional<ExternalClaim> getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
             throws ClaimMetadataException;
 
     /**

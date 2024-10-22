@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
@@ -61,16 +62,15 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     }
 
     @Override
-    public ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
+    public Optional<ClaimDialect> getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(claimDialectURI)) {
-            return null;
+            throw new ClaimMetadataException("Invalid claim dialect URI: " + claimDialectURI);
         }
 
         return claimDialects.stream()
                 .filter(claimDialect -> claimDialectURI.equals(claimDialect.getClaimDialectURI()))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     @Override
@@ -88,17 +88,16 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     }
 
     @Override
-    public LocalClaim getLocalClaim(String localClaimURI ,int tenantId) throws ClaimMetadataException {
+    public Optional<LocalClaim> getLocalClaim(String localClaimURI ,int tenantId) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(localClaimURI)) {
-            return null;
+            throw new ClaimMetadataException("Invalid local claim URI: " + localClaimURI);
         }
 
         return claims.getOrDefault(LOCAL_CLAIM_DIALECT_URI, Collections.emptyList()).stream()
                 .filter(claim -> localClaimURI.equals(claim.getClaimURI()))
                 .map(LocalClaim.class::cast)
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     @Override
@@ -106,7 +105,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
             throws ClaimMetadataException {
 
         if (StringUtils.isBlank(externalClaimDialectURI)) {
-            return null;
+            throw new ClaimMetadataException("Invalid external claim dialect URI: " + externalClaimDialectURI);
         }
 
         if (externalClaimDialectURI.equals(LOCAL_CLAIM_DIALECT_URI)) {
@@ -119,10 +118,11 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     }
 
     @Override
-    public ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId) throws ClaimMetadataException {
+    public Optional<ExternalClaim> getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
+            throws ClaimMetadataException {
 
         if (StringUtils.isBlank(externalClaimDialectURI) || StringUtils.isBlank(claimURI)) {
-            return null;
+            throw new ClaimMetadataException("Invalid external claim dialect URI or claim URI");
         }
 
         if (externalClaimDialectURI.equals(LOCAL_CLAIM_DIALECT_URI)) {
@@ -132,15 +132,14 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
         return claims.getOrDefault(externalClaimDialectURI, Collections.emptyList()).stream()
                 .filter(claim -> claimURI.equals(claim.getClaimURI()))
                 .map(ExternalClaim.class::cast)
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     @Override
     public List<Claim> getMappedExternalClaims(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(localClaimURI)) {
-            return null;
+            throw new ClaimMetadataException("Invalid local claim URI: " + localClaimURI);
         }
 
         List<Claim> mappedExternalClaims = new ArrayList<>();
@@ -162,7 +161,7 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     public boolean isMappedLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(localClaimURI)) {
-            return false;
+            throw new ClaimMetadataException("Invalid local claim URI: " + localClaimURI);
         }
 
         for (Map.Entry<String, List<Claim>> entry : claims.entrySet()) {
@@ -184,10 +183,10 @@ public class SystemDefaultClaimMetadataManager implements ClaimMetadataReader {
     @Override
     public boolean isLocalClaimMappedWithinDialect(String mappedLocalClaim, String externalClaimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        if (StringUtils.isBlank(externalClaimDialectURI) || !claims.containsKey(externalClaimDialectURI)) {
-            return false;
+        if (StringUtils.isBlank(externalClaimDialectURI) || StringUtils.isBlank(mappedLocalClaim)) {
+            throw new ClaimMetadataException("Invalid external claim dialect URI or mapped local claim");
         }
-        if (StringUtils.isBlank(mappedLocalClaim)) {
+        if (!claims.containsKey(externalClaimDialectURI)) {
             return false;
         }
         return claims.get(externalClaimDialectURI).stream()

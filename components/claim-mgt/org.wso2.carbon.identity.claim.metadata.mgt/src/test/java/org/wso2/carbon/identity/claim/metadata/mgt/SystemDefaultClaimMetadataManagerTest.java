@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
@@ -109,18 +110,20 @@ public class SystemDefaultClaimMetadataManagerTest {
     @Test
     public void testGetClaimDialect() throws ClaimMetadataException {
         String claimDialectURI = LOCAL_CLAIM_DIALECT;
-        ClaimDialect claimDialect = claimMetadataManager.getClaimDialect(claimDialectURI, 1);
-        assertNotNull(claimDialect);
-        assertEquals(claimDialectURI, claimDialect.getClaimDialectURI());
+        Optional<ClaimDialect> claimDialect = claimMetadataManager.getClaimDialect(claimDialectURI, 1);
+        assertTrue(claimDialect.isPresent());
+        assertEquals(claimDialectURI, claimDialect.get().getClaimDialectURI());
 
-        ClaimDialect nonExistingClaimDialect = claimMetadataManager.getClaimDialect(NON_EXISTING_CLAIM_DIALECT_URI, 1);
-        assertNull(nonExistingClaimDialect);
+        Optional<ClaimDialect> nonExistingClaimDialect = claimMetadataManager.getClaimDialect(NON_EXISTING_CLAIM_DIALECT_URI, 1);
+        assertFalse(nonExistingClaimDialect.isPresent());
 
-        ClaimDialect nullClaimDialect = claimMetadataManager.getClaimDialect(null, 1);
-        assertNull(nullClaimDialect);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getClaimDialect(null, 1);
+        });
 
-        ClaimDialect emptyClaimDialect = claimMetadataManager.getClaimDialect("", 1);
-        assertNull(emptyClaimDialect);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getClaimDialect("", 1);
+        });
     }
 
     @Test
@@ -142,18 +145,20 @@ public class SystemDefaultClaimMetadataManagerTest {
 
     @Test void getLocalClaim() throws ClaimMetadataException {
 
-        LocalClaim claim = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
-        assertNotNull(claim);
-        assertEquals(LOCAL_CLAIM_1, claim.getClaimURI());
+        Optional<LocalClaim> claim = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1);
+        assertTrue(claim.isPresent());
+        assertEquals(LOCAL_CLAIM_1, claim.get().getClaimURI());
 
-        LocalClaim nonExistingClaim = claimMetadataManager.getLocalClaim(NON_EXISTING_CLAIM_DIALECT_URI, 1);
-        assertNull(nonExistingClaim);
+        Optional<LocalClaim> nonExistingClaim = claimMetadataManager.getLocalClaim(NON_EXISTING_CLAIM_DIALECT_URI, 1);
+        assertFalse(nonExistingClaim.isPresent());
 
-        LocalClaim nullClaim = claimMetadataManager.getLocalClaim(null, 1);
-        assertNull(nullClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getLocalClaim(null, 1);
+        });
 
-        LocalClaim emptyClaim = claimMetadataManager.getLocalClaim("", 1);
-        assertNull(emptyClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getLocalClaim("", 1);
+        });
     }
 
     @Test
@@ -177,11 +182,13 @@ public class SystemDefaultClaimMetadataManagerTest {
         assertNotNull(externalClaimsForNonExistingDialect);
         assertEquals(externalClaimsForNonExistingDialect.size(), 0);
 
-        List<ExternalClaim> externalClaimsForNullDialect = claimMetadataManager.getExternalClaims(null, 1);
-        assertNull(externalClaimsForNullDialect);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaims(null, 1);
+        });
 
-        List<ExternalClaim> externalClaimsForEmptyDialect = claimMetadataManager.getExternalClaims("", 1);
-        assertNull(externalClaimsForEmptyDialect);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaims("", 1);
+        });
 
         assertThrows(ClaimMetadataException.class, () -> {
             claimMetadataManager.getExternalClaims(LOCAL_CLAIM_DIALECT, 1);
@@ -191,35 +198,39 @@ public class SystemDefaultClaimMetadataManagerTest {
     @Test
     public void getExternalClaim() throws ClaimMetadataException {
 
-        ExternalClaim externalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1,
+        Optional<ExternalClaim> externalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1,
                 EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNotNull(externalClaim);
-        assertEquals(EXT_CLAIM_DIALECT_1_CLAIM_1, externalClaim.getClaimURI());
+        assertTrue(externalClaim.isPresent());
+        assertEquals(EXT_CLAIM_DIALECT_1_CLAIM_1, externalClaim.get().getClaimURI());
 
         String nonExistingExternalClaimURI = "http://nonexisting.org/nonExistingClaim";
-        ExternalClaim nonExistingExternalClaim = claimMetadataManager.getExternalClaim(NON_EXISTING_CLAIM_DIALECT_URI,
+        Optional<ExternalClaim> nonExistingExternalClaim = claimMetadataManager.getExternalClaim(NON_EXISTING_CLAIM_DIALECT_URI,
                 nonExistingExternalClaimURI, 1);
-        assertNull(nonExistingExternalClaim);
+        assertFalse(nonExistingExternalClaim.isPresent());
 
         nonExistingExternalClaim = claimMetadataManager.getExternalClaim(
                 EXT_CLAIM_DIALECT_1, nonExistingExternalClaimURI, 1);
-        assertNull(nonExistingExternalClaim);
+        assertFalse(nonExistingExternalClaim.isPresent());
 
         assertThrows(ClaimMetadataException.class, () -> {
             claimMetadataManager.getExternalClaim(LOCAL_CLAIM_DIALECT, LOCAL_CLAIM_1, 1);
         });
 
-        ExternalClaim nullExternalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, null, 1);
-        assertNull(nullExternalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, null, 1);
+        });
 
-        nullExternalClaim = claimMetadataManager.getExternalClaim(null, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNull(nullExternalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaim(null, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
+        });
 
-        ExternalClaim emptyExternalClaim = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, "", 1);
-        assertNull(emptyExternalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, "", 1);
+        });
 
-        emptyExternalClaim = claimMetadataManager.getExternalClaim("", EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNull(emptyExternalClaim);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getExternalClaim("", EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
+        });
     }
 
     @Test
@@ -241,13 +252,13 @@ public class SystemDefaultClaimMetadataManagerTest {
         assertNotNull(externalClaims);
         assertEquals(externalClaims.size(), 0);
 
-        List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim> nullExternalClaims =
-                claimMetadataManager.getMappedExternalClaims(null, 1);
-        assertNull(nullExternalClaims);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getMappedExternalClaims(null, 1);
+        });
 
-        List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim> emptyExternalClaims =
-                claimMetadataManager.getMappedExternalClaims("", 1);
-        assertNull(emptyExternalClaims);
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.getMappedExternalClaims("", 1);
+        });
     }
 
     @Test
@@ -255,8 +266,12 @@ public class SystemDefaultClaimMetadataManagerTest {
 
         assertTrue(claimMetadataManager.isMappedLocalClaim(LOCAL_CLAIM_1, 1));
         assertFalse(claimMetadataManager.isMappedLocalClaim(LOCAL_CLAIM_6, 1));
-        assertFalse(claimMetadataManager.isMappedLocalClaim(null, 1));
-        assertFalse(claimMetadataManager.isMappedLocalClaim("", 1));
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.isMappedLocalClaim(null, 1);
+        });
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.isMappedLocalClaim("", 1);
+        });
     }
 
     @Test
@@ -264,11 +279,19 @@ public class SystemDefaultClaimMetadataManagerTest {
 
         assertTrue(claimMetadataManager.isLocalClaimMappedWithinDialect(LOCAL_CLAIM_1, EXT_CLAIM_DIALECT_1, 1));
         assertFalse(claimMetadataManager.isLocalClaimMappedWithinDialect(LOCAL_CLAIM_6, EXT_CLAIM_DIALECT_1, 1));
-        assertFalse(claimMetadataManager.isLocalClaimMappedWithinDialect(LOCAL_CLAIM_6, "", 1));
-        assertFalse(claimMetadataManager.isLocalClaimMappedWithinDialect(LOCAL_CLAIM_6, null, 1));
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.isLocalClaimMappedWithinDialect(LOCAL_CLAIM_6, "", 1);
+        });
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.isLocalClaimMappedWithinDialect(LOCAL_CLAIM_6, null, 1);
+        });
         assertFalse(claimMetadataManager.isLocalClaimMappedWithinDialect(LOCAL_CLAIM_6, NON_EXISTING_CLAIM_DIALECT_URI, 1));
-        assertFalse(claimMetadataManager.isLocalClaimMappedWithinDialect(null, EXT_CLAIM_DIALECT_1, 1));
-        assertFalse(claimMetadataManager.isLocalClaimMappedWithinDialect("", EXT_CLAIM_DIALECT_1, 1));
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.isLocalClaimMappedWithinDialect(null, EXT_CLAIM_DIALECT_1, 1);
+        });
+        assertThrows(ClaimMetadataException.class, () -> {
+            claimMetadataManager.isLocalClaimMappedWithinDialect("", EXT_CLAIM_DIALECT_1, 1);
+        });
     }
 
     @AfterClass

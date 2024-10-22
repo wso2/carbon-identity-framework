@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,10 +75,10 @@ public class UnifiedClaimMetadataManager {
      * @return Claim dialect.
      * @throws ClaimMetadataException If an error occurs while retrieving claim dialect.
      */
-    public ClaimDialect getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
+    public Optional<ClaimDialect> getClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        ClaimDialect claimDialectInDB = this.dbBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId);
-        if (claimDialectInDB != null) {
+        Optional<ClaimDialect> claimDialectInDB = this.dbBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId);
+        if (claimDialectInDB.isPresent()) {
             return claimDialectInDB;
         }
         return this.systemDefaultClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId);
@@ -153,13 +154,13 @@ public class UnifiedClaimMetadataManager {
      * @return Local claim.
      * @throws ClaimMetadataException If an error occurs while retrieving local claim.
      */
-    public LocalClaim getLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
+    public Optional<LocalClaim> getLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
-        LocalClaim localClaim = this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
-        if (localClaim == null) {
-            localClaim = this.systemDefaultClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
+        Optional<LocalClaim> localClaimInDB = this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
+        if (localClaimInDB.isPresent()) {
+            return localClaimInDB;
         }
-        return localClaim;
+        return this.systemDefaultClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
     }
 
     /**
@@ -282,16 +283,15 @@ public class UnifiedClaimMetadataManager {
      * @return External claim.
      * @throws ClaimMetadataException If an error occurs while retrieving external claim.
      */
-    public ExternalClaim getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
+    public Optional<ExternalClaim> getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
             throws ClaimMetadataException {
 
-        ExternalClaim externalClaim = this.dbBasedClaimMetadataManager.getExternalClaim(
+        Optional<ExternalClaim> externalClaim = this.dbBasedClaimMetadataManager.getExternalClaim(
                 externalClaimDialectURI, claimURI, tenantId);
-        if (externalClaim == null) {
-            externalClaim = this.systemDefaultClaimMetadataManager.getExternalClaim(
-                    externalClaimDialectURI, claimURI, tenantId);
+        if (externalClaim.isPresent()) {
+            return externalClaim;
         }
-        return externalClaim;
+        return this.systemDefaultClaimMetadataManager.getExternalClaim(externalClaimDialectURI, claimURI, tenantId);
     }
 
     /**
@@ -440,9 +440,7 @@ public class UnifiedClaimMetadataManager {
      */
     public boolean isSystemDefaultClaimDialect(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        ClaimDialect claimDialectInSystem = this.systemDefaultClaimMetadataManager.getClaimDialect(claimDialectURI,
-                tenantId);
-        return claimDialectInSystem != null;
+        return this.systemDefaultClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId).isPresent();
     }
 
     /**
@@ -475,25 +473,27 @@ public class UnifiedClaimMetadataManager {
 
     private boolean isClaimDialectInDB(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        return this.dbBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId) != null;
+        return this.dbBasedClaimMetadataManager.getClaimDialect(claimDialectURI, tenantId).isPresent();
     }
 
     private boolean isLocalClaimInDB(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
-        return this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId) != null;
+        return this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId).isPresent();
     }
 
     private boolean isExternalClaimInDB(String claimURI, String claimDialectURI, int tenantId)
             throws ClaimMetadataException {
 
-        return this.dbBasedClaimMetadataManager.getExternalClaim(claimDialectURI, claimURI, tenantId) != null;
+        return this.dbBasedClaimMetadataManager.getExternalClaim(claimDialectURI, claimURI, tenantId).isPresent();
     }
 
     private void addSystemDefaultDialectToDB(String claimDialectURI, int tenantId) throws ClaimMetadataException {
 
-        ClaimDialect claimDialectInSystem = this.systemDefaultClaimMetadataManager.getClaimDialect(claimDialectURI,
-                tenantId);
-        this.dbBasedClaimMetadataManager.addClaimDialect(claimDialectInSystem, tenantId);
+        Optional<ClaimDialect> claimDialectInSystem = this.systemDefaultClaimMetadataManager
+                .getClaimDialect(claimDialectURI, tenantId);
+        if (claimDialectInSystem.isPresent()) {
+            this.dbBasedClaimMetadataManager.addClaimDialect(claimDialectInSystem.get(), tenantId);
+        }
     }
 
     private void addSystemDefaultLocalClaimToDB(String claimURI, int tenantId)
@@ -503,7 +503,9 @@ public class UnifiedClaimMetadataManager {
         if (!isClaimDialectInDB) {
             addSystemDefaultDialectToDB(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
         }
-        LocalClaim claimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(claimURI, tenantId);
-        this.dbBasedClaimMetadataManager.addLocalClaim(claimInSystem, tenantId);
+        Optional<LocalClaim> claimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(claimURI, tenantId);
+        if (claimInSystem.isPresent()) {
+            this.dbBasedClaimMetadataManager.addLocalClaim(claimInSystem.get(), tenantId);
+        }
     }
 }

@@ -35,10 +35,12 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
+import javax.swing.text.html.Option;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -164,30 +166,36 @@ public class UnifiedClaimMetadataManagerTest {
     public void testGetClaimDialect() throws ClaimMetadataException {
 
         ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
-        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(claimDialect);
-        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(null);
-        ClaimDialect result = claimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0);
-        assertNotNull(result);
-        assertEquals(result.getClaimDialectURI(), LOCAL_CLAIM_DIALECT);
+        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0))
+                .thenReturn(Optional.of(claimDialect));
+        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(Optional.empty());
+        Optional<ClaimDialect> result = claimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimDialectURI(), LOCAL_CLAIM_DIALECT);
 
         claimDialect = new ClaimDialect(EXT_CLAIM_DIALECT_1);
-        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(null);
-        when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 0)).thenReturn(claimDialect);
+        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(Optional.empty());
+        when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 0))
+                .thenReturn(Optional.of(claimDialect));
         result = claimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 0);
-        assertNotNull(result);
-        assertEquals(result.getClaimDialectURI(), EXT_CLAIM_DIALECT_1);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimDialectURI(), EXT_CLAIM_DIALECT_1);
 
         claimDialect = new ClaimDialect(EXT_CLAIM_DIALECT_2);
-        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(claimDialect);
-        when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_2, 0)).thenReturn(claimDialect);
+        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0))
+                .thenReturn(Optional.of(claimDialect));
+        when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_2, 0))
+                .thenReturn(Optional.of(claimDialect));
         result = claimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_2, 0);
-        assertNotNull(result);
-        assertEquals(result.getClaimDialectURI(), EXT_CLAIM_DIALECT_2);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimDialectURI(), EXT_CLAIM_DIALECT_2);
 
-        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(null);
-        when(dbBasedClaimMetadataManager.getClaimDialect(NON_EXISTING_CLAIM_DIALECT, 0)).thenReturn(null);
+        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0))
+                .thenReturn(Optional.empty());
+        when(dbBasedClaimMetadataManager.getClaimDialect(NON_EXISTING_CLAIM_DIALECT, 0))
+                .thenReturn(Optional.empty());
         result = claimMetadataManager.getClaimDialect(NON_EXISTING_CLAIM_DIALECT, 0);
-        assertNull(result);
+        assertFalse(result.isPresent());
     }
 
     @Test
@@ -255,50 +263,56 @@ public class UnifiedClaimMetadataManagerTest {
     public void testGetLocalClaim() throws ClaimMetadataException {
 
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
-        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(localClaim);
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(null);
-        LocalClaim result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0);
-        assertNotNull(result);
-        assertEquals(result.getClaimURI(), LOCAL_CLAIM_1);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0))
+                .thenReturn(Optional.of(localClaim));
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(Optional.empty());
+        Optional<LocalClaim> result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimURI(), LOCAL_CLAIM_1);
 
         localClaim = new LocalClaim(LOCAL_CLAIM_2);
         when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(null);
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(localClaim);
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0))
+                .thenReturn(Optional.of(localClaim));
         result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0);
-        assertNotNull(result);
-        assertEquals(result.getClaimURI(), LOCAL_CLAIM_2);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimURI(), LOCAL_CLAIM_2);
 
         LocalClaim localClaimInSystem = new LocalClaim(LOCAL_CLAIM_3);
-        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_3, 0)).thenReturn(localClaimInSystem);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_3, 0))
+                .thenReturn(Optional.of(localClaimInSystem));
         LocalClaim localClaimInDB = new LocalClaim(LOCAL_CLAIM_3);
         localClaimInDB.setMappedAttributes(new ArrayList<>());
         localClaimInDB.getMappedAttributes().add(new AttributeMapping("PRIMARY", "country"));
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_3, 0)).thenReturn(localClaimInDB);
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_3, 0))
+                .thenReturn(Optional.of(localClaimInDB));
         result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_3, 0);
-        assertNotNull(result);
-        assertEquals(result.getClaimURI(), LOCAL_CLAIM_3);
-        assertEquals(result.getMappedAttributes().size(), 1);
-        assertEquals(result.getMappedAttributes().get(0).getUserStoreDomain(), "PRIMARY");
-        assertEquals(result.getMappedAttributes().get(0).getAttributeName(), "country");
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimURI(), LOCAL_CLAIM_3);
+        assertEquals(result.get().getMappedAttributes().size(), 1);
+        assertEquals(result.get().getMappedAttributes().get(0).getUserStoreDomain(), "PRIMARY");
+        assertEquals(result.get().getMappedAttributes().get(0).getAttributeName(), "country");
 
-        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0)).thenReturn(null);
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0)).thenReturn(null);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0)).thenReturn(Optional.empty());
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0)).thenReturn(Optional.empty());
         result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0);
-        assertNull(result);
+        assertFalse(result.isPresent());
     }
 
     @Test
     public void testAddLocalClaim() throws ClaimMetadataException {
 
         ClaimDialect claimDialect = new ClaimDialect(LOCAL_CLAIM_DIALECT);
-        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(claimDialect);
+        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0))
+                .thenReturn(Optional.of(claimDialect));
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
         claimMetadataManager.addLocalClaim(localClaim, 0);
         verify(dbBasedClaimMetadataManager, times(1)).addLocalClaim(localClaim, 0);
         clearInvocations(dbBasedClaimMetadataManager);
 
-        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(null);
-        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(claimDialect);
+        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0)).thenReturn(Optional.empty());
+        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 0))
+                .thenReturn(Optional.of(claimDialect));
         claimMetadataManager.addLocalClaim(localClaim, 0);
         verify(dbBasedClaimMetadataManager, times(1)).addClaimDialect(claimDialect, 0);
         verify(dbBasedClaimMetadataManager, times(1)).addLocalClaim(localClaim, 0);
@@ -327,20 +341,24 @@ public class UnifiedClaimMetadataManagerTest {
         updatedLocalClaim.setClaimProperties(new HashMap<>());
         updatedLocalClaim.getClaimProperties().put("Property2", "Value2");
 
-        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(localClaimInSystem);
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(null);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0))
+                .thenReturn(Optional.of(localClaimInSystem));
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(Optional.empty());
         claimMetadataManager.updateLocalClaim(updatedLocalClaim, 0);
         verify(dbBasedClaimMetadataManager, times(1)).addLocalClaim(updatedLocalClaim, 0);
         clearInvocations(dbBasedClaimMetadataManager);
 
-        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(localClaimInSystem);
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(localClaimInDB);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0))
+                .thenReturn(Optional.of(localClaimInSystem));
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0))
+                .thenReturn(Optional.of(localClaimInDB));
         claimMetadataManager.updateLocalClaim(updatedLocalClaim, 0);
         verify(dbBasedClaimMetadataManager, times(1)).updateLocalClaim(updatedLocalClaim, 0);
         clearInvocations(dbBasedClaimMetadataManager);
 
         when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(null);
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(localClaimInDB);
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0))
+                .thenReturn(Optional.of(localClaimInDB));
         claimMetadataManager.updateLocalClaim(updatedLocalClaim, 0);
         verify(dbBasedClaimMetadataManager, times(1)).updateLocalClaim(updatedLocalClaim, 0);
     }
@@ -351,7 +369,10 @@ public class UnifiedClaimMetadataManagerTest {
         List<LocalClaim> updatedLocalClaims = new ArrayList<>();
         LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
         updatedLocalClaims.add(localClaim);
-        when(dbBasedClaimMetadataManager.getClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, 1)).thenReturn(null);
+        when(dbBasedClaimMetadataManager.getClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, 1))
+                .thenReturn(Optional.empty());
+        when(systemDefaultClaimMetadataManager.getClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, 1))
+                .thenReturn(Optional.of(new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI)));
         List<LocalClaim> finalUpdatedLocalClaims = updatedLocalClaims;
         assertThrows(ClaimMetadataClientException.class, () -> {
             claimMetadataManager.updateLocalClaimMappings(finalUpdatedLocalClaims, 1, "PRIMARY");
@@ -391,7 +412,7 @@ public class UnifiedClaimMetadataManagerTest {
         when(dbBasedClaimMetadataManager.getLocalClaims(1)).thenReturn(localClaimsInDB);
 
         when(systemDefaultClaimMetadataManager.getClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI, 1))
-                .thenReturn(new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI));
+                .thenReturn(Optional.of(new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI)));
 
         LocalClaim updatedLocalClaim1 = new LocalClaim(LOCAL_CLAIM_1);
         updatedLocalClaim1.setMappedAttributes(new ArrayList<>());
@@ -463,45 +484,52 @@ public class UnifiedClaimMetadataManagerTest {
 
         ExternalClaim externalClaimsInSystem = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1);
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(externalClaimsInSystem);
+                .thenReturn(Optional.of(externalClaimsInSystem));
         when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(null);
-        ExternalClaim result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNotNull(result);
-        assertEquals(result.getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
-        assertEquals(result.getMappedLocalClaim(), LOCAL_CLAIM_1);
+                .thenReturn(Optional.empty());
+        Optional<ExternalClaim> result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
+        assertEquals(result.get().getMappedLocalClaim(), LOCAL_CLAIM_1);
 
         ExternalClaim externalClaimsInDB = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1);
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
                 .thenReturn(null);
         when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(externalClaimsInDB);
+                .thenReturn(Optional.of(externalClaimsInDB));
         result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNotNull(result);
-        assertEquals(result.getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
-        assertEquals(result.getMappedLocalClaim(), LOCAL_CLAIM_1);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
+        assertEquals(result.get().getMappedLocalClaim(), LOCAL_CLAIM_1);
 
         externalClaimsInSystem = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1);
         externalClaimsInDB = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_2);
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(externalClaimsInSystem);
+                .thenReturn(Optional.of(externalClaimsInSystem));
         when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(externalClaimsInDB);
+                .thenReturn(Optional.of(externalClaimsInDB));
         result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNotNull(result);
-        assertEquals(result.getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
-        assertEquals(result.getMappedLocalClaim(), LOCAL_CLAIM_2);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
+        assertEquals(result.get().getMappedLocalClaim(), LOCAL_CLAIM_2);
 
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
         when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
         result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
-        assertNull(result);
+        assertFalse(result.isPresent());
     }
 
     @Test
     public void testAddExternalClaim() throws ClaimMetadataException {
+
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1))
+                .thenReturn(Optional.of(new LocalClaim(LOCAL_CLAIM_1)));
+        when(systemDefaultClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 1))
+                .thenReturn(Optional.of(new ClaimDialect(EXT_CLAIM_DIALECT_1)));
+        when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 1))
+                .thenReturn(Optional.of(new ClaimDialect(LOCAL_CLAIM_DIALECT)));
 
         ExternalClaim externalClaim = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1);
         claimMetadataManager.addExternalClaim(externalClaim, 1);
@@ -510,21 +538,24 @@ public class UnifiedClaimMetadataManagerTest {
         verify(dbBasedClaimMetadataManager, times(1)).addExternalClaim(externalClaim, 1);
         clearInvocations(dbBasedClaimMetadataManager);
 
-        when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 1)).thenReturn(new ClaimDialect(EXT_CLAIM_DIALECT_1));
+        when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 1))
+                .thenReturn(Optional.of(new ClaimDialect(EXT_CLAIM_DIALECT_1)));
         claimMetadataManager.addExternalClaim(externalClaim, 1);
         verify(dbBasedClaimMetadataManager, times(1)).addClaimDialect(any(), anyInt());
         verify(dbBasedClaimMetadataManager, times(1)).addLocalClaim(any(), anyInt());
         verify(dbBasedClaimMetadataManager, times(1)).addExternalClaim(externalClaim, 1);
         clearInvocations(dbBasedClaimMetadataManager);
 
-        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 1)).thenReturn(new ClaimDialect(LOCAL_CLAIM_DIALECT));
+        when(dbBasedClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 1))
+                .thenReturn(Optional.of(new ClaimDialect(LOCAL_CLAIM_DIALECT)));
         claimMetadataManager.addExternalClaim(externalClaim, 1);
         verify(dbBasedClaimMetadataManager, never()).addClaimDialect(any(), anyInt());
         verify(dbBasedClaimMetadataManager, times(1)).addLocalClaim(any(), anyInt());
         verify(dbBasedClaimMetadataManager, times(1)).addExternalClaim(externalClaim, 1);
         clearInvocations(dbBasedClaimMetadataManager);
 
-        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1)).thenReturn(new LocalClaim(LOCAL_CLAIM_1));
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 1))
+                .thenReturn(Optional.of(new LocalClaim(LOCAL_CLAIM_1)));
         claimMetadataManager.addExternalClaim(externalClaim, 1);
         verify(dbBasedClaimMetadataManager, never()).addClaimDialect(any(), anyInt());
         verify(dbBasedClaimMetadataManager, never()).addLocalClaim(any(), anyInt());
@@ -537,13 +568,13 @@ public class UnifiedClaimMetadataManagerTest {
 
         ExternalClaim updatedExternalClaim = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_2);
         when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
         claimMetadataManager.updateExternalClaim(updatedExternalClaim, 1);
         verify(dbBasedClaimMetadataManager, times(1)).addExternalClaim(updatedExternalClaim, 1);
         clearInvocations(dbBasedClaimMetadataManager);
 
         when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1));
+                .thenReturn(Optional.of(new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1)));
         claimMetadataManager.updateExternalClaim(updatedExternalClaim, 1);
         verify(dbBasedClaimMetadataManager, times(1))
                 .updateExternalClaim(updatedExternalClaim, 1);
@@ -654,13 +685,13 @@ public class UnifiedClaimMetadataManagerTest {
     public void testIsSystemDefaultClaimDialect() throws ClaimMetadataException {
 
         when(systemDefaultClaimMetadataManager.getClaimDialect(LOCAL_CLAIM_DIALECT, 1))
-                .thenReturn(new ClaimDialect(LOCAL_CLAIM_DIALECT));
+                .thenReturn(Optional.of(new ClaimDialect(LOCAL_CLAIM_DIALECT)));
         when(systemDefaultClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 1))
-                .thenReturn(new ClaimDialect(EXT_CLAIM_DIALECT_1));
+                .thenReturn(Optional.of(new ClaimDialect(EXT_CLAIM_DIALECT_1)));
         when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_1, 1))
-                .thenReturn(new ClaimDialect(EXT_CLAIM_DIALECT_1));
+                .thenReturn(Optional.of(new ClaimDialect(EXT_CLAIM_DIALECT_1)));
         when(dbBasedClaimMetadataManager.getClaimDialect(EXT_CLAIM_DIALECT_2, 1))
-                .thenReturn(new ClaimDialect(EXT_CLAIM_DIALECT_2));
+                .thenReturn(Optional.of(new ClaimDialect(EXT_CLAIM_DIALECT_2)));
 
         assertTrue(claimMetadataManager.isSystemDefaultClaimDialect(LOCAL_CLAIM_DIALECT, 1));
         assertTrue(claimMetadataManager.isSystemDefaultClaimDialect(EXT_CLAIM_DIALECT_1, 1));
