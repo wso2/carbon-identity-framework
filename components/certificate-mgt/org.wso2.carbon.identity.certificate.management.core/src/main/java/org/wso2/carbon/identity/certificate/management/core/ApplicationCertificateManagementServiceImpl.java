@@ -33,7 +33,9 @@ import java.util.UUID;
 
 /**
  * This class is responsible for managing trusted certificates of applications of a tenant.
- * @deprecated Use {@link CertificateManagementServiceImpl} instead.
+ * This service supports using auto-incremented IDs for certificate management operations in application-mgt.
+ *
+ * @deprecated It is recommended to use {@link CertificateManagementServiceImpl}, which supports operations with UUID.
  */
 public class ApplicationCertificateManagementServiceImpl implements ApplicationCertificateManagementService {
 

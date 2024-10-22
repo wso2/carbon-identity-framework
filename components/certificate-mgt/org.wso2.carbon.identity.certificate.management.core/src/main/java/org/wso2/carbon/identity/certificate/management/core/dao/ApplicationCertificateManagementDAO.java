@@ -23,7 +23,9 @@ import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
 
 /**
  * This interface defines the Application Certificate Management DAO.
- * @deprecated Use {@link CertificateManagementDAO} instead.
+ * This supports using auto-incremented IDs for certificate management operations in application-mgt.
+ *
+ * @deprecated It is recommended to use {@link CertificateManagementDAO}, which supports operations with UUID.
  */
 public interface ApplicationCertificateManagementDAO {
 

@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.certificate.management.core.constant;
 
 /**
  * This class contains SQL queries for Application Certificate management service.
- * @deprecated Use {@link CertificateMgtSQLConstants.Query} instead.
+ * This queries support using auto-incremented IDs for certificate management operations in application-mgt.
+ *
+ * @deprecated It is recommended to use {@link CertificateMgtSQLConstants.Query}, which supports operations with UUID.
  */
 public class ApplicationCertificateMgtSQLQueries {
 

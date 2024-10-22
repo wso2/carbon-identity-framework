@@ -41,7 +41,9 @@ import java.util.Map;
 
 /**
  * This class is the implementation of the Application Certificate Management DAO.
- * @deprecated Use {@link CertificateManagementDAOImpl} instead.
+ * This supports using auto-incremented IDs for certificate management operations in application-mgt.
+ *
+ * @deprecated It is recommended to use {@link CertificateManagementDAOImpl}, which supports operations with UUID.
  */
 public class ApplicationCertificateManagementDAOImpl implements ApplicationCertificateManagementDAO {
 
