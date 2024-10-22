@@ -241,27 +241,10 @@ public class LocalClaimDAO extends ClaimDAO {
                     getClaimAttributeMappingsOfDialect(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
 
             for (LocalClaim localClaim : localClaimList) {
-                int localClaimId;
-                boolean isLocalClaimExist = false;
                 String localClaimURI = localClaim.getClaimURI();
-                try {
-                    localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI,
-                            tenantId);
-                    isLocalClaimExist = true;
-                } catch (ClaimMetadataException e) {
-                    localClaimId = addClaim(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI, tenantId);
-
-                    // Some JDBC Drivers returns this in the result, some don't
-                    if (localClaimId == 0) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("JDBC Driver did not return the claimId, executing Select operation");
-                        }
-                        localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI, tenantId);
-                    }
-
-                    addClaimAttributeMappings(connection, localClaimId, localClaim.getMappedAttributes(), tenantId);
-                    addClaimProperties(connection, localClaimId, localClaim.getClaimProperties(), tenantId);
-                }
+                int localClaimId = getIdOfClaim(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI,
+                        tenantId);
+                boolean isLocalClaimExist = localClaimId != 0;
                 if (isLocalClaimExist) {
                     List<AttributeMapping> existingClaimAttributeMappings =
                             claimAttributeMappingsOfDialect.get(localClaimId);
@@ -275,6 +258,19 @@ public class LocalClaimDAO extends ClaimDAO {
 
                     deleteClaimAttributeMappings(connection, localClaimId, tenantId);
                     addClaimAttributeMappings(connection, localClaimId, existingClaimAttributeMappings, tenantId);
+                } else {
+                    localClaimId = addClaim(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI, tenantId);
+
+                    // Some JDBC Drivers returns this in the result, some don't
+                    if (localClaimId == 0) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("JDBC Driver did not return the claimId, executing Select operation");
+                        }
+                        localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI, tenantId);
+                    }
+
+                    addClaimAttributeMappings(connection, localClaimId, localClaim.getMappedAttributes(), tenantId);
+                    addClaimProperties(connection, localClaimId, localClaim.getClaimProperties(), tenantId);
                 }
             }
 
