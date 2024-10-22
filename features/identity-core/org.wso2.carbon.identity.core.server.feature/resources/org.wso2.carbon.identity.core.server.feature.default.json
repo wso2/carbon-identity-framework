@@ -1384,7 +1384,7 @@
     "tenants.organizations.quick.nav.from.dropdown"
   ],
   "console.tenants.scopes.feature": ["console:tenants"],
-  "console.tenants.scopes.create": ["internal_list_tenants"],
+  "console.tenants.scopes.create": ["internal_create_tenants"],
   "console.tenants.scopes.read": ["internal_list_tenants"],
   "console.tenants.scopes.update": ["internal_modify_tenants"],
   "console.tenants.scopes.delete": ["internal_modify_tenants"],
