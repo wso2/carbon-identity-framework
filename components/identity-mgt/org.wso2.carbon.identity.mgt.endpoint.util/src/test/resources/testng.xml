@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtilTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtilTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.BrandingPreferenceRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.PreferenceRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.CommonDataRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ConfiguredAuthenticatorsRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityProviderDataRetrievalClientTest"/>

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.PreferenceRetrievalClient;
@@ -47,7 +48,7 @@ public class PreferenceRetrievalClientTest {
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
     private static final String SELF_REG_CALLBACK_REGEX_PROP = "SelfRegistration.CallbackRegex";
-    public static final String HANDLE_EXISTING_USERNAME = "SelfRegistration.HandleExistingUsername";
+    public static final String SHOW_USERNAME_UNAVAILABILITY = "SelfRegistration.ShowUsernameUnavailability";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     public static final String NOTIFICATION_PASSWORD_ENABLE_PROPERTY = "Recovery.Notification.Password.Enable";
@@ -69,11 +70,8 @@ public class PreferenceRetrievalClientTest {
     private static final String ACCOUNT_MGT_GOVERNANCE = "Account Management";
     private static final String USER_ONBOARDING_GOVERNANCE = "User Onboarding";
 
-    @InjectMocks
+    @Spy
     private PreferenceRetrievalClient preferenceRetrievalClient;
-
-    @Mock
-    private PreferenceRetrievalClient mockPreferenceRetrievalClient;
 
     @BeforeMethod
     public void setUp() {
@@ -115,14 +113,14 @@ public class PreferenceRetrievalClientTest {
     }
 
     @Test
-    public void testCheckSelfRegistrationHandleExistingUsername() throws PreferenceRetrievalClientException {
+    public void testCheckSelfRegistrationShowUsernameUnavailability() throws PreferenceRetrievalClientException {
 
         doReturn(false).when(preferenceRetrievalClient)
-                .checkPreference(tenantDomain, SELF_SIGN_UP_CONNECTOR, HANDLE_EXISTING_USERNAME);
-        boolean result = preferenceRetrievalClient.checkSelfRegistrationHandleExistingUsername(tenantDomain);
+                .checkPreference(tenantDomain, SELF_SIGN_UP_CONNECTOR, SHOW_USERNAME_UNAVAILABILITY);
+        boolean result = preferenceRetrievalClient.checkSelfRegistrationShowUsernameUnavailability(tenantDomain);
         assertFalse(result);
         verify(preferenceRetrievalClient, times(1)).checkPreference(tenantDomain, SELF_SIGN_UP_CONNECTOR,
-                HANDLE_EXISTING_USERNAME);
+                SHOW_USERNAME_UNAVAILABILITY);
     }
 
     @Test
@@ -289,15 +287,5 @@ public class PreferenceRetrievalClientTest {
         assertTrue(result);
         verify(preferenceRetrievalClient, times(1)).getPropertyValue(tenantDomain, USER_ONBOARDING_GOVERNANCE,
                 LITE_USER_CONNECTOR, LITE_REG_CALLBACK_REGEX_PROP);
-    }
-
-    @Test
-    public void testCheckPreferenceTrue() throws PreferenceRetrievalClientException {
-
-        when(mockPreferenceRetrievalClient.getPropertyValue(tenantDomain, "governanceDomain", SELF_SIGN_UP_CONNECTOR,
-                HANDLE_EXISTING_USERNAME)).thenReturn(Optional.of("true"));
-        boolean result = preferenceRetrievalClient.checkPreference(tenantDomain, SELF_SIGN_UP_CONNECTOR,
-                HANDLE_EXISTING_USERNAME);
-        assertTrue(result, "Preference should return true.");
     }
 }

@@ -76,7 +76,7 @@ public class PreferenceRetrievalClient {
     private static final String TYPING_DNA_PROPERTY = "adaptive_authentication.tdna.enable";
     private static final String AUTO_LOGIN_AFTER_SELF_SIGN_UP = "SelfRegistration.AutoLogin.Enable";
     public static final String SEND_CONFIRMATION_ON_CREATION = "SelfRegistration.SendConfirmationOnCreation";
-    public static final String HANDLE_EXISTING_USERNAME = "SelfRegistration.HandleExistingUsername";
+    public static final String SHOW_USERNAME_UNAVAILABILITY = "SelfRegistration.ShowUsernameUnavailability";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
     private static final String RECOVERY_CALLBACK_REGEX_PROP = "Recovery.CallbackRegex";
     private static final String SELF_REG_CALLBACK_REGEX_PROP = "SelfRegistration.CallbackRegex";
@@ -122,16 +122,16 @@ public class PreferenceRetrievalClient {
     }
 
     /**
-     * Check if handle existing username is enabled or not.
+     * Check if show username unavailability is enabled.
      *
      * @param tenant Tenant domain name.
-     * @return returns True if handle existing username is enabled.
+     * @return returns True if show username unavailability is enabled.
      * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
      */
-    public boolean checkSelfRegistrationHandleExistingUsername(String tenant)
+    public boolean checkSelfRegistrationShowUsernameUnavailability(String tenant)
             throws PreferenceRetrievalClientException {
 
-        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, HANDLE_EXISTING_USERNAME);
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SHOW_USERNAME_UNAVAILABILITY);
     }
 
     /**
