@@ -1377,6 +1377,17 @@
   "console.server.scopes.read": ["internal_governance_view"],
   "console.server.scopes.update": ["internal_governance_update"],
   "console.server.scopes.delete": [],
+  "console.tenants.enabled": true,
+  "console.tenants.disabled_features": [
+    "tenants.add.tenant.from.dropdown",
+    "tenants.make.default",
+    "tenants.organizations.quick.nav.from.dropdown"
+  ],
+  "console.tenants.scopes.feature": ["console:tenants"],
+  "console.tenants.scopes.create": ["internal_notification_senders_create"],
+  "console.tenants.scopes.read": ["internal_notification_senders_view"],
+  "console.tenants.scopes.update": ["internal_notification_senders_update"],
+  "console.tenants.scopes.delete": ["internal_notification_senders_delete"],
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
