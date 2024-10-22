@@ -94,39 +94,22 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     }
 
     /**
-     * Update a certificate with given id.
-     * Only the non-null and non-empty fields in the provided certificate will be updated.
-     * Null or empty fields will be ignored.
+     * Update a certificate content with given id.
      *
-     * @param certificateId Certificate ID.
-     * @param certificate   Certificate content.
-     * @param tenantDomain  Tenant domain.
+     * @param certificateId      Certificate ID.
+     * @param certificateContent Certificate content.
+     * @param tenantDomain       Tenant domain.
      * @throws CertificateMgtException If an error occurs while updating the certificate.
      */
     @Override
-    public void updateCertificate(String certificateId, Certificate certificate, String tenantDomain)
+    public void updateCertificateContent(String certificateId, String certificateContent, String tenantDomain)
             throws CertificateMgtException {
 
         LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
-        if (certificate.getName() != null && certificate.getCertificate() != null) {
-            CertificateValidator.validateCertificateName(certificate.getName());
-            CertificateValidator.validateCertificateContent(certificate.getCertificate());
-
-            certificateDAO.updateCertificate(certificateId, certificate, IdentityTenantUtil.getTenantId(tenantDomain));
-            return;
-        }
-        if (certificate.getCertificate() != null) {
-            CertificateValidator.validateCertificateContent(certificate.getCertificate());
-            certificateDAO.patchCertificateContent(certificateId, certificate.getCertificate(),
-                    IdentityTenantUtil.getTenantId(tenantDomain));
-            return;
-        }
-        if (certificate.getName() != null) {
-            CertificateValidator.validateCertificateName(certificate.getName());
-            certificateDAO.patchCertificateName(certificateId, certificate.getName(),
-                    IdentityTenantUtil.getTenantId(tenantDomain));
-        }
+        CertificateValidator.validateCertificateContent(certificateContent);
+        certificateDAO.updateCertificateContent(certificateId, certificateContent,
+                IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**

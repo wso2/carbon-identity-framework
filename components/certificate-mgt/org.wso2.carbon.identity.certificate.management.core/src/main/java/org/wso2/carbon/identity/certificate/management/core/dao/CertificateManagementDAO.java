@@ -48,28 +48,6 @@ public interface CertificateManagementDAO {
     Certificate getCertificate(String certificateId, int tenantId) throws CertificateMgtException;
 
     /**
-     * Update a certificate with given id.
-     *
-     * @param certificateId Certificate ID.
-     * @param certificate   Certificate.
-     * @param tenantId      Tenant Id.
-     * @throws CertificateMgtException If an error occurs while updating the certificate.
-     */
-    void updateCertificate(String certificateId, Certificate certificate, int tenantId)
-            throws CertificateMgtException;
-
-    /**
-     * Update a certificate name with given id.
-     *
-     * @param certificateId   Certificate ID.
-     * @param certificateName Certificate name.
-     * @param tenantId        Tenant Id.
-     * @throws CertificateMgtException If an error occurs while updating the certificate name.
-     */
-    void patchCertificateName(String certificateId, String certificateName, int tenantId)
-            throws CertificateMgtException;
-
-    /**
      * Update a certificate content with given id.
      *
      * @param certificateId      Certificate ID.
@@ -77,7 +55,7 @@ public interface CertificateManagementDAO {
      * @param tenantId           Tenant Id.
      * @throws CertificateMgtException If an error occurs while updating the certificate content.
      */
-    void patchCertificateContent(String certificateId, String certificateContent, int tenantId)
+    void updateCertificateContent(String certificateId, String certificateContent, int tenantId)
             throws CertificateMgtException;
 
     /**

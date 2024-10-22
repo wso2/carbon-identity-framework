@@ -48,14 +48,14 @@ public interface CertificateManagementService {
     Certificate getCertificate(String certificateId, String tenantDomain) throws CertificateMgtException;
 
     /**
-     * Update a certificate with given id.
+     * Update a certificate content with given id.
      *
-     * @param certificateId Certificate ID.
-     * @param certificate   Certificate content.
-     * @param tenantDomain  Tenant domain.
+     * @param certificateId      Certificate ID.
+     * @param certificateContent Certificate content.
+     * @param tenantDomain       Tenant domain.
      * @throws CertificateMgtException If an error occurs while updating the certificate.
      */
-    void updateCertificate(String certificateId, Certificate certificate, String tenantDomain)
+    void updateCertificateContent(String certificateId, String certificateContent, String tenantDomain)
             throws CertificateMgtException;
 
     /**

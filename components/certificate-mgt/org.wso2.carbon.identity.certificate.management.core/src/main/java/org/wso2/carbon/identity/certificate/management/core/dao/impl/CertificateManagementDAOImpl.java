@@ -104,54 +104,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
     }
 
     @Override
-    public void updateCertificate(String certificateId, Certificate certificate, int tenantId)
-            throws CertificateMgtException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            InputStream certByteStream = getCertificateByteStream(certificate.getCertificate());
-            int certificateLength = certByteStream.available();
-            jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(CertificateMgtSQLConstants.Query.UPDATE_CERTIFICATE_NAME_AND_CONTENT,
-                    preparedStatement -> {
-                        int index = 1;
-                        preparedStatement.setString(index++, certificate.getName());
-                        preparedStatement.setBlob(index++, certByteStream, certificateLength);
-                        preparedStatement.setString(index++, certificateId);
-                        preparedStatement.setInt(index, tenantId);
-                    });
-                return null;
-            });
-        } catch (TransactionException | IOException e) {
-            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE,
-                    e, certificateId);
-        }
-    }
-
-    @Override
-    public void patchCertificateName(String certificateId, String certificateName, int tenantId)
-            throws CertificateMgtException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(CertificateMgtSQLConstants.Query.UPDATE_CERTIFICATE_NAME,
-                    preparedStatement -> {
-                        int index = 1;
-                        preparedStatement.setString(index++, certificateName);
-                        preparedStatement.setString(index++, certificateId);
-                        preparedStatement.setInt(index, tenantId);
-                    });
-                return null;
-            });
-        } catch (TransactionException e) {
-            CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_UPDATING_CERTIFICATE,
-                    e, certificateId);
-        }
-    }
-
-    @Override
-    public void patchCertificateContent(String certificateId, String certificateContent, int tenantId)
+    public void updateCertificateContent(String certificateId, String certificateContent, int tenantId)
             throws CertificateMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());

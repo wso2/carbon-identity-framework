@@ -32,7 +32,6 @@ import java.util.Map;
 public class TestUtil {
 
     public static final String CERTIFICATE_NAME = "test";
-    public static final String UPDATED_CERTIFICATE_NAME = "test_updated";
     public static final String CERTIFICATE = "-----BEGIN CERTIFICATE-----" +
             "MIIC+jCCAmOgAwIBAgIJAParOnPwEkKjMA0GCSqGSIb3DQEBBQUAMIGKMQswCQYD" +
             "VQQGEwJMSzEQMA4GA1UECBMHV2VzdGVybjEQMA4GA1UEBxMHQ29sb21ibzEWMBQG" +

@@ -46,7 +46,6 @@ import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE_NAME;
 
 /**
  * This class is a test suite for the CertificateManagementDAOImpl class.
@@ -122,36 +121,19 @@ public class CertificateManagementDAOImplTest {
             expectedExceptionsMessageRegExp = "Error while adding Certificate.")
     public void testInvalidCertificateAddition() throws CertificateMgtException {
 
-        // Adding a certificate to the same tenant with the same name to generate unique key constraint violation.
-        otherCertificateId = String.valueOf(UUID.randomUUID());
+        // Adding a certificate with null uuid to generate unique key constraint violation.
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
                 .certificate(CERTIFICATE)
                 .build();
 
-        certificateMgtDAOImpl.addCertificate(otherCertificateId, creatingCertificate, TENANT_ID);
+        certificateMgtDAOImpl.addCertificate(null, creatingCertificate, TENANT_ID);
     }
 
     @Test(priority = 4)
-    public void testUpdateCertificate() throws CertificateMgtException, SQLException {
+    public void testUpdateCertificateContent() throws CertificateMgtException, SQLException {
 
-        Certificate updatingCertificate = new Certificate.Builder()
-                .name(UPDATED_CERTIFICATE_NAME)
-                .certificate(UPDATED_CERTIFICATE)
-                .build();
-        certificateMgtDAOImpl.updateCertificate(certificateId, updatingCertificate, TENANT_ID);
-        mockDBConnection();
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TENANT_ID);
-        Assert.assertNotNull(certificate);
-        Assert.assertEquals(certificate.getId(), certificateId);
-        Assert.assertEquals(certificate.getName(), UPDATED_CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), UPDATED_CERTIFICATE);
-    }
-
-    @Test(priority = 5)
-    public void testUpdateCertificateName() throws CertificateMgtException, SQLException {
-
-        certificateMgtDAOImpl.patchCertificateName(certificateId, CERTIFICATE_NAME, TENANT_ID);
+        certificateMgtDAOImpl.updateCertificateContent(certificateId, UPDATED_CERTIFICATE, TENANT_ID);
         mockDBConnection();
         Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TENANT_ID);
         Assert.assertEquals(certificate.getId(), certificateId);
@@ -160,55 +142,12 @@ public class CertificateManagementDAOImplTest {
     }
 
     @Test(priority = 6)
-    public void testUpdateCertificateContent() throws CertificateMgtException, SQLException {
-
-        certificateMgtDAOImpl.patchCertificateContent(certificateId, CERTIFICATE, TENANT_ID);
-        mockDBConnection();
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TENANT_ID);
-        Assert.assertEquals(certificate.getId(), certificateId);
-        Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
-    }
-
-    @Test(priority = 7, expectedExceptions = CertificateMgtException.class,
-            expectedExceptionsMessageRegExp = "Error while updating Certificate.")
-    public void testInvalidCertificateUpdate() throws CertificateMgtException {
-
-        // Adding new certificate.
-        otherCertificateId = String.valueOf(UUID.randomUUID());
-        Certificate certificate = new Certificate.Builder()
-                .name(UPDATED_CERTIFICATE_NAME)
-                .certificate(UPDATED_CERTIFICATE)
-                .build();
-        certificateMgtDAOImpl.addCertificate(otherCertificateId, certificate, TENANT_ID);
-
-        // Update the newly added a certificate to generate unique key constraint violation.
-        certificate = new Certificate.Builder()
-                .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
-                .build();
-
-        certificateMgtDAOImpl.updateCertificate(otherCertificateId, certificate, TENANT_ID);
-    }
-
-    @Test(priority = 8, expectedExceptions = CertificateMgtException.class,
-            expectedExceptionsMessageRegExp = "Error while updating Certificate.")
-    public void testInvalidCertificateNameUpdate() throws CertificateMgtException {
-
-        // Update the newly added a certificate name to generate unique key constraint violation.
-        certificateMgtDAOImpl.patchCertificateName(otherCertificateId, CERTIFICATE_NAME, TENANT_ID);
-    }
-
-    @Test(priority = 9)
     public void testDeleteCertificate() throws CertificateMgtException, SQLException {
 
         certificateMgtDAOImpl.deleteCertificate(certificateId, TENANT_ID);
         mockDBConnection();
         Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TENANT_ID);
         Assert.assertNull(certificate);
-        // Delete other certificate.
-        mockDBConnection();
-        certificateMgtDAOImpl.deleteCertificate(otherCertificateId, TENANT_ID);
     }
 
     private void mockDBConnection() throws SQLException {

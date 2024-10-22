@@ -48,10 +48,6 @@ public class CertificateMgtSQLConstants {
                 "TENANT_ID) VALUES(?, ?, ?, ?)";
         public static final String GET_CERTIFICATE_BY_ID = "SELECT NAME, CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE " +
                 "WHERE UUID = ? AND TENANT_ID = ?";
-        public static final String UPDATE_CERTIFICATE_NAME_AND_CONTENT = "UPDATE IDN_CERTIFICATE SET NAME = ?, " +
-                "CERTIFICATE_IN_PEM = ? WHERE UUID = ? AND TENANT_ID = ?";
-        public static final String UPDATE_CERTIFICATE_NAME = "UPDATE IDN_CERTIFICATE SET NAME = ? WHERE UUID = ? " +
-                "AND TENANT_ID = ?";
         public static final String UPDATE_CERTIFICATE_CONTENT = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? " +
                 "WHERE UUID = ? AND TENANT_ID = ?";
         public static final String DELETE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE UUID = ? AND TENANT_ID = ?";
