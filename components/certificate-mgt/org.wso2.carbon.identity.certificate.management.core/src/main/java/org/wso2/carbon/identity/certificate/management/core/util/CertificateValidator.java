@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.certificate.management.core.util;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
-import org.wso2.carbon.identity.certificate.management.core.dao.impl.ApplicationCertificateManagementDAOImpl;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 
 import java.io.ByteArrayInputStream;
