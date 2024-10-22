@@ -45,6 +45,7 @@ import java.util.Map;
  *
  * @deprecated It is recommended to use {@link CertificateManagementDAOImpl}, which supports operations with UUID.
  */
+@Deprecated
 public class ApplicationCertificateManagementDAOImpl implements ApplicationCertificateManagementDAO {
 
     @Override

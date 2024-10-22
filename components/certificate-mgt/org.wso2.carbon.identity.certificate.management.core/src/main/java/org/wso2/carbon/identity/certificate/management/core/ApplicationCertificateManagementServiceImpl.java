@@ -37,6 +37,7 @@ import java.util.UUID;
  *
  * @deprecated It is recommended to use {@link CertificateManagementServiceImpl}, which supports operations with UUID.
  */
+@Deprecated
 public class ApplicationCertificateManagementServiceImpl implements ApplicationCertificateManagementService {
 
     private static final Log LOG = LogFactory.getLog(ApplicationCertificateManagementServiceImpl.class);

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.certificate.management.core.util;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
+import org.wso2.carbon.identity.certificate.management.core.dao.impl.ApplicationCertificateManagementDAOImpl;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 
 import java.io.ByteArrayInputStream;
@@ -36,6 +37,9 @@ public class CertificateValidator {
     private static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
     public static final String NAME_FIELD = "Name";
     public static final String CERTIFICATE_FIELD = "Certificate";
+
+    private CertificateValidator() {
+    }
 
     /**
      * Validate whether required fields exist.

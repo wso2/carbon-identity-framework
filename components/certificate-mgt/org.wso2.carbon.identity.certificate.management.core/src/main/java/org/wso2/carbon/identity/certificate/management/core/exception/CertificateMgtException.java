@@ -23,8 +23,8 @@ package org.wso2.carbon.identity.certificate.management.core.exception;
  */
 public class CertificateMgtException extends Exception {
 
-    private String errorCode;
-    private String description;
+    private final String errorCode;
+    private final String description;
 
     public CertificateMgtException(String message, String description, String errorCode) {
 

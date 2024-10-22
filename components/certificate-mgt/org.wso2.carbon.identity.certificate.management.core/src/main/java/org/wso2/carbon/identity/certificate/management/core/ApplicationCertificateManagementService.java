@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
  *
  * @deprecated It is recommended to use {@link CertificateManagementService}, which supports operations with UUID.
  */
+@Deprecated
 public interface ApplicationCertificateManagementService {
 
     /**

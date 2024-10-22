@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.certificate.management.core.exception.Certificat
  */
 public class CertificateMgtExceptionHandler {
 
+    private CertificateMgtExceptionHandler() {
+    }
+
     /**
      * Throw Certificate Management client exception.
      *
