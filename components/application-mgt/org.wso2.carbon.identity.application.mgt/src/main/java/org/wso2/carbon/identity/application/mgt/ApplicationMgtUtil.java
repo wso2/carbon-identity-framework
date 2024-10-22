@@ -1241,7 +1241,7 @@ public class ApplicationMgtUtil {
         switch (currentVersion) {
             case ApplicationConstants.ApplicationVersion.APP_VERSION_V0:
             case ApplicationConstants.ApplicationVersion.APP_VERSION_V1:
-                if (inboundConfigType != null && !IdentityApplicationConstants.OAuth2.NAME.equals(inboundConfigType)) {
+                if (!IdentityApplicationConstants.OAuth2.NAME.equals(inboundConfigType)) {
                     currentVersion = ApplicationConstants.ApplicationVersion.APP_VERSION_V2;
                 }
                 break;
