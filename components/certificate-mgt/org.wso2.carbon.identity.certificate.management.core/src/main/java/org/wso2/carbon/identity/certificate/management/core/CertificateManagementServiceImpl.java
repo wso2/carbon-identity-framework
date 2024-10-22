@@ -39,7 +39,6 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     private static final Log LOG = LogFactory.getLog(CertificateManagementServiceImpl.class);
     private static final CertificateManagementService INSTANCE = new CertificateManagementServiceImpl();
     private static final CertificateManagementDAOImpl DAO = new CertificateManagementDAOImpl();
-    private static final CertificateValidator CERTIFICATE_VALIDATOR = new CertificateValidator();
 
     private CertificateManagementServiceImpl() {
     }
@@ -107,20 +106,20 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
         LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
         if (certificate.getName() != null && certificate.getCertificate() != null) {
-            CERTIFICATE_VALIDATOR.validateCertificateName(certificate.getName());
-            CERTIFICATE_VALIDATOR.validateCertificateContent(certificate.getCertificate());
+            CertificateValidator.validateCertificateName(certificate.getName());
+            CertificateValidator.validateCertificateContent(certificate.getCertificate());
 
             DAO.updateCertificate(certificateId, certificate, IdentityTenantUtil.getTenantId(tenantDomain));
             return;
         }
         if (certificate.getCertificate() != null) {
-            CERTIFICATE_VALIDATOR.validateCertificateContent(certificate.getCertificate());
+            CertificateValidator.validateCertificateContent(certificate.getCertificate());
             DAO.patchCertificateContent(certificateId, certificate.getCertificate(),
                     IdentityTenantUtil.getTenantId(tenantDomain));
             return;
         }
         if (certificate.getName() != null) {
-            CERTIFICATE_VALIDATOR.validateCertificateName(certificate.getName());
+            CertificateValidator.validateCertificateName(certificate.getName());
             DAO.patchCertificateName(certificateId, certificate.getName(),
                     IdentityTenantUtil.getTenantId(tenantDomain));
         }
@@ -147,9 +146,9 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
      */
     private void doPreAddCertificateValidations(Certificate certificate) throws CertificateMgtClientException {
 
-        CERTIFICATE_VALIDATOR.validateForBlank(CertificateValidator.NAME_FIELD, certificate.getName());
-        CERTIFICATE_VALIDATOR.validateForBlank(CertificateValidator.CERTIFICATE_FIELD, certificate.getCertificate());
-        CERTIFICATE_VALIDATOR.validatePemFormat(certificate.getCertificate());
+        CertificateValidator.validateForBlank(CertificateValidator.NAME_FIELD, certificate.getName());
+        CertificateValidator.validateForBlank(CertificateValidator.CERTIFICATE_FIELD, certificate.getCertificate());
+        CertificateValidator.validatePemFormat(certificate.getCertificate());
     }
 
     /**

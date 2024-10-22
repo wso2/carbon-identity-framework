@@ -41,7 +41,6 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     private static final ApplicationCertificateManagementService INSTANCE =
             new ApplicationCertificateManagementServiceImpl();
     private static final ApplicationCertificateManagementDAOImpl DAO = new ApplicationCertificateManagementDAOImpl();
-    private static final CertificateValidator CERTIFICATE_VALIDATOR = new CertificateValidator();
 
     private ApplicationCertificateManagementServiceImpl() {
     }
@@ -134,7 +133,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
 
         LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
-        CERTIFICATE_VALIDATOR.validateCertificateContent(certificateContent);
+        CertificateValidator.validateCertificateContent(certificateContent);
         DAO.updateCertificateContent(certificateId, certificateContent, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -160,9 +159,9 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      */
     private void doPreAddCertificateValidations(Certificate certificate) throws CertificateMgtClientException {
 
-        CERTIFICATE_VALIDATOR.validateForBlank(CertificateValidator.NAME_FIELD, certificate.getName());
-        CERTIFICATE_VALIDATOR.validateForBlank(CertificateValidator.CERTIFICATE_FIELD, certificate.getCertificate());
-        CERTIFICATE_VALIDATOR.validatePemFormat(certificate.getCertificate());
+        CertificateValidator.validateForBlank(CertificateValidator.NAME_FIELD, certificate.getName());
+        CertificateValidator.validateForBlank(CertificateValidator.CERTIFICATE_FIELD, certificate.getCertificate());
+        CertificateValidator.validatePemFormat(certificate.getCertificate());
     }
 
     /**

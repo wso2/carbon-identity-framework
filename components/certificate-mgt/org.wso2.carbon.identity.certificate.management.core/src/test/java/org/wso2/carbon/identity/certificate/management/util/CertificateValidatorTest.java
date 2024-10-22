@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.certificate.management.util;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
@@ -35,19 +33,6 @@ import org.wso2.carbon.identity.certificate.management.core.util.CertificateVali
 public class CertificateValidatorTest {
 
     private static final String ERROR_INVALID_REQUEST = "Invalid request.";
-    private CertificateValidator certificateValidator;
-
-    @BeforeClass
-    public void setUp() {
-
-        certificateValidator = new CertificateValidator();
-    }
-
-    @AfterClass
-    public void tearDown() {
-
-        certificateValidator = null;
-    }
 
     @DataProvider
     public Object[][] isBlankDataProvider() {
@@ -63,7 +48,7 @@ public class CertificateValidatorTest {
     public void testIsBlank(String fieldName, String fieldValue) {
 
         try {
-            certificateValidator.validateForBlank(fieldName, fieldValue);
+            CertificateValidator.validateForBlank(fieldName, fieldValue);
         } catch (CertificateMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), fieldName + " cannot be empty.");
@@ -83,7 +68,7 @@ public class CertificateValidatorTest {
     public void testIsNotBlank(String fieldName, String fieldValue) {
 
         try {
-            certificateValidator.validateForBlank(fieldName, fieldValue);
+            CertificateValidator.validateForBlank(fieldName, fieldValue);
         } catch (CertificateMgtClientException e) {
             Assert.fail();
         }
@@ -102,7 +87,7 @@ public class CertificateValidatorTest {
     public void testIsInvalidCertificateName(String certificateName) {
 
         try {
-            certificateValidator.validateCertificateName(certificateName);
+            CertificateValidator.validateCertificateName(certificateName);
         } catch (CertificateMgtClientException e) {
             Assert.assertEquals(e.getMessage(), ERROR_INVALID_REQUEST);
             Assert.assertEquals(e.getDescription(), "Name is invalid.");
@@ -122,7 +107,7 @@ public class CertificateValidatorTest {
     public void testIsValidCertificateName(String certificateName) {
 
         try {
-            certificateValidator.validateCertificateName(certificateName);
+            CertificateValidator.validateCertificateName(certificateName);
         } catch (CertificateMgtClientException e) {
             Assert.fail();
         }
@@ -146,7 +131,7 @@ public class CertificateValidatorTest {
     public void testIsInvalidPEMFormat(String certificateName, CertificateMgtErrors error) {
 
         try {
-            certificateValidator.validatePemFormat(certificateName);
+            CertificateValidator.validatePemFormat(certificateName);
         } catch (CertificateMgtClientException e) {
             Assert.assertEquals(e.getErrorCode(), error.getCode());
             Assert.assertEquals(e.getMessage(), error.getMessage());
@@ -167,7 +152,7 @@ public class CertificateValidatorTest {
     public void testIsValidPEMFormat(String certificateName) {
 
         try {
-            certificateValidator.validatePemFormat(certificateName);
+            CertificateValidator.validatePemFormat(certificateName);
         } catch (CertificateMgtClientException e) {
             Assert.fail();
         }
@@ -193,7 +178,7 @@ public class CertificateValidatorTest {
     public void testIsInvalidCertificateContent(String certificateName, CertificateMgtErrors error) {
 
         try {
-            certificateValidator.validateCertificateContent(certificateName);
+            CertificateValidator.validateCertificateContent(certificateName);
         } catch (CertificateMgtClientException e) {
             Assert.assertEquals(e.getErrorCode(), error.getCode());
             Assert.assertEquals(e.getMessage(), error.getMessage());
@@ -220,7 +205,7 @@ public class CertificateValidatorTest {
     public void testIsValidCertificateContent(String certificateName) {
 
         try {
-            certificateValidator.validateCertificateContent(certificateName);
+            CertificateValidator.validateCertificateContent(certificateName);
         } catch (CertificateMgtClientException e) {
             Assert.fail();
         }

@@ -43,7 +43,7 @@ public class CertificateValidator {
      * @param fieldValue Field value.
      * @throws CertificateMgtClientException if the provided field is empty.
      */
-    public void validateForBlank(String fieldName, String fieldValue) throws CertificateMgtClientException {
+    public static void validateForBlank(String fieldName, String fieldValue) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(fieldValue)) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_EMPTY_FIELD, fieldName);
@@ -56,7 +56,7 @@ public class CertificateValidator {
      * @param name Certificate name.
      * @throws CertificateMgtClientException if the name is not valid.
      */
-    public void validateCertificateName(String name) throws CertificateMgtClientException {
+    public static void validateCertificateName(String name) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(name)) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_INVALID_FIELD, NAME_FIELD);
@@ -69,7 +69,7 @@ public class CertificateValidator {
      * @param certificate Certificate in PEM format.
      * @throws CertificateMgtClientException if the certificate content is not valid.
      */
-    public void validateCertificateContent(String certificate) throws CertificateMgtClientException {
+    public static void validateCertificateContent(String certificate) throws CertificateMgtClientException {
 
         if (StringUtils.isBlank(certificate)) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_INVALID_FIELD,
@@ -84,7 +84,7 @@ public class CertificateValidator {
      * @param certificate Certificate in PEM format.
      * @throws CertificateMgtClientException if the certificate is not in PEM format.
      */
-    public void validatePemFormat(String certificate) throws CertificateMgtClientException {
+    public static void validatePemFormat(String certificate) throws CertificateMgtClientException {
 
         if (!certificate.startsWith(BEGIN_CERTIFICATE) || !certificate.endsWith(END_CERTIFICATE)) {
             CertificateMgtExceptionHandler
