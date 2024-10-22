@@ -40,9 +40,11 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     private static final Log LOG = LogFactory.getLog(ApplicationCertificateManagementServiceImpl.class);
     private static final ApplicationCertificateManagementService INSTANCE =
             new ApplicationCertificateManagementServiceImpl();
-    private static final ApplicationCertificateManagementDAOImpl DAO = new ApplicationCertificateManagementDAOImpl();
+    private final ApplicationCertificateManagementDAOImpl applicationCertificateDAO;
 
     private ApplicationCertificateManagementServiceImpl() {
+
+        applicationCertificateDAO = new ApplicationCertificateManagementDAOImpl();
     }
 
     public static ApplicationCertificateManagementService getInstance() {
@@ -65,7 +67,8 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
         LOG.debug("Adding certificate with name: " + certificate.getName());
         doPreAddCertificateValidations(certificate);
         String generatedCertificateId = UUID.randomUUID().toString();
-        return DAO.addCertificate(generatedCertificateId, certificate, IdentityTenantUtil.getTenantId(tenantDomain));
+        return applicationCertificateDAO.addCertificate(generatedCertificateId, certificate,
+                IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**
@@ -81,7 +84,8 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     public Certificate getCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Retrieving certificate with id: " + certificateId);
-        Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
+        Certificate certificate = applicationCertificateDAO.getCertificate(certificateId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the id: " + certificateId);
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
@@ -105,7 +109,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
             throws CertificateMgtException {
 
         LOG.debug("Retrieving certificate with name: " + certificateName);
-        Certificate certificate = DAO.getCertificateByName(certificateName,
+        Certificate certificate = applicationCertificateDAO.getCertificateByName(certificateName,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the name: " + certificateName);
@@ -134,7 +138,8 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
         LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
         CertificateValidator.validateCertificateContent(certificateContent);
-        DAO.updateCertificateContent(certificateId, certificateContent, IdentityTenantUtil.getTenantId(tenantDomain));
+        applicationCertificateDAO.updateCertificateContent(certificateId, certificateContent,
+                IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**
@@ -149,7 +154,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     public void deleteCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Deleting certificate with id: " + certificateId);
-        DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
+        applicationCertificateDAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**
@@ -173,7 +178,8 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      */
     private void checkIfCertificateExists(int certificateId, String tenantDomain) throws CertificateMgtException {
 
-        Certificate certificate = DAO.getCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
+        Certificate certificate = applicationCertificateDAO.getCertificate(certificateId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     String.valueOf(certificateId));
