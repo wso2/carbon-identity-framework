@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.core.dao.impl.ApplicationCertificateManagementDAOImpl;
+import org.wso2.carbon.identity.certificate.management.core.dao.impl.CacheBackedApplicationCertificateMgtDAO;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
@@ -43,11 +44,10 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     private static final Log LOG = LogFactory.getLog(ApplicationCertificateManagementServiceImpl.class);
     private static final ApplicationCertificateManagementService INSTANCE =
             new ApplicationCertificateManagementServiceImpl();
-    private final ApplicationCertificateManagementDAOImpl applicationCertificateDAO;
+    private static final CacheBackedApplicationCertificateMgtDAO CACHE_BACKED_DAO =
+            new CacheBackedApplicationCertificateMgtDAO(new ApplicationCertificateManagementDAOImpl());
 
     private ApplicationCertificateManagementServiceImpl() {
-
-        applicationCertificateDAO = new ApplicationCertificateManagementDAOImpl();
     }
 
     public static ApplicationCertificateManagementService getInstance() {
@@ -70,7 +70,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
         LOG.debug("Adding certificate with name: " + certificate.getName());
         doPreAddCertificateValidations(certificate);
         String generatedCertificateId = UUID.randomUUID().toString();
-        return applicationCertificateDAO.addCertificate(generatedCertificateId, certificate,
+        return CACHE_BACKED_DAO.addCertificate(generatedCertificateId, certificate,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -87,7 +87,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     public Certificate getCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Retrieving certificate with id: " + certificateId);
-        Certificate certificate = applicationCertificateDAO.getCertificate(certificateId,
+        Certificate certificate = CACHE_BACKED_DAO.getCertificate(certificateId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the id: " + certificateId);
@@ -112,7 +112,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
             throws CertificateMgtException {
 
         LOG.debug("Retrieving certificate with name: " + certificateName);
-        Certificate certificate = applicationCertificateDAO.getCertificateByName(certificateName,
+        Certificate certificate = CACHE_BACKED_DAO.getCertificateByName(certificateName,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the name: " + certificateName);
@@ -141,7 +141,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
         LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
         CertificateValidator.validateCertificateContent(certificateContent);
-        applicationCertificateDAO.updateCertificateContent(certificateId, certificateContent,
+        CACHE_BACKED_DAO.updateCertificateContent(certificateId, certificateContent,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -157,7 +157,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     public void deleteCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Deleting certificate with id: " + certificateId);
-        applicationCertificateDAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
+        CACHE_BACKED_DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**
@@ -181,7 +181,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      */
     private void checkIfCertificateExists(int certificateId, String tenantDomain) throws CertificateMgtException {
 
-        Certificate certificate = applicationCertificateDAO.getCertificate(certificateId,
+        Certificate certificate = CACHE_BACKED_DAO.getCertificate(certificateId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,

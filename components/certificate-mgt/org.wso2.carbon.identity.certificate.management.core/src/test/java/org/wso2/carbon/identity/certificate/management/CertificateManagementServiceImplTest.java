@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.certificate.management.core.exception.Certificat
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.core.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.util.TestUtil;
-import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
@@ -60,7 +59,6 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDA
  * It contains unit tests to verify the functionality of the methods
  * in the CertificateManagementServiceImpl class.
  */
-@WithAxisConfiguration
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
 public class CertificateManagementServiceImplTest {

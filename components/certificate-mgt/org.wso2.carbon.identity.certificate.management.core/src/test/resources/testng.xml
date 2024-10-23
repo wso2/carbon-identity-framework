@@ -23,6 +23,8 @@
         <classes>
             <class name="org.wso2.carbon.identity.certificate.management.dao.CertificateManagementDAOImplTest"></class>
             <class name="org.wso2.carbon.identity.certificate.management.dao.ApplicationCertificateManagementDAOImplTest"></class>
+            <class name="org.wso2.carbon.identity.certificate.management.dao.CacheBackedCertificateMgtDAOTest"></class>
+            <class name="org.wso2.carbon.identity.certificate.management.dao.CacheBackedApplicationCertificateMgtDAOTest"></class>
             <class name="org.wso2.carbon.identity.certificate.management.CertificateManagementServiceImplTest"></class>
             <class name="org.wso2.carbon.identity.certificate.management.ApplicationCertificateManagementServiceImplTest"></class>
             <class name="org.wso2.carbon.identity.certificate.management.util.CertificateValidatorTest"></class>

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.certificate.management.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificate.management.core.constant.CertificateMgtErrors;
+import org.wso2.carbon.identity.certificate.management.core.dao.impl.CacheBackedCertificateMgtDAO;
 import org.wso2.carbon.identity.certificate.management.core.dao.impl.CertificateManagementDAOImpl;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.core.exception.CertificateMgtException;
@@ -38,11 +39,10 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
 
     private static final Log LOG = LogFactory.getLog(CertificateManagementServiceImpl.class);
     private static final CertificateManagementService INSTANCE = new CertificateManagementServiceImpl();
-    private final CertificateManagementDAOImpl certificateDAO;
+    private static final CacheBackedCertificateMgtDAO CACHE_BACKED_DAO =
+            new CacheBackedCertificateMgtDAO(new CertificateManagementDAOImpl());
 
     private CertificateManagementServiceImpl() {
-
-        certificateDAO = new CertificateManagementDAOImpl();
     }
 
     public static CertificateManagementService getInstance() {
@@ -64,7 +64,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
         LOG.debug("Adding certificate with name: " + certificate.getName());
         doPreAddCertificateValidations(certificate);
         String generatedCertificateId = UUID.randomUUID().toString();
-        certificateDAO.addCertificate(generatedCertificateId, certificate,
+        CACHE_BACKED_DAO.addCertificate(generatedCertificateId, certificate,
                 IdentityTenantUtil.getTenantId(tenantDomain));
 
         return generatedCertificateId;
@@ -82,7 +82,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     public Certificate getCertificate(String certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Retrieving certificate with id: " + certificateId);
-        Certificate certificate = certificateDAO.getCertificate(certificateId,
+        Certificate certificate = CACHE_BACKED_DAO.getCertificate(certificateId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             LOG.debug("No certificate found for the id: " + certificateId);
@@ -108,7 +108,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
         LOG.debug("Updating certificate with id: " + certificateId);
         checkIfCertificateExists(certificateId, tenantDomain);
         CertificateValidator.validateCertificateContent(certificateContent);
-        certificateDAO.updateCertificateContent(certificateId, certificateContent,
+        CACHE_BACKED_DAO.updateCertificateContent(certificateId, certificateContent,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -123,7 +123,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     public void deleteCertificate(String certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Deleting certificate with id: " + certificateId);
-        certificateDAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
+        CACHE_BACKED_DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**
@@ -147,7 +147,7 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
      */
     private void checkIfCertificateExists(String certificateId, String tenantDomain) throws CertificateMgtException {
 
-        Certificate certificate = certificateDAO.getCertificate(certificateId,
+        Certificate certificate = CACHE_BACKED_DAO.getCertificate(certificateId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,

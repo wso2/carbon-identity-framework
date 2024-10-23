@@ -45,6 +45,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
 
 /**
@@ -55,10 +56,8 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDA
 public class CertificateManagementDAOImplTest {
 
     private static final String DB_NAME = "certificate_mgt_dao";
-    private static final int TENANT_ID = 2;
 
     private String certificateId;
-    private String otherCertificateId;
     private Connection connection;
     private DataSource dataSource;
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
@@ -81,7 +80,7 @@ public class CertificateManagementDAOImplTest {
         identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
         identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
         mockDBConnection();
-        identityTenantUtil.when(()-> IdentityTenantUtil.getTenantId(anyString())).thenReturn(TENANT_ID);
+        identityTenantUtil.when(()-> IdentityTenantUtil.getTenantId(anyString())).thenReturn(TEST_TENANT_ID);
     }
 
     @AfterMethod
@@ -105,13 +104,13 @@ public class CertificateManagementDAOImplTest {
                 .name(CERTIFICATE_NAME)
                 .certificate(CERTIFICATE)
                 .build();
-        certificateMgtDAOImpl.addCertificate(certificateId, creatingCertificate, TENANT_ID);
+        certificateMgtDAOImpl.addCertificate(certificateId, creatingCertificate, TEST_TENANT_ID);
     }
 
     @Test(priority = 2)
     public void testGetCertificate() throws CertificateMgtException {
 
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TENANT_ID);
+        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TEST_TENANT_ID);
         Assert.assertEquals(certificate.getId(), certificateId);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
         Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
@@ -127,15 +126,15 @@ public class CertificateManagementDAOImplTest {
                 .certificate(CERTIFICATE)
                 .build();
 
-        certificateMgtDAOImpl.addCertificate(null, creatingCertificate, TENANT_ID);
+        certificateMgtDAOImpl.addCertificate(null, creatingCertificate, TEST_TENANT_ID);
     }
 
     @Test(priority = 4)
     public void testUpdateCertificateContent() throws CertificateMgtException, SQLException {
 
-        certificateMgtDAOImpl.updateCertificateContent(certificateId, UPDATED_CERTIFICATE, TENANT_ID);
+        certificateMgtDAOImpl.updateCertificateContent(certificateId, UPDATED_CERTIFICATE, TEST_TENANT_ID);
         mockDBConnection();
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TENANT_ID);
+        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TEST_TENANT_ID);
         Assert.assertEquals(certificate.getId(), certificateId);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
         Assert.assertEquals(certificate.getCertificate(), UPDATED_CERTIFICATE);
@@ -144,9 +143,9 @@ public class CertificateManagementDAOImplTest {
     @Test(priority = 6)
     public void testDeleteCertificate() throws CertificateMgtException, SQLException {
 
-        certificateMgtDAOImpl.deleteCertificate(certificateId, TENANT_ID);
+        certificateMgtDAOImpl.deleteCertificate(certificateId, TEST_TENANT_ID);
         mockDBConnection();
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TENANT_ID);
+        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TEST_TENANT_ID);
         Assert.assertNull(certificate);
     }
 
