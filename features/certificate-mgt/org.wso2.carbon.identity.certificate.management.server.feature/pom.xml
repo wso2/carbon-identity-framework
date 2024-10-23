@@ -35,7 +35,7 @@
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.certificate.management.core</artifactId>
+            <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
         </dependency>
     </dependencies>
 
@@ -62,7 +62,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>
-                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.certificate.management.core
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.certificate.management
                                 </bundleDef>
                             </bundles>
                         </configuration>

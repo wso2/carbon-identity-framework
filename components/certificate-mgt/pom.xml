@@ -37,6 +37,6 @@
     <url>http://wso2.org</url>
 
     <modules>
-        <module>org.wso2.carbon.identity.certificate.management.core</module>
+        <module>org.wso2.carbon.identity.certificate.management</module>
     </modules>
 </project>
