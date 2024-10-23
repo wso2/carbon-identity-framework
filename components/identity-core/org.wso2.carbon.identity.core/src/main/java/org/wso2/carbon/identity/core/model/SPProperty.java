@@ -21,12 +21,12 @@ package org.wso2.carbon.identity.core.model;
 /**
  * This class represents a tuple of key and value.
  */
-public class ConfigTuple {
+public class SPProperty {
 
     private String key;
     private String value;
 
-    public ConfigTuple(String key, String value) {
+    public SPProperty(String key, String value) {
         this.key = key;
         this.value = value;
     }

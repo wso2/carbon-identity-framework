@@ -671,55 +671,55 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     /**
      * Get optional configs of the SAML SSO IdP.
      *
-     * @return List of ConfigTuples.
+     * @return List of SPProperty.
      */
-    public List<ConfigTuple> getCustomAttributes() {
+    public List<SPProperty> getMultiValuedProperties() {
 
-        List<ConfigTuple> customAttributes = new ArrayList<>();
+        List<SPProperty> multiValuedProperties = new ArrayList<>();
 
         // Multi-valued attributes.
         getAssertionConsumerUrlList().forEach(assertionConUrl ->
-                putIfNotNull(customAttributes, ASSERTION_CONSUMER_URLS,
+                putIfNotNull(multiValuedProperties, ASSERTION_CONSUMER_URLS,
                         assertionConUrl));
         getRequestedRecipientsList().forEach(requestedRecipient ->
-                putIfNotNull(customAttributes, RECIPIENTS,
+                putIfNotNull(multiValuedProperties, RECIPIENTS,
                         requestedRecipient));
         getRequestedAudiencesList().forEach(requestedAudience ->
-                putIfNotNull(customAttributes, AUDIENCES,
+                putIfNotNull(multiValuedProperties, AUDIENCES,
                         requestedAudience));
         getIdpInitSLOReturnToURLList().forEach(idpInitSLOReturnToURL ->
-                putIfNotNull(customAttributes, SLO_RETURN_TO_URLS,
+                putIfNotNull(multiValuedProperties, SLO_RETURN_TO_URLS,
                         idpInitSLOReturnToURL));
 
-        return customAttributes;
+        return multiValuedProperties;
     }
 
     /**
-     * Add a list of custom attributes.
+     * Add a list of multivalued properties.
      *
-     * @param customAttributes List of ConfigTuples.
+     * @param multiValuedProperties List of SPProperty.
      */
-    public void addCustomAttributes(List<ConfigTuple> customAttributes) {
+    public void addMultiValuedProperties(List<SPProperty> multiValuedProperties) {
 
-        if (customAttributes == null) {
+        if (multiValuedProperties == null) {
             return;
         }
 
-        customAttributes.forEach(this::addCustomAttribute);
+        multiValuedProperties.forEach(this::addMultiValuedProperty);
     }
 
 /**
-     * Add a custom attribute.
+     * Add a multivalued property.
      *
-     * @param customAttribute ConfigTuple.
+     * @param multiValuedProperty SPProperty.
      */
-    private void addCustomAttribute(ConfigTuple customAttribute) {
+    private void addMultiValuedProperty(SPProperty multiValuedProperty) {
 
-        if (customAttribute == null) {
+        if (multiValuedProperty == null) {
             return;
         }
-        String key = customAttribute.getKey();
-        String value = customAttribute.getValue();
+        String key = multiValuedProperty.getKey();
+        String value = multiValuedProperty.getValue();
 
         if (ASSERTION_CONSUMER_URLS.equals(key)) {
             List<String> attributeList = getAssertionConsumerUrlList();
@@ -755,14 +755,14 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     /**
      * Put a key value pair to a list if the value is not null.
      *
-     * @param list  List of ConfigTuples.
+     * @param list  List of SPProperty.
      * @param key   Key.
      * @param value Value.
      */
-    private void putIfNotNull(List<ConfigTuple> list, String key, String value) {
+    private void putIfNotNull(List<SPProperty> list, String key, String value) {
 
         if (StringUtils.isNotBlank(value)) {
-            list.add(new ConfigTuple(key, value));
+            list.add(new SPProperty(key, value));
         }
     }
 }
