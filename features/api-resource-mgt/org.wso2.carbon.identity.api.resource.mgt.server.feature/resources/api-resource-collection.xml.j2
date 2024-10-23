@@ -568,6 +568,25 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="tenants" displayName="Root Organizations" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:tenants"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_modify_tenants"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_modify_tenants"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_create_tenants"/>
+            </Create>
+            <Read>
+                <Scope name="internal_list_tenants"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 <!--    Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>
