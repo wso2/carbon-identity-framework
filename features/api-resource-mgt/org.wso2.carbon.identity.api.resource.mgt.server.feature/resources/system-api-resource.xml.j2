@@ -1054,6 +1054,24 @@
                    description="Manage email templates in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SMS Template Management Feature" identifier="console:smsTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the SMS Template Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="SMS Template Feature" name="console:smsTemplates"
+                   description="Manage SMS templates from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="SMS Template Management Feature" identifier="console:org:smsTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the SMS Template Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="SMS Template Feature" name="console:org:smsTemplates"
+                   description="Manage SMS templates in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:settings"
                  requiresAuthorization="true"
                  description="Resource representation of the Console Setting Management Feature"
