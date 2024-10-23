@@ -23,12 +23,10 @@ package org.wso2.carbon.identity.certificate.management.model;
  */
 public class Certificate {
 
-    private String id;
-    private String name;
-    private String certificate;
-
-    public Certificate() {
-    }
+    private final String id;
+    private final String name;
+    // Certificates only in PEM format are allowed.
+    private final String certificate;
 
     public Certificate(Builder certificateBuilder) {
 
@@ -75,6 +73,7 @@ public class Certificate {
 
         public Builder certificate(String certificate) {
 
+            // Certificates only in PEM format are allowed.
             this.certificate = certificate;
             return this;
         }
