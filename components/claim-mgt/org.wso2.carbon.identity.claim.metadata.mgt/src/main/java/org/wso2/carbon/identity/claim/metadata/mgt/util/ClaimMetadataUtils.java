@@ -326,6 +326,12 @@ public class ClaimMetadataUtils {
         return claimMapping;
     }
 
+    /**
+     * This method is used to build system default claims from claim config.
+     *
+     * @param claimConfig Claim Mapping
+     * @return Claim Dialect
+     */
     public static Map<String, List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim>> getClaimsMapFromClaimConfig
             (ClaimConfig claimConfig) {
 
@@ -344,8 +350,7 @@ public class ClaimMetadataUtils {
                     claim = createExternalClaim(claimKey, filterClaimProperties(claimConfig.getPropertyHolderMap()
                             .get(claimKey)));
                 }
-                claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>());
-                claims.get(claimDialectURI).add(claim);
+                claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
             }
         }
         return claims;
