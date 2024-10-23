@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.core.dao;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -31,14 +29,11 @@ import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.DatabaseCertificateRetriever;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.ConfigTuple;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.Tenant;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.security.cert.X509Certificate;
 import java.sql.Connection;
@@ -47,7 +42,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
@@ -87,12 +81,10 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
     private static final Log log = LogFactory.getLog(SAMLSSOServiceProviderDAOImpl.class);
     private final int tenantId;
-
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
             "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
-
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 = "SELECT " +
             "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
@@ -105,48 +97,22 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     @Override
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
 
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
+        validateServiceProvider(serviceProviderDO);
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
-                // Check whether the issuer already exists.
                 if (processIsServiceProviderExists(connection, serviceProviderDO.getIssuer())) {
                     if (log.isDebugEnabled()) {
-                        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                    + serviceProviderDO.getIssuerQualifier());
-                        } else {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + serviceProviderDO.getIssuer());
-                        }
+                        log.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
                     }
                     return false;
                 }
                 processAddServiceProvider(connection, serviceProviderDO);
-                // Add custom properties.
-                int serviceProviderId = processGetServiceProviderId(connection, serviceProviderDO.getIssuer());
-                processAddCustomAttributes(connection, serviceProviderDO);
+                processAddSPProperties(connection, serviceProviderDO);
 
                 IdentityDatabaseUtil.commitTransaction(connection);
                 if (log.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
-                                serviceProviderDO.getIssuerQualifier() + " is added successfully.");
-                    } else {
-                        log.debug(
-                                "SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
-                    }
+                    log.debug(serviceProviderInfo(serviceProviderDO) + " is added successfully.");
                 }
             } catch (SQLException e) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
@@ -154,14 +120,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             }
             return true;
         } catch (SQLException e) {
-            String msg;
-            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                msg = "Error while adding SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
-                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
-                        .getIssuerQualifier();
-            } else {
-                msg = "Error while adding SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
-            }
+            String msg = "Error while adding " + serviceProviderInfo(serviceProviderDO);
             log.error(msg, e);
             throw new IdentityException(msg, e);
         }
@@ -171,51 +130,25 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer)
             throws IdentityException {
 
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
+        validateServiceProvider(serviceProviderDO);
 
         String newIssuer = serviceProviderDO.getIssuer();
 
         boolean isIssuerUpdated = !StringUtils.equals(currentIssuer, newIssuer);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
-                // Check if the updated issuer value already exists.
                 if (isIssuerUpdated && processIsServiceProviderExists(connection, newIssuer)) {
                     if (log.isDebugEnabled()) {
-                        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                    + serviceProviderDO.getIssuerQualifier());
-                        } else {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + serviceProviderDO.getIssuer());
-                        }
+                        log.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
                     }
                     return false;
                 }
                 int serviceProviderId = processGetServiceProviderId(connection, currentIssuer);
-                // Update the resource.
                 processUpdateServiceProvider(connection, serviceProviderDO, serviceProviderId);
-                // Update custom properties.
-                processUpdateCustomAttributes(connection, serviceProviderDO, serviceProviderId);
+                processUpdateSPProperties(connection, serviceProviderDO, serviceProviderId);
                 IdentityDatabaseUtil.commitTransaction(connection);
                 if (log.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
-                                serviceProviderDO.getIssuerQualifier() + " is updated successfully.");
-                    } else {
-                        log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() +
-                                " is updated successfully.");
-                    }
+                    log.debug(serviceProviderInfo(serviceProviderDO) + " is updated successfully.");
                 }
                 return true;
             } catch (SQLException e) {
@@ -223,14 +156,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
                 throw e;
             }
         } catch (SQLException e) {
-            String msg;
-            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                msg = "Error while updating SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
-                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
-                        .getIssuerQualifier();
-            } else {
-                msg = "Error while updating SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
-            }
+            String msg = "Error while updating " + serviceProviderInfo(serviceProviderDO);
             log.error(msg, e);
             throw new IdentityException(msg, e);
         }
@@ -263,7 +189,6 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
                 }
                 return false;
             }
-
             processDeleteServiceProvider(connection, issuer);
             return true;
         } catch (SQLException e) {
@@ -283,8 +208,8 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
                 serviceProviderDO = processGetServiceProvider(connection, issuer);
             }
         } catch (SQLException e) {
-            throw IdentityException.error(String.format("An error occurred while getting the " +
-                    "application certificate id for validating the requests from the issuer '%s'", issuer), e);
+            throw IdentityException.error(String.format("An error occurred while retrieving the " +
+                    "the service provider with the issuer '%s'", issuer), e);
         }
         if (serviceProviderDO == null) {
             return null;
@@ -292,7 +217,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         try {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            // Load the certificate stored in the database, if signature validation is enabled..
+            // Load the certificate stored in the database, if signature validation is enabled.
             if (serviceProviderDO.isDoValidateSignatureInRequests() ||
                     serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
                     serviceProviderDO.isDoEnableEncryptedAssertion()) {
@@ -309,78 +234,6 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     }
 
     @Override
-    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
-            throws IdentityException {
-
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
-
-        if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null || StringUtils.isBlank(
-                serviceProviderDO.getDefaultAssertionConsumerUrl())) {
-            throw new IdentityException("No default assertion consumer URL provided for service provider :" +
-                    serviceProviderDO.getIssuer());
-        }
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
-                // Check whether the issuer already exists.
-                if (processIsServiceProviderExists(connection, serviceProviderDO.getIssuer())) {
-                    if (log.isDebugEnabled()) {
-                        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                    + serviceProviderDO.getIssuerQualifier());
-                        } else {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + serviceProviderDO.getIssuer());
-                        }
-                    }
-                    throw IdentityException.error("A Service Provider already exists.");
-                }
-
-                processAddServiceProvider(connection, serviceProviderDO);
-                // Add custom properties.
-                int serviceProviderId = processGetServiceProviderId(connection, serviceProviderDO.getIssuer());
-                processAddCustomAttributes(connection, serviceProviderDO);
-
-                IdentityDatabaseUtil.commitTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
-                                serviceProviderDO.getIssuerQualifier() + " is added successfully.");
-                    } else {
-                        log.debug(
-                                "SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
-                    }
-                }
-                return serviceProviderDO;
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw e;
-            }
-        } catch (SQLException e) {
-            String msg;
-            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                msg = "Error while adding SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
-                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
-                        .getIssuerQualifier();
-            } else {
-                msg = "Error while adding SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
-            }
-            log.error(msg, e);
-            throw new IdentityException(msg, e);
-        }
-    }
-
-    @Override
     public boolean isServiceProviderExists(String issuer) throws IdentityException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -392,7 +245,44 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         }
     }
 
-    // Private methods
+    @Override
+    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
+            throws IdentityException {
+
+        validateServiceProvider(serviceProviderDO);
+        if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null || StringUtils.isBlank(
+                serviceProviderDO.getDefaultAssertionConsumerUrl())) {
+            throw new IdentityException("No default assertion consumer URL provided for service provider :" +
+                    serviceProviderDO.getIssuer());
+        }
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try {
+                if (processIsServiceProviderExists(connection, serviceProviderDO.getIssuer())) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
+                    }
+                    throw IdentityException.error("A Service Provider already exists.");
+                }
+
+                processAddServiceProvider(connection, serviceProviderDO);
+                processAddSPProperties(connection, serviceProviderDO);
+
+                IdentityDatabaseUtil.commitTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug(serviceProviderInfo(serviceProviderDO) + " is added successfully.");
+                }
+                return serviceProviderDO;
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw e;
+            }
+        } catch (SQLException e) {
+            String msg = "Error while adding " + serviceProviderInfo(serviceProviderDO);
+            log.error(msg, e);
+            throw new IdentityException(msg, e);
+        }
+    }
 
     private boolean processIsServiceProviderExists(Connection connection, String issuer) throws SQLException {
 
@@ -411,206 +301,50 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         return isExist;
     }
 
-    private int processGetServiceProviderId(Connection connection, String issuer) throws SQLException {
+    private void validateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
 
-        int serviceProviderId;
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    serviceProviderId = resultSet.getInt(ID);
-                } else {
-                    throw new SQLException("Error while retrieving the service provider ID for issuer: " + issuer);
-                }
-            }
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
+                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
+            throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
-        return serviceProviderId;
-    }
 
-    private void processAddServiceProvider(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO)
-            throws SQLException {
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML2_SSO_CONFIG)) {
-            statement.setInt(TENANT_ID, tenantId);
-            statement.setString(ISSUER, serviceProviderDO.getIssuer());
-            statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
-            statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
-            statement.setString(CERT_ALIAS, serviceProviderDO.getCertAlias());
-            statement.setBoolean(REQ_SIG_VALIDATION, serviceProviderDO.isDoValidateSignatureInRequests());
-            statement.setBoolean(SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
-            statement.setString(SIGNING_ALGO, serviceProviderDO.getSigningAlgorithmUri());
-            statement.setString(DIGEST_ALGO, serviceProviderDO.getDigestAlgorithmUri());
-            statement.setBoolean(ENCRYPT_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
-            statement.setString(ASSERTION_ENCRYPTION_ALGO, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
-            statement.setString(KEY_ENCRYPTION_ALGO, serviceProviderDO.getKeyEncryptionAlgorithmUri());
-            statement.setBoolean(ATTR_PROFILE_ENABLED, serviceProviderDO.isEnableAttributesByDefault());
-            statement.setString(ATTR_SERVICE_INDEX, serviceProviderDO.getAttributeConsumingServiceIndex());
-            statement.setBoolean(SLO_PROFILE_ENABLED, serviceProviderDO.isDoSingleLogout());
-            statement.setString(SLO_METHOD, serviceProviderDO.getSingleLogoutMethod());
-            statement.setString(SLO_RESPONSE_URL, serviceProviderDO.getSloResponseURL());
-            statement.setString(SLO_REQUEST_URL, serviceProviderDO.getSloRequestURL());
-            statement.setBoolean(IDP_INIT_SSO_ENABLED, serviceProviderDO.isIdPInitSSOEnabled());
-            statement.setBoolean(IDP_INIT_SLO_ENABLED, serviceProviderDO.isIdPInitSLOEnabled());
-            statement.setBoolean(QUERY_REQUEST_PROFILE_ENABLED,
-                    serviceProviderDO.isAssertionQueryRequestProfileEnabled());
-            statement.setBoolean(ECP_ENABLED, serviceProviderDO.isSamlECP());
-            statement.setBoolean(ARTIFACT_BINDING_ENABLED, serviceProviderDO.isEnableSAML2ArtifactBinding());
-            statement.setBoolean(ARTIFACT_RESOLVE_REQ_SIG_VALIDATION,
-                    serviceProviderDO.isDoValidateSignatureInArtifactResolve());
-            statement.setString(IDP_ENTITY_ID_ALIAS, serviceProviderDO.getIdpEntityIDAlias());
-            statement.setString(ISSUER_QUALIFIER, serviceProviderDO.getIssuerQualifier());
-            statement.setString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
-                    serviceProviderDO.getSupportedAssertionQueryRequestTypes());
-
-            statement.executeUpdate();
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            serviceProviderDO.setIssuer(
+                    getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier()));
         }
     }
 
-    private void processAddCustomAttributes(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO)
-            throws SQLException {
+    private String serviceProviderInfo(SAMLSSOServiceProviderDO serviceProviderDO) {
 
-        List<ConfigTuple> customAttributes = serviceProviderDO.getCustomAttributes();
-        int serviceProviderId = processGetServiceProviderId(connection, serviceProviderDO.getIssuer());
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR)) {
-
-            for (ConfigTuple customAttribute : customAttributes) {
-                String key = customAttribute.getKey();
-                String value = customAttribute.getValue();
-                statement.setInt(SP_ID, serviceProviderId);
-                statement.setString(PROPERTY_NAME, key);
-                statement.setString(PROPERTY_VALUE, value);
-                statement.addBatch();
-            }
-            statement.executeBatch();
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            return "SAML2 Service Provider with issuer: " + getIssuerWithoutQualifier
+                    (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
+                    .getIssuerQualifier();
+        } else {
+            return "SAML2 Service Provider with issuer: " + serviceProviderDO.getIssuer();
         }
     }
 
-    private void processUpdateServiceProvider(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
-                                              int serviceProviderId) throws SQLException {
+    /**
+     * Get the issuer value to be added to registry by appending the qualifier.
+     *
+     * @param issuer value given as 'issuer' when configuring SAML SP.
+     * @return issuer value with qualifier appended.
+     */
+    private String getIssuerWithQualifier(String issuer, String qualifier) {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.UPDATE_SAML2_SSO_CONFIG)) {
-            statement.setInt(TENANT_ID, tenantId);
-            statement.setInt(ID, serviceProviderId);
-            statement.setString(ISSUER, serviceProviderDO.getIssuer());
-            statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
-            statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
-            statement.setString(CERT_ALIAS, serviceProviderDO.getCertAlias());
-            statement.setBoolean(REQ_SIG_VALIDATION, serviceProviderDO.isDoValidateSignatureInRequests());
-            statement.setBoolean(SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
-            statement.setString(SIGNING_ALGO, serviceProviderDO.getSigningAlgorithmUri());
-            statement.setString(DIGEST_ALGO, serviceProviderDO.getDigestAlgorithmUri());
-            statement.setBoolean(ENCRYPT_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
-            statement.setString(ASSERTION_ENCRYPTION_ALGO, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
-            statement.setString(KEY_ENCRYPTION_ALGO, serviceProviderDO.getKeyEncryptionAlgorithmUri());
-            statement.setBoolean(ATTR_PROFILE_ENABLED, serviceProviderDO.isEnableAttributesByDefault());
-            statement.setString(ATTR_SERVICE_INDEX, serviceProviderDO.getAttributeConsumingServiceIndex());
-            statement.setBoolean(SLO_PROFILE_ENABLED, serviceProviderDO.isDoSingleLogout());
-            statement.setString(SLO_METHOD, serviceProviderDO.getSingleLogoutMethod());
-            statement.setString(SLO_RESPONSE_URL, serviceProviderDO.getSloResponseURL());
-            statement.setString(SLO_REQUEST_URL, serviceProviderDO.getSloRequestURL());
-            statement.setBoolean(IDP_INIT_SSO_ENABLED, serviceProviderDO.isIdPInitSSOEnabled());
-            statement.setBoolean(IDP_INIT_SLO_ENABLED, serviceProviderDO.isIdPInitSLOEnabled());
-            statement.setBoolean(QUERY_REQUEST_PROFILE_ENABLED,
-                    serviceProviderDO.isAssertionQueryRequestProfileEnabled());
-            statement.setBoolean(ECP_ENABLED, serviceProviderDO.isSamlECP());
-            statement.setBoolean(ARTIFACT_BINDING_ENABLED, serviceProviderDO.isEnableSAML2ArtifactBinding());
-            statement.setBoolean(ARTIFACT_RESOLVE_REQ_SIG_VALIDATION,
-                    serviceProviderDO.isDoValidateSignatureInArtifactResolve());
-            statement.setString(IDP_ENTITY_ID_ALIAS, serviceProviderDO.getIdpEntityIDAlias());
-            statement.setString(ISSUER_QUALIFIER, serviceProviderDO.getIssuerQualifier());
-            statement.setString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
-                    serviceProviderDO.getSupportedAssertionQueryRequestTypes());
-
-            statement.executeUpdate();
-        }
+        return issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
     }
 
-    private void processUpdateCustomAttributes(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
-                                               int serviceProviderId) throws SQLException {
+    /**
+     * Get the issuer value by removing the qualifier.
+     *
+     * @param issuerWithQualifier issuer value saved in the registry.
+     * @return issuer value given as 'issuer' when configuring SAML SP.
+     */
+    private String getIssuerWithoutQualifier(String issuerWithQualifier) {
 
-        List<ConfigTuple> customAttributes = serviceProviderDO.getCustomAttributes();
-
-        // Delete existing custom attributes.
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR_BY_ID)) {
-            statement.setInt(SP_ID, serviceProviderId);
-            statement.executeUpdate();
-        }
-
-        // Add custom attributes as a batch.
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR)) {
-            for (ConfigTuple customAttribute : customAttributes) {
-                String key = customAttribute.getKey();
-                String value = customAttribute.getValue();
-                statement.setInt(SP_ID, serviceProviderId);
-                statement.setString(PROPERTY_NAME, key);
-                statement.setString(PROPERTY_VALUE, value);
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
-    }
-
-    private SAMLSSOServiceProviderDO processGetServiceProvider(Connection connection, String issuer)
-            throws SQLException {
-
-        SAMLSSOServiceProviderDO serviceProviderDO = null;
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    serviceProviderDO = resourceToObject(resultSet);
-                    serviceProviderDO = addProperties(connection, resultSet.getInt(1), serviceProviderDO);
-                }
-            }
-        }
-        return serviceProviderDO;
-    }
-
-    private List<SAMLSSOServiceProviderDO> processGetServiceProviders(Connection connection) throws SQLException {
-
-        List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIGS)) {
-            statement.setInt(TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    SAMLSSOServiceProviderDO serviceProviderDO = resourceToObject(resultSet);
-                    // Get custom attributes.
-                    serviceProviderDO = addProperties(connection, resultSet.getInt(1), serviceProviderDO);
-                    serviceProvidersList.add(serviceProviderDO);
-                }
-            }
-        }
-        return serviceProvidersList;
-    }
-
-    private void processDeleteServiceProvider(Connection connection, String issuer) throws SQLException {
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            statement.executeUpdate();
-        }
-
-        // Delete custom attributes.
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            statement.executeUpdate();
-        }
+        return StringUtils.substringBeforeLast(issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
     }
 
     private SAMLSSOServiceProviderDO resourceToObject(ResultSet resultSet) throws SQLException {
@@ -653,26 +387,196 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         return serviceProviderDO;
     }
 
-    /**
-     * Get the issuer value to be added to registry by appending the qualifier.
-     *
-     * @param issuer value given as 'issuer' when configuring SAML SP.
-     * @return issuer value with qualifier appended.
-     */
-    private String getIssuerWithQualifier(String issuer, String qualifier) {
+    private void addProperties(Connection connection, int serviceProviderId,
+                               SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
 
-        return issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
+        List<ConfigTuple> properties = new ArrayList<>();
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SSO_ATTR_BY_ID)) {
+            statement.setInt(SP_ID, serviceProviderId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String key = resultSet.getString(PROPERTY_NAME);
+                    String value = resultSet.getString(PROPERTY_VALUE);
+                    properties.add(new ConfigTuple(key, value));
+                }
+                serviceProviderDO.addCustomAttributes(properties);
+            }
+        }
     }
 
-    /**
-     * Get the issuer value by removing the qualifier.
-     *
-     * @param issuerWithQualifier issuer value saved in the registry.
-     * @return issuer value given as 'issuer' when configuring SAML SP.
-     */
-    private String getIssuerWithoutQualifier(String issuerWithQualifier) {
+    private void setServiceProviderParameters(NamedPreparedStatement statement,
+                                              SAMLSSOServiceProviderDO serviceProviderDO)
+            throws SQLException {
 
-        return StringUtils.substringBeforeLast(issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
+        statement.setInt(TENANT_ID, tenantId);
+        statement.setString(ISSUER, serviceProviderDO.getIssuer());
+        statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
+        statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
+        statement.setString(CERT_ALIAS, serviceProviderDO.getCertAlias());
+        statement.setBoolean(REQ_SIG_VALIDATION, serviceProviderDO.isDoValidateSignatureInRequests());
+        statement.setBoolean(SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
+        statement.setString(SIGNING_ALGO, serviceProviderDO.getSigningAlgorithmUri());
+        statement.setString(DIGEST_ALGO, serviceProviderDO.getDigestAlgorithmUri());
+        statement.setBoolean(ENCRYPT_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
+        statement.setString(ASSERTION_ENCRYPTION_ALGO, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
+        statement.setString(KEY_ENCRYPTION_ALGO, serviceProviderDO.getKeyEncryptionAlgorithmUri());
+        statement.setBoolean(ATTR_PROFILE_ENABLED, serviceProviderDO.isEnableAttributesByDefault());
+        statement.setString(ATTR_SERVICE_INDEX, serviceProviderDO.getAttributeConsumingServiceIndex());
+        statement.setBoolean(SLO_PROFILE_ENABLED, serviceProviderDO.isDoSingleLogout());
+        statement.setString(SLO_METHOD, serviceProviderDO.getSingleLogoutMethod());
+        statement.setString(SLO_RESPONSE_URL, serviceProviderDO.getSloResponseURL());
+        statement.setString(SLO_REQUEST_URL, serviceProviderDO.getSloRequestURL());
+        statement.setBoolean(IDP_INIT_SSO_ENABLED, serviceProviderDO.isIdPInitSSOEnabled());
+        statement.setBoolean(IDP_INIT_SLO_ENABLED, serviceProviderDO.isIdPInitSLOEnabled());
+        statement.setBoolean(QUERY_REQUEST_PROFILE_ENABLED,
+                serviceProviderDO.isAssertionQueryRequestProfileEnabled());
+        statement.setBoolean(ECP_ENABLED, serviceProviderDO.isSamlECP());
+        statement.setBoolean(ARTIFACT_BINDING_ENABLED, serviceProviderDO.isEnableSAML2ArtifactBinding());
+        statement.setBoolean(ARTIFACT_RESOLVE_REQ_SIG_VALIDATION,
+                serviceProviderDO.isDoValidateSignatureInArtifactResolve());
+        statement.setString(IDP_ENTITY_ID_ALIAS, serviceProviderDO.getIdpEntityIDAlias());
+        statement.setString(ISSUER_QUALIFIER, serviceProviderDO.getIssuerQualifier());
+        statement.setString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
+                serviceProviderDO.getSupportedAssertionQueryRequestTypes());
+    }
+
+    private int processGetServiceProviderId(Connection connection, String issuer) throws SQLException {
+
+        int serviceProviderId;
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER)) {
+            statement.setString(ISSUER, issuer);
+            statement.setInt(TENANT_ID, tenantId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    serviceProviderId = resultSet.getInt(ID);
+                } else {
+                    throw new SQLException("Error while retrieving the service provider ID for issuer: " + issuer);
+                }
+            }
+        }
+        return serviceProviderId;
+    }
+
+    private void processAddServiceProvider(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO)
+            throws SQLException {
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML2_SSO_CONFIG)) {
+            setServiceProviderParameters(statement, serviceProviderDO);
+            statement.executeUpdate();
+        }
+    }
+
+    private void processAddSPProperties(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO)
+            throws SQLException {
+
+        List<ConfigTuple> properties = serviceProviderDO.getCustomAttributes();
+        int serviceProviderId = processGetServiceProviderId(connection, serviceProviderDO.getIssuer());
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR)) {
+
+            for (ConfigTuple property : properties) {
+                String key = property.getKey();
+                String value = property.getValue();
+                statement.setInt(SP_ID, serviceProviderId);
+                statement.setString(PROPERTY_NAME, key);
+                statement.setString(PROPERTY_VALUE, value);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private void processUpdateServiceProvider(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
+                                              int serviceProviderId) throws SQLException {
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.UPDATE_SAML2_SSO_CONFIG)) {
+            statement.setInt(ID, serviceProviderId);
+            setServiceProviderParameters(statement, serviceProviderDO);
+            statement.executeUpdate();
+        }
+    }
+
+    private void processUpdateSPProperties(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
+                                           int serviceProviderId) throws SQLException {
+
+        List<ConfigTuple> properties = serviceProviderDO.getCustomAttributes();
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR_BY_ID)) {
+            statement.setInt(SP_ID, serviceProviderId);
+            statement.executeUpdate();
+        }
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR)) {
+            for (ConfigTuple property : properties) {
+                String key = property.getKey();
+                String value = property.getValue();
+                statement.setInt(SP_ID, serviceProviderId);
+                statement.setString(PROPERTY_NAME, key);
+                statement.setString(PROPERTY_VALUE, value);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private SAMLSSOServiceProviderDO processGetServiceProvider(Connection connection, String issuer)
+            throws SQLException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = null;
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIG_BY_ISSUER)) {
+            statement.setString(ISSUER, issuer);
+            statement.setInt(TENANT_ID, tenantId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    serviceProviderDO = resourceToObject(resultSet);
+                    addProperties(connection, resultSet.getInt(1), serviceProviderDO);
+                }
+            }
+        }
+        return serviceProviderDO;
+    }
+
+    private List<SAMLSSOServiceProviderDO> processGetServiceProviders(Connection connection) throws SQLException {
+
+        List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIGS)) {
+            statement.setInt(TENANT_ID, tenantId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    SAMLSSOServiceProviderDO serviceProviderDO = resourceToObject(resultSet);
+                    addProperties(connection, resultSet.getInt(1), serviceProviderDO);
+                    serviceProvidersList.add(serviceProviderDO);
+                }
+            }
+        }
+        return serviceProvidersList;
+    }
+
+    private void processDeleteServiceProvider(Connection connection, String issuer) throws SQLException {
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML2_SSO_CONFIG_BY_ISSUER)) {
+            statement.setString(ISSUER, issuer);
+            statement.setInt(TENANT_ID, tenantId);
+            statement.executeUpdate();
+        }
+
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR)) {
+            statement.setString(ISSUER, issuer);
+            statement.setInt(TENANT_ID, tenantId);
+            statement.executeUpdate();
+        }
     }
 
     /**
@@ -735,24 +639,5 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
                     " and tenant Id: " + tenantId;
             throw new SQLException(errorMsg, e);
         }
-    }
-
-    private SAMLSSOServiceProviderDO addProperties(Connection connection, int serviceProviderId,
-                                                   SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
-
-        List<ConfigTuple> customAttributes = new ArrayList<>();
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SSO_ATTR_BY_ID)) {
-            statement.setInt(SP_ID, serviceProviderId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    String key = resultSet.getString(PROPERTY_NAME);
-                    String value = resultSet.getString(PROPERTY_VALUE);
-                    customAttributes.add(new ConfigTuple(key, value));
-                }
-                serviceProviderDO.addCustomAttributes(customAttributes);
-            }
-        }
-        return serviceProviderDO;
     }
 }
