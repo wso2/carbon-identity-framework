@@ -91,7 +91,7 @@
                             "value": "redirect_uri"
                         }
                     ],
-                    "header": "Prerequites",
+                    "header": "Prerequisites",
                     "paragraphs": [
                         "Before you begin, create a <strong>Sign in With Apple</strong> enabled application on <a href=\"https://developer.apple.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Apple Developer Portal</a> with a <strong>Services ID</strong> and a <strong>Private Key</strong>."
                     ],

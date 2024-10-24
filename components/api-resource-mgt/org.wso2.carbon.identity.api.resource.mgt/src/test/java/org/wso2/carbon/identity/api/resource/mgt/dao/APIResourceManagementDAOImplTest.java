@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -27,6 +27,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -39,6 +40,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,9 @@ public class APIResourceManagementDAOImplTest {
     private static final String DB_NAME = "api_resource_mgt_dao_db";
     public static final String APIRESOURCE_IDENTIFIER = "testAPIResource identifier ";
     public static final String TEST_SCOPE_1 = "testScope1 ";
+    private static final String TENANT_TYPE = "TENANT";
+    private static final String ORGANIZATION_TYPE = "ORGANIZATION";
+    private static final String CONSOLE_ORG_LEVEL_TYPE = "CONSOLE_ORG_LEVEL";
     private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private APIResourceManagementDAOImpl daoImpl;
 
@@ -393,6 +398,51 @@ public class APIResourceManagementDAOImplTest {
 
     }
 
+    @DataProvider
+    public Object[][] updateAPIResourceScopeAddition() {
+
+        return new Object[][]{
+                {APIResourceManagementConstants.BUSINESS_TYPE},
+                {APIResourceManagementConstants.SYSTEM_TYPE},
+                {ORGANIZATION_TYPE},
+                {TENANT_TYPE},
+                {CONSOLE_ORG_LEVEL_TYPE}
+        };
+    }
+
+    @Test(dataProvider = "updateAPIResourceScopeAddition", priority = 14)
+    public void testUpdateAPIResourceScopeAddition(String type) throws Exception {
+
+        // Add API resource to database.
+        String apiNamePostFix = "update-scope-addition-test";
+        List<Scope> scopes = new ArrayList<>();
+        scopes.add(createScope("test_scope_1_" + apiNamePostFix));
+        scopes.add(createScope("test_scope_2_" + apiNamePostFix));
+        APIResource apiResource = addAPIResourceToDB(apiNamePostFix, scopes, type, getConnection(), TENANT_ID);
+
+        // Validate scopes count before update.
+        validateScopesCount(apiResource.getId(), 2);
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(getConnection());
+            Scope newScope = createScope("test_scope_3_" + apiNamePostFix);
+            apiResource.getScopes().add(newScope);
+
+            List<Scope> addedScopes = new ArrayList<>();
+            addedScopes.add(newScope);
+
+            // Update API resource with a new scope.
+            daoImpl.updateAPIResource(apiResource, addedScopes, Collections.emptyList(), TENANT_ID);
+        }
+
+        // Validate updated scopes count.
+        validateScopesCount(apiResource.getId(), 3);
+
+        // Delete API resource from database.
+        deleteAPIResourceFromDB(apiResource.getId(), TENANT_ID);
+    }
+
     /**
      * Create scope with the given name.
      *
@@ -426,6 +476,26 @@ public class APIResourceManagementDAOImplTest {
                 .identifier(APIRESOURCE_IDENTIFIER + postFix)
                 .description("testAPIResource description " + postFix)
                 .type("BUSINESS")
+                .requiresAuthorization(true)
+                .scopes(scopes);
+        return apiResourceBuilder.build();
+    }
+
+    /**
+     * Create API resource with the given postfix, scopes and type.
+     *
+     * @param postFix Postfix to be appended to each API resource and scope information.
+     * @param scopes  List of scopes.
+     * @param type    API resource type.
+     * @return API resource.
+     */
+    private static APIResource createAPIResource(String postFix, List<Scope> scopes, String type) {
+
+        APIResource.APIResourceBuilder apiResourceBuilder = new APIResource.APIResourceBuilder()
+                .name("Test API Resource Name " + postFix)
+                .identifier("/test/api/path/" + postFix)
+                .description("Test API Resource Description " + postFix)
+                .type(type)
                 .requiresAuthorization(true)
                 .scopes(scopes);
         return apiResourceBuilder.build();
@@ -468,6 +538,74 @@ public class APIResourceManagementDAOImplTest {
                     return null;
                 });
         return daoImpl.addAPIResource(apiResource, tenantId);
+    }
+
+    /**
+     * Add API resource to the database.
+     *
+     * @param namePostFix Postfix to be appended to each API resource and scope information.
+     * @param scopes      List of scopes.
+     * @param type        API resource type.
+     * @param connection  Database connection.
+     * @param tenantId    Tenant ID.
+     * @return API resource.
+     * @throws Exception Error when adding API resource.
+     */
+    private APIResource addAPIResourceToDB(String namePostFix, List<Scope> scopes, String type, Connection connection,
+                                           int tenantId) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            APIResource apiResource = createAPIResource(namePostFix, scopes, type);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.commitTransaction(any(Connection.class)))
+                    .thenAnswer((Answer<Void>) invocation -> {
+                        connection.commit();
+                        return null;
+                    });
+            return daoImpl.addAPIResource(apiResource, tenantId);
+        }
+
+    }
+
+    /**
+     * Delete API resource from the database.
+     *
+     * @param apiId    API resource ID.
+     * @param tenantId Tenant ID.
+     * @throws Exception Error when deleting API resource.
+     */
+    private void deleteAPIResourceFromDB(String apiId, int tenantId) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            Connection connection = getConnection();
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.commitTransaction(any(Connection.class)))
+                    .thenAnswer((Answer<Void>) invocation -> {
+                        connection.commit();
+                        return null;
+                    });
+            daoImpl.deleteAPIResourceById(apiId, tenantId);
+        }
+    }
+
+    /**
+     * Method to validate the number of scopes for a given API.
+     *
+     * @param apiId                  API resource ID.
+     * @param expectedNumberOfScopes Expected number of scopes.
+     * @throws Exception Error when validating scopes count.
+     */
+    private void validateScopesCount(String apiId, int expectedNumberOfScopes) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                    .thenReturn(getConnection());
+
+            List<Scope> scopesList = daoImpl.getScopesByAPI(apiId, TENANT_ID);
+            Assert.assertNotNull(scopesList);
+            Assert.assertEquals(scopesList.size(), expectedNumberOfScopes);
+        }
     }
 
     private static Connection getConnection() throws SQLException {

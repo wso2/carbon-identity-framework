@@ -30,13 +30,13 @@
     </test>
     <test name="action-execution-configuration-test">
         <classes>
-            <class name="org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilderFactoryTest"/>
-            <class name="org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessorFactoryTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactoryTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactoryTest"/>
         </classes>
     </test>
     <test name="action-execution-service-test">
         <classes>
-            <class name="org.wso2.carbon.identity.action.execution.ActionExecutorServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImplTest"/>
         </classes>
     </test>
 </suite>

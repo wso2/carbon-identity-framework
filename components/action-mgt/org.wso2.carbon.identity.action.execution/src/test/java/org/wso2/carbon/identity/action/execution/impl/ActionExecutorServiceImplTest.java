@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution;
+package org.wso2.carbon.identity.action.execution.impl;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,6 +28,8 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
+import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.internal.ActionExecutionServiceComponentHolder;
@@ -57,6 +59,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -90,6 +93,7 @@ public class ActionExecutorServiceImplTest {
     private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
 
     private MockedStatic<RequestFilter> requestFilter;
+    private MockedStatic<LoggerUtils> loggerUtils;
     private MockedStatic<ActionExecutionRequestBuilderFactory> actionExecutionRequestBuilderFactory;
     private MockedStatic<ActionExecutionResponseProcessorFactory> actionExecutionResponseProcessorFactory;
 
@@ -108,6 +112,8 @@ public class ActionExecutorServiceImplTest {
         setField(actionExecutorService, "apiClient", apiClient);
 
         requestFilter = mockStatic(RequestFilter.class);
+        loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(() -> LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
         actionExecutionRequestBuilderFactory = mockStatic(ActionExecutionRequestBuilderFactory.class);
         actionExecutionResponseProcessorFactory = mockStatic(ActionExecutionResponseProcessorFactory.class);
     }
@@ -116,6 +122,7 @@ public class ActionExecutorServiceImplTest {
     public void tearDown() {
 
         requestFilter.close();
+        loggerUtils.close();
         actionExecutionRequestBuilderFactory.close();
         actionExecutionResponseProcessorFactory.close();
         actionExecutorConfigStatic.close();

@@ -764,6 +764,29 @@
                     description="View email templates and types in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Notification Template Management API"
+                 identifier="/api/server/v(.*)/notification/(?:email|sms)/template-types" requiresAuthorization="true"
+                 description="API representation of the Notification Template Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Notification Template" name="internal_template_mgt_view"
+                   description="View notification templates and types in the organization (root)"/>
+            <Scope displayName="Create Notification Template" name="internal_template_mgt_create"
+                   description="Create new notification templates and types in the organization (root)"/>
+            <Scope displayName="Update Notification Template" name="internal_template_mgt_update"
+                   description="Update notification templates and types in the organization (root)"/>
+            <Scope displayName="Delete Notification Template" name="internal_template_mgt_delete"
+                   description="Delete notification templates and types in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Notification Template Management API"
+                 identifier="/o/api/server/v(.*)/notification/(?:email|sms)/template-types" requiresAuthorization="true"
+                 description="API representation of the Notification Template Management API"
+                 type="CONSOLE_ORG_LEVEL">
+        <Scopes>
+            <Scope displayName="View Notification Template" name="internal_org_template_mgt_view"
+                   description="View notification templates and types in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Entitlement Management API" identifier="/api/identity/entitlement/"
                  requiresAuthorization="true"
                  description="API representation of the Entitlement Management API" type="TENANT">
@@ -1045,6 +1068,24 @@
                    description="Manage email templates in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SMS Template Management Feature" identifier="console:smsTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the SMS Template Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="SMS Template Feature" name="console:smsTemplates"
+                   description="Manage SMS templates from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="SMS Template Management Feature" identifier="console:org:smsTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the SMS Template Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="SMS Template Feature" name="console:org:smsTemplates"
+                   description="Manage SMS templates in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:settings"
                  requiresAuthorization="true"
                  description="Resource representation of the Console Setting Management Feature"
@@ -1098,7 +1139,16 @@
             <Scope displayName="Action Feature" name="console:actions" 
                     description="Manage actions from the Console"/>
         </Scopes>
-    </APIResource> 
+    </APIResource>
+    <APIResource name="Tenant Management Feature" identifier="console:tenants"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Tenant Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Tenants Feature" name="console:tenants" 
+                   description="Manage tenants from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="ORGANIZATION">

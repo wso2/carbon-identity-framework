@@ -233,8 +233,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
                 } else {
                     throw new FrameworkException(
-                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
-                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode(), null);
+                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode(),
+                            FrameworkErrorConstants.ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(), null);
                 }
             }
                 /*

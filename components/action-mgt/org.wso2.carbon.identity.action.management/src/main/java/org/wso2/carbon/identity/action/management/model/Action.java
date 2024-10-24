@@ -33,31 +33,31 @@ public class Action  {
         PRE_ISSUE_ACCESS_TOKEN(
                 "preIssueAccessToken",
                 "PRE_ISSUE_ACCESS_TOKEN",
-                "Pre Issue Access Token.",
+                "Pre Issue Access Token",
                 "Configure an extension point for modifying access token via a custom service.",
                 Category.PRE_POST),
         PRE_UPDATE_PASSWORD(
                 "preUpdatePassword",
                 "PRE_UPDATE_PASSWORD",
-                "Pre Update Password.",
+                "Pre Update Password",
                 "Configure an extension point for modifying user password via a custom service.",
                 Category.PRE_POST),
         PRE_UPDATE_PROFILE(
                 "preUpdateProfile",
                 "PRE_UPDATE_PROFILE",
-                "Pre Update Profile.",
+                "Pre Update Profile",
                 "Configure an extension point for modifying user profile via a custom service.",
                 Category.PRE_POST),
         PRE_REGISTRATION(
                 "preRegistration",
                 "PRE_REGISTRATION",
-                "Pre Registration.",
+                "Pre Registration",
                 "Configure an extension point for modifying user registration via a custom service.",
                 Category.PRE_POST),
         AUTHENTICATION(
                 "authentication",
                 "AUTHENTICATION",
-                "Authentication.",
+                "Authentication",
                 "Configure an extension point for user authentication via a custom service.",
                 Category.IN_FLOW);
 

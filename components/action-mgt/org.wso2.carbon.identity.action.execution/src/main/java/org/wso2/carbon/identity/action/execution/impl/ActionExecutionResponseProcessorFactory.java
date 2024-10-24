@@ -16,8 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution;
+package org.wso2.carbon.identity.action.execution.impl;
 
+import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 
 import java.util.HashMap;
