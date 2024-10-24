@@ -27,15 +27,15 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.base.ServerConfiguration;
-import org.wso2.carbon.core.RegistryResources;
+import org.wso2.carbon.core.security.KeyStoreMetadata;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.keystore.service.CertData;
+import org.wso2.carbon.security.keystore.service.KeyStoreData;
 import org.wso2.carbon.security.keystore.service.PaginatedKeyStoreData;
 
 import java.io.File;
@@ -45,6 +45,8 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,12 +67,6 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     private ServerConfiguration serverConfiguration;
     @Mock
     private KeyStoreManager keyStoreManager;
-    @Mock
-    private Registry registry;
-    @Mock
-    private CryptoUtil cryptoUtil;
-    @Mock
-    private Resource resource;
     private KeyStoreAdmin keyStoreAdmin;
     private final int tenantID = -1234;
 
@@ -96,7 +92,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(false);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             keyStoreAdmin.addKeyStore(keyStoreContent, "new_keystore.jks", KEYSTORE_PASSWORD, " ", "JKS", KEYSTORE_PASSWORD);
         }
     }
@@ -114,7 +110,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(true);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             keyStoreAdmin.addTrustStore(keyStoreContent, "new_truststore.jks", KEYSTORE_PASSWORD, " ", "JKS");
         }
     }
@@ -128,7 +124,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(this.keyStoreManager.getTrustStore())
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             KeyStore result = keyStoreAdmin.getTrustStore();
 
             assertNotNull(result);
@@ -145,12 +141,43 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(this.keyStoreManager.getTrustStore())
                     .thenThrow(new CarbonException("Error occurred while retrieving TrustStore"));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             // Execute method under test
             assertThrows(SecurityConfigException.class, () -> {
                 keyStoreAdmin.getTrustStore();
             });
         }
+    }
+
+    @Test(description = "Test case to verify successful retrieval keystore metadata")
+    public void testGetKeyStoreMetadata() throws SecurityConfigException {
+
+        List<KeyStoreMetadata> metadataList = new ArrayList<>();
+        metadataList.add(getPrimaryKeyStoreMetadata());
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class)) {
+
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            when(this.keyStoreManager.getKeyStoresMetadata(true))
+                    .thenReturn(metadataList.toArray(new KeyStoreMetadata[0]));
+
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
+            KeyStoreData[] keyStores = keyStoreAdmin.getKeyStores(true);
+
+            assertEquals(keyStores.length, 1, "Incorrect number of keystores");
+            assertEquals(keyStores[0].getKeyStoreType(), KEYSTORE_TYPE);
+            assertEquals(keyStores[0].getKeyStoreName(), createPath(KEYSTORE_NAME).toString());
+        }
+    }
+
+    private KeyStoreMetadata getPrimaryKeyStoreMetadata() {
+
+        String name = createPath(KEYSTORE_NAME).toString();
+        KeyStoreMetadata primaryKeyStoreMetadata = new KeyStoreMetadata();
+        primaryKeyStoreMetadata.setKeyStoreName(name);
+        primaryKeyStoreMetadata.setKeyStoreType(KEYSTORE_TYPE);
+        primaryKeyStoreMetadata.setProvider(" ");
+        primaryKeyStoreMetadata.setPrivateStore(true);
+        return primaryKeyStoreMetadata;
     }
 
     @Test(description = "Delete KeyStore test", dependsOnMethods = "testAddKeyStore")
@@ -164,7 +191,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             keyStoreAdmin.deleteStore("new_keystore.jks");
         }
     }
@@ -180,7 +207,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             keyStoreAdmin.deleteStore("new_truststore.jks");
         }
     }
@@ -201,13 +228,11 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
             when(this.keyStoreManager.getKeyStore(anyString()))
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
-            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             PaginatedKeyStoreData result = keyStoreAdmin.getPaginatedKeystoreInfo(KEYSTORE_NAME, 10);
             int actualKeysNo = findCertDataSetSize(result.getPaginatedKeyData().getCertDataSet());
             assertEquals(actualKeysNo, 3, "Incorrect key numbers");
         }
-
-
     }
 
     private KeyStore getKeyStoreFromFile(String keystoreName, String password) throws Exception {
