@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.ConnectorException;
@@ -1148,6 +1149,7 @@ public class IdPManagementDAO {
                 }
 
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
+                authnConfig.setDefinedByType(DefinedByType.valueOf(rs.getString("DEFINED_BY")));
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());
@@ -1424,6 +1426,7 @@ public class IdPManagementDAO {
             }
             prepStmt1.setString(4, authnConfig.getName());
             prepStmt1.setString(5, authnConfig.getDisplayName());
+            prepStmt1.setString(6, authnConfig.getDefinedByType().toString());
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
@@ -2330,6 +2333,7 @@ public class IdPManagementDAO {
         if (samlFederatedAuthConfig == null) {
             samlFederatedAuthConfig = new FederatedAuthenticatorConfig();
             samlFederatedAuthConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+            samlFederatedAuthConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
 
         List<Property> propertiesList = new ArrayList<>();
@@ -2713,6 +2717,7 @@ public class IdPManagementDAO {
         if (openIdFedAuthn == null) {
             openIdFedAuthn = new FederatedAuthenticatorConfig();
             openIdFedAuthn.setName(IdentityApplicationConstants.Authenticator.OpenID.NAME);
+            openIdFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(openIdFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(openIdFedAuthn.getProperties(),
@@ -2735,6 +2740,7 @@ public class IdPManagementDAO {
         if (oauth1FedAuthn == null) {
             oauth1FedAuthn = new FederatedAuthenticatorConfig();
             oauth1FedAuthn.setName(IdentityApplicationConstants.OAuth10A.NAME);
+            oauth1FedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(oauth1FedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
@@ -2770,6 +2776,7 @@ public class IdPManagementDAO {
         if (oidcFedAuthn == null) {
             oidcFedAuthn = new FederatedAuthenticatorConfig();
             oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+            oidcFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>();
 
@@ -2841,6 +2848,7 @@ public class IdPManagementDAO {
         if (passiveSTSFedAuthn == null) {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+            passiveSTSFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
 
         propertiesList = new ArrayList<>();
@@ -2880,6 +2888,7 @@ public class IdPManagementDAO {
         if (stsFedAuthn == null) {
             stsFedAuthn = new FederatedAuthenticatorConfig();
             stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
+            stsFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(stsFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
@@ -2894,6 +2903,7 @@ public class IdPManagementDAO {
 
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
         sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
+        sessionTimeoutConfig.setDefinedByType(DefinedByType.SYSTEM);
 
         propertiesList = new ArrayList<>(Arrays.asList(sessionTimeoutConfig.getProperties()));
 
@@ -3409,6 +3419,7 @@ public class IdPManagementDAO {
                 String roleClaimUri = rs.getString("ROLE_CLAIM_URI");
 
                 String defaultAuthenticatorName = rs.getString("DEFAULT_AUTHENTICATOR_NAME");
+                String defaultAuthenticatorDefinedByType = rs.getString("DEFINED_BY");
                 String defaultProvisioningConnectorConfigName = rs.getString("DEFAULT_PRO_CONNECTOR_NAME");
                 federatedIdp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
 
@@ -3443,6 +3454,8 @@ public class IdPManagementDAO {
                 if (defaultAuthenticatorName != null) {
                     FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
                     defaultAuthenticator.setName(defaultAuthenticatorName);
+                    defaultAuthenticator.setDefinedByType(DefinedByType.valueOf(
+                            defaultAuthenticatorDefinedByType));
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 

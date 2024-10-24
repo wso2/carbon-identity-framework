@@ -196,6 +196,25 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="smsTemplates" displayName="SMS Templates" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:smsTemplates"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_notification_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_notification_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_notification_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_notification_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="groups" displayName="Groups" type="tenant">
         <Scopes>
             <Feature>
@@ -262,6 +281,7 @@
                 <Scope name="internal_authenticator_view"/>
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_extensions_view"/>
+                <Scope name="internal_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -526,6 +546,25 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="tenants" displayName="Root Organizations" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:tenants"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_modify_tenants"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_modify_tenants"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_create_tenants"/>
+            </Create>
+            <Read>
+                <Scope name="internal_list_tenants"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 <!--    Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>
@@ -578,6 +617,7 @@
                 <Scope name="internal_org_authenticator_view"/>
                 <Scope name="internal_org_governance_view"/>
                 <Scope name="internal_org_extensions_view"/>
+                <Scope name="internal_org_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -758,6 +798,22 @@
             </Create>
             <Read>
                 <Scope name="internal_org_email_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_smsTemplates" displayName="SMS Templates" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:smsTemplates"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+                <Scope name="internal_org_template_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

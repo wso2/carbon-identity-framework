@@ -552,7 +552,7 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
     @Override
     public void updatePolicy(PolicyStoreDTO policy) throws EntitlementException {
 
-        if (LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled() && policy != null) {
             LOG.debug(String.format("Updating policy %s", policy.getPolicyId()));
         }
         addPolicy(policy);
@@ -729,14 +729,12 @@ public class RegistryPolicyPersistenceManager extends AbstractPolicyFinderModule
                 newPolicy = true;
                 PolicyAttributeBuilder policyAttributeBuilder = new PolicyAttributeBuilder(policy.getPolicy());
                 Properties properties = policyAttributeBuilder.getPolicyMetaDataFromPolicy();
-                Properties resourceProperties = new Properties();
-                for (Object o : properties.keySet()) {
-                    String key = o.toString();
-                    resourceProperties.put(key, Collections.singletonList(properties.get(key)));
-                }
                 // Store policy metadata based on the configured property.
                 if (EntitlementUtil.isPolicyMetadataStoringEnabled()) {
-                    resource.setProperties(resourceProperties);
+                    for (Object keyObject : properties.keySet()) {
+                        String key = keyObject.toString();
+                        resource.setProperty(key, properties.get(key).toString());
+                    }
                 }
             }
 

@@ -234,6 +234,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        // Set default application version.
+        serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
@@ -553,9 +556,30 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return An array of {@link ApplicationBasicInfo} instances within the limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
      */
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
                                                           int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        return getApplicationBasicInfo(tenantDomain, username, filter, offset, limit, false);
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User name.
+     * @param filter                Application name filter.
+     * @param offset                Starting index of the count.
+     * @param limit                 Counting value.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                          int offset, int limit, Boolean excludeSystemPortals)
             throws IdentityApplicationManagementException {
 
         ApplicationBasicInfo[] applicationBasicInfoArray;
@@ -580,7 +604,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
 
                 applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO).
-                        getApplicationBasicInfo(filter, offset, limit);
+                        getApplicationBasicInfo(filter, offset, limit, excludeSystemPortals);
 
                 // Invoking post listeners.
                 for (ApplicationMgtListener listener : listeners) {
@@ -667,15 +691,34 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return int
      * @throws IdentityApplicationManagementException
      */
+    @Deprecated
     @Override
     public int getCountOfApplications(String tenantDomain, String username, String filter) throws
             IdentityApplicationManagementException {
+
+        return getCountOfApplications(tenantDomain, username, filter, false);
+    }
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User Name.
+     * @param filter                Application name filter.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return int Count of applications.
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public int getCountOfApplications(String tenantDomain, String username, String filter, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
 
         try {
             startTenantFlow(tenantDomain, username);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             if (appDAO instanceof PaginatableFilterableApplicationDAO) {
-                return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfApplications(filter);
+                return ((PaginatableFilterableApplicationDAO) appDAO)
+                        .getCountOfApplications(filter, excludeSystemPortals);
             } else {
                 throw new UnsupportedOperationException("Application count is not supported. " + "Tenant domain: " +
                         tenantDomain);
@@ -1506,6 +1549,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
                             new IdentityApplicationManagementException("Error resolving service provider owner.")));
             serviceProvider.setSpProperties(savedSP.getSpProperties());
+            serviceProvider.setApplicationVersion(savedSP.getApplicationVersion());
 
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {
@@ -1660,6 +1704,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            // Set default application version.
+            if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+            }
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -1762,6 +1810,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             validateSPTemplateExists(oldTemplateName, spTemplate, tenantDomain);
 
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            // Set default application version.
+            if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+            }
             validateUnsupportedTemplateConfigs(serviceProvider);
 
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -2543,6 +2595,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        // Set default application version.
+        application.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+
         doPreAddApplicationChecks(application, tenantDomain, username);
         ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         String resourceId = doAddApplication(application, tenantDomain, username, applicationDAO::addApplication);
@@ -3108,7 +3163,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider application;
         try {
-            startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain, username);
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);

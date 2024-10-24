@@ -645,6 +645,43 @@
         <Scopes>internal_email_mgt_delete</Scopes>
     </Resource>
 
+    <!-- [Organization] Notification Template Management API -->
+    <Resource context="(.*)/o/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_email_mgt_view,internal_org_template_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_template_mgt_view</Scopes>
+    </Resource>
+
+    <!-- Notification Template Management API -->
+    <Resource context="(.*)/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="GET">
+        <Scopes>internal_email_mgt_view,internal_template_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="POST">
+        <Scopes>internal_email_mgt_create,internal_template_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/email/template-types/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_email_mgt_update,internal_template_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/email/template-types/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_email_mgt_delete,internal_template_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="GET">
+        <Scopes>internal_template_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="POST">
+        <Scopes>internal_template_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_template_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_template_mgt_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v(.*)/notification/reset-template-type" secured="true" http-method="POST">
+        <Scopes>internal_template_mgt_delete</Scopes>
+    </Resource>
+
     <!-- Keystore Management API -->
     <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/api/server/v1/keystores/(.*)" secured="true" http-method="GET">
@@ -799,6 +836,34 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
         <Scopes>internal_idp_view</Scopes>
+    </Resource>
+
+    <!-- Identity Verification Provider Management API -->
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="GET">
+        <Scopes>internal_idvp_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="POST">
+        <Scopes>internal_idvp_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_idvp_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/idv-providers(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_idvp_delete</Scopes>
+    </Resource>
+
+    <!-- Identity Verification Claim Management API -->
+    <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="GET">
+        <Scopes>internal_idv_claim_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="POST">
+        <Scopes>internal_idv_claim_add</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/idv(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_idv_claim_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/idv/verify" secured="true" http-method="POST">
+        <Scopes>internal_idv_claim_verify</Scopes>
     </Resource>
 
     <!-- [Organization] Authenticators Management API -->

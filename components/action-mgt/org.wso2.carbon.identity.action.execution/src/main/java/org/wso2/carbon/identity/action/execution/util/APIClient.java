@@ -48,15 +48,16 @@ import java.nio.charset.StandardCharsets;
 public class APIClient {
 
     private static final Log LOG = LogFactory.getLog(APIClient.class);
+    private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
     private final CloseableHttpClient httpClient;
 
     public APIClient() {
 
         // todo: read connection configurations related to the http client of actions from the server configuration.
         // Initialize the http client. Set connection time out to 2s and read time out to 5s.
-        int readTimeout = 5000;
-        int connectionRequestTimeout = 2000;
-        int connectionTimeout = 2000;
+        int readTimeout = ActionExecutorConfig.getInstance().getHttpReadTimeoutInMillis();
+        int connectionRequestTimeout = ActionExecutorConfig.getInstance().getHttpConnectionRequestTimeoutInMillis();
+        int connectionTimeout = ActionExecutorConfig.getInstance().getHttpConnectionTimeoutInMillis();
 
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(connectionTimeout)
@@ -66,7 +67,7 @@ public class APIClient {
                 .setRelativeRedirectsAllowed(false)
                 .build();
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(20);
+        connectionManager.setMaxTotal(ActionExecutorConfig.getInstance().getHttpConnectionPoolSize());
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
                 .build();
     }
@@ -94,7 +95,7 @@ public class APIClient {
     private ActionInvocationResponse executeRequest(HttpPost request) {
 
         int attempts = 0;
-        int retryCount = 2; // todo: read from server configurations
+        int retryCount = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
         ActionInvocationResponse actionInvocationResponse = null;
 
         while (attempts < retryCount) {
@@ -103,15 +104,15 @@ public class APIClient {
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
-                //todo: add to diagnostic logs
-                LOG.warn("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
+                DIAGNOSTIC_LOGGER.logAPICallRetry(request, attempts + 1, retryCount);
+                LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
-                //todo: add to diagnostic logs
-                LOG.warn("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
+                DIAGNOSTIC_LOGGER.logAPICallTimeout(request, attempts + 1, retryCount);
+                LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (Exception e) {
-                //todo: add to diagnostic logs
+                DIAGNOSTIC_LOGGER.logAPICallError(request);
                 LOG.error("Request for API: " + request.getURI() + " failed due to an error.", e);
                 break;
             } finally {
@@ -147,11 +148,12 @@ public class APIClient {
             case HttpStatus.SC_SERVICE_UNAVAILABLE:
             case HttpStatus.SC_GATEWAY_TIMEOUT:
                 actionInvocationResponseBuilder.errorLog(
-                        "Failed to execute the action request. Received: " + statusCode);
+                        "Failed to execute the action request. Received status code: " + statusCode + ".");
                 actionInvocationResponseBuilder.retry(true);
                 break;
             default:
-                actionInvocationResponseBuilder.errorLog("Unexpected response status code: " + statusCode);
+                actionInvocationResponseBuilder.errorLog("Unexpected response received with status code: " + statusCode
+                        + ".");
                 break;
         }
 
@@ -174,13 +176,13 @@ public class APIClient {
             if (errorResponse != null) {
                 builder.response(errorResponse);
             } else {
-                builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+                builder.errorLog("Failed to execute the action request. Received status code: " + statusCode + ".");
             }
         } catch (ActionInvocationException e) {
-            //todo: add to diagnostic logs
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+            builder.errorLog("Unexpected error response received for the status code: " + statusCode + ". "
+                    + e.getMessage());
         }
     }
 
@@ -191,14 +193,14 @@ public class APIClient {
             if (errorResponse != null) {
                 builder.response(errorResponse);
             } else {
-                builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+                builder.errorLog("Failed to execute the action request. Received status code: " + statusCode + ".");
                 builder.retry(true);
             }
         } catch (ActionInvocationException e) {
-            //todo: add to diagnostic logs
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+            builder.errorLog("Unexpected error response received for the status code: " + statusCode + ". "
+                    + e.getMessage());
             builder.retry(true);
         }
     }

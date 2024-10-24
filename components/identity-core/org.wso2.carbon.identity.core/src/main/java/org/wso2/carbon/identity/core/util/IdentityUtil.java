@@ -64,7 +64,6 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -538,6 +537,50 @@ public class IdentityUtil {
 
         appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
         return serverUrl.toString();
+    }
+
+    /**
+     * Checks whether the second domain is a subdomain of the first domain.
+     *
+     * @param domainName    Domain name.
+     * @param subdomainName Subdomain name.
+     * @return true if the second domain is a subdomain of the first domain.
+     */
+    public static boolean isSubdomain(String domainName, String subdomainName) {
+
+        if (StringUtils.isBlank(domainName) || StringUtils.isBlank(subdomainName)) {
+            return false;
+        }
+        subdomainName = subdomainName.toLowerCase();
+        domainName = domainName.toLowerCase();
+
+        if (subdomainName.equals(domainName)) {
+            return true;
+        }
+        return subdomainName.endsWith("." + domainName);
+    }
+
+    /**
+     * Get the root domain of the given domain.
+     * Note: this assumes that the root domain only consists of two parts (eg: wso2.io). The method will not work for
+     * TLDs with more than two parts (eg: wso2.co.uk).
+     *
+     * @param domain Domain.
+     * @return Root domain.
+     */
+    public static String getRootDomain(String domain) {
+
+        if (StringUtils.isBlank(domain)) {
+            return domain;
+        }
+        String[] domainParts = domain.split("\\.");
+        int length = domainParts.length;
+
+        if (length > 2) {
+            return domainParts[length - 2] + "." + domainParts[length - 1];
+        } else {
+            return domain;
+        }
     }
 
     private static StringBuilder getServerUrlWithPort(String hostName) {
@@ -1324,8 +1367,8 @@ public class IdentityUtil {
 
         byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
 
-        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
-                X509Factory.END_CERT);
+        String encodedPEM = String.format("%s\n%s\n%s", PEM_BEGIN_CERTFICATE, new String(encodedCertificate),
+                PEM_END_CERTIFICATE);
 
         return encodedPEM;
     }
@@ -1663,6 +1706,57 @@ public class IdentityUtil {
             }
         }
         return systemRolesWithScopes;
+    }
+
+    /**
+     * This will return a map of system roles and the list of api resource collection configured for each system role.
+     *
+     * @return A map of system roles against the api resource collection list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithAPIResources() {
+
+        Map<String, Set<String>> systemRolesWithAPIResources = new HashMap<>();
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser.getConfigElement(IdentityConstants.SystemRoles
+                .SYSTEM_ROLES_CONFIG_ELEMENT);
+
+        if (systemRolesConfig != null) {
+            Iterator roleIdentifierIterator = systemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles
+                    .ROLE_CONFIG_ELEMENT);
+
+            while (roleIdentifierIterator != null && roleIdentifierIterator.hasNext()) {
+                OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+                String roleName = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+                OMElement mandatoryApiResourcesIdentifier = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT));
+
+                if (mandatoryApiResourcesIdentifier == null) {
+                    continue;
+                }
+
+                Iterator apiResourceIdentifier = mandatoryApiResourcesIdentifier.getChildrenWithLocalName(
+                        IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT);
+
+                Set<String> apiResourceCollections = new HashSet<>();
+                while (apiResourceIdentifier != null && apiResourceIdentifier.hasNext()) {
+                    OMElement apiResourceConfig = (OMElement) apiResourceIdentifier.next();
+                    String apiResource = apiResourceConfig.getText();
+                    if (StringUtils.isNotBlank(apiResource)) {
+                        apiResourceCollections.add(apiResource.trim());
+                    }
+                }
+                if (StringUtils.isNotBlank(roleName)) {
+                    systemRolesWithAPIResources.put(roleName.trim(), apiResourceCollections);
+                }
+            }
+        } else {
+            log.debug(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + " config cannot be found.");
+        }
+        return systemRolesWithAPIResources;
     }
 
     /**

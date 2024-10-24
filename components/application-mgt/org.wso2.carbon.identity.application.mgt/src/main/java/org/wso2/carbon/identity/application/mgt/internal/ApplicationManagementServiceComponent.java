@@ -264,6 +264,9 @@ public class ApplicationManagementServiceComponent {
                         documentElement = new StAXOMBuilder(fileInputStream).getDocumentElement();
                         ServiceProvider sp = ServiceProvider.build(documentElement);
                         if (sp != null) {
+                            if (StringUtils.isBlank(sp.getApplicationVersion())) {
+                                sp.setApplicationVersion(ApplicationConstants.ApplicationVersion.BASE_APP_VERSION);
+                            }
                             fileBasedSPs.put(sp.getApplicationName(), sp);
                         }
                     }

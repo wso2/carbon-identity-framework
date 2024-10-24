@@ -62,7 +62,7 @@ public class ProvisioningManagementDAO {
 
         PreparedStatement prepStmt = null;
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
         try {
 
             // id of the identity provider

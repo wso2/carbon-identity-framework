@@ -44,6 +44,17 @@ public class ActionExecutorConfig {
             "Actions.ActionRequest.ExcludedHeaders.Header";
     private static final String EXCLUDED_PARAMS_IN_ACTION_REQUEST_PROPERTY =
             "Actions.ActionRequest.ExcludedParameters.Parameter";
+    private static final String HTTP_READ_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPReadTimeout";
+    private static final String HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY =
+            "Actions.HTTPClient.HTTPConnectionRequestTimeout";
+    private static final String HTTP_CONNECTION_TIMEOUT_PROPERTY = "Actions.HTTPClient.HTTPConnectionTimeout";
+    private static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY = "Actions.HTTPClient.HTTPConnectionPoolSize";
+    private static final String HTTP_REQUEST_RETRY_COUNT_PROPERTY = "Actions.HTTPClient.HTTPRequestRetryCount";
+    private static final int DEFAULT_HTTP_REQUEST_RETRY_COUNT = 2;
+    private static final int DEFAULT_HTTP_CONNECTION_POOL_SIZE = 20;
+    private static final int DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS = 5000;
+    private static final int DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_IN_MILLIS = 2000;
+    private static final int DEFAULT_HTTP_CONNECTION_TIMEOUT_IN_MILLIS = 2000;
 
     private ActionExecutorConfig() {
 
@@ -71,6 +82,99 @@ public class ActionExecutorConfig {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Returns the HTTP request retry count based on the system configuration.
+     *
+     * @return The HTTP request retry count, or the default if the property is missing or invalid.
+     */
+    public int getHttpRequestRetryCount() {
+
+        int retryCountPropertyValue = DEFAULT_HTTP_REQUEST_RETRY_COUNT;
+        String retryCountValue = (String) IdentityConfigParser.getInstance().getConfiguration().
+                get(HTTP_REQUEST_RETRY_COUNT_PROPERTY);
+        if (StringUtils.isNotBlank(retryCountValue)) {
+            try {
+                retryCountPropertyValue = Integer.parseInt(retryCountValue);
+            } catch (NumberFormatException e) {
+                LOG.debug("Failed to read Http request retry count property in identity.xml." +
+                        " Expects a number. Using the default value: " +
+                        DEFAULT_HTTP_REQUEST_RETRY_COUNT, e);
+            }
+        }
+        return retryCountPropertyValue;
+    }
+
+    /**
+     * Returns the HTTP connection pool size based on the system configuration.
+     *
+     * @return The HTTP connection pool size, or the default if the property is missing or invalid.
+     */
+    public int getHttpConnectionPoolSize() {
+
+        int poolSizePropertyValue = DEFAULT_HTTP_CONNECTION_POOL_SIZE;
+        String poolSizeValue = (String) IdentityConfigParser.getInstance().getConfiguration().
+                get(HTTP_CONNECTION_POOL_SIZE_PROPERTY);
+        if (StringUtils.isNotBlank(poolSizeValue)) {
+            try {
+                poolSizePropertyValue = Integer.parseInt(poolSizeValue);
+            } catch (NumberFormatException e) {
+                LOG.debug("Failed to read Http client connection pool size property in identity.xml." +
+                        " Expects a number. Using the default value: " +
+                        DEFAULT_HTTP_CONNECTION_POOL_SIZE, e);
+            }
+        }
+        return poolSizePropertyValue;
+    }
+
+    /**
+     * Retrieves the HTTP read timeout configuration.
+     * If the configuration value is invalid or missing, the default timeout value is parsed.
+     *
+     * @return The HTTP read timeout int value in milliseconds.
+     */
+    public int getHttpReadTimeoutInMillis() {
+
+        return parseTimeoutConfig(HTTP_READ_TIMEOUT_PROPERTY, DEFAULT_HTTP_READ_TIMEOUT_IN_MILLIS);
+    }
+
+    /**
+     * Retrieves the HTTP connection request timeout configuration.
+     * If the configuration value is invalid or missing, the default timeout value is parsed.
+     *
+     * @return The HTTP connection request timeout int value in milliseconds.
+     */
+    public int getHttpConnectionRequestTimeoutInMillis() {
+
+        return parseTimeoutConfig(HTTP_CONNECTION_REQUEST_TIMEOUT_PROPERTY,
+                DEFAULT_HTTP_CONNECTION_REQUEST_TIMEOUT_IN_MILLIS);
+    }
+
+    /**
+     * Retrieves the HTTP connection timeout configuration.
+     * If the configuration value is invalid or missing, the default timeout value is parsed.
+     *
+     * @return The HTTP connection timeout int value in milliseconds.
+     */
+    public int getHttpConnectionTimeoutInMillis() {
+
+        return parseTimeoutConfig(HTTP_CONNECTION_TIMEOUT_PROPERTY, DEFAULT_HTTP_CONNECTION_TIMEOUT_IN_MILLIS);
+    }
+
+    private int parseTimeoutConfig(String timeoutTypeName, int defaultTimeout) {
+
+        int timeoutPropertyValue = defaultTimeout;
+        String timeoutValue = (String) IdentityConfigParser.getInstance().getConfiguration().get(timeoutTypeName);
+        if (StringUtils.isNotBlank(timeoutValue)) {
+            try {
+                timeoutPropertyValue = Integer.parseInt(timeoutValue);
+            } catch (NumberFormatException e) {
+                LOG.debug("Failed to read " + timeoutTypeName + " property in identity.xml." +
+                        " Expects a number. Using the default value: " + defaultTimeout, e);
+            }
+        }
+        return timeoutPropertyValue;
     }
 
     private boolean isActionTypeEnabled(String actionTypePropertyName) {
