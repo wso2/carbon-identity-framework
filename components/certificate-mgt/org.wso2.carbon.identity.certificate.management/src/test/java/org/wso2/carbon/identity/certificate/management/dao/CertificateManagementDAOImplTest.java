@@ -18,32 +18,21 @@
 
 package org.wso2.carbon.identity.certificate.management.dao;
 
-import org.mockito.MockedStatic;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.certificate.management.dao.impl.CertificateManagementDAOImpl;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
-import org.wso2.carbon.identity.certificate.management.util.TestUtil;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
 
 import java.sql.SQLException;
-import java.util.UUID;
 
-import javax.sql.DataSource;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_ID;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_UUID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
 
 /**
@@ -51,46 +40,16 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDA
  * It contains unit tests to verify the functionality of the methods
  * in the CertificateManagementDAOImpl class.
  */
+@WithH2Database(files = {"dbScripts/h2.sql"})
+@WithCarbonHome
 public class CertificateManagementDAOImplTest {
 
-    private static final String DB_NAME = "certificate_mgt_dao";
-
-    private String certificateId;
-    private DataSource dataSource;
-    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
-    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private CertificateManagementDAOImpl certificateMgtDAOImpl;
 
     @BeforeClass
     public void setUpClass() throws SQLException {
 
         certificateMgtDAOImpl = new CertificateManagementDAOImpl();
-        certificateId = String.valueOf(UUID.randomUUID());
-        TestUtil.initiateH2Database(DB_NAME);
-    }
-
-    @BeforeMethod
-    public void setUp() throws SQLException {
-
-        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-        dataSource = mock(DataSource.class);
-        identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
-        identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
-        mockDBConnection();
-        identityTenantUtil.when(()-> IdentityTenantUtil.getTenantId(anyString())).thenReturn(TEST_TENANT_ID);
-    }
-
-    @AfterMethod
-    public void tearDown() throws Exception {
-
-        identityDatabaseUtil.close();
-        identityTenantUtil.close();
-    }
-
-    @AfterClass
-    public void wrapUp() throws Exception {
-
-        TestUtil.closeH2Database(DB_NAME);
     }
 
     @Test(priority = 1)
@@ -100,14 +59,14 @@ public class CertificateManagementDAOImplTest {
                 .name(CERTIFICATE_NAME)
                 .certificate(CERTIFICATE)
                 .build();
-        certificateMgtDAOImpl.addCertificate(certificateId, creatingCertificate, TEST_TENANT_ID);
+        certificateMgtDAOImpl.addCertificate(TEST_UUID, creatingCertificate, TEST_TENANT_ID);
     }
 
     @Test(priority = 2)
     public void testGetCertificate() throws CertificateMgtException {
 
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TEST_TENANT_ID);
-        Assert.assertEquals(certificate.getId(), certificateId);
+        Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);
+        Assert.assertEquals(certificate.getId(), TEST_UUID);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
         Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
     }
@@ -128,10 +87,9 @@ public class CertificateManagementDAOImplTest {
     @Test(priority = 4)
     public void testUpdateCertificateContent() throws CertificateMgtException, SQLException {
 
-        certificateMgtDAOImpl.updateCertificateContent(certificateId, UPDATED_CERTIFICATE, TEST_TENANT_ID);
-        mockDBConnection();
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TEST_TENANT_ID);
-        Assert.assertEquals(certificate.getId(), certificateId);
+        certificateMgtDAOImpl.updateCertificateContent(TEST_UUID, UPDATED_CERTIFICATE, TEST_TENANT_ID);
+        Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);
+        Assert.assertEquals(certificate.getId(), TEST_UUID);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
         Assert.assertEquals(certificate.getCertificate(), UPDATED_CERTIFICATE);
     }
@@ -139,14 +97,8 @@ public class CertificateManagementDAOImplTest {
     @Test(priority = 6)
     public void testDeleteCertificate() throws CertificateMgtException, SQLException {
 
-        certificateMgtDAOImpl.deleteCertificate(certificateId, TEST_TENANT_ID);
-        mockDBConnection();
-        Certificate certificate = certificateMgtDAOImpl.getCertificate(certificateId, TEST_TENANT_ID);
+        certificateMgtDAOImpl.deleteCertificate(TEST_UUID, TEST_TENANT_ID);
+        Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);
         Assert.assertNull(certificate);
-    }
-
-    private void mockDBConnection() throws SQLException {
-
-        when(dataSource.getConnection()).thenReturn(TestUtil.getConnection(DB_NAME));
     }
 }
