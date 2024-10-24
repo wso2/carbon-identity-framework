@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!--
+ ~ Copyright (c) 2005-2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+
+<html>
+<head>
+    <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type"/>
+    <title>WSO2 Carbon Server Home</title>
+    <link href="../../admin/css/documentation.css" rel="stylesheet"
+          type="text/css" media="all"/>
+
+    <style>
+       .claim-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .claim-table th, .claim-table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+        .claim-table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        .claim-table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+         /* Info / Note Section */
+        .info-section {
+            background-color: #f9f9f9;
+            border-left: 5px solid #f47b20;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .info-section h4 {
+            margin-top: 0;
+            color: #f47b20;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .info-section p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .info-section .info-icon {
+            display: inline-block;
+            margin-right: 10px;
+            color: #f47b20;
+            font-size: 24px;
+            vertical-align: middle;
+        }
+    </style>
+
+</head>
+<body>
+
+<h1>Claim Management</h1>
+
+<h2>Add Claim Dialects</h2>
+
+<p>A set of claims are identified as a dialect. Different dialects represent the same piece of information with different claim URIs.</p>
+
+<h3>Use the management console</h3>
+
+<p>Follow the instructions below to add a new dialect using the management console.</p>
+
+<p>1. Access the Management Console (<code class="codehilite">https://HOST:PORT/carbon</code>).</p>
+
+<p>2. Go to <strong>Main</strong> > <strong>Identity</strong>	 > <strong>Claims</strong >   and click<strong >  Add..</strong > </p>
+<p>3. Click <strong>Add Claim Dialect</strong> and enter a value for the <strong>Dialect URI</strong>. </p>
+
+
+<div class="info-section">
+    <h4>info</h4>
+    <p>The Dialect URI is a unique URI identifying the dialect (for example, <code class="codehilite">http://schema.openid.net/2007/05/claims</code>).</p>
+</div>
+<p><br/><img src="../../identity-claim-mgt/images/unique-uri.png" alt="Create Event Stream"/></p>
+
+<p>4. Click <strong>Add</strong> and the claim dialect will appear on the list as follows.</p>
+<p><br/><img src="../../identity-claim-mgt/images/claim-dialect.png" alt="Create Event Stream"/></p>
+<h2>Add Claim Mapping</h2>
+<p>You can add new claim mappings to an existing claim dialects. You can add either a new local claim or an external claim:</p>
+<li class="md-nav__item md-nav-secondary-item" style="margin-left: 20px;">
+       Add local claim
+</li>
+<li class="md-nav__item md-nav-secondary-item" style="margin-left: 20px;">
+        Add external claim
+ </li>
+<p>Use the options given below to add claim mappings from the management console.
+
+</p>
+<h2>Add local claim</h2>
+<p>1. Access the Management Console (<code class="codehilite">https://HOST:PORT/carbon</code>).</p>
+
+<p>2. Go to <strong>Main</strong> > <strong>Identity</strong>	 > <strong>Claims</strong >   and click<strong >  Add..</strong > </p>
+<p>3. Click <strong>Add Local Claim</strong>to add a new claim to the https://wso2.org/claims (local) claim dialect. </p>
+<p>4. Enter the required information from the list given below.</p>
+<p><br/><img src="../../identity-claim-mgt/images/local-claim-info.png" alt="Create Event Stream"/></p>
+    <table class="claim-table">
+        <thead>
+        <tr>
+            <th>Claim details</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Claim URI</td>
+            <td>This is the URI defined under the dialect specific to the claim. There are different URIs available in WSO2 Identity Server and these are equal to user attributes displayed in the profile of users. These URIs are mapped to the attributes in the underlying user store.</td>
+        </tr>
+        <tr>
+            <td>Display Name</td>
+            <td>This is the name of the claim displayed on the UI. This can be viewed in the user's profile. You can navigate to the Main tab in the management console and click List in Users and Roles. In the resulting page, click Users and in the list of users that are displayed, click User Profile next to the one you wish to check.</td>
+        </tr>
+        <tr>
+            <td>Description</td>
+            <td>This gives you the option to describe the functionality of the claim.</td>
+        </tr>
+        <tr>
+            <td>Mapped Attribute</td>
+            <td>This is the corresponding attribute name from the underlying user store that is mapped to the Claim URI value. <br><br><br>
+                When you have multiple user stores connected to WSO2 Identity Server, this maps the equivalent attribute in all of them to the Claim URI you are configuring.
+                For example, if you specify the cn attribute, this is mapped to the cn attribute in all the connected user stores. If you want to specify the attribute in a specific user store, you must add the domain name in addition to the mapped claim. For example, in a scenario where you have a primary user store configured called PRIMARY and secondary user stores called AD (representing Active Directory), you can map an attribute from each of these user stores to the Claim URI value by clicking Add Attribute Mapping, selecting the respective user store from the drop-down list, and mentioning the attribute of the user store to which the attribute needs to be mapped.
+                <br> Example:<br>
+                <p><br/><img src="../../identity-claim-mgt/images/map-attribute.png" alt="Create Event Stream" style="width: 100%; max-width: 300px; height: auto;"/></p>
+            </td>
+        </tr>
+        <tr>
+            <td>Regular Expression</td>
+            <td>This is the regular expression used to validate inputs. Example : For a claim URI like http://wso2.org/claims/email, the regex should be something like <strong>" ^([a-zA-Z0-9_-.]+)@([a-zA-Z0-9_-.]+).([a-zA-Z]{2,5})$ " </strong>. This will validate the claim value and will not let other values except an email.</td>
+        </tr>
+        <tr>
+            <td>Display Order</td>
+            <td>This enables you to specify the order in which the claim is displayed among the other claims defined under the same dialect.</td>
+        </tr>
+        <tr>
+            <td>Supported by Default</td>
+            <td>If cleared, this claim will not be prompted during user registration.</td>
+        </tr>
+        <tr>
+            <td>Required</td>
+            <td>This specifies whether the claim is required for user registration.</td>
+        </tr>
+        <tr>
+            <td>Read-only</td>
+            <td>This specifies whether the claim is read-only or not. If the claim is read-only, it can't be updated by the user.</td>
+        </tr>
+        <tr>
+            <td>Additional Properties</td>
+            <td>These properties are not currently used in WSO2 Identity server. These property values are used to write extensions using current claims.</td>
+        </tr>
+        </tbody>
+    </table>
+
+<p>5. Click <strong>Add</strong> and view the new claim mapping on the list.</p>
+<img src="../../identity-claim-mgt/images/edit-claim-link.png" alt="Create Event Stream" style="width: 100%; max-width: 300px; height: auto;"/>
+
+
+<h2>Add external claim</h2>
+<p>Follow the steps given below to add a new claim to any claim dialect other than the local (https://wso2.org/claims) dialect. To do this, map the relevant local claim from the local claim dialect (https://wso2.org/claims).</p>
+<p>Access the Management Console (https://<IS_HOST>:<PORT>/carbon)..</p>
+
+<p>2. Go to <strong> Main </strong> > <strong>Identity</strong> > Claims and click <strong>Add</strong>. </p>
+<p>3. Click <strong>Add External Claim </strong>to add a new claim to any existing dialect other than the local dialect.</p>
+<p>3. Select the <strong>Dialect URI</strong> of the dialect you want to add the claim to and enter the required information.</p>
+
+<p><br/><img src="../../identity-claim-mgt/images/add-external-claim.png" alt="Create Event Stream"/></p>
+
+<p><table class="claim-table">
+    <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>External Claim URI</td>
+        <td>
+            This is the URI defined under the
+            dialect specific to the claim. There are different URIs
+            available in WSO2 Identity Server and these are equal to user
+            attributes displayed in the profile of users. These URIs are
+            mapped to local claims in the <code>https://wso2.org/claims</code> dialect, which are in turn mapped to the relevant attributes in the
+            underlying user store.
+        </td>
+    </tr>
+    <tr>
+        <td>Mapped Local Claim</td>
+        <td>
+            This is the claim that is defined in the
+            local claim dialect (<code>https://wso2.org/claims</code>) that is mapped to the relevant attribute in the underlying user store.
+        </td>
+    </tr>
+</table></p>
+   <p>5. Click <strong>Add</strong> to save the mapping.</p>
+
+</body>
+
+</html>
