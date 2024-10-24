@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import java.util.Map;
+
 /**
  * Authorized authorization details types model class.
  */
@@ -27,13 +29,13 @@ public class AuthorizationDetailsType {
     private String type;
     private String name;
     private String description;
-    private String schema;
+    private Map<String, Object> schema;
 
     public AuthorizationDetailsType() {
     }
 
     public AuthorizationDetailsType(final String id, final String type, final String name,
-                                    final String description, final String schema) {
+                                    final String description, final Map<String, Object> schema) {
         this.id = id;
         this.type = type;
         this.name = name;
@@ -73,11 +75,11 @@ public class AuthorizationDetailsType {
         this.description = description;
     }
 
-    public String getSchema() {
+    public Map<String, Object> getSchema() {
         return this.schema;
     }
 
-    public void setSchema(final String schema) {
+    public void setSchema(final Map<String, Object> schema) {
         this.schema = schema;
     }
 
@@ -90,7 +92,7 @@ public class AuthorizationDetailsType {
         private String type;
         private String name;
         private String description;
-        private String schema;
+        private Map<String, Object> schema;
 
         public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder id(String id) {
 
@@ -116,7 +118,7 @@ public class AuthorizationDetailsType {
             return this;
         }
 
-        public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder schema(String schema) {
+        public AuthorizationDetailsType.AuthorizationDetailsTypesBuilder schema(Map<String, Object> schema) {
 
             this.schema = schema;
             return this;

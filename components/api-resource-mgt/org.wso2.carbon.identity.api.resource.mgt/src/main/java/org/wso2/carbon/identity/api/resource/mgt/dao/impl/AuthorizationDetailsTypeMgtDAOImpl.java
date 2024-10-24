@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil.parseSchema;
+import static org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil.toJsonString;
 import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getAuthorizationDetailsTypesFilterQueryBuilder;
 
 /**
@@ -76,14 +78,12 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             Integer tenantId) throws APIResourceMgtException {
 
         if (CollectionUtils.isEmpty(authorizationDetailsTypes)) {
-
             return authorizationDetailsTypes;
         }
 
         try (PreparedStatement prepStmt = dbConnection.getMetaData().getDatabaseProductName().contains(SQLConstants.H2)
                 ? dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE_H2)
                 : dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE)) {
-
             for (AuthorizationDetailsType authzDetailsType : authorizationDetailsTypes) {
 
                 if (this.isAuthorizationDetailsTypeExists(dbConnection, apiId, authzDetailsType.getType(), tenantId)) {
@@ -99,7 +99,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 prepStmt.setString(3, apiId);
                 prepStmt.setString(4, authzDetailsType.getName());
                 prepStmt.setString(5, authzDetailsType.getDescription());
-                prepStmt.setString(6, authzDetailsType.getSchema());
+                prepStmt.setString(6, toJsonString(authzDetailsType.getSchema()));
                 prepStmt.setObject(7, tenantId);
                 prepStmt.addBatch();
             }
@@ -322,7 +322,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 prepStmt.setString(1, authorizationDetailsType.getName());
                 prepStmt.setString(2, authorizationDetailsType.getType());
                 prepStmt.setString(3, authorizationDetailsType.getDescription());
-                prepStmt.setString(4, authorizationDetailsType.getSchema());
+                prepStmt.setObject(4, toJsonString(authorizationDetailsType.getSchema()));
                 prepStmt.setString(5, apiId);
                 prepStmt.setString(6, authorizationDetailsType.getId());
                 prepStmt.setObject(7, tenantId);
@@ -376,7 +376,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 .type(resultSet.getString(SQLConstants.AUTHORIZATION_DETAILS_TYPE_COLUMN_NAME))
                 .name(resultSet.getString(SQLConstants.NAME_COLUMN_NAME))
                 .description(resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME))
-                .schema(resultSet.getString(SQLConstants.AUTHORIZATION_DETAILS_SCHEMA_COLUMN_NAME))
+                .schema(parseSchema(resultSet.getString(SQLConstants.AUTHORIZATION_DETAILS_SCHEMA_COLUMN_NAME)))
                 .build();
     }
 }

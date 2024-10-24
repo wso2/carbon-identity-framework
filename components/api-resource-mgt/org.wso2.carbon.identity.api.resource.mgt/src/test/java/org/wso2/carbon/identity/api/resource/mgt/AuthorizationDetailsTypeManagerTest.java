@@ -227,7 +227,7 @@ public class AuthorizationDetailsTypeManagerTest {
 
         assertEquals(updatedType.getName(), testValue);
         assertEquals(updatedType.getDescription(), testValue);
-        assertEquals(updatedType.getSchema(), "null");
+        assertFalse(updatedType.getSchema().isEmpty());
     }
 
     @Test(priority = 3)

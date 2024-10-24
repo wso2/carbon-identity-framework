@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil.parseSchema;
+
 /**
  * Authorized API DAO implementation class.
  */
@@ -374,8 +376,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         final AuthorizationDetailsType authorizationDetailsType = this.buildAuthorizationDetailsType(resultSet);
 
         if (authorizationDetailsType != null) {
-            authorizationDetailsType.setSchema(
-                    resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA));
+            authorizationDetailsType.setSchema(parseSchema(
+                    resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA)));
         }
 
         return authorizationDetailsType;

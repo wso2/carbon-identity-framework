@@ -33,6 +33,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,8 +63,18 @@ public class TestDAOUtils {
      */
     public static List<AuthorizationDetailsType> getAuthorizationDetailsTypes() {
 
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put("type", "string");
+        properties.put("enum", Collections.singletonList(TEST_TYPE_1));
+
+        final Map<String, Object> schema = new HashMap<>();
+        schema.put("type", "object");
+        schema.put("required", Collections.singletonList("type"));
+        schema.put("properties", properties);
+
         final AuthorizationDetailsType authorizationDetailsType1 = new AuthorizationDetailsType();
         authorizationDetailsType1.setType(TEST_TYPE_1);
+        authorizationDetailsType1.setSchema(schema);
         final AuthorizationDetailsType authorizationDetailsType2 = new AuthorizationDetailsType();
         authorizationDetailsType2.setType(TEST_TYPE_2);
 
