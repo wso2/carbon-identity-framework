@@ -1078,6 +1078,43 @@
       "description": "This email is sent to the impersonated user when the impersonation session is started"
     }
   ],
+  "console.extensions.smsTemplates": [
+    {
+      "description": "This SMS is sent when a user registers and needs to confirm their account.",
+      "displayName": "Account Confirmation",
+      "id": "YWNjb3VudGNvbmZpcm1hdGlvbg"
+    },
+    {
+      "description": "This SMS is sent when a user requests to recover their username.",
+      "displayName": "Account ID Recovery",
+      "id": "YWNjb3VudElkUmVjb3Zlcnk"
+    },
+    {
+      "description": "This SMS is sent to notify the user of a successful password reset.",
+      "displayName": "Password Reset Success",
+      "id": "cGFzc3dvcmRSZXNldFN1Y2Vzcw"
+    },
+    {
+      "description": "This SMS is sent when a user initiates a password reset.",
+      "displayName": "Password Reset",
+      "id": "cGFzc3dvcmRSZXNldA"
+    },
+    {
+      "description": "This SMS is sent when a user requests to resend the OTP for password reset.",
+      "displayName": "Resend Password Reset",
+      "id": "cmVzZW5kUGFzc3dvcmRSZXNldA"
+    },
+    {
+      "description": "This SMS is sent to provide a one-time password for verification.",
+      "displayName": "SMS OTP",
+      "id": "U01TT1RQ"
+    },
+    {
+      "description": "This SMS is sent to verify the user's mobile number after an update.",
+      "displayName": "Verify Mobile On Update",
+      "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
+    }
+  ],
   "console.ui.app_copyright": "WSO2 Identity Server",
   "console.ui.is_cookie_consent_banner_enabled": false,
   "console.ui.is_editing_system_roles_allowed": true,
@@ -1230,6 +1267,12 @@
   "console.email_templates.scopes.read": ["internal_email_mgt_view"],
   "console.email_templates.scopes.update": ["internal_email_mgt_update"],
   "console.email_templates.scopes.delete": ["internal_email_mgt_delete"],
+  "console.sms_templates.enabled": false,
+  "console.sms_templates.scopes.feature": ["console:smsTemplates"],
+  "console.sms_templates.scopes.create": ["internal_notification_mgt_create"],
+  "console.sms_templates.scopes.read": ["internal_notification_mgt_view"],
+  "console.sms_templates.scopes.update": ["internal_notification_mgt_update"],
+  "console.sms_templates.scopes.delete": ["internal_notification_mgt_delete"],
   "console.event_publishing.enabled": false,
   "console.event_publishing.scopes.feature": ["console:eventPublishing"],
   "console.event_publishing.scopes.create": ["internal_event_config_update"],
