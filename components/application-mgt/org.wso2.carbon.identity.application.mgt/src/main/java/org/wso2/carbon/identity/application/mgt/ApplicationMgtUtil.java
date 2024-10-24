@@ -1238,18 +1238,24 @@ public class ApplicationMgtUtil {
         String currentVersion = serviceProvider.getApplicationVersion();
         String inboundConfigType = getInboundConfigType(serviceProvider);
 
-        // Since there will be new versions onboarded in the future, initialized this as a switch not if.
-        if (currentVersion.equals(ApplicationConstants.ApplicationVersion.APP_VERSION_V0)) {
-            if (!inboundConfigType.equals(IdentityApplicationConstants.OAuth2.NAME)) {
-                currentVersion = ApplicationConstants.ApplicationVersion.APP_VERSION_V1;
-            }
+        switch (currentVersion) {
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V0:
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V1:
+                if (!IdentityApplicationConstants.OAuth2.NAME.equals(inboundConfigType)) {
+                    currentVersion = ApplicationConstants.ApplicationVersion.APP_VERSION_V2;
+                }
+                break;
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V2:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + currentVersion);
         }
         return currentVersion;
     }
 
     private static String getInboundConfigType(ServiceProvider serviceProvider) {
 
-        String inboundConfigType = StringUtils.EMPTY;
+        String inboundConfigType = null;
         if (serviceProvider.getInboundAuthenticationConfig() != null &&
                 serviceProvider.getInboundAuthenticationConfig()
                         .getInboundAuthenticationRequestConfigs() != null &&

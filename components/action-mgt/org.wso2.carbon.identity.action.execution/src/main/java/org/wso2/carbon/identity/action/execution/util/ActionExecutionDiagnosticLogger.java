@@ -158,7 +158,7 @@ public class ActionExecutionDiagnosticLogger {
                         ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
                         "External endpoint " + request.getURI() + " for action " +
                                 "execution seems to be unavailable. Retrying API call attempt " +
-                                (attempts + 1) + " of " + retryCount + ".",
+                                attempts + " of " + retryCount + ".",
                         DiagnosticLog.ResultStatus.SUCCESS));
     }
 
@@ -172,8 +172,7 @@ public class ActionExecutionDiagnosticLogger {
                 initializeDiagnosticLogBuilder(
                         ActionExecutionLogConstants.ActionIDs.SEND_ACTION_REQUEST,
                         "Request for external endpont " + request.getURI() + " for action is " +
-                                "timed out. Retrying API call attempt " + (attempts + 1) + " of "
-                                + retryCount + ".",
+                                "timed out. Retrying API call attempt " + attempts + " of " + retryCount + ".",
                         DiagnosticLog.ResultStatus.SUCCESS));
     }
 

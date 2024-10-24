@@ -271,24 +271,29 @@ public class DefaultApplicationValidatorTest {
 
         return new Object[][]{
                 // version, valid status
+                {"v2.0.0", "oauth2", true},
                 {"v1.0.0", "oauth2", true},
-                // if auth type is samlsso, the downgrading should not be allowed.
                 {"v0.0.0", "oauth2", true},
                 {"v0.0.1", "oauth2", false},
                 {"v0.1.1", "oauth2", false},
                 {"v1.1.1", "oauth2", false},
+                {"v2.0.1", "oauth2", false},
                 {"dummy", "oauth2", false},
+                {"v2.0.0", "samlsso", true},
                 {"v1.0.0", "samlsso", true},
                 {"v0.0.0", "samlsso", true},
                 {"v0.0.1", "samlsso", false},
                 {"v0.1.1", "samlsso", false},
                 {"v1.1.1", "samlsso", false},
+                {"v2.0.1", "samlsso", false},
                 {"dummy", "samlsso", false},
+                {"v2.0.0", null, true},
                 {"v1.0.0", null, true},
                 {"v0.0.0", null, true},
                 {"v0.0.1", null, false},
                 {"v0.1.1", null, false},
                 {"v1.1.1", null, false},
+                {"v2.0.1", null, false},
                 {"dummy", null, false},
 
         };
