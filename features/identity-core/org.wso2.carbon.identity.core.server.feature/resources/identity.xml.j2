@@ -1984,6 +1984,7 @@
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
+        <FailAuthnOnProvisionFailure>{{authentication.jit_provisioning.fail_authn_on_provision_failure}}</FailAuthnOnProvisionFailure>
         <SkipUsernamePatternValidation>{{authentication.jit_provisioning.skip_username_pattern_validation}}</SkipUsernamePatternValidation>
         <EnableEnhancedFeature>{{authentication.jit_provisioning.enable_enhanced_feature}}</EnableEnhancedFeature>
         <!-- Claims which must not delete during the syncing process of existing claim mappings with IDP claim mappings
@@ -2033,6 +2034,7 @@
             <useUserTenantDomainInSaasApps>{{outbound_provisioning_management.use_user_tenant_domain_in_saas_apps}}</useUserTenantDomainInSaasApps>
         {% endif %}
         <enableApplicationBasedOutboundProvisioning>{{outbound_provisioning_management.enable_application_based_outbound_provisioning}}</enableApplicationBasedOutboundProvisioning>
+        <FailOnBlockingOutboundProvisionFailure>{{outbound_provisioning_management.fail_on_blocking_outbound_provision_failure}}</FailOnBlockingOutboundProvisionFailure>
     </OutboundProvisioning>
 
     <Actions>

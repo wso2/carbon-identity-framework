@@ -517,11 +517,13 @@
   "idp_role_management.return_manually_added_local_roles": true,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
+  "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
+  "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
   "authentication.jit_provisioning.enable_enhanced_feature": false,
 
   "application_mgt.enable_role_validation": false,

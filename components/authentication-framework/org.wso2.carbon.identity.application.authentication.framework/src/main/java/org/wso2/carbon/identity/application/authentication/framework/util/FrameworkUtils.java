@@ -2942,6 +2942,16 @@ public class FrameworkUtils {
                 IdentityUtil.getProperty("JITProvisioning.SkipUsernamePatternValidation"));
     }
 
+    /**
+     * This method determines whether authentication flow should be break if JIT provisioning has failed.
+     *
+     * @return boolean Whether to fail the authentication flow.
+     */
+    public static boolean isAuthenticationFailOnJitFail() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("JITProvisioning.FailAuthnOnProvisionFailure"));
+    }
+
 
     /**
      * This method is to provide flag about Adaptive authentication is availability.
