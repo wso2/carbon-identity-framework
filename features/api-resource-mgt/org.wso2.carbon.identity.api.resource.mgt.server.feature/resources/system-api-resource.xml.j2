@@ -27,6 +27,16 @@
         </Scopes>
     </APIResource>
     {% endfor %}
+    <APIResource name="SCIM2 Roles API"
+                identifier="/o/scim2/Roles" requiresAuthorization="true"
+                description="API representation of the SCIM2 Roles API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Create Roles" name="internal_org_role_mgt_create"
+                        description = "Create new roles in the organization"/>
+            <Scope displayName="Delete Roles" name="internal_org_role_mgt_delete"
+                        description = "Delete roles in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Admin Advisory Management API"
                  identifier="/api/server/v1/admin-advisory-management/banner" requiresAuthorization="true"
                  description="API representation of the Admin Advisory Management API" type="SYSTEM">
