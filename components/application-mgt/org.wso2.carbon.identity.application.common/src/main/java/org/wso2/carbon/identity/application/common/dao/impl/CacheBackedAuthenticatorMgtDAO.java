@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtExc
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 
+import java.util.List;
+
 
 /**
  * This class implements the Cache backed AuthenticatorManagementDAO interface.
@@ -83,6 +85,13 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         }
 
         return authenticatorManagementDAO.getUserDefinedLocalAuthenticator(authenticatorConfigName, tenantId);
+    }
+
+    @Override
+    public List<LocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticator(Integer tenantId)
+            throws AuthenticatorMgtException {
+
+        return authenticatorManagementDAO.getAllUserDefinedLocalAuthenticator(tenantId);
     }
 
     @Override

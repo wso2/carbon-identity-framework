@@ -63,8 +63,28 @@ public class ApplicationAuthenticatorService {
         return instance;
     }
 
+    /**
+     * This returns only SYSTEM defined local authenticators.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    @Deprecated
     public List<LocalAuthenticatorConfig> getLocalAuthenticators() {
         return this.localAuthenticators;
+    }
+
+    /**
+     * This returns both SYSTEM and USER defined local authenticators.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getLocalAuthenticators(String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        List<LocalAuthenticatorConfig> userDefinedAuthenticators =
+                CACHE_BACKED_DAO.getAllUserDefinedLocalAuthenticator(IdentityTenantUtil.getTenantId(tenantDomain));
+        userDefinedAuthenticators.addAll(localAuthenticators);
+        return userDefinedAuthenticators;
     }
 
     public List<FederatedAuthenticatorConfig> getFederatedAuthenticators() {
@@ -76,7 +96,7 @@ public class ApplicationAuthenticatorService {
     }
 
     /**
-     * This returns only SYSTEM defined local authenticators.
+     * This returns only SYSTEM defined local authenticator by name.
      *
      * @param name  The name of the Local Application Authenticator configuration.
      *
@@ -93,10 +113,10 @@ public class ApplicationAuthenticatorService {
     }
 
     /**
-     * Retrieve both USER and SYSTEM defined Local Application Authenticator configuration.
+     * Retrieve both USER and SYSTEM defined Local Application Authenticator configuration by name.
      *
-     * @param name  The name of the Local Application Authenticator configuration.
-     * @param tenantDomain         Tenant domain.
+     * @param name                  The name of the Local Application Authenticator configuration.
+     * @param tenantDomain          Tenant domain.
      *
      * @return Retrieved LocalAuthenticatorConfig.
      * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration by name.

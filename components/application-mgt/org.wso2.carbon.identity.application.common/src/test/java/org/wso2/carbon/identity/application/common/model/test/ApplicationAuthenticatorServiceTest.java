@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -118,8 +119,8 @@ public class ApplicationAuthenticatorServiceTest {
                 systemAuthenticatorConfig, AuthenticationType.IDENTIFICATION, tenantDomain);
     }
 
-    @DataProvider(name = "authenticatorConfigForUpdate")
-    public Object[][] authenticatorConfigForUpdate() {
+    @DataProvider(name = "authenticatorConfigToModify")
+    public Object[][] authenticatorConfigToModify() {
 
         Property prop1 = new Property();
         prop1.setName("PropertyNameNew1");
@@ -137,7 +138,7 @@ public class ApplicationAuthenticatorServiceTest {
         };
     }
 
-    @Test(priority = 4, dataProvider = "authenticatorConfigForUpdate")
+    @Test(priority = 4, dataProvider = "authenticatorConfigToModify")
     public void testUpdateUserDefinedLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -158,7 +159,40 @@ public class ApplicationAuthenticatorServiceTest {
         authenticatorService.updateUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig, tenantDomain);
     }
 
-    @Test(priority = 6, dataProvider = "authenticatorConfigForUpdate")
+    @DataProvider(name = "authenticatorConfigToRetrieve")
+    public Object[][] authenticatorConfigToRetrieve() {
+
+        return new Object[][]{
+                {authenticatorConfig1, authenticatorConfig1},
+                {authenticatorConfig2, authenticatorConfig2},
+                {nonExistAuthenticatorConfig, null},
+                {systemAuthenticatorConfig, null}
+        };
+    }
+
+    @Test(priority = 6, dataProvider = "authenticatorConfigToRetrieve")
+    public void testGetUserDefinedLocalAuthenticator(LocalAuthenticatorConfig configToBeRetrieved,
+                 LocalAuthenticatorConfig expectedConfig) throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig retrievedConfig =
+                authenticatorService.getUserDefinedLocalAuthenticator(configToBeRetrieved.getName(), tenantDomain);
+        Assert.assertEquals(retrievedConfig, expectedConfig);
+        if (expectedConfig != null) {
+            Assert.assertEquals(retrievedConfig.getDisplayName(), expectedConfig.getDisplayName());
+            Assert.assertEquals(retrievedConfig.isEnabled(), expectedConfig.isEnabled());
+            Assert.assertEquals(retrievedConfig.getDefinedByType(), DefinedByType.USER);
+            Assert.assertEquals(retrievedConfig.getProperties().length, expectedConfig.getProperties().length);
+        }
+    }
+
+    @Test(priority = 7)
+    public void testGetAllUserDefinedLocalAuthenticator() throws AuthenticatorMgtException {
+
+        List<LocalAuthenticatorConfig> retrievedConfig = authenticatorService.getLocalAuthenticators(tenantDomain);
+        Assert.assertEquals(retrievedConfig.size(), 2);
+    }
+
+    @Test(priority = 8, dataProvider = "authenticatorConfigToModify")
     public void testDeleteUserDefinedLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -166,7 +200,7 @@ public class ApplicationAuthenticatorServiceTest {
         Assert.assertNull(authenticatorService.getLocalAuthenticatorByName(config.getName()));
     }
 
-    @Test(priority = 7, expectedExceptions = AuthenticatorMgtException.class,
+    @Test(priority = 9, expectedExceptions = AuthenticatorMgtException.class,
             expectedExceptionsMessageRegExp = "No Authenticator is found.")
     public void testDeleteUserDefinedLocalAuthenticatorWithNonExistingAuthenticator() throws AuthenticatorMgtException {
 

@@ -22,13 +22,15 @@ import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtExc
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 
+import java.util.List;
+
 /**
  * This interface performs CRUD operations for the Local Application Authenticator configurations.
  */
 public interface AuthenticatorManagementDAO {
 
     /**
-     * Create a new Local Application Authenticator configuration.
+     * Create a new user defined Local Application Authenticator configuration.
      *
      * @param authenticatorConfig   Local Application Authenticator configuration.
      * @param tenantId              Tenant Id.
@@ -41,7 +43,7 @@ public interface AuthenticatorManagementDAO {
             throws AuthenticatorMgtException;
 
     /**
-     * Update a Local Application Authenticator configuration.
+     * Update a user defined Local Application Authenticator configuration.
      *
      * @param existingAuthenticatorConfig   Existing  Local Application Authenticator configuration.
      * @param updatedAuthenticatorConfig    New Local Application Authenticator configuration.
@@ -55,7 +57,7 @@ public interface AuthenticatorManagementDAO {
             throws AuthenticatorMgtException;
 
     /**
-     * Retrieve a Local Application Authenticator configuration by name.
+     * Retrieve a Local user defined Application Authenticator configuration by name.
      *
      * @param authenticatorConfigName   Name of the Local Application Authenticator configuration.
      * @param tenantId                  Tenant Id.
@@ -64,6 +66,18 @@ public interface AuthenticatorManagementDAO {
      * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration.
      */
     LocalAuthenticatorConfig getUserDefinedLocalAuthenticator(String authenticatorConfigName, Integer tenantId)
+            throws AuthenticatorMgtException;
+
+
+    /**
+     * Retrieve all user defined Local Application Authenticator configurations.
+     *
+     * @param tenantId                  Tenant Id.
+     *
+     * @return Retrieved LocalAuthenticatorConfig
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configurations.
+     */
+    List<LocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticator(Integer tenantId)
             throws AuthenticatorMgtException;
 
     /**

@@ -38,7 +38,7 @@ public class AuthenticatorMgtSQLConstants {
         public static final String NAME = "NAME";
         public static final String IS_ENABLED = "IS_ENABLED";
         public static final String DEFINED_BY = "DEFINED_BY";
-        public static final String AUTHENTICATOR_TYPE = "AUTHENTICATOR_TYPE";
+        public static final String AUTHENTICATION_TYPE = "AUTHENTICATION_TYPE";
         public static final String DISPLAY_NAME = "DISPLAY_NAME";
         public static final String ID = "ID";
         public static final String AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
@@ -57,13 +57,15 @@ public class AuthenticatorMgtSQLConstants {
     public static class Query {
 
         public static final String ADD_AUTHENTICATOR_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
-                "(TENANT_ID, IDP_ID, NAME, IS_ENABLED, DEFINED_BY, AUTHENTICATOR_TYPE, DISPLAY_NAME) VALUES" +
+                "(TENANT_ID, IDP_ID, NAME, IS_ENABLED, DEFINED_BY, AUTHENTICATION_TYPE, DISPLAY_NAME) VALUES" +
                 " (:TENANT_ID;, (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; AND IDP.TENANT_ID = :TENANT_ID;), " +
-                ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AUTHENTICATOR_TYPE;, :DISPLAY_NAME;);";
+                ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AUTHENTICATION_TYPE;, :DISPLAY_NAME;);";
         public static final String UPDATE_AUTHENTICATOR_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED = " +
                 ":IS_ENABLED;, DISPLAY_NAME = :DISPLAY_NAME; WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_AUTHENTICATOR_SQL = "SELECT * FROM IDP_AUTHENTICATOR WHERE NAME = :NAME; " +
                 " AND TENANT_ID = :TENANT_ID;";
+        public static final String GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL = "SELECT * FROM IDP_AUTHENTICATOR " +
+                "WHERE DEFINED_BY = :DEFINED_BY; AND TENANT_ID = :TENANT_ID;";
         public static final String DELETE_AUTHENTICATOR_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE NAME = :NAME; " +
                 " AND TENANT_ID = :TENANT_ID;";
         public static final String GET_AUTHENTICATOR_ID_SQL = "SELECT ID FROM IDP_AUTHENTICATOR " +
