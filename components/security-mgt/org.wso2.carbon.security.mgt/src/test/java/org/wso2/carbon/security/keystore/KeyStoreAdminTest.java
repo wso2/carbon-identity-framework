@@ -153,6 +153,38 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
         }
     }
 
+    @Test(description = "Delete KeyStore test", dependsOnMethods = "testAddKeyStore")
+    public void testDeleteKeyStore() throws Exception {
+
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+             MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
+
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+
+            keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
+            keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
+
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin.deleteStore("new_keystore.jks");
+        }
+    }
+
+    @Test(description = "Delete TrustStore test", dependsOnMethods = "testAddTrustStore")
+    public void testDeleteTrustStore() throws Exception {
+
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+             MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
+
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+
+            keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
+            keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
+
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin.deleteStore("new_truststore.jks");
+        }
+    }
+
 
 
     @Test
