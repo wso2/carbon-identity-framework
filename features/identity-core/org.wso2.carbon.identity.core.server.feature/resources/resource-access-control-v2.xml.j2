@@ -1110,6 +1110,14 @@
         <!-- Guest Invitation Management API -->
         <Resource context="(.*)/api/server/v1/guests/invitation/accept" secured="false" http-method="POST"/>
 
+        <!-- [Organization] API Resource Management API -->
+        <Resource context="(.*)/o/api/server/v1/api-resources(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_api_resource_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/scopes(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_api_resource_view</Scopes>
+        </Resource>
+
         <!-- API Resource Management API -->
         <Resource context="(.*)/api/server/v1/api-resources(.*)" secured="true" http-method="POST">
             <Scopes>internal_api_resource_create</Scopes>
