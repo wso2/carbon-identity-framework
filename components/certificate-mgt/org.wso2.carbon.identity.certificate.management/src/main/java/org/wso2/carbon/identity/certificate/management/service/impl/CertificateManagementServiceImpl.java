@@ -16,16 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.certificate.management;
+package org.wso2.carbon.identity.certificate.management.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors;
-import org.wso2.carbon.identity.certificate.management.dao.impl.ApplicationCertificateManagementDAOImpl;
-import org.wso2.carbon.identity.certificate.management.dao.impl.CacheBackedApplicationCertificateMgtDAO;
+import org.wso2.carbon.identity.certificate.management.dao.impl.CacheBackedCertificateMgtDAO;
+import org.wso2.carbon.identity.certificate.management.dao.impl.CertificateManagementDAOImpl;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
+import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.certificate.management.util.CertificateMgtExceptionHandler;
 import org.wso2.carbon.identity.certificate.management.util.CertificateValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -33,24 +34,19 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.util.UUID;
 
 /**
- * This class is responsible for managing trusted certificates of applications of a tenant.
- * This service supports using auto-incremented IDs for certificate management operations in application-mgt.
- *
- * @deprecated It is recommended to use {@link CertificateManagementServiceImpl}, which supports operations with UUID.
+ * This class is responsible for managing trusted certificates of a tenant.
  */
-@Deprecated
-public class ApplicationCertificateManagementServiceImpl implements ApplicationCertificateManagementService {
+public class CertificateManagementServiceImpl implements CertificateManagementService {
 
-    private static final Log LOG = LogFactory.getLog(ApplicationCertificateManagementServiceImpl.class);
-    private static final ApplicationCertificateManagementService INSTANCE =
-            new ApplicationCertificateManagementServiceImpl();
-    private static final CacheBackedApplicationCertificateMgtDAO CACHE_BACKED_DAO =
-            new CacheBackedApplicationCertificateMgtDAO(new ApplicationCertificateManagementDAOImpl());
+    private static final Log LOG = LogFactory.getLog(CertificateManagementServiceImpl.class);
+    private static final CertificateManagementService INSTANCE = new CertificateManagementServiceImpl();
+    private static final CacheBackedCertificateMgtDAO CACHE_BACKED_DAO =
+            new CacheBackedCertificateMgtDAO(new CertificateManagementDAOImpl());
 
-    private ApplicationCertificateManagementServiceImpl() {
+    private CertificateManagementServiceImpl() {
     }
 
-    public static ApplicationCertificateManagementService getInstance() {
+    public static CertificateManagementService getInstance() {
 
         return INSTANCE;
     }
@@ -60,18 +56,19 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      *
      * @param certificate  Certificate information.
      * @param tenantDomain Tenant domain.
-     * @return Auto incremented integer id of the Certificate.
+     * @return Certificate ID.
      * @throws CertificateMgtException If an error occurs while adding the certificate.
      */
     @Override
-    @Deprecated
-    public int addCertificate(Certificate certificate, String tenantDomain) throws CertificateMgtException {
+    public String addCertificate(Certificate certificate, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Adding certificate with name: " + certificate.getName());
         doPreAddCertificateValidations(certificate);
         String generatedCertificateId = UUID.randomUUID().toString();
-        return CACHE_BACKED_DAO.addCertificate(generatedCertificateId, certificate,
+        CACHE_BACKED_DAO.addCertificate(generatedCertificateId, certificate,
                 IdentityTenantUtil.getTenantId(tenantDomain));
+
+        return generatedCertificateId;
     }
 
     /**
@@ -83,8 +80,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      * @throws CertificateMgtException If an error occurs while getting the certificate.
      */
     @Override
-    @Deprecated
-    public Certificate getCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
+    public Certificate getCertificate(String certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Retrieving certificate with id: " + certificateId);
         Certificate certificate = CACHE_BACKED_DAO.getCertificate(certificateId,
@@ -92,41 +88,14 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
         if (certificate == null) {
             LOG.debug("No certificate found for the id: " + certificateId);
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
-                    String.valueOf(certificateId));
+                    certificateId);
         }
 
         return certificate;
     }
 
     /**
-     * Get certificate information with given name.
-     *
-     * @param certificateName Certificate name.
-     * @param tenantDomain    Tenant domain.
-     * @return Certificate information.
-     * @throws CertificateMgtException If an error occurs while getting the certificate by name.
-     */
-    @Override
-    @Deprecated
-    public Certificate getCertificateByName(String certificateName, String tenantDomain)
-            throws CertificateMgtException {
-
-        LOG.debug("Retrieving certificate with name: " + certificateName);
-        Certificate certificate = CACHE_BACKED_DAO.getCertificateByName(certificateName,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-        if (certificate == null) {
-            LOG.debug("No certificate found for the name: " + certificateName);
-            CertificateMgtExceptionHandler.throwClientException(
-                    CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST_WITH_GIVEN_NAME, certificateName);
-        }
-
-        return certificate;
-    }
-
-    /**
-     * Update a certificate with given id.
-     * Only the non-null and non-empty fields in the provided certificate will be updated.
-     * Null or empty fields will be ignored.
+     * Update a certificate content with given id.
      *
      * @param certificateId      Certificate ID.
      * @param certificateContent Certificate content.
@@ -134,8 +103,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      * @throws CertificateMgtException If an error occurs while updating the certificate.
      */
     @Override
-    @Deprecated
-    public void updateCertificateContent(int certificateId, String certificateContent, String tenantDomain)
+    public void updateCertificateContent(String certificateId, String certificateContent, String tenantDomain)
             throws CertificateMgtException {
 
         LOG.debug("Updating certificate with id: " + certificateId);
@@ -153,8 +121,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      * @throws CertificateMgtException If an error occurs while deleting the certificate.
      */
     @Override
-    @Deprecated
-    public void deleteCertificate(int certificateId, String tenantDomain) throws CertificateMgtException {
+    public void deleteCertificate(String certificateId, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Deleting certificate with id: " + certificateId);
         CACHE_BACKED_DAO.deleteCertificate(certificateId, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -179,13 +146,13 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      * @param tenantDomain Tenant Domain.
      * @throws CertificateMgtException If the certificate does not exist.
      */
-    private void checkIfCertificateExists(int certificateId, String tenantDomain) throws CertificateMgtException {
+    private void checkIfCertificateExists(String certificateId, String tenantDomain) throws CertificateMgtException {
 
         Certificate certificate = CACHE_BACKED_DAO.getCertificate(certificateId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (certificate == null) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
-                    String.valueOf(certificateId));
+                    certificateId);
         }
     }
 }

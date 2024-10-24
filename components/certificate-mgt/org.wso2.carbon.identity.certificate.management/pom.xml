@@ -76,15 +76,17 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.certificate.management.dao,
+                            org.wso2.carbon.identity.certificate.management.cache,
+                            org.wso2.carbon.identity.certificate.management.constants,
+                            org.wso2.carbon.identity.certificate.management.dao.*,
                             org.wso2.carbon.identity.certificate.management.internal,
-                            org.wso2.carbon.identity.certificate.management.util,
+                            org.wso2.carbon.identity.certificate.management.service.impl,
+                            org.wso2.carbon.identity.certificate.management.util;
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.certificate.management.dao,
-                            !org.wso2.carbon.identity.certificate.management.internal,
-                            !org.wso2.carbon.identity.certificate.management.util,
-                            org.wso2.carbon.identity.certificate.management.*;
+                            org.wso2.carbon.identity.certificate.management.exception,
+                            org.wso2.carbon.identity.certificate.management.model,
+                            org.wso2.carbon.identity.certificate.management.service;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>

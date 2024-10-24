@@ -25,10 +25,10 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.wso2.carbon.identity.certificate.management.ApplicationCertificateManagementService;
-import org.wso2.carbon.identity.certificate.management.ApplicationCertificateManagementServiceImpl;
-import org.wso2.carbon.identity.certificate.management.CertificateManagementService;
-import org.wso2.carbon.identity.certificate.management.CertificateManagementServiceImpl;
+import org.wso2.carbon.identity.certificate.management.service.ApplicationCertificateManagementService;
+import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.certificate.management.service.impl.ApplicationCertificateManagementServiceImpl;
+import org.wso2.carbon.identity.certificate.management.service.impl.CertificateManagementServiceImpl;
 
 /**
  * Service component for the Certificate management.

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.certificate.management;
+package org.wso2.carbon.identity.certificate.management.service;
 
 import org.mockito.MockedStatic;
 import org.testng.Assert;
@@ -30,6 +30,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
+import org.wso2.carbon.identity.certificate.management.service.impl.ApplicationCertificateManagementServiceImpl;
 import org.wso2.carbon.identity.certificate.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
