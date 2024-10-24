@@ -30,12 +30,12 @@ public enum ActionType {
 
     private final String value;
 
-    ActionType(String v) {
-        this.value = v;
+    ActionType(String value) {
+        this.value = value;
     }
 
     public String getDisplayName() {
 
-        return Action.ActionTypes.valueOf(String.valueOf(this.value)).getDisplayName();
+        return Action.ActionTypes.valueOf(this.value).getDisplayName();
     }
 }
