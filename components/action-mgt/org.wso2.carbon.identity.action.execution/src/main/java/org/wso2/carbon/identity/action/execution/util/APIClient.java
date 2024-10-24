@@ -104,11 +104,11 @@ public class APIClient {
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
-                DIAGNOSTIC_LOGGER.logAPICallRetry(request, attempts, retryCount);
+                DIAGNOSTIC_LOGGER.logAPICallRetry(request, attempts + 1, retryCount);
                 LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
-                DIAGNOSTIC_LOGGER.logAPICallTimeout(request, retryCount, attempts);
+                DIAGNOSTIC_LOGGER.logAPICallTimeout(request, attempts + 1, retryCount);
                 LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (Exception e) {
