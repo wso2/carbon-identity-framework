@@ -104,16 +104,16 @@ public class KeyStoreAdmin {
                 keyStoreData.setPrivateStore(keyStoreMetadata.isPrivateStore());
 
                 // Dump the generated public key to the file system for sub tenants.
-                if (!isSuperTenant && keyStoreMetadata.getPublicCert() != null &&
-                        StringUtils.isNotBlank(keyStoreMetadata.getPublicCertId())) {
-                    if (MessageContext.getCurrentMessageContext() != null) {
-                        String fileName = generatePubCertFileName(keyStoreMetadata.getKeyStoreName(),
-                                keyStoreMetadata.getPublicCertId());
-                        String pubKeyFilePath = KeyStoreMgtUtil.dumpCert(
-                                MessageContext.getCurrentMessageContext().getConfigurationContext(),
-                                keyStoreMetadata.getPublicCert(), fileName);
-                        keyStoreData.setPubKeyFilePath(pubKeyFilePath);
-                    }
+                if (!isSuperTenant && keyStoreMetadata.getPublicCert() != null
+                        && StringUtils.isNotBlank(keyStoreMetadata.getPublicCertId())
+                        && MessageContext.getCurrentMessageContext() != null) {
+
+                    String fileName = generatePubCertFileName(keyStoreMetadata.getKeyStoreName(),
+                            keyStoreMetadata.getPublicCertId());
+                    String pubKeyFilePath = KeyStoreMgtUtil.dumpCert(
+                            MessageContext.getCurrentMessageContext().getConfigurationContext(),
+                            keyStoreMetadata.getPublicCert(), fileName);
+                    keyStoreData.setPubKeyFilePath(pubKeyFilePath);
                 }
                 keyStoreDataList.add(keyStoreData);
             }

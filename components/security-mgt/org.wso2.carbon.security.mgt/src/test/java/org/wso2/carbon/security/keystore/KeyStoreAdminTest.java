@@ -71,7 +71,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     private final int tenantID = -1234;
 
     @BeforeClass
-    public void setup() throws Exception {
+    public void setup() {
 
         System.setProperty(
                 CarbonBaseConstants.CARBON_HOME,
@@ -84,10 +84,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
 
-        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(false);
@@ -102,10 +102,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
 
-        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(true);
@@ -118,11 +118,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     @Test(description = "Test case to verify successful retrieval of TrustStore")
     public void testGetTrustStoreSuccess() throws Exception {
 
-        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class)) {
+        try (MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
-            when(this.keyStoreManager.getTrustStore())
-                    .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
+            when(keyStoreManager.getTrustStore()).thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
             KeyStore result = keyStoreAdmin.getTrustStore();
@@ -135,10 +134,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     public void testGetTrustStoreException() throws Exception {
 
         // Mock ServerConfiguration static calls
-        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class)) {
+        try (MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
-            when(this.keyStoreManager.getTrustStore())
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
+            when(keyStoreManager.getTrustStore())
                     .thenThrow(new CarbonException("Error occurred while retrieving TrustStore"));
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
@@ -154,10 +153,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
         List<KeyStoreMetadata> metadataList = new ArrayList<>();
         metadataList.add(getPrimaryKeyStoreMetadata());
-        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class)) {
+        try (MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
-            when(this.keyStoreManager.getKeyStoresMetadata(true))
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
+            when(keyStoreManager.getKeyStoresMetadata(true))
                     .thenReturn(metadataList.toArray(new KeyStoreMetadata[0]));
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
@@ -183,10 +182,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     @Test(description = "Delete KeyStore test", dependsOnMethods = "testAddKeyStore")
     public void testDeleteKeyStore() throws Exception {
 
-        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
@@ -199,10 +198,10 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     @Test(description = "Delete TrustStore test", dependsOnMethods = "testAddTrustStore")
     public void testDeleteTrustStore() throws Exception {
 
-        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(keyStoreManager);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
             keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
@@ -217,15 +216,15 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     @Test
     public void testGetPaginatedKeystoreInfo() throws Exception {
 
-        try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class);
-             MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+        try (MockedStatic<ServerConfiguration> serverConfigurationMockedStatic = mockStatic(ServerConfiguration.class);
+             MockedStatic<KeyStoreManager> keyStoreManagerMockedStatic = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
-            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
+            serverConfigurationMockedStatic.when(ServerConfiguration::getInstance).thenReturn(serverConfiguration);
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(true);
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(tenantID)).thenReturn(this.keyStoreManager);
-            when(this.keyStoreManager.getKeyStore(anyString()))
+            keyStoreManagerMockedStatic.when(() -> KeyStoreManager.getInstance(tenantID)).thenReturn(keyStoreManager);
+            when(keyStoreManager.getKeyStore(anyString()))
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, null);
