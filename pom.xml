@@ -1962,7 +1962,7 @@
         <oltu.package.import.version.range>[1.0.0, 2.0.0)</oltu.package.import.version.range>
         <bcprov.version>1.49.0.wso2v2</bcprov.version>
         <swagger.jaxrs.version>1.5.2</swagger.jaxrs.version>
-        <org.json.version>20230227</org.json.version>
+        <org.json.version>20231013</org.json.version>
         <json.wso2.osgi.version.range>[20160810, 20300101)</json.wso2.osgi.version.range>
         <!-- Orbits -->
         <orbit.version.xmlschema>1.4.7.wso2v3</orbit.version.xmlschema>
