@@ -31,6 +31,14 @@ import java.util.Map;
  */
 public class TestUtil {
 
+    public static final int TEST_TENANT_ID = 2;
+    public static final String TEST_TENANT_DOMAIN = "carbon.super";
+    public static final String NAME_FIELD = "Name";
+    public static final String CERTIFICATE_FIELD = "Certificate";
+    public static final String TEST_UUID = "d6b08d41-65fb-46ff-9e87-1d62aaaace6c";
+    public static final String TEST_OTHER_UUID = "f6b18d41-647fb-53ff-9e87-1d62e197ce6c";
+    public static final int TEST_ID = 1;
+    public static final int TEST_OTHER_ID = 100;
     public static final String CERTIFICATE_NAME = "test";
     public static final String CERTIFICATE = "-----BEGIN CERTIFICATE-----" +
             "MIIC+jCCAmOgAwIBAgIJAParOnPwEkKjMA0GCSqGSIb3DQEBBQUAMIGKMQswCQYD" +
@@ -151,13 +159,6 @@ public class TestUtil {
             "X+lFEoWDUoE5qkTpMjsR1q/+2j9eTyi9xGj5sby4yFvmXf8jS5L6zMkkezSb6QAv" +
             "tSHcLfefKeidq6NDBJ8DhWHi/zvC9YbT0KkCToEgvCTBpRZgdSFxTJcUksqoFA==" +
             "-----END CERTIFICATE-----";
-    public static final String NAME_FIELD = "Name";
-    public static final String CERTIFICATE_FIELD = "Certificate";
-    public static final String TEST_UUID = "d6b08d41-65fb-46ff-9e87-1d62aaaace6c";
-    public static final String TEST_OTHER_UUID = "f6b18d41-647fb-53ff-9e87-1d62e197ce6c";
-    public static final int TEST_ID = 1;
-    public static final int TEST_OTHER_ID = 100;
-    public static final int TEST_TENANT_ID = 2;
 
     public static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
