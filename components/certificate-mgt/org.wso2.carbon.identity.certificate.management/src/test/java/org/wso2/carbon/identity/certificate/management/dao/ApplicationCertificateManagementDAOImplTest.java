@@ -128,7 +128,7 @@ public class ApplicationCertificateManagementDAOImplTest {
 
     @Test(priority = 4, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Error while adding Certificate.")
-    public void testInvalidCertificateAddition() throws CertificateMgtException {
+    public void testAddInvalidCertificate() throws CertificateMgtException {
 
         // Adding a certificate to the same tenant with the same name to generate unique key constraint violation.
         String otherCertificateUUID = String.valueOf(UUID.randomUUID());

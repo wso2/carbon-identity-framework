@@ -69,7 +69,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     public int addCertificate(Certificate certificate, String tenantDomain) throws CertificateMgtException {
 
         LOG.debug("Adding certificate with name: " + certificate.getName());
-        doPreAddCertificateValidations(certificate);
+        doPreAddValidations(certificate);
         String generatedCertificateId = UUID.randomUUID().toString();
         return CACHE_BACKED_DAO.addCertificate(generatedCertificateId, certificate,
                 IdentityTenantUtil.getTenantId(tenantDomain));
@@ -140,8 +140,7 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
             throws CertificateMgtException {
 
         LOG.debug("Updating certificate with id: " + certificateId);
-        checkIfCertificateExists(certificateId, tenantDomain);
-        CertificateValidator.validateCertificateContent(certificateContent);
+        doPreUpdateValidations(certificateId, certificateContent, tenantDomain);
         CACHE_BACKED_DAO.updateCertificateContent(certificateId, certificateContent,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
@@ -165,8 +164,9 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
      * Validate the certificate.
      *
      * @param certificate Certificate information.
+     * @throws CertificateMgtClientException If the certificate is invalid.
      */
-    private void doPreAddCertificateValidations(Certificate certificate) throws CertificateMgtClientException {
+    private void doPreAddValidations(Certificate certificate) throws CertificateMgtClientException {
 
         CertificateValidator.validateForBlank(CertificateValidator.NAME_FIELD, certificate.getName());
         CertificateValidator.validateForBlank(CertificateValidator.CERTIFICATE_FIELD, certificate.getCertificate());
@@ -174,13 +174,14 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
     }
 
     /**
-     * Check if the certificate existence.
+     * Validate the certificate content and id.
      *
-     * @param certificateId     Action ID.
-     * @param tenantDomain Tenant Domain.
-     * @throws CertificateMgtException If the certificate does not exist.
+     * @param certificateContent Certificate content.
+     * @param tenantDomain Tenant domain.
+     * @throws CertificateMgtException If the certificate content or certificate id is invalid.
      */
-    private void checkIfCertificateExists(int certificateId, String tenantDomain) throws CertificateMgtException {
+    private void doPreUpdateValidations(int certificateId, String certificateContent, String tenantDomain)
+            throws CertificateMgtException {
 
         Certificate certificate = CACHE_BACKED_DAO.getCertificate(certificateId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
@@ -188,5 +189,6 @@ public class ApplicationCertificateManagementServiceImpl implements ApplicationC
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_CERTIFICATE_DOES_NOT_EXIST,
                     String.valueOf(certificateId));
         }
+        CertificateValidator.validateCertificateContent(certificateContent);
     }
 }

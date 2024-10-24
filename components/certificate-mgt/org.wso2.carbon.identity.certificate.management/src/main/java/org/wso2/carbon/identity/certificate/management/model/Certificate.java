@@ -28,7 +28,7 @@ public class Certificate {
     // Certificates only in PEM format are allowed.
     private final String certificate;
 
-    public Certificate(Builder certificateBuilder) {
+    private Certificate(Builder certificateBuilder) {
 
         this.id = certificateBuilder.id;
         this.name = certificateBuilder.name;

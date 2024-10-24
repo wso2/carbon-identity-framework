@@ -114,7 +114,7 @@ public class CertificateManagementDAOImplTest {
 
     @Test(priority = 3, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Error while adding Certificate.")
-    public void testInvalidCertificateAddition() throws CertificateMgtException {
+    public void testAddInvalidCertificate() throws CertificateMgtException {
 
         // Adding a certificate with null uuid to generate unique key constraint violation.
         Certificate creatingCertificate = new Certificate.Builder()
