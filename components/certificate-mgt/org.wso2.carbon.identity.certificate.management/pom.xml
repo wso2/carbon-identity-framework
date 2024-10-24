@@ -29,8 +29,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Certificate Management Core</name>
-    <description>Identity Certificate Management Core</description>
+    <name>WSO2 Carbon - Certificate Management</name>
+    <description>Identity Certificate Management</description>
 
     <dependencies>
         <dependency>
