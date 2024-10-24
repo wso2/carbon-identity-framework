@@ -18,11 +18,24 @@
 
 package org.wso2.carbon.identity.action.execution.model;
 
+import org.wso2.carbon.identity.action.management.model.Action;
+
 /**
  * This class models the Action Type.
  * Action Type is the type of the action that is executed by the Action Executor Service.
  */
 public enum ActionType {
-    PRE_ISSUE_ACCESS_TOKEN,
-    AUTHENTICATION
+    PRE_ISSUE_ACCESS_TOKEN("PRE_ISSUE_ACCESS_TOKEN"),
+    AUTHENTICATION("AUTHENTICATION");
+
+    private final String value;
+
+    ActionType(String v) {
+        this.value = v;
+    }
+
+    public String getDisplayName() {
+
+        return Action.ActionTypes.valueOf(String.valueOf(this.value)).getDisplayName();
+    }
 }
