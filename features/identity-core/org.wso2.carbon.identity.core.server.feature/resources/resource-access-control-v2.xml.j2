@@ -694,6 +694,43 @@
             <Scopes>internal_email_mgt_delete</Scopes>
         </Resource>
 
+        <!-- [Organization] Notification Template Management API -->
+        <Resource context="(.*)/o/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_email_mgt_view,internal_org_template_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="GET">
+            <Scopes>internal_org_template_mgt_view</Scopes>
+        </Resource>
+
+        <!-- Notification Template Management API -->
+        <Resource context="(.*)/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="GET">
+            <Scopes>internal_email_mgt_view,internal_template_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="POST">
+            <Scopes>internal_email_mgt_create,internal_template_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/email/template-types/(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_email_mgt_update,internal_template_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/email/template-types/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_email_mgt_delete,internal_template_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="GET">
+            <Scopes>internal_template_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="POST">
+            <Scopes>internal_template_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types/(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_template_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/sms/template-types/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_template_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v(.*)/notification/reset-template-type" secured="true" http-method="POST">
+            <Scopes>internal_template_mgt_delete</Scopes>
+        </Resource>
+
         <!-- Keystore Management API -->
         <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/keystores/(.*)" secured="true" http-method="GET">
