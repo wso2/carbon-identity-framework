@@ -16,27 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.base;
+package org.wso2.carbon.identity.application.common.model;
 
-public class AuthenticatorPropertyConstants {
+/**
+ * Verification authenticator configuration.
+ */
+public class VerificationAuthenticatorConfig extends LocalAuthenticatorConfig {
 
-    /**
-     * The Defined by Types - SYSTEM: system define authenticator, USER: user defined authentication extension.
-     */
-    public static enum DefinedByType {
+    @Override
+    public String[] getTags() {
 
-        SYSTEM,
-        USER
+        return tags;
     }
 
-    /**
-     * The Authentication Type -
-     * Identification: Can collect the user identifier and authenticator. Can engage in any step of the login flow.
-     * Verification: Only perform additional verification. Can engage in 2nd or later step of the login flow.
-     */
-    public static enum AuthenticationType {
+    @Override
+    public void setTags(String[] tagList) {
 
-        IDENTIFICATION,
-        VERIFICATION
+        // Add 2FA tag to the given tag list.
+        tags = new String[tagList.length + 1];
+        System.arraycopy(tagList, 0, tags, 0, tagList.length);
+        tags[tagList.length] = "2FA";
     }
 }

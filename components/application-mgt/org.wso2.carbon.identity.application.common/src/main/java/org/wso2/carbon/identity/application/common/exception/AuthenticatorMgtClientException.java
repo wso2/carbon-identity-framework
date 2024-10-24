@@ -16,27 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.base;
+package org.wso2.carbon.identity.application.common.exception;
 
-public class AuthenticatorPropertyConstants {
+/**
+ * Authenticator configuration management client exception.
+ */
+public class AuthenticatorMgtClientException extends AuthenticatorMgtException {
 
-    /**
-     * The Defined by Types - SYSTEM: system define authenticator, USER: user defined authentication extension.
-     */
-    public static enum DefinedByType {
+    public AuthenticatorMgtClientException(String errorCode, String message, String description) {
 
-        SYSTEM,
-        USER
-    }
-
-    /**
-     * The Authentication Type -
-     * Identification: Can collect the user identifier and authenticator. Can engage in any step of the login flow.
-     * Verification: Only perform additional verification. Can engage in 2nd or later step of the login flow.
-     */
-    public static enum AuthenticationType {
-
-        IDENTIFICATION,
-        VERIFICATION
+        super(message, description, errorCode);
     }
 }
