@@ -163,9 +163,6 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
             serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
-            when(this.serverConfiguration.getFirstProperty(
-                    RegistryResources.SecurityManagement.SERVER_PRIMARY_KEYSTORE_TYPE)).thenReturn(KEYSTORE_TYPE);
-
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(true);
 
             keyStoreManager.when(() -> KeyStoreManager.getInstance(tenantID)).thenReturn(this.keyStoreManager);
