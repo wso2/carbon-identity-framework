@@ -27,11 +27,11 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 
-import java.sql.SQLException;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_UUID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
 
@@ -40,18 +40,15 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDA
  * It contains unit tests to verify the functionality of the methods
  * in the ApplicationCertificateManagementDAOImpl class.
  */
-@WithH2Database(files = {"dbScripts/h2.sql"})
+@WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
 public class ApplicationCertificateManagementDAOImplTest {
-
-    private static final String DB_NAME = "application_certificate_mgt_dao";
-    private static final int TENANT_ID = 2;
 
     private int certificateID;
     private ApplicationCertificateManagementDAOImpl applicationCertificateManagementDAO;
 
     @BeforeClass
-    public void setUpClass() throws SQLException {
+    public void setUpClass() {
 
         applicationCertificateManagementDAO = new ApplicationCertificateManagementDAOImpl();
     }
@@ -61,31 +58,32 @@ public class ApplicationCertificateManagementDAOImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
         certificateID = applicationCertificateManagementDAO.addCertificate(TEST_UUID, creatingCertificate,
-                TENANT_ID);
+                TEST_TENANT_ID);
         Assert.assertNotEquals(certificateID, 0);
     }
 
     @Test(priority = 2)
     public void testGetCertificate() throws CertificateMgtException {
 
-        Certificate certificate = applicationCertificateManagementDAO.getCertificate(certificateID, TENANT_ID);
+        Certificate certificate = applicationCertificateManagementDAO.getCertificate(certificateID, TEST_TENANT_ID);
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), String.valueOf(certificateID));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
     }
 
     @Test(priority = 3)
     public void testGetCertificateByName() throws CertificateMgtException {
 
-        Certificate certificate = applicationCertificateManagementDAO.getCertificateByName(CERTIFICATE_NAME, TENANT_ID);
+        Certificate certificate = applicationCertificateManagementDAO.getCertificateByName(CERTIFICATE_NAME,
+                TEST_TENANT_ID);
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), String.valueOf(certificateID));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
     }
 
     @Test(priority = 4, expectedExceptions = CertificateMgtException.class,
@@ -96,27 +94,28 @@ public class ApplicationCertificateManagementDAOImplTest {
         String otherCertificateUUID = String.valueOf(UUID.randomUUID());
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
 
-        applicationCertificateManagementDAO.addCertificate(otherCertificateUUID, creatingCertificate, TENANT_ID);
+        applicationCertificateManagementDAO.addCertificate(otherCertificateUUID, creatingCertificate, TEST_TENANT_ID);
     }
 
     @Test(priority = 5)
-    public void testUpdateCertificate() throws CertificateMgtException, SQLException {
+    public void testUpdateCertificate() throws CertificateMgtException {
 
-        applicationCertificateManagementDAO.updateCertificateContent(certificateID, UPDATED_CERTIFICATE, TENANT_ID);
-        Certificate certificate = applicationCertificateManagementDAO.getCertificate(certificateID, TENANT_ID);
+        applicationCertificateManagementDAO.updateCertificateContent(certificateID, UPDATED_CERTIFICATE,
+                TEST_TENANT_ID);
+        Certificate certificate = applicationCertificateManagementDAO.getCertificate(certificateID, TEST_TENANT_ID);
         Assert.assertEquals(certificate.getId(), String.valueOf(certificateID));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), UPDATED_CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), UPDATED_CERTIFICATE);
     }
 
     @Test(priority = 6)
-    public void testDeleteCertificate() throws CertificateMgtException, SQLException {
+    public void testDeleteCertificate() throws CertificateMgtException {
 
-        applicationCertificateManagementDAO.deleteCertificate(certificateID, TENANT_ID);
-        Certificate certificate = applicationCertificateManagementDAO.getCertificate(certificateID, TENANT_ID);
+        applicationCertificateManagementDAO.deleteCertificate(certificateID, TEST_TENANT_ID);
+        Certificate certificate = applicationCertificateManagementDAO.getCertificate(certificateID, TEST_TENANT_ID);
         Assert.assertNull(certificate);
     }
 }

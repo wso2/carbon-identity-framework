@@ -75,13 +75,13 @@ public class CacheBackedApplicationCertificateMgtDAOTest {
         certificate = new Certificate.Builder()
                 .id(TEST_UUID)
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
         when(applicationCertificateManagementDAO.addCertificate(TEST_UUID, certificate, TEST_TENANT_ID))
                 .thenReturn(TEST_ID);
         certificateId = cacheBackedApplicationCertificateMgtDAO.addCertificate(TEST_UUID, certificate, TEST_TENANT_ID);
 
-        Assert.assertEquals(TEST_ID, certificateId);
+        Assert.assertEquals(certificateId, TEST_ID);
         verify(applicationCertificateManagementDAO, times(1)).addCertificate(TEST_UUID,
                 certificate, TEST_TENANT_ID);
     }
@@ -93,9 +93,9 @@ public class CacheBackedApplicationCertificateMgtDAOTest {
         Certificate resultFromDB = cacheBackedApplicationCertificateMgtDAO.getCertificate(certificateId,
                 TEST_TENANT_ID);
 
-        Assert.assertEquals(certificate.getId(), resultFromDB.getId());
-        Assert.assertEquals(certificate.getName(), resultFromDB.getName());
-        Assert.assertEquals(certificate.getCertificate(), resultFromDB.getCertificate());
+        Assert.assertEquals(resultFromDB.getId(), certificate.getId());
+        Assert.assertEquals(resultFromDB.getName(), certificate.getName());
+        Assert.assertEquals(resultFromDB.getCertificateContent(), certificate.getCertificateContent());
         verify(applicationCertificateManagementDAO, times(1)).getCertificate(certificateId,
                 TEST_TENANT_ID);
     }
@@ -107,9 +107,9 @@ public class CacheBackedApplicationCertificateMgtDAOTest {
         Certificate resultFromCache = cacheBackedApplicationCertificateMgtDAO.getCertificate(certificateId,
                 TEST_TENANT_ID);
 
-        Assert.assertEquals(certificate.getId(), resultFromCache.getId());
-        Assert.assertEquals(certificate.getName(), resultFromCache.getName());
-        Assert.assertEquals(certificate.getCertificate(), resultFromCache.getCertificate());
+        Assert.assertEquals(resultFromCache.getId(), certificate.getId());
+        Assert.assertEquals(resultFromCache.getName(), certificate.getName());
+        Assert.assertEquals(resultFromCache.getCertificateContent(), certificate.getCertificateContent());
         verify(applicationCertificateManagementDAO, never()).getCertificate(certificateId, TEST_TENANT_ID);
     }
 

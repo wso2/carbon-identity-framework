@@ -55,7 +55,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            InputStream certByteStream = getCertificateByteStream(certificate.getCertificate());
+            InputStream certByteStream = getCertificateByteStream(certificate.getCertificateContent());
             int certificateLength = certByteStream.available();
             return jdbcTemplate.withTransaction(template ->
                 template.executeInsert(CertificateMgtSQLConstants.Query.ADD_CERTIFICATE,
@@ -97,7 +97,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                 certificate = new Certificate.Builder()
                         .id(String.valueOf(certificateId))
                         .name((String) attributeMap.get(CertificateMgtSQLConstants.Column.NAME))
-                        .certificate(getStringValueFromBlob((InputStream)
+                        .certificateContent(getStringValueFromBlob((InputStream)
                                 attributeMap.get(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
                         .build();
             }
@@ -132,7 +132,7 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
                 certificate = new Certificate.Builder()
                         .id(String.valueOf(attributeMap.get(CertificateMgtSQLConstants.Column.ID)))
                         .name(certificateName)
-                        .certificate(getStringValueFromBlob((InputStream)
+                        .certificateContent(getStringValueFromBlob((InputStream)
                                 attributeMap.get(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
                         .build();
             }

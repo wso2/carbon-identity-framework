@@ -27,8 +27,6 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 
-import java.sql.SQLException;
-
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_ID;
@@ -40,14 +38,14 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDA
  * It contains unit tests to verify the functionality of the methods
  * in the CertificateManagementDAOImpl class.
  */
-@WithH2Database(files = {"dbScripts/h2.sql"})
+@WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
 public class CertificateManagementDAOImplTest {
 
     private CertificateManagementDAOImpl certificateMgtDAOImpl;
 
     @BeforeClass
-    public void setUpClass() throws SQLException {
+    public void setUpClass() {
 
         certificateMgtDAOImpl = new CertificateManagementDAOImpl();
     }
@@ -57,7 +55,7 @@ public class CertificateManagementDAOImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
         certificateMgtDAOImpl.addCertificate(TEST_UUID, creatingCertificate, TEST_TENANT_ID);
     }
@@ -68,7 +66,7 @@ public class CertificateManagementDAOImplTest {
         Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);
         Assert.assertEquals(certificate.getId(), TEST_UUID);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
     }
 
     @Test(priority = 3, expectedExceptions = CertificateMgtException.class,
@@ -78,24 +76,24 @@ public class CertificateManagementDAOImplTest {
         // Adding a certificate with null uuid to generate unique key constraint violation.
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
 
         certificateMgtDAOImpl.addCertificate(null, creatingCertificate, TEST_TENANT_ID);
     }
 
     @Test(priority = 4)
-    public void testUpdateCertificateContent() throws CertificateMgtException, SQLException {
+    public void testUpdateCertificateContent() throws CertificateMgtException {
 
         certificateMgtDAOImpl.updateCertificateContent(TEST_UUID, UPDATED_CERTIFICATE, TEST_TENANT_ID);
         Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);
         Assert.assertEquals(certificate.getId(), TEST_UUID);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), UPDATED_CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), UPDATED_CERTIFICATE);
     }
 
     @Test(priority = 6)
-    public void testDeleteCertificate() throws CertificateMgtException, SQLException {
+    public void testDeleteCertificate() throws CertificateMgtException {
 
         certificateMgtDAOImpl.deleteCertificate(TEST_UUID, TEST_TENANT_ID);
         Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);

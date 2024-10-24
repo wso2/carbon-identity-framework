@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
  */
 public class CertificateCacheEntry extends CacheEntry {
 
+    private static final long serialVersionUID = 1905122041950251207L;
     private Certificate certificate;
 
     public CertificateCacheEntry(Certificate certificate) {

@@ -72,7 +72,7 @@ public class CacheBackedCertificateMgtDAOTest {
         certificate = new Certificate.Builder()
                 .id(TEST_UUID)
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
         cacheBackedCertificateMgtDAO.addCertificate(TEST_UUID, certificate, TEST_TENANT_ID);
         verify(certificateManagementDAO, times(1)).addCertificate(TEST_UUID,
@@ -85,9 +85,9 @@ public class CacheBackedCertificateMgtDAOTest {
         when(certificateManagementDAO.getCertificate(TEST_UUID, TEST_TENANT_ID)).thenReturn(certificate);
         Certificate resultFromDB = cacheBackedCertificateMgtDAO.getCertificate(TEST_UUID, TEST_TENANT_ID);
 
-        Assert.assertEquals(certificate.getId(), resultFromDB.getId());
-        Assert.assertEquals(certificate.getName(), resultFromDB.getName());
-        Assert.assertEquals(certificate.getCertificate(), resultFromDB.getCertificate());
+        Assert.assertEquals(resultFromDB.getId(), certificate.getId());
+        Assert.assertEquals(resultFromDB.getName(), certificate.getName());
+        Assert.assertEquals(resultFromDB.getCertificateContent(), certificate.getCertificateContent());
         verify(certificateManagementDAO, times(1)).getCertificate(TEST_UUID,
                 TEST_TENANT_ID);
     }
@@ -98,9 +98,9 @@ public class CacheBackedCertificateMgtDAOTest {
         // Fetch from cache.
         Certificate resultFromCache = cacheBackedCertificateMgtDAO.getCertificate(TEST_UUID, TEST_TENANT_ID);
 
-        Assert.assertEquals(certificate.getId(), resultFromCache.getId());
-        Assert.assertEquals(certificate.getName(), resultFromCache.getName());
-        Assert.assertEquals(certificate.getCertificate(), resultFromCache.getCertificate());
+        Assert.assertEquals(resultFromCache.getId(), certificate.getId());
+        Assert.assertEquals(resultFromCache.getName(), certificate.getName());
+        Assert.assertEquals(resultFromCache.getCertificateContent(), certificate.getCertificateContent());
         verify(certificateManagementDAO, never()).getCertificate(TEST_UUID, TEST_TENANT_ID);
     }
 

@@ -50,9 +50,9 @@ public class CertificateMgtExceptionHandlerTest {
         try {
             CertificateMgtExceptionHandler.throwClientException(error, data);
         } catch (CertificateMgtClientException e) {
-            Assert.assertEquals(error.getMessage(), e.getMessage());
-            Assert.assertEquals(String.format(error.getDescription(), data), e.getDescription());
-            Assert.assertEquals(error.getCode(), e.getErrorCode());
+            Assert.assertEquals(e.getMessage(), error.getMessage());
+            Assert.assertEquals(e.getDescription(), String.format(error.getDescription(), data));
+            Assert.assertEquals(e.getErrorCode(), error.getCode());
             return;
         }
         Assert.fail();
@@ -74,10 +74,10 @@ public class CertificateMgtExceptionHandlerTest {
         try {
             CertificateMgtExceptionHandler.throwServerException(error, throwable, data);
         } catch (CertificateMgtServerException e) {
-            Assert.assertEquals(throwable, e.getCause());
-            Assert.assertEquals(error.getMessage(), e.getMessage());
-            Assert.assertEquals(String.format(error.getDescription(), data), e.getDescription());
-            Assert.assertEquals(error.getCode(), e.getErrorCode());
+            Assert.assertEquals(e.getCause(), throwable);
+            Assert.assertEquals(e.getMessage(), error.getMessage());
+            Assert.assertEquals(e.getDescription(), String.format(error.getDescription(), data));
+            Assert.assertEquals(e.getErrorCode(), error.getCode());
             return;
         }
         Assert.fail();

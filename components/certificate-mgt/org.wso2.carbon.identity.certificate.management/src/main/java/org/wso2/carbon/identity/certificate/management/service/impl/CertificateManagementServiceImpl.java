@@ -135,8 +135,9 @@ public class CertificateManagementServiceImpl implements CertificateManagementSe
     private void doPreAddValidations(Certificate certificate) throws CertificateMgtClientException {
 
         CertificateValidator.validateForBlank(CertificateValidator.NAME_FIELD, certificate.getName());
-        CertificateValidator.validateForBlank(CertificateValidator.CERTIFICATE_FIELD, certificate.getCertificate());
-        CertificateValidator.validatePemFormat(certificate.getCertificate());
+        CertificateValidator.validateForBlank(CertificateValidator.CERTIFICATE_FIELD,
+                certificate.getCertificateContent());
+        CertificateValidator.validatePemFormat(certificate.getCertificateContent());
     }
 
     /**

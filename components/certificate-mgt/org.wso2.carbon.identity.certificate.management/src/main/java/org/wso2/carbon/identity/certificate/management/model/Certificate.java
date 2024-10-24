@@ -26,13 +26,13 @@ public class Certificate {
     private final String id;
     private final String name;
     // Certificates only in PEM format are allowed.
-    private final String certificate;
+    private final String certificateContent;
 
     private Certificate(Builder certificateBuilder) {
 
         this.id = certificateBuilder.id;
         this.name = certificateBuilder.name;
-        this.certificate = certificateBuilder.certificate;
+        this.certificateContent = certificateBuilder.certificateContent;
     }
 
     public String getId() {
@@ -45,9 +45,9 @@ public class Certificate {
         return name;
     }
 
-    public String getCertificate() {
+    public String getCertificateContent() {
 
-        return certificate;
+        return certificateContent;
     }
 
     /**
@@ -57,7 +57,7 @@ public class Certificate {
 
         private String id;
         private String name;
-        private String certificate;
+        private String certificateContent;
 
         public Builder id(String id) {
 
@@ -71,10 +71,10 @@ public class Certificate {
             return this;
         }
 
-        public Builder certificate(String certificate) {
+        public Builder certificateContent(String certificateContent) {
 
             // Certificates only in PEM format are allowed.
-            this.certificate = certificate;
+            this.certificateContent = certificateContent;
             return this;
         }
 

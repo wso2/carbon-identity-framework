@@ -24,6 +24,7 @@ package org.wso2.carbon.identity.certificate.management.constant;
  *
  * @deprecated It is recommended to use {@link CertificateMgtSQLConstants.Query}, which supports operations with UUID.
  */
+@Deprecated
 public class ApplicationCertificateMgtSQLQueries {
 
     private ApplicationCertificateMgtSQLQueries() {

@@ -44,7 +44,7 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDA
  * It contains unit tests to verify the functionality of the methods
  * in the ApplicationCertificateManagementServiceImpl class.
  */
-@WithH2Database(files = {"dbScripts/h2.sql"})
+@WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
 public class ApplicationCertificateManagementServiceImplTest {
@@ -53,7 +53,7 @@ public class ApplicationCertificateManagementServiceImplTest {
     private ApplicationCertificateManagementService applicationCertificateManagementService;
 
     @BeforeClass
-    public void setUpClass() throws Exception {
+    public void setUpClass() {
 
         applicationCertificateManagementService = ApplicationCertificateManagementServiceImpl.getInstance();
         certificateIntId = 0;
@@ -64,7 +64,7 @@ public class ApplicationCertificateManagementServiceImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
         certificateIntId = applicationCertificateManagementService.addCertificate(creatingCertificate, 
                 TEST_TENANT_DOMAIN);
@@ -79,7 +79,7 @@ public class ApplicationCertificateManagementServiceImplTest {
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
     }
 
     @Test(priority = 3)
@@ -90,7 +90,7 @@ public class ApplicationCertificateManagementServiceImplTest {
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
     }
 
     @DataProvider
@@ -114,7 +114,7 @@ public class ApplicationCertificateManagementServiceImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(certificateName)
-                .certificate(certificateContent)
+                .certificateContent(certificateContent)
                 .build();
         applicationCertificateManagementService.addCertificate(creatingCertificate, TEST_TENANT_DOMAIN);
     }
@@ -143,7 +143,7 @@ public class ApplicationCertificateManagementServiceImplTest {
                 TEST_TENANT_DOMAIN);
         Assert.assertEquals(updatedCertificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(updatedCertificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(updatedCertificate.getCertificate(), UPDATED_CERTIFICATE);
+        Assert.assertEquals(updatedCertificate.getCertificateContent(), UPDATED_CERTIFICATE);
     }
 
     @Test(priority = 8, expectedExceptions = CertificateMgtException.class,

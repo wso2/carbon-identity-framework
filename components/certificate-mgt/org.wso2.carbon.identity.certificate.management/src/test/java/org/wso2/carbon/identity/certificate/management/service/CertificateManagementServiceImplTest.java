@@ -46,7 +46,7 @@ import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDA
  * It contains unit tests to verify the functionality of the methods
  * in the CertificateManagementServiceImpl class.
  */
-@WithH2Database(files = {"dbScripts/h2.sql"})
+@WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
 public class CertificateManagementServiceImplTest {
@@ -65,7 +65,7 @@ public class CertificateManagementServiceImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificate(CERTIFICATE)
+                .certificateContent(CERTIFICATE)
                 .build();
         certificateId = certificateManagementService.addCertificate(creatingCertificate, TEST_TENANT_DOMAIN);
         Assert.assertNotNull(certificateId);
@@ -78,7 +78,7 @@ public class CertificateManagementServiceImplTest {
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), certificateId);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificate(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
     }
 
     @DataProvider
@@ -102,7 +102,7 @@ public class CertificateManagementServiceImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(certificateName)
-                .certificate(certificateContent)
+                .certificateContent(certificateContent)
                 .build();
         certificateManagementService.addCertificate(creatingCertificate, TEST_TENANT_DOMAIN);
     }
@@ -122,7 +122,7 @@ public class CertificateManagementServiceImplTest {
         Certificate updatedCertificate = certificateManagementService.getCertificate(certificateId, TEST_TENANT_DOMAIN);
         Assert.assertEquals(updatedCertificate.getId(), certificateId);
         Assert.assertEquals(updatedCertificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(updatedCertificate.getCertificate(), UPDATED_CERTIFICATE);
+        Assert.assertEquals(updatedCertificate.getCertificateContent(), UPDATED_CERTIFICATE);
     }
 
     @Test(priority = 6, expectedExceptions = CertificateMgtException.class,

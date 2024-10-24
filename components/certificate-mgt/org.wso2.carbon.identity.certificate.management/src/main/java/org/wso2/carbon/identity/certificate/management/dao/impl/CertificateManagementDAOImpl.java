@@ -50,7 +50,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            InputStream certByteStream = getCertificateByteStream(certificate.getCertificate());
+            InputStream certByteStream = getCertificateByteStream(certificate.getCertificateContent());
             int certificateLength = certByteStream.available();
             jdbcTemplate.withTransaction(template -> {
                 template.executeInsert(CertificateMgtSQLConstants.Query.ADD_CERTIFICATE,
@@ -92,7 +92,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 certificate = new Certificate.Builder()
                         .id(certificateId)
                         .name((String) attributeMap.get(CertificateMgtSQLConstants.Column.NAME))
-                        .certificate(getStringValueFromBlob((InputStream)
+                        .certificateContent(getStringValueFromBlob((InputStream)
                                 attributeMap.get(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
                         .build();
             }
