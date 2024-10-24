@@ -291,4 +291,34 @@ public class PDPConstants {
 
     public static final String STORE_POLICY_META_DATA = "PAP.Policy.Store.MetaData";
 
+    public static final String MAX_NO_OF_STATUS_RECORDS = "maxRecodesToPersist";
+
+    public static final int DEFAULT_MAX_NO_OF_STATUS_RECORDS = 50;
+
+    public static final String MAX_NO_OF_POLICY_VERSIONS = "maxVersions";
+
+    public static final int DEFAULT_MAX_NO_OF_POLICY_VERSIONS = 5;
+
+    public static final String GLOBAL_POLICY_COMBINING_ALGORITHM = "globalPolicyCombiningAlgorithm";
+
+    public static final String POLICY_COMBINING_PREFIX_1 = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:";
+
+    public static final String POLICY_COMBINING_PREFIX_3 = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:";
+
+    public static final String SUBSCRIBER_ID = "subscriberId";
+    public static final String POLICY_STORAGE_CONFIG = "DataStorageType.XACML";
+    public static final String MODULE_NAME = "Registry Policy Finder Module";
+
+    public static final class Algorithms {
+
+        private Algorithms() {
+
+        }
+        public static final String DENY_OVERRIDES = "deny-overrides";
+        public static final String PERMIT_OVERRIDES = "permit-overrides";
+        public static final String FIRST_APPLICABLE = "first-applicable";
+        public static final String ORDERED_DENY_OVERRIDES = "ordered-deny-overrides";
+        public static final String ONLY_ONE_APPLICABLE = "only-one-applicable";
+        public static final String ORDERED_PERMIT_OVERRIDES = "ordered-permit-overrides";
+    }
 }

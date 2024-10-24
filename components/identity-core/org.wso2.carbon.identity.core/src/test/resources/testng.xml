@@ -28,6 +28,8 @@
             <class name="org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilderTest"/>
             <class name="org.wso2.carbon.identity.core.cache.BaseCacheTest"/>
             <class name="org.wso2.carbon.identity.core.ThreadLocalAwareThreadPoolExecutorTest"/>
+            <class name="org.wso2.carbon.identity.core.IdentityKeyStoreResolverTest"/>
+            <class name="org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtilTest"/>
         </classes>
     </test>
 </suite>

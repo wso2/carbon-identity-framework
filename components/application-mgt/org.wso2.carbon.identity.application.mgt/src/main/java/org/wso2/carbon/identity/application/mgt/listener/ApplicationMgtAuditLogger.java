@@ -138,6 +138,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         StringBuilder data = new StringBuilder();
         data.append("Name:").append(serviceProvider.getApplicationName()).append(", ");
         data.append("Description:").append(serviceProvider.getDescription()).append(", ");
+        data.append("Application Version:").append(serviceProvider.getApplicationVersion()).append(", ");
         data.append("Resource ID:").append(serviceProvider.getApplicationResourceId()).append(", ");
         data.append("Access URL:").append(serviceProvider.getAccessUrl()).append(", ");
         data.append("Is Discoverable:").append(serviceProvider.isDiscoverable()).append(", ");

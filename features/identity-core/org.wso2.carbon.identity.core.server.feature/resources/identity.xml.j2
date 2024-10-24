@@ -86,7 +86,16 @@
     <DataStorageType>
         <NotificationTemplates>{{data_storage_type.notification_templates}}</NotificationTemplates>
         <KeyStores>{{data_storage_type.keystores}}</KeyStores>
+        <XACML>{{data_storage_type.xacml}}</XACML>
     </DataStorageType>
+
+    <NotificationTemplates>
+        <LegacyTenants>
+            {% for tenant in notification_templates.legacy_tenants %}
+            <Tenant>{{tenant}}</Tenant>
+            {% endfor %}
+        </LegacyTenants>
+    </NotificationTemplates>
 
     <!-- Time configurations are in minutes -->
     <TimeConfig>
@@ -106,6 +115,27 @@
         <KeyStoresDir>{{key_mgt.keystore_dir}}</KeyStoresDir>
         <KeyManagerType>{{key_mgt.key_manager_type}}</KeyManagerType>
         <TrustManagerType>{{key_mgt.trust_manager_type}}</TrustManagerType>
+
+        <KeyStoreMapping>
+            {% if keystore.mapping.oauth is defined %}
+            <OAuth>
+                <KeyStoreName>{{keystore.mapping.oauth.keystore_file_name}}</KeyStoreName>
+                <UseInAllTenants>{{keystore.mapping.oauth.use_in_all_tenants}}</UseInAllTenants>
+            </OAuth>
+            {% endif %}
+            {% if keystore.mapping.ws_trust is defined %}
+            <WS-Trust>
+                <KeyStoreName>{{keystore.mapping.ws_trust.keystore_file_name}}</KeyStoreName>
+                <UseInAllTenants>{{keystore.mapping.ws_trust.use_in_all_tenants}}</UseInAllTenants>
+            </WS-Trust>
+            {% endif %}
+            {% if keystore.mapping.ws_federation is defined %}
+            <WS-Federation>
+                <KeyStoreName>{{keystore.mapping.ws_federation.keystore_file_name}}</KeyStoreName>
+                <UseInAllTenants>{{keystore.mapping.ws_federation.use_in_all_tenants}}</UseInAllTenants>
+            </WS-Federation>
+            {% endif %}
+        </KeyStoreMapping>
     </Security>
 
     <!-- This configuration is to resolve the internal service URL for internal API calls. -->
@@ -305,6 +335,77 @@
         <OIDCDiscoveryEPUrl>{{oauth.endpoints.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
         <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
 
+        {% if oauth.endpoints.v2 is defined %}
+        <!-- V2 configs for oauth endpoints -->
+        <V2>
+            {% if oauth.endpoints.v2.oauth1_request_token_url is defined %}
+            <OAuth1RequestTokenUrl>{{oauth.endpoints.v2.oauth1_request_token_url}}</OAuth1RequestTokenUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth1_authorize_url is defined %}
+            <OAuth1AuthorizeUrl>{{oauth.endpoints.v2.oauth1_authorize_url}}</OAuth1AuthorizeUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth1_access_token_url is defined %}
+            <OAuth1AccessTokenUrl>{{oauth.endpoints.v2.oauth1_access_token_url}}</OAuth1AccessTokenUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_authz_url is defined %}
+            <OAuth2AuthzEPUrl>{{oauth.endpoints.v2.oauth2_authz_url}}</OAuth2AuthzEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_par_url is defined %}
+            <OAuth2ParEPUrl>{{oauth.endpoints.v2.oauth2_par_url}}</OAuth2ParEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_token_url is defined %}
+            <OAuth2TokenEPUrl>{{oauth.endpoints.v2.oauth2_token_url}}</OAuth2TokenEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_revoke_url is defined %}
+            <OAuth2RevokeEPUrl>{{oauth.endpoints.v2.oauth2_revoke_url}}</OAuth2RevokeEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_introspect_url is defined %}
+            <OAuth2IntrospectEPUrl>{{oauth.endpoints.v2.oauth2_introspect_url}}</OAuth2IntrospectEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_user_info_url is defined %}
+            <OAuth2UserInfoEPUrl>{{oauth.endpoints.v2.oauth2_user_info_url}}</OAuth2UserInfoEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_check_session_url is defined %}
+            <OIDCCheckSessionEPUrl>{{oauth.endpoints.v2.oidc_check_session_url}}</OIDCCheckSessionEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_logout_url is defined %}
+            <OIDCLogoutEPUrl>{{oauth.endpoints.v2.oidc_logout_url}}</OIDCLogoutEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_consent_page is defined %}
+            <OAuth2ConsentPage>{{oauth.endpoints.v2.oauth2_consent_page}}</OAuth2ConsentPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_error_page is defined %}
+            <OAuth2ErrorPage>{{oauth.endpoints.v2.oauth2_error_page}}</OAuth2ErrorPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_consent_page is defined %}
+            <OIDCConsentPage>{{oauth.endpoints.v2.oidc_consent_page}}</OIDCConsentPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_logout_consent_page is defined %}
+            <OIDCLogoutConsentPage>{{oauth.endpoints.v2.oidc_logout_consent_page}}</OIDCLogoutConsentPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_logout_page is defined %}
+            <OIDCLogoutPage>{{oauth.endpoints.v2.oidc_logout_page}}</OIDCLogoutPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_web_finger_url is defined %}
+            <OIDCWebFingerEPUrl>{{oauth.endpoints.v2.oidc_web_finger_url}}</OIDCWebFingerEPUrl>
+            {% endif %}
+
+            <!-- For tenants below urls will be modified as https://<hostname>:<port>/t/<tenant domain>/<path>-->
+            {% if oauth.endpoints.v2.oauth2_dcr_url is defined %}
+            <OAuth2DCREPUrl>{{oauth.endpoints.v2.oauth2_dcr_url}}</OAuth2DCREPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_jwks_url is defined %}
+            <OAuth2JWKSPage>{{oauth.endpoints.v2.oauth2_jwks_url}}</OAuth2JWKSPage>
+            {% endif %}
+            {% if oauth.endpoints.v2.oidc_discovery_url is defined %}
+            <OIDCDiscoveryEPUrl>{{oauth.endpoints.v2.oidc_discovery_url}}</OIDCDiscoveryEPUrl>
+            {% endif %}
+            {% if oauth.endpoints.v2.oauth2_device_authz_url is defined %}
+            <OAuth2DeviceAuthzEPUrl>{{oauth.endpoints.v2.oauth2_device_authz_url}}</OAuth2DeviceAuthzEPUrl>
+            {% endif %}
+        </V2>
+        {% endif %}
+
         <MutualTLSAliases>
             <Enabled>{{oauth.mtls_aliases.enabled}}</Enabled>
             <Hostname>{{oauth.mtls_aliases.hostname}}</Hostname>
@@ -334,6 +435,8 @@
         <TimestampSkew>{{oauth.timestamp_skew}}</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>{{oauth.token_renewal.renew_refresh_token}}</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable the authenticated user validation config for refresh grant -->
+        <ValidateAuthenticatedUserForRefreshGrant>{{oauth.token_renewal.validate_authenticated_user_for_refresh_grant}}</ValidateAuthenticatedUserForRefreshGrant>
         <!-- Enable password grant to go through the framework -->
         <EnablePasswordFlowEnhancements>{{oauth.enable_password_grant_enhancements}}</EnablePasswordFlowEnhancements>
         <!-- Enable Extend renews refresh token expiry time -->
@@ -1527,6 +1630,7 @@
                     <UseLowercaseInOtp>{{identity_mgt.password_reset_email.otp.use_lowercase_in_otp}}</UseLowercaseInOtp>
                     <UseNumericInOtp>{{identity_mgt.password_reset_email.otp.use_numeric_in_otp}}</UseNumericInOtp>
                     <OTPLength>{{identity_mgt.password_reset_email.otp.otp_length}}</OTPLength>
+                    <SendOnlyOTPAsConfirmationCode>{{identity_mgt.password_reset_email.otp.send_only_otp_as_confirmation_code}}</SendOnlyOTPAsConfirmationCode>
                 </OTP>
                 <smsOtp>
                     <Regex>{{identity_mgt.password_reset_sms.sms_otp_regex}}</Regex>
@@ -1547,6 +1651,7 @@
                 </Email>
             </Password>
             <Username>
+                <NonUniqueUsername>{{identity_mgt.username_recovery.non_unique_user.enabled}}</NonUniqueUsername>
                 <Enable>{{identity_mgt.username_recovery.email.enable_username_recovery}}</Enable>
             </Username>
             <InternallyManage>{{identity_mgt.recovery.notification.manage_internally}}</InternallyManage>
@@ -1645,6 +1750,7 @@
                 {% endif %}
             </Notification>
         </AskPassword>
+        <DisableNotifyUnlockState>{{identity_mgt.user_onboarding.disable_notify_unlock_state}}</DisableNotifyUnlockState>
     </EmailVerification>
 
     <TenantRegistrationVerification>
@@ -1765,6 +1871,9 @@
           <!-- When updating the claim value, it can be validated against the provided regex pattern.
           To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
           <EnableUserClaimInputRegexValidation>{{identity_mgt.enable_user_claim_input_regex_validation}}</EnableUserClaimInputRegexValidation>
+
+        <!-- Enable support for storing multiple email addresses and mobile numbers per user. -->
+        <EnableMultipleEmailsAndMobileNumbers>{{identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers}}</EnableMultipleEmailsAndMobileNumbers>
     </UserClaimUpdate>
 
      <AccountSuspension>
@@ -1927,11 +2036,57 @@
     </OutboundProvisioning>
 
     <Actions>
+        <HTTPClient>
+            <HTTPConnectionTimeout>{{actions.http_client.connection_timeout}}</HTTPConnectionTimeout>
+            <HTTPReadTimeout>{{actions.http_client.read_timeout}}</HTTPReadTimeout>
+            <HTTPConnectionRequestTimeout>{{actions.http_client.request_timeout}}</HTTPConnectionRequestTimeout>
+            <HTTPConnectionPoolSize>{{actions.http_client.connection_pool_size}}</HTTPConnectionPoolSize>
+            <HTTPRequestRetryCount>{{actions.http_client.retry_count}}</HTTPRequestRetryCount>
+        </HTTPClient>
         <MaximumActionsPerActionType>{{actions.maximum_actions_per_action_type}}</MaximumActionsPerActionType>
+        <ActionRequest>
+            <ExcludedHeaders>
+                 {% for header in actions.action_request.excluded_headers %}
+                    <Header>{{header}}</Header>
+                 {% endfor %}
+            </ExcludedHeaders>
+            <ExcludedParameters>
+                {% for param in actions.action_request.excluded_parameters %}
+                    <Parameter>{{param}}</Parameter>
+                {% endfor %}
+            </ExcludedParameters>
+        </ActionRequest>
         <Types>
             <PreIssueAccessToken>
                 <Enable>{{actions.types.pre_issue_access_token.enable}}</Enable>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.pre_issue_access_token.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.pre_issue_access_token.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                </ActionRequest>
             </PreIssueAccessToken>
+            <Authentication>
+                <Enable>{{actions.authentication.enable}}</Enable>
+                <ActionRequest>
+                    <ExcludedHeaders>
+                         {% for header in actions.types.authentication.action_request.excluded_headers %}
+                            <Header>{{header}}</Header>
+                         {% endfor %}
+                    </ExcludedHeaders>
+                    <ExcludedParameters>
+                        {% for param in actions.types.authentication.action_request.excluded_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </ExcludedParameters>
+                </ActionRequest>
+            </Authentication>
         </Types>
     </Actions>
 
@@ -2156,6 +2311,13 @@
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="{{event.default_listener.organization_user_association_listener.priority}}"
                        enable="{{event.default_listener.organization_user_association_listener.enable}}"/>
+
+        <!-- Role based outbound provision management Event Listener -->
+                <EventListener id="provisioning_role_mgt_listener"
+                               type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                               name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener"
+                               orderId="{{event.default_listener.provisioning_role_mgt_listener.priority}}"
+                               enable="{{event.default_listener.provisioning_role_mgt_listener.enable}}"/>
 
         <!-- Introspection Data Providers -->
         <EventListener id="is_introspection_data_provider" type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
@@ -2415,7 +2577,11 @@
     {% if identity.cookies is defined %}
     <Cookies>
     {% for cookie in identity.cookies %}
-        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" sameSite="{{cookie.sameSite}}" />
+        <Cookie
+        {% for key,value in cookie.items() %}
+            {{key}}="{{value}}"
+        {% endfor %}
+        />
     {% endfor %}
     </Cookies>
     {% endif %}
@@ -3606,6 +3772,8 @@
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
             <AddPreviousVersionKID>{{oauth.jwks_endpoint.add_previous_version_kid}}</AddPreviousVersionKID>
             <IsThumbprintHexifyRequired>{{oauth.jwks_endpoint.is_thumbprint_hexify_required}}</IsThumbprintHexifyRequired>
+            <!-- Configuration for allowing users to enable x5c parameter in JWKS response -->
+            <EnableX5CInResponse>{{oauth.jwks_endpoint.enable_x5c_in_response | default(true)}}</EnableX5CInResponse>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 
@@ -3823,6 +3991,7 @@
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
     <DefaultItemsPerPage>{{pagination.default_items_per_page}}</DefaultItemsPerPage>
+    <MaximumUsersListPerRole>{{pagination.max_users_list_per_role}}</MaximumUsersListPerRole>
 
     <UserFiltering>
         <ShowDisplayName>{{user_filtering.show_display_name_of_user}}</ShowDisplayName>
@@ -3868,6 +4037,15 @@
     </DefaultApplications>
     {% endif %}
 
+    <!-- System Portals -->
+    {% if system_applications.system_portals is defined %}
+    <SystemPortals>
+        {% for application in system_applications.system_portals %}
+        <PortalName>{{application}}</PortalName>
+        {% endfor %}
+    </SystemPortals>
+    {% endif %}
+
     <!-- System Roles -->
     {% if system_roles is defined %}
     <SystemRoles>
@@ -3875,6 +4053,11 @@
         {% for role in system_roles.read_only_roles %}
         <Role>
             <Name>{{role.name}}</Name>
+            <MandatoryAPIResources>
+                {% for api_resource in role.api_resources %}
+                <APIResource>{{api_resource}}</APIResource>
+                {% endfor %}
+            </MandatoryAPIResources>
             <MandatoryScopes>
                 {% for scope in role.scopes %}
                 <Scope>{{scope}}</Scope>
@@ -4155,5 +4338,28 @@
             <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>{{on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled}}</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
         </OnInitialUse>
     </OnDemandConfig>
+
+    <AdminServices>
+        {% if user_registration_admin_service.enable is sameas true %}
+        <UserRegistrationAdminService>
+            <Enable>{{user_registration_admin_service.enable}}</Enable>
+            <AllowedSignUpRoles>{{ user_registration_admin_service.allowed_sign_up_roles | join(',') }}</AllowedSignUpRoles>
+        </UserRegistrationAdminService>
+        {% endif %}
+        {% if user_info_recovery_admin_service.allowed_usernames is defined %}
+        <UserInformationRecoveryService>
+            <AllowedUsers>
+                <Usernames>{{ user_info_recovery_admin_service.allowed_usernames | join(',') }}</Usernames>
+            </AllowedUsers>
+        </UserInformationRecoveryService>
+        {% endif %}
+        {% if policy_editor_service.get_policy_doc.allowed_urls is defined %}
+        <PolicyEditorService>
+            <GetPolicyDoc>
+                <AllowedURLs>{{ policy_editor_service.get_policy_doc.allowed_urls | join(',') }}</AllowedURLs>
+            </GetPolicyDoc>
+        </PolicyEditorService>
+        {% endif %}
+    </AdminServices>
 
 </Server>

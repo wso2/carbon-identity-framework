@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.provisioning.internal;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
+import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.RolePermissionManagementService;
 
@@ -35,6 +37,8 @@ public class ProvisioningServiceDataHolder {
     private EntitlementService entitlementService;
     private RolePermissionManagementService rolePermissionManagementService;
     private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<String, AbstractProvisioningConnectorFactory>();
+    private DefaultInboundUserProvisioningListener defaultInboundUserProvisioningListener;
+    private RoleManagementService roleManagementService;
 
     private ProvisioningServiceDataHolder() {
     }
@@ -93,6 +97,27 @@ public class ProvisioningServiceDataHolder {
             throw new RuntimeException("Role permission management service cannot be found.");
         }
         return rolePermissionManagementService;
+    }
+
+    public DefaultInboundUserProvisioningListener getDefaultInboundUserProvisioningListener() {
+
+        return defaultInboundUserProvisioningListener;
+    }
+
+    public void setDefaultInboundUserProvisioningListener(
+            DefaultInboundUserProvisioningListener defaultInboundUserProvisioningListener) {
+
+        this.defaultInboundUserProvisioningListener = defaultInboundUserProvisioningListener;
+    }
+
+    public RoleManagementService getRoleManagementService() {
+
+        return roleManagementService;
+    }
+
+    public void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        this.roleManagementService = roleManagementService;
     }
 }
 

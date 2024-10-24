@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>7.3.75-SNAPSHOT</version>
+        <version>7.5.84-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -202,7 +202,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
                     <argLine>
+                        ${argLine}
                         --add-opens=java.base/java.lang=ALL-UNNAMED
                         --add-opens=java.base/java.util=ALL-UNNAMED
                         --add-opens=java.base/java.util.concurrent=ALL-UNNAMED

@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.action.management.model;
 public class EndpointConfig {
 
     private String uri;
-    private AuthType authentication;
+    private Authentication authentication;
 
     public EndpointConfig() {
     }
@@ -40,7 +40,7 @@ public class EndpointConfig {
         return uri;
     }
 
-    public AuthType getAuthentication() {
+    public Authentication getAuthentication() {
 
         return authentication;
     }
@@ -51,7 +51,7 @@ public class EndpointConfig {
     public static class EndpointConfigBuilder {
 
         private String uri;
-        private AuthType authentication;
+        private Authentication authentication;
 
         public EndpointConfigBuilder() {
         }
@@ -62,7 +62,7 @@ public class EndpointConfig {
             return this;
         }
 
-        public EndpointConfigBuilder authentication(AuthType authentication) {
+        public EndpointConfigBuilder authentication(Authentication authentication) {
 
             this.authentication = authentication;
             return this;

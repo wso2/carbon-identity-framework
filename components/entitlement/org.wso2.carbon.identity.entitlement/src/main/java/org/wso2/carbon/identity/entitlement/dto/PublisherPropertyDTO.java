@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.entitlement.dto;
 
+import java.io.Serializable;
+
 /**
  *
  */
-public class PublisherPropertyDTO {
+public class PublisherPropertyDTO implements Serializable {
 
     private String id;
 

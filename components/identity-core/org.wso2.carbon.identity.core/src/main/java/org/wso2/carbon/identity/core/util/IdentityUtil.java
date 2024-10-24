@@ -64,7 +64,6 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-//import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -108,6 +107,7 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
 
 public class IdentityUtil {
 
@@ -537,6 +537,50 @@ public class IdentityUtil {
 
         appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
         return serverUrl.toString();
+    }
+
+    /**
+     * Checks whether the second domain is a subdomain of the first domain.
+     *
+     * @param domainName    Domain name.
+     * @param subdomainName Subdomain name.
+     * @return true if the second domain is a subdomain of the first domain.
+     */
+    public static boolean isSubdomain(String domainName, String subdomainName) {
+
+        if (StringUtils.isBlank(domainName) || StringUtils.isBlank(subdomainName)) {
+            return false;
+        }
+        subdomainName = subdomainName.toLowerCase();
+        domainName = domainName.toLowerCase();
+
+        if (subdomainName.equals(domainName)) {
+            return true;
+        }
+        return subdomainName.endsWith("." + domainName);
+    }
+
+    /**
+     * Get the root domain of the given domain.
+     * Note: this assumes that the root domain only consists of two parts (eg: wso2.io). The method will not work for
+     * TLDs with more than two parts (eg: wso2.co.uk).
+     *
+     * @param domain Domain.
+     * @return Root domain.
+     */
+    public static String getRootDomain(String domain) {
+
+        if (StringUtils.isBlank(domain)) {
+            return domain;
+        }
+        String[] domainParts = domain.split("\\.");
+        int length = domainParts.length;
+
+        if (length > 2) {
+            return domainParts[length - 2] + "." + domainParts[length - 1];
+        } else {
+            return domain;
+        }
     }
 
     private static StringBuilder getServerUrlWithPort(String hostName) {
@@ -1323,10 +1367,10 @@ public class IdentityUtil {
 
         byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
 
-//        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
-//                X509Factory.END_CERT);
+        String encodedPEM = String.format("%s\n%s\n%s", PEM_BEGIN_CERTFICATE, new String(encodedCertificate),
+                PEM_END_CERTIFICATE);
 
-        return null;
+        return encodedPEM;
     }
 
     /**
@@ -1501,42 +1545,6 @@ public class IdentityUtil {
     }
 
     /**
-     * Get Pre Issue Access Token Action Type enabled status.
-     *
-     * @return Whether the Pre Issue Access Token Action type is enabled or not.
-     */
-    public static boolean isPreIssueAccessTokenActionTypeEnabled() {
-
-        return isActionTypeEnabled(IdentityCoreConstants.PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_PROPERTY,        
-            IdentityCoreConstants.DEFAULT_PRE_ISSUE_ACCESS_TOKEN_ACTION_TYPE_ENABLE_VALUE);
-    }
-
-    /**
-     * Check whether a given action type is enabled or not.
-     *
-     * @param actionTypePropertyName Name of the action type enabled property.
-     * @param defaultValue           Default value of the action type enabled property.
-     * @return Whether the action type is enabled or not.
-     */
-    private static boolean isActionTypeEnabled(String actionTypePropertyName, boolean defaultValue) {
-        
-        boolean isActionTypeEnabled = defaultValue;
-        String actionTypeEnabledPropertyValue = IdentityUtil.getProperty(actionTypePropertyName);
-        if (StringUtils.isNotBlank(actionTypeEnabledPropertyValue)) {
-            if ("true".equalsIgnoreCase(actionTypeEnabledPropertyValue)) {
-                isActionTypeEnabled = true;
-            } else if ("false".equalsIgnoreCase(actionTypeEnabledPropertyValue)) {
-                isActionTypeEnabled = false;
-            } else {
-                isActionTypeEnabled = defaultValue;
-                log.warn("Invalid value for property: " + actionTypePropertyName + 
-                    ". Value should be either 'true' or 'false'.");
-            }
-        }
-        return isActionTypeEnabled;
-    }
-
-    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.
@@ -1557,6 +1565,36 @@ public class IdentityUtil {
             // Ignore.
         }
         return defaultItemsPerPage;
+    }
+
+    /**
+     * Get the Maximum Users List per Role needed to display.
+     *
+     * @return maxUsersListPerRole need to display. If the property is invalid, falls back to the lower bound value.
+     */
+    public static int getMaximumUsersListPerRole() {
+
+        String maxUsersListPerRolePropertyValue = IdentityUtil.getProperty(
+                IdentityCoreConstants.MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY);
+
+        if (StringUtils.isBlank(maxUsersListPerRolePropertyValue)) {
+            log.warn("Missing 'MaximumUsersListPerRole' property. Using lower bound value "
+                    + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+            return USERS_LIST_PER_ROLE_LOWER_BOUND;
+        }
+
+        try {
+            int maxUsersListPerRole = Integer.parseInt(maxUsersListPerRolePropertyValue);
+            if (maxUsersListPerRole >= USERS_LIST_PER_ROLE_LOWER_BOUND) {
+                return maxUsersListPerRole;
+            }
+            log.warn("Configured 'MaximumUsersListPerRole' value " + maxUsersListPerRolePropertyValue +
+                    " is below the recommended minimum.");
+        } catch (NumberFormatException e) {
+            log.warn("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
+        }
+        log.warn("Falling back to the lower bound value " + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+        return USERS_LIST_PER_ROLE_LOWER_BOUND;
     }
 
     /**
@@ -1668,6 +1706,57 @@ public class IdentityUtil {
             }
         }
         return systemRolesWithScopes;
+    }
+
+    /**
+     * This will return a map of system roles and the list of api resource collection configured for each system role.
+     *
+     * @return A map of system roles against the api resource collection list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithAPIResources() {
+
+        Map<String, Set<String>> systemRolesWithAPIResources = new HashMap<>();
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser.getConfigElement(IdentityConstants.SystemRoles
+                .SYSTEM_ROLES_CONFIG_ELEMENT);
+
+        if (systemRolesConfig != null) {
+            Iterator roleIdentifierIterator = systemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles
+                    .ROLE_CONFIG_ELEMENT);
+
+            while (roleIdentifierIterator != null && roleIdentifierIterator.hasNext()) {
+                OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+                String roleName = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+                OMElement mandatoryApiResourcesIdentifier = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT));
+
+                if (mandatoryApiResourcesIdentifier == null) {
+                    continue;
+                }
+
+                Iterator apiResourceIdentifier = mandatoryApiResourcesIdentifier.getChildrenWithLocalName(
+                        IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT);
+
+                Set<String> apiResourceCollections = new HashSet<>();
+                while (apiResourceIdentifier != null && apiResourceIdentifier.hasNext()) {
+                    OMElement apiResourceConfig = (OMElement) apiResourceIdentifier.next();
+                    String apiResource = apiResourceConfig.getText();
+                    if (StringUtils.isNotBlank(apiResource)) {
+                        apiResourceCollections.add(apiResource.trim());
+                    }
+                }
+                if (StringUtils.isNotBlank(roleName)) {
+                    systemRolesWithAPIResources.put(roleName.trim(), apiResourceCollections);
+                }
+            }
+        } else {
+            log.debug(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + " config cannot be found.");
+        }
+        return systemRolesWithAPIResources;
     }
 
     /**

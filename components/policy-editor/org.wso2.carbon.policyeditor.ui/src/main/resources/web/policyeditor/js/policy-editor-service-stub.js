@@ -386,7 +386,7 @@ function WebService(endpointName)
         {
             "PolicyEditorServiceHttpSoap12Endpoint": {
                 "type" : "SOAP12",
-                "address" : "http://10.210.226.196:9763/services/PolicyEditorService.PolicyEditorServiceHttpSoap12Endpoint/",
+                "address" : "http://localhost:9763/services/PolicyEditorService.PolicyEditorServiceHttpSoap12Endpoint/",
                 "action" : {
                     "getAvailableSchemas" : "urn:getAvailableSchemas",
                     "getPolicyDoc" : "urn:getPolicyDoc",
@@ -402,7 +402,7 @@ function WebService(endpointName)
             },
             "PolicyEditorServiceHttpsSoap12Endpoint": {
                 "type" : "SOAP12",
-                "address" : "https://10.210.226.196:9443/services/PolicyEditorService.PolicyEditorServiceHttpsSoap12Endpoint/",
+                "address" : "https://localhost:9443/services/PolicyEditorService.PolicyEditorServiceHttpsSoap12Endpoint/",
                 "action" : {
                     "getAvailableSchemas" : "urn:getAvailableSchemas",
                     "getPolicyDoc" : "urn:getPolicyDoc",
@@ -418,7 +418,7 @@ function WebService(endpointName)
             },
             "PolicyEditorServiceHttpSoap11Endpoint": {
                 "type" : "SOAP11",
-                "address" : "http://10.210.226.196:9763/services/PolicyEditorService.PolicyEditorServiceHttpSoap11Endpoint/",
+                "address" : "http://localhost:9763/services/PolicyEditorService.PolicyEditorServiceHttpSoap11Endpoint/",
                 "action" : {
                     "getAvailableSchemas" : "urn:getAvailableSchemas",
                     "getPolicyDoc" : "urn:getPolicyDoc",
@@ -434,7 +434,7 @@ function WebService(endpointName)
             },
             "PolicyEditorServiceHttpsSoap11Endpoint": {
                 "type" : "SOAP11",
-                "address" : "https://10.210.226.196:9443/services/PolicyEditorService.PolicyEditorServiceHttpsSoap11Endpoint/",
+                "address" : "https://localhost:9443/services/PolicyEditorService.PolicyEditorServiceHttpsSoap11Endpoint/",
                 "action" : {
                     "getAvailableSchemas" : "urn:getAvailableSchemas",
                     "getPolicyDoc" : "urn:getPolicyDoc",
@@ -450,7 +450,7 @@ function WebService(endpointName)
             },
             "PolicyEditorServiceHttpEndpoint": {
                 "type" : "HTTP",
-                "address" : "http://10.210.226.196:9763/services/PolicyEditorService.PolicyEditorServiceHttpEndpoint/",
+                "address" : "http://localhost:9763/services/PolicyEditorService.PolicyEditorServiceHttpEndpoint/",
                 "httplocation" : {
                     "getAvailableSchemas" : "getAvailableSchemas",
                     "getPolicyDoc" : "getPolicyDoc",
@@ -472,7 +472,7 @@ function WebService(endpointName)
             },
             "PolicyEditorServiceHttpsEndpoint": {
                 "type" : "HTTP",
-                "address" : "https://10.210.226.196:9443/services/PolicyEditorService.PolicyEditorServiceHttpsEndpoint/",
+                "address" : "https://localhost:9443/services/PolicyEditorService.PolicyEditorServiceHttpsEndpoint/",
                 "httplocation" : {
                     "getAvailableSchemas" : "getAvailableSchemas",
                     "getPolicyDoc" : "getPolicyDoc",

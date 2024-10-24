@@ -282,6 +282,8 @@
         <TimestampSkew>0</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>true</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable the authenticated user validation config for refresh grant -->
+        <ValidateAuthenticatedUserForRefreshGrant>false</ValidateAuthenticatedUserForRefreshGrant>
         <!-- Enable Extend renews refresh token expiry time -->
         <ExtendRenewedRefreshTokenExpiryTime>true</ExtendRenewedRefreshTokenExpiryTime>
         <!-- Process the token before storing it in database, e.g. encrypting -->
@@ -1036,6 +1038,7 @@
                 </smsOtp>
             </Password>
             <Username>
+                <NonUniqueUsername>false</NonUniqueUsername>
                 <Enable>false</Enable>
             </Username>
             <InternallyManage>true</InternallyManage>
@@ -1095,6 +1098,7 @@
 	        <PasswordGenerator>org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator</PasswordGenerator>
 	        <DisableRandomValueForCredentials>false</DisableRandomValueForCredentials>
         </AskPassword>
+        <DisableNotifyUnlockState>false</DisableNotifyUnlockState>
     </EmailVerification>
 
     <SelfRegistration>
@@ -1372,6 +1376,11 @@
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="128" enable="true"/>
 
+        <!-- Role based outbound provision management Event Listener -->
+        <EventListener id="provisioning_role_mgt_listener"
+                       type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                       name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener"
+                       orderId="999" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
@@ -2448,6 +2457,7 @@
             <!-- Configuration for allowing users to get Previous KID value generated using SHA-1 algo from the JWKS endpoint -->
             <AddPreviousVersionKID>false</AddPreviousVersionKID>
             <IsThumbprintHexifyRequired>false</IsThumbprintHexifyRequired>
+            <EnableX5CInResponse>true</EnableX5CInResponse>
         </JWKSEndpoint>
     </JWTValidatorConfigs>
 

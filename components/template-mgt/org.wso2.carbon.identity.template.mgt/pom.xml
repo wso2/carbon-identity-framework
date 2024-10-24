@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>template-mgt</artifactId>
-        <version>7.3.75-SNAPSHOT</version>
+        <version>7.5.84-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -58,7 +58,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
                     <argLine>
+                        ${argLine}
                         --add-opens=java.base/java.util=ALL-UNNAMED
                         --add-opens=java.base/java.lang=ALL-UNNAMED
                         --add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED

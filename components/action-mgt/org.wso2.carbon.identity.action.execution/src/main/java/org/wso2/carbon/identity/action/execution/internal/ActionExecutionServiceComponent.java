@@ -29,11 +29,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
-import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
-import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.ActionExecutorService;
-import org.wso2.carbon.identity.action.execution.ActionExecutorServiceImpl;
+import org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactory;
+import org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactory;
+import org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImpl;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 
 /**

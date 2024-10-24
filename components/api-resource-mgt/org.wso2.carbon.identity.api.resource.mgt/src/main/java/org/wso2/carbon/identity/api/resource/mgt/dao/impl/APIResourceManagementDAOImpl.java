@@ -298,6 +298,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 preparedStatement.setString(4, apiResource.getId());
                 preparedStatement.executeUpdate();
 
+                // If the API resource is a system API, set the tenant id to 0 since they are not tenant specific.
+                if (APIResourceManagementUtil.isSystemAPI(apiResource.getType())) {
+                    tenantId = 0;
+                }
+
                 if (CollectionUtils.isNotEmpty(removedScopes)) {
                     // Delete Scopes.
                     deleteScopes(dbConnection, removedScopes, tenantId);

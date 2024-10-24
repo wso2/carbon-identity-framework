@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.api.resource.mgt.util;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
@@ -123,7 +124,8 @@ public class APIResourceManagementUtil {
                             .filter(scope1 -> apiResourceFromDB.getScopes().stream()
                                     .noneMatch(scope2 -> scope2.getName().equals(scope1.getName())))
                             .collect(Collectors.toList());
-                    if (addedScopes.isEmpty()) {
+                    if (addedScopes.isEmpty() &&
+                            StringUtils.equals(apiResourceFromDB.getType(), updatedAPIResource.getType())) {
                         continue;
                     }
 
@@ -136,7 +138,7 @@ public class APIResourceManagementUtil {
                             .type(updatedAPIResource.getType())
                             .tenantId(apiResourceFromDB.getTenantId())
                             .requiresAuthorization(apiResourceFromDB.isAuthorizationRequired())
-                            .scopes(updatedAPIResource.getScopes())
+                            .scopes(apiResourceFromDB.getScopes())
                             .subscribedApplications(apiResourceFromDB.getSubscribedApplications())
                             .properties(apiResourceFromDB.getProperties())
                             .build();

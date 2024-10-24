@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.action.management;
 
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.AuthType;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
@@ -39,7 +39,7 @@ public class ActionSecretProcessor {
     public ActionSecretProcessor() {
     }
 
-    public List<AuthProperty> encryptAssociatedSecrets(AuthType authentication, String actionId)
+    public List<AuthProperty> encryptAssociatedSecrets(Authentication authentication, String actionId)
             throws SecretManagementException {
 
         List<AuthProperty> encryptedAuthProperties = new ArrayList<>();
@@ -69,7 +69,7 @@ public class ActionSecretProcessor {
         return decryptedAuthProperties;
     }
 
-    public void deleteAssociatedSecrets(AuthType authentication, String actionId)
+    public void deleteAssociatedSecrets(Authentication authentication, String actionId)
             throws SecretManagementException {
 
         for (AuthProperty authProperty : authentication.getProperties()) {
