@@ -126,6 +126,28 @@ public class ProvisioningThreadTest {
         }
     }
 
+    @Test
+    public void testJITProvisionFlowWithJitOutboundDisabledConnector() throws IdentityProvisioningException {
+
+        System.setProperty("carbon.home", "");
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<ProvisioningEntityCache> provisioningEntityCache =
+                     mockStatic(ProvisioningEntityCache.class)) {
+
+            provisioningEntity = new ProvisioningEntity(USER, POST, null);
+            provisioningEntity.setJitProvisioning(true);
+            CacheBackedProvisioningMgtDAO cacheBackedProvisioningMgtDAO =
+                    mockCacheBackedProvisioningMgtDAO(privilegedCarbonContext, provisioningEntityCache);
+            ProvisioningThread provisioningThread =
+                    new ProvisioningThread(provisioningEntity, "", mockConnector, connectorType,
+                            idPName, cacheBackedProvisioningMgtDAO);
+
+            when(mockConnector.isJitProvisioningEnabled()).thenReturn(false);
+            Boolean result = provisioningThread.call();
+            Assert.assertTrue(result);
+        }
+    }
+
     private CacheBackedProvisioningMgtDAO mockCacheBackedProvisioningMgtDAO(
             MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,
             MockedStatic<ProvisioningEntityCache> provisioningEntityCache) {
