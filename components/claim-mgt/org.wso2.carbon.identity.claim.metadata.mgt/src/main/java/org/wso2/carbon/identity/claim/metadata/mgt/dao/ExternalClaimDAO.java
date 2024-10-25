@@ -312,7 +312,9 @@ public class ExternalClaimDAO extends ClaimDAO {
                     String mappedURI = rs.getString(SQLConstants.MAPPED_URI_COLUMN);
                     String claimURI = rs.getString(SQLConstants.CLAIM_URI_COLUMN);
                     propmap = new HashMap<>();
-                    propmap.put(claimPropertyName, claimPropertyValue);
+                    if (claimPropertyName != null) {
+                        propmap.put(claimPropertyName, claimPropertyValue);
+                    }
                     ExternalClaim temp = new ExternalClaim(claimDialectURI, claimURI, mappedURI, propmap);
                     claimMap.put(localId, temp);
                 } else {
