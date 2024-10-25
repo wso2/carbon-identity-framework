@@ -24,8 +24,10 @@ import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
@@ -47,7 +49,9 @@ import java.security.KeyStore;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
@@ -55,32 +59,29 @@ import static org.testng.Assert.assertThrows;
 @Listeners(MockitoTestNGListener.class)
 public class KeyStoreAdminTest extends IdentityBaseTest {
 
-    public static final String SERVER_TRUSTSTORE_FILE = "Security.TrustStore.Location";
-    public static final String SERVER_TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
     private static final String KEYSTORE_NAME = "wso2carbon.jks";
     private static final String KEYSTORE_TYPE = "JKS";
     private static final String KEYSTORE_PASSWORD = "wso2carbon";
     @Mock
-    ServerConfiguration serverConfiguration;
+    private ServerConfiguration serverConfiguration;
     @Mock
-    KeyStoreManager keyStoreManager;
+    private KeyStoreManager keyStoreManager;
     @Mock
-    Registry registry;
+    private Registry registry;
     @Mock
     private CryptoUtil cryptoUtil;
     @Mock
     private Resource resource;
     private KeyStoreAdmin keyStoreAdmin;
-    private int tenantID = -1234;
+    private final int tenantID = -1234;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
 
         System.setProperty(
                 CarbonBaseConstants.CARBON_HOME,
                 Paths.get(System.getProperty("user.dir"), "src", "test", "resources").toString()
         );
-
     }
 
     @Test(description = "Add KeyStore test")
@@ -88,22 +89,13 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
 
-        try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class);
-             MockedStatic<CryptoUtil>cryptoUtilMockedStatic = mockStatic(CryptoUtil.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
-            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
-            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE)).thenReturn(createPath(KEYSTORE_NAME).toString());
-            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD)).thenReturn(KEYSTORE_PASSWORD);
-
-            // Mocking Registry interactions
-            when(registry.newResource()).thenReturn(resource);
-
-            // Mocking password encryption
-            cryptoUtilMockedStatic.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(cryptoUtil);
-            when(cryptoUtil.encryptAndBase64Encode(any())).thenReturn("encryptedPassword");
-
+            keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(false);
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             keyStoreAdmin.addKeyStore(keyStoreContent, "new_keystore.jks", KEYSTORE_PASSWORD, " ", "JKS", KEYSTORE_PASSWORD);
@@ -114,24 +106,16 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     public void testAddTrustStore() throws Exception {
 
         byte[] keyStoreContent = readBytesFromFile(createPath(KEYSTORE_NAME).toString());
-        keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
 
-        try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class);
-             MockedStatic<CryptoUtil>cryptoUtilMockedStatic = mockStatic(CryptoUtil.class);
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
 
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(false);
+            keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(any())).thenReturn(true);
 
-            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
-
-            // Mocking Registry interactions
-            when(registry.newResource()).thenReturn(resource);
-
-            // Mocking password encryption
-            cryptoUtilMockedStatic.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(cryptoUtil);
-            when(cryptoUtil.encryptAndBase64Encode(any())).thenReturn("encryptedPassword");
-
-
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             keyStoreAdmin.addTrustStore(keyStoreContent, "new_truststore.jks", KEYSTORE_PASSWORD, " ", "JKS");
         }
     }
@@ -139,17 +123,13 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     @Test(description = "Test case to verify successful retrieval of TrustStore")
     public void testGetTrustStoreSuccess() throws Exception {
 
-        keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class)) {
 
-        // Mock ServerConfiguration static calls
-        try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class)) {
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(tenantID)).thenReturn(this.keyStoreManager);
+            when(this.keyStoreManager.getTrustStore())
+                    .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
-            // Mocking configuration properties
-            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
-            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE)).thenReturn(createPath(KEYSTORE_NAME).toString());
-            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD)).thenReturn(KEYSTORE_PASSWORD);
-            when(this.serverConfiguration.getFirstProperty(KeyStoreAdmin.SERVER_TRUSTSTORE_TYPE)).thenReturn(KEYSTORE_TYPE);
-
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             KeyStore result = keyStoreAdmin.getTrustStore();
 
             assertNotNull(result);
@@ -159,21 +139,52 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
     @Test(description = "Test case to verify that an exception is thrown when getting TrustStore")
     public void testGetTrustStoreException() throws Exception {
 
-        keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
-
         // Mock ServerConfiguration static calls
-        try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class)) {
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class)) {
 
-            // Mocking configuration properties
-            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
-            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE)).thenReturn(createPath(KEYSTORE_NAME).toString());
-            when(this.serverConfiguration.getFirstProperty(KeyStoreAdmin.SERVER_TRUSTSTORE_TYPE)).thenReturn("PKCS12");
-            when(this.serverConfiguration.getFirstProperty("JCEProvider")).thenReturn("BC");
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            when(this.keyStoreManager.getTrustStore())
+                    .thenThrow(new CarbonException("Error occurred while retrieving TrustStore"));
 
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             // Execute method under test
             assertThrows(SecurityConfigException.class, () -> {
                 keyStoreAdmin.getTrustStore();
             });
+        }
+    }
+
+    @Test(description = "Delete KeyStore test", dependsOnMethods = "testAddKeyStore")
+    public void testDeleteKeyStore() throws Exception {
+
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+             MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
+
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+
+            keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
+            keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
+
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin.deleteStore("new_keystore.jks");
+            verify(this.keyStoreManager).deleteStore("new_keystore.jks");
+        }
+    }
+
+    @Test(description = "Delete TrustStore test", dependsOnMethods = "testAddTrustStore")
+    public void testDeleteTrustStore() throws Exception {
+
+        try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
+             MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
+
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+
+            keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(anyString())).thenReturn(false);
+            keyStoreUtil.when(() -> KeyStoreUtil.isTrustStore(anyString())).thenReturn(false);
+
+            keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
+            keyStoreAdmin.deleteStore("new_truststore.jks");
+            verify(this.keyStoreManager).deleteStore("new_truststore.jks");
         }
     }
 
@@ -185,16 +196,16 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
         try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class);
              MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class);
              MockedStatic<KeyStoreUtil> keyStoreUtil = mockStatic(KeyStoreUtil.class)) {
-            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
-            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE)).thenReturn(createPath(KEYSTORE_NAME).toString());
-            when(this.serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD)).thenReturn(KEYSTORE_PASSWORD);
+            serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(this.serverConfiguration);
+            when(this.serverConfiguration.getFirstProperty(
+                    RegistryResources.SecurityManagement.SERVER_PRIMARY_KEYSTORE_TYPE)).thenReturn(KEYSTORE_TYPE);
 
             keyStoreUtil.when(() -> KeyStoreUtil.isPrimaryStore(any())).thenReturn(true);
 
             keyStoreManager.when(() -> KeyStoreManager.getInstance(tenantID)).thenReturn(this.keyStoreManager);
-            when(this.keyStoreManager.getPrimaryKeyStore()).thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
+            when(this.keyStoreManager.getKeyStore(anyString()))
+                    .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             PaginatedKeyStoreData result = keyStoreAdmin.getPaginatedKeystoreInfo(KEYSTORE_NAME, 10);
