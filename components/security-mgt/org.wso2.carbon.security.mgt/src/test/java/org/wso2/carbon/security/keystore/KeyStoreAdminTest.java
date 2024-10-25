@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
@@ -124,7 +125,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
         try (MockedStatic<KeyStoreManager> keyStoreManager = mockStatic(KeyStoreManager.class)) {
 
-            keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(this.keyStoreManager);
+            keyStoreManager.when(() -> KeyStoreManager.getInstance(tenantID)).thenReturn(this.keyStoreManager);
             when(this.keyStoreManager.getTrustStore())
                     .thenReturn(getKeyStoreFromFile(KEYSTORE_NAME, KEYSTORE_PASSWORD));
 
@@ -166,6 +167,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             keyStoreAdmin.deleteStore("new_keystore.jks");
+            verify(this.keyStoreManager).deleteStore("new_keystore.jks");
         }
     }
 
@@ -182,6 +184,7 @@ public class KeyStoreAdminTest extends IdentityBaseTest {
 
             keyStoreAdmin = new KeyStoreAdmin(tenantID, registry);
             keyStoreAdmin.deleteStore("new_truststore.jks");
+            verify(this.keyStoreManager).deleteStore("new_truststore.jks");
         }
     }
 
