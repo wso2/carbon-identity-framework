@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -56,10 +57,12 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -81,7 +84,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE;
 
 @Listeners(MockitoTestNGListener.class)
 public class OutboundProvisioningTest {
@@ -177,7 +182,8 @@ public class OutboundProvisioningTest {
     }
 
     @Test
-    public void testRoleBaseOutBoundProvisioning() throws IdentityRoleManagementException {
+    public void testRoleBaseOutBoundProvisioning() throws IdentityRoleManagementException, SQLException,
+            IdentityApplicationManagementException, UserStoreException, IdentityProviderManagementException {
 
         ProvisioningRoleMgtListener postUpdateUserListOfRole = new ProvisioningRoleMgtListener();
         RoleBasicInfo roleBasicInfo = new RoleBasicInfo(ROLE_UUID, "developer");
@@ -214,11 +220,17 @@ public class OutboundProvisioningTest {
 
             DefaultInboundUserProvisioningListener defaultInboundUserProvisioningListener1 =
                     new DefaultInboundUserProvisioningListener();
-            defaultInboundUserProvisioningListener1.doPreDeleteUser(PROVISIONED_USER_NAME, userStoreManager);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
 
+            defaultInboundUserProvisioningListener1.doPreDeleteUser(PROVISIONED_USER_NAME, userStoreManager);
+
+            try {
+                identityUtil.when(() -> IdentityUtil.getProperty(eq(FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE)))
+                        .thenReturn("true");
+                defaultInboundUserProvisioningListener1.doPreDeleteUser(PROVISIONED_USER_NAME, userStoreManager);
+            } catch (IdentityProvisioningException e) {
+                assertEquals(e.getMessage(), "Error occurred while checking for user provisioning");
+            }
+        }
     }
 
     private void initiateH2Database(String databaseName, String scriptPath) throws Exception {

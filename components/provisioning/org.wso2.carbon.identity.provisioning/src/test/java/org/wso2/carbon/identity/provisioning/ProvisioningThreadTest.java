@@ -92,6 +92,8 @@ public class ProvisioningThreadTest {
                 PrivilegedCarbonContext.class)) {
             provisioningEntity = new ProvisioningEntity((ProvisioningEntityType) entityType,
                     (ProvisioningOperation) entityOperation, attributeMap);
+            provisioningEntity.setJitProvisioning(true);
+            when(mockConnector.isJitProvisioningEnabled()).thenReturn(true);
             CacheBackedProvisioningMgtDAO mockCacheBackedProvisioningMgDAO = mock(CacheBackedProvisioningMgtDAO.class);
             mockCarbonContext(privilegedCarbonContext);
             doNothing().when(mockCacheBackedProvisioningMgDAO).addProvisioningEntity(idPName, connectorType,
