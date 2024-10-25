@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtExc
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.VerificationAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -202,7 +203,12 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             List<LocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
-                    LocalAuthenticatorConfig config = new LocalAuthenticatorConfig();
+                    LocalAuthenticatorConfig config;
+                    if (AuthenticationType.VERIFICATION.toString().equals(rs.getString(Column.AUTHENTICATION_TYPE))) {
+                        config = new VerificationAuthenticatorConfig();
+                    } else {
+                        config = new LocalAuthenticatorConfig();
+                    }
                     config.setName(rs.getString(Column.NAME));
                     config.setDisplayName(rs.getString(Column.DISPLAY_NAME));
                     config.setEnabled(rs.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
@@ -261,7 +267,11 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
-                    config = new LocalAuthenticatorConfig();
+                    if (AuthenticationType.VERIFICATION.toString().equals(rs.getString(Column.AUTHENTICATION_TYPE))) {
+                        config = new VerificationAuthenticatorConfig();
+                    } else {
+                        config = new LocalAuthenticatorConfig();
+                    }
                     config.setName(rs.getString(Column.NAME));
                     config.setDisplayName(rs.getString(Column.DISPLAY_NAME));
                     config.setEnabled(rs.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));

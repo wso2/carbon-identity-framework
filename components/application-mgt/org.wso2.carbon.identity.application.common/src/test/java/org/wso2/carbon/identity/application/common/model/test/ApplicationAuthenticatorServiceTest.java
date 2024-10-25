@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +101,10 @@ public class ApplicationAuthenticatorServiceTest {
         Assert.assertEquals(createdAuthenticator.getDisplayName(), config.getDisplayName());
         Assert.assertEquals(createdAuthenticator.isEnabled(), config.isEnabled());
         Assert.assertEquals(createdAuthenticator.getDefinedByType(), DefinedByType.USER);
+        if (AuthenticationType.VERIFICATION == type) {
+            Assert.assertTrue(Arrays.asList(createdAuthenticator.getTags()).contains("2FA"),
+                    "Tag list does not contain 2FA tag for verification authentication type.");
+        }
         Assert.assertEquals(createdAuthenticator.getProperties().length, config.getProperties().length);
     }
 
@@ -163,16 +168,16 @@ public class ApplicationAuthenticatorServiceTest {
     public Object[][] authenticatorConfigToRetrieve() {
 
         return new Object[][]{
-                {authenticatorConfig1, authenticatorConfig1},
-                {authenticatorConfig2, authenticatorConfig2},
-                {nonExistAuthenticatorConfig, null},
-                {systemAuthenticatorConfig, null}
+                {authenticatorConfig1, authenticatorConfig1, AuthenticationType.IDENTIFICATION.toString()},
+                {authenticatorConfig2, authenticatorConfig2, AuthenticationType.VERIFICATION.toString()},
+                {nonExistAuthenticatorConfig, null, null},
+                {systemAuthenticatorConfig, null, null}
         };
     }
 
     @Test(priority = 6, dataProvider = "authenticatorConfigToRetrieve")
     public void testGetUserDefinedLocalAuthenticator(LocalAuthenticatorConfig configToBeRetrieved,
-                 LocalAuthenticatorConfig expectedConfig) throws AuthenticatorMgtException {
+                 LocalAuthenticatorConfig expectedConfig, String type) throws AuthenticatorMgtException {
 
         LocalAuthenticatorConfig retrievedConfig =
                 authenticatorService.getUserDefinedLocalAuthenticator(configToBeRetrieved.getName(), tenantDomain);
@@ -181,6 +186,10 @@ public class ApplicationAuthenticatorServiceTest {
             Assert.assertEquals(retrievedConfig.getDisplayName(), expectedConfig.getDisplayName());
             Assert.assertEquals(retrievedConfig.isEnabled(), expectedConfig.isEnabled());
             Assert.assertEquals(retrievedConfig.getDefinedByType(), DefinedByType.USER);
+            if (AuthenticationType.VERIFICATION.toString().equals(type)) {
+                Assert.assertTrue(Arrays.asList(retrievedConfig.getTags()).contains("2FA"),
+                        "Tag list does not contain 2FA tag for verification authentication type.");
+            }
             Assert.assertEquals(retrievedConfig.getProperties().length, expectedConfig.getProperties().length);
         }
     }

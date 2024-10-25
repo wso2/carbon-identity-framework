@@ -18,23 +18,32 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Verification authenticator configuration.
  */
 public class VerificationAuthenticatorConfig extends LocalAuthenticatorConfig {
 
-    @Override
-    public String[] getTags() {
+    private static final String TAG_2FA = "2FA";
 
-        return tags;
+    public VerificationAuthenticatorConfig() {
+
+        setTags(new String[0]);
     }
 
     @Override
     public void setTags(String[] tagList) {
 
-        // Add 2FA tag to the given tag list.
-        tags = new String[tagList.length + 1];
-        System.arraycopy(tagList, 0, tags, 0, tagList.length);
-        tags[tagList.length] = "2FA";
+        // Check if "2FA" is in the tag list; if not, add it.
+        List<String> tagsAsList = new ArrayList<>(Arrays.asList());
+        if (tagsAsList.contains(TAG_2FA)) {
+            tags = tagList;
+        }
+
+        tagsAsList.add(TAG_2FA);
+        tags = tagsAsList.toArray(new String[0]);
     }
 }
