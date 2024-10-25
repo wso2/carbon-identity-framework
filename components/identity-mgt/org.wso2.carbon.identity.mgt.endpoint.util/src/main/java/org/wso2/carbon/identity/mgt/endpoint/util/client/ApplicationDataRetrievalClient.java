@@ -54,6 +54,8 @@ public class ApplicationDataRetrievalClient {
     private static final String APP_NAME = "name";
     private static final String ACCESS_URL_KEY = "accessUrl";
     private static final String APP_ID = "id";
+    private static final String APP_ENABLED_STATE_QUERY = "&attributes=applicationEnabled";
+    private static final String APP_ENABLED_STATE_KEY = "applicationEnabled";
 
     /**
      * Gets the access url configured for the given application.
@@ -106,6 +108,51 @@ public class ApplicationDataRetrievalClient {
             throw new ApplicationDataRetrievalClientException(msg, e);
         }
         return StringUtils.EMPTY;
+    }
+
+    /**
+     * Gets the enabled status of the given application.
+     *
+     * @param tenant tenant domain of the application.
+     * @param applicationName name of the application.
+     * @return the enabled status of the given application.
+     * @throws ApplicationDataRetrievalClientException if IO exception occurs or access URL is not configured.
+     */
+    public boolean getApplicationEnabledStatus(String tenant, String applicationName)
+            throws ApplicationDataRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+            HttpGet request =
+                    new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
+                            Encode.forUriComponent(applicationName) + APP_ENABLED_STATE_QUERY);
+            setAuthorizationHeader(request);
+
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JSONObject jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                    JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
+                    if (applications.length() != 1) {
+                        return false;
+                    }
+
+                    JSONObject application = (JSONObject) applications.get(0);
+                    if (application.has(APP_ENABLED_STATE_KEY)) {
+                        return application.getBoolean(APP_ENABLED_STATE_KEY);
+                    }
+                }
+            } finally {
+                request.releaseConnection();
+            }
+        } catch (IOException | JSONException e) {
+            String msg = "Error while getting enabled status of " + applicationName + " in tenant : " + tenant;
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new ApplicationDataRetrievalClientException(msg, e);
+        }
+        return false;
     }
 
     /**
