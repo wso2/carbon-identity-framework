@@ -81,9 +81,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             return authorizationDetailsTypes;
         }
 
-        try (PreparedStatement prepStmt = dbConnection.getMetaData().getDatabaseProductName().contains(SQLConstants.H2)
-                ? dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE_H2)
-                : dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE)) {
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE)) {
             for (AuthorizationDetailsType authzDetailsType : authorizationDetailsTypes) {
 
                 if (this.isAuthorizationDetailsTypeExists(dbConnection, apiId, authzDetailsType.getType(), tenantId)) {
@@ -309,9 +307,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                                                 List<AuthorizationDetailsType> authorizationDetailsTypes,
                                                 Integer tenantId) throws APIResourceMgtException {
 
-        try (PreparedStatement prepStmt = dbConnection.getMetaData().getDatabaseProductName().contains(SQLConstants.H2)
-                ? dbConnection.prepareStatement(SQLConstants.UPDATE_AUTHORIZATION_DETAILS_TYPES_H2)
-                : dbConnection.prepareStatement(SQLConstants.UPDATE_AUTHORIZATION_DETAILS_TYPES)) {
+        try (PreparedStatement prepStmt =
+                     dbConnection.prepareStatement(SQLConstants.UPDATE_AUTHORIZATION_DETAILS_TYPES)) {
 
             for (final AuthorizationDetailsType authorizationDetailsType : authorizationDetailsTypes) {
 

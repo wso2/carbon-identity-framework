@@ -204,40 +204,20 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
     @Override
     public void patchAuthorizedAPI(String appId, String apiId, List<String> scopesToAdd, List<String> scopesToRemove,
-            List<String> authorizationDetailsTypesToAdd, List<String> authorizationDetailsTypesToRemove, int tenantId)
+                                   List<String> authorizationDetailsTypesToAdd,
+                                   List<String> authorizationDetailsTypesToRemove, int tenantId)
             throws IdentityApplicationManagementException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
-                if (CollectionUtils.isNotEmpty(scopesToAdd)) {
-                    PreparedStatement prepStmt = dbConnection.prepareStatement(
-                            ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
-                    prepStmt.setString(1, appId);
-                    prepStmt.setString(2, apiId);
-                    prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
-                    for (String scope : scopesToAdd) {
-                        prepStmt.setString(3, scope);
-                        prepStmt.addBatch();
-                    }
-                    prepStmt.executeBatch();
-                }
+                this.addScopes(dbConnection, appId, apiId, scopesToAdd, tenantId);
 
-                if (CollectionUtils.isNotEmpty(scopesToRemove)) {
-                    PreparedStatement prepStmt = dbConnection.prepareStatement(
-                            ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPE);
-                    prepStmt.setString(1, appId);
-                    prepStmt.setString(2, apiId);
-                    prepStmt.setInt(4, tenantId);
-                    for (String scope : scopesToRemove) {
-                        prepStmt.setString(3, scope);
-                        prepStmt.addBatch();
-                    }
-                    prepStmt.executeBatch();
-                }
+                this.deleteScopes(dbConnection, appId, apiId, scopesToRemove, tenantId);
 
                 this.addAuthorizedAuthorizationDetailsTypes(dbConnection, appId, apiId,
                         authorizationDetailsTypesToAdd, tenantId);
-                this.removeAuthorizedAuthorizationDetailsTypes(dbConnection, appId, apiId,
+
+                this.deleteAuthorizedAuthorizationDetailsTypes(dbConnection, appId, apiId,
                         authorizationDetailsTypesToRemove, tenantId);
 
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
@@ -273,8 +253,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
-    private void addAuthorizedAPI(String applicationId, String apiId, String policyId,
-                                  List<Scope> scopes, List<AuthorizationDetailsType> detailsTypes, int tenantId)
+    private void addAuthorizedAPI(String applicationId, String apiId, String policyId, List<Scope> scopes,
+                                  List<AuthorizationDetailsType> authorizationDetailsTypes, int tenantId)
             throws IdentityApplicationManagementException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
@@ -299,10 +279,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                     prepStmt.executeBatch();
                 }
 
-                if (CollectionUtils.isNotEmpty(detailsTypes)) {
+                if (CollectionUtils.isNotEmpty(authorizationDetailsTypes)) {
+                    final List<String> authorizationDetailsTypesToAdd = authorizationDetailsTypes.stream()
+                            .map(AuthorizationDetailsType::getType).collect(Collectors.toList());
                     this.addAuthorizedAuthorizationDetailsTypes(dbConnection, applicationId, apiId,
-                            detailsTypes.stream().map(AuthorizationDetailsType::getType).collect(Collectors.toList()),
-                            tenantId);
+                            authorizationDetailsTypesToAdd, tenantId);
                 }
 
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
@@ -312,6 +293,38 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             }
         } catch (SQLException | APIResourceMgtException e) {
             throw new IdentityApplicationManagementException("Error while adding authorized API.", e);
+        }
+    }
+
+    private void addScopes(Connection dbConnection, String appId, String apiId, List<String> scopesToAdd, int tenantId)
+            throws SQLException {
+
+        if (CollectionUtils.isNotEmpty(scopesToAdd)) {
+            PreparedStatement prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_SCOPE);
+            prepStmt.setString(1, appId);
+            prepStmt.setString(2, apiId);
+            prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
+            for (String scope : scopesToAdd) {
+                prepStmt.setString(3, scope);
+                prepStmt.addBatch();
+            }
+            prepStmt.executeBatch();
+        }
+    }
+
+    private void deleteScopes(Connection dbConnection, String appId, String apiId,
+                              List<String> scopesToRemove, int tenantId) throws SQLException {
+
+        if (CollectionUtils.isNotEmpty(scopesToRemove)) {
+            PreparedStatement prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.DELETE_AUTHORIZED_SCOPE);
+            prepStmt.setString(1, appId);
+            prepStmt.setString(2, apiId);
+            prepStmt.setInt(4, tenantId);
+            for (String scope : scopesToRemove) {
+                prepStmt.setString(3, scope);
+                prepStmt.addBatch();
+            }
+            prepStmt.executeBatch();
         }
     }
 
@@ -335,7 +348,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
-    private void removeAuthorizedAuthorizationDetailsTypes(Connection dbConnection, String appId, String apiId,
+    private void deleteAuthorizedAuthorizationDetailsTypes(Connection dbConnection, String appId, String apiId,
                                                            List<String> authorizationDetailsTypesToRemove, int tenantId)
             throws SQLException {
 
@@ -398,8 +411,8 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         authorizedAPI.setScopes(scopes);
     }
 
-    private void addAuthorizationDetailsTypeToAuthorizedApi(AuthorizedAPI authorizedAPI,
-                                                             AuthorizationDetailsType authorizationDetailsType) {
+    private void addAuthorizationDetailsTypeToAuthorizedApi(final AuthorizedAPI authorizedAPI,
+                                                            final AuthorizationDetailsType authorizationDetailsType) {
         if (authorizationDetailsType == null) {
             return;
         }

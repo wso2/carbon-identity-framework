@@ -73,6 +73,7 @@ public interface AuthorizedAPIManagementService {
      * @param removedScopes Removed scopes.
      * @param tenantDomain  Tenant Domain.
      * @throws IdentityApplicationManagementException if an error occurs while patching the authorized API.
+     * @deprecated Use the {@link #patchAuthorizedAPI(String, String, List, List, List, List, String)} instead.
      */
     @Deprecated
     public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
@@ -101,8 +102,22 @@ public interface AuthorizedAPIManagementService {
     public AuthorizedAPI getAuthorizedAPI(String appId, String apiId, String tenantDomain)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Updates the authorized API by patching the specified scopes and authorization details types.
+     * The method adds and removes specified scopes and authorization details for the API,
+     * identified by the appId and apiId within the provided tenantDomain.
+     *
+     * @param appId                            The application ID.
+     * @param apiId                            The API ID.
+     * @param addedScopes                      List of scopes to add.
+     * @param removedScopes                    List of scopes to remove.
+     * @param addedAuthorizationDetailsTypes   List of authorization details types to add.
+     * @param removedAuthorizationDetailsTypes List of authorization details types to remove.
+     * @param tenantDomain                     The tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurs while patching the authorized API.
+     */
     default void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
-                                   List<String> removedScopes, List<String> addedAuthorizationDetailsTypes,
+                                    List<String> removedScopes, List<String> addedAuthorizationDetailsTypes,
                                     List<String> removedAuthorizationDetailsTypes, String tenantDomain)
             throws IdentityApplicationManagementException {
     }

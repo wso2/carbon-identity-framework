@@ -345,8 +345,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         String mainAppId = applicationManagementService.getMainAppId(appId);
         if (mainAppId != null) {
             appId = mainAppId;
-            int tenantId = applicationManagementService.getTenantIdByApp(mainAppId);
-            tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+            tenantDomain = IdentityTenantUtil.getTenantDomain(applicationManagementService.getTenantIdByApp(mainAppId));
         }
 
         return this.authorizedAPIDAO

@@ -32,6 +32,17 @@ import java.util.List;
  */
 public interface AuthorizedAPIDAO {
 
+    /**
+     * @param applicationId The application ID.
+     * @param apiId         The API ID.
+     * @param policyId      The policy ID.
+     * @param scopes        The list of scopes to be associated with the API.
+     * @param tenantId      The tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while adding the authorized API.
+     * @deprecated Use the {@link #addAuthorizedAPI(String, AuthorizedAPI, int)} instead.
+     * <p>
+     * Adds an authorized API to an application using a policy ID and list of scopes.
+     */
     @Deprecated
     void addAuthorizedAPI(String applicationId, String apiId, String policyId, List<Scope> scopes,
                           int tenantId)
@@ -40,6 +51,17 @@ public interface AuthorizedAPIDAO {
     List<AuthorizedAPI> getAuthorizedAPIs(String applicationId, int tenantId)
             throws IdentityApplicationManagementException;
 
+    /**
+     * @param appId         The application ID.
+     * @param apiId         The API ID.
+     * @param addedScopes   The list of scopes to add.
+     * @param removedScopes The list of scopes to remove.
+     * @param tenantId      The tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while patching the authorized API.
+     * @deprecated Use the {@link #patchAuthorizedAPI(String, String, List, List, List, List, int)} instead.
+     * <p>
+     * Updates the authorized API by adding or removing scopes for the specified tenant.
+     */
     @Deprecated
     void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
                             List<String> removedScopes, int tenantId)
@@ -54,15 +76,44 @@ public interface AuthorizedAPIDAO {
     AuthorizedAPI getAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Adds an authorized API to the specified application for a given tenant.
+     *
+     * @param applicationId The ID of the application where the API will be added.
+     * @param authorizedAPI The authorized API object containing API details.
+     * @param tenantId      The ID of the tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurs while adding the authorized API.
+     */
     default void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, int tenantId)
             throws IdentityApplicationManagementException {
     }
 
-    default void patchAuthorizedAPI(String appId, String apiId, List<String> scopesToAdd, List<String> scopesToRemove,
-            List<String> authorizationDetailsTypesToAdd, List<String> authorizationDetailsTypesToRemove, int tenantId)
+    /**
+     * Patches the authorized API by adding or removing scopes and authorization details types for the specified tenant.
+     *
+     * @param appId                             The application ID.
+     * @param apiId                             The API ID.
+     * @param scopesToAdd                       List of scopes to add.
+     * @param scopesToRemove                    List of scopes to remove.
+     * @param authorizationDetailsTypesToAdd    List of authorization details types to add.
+     * @param authorizationDetailsTypesToRemove List of authorization details types to remove.
+     * @param tenantId                          The tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while patching the authorized API.
+     */
+    default void patchAuthorizedAPI(String appId, String apiId, List<String> scopesToAdd,
+                                    List<String> scopesToRemove, List<String> authorizationDetailsTypesToAdd,
+                                    List<String> authorizationDetailsTypesToRemove, int tenantId)
             throws IdentityApplicationManagementException {
     }
 
+    /**
+     * Retrieves the list of authorized authorization details types for a given application in the specified tenant.
+     *
+     * @param applicationId The ID of the application.
+     * @param tenantId      The ID of the tenant domain.
+     * @return A list of authorization details types, or an empty list if none are found.
+     * @throws IdentityApplicationManagementException If an error occurs while fetching the authorization details types.
+     */
     default List<AuthorizationDetailsType> getAuthorizedAuthorizationDetailsTypes(String applicationId, int tenantId)
             throws IdentityApplicationManagementException {
 
