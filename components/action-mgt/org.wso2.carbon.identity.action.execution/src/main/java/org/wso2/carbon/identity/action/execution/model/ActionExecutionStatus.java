@@ -24,17 +24,13 @@ import java.util.Map;
  * This class models the Action Execution Status.
  * Action Execution Status is the status object that is returned by the Action Executor Service after executing an
  * action. It contains the status of the action execution and the response context.
+ *
+ * @param <T> Status type (i.e. SUCCESS {@link Success}, FAILED {@link Failure}, ERROR {@link Error})
  */
-public class ActionExecutionStatus {
+public abstract class ActionExecutionStatus<T> {
 
-    private final Status status;
-    private final Map<String, Object> responseContext;
-
-    public ActionExecutionStatus(Status status, Map<String, Object> responseContext) {
-
-        this.status = status;
-        this.responseContext = responseContext;
-    }
+    protected Status status;
+    protected Map<String, Object> responseContext;
 
     public Status getStatus() {
 
@@ -45,6 +41,8 @@ public class ActionExecutionStatus {
 
         return responseContext;
     }
+
+    public abstract T getResponse();
 
     /**
      * This enum defines the Action Execution Status.
