@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.common.util;
 
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtConstants.ErrorMessages;
+import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;

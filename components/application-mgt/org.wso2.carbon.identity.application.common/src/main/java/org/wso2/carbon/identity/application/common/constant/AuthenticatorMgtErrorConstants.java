@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.common.constant;
 /**
  * Constants for authenticator configuration management service.
  */
-public class AuthenticatorMgtConstants {
+public class AuthenticatorMgtErrorConstants {
 
     /**
      * Error messages.

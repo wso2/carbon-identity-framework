@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.common.dao.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtConstants.ErrorMessages;
+import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Query;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;

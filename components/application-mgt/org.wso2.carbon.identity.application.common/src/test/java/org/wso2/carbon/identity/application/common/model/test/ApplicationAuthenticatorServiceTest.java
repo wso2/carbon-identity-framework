@@ -18,13 +18,13 @@
 
 package org.wso2.carbon.identity.application.common.model.test;
 
-import org.apache.commons.dbcp.BasicDataSource;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -37,11 +37,10 @@ import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class is a test suite for the ApplicationAuthenticatorServiceTest class.
@@ -57,8 +56,8 @@ public class ApplicationAuthenticatorServiceTest {
 
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private String tenantDomain;
-    private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
-    private ApplicationAuthenticatorService authenticatorService;
+
+    private ApplicationAuthenticatorService authenticatorService;;
     private LocalAuthenticatorConfig authenticatorConfig1;
     private LocalAuthenticatorConfig authenticatorConfig2;
     private LocalAuthenticatorConfig nonExistAuthenticatorConfig;
@@ -74,11 +73,21 @@ public class ApplicationAuthenticatorServiceTest {
 
         tenantDomain = "carbon.super";
         authenticatorService = ApplicationAuthenticatorService.getInstance();
-
         authenticatorConfig1 = createAuthenticatorConfig(authenticator1Name, DefinedByType.USER);
         authenticatorConfig2 = createAuthenticatorConfig(authenticator2Name, DefinedByType.USER);
         nonExistAuthenticatorConfig = createAuthenticatorConfig(nonExistAuthenticator, DefinedByType.USER);
         systemAuthenticatorConfig = createAuthenticatorConfig(systemAuthenticator, DefinedByType.SYSTEM);
+
+        authenticatorService.addLocalAuthenticator(systemAuthenticatorConfig);
+        addSystemAuthenticator();
+    }
+
+    private void addSystemAuthenticator() throws AuthenticatorMgtException {
+
+        AuthenticatorManagementDAOImpl dao = new AuthenticatorManagementDAOImpl();
+        dao.addUserDefinedLocalAuthenticator(systemAuthenticatorConfig, MultitenantConstants.SUPER_TENANT_ID,
+                AuthenticationType.IDENTIFICATION);
+
     }
 
     @DataProvider(name = "authenticatorConfigForCreation")
@@ -120,8 +129,26 @@ public class ApplicationAuthenticatorServiceTest {
             expectedExceptionsMessageRegExp = "No operations allowed on system authenticators.")
     public void testCreateUserDefinedLocalAuthenticatorWithSystemAuthenticator() throws AuthenticatorMgtException {
 
-        authenticatorService.createUserDefinedLocalAuthenticator(
-                systemAuthenticatorConfig, AuthenticationType.IDENTIFICATION, tenantDomain);
+        authenticatorService.createUserDefinedLocalAuthenticator(createAuthenticatorConfig(systemAuthenticator + "new",
+                DefinedByType.SYSTEM), AuthenticationType.IDENTIFICATION, tenantDomain);
+    }
+
+    @Test(priority = 3, expectedExceptions = AuthenticatorMgtException.class,
+            expectedExceptionsMessageRegExp = "Blank field value is provided.")
+    public void testCreateUserDefinedLocalAuthenticatorWithBlankDisplayName() throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig config = createAuthenticatorConfig("withBlankDisplayName", DefinedByType.USER);
+        config.setDisplayName("");
+        authenticatorService.createUserDefinedLocalAuthenticator(config, AuthenticationType.IDENTIFICATION,
+                tenantDomain);
+    }
+
+    @Test(priority = 3, expectedExceptions = AuthenticatorMgtException.class,
+            expectedExceptionsMessageRegExp = "Invalid authenticator name is provided.")
+    public void testCreateUserDefinedLocalAuthenticatorWithInvalidName() throws AuthenticatorMgtException {
+
+        authenticatorService.createUserDefinedLocalAuthenticator(createAuthenticatorConfig("323#2@dwd",
+                DefinedByType.USER), AuthenticationType.IDENTIFICATION, tenantDomain);
     }
 
     @DataProvider(name = "authenticatorConfigToModify")
@@ -164,6 +191,13 @@ public class ApplicationAuthenticatorServiceTest {
         authenticatorService.updateUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig, tenantDomain);
     }
 
+    @Test(priority = 6, expectedExceptions = AuthenticatorMgtException.class,
+            expectedExceptionsMessageRegExp = "No operations allowed on system authenticators.")
+    public void testUpdateUserDefinedLocalAuthenticatorWithSystemAuthenticator() throws AuthenticatorMgtException {
+
+        authenticatorService.updateUserDefinedLocalAuthenticator(systemAuthenticatorConfig, tenantDomain);
+    }
+
     @DataProvider(name = "authenticatorConfigToRetrieve")
     public Object[][] authenticatorConfigToRetrieve() {
 
@@ -175,7 +209,7 @@ public class ApplicationAuthenticatorServiceTest {
         };
     }
 
-    @Test(priority = 6, dataProvider = "authenticatorConfigToRetrieve")
+    @Test(priority = 7, dataProvider = "authenticatorConfigToRetrieve")
     public void testGetUserDefinedLocalAuthenticator(LocalAuthenticatorConfig configToBeRetrieved,
                  LocalAuthenticatorConfig expectedConfig, String type) throws AuthenticatorMgtException {
 
@@ -194,14 +228,26 @@ public class ApplicationAuthenticatorServiceTest {
         }
     }
 
-    @Test(priority = 7)
+    @Test(priority = 8)
     public void testGetAllUserDefinedLocalAuthenticator() throws AuthenticatorMgtException {
 
         List<LocalAuthenticatorConfig> retrievedConfig = authenticatorService.getLocalAuthenticators(tenantDomain);
-        Assert.assertEquals(retrievedConfig.size(), 2);
+        Assert.assertEquals(retrievedConfig.size(), 3);
     }
 
-    @Test(priority = 8, dataProvider = "authenticatorConfigToModify")
+    @Test(priority = 9)
+    public void testGetUserDefinedLocalAuthenticatorWithSystemAuthenticator() throws AuthenticatorMgtException {
+
+        LocalAuthenticatorConfig retrievedConfig = authenticatorService.getLocalAuthenticatorByName(
+                systemAuthenticatorConfig.getName(), tenantDomain);
+        Assert.assertNotNull(retrievedConfig);
+        Assert.assertEquals(retrievedConfig.getName(), systemAuthenticatorConfig.getName());
+        Assert.assertEquals(retrievedConfig.getDisplayName(), systemAuthenticatorConfig.getDisplayName());
+        Assert.assertEquals(retrievedConfig.getDefinedByType(), DefinedByType.SYSTEM);
+        Assert.assertEquals(retrievedConfig.getProperties().length, systemAuthenticatorConfig.getProperties().length);
+    }
+
+    @Test(priority = 10, dataProvider = "authenticatorConfigToModify")
     public void testDeleteUserDefinedLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -209,13 +255,19 @@ public class ApplicationAuthenticatorServiceTest {
         Assert.assertNull(authenticatorService.getLocalAuthenticatorByName(config.getName()));
     }
 
-    @Test(priority = 9, expectedExceptions = AuthenticatorMgtException.class,
+    @Test(priority = 11, expectedExceptions = AuthenticatorMgtException.class,
             expectedExceptionsMessageRegExp = "No Authenticator is found.")
     public void testDeleteUserDefinedLocalAuthenticatorWithNonExistingAuthenticator() throws AuthenticatorMgtException {
 
         authenticatorService.deleteUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig.getName(), tenantDomain);
     }
 
+    @Test(priority = 12, expectedExceptions = AuthenticatorMgtException.class,
+            expectedExceptionsMessageRegExp = "No operations allowed on system authenticators.")
+    public void testDeleteUserDefinedLocalAuthenticatorWithSystemAuthenticator() throws AuthenticatorMgtException {
+
+        authenticatorService.deleteUserDefinedLocalAuthenticator(systemAuthenticatorConfig.getName(), tenantDomain);
+    }
 
     private LocalAuthenticatorConfig createAuthenticatorConfig(String uniqueIdentifier, DefinedByType definedByType) {
 

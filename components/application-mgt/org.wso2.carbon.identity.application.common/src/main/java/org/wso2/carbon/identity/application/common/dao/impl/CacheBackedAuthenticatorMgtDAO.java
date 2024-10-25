@@ -66,11 +66,8 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(existingAuthenticatorConfig.getName());
         authenticatorCache.clearCacheEntry(cacheKey, tenantId);
 
-        LocalAuthenticatorConfig updatedConfig = authenticatorManagementDAO.updateUserDefinedLocalAuthenticator(
+        return authenticatorManagementDAO.updateUserDefinedLocalAuthenticator(
                 existingAuthenticatorConfig, newAuthenticatorConfig, tenantId);
-
-        authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(updatedConfig), tenantId);
-        return updatedConfig;
     }
 
     @Override

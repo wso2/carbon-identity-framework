@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.common;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtConstants.ErrorMessages;
+import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
@@ -124,7 +124,7 @@ public class ApplicationAuthenticatorService {
     public LocalAuthenticatorConfig getLocalAuthenticatorByName(String name, String tenantDomain)
             throws AuthenticatorMgtException {
 
-        /* First, heck whether an authenticator by the given name is in the system defined authenticators list.
+        /* First, check whether an authenticator by the given name is in the system defined authenticators list.
          If not, check in user defined authenticators. */
         for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
             if (localAuthenticator.getName().equals(name)) {
