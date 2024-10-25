@@ -49,6 +49,14 @@
                    description="Delete API resources"/>
         </Scopes>
     </APIResource>
+    <APIResource name="API Resource Management API" identifier="/o/api/server/v1/api-resources"
+                 requiresAuthorization="true"
+                 description="API representation of the API Resource Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View API Resources" name="internal_org_api_resource_view"
+                   description = "View API resources in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Shared Application Management API" identifier="/api/server/v1/applications/share"
                  requiresAuthorization="true"
                  description="API representation of the Shared Application Management API" type="TENANT">
