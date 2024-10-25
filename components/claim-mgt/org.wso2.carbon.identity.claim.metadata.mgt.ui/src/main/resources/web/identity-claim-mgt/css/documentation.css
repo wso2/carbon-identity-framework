@@ -5,7 +5,7 @@ body {
     padding-right: 20px;
     padding-bottom: 50px;
     margin: 0px;
-    font-family: "Lucida Grande","Lucida Sans","Microsoft Sans Serif", "Lucida Sans Unicode","Verdana","Sans-serif","trebuchet ms";
+    font-family: "Lucida Grande", "Lucida Sans", "Microsoft Sans Serif", "Lucida Sans Unicode", "Verdana", "Trebuchet MS", sans-serif;
     color: #111;
 	font-size:12px;
 	font-size-adjust:none;
@@ -20,16 +20,6 @@ body {
 
 p { margin-left: 20px;
 margin-right: 20px;}
-
-td { }
-
-a:link { }
-
-a:visited { }
-
-a:hover { }
-
-a:active { }
 
 h1, h2, h3, h4, h5 {
 margin: 0px;
