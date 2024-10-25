@@ -23,17 +23,14 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.RegistryResources;
-import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.core.security.KeyStoreMetadata;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.registry.core.Association;
-import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.registry.core.Resource;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.SecurityConstants;
 import org.wso2.carbon.security.keystore.service.CertData;
@@ -43,20 +40,16 @@ import org.wso2.carbon.security.keystore.service.PaginatedCertData;
 import org.wso2.carbon.security.keystore.service.PaginatedKeyStoreData;
 import org.wso2.carbon.security.util.KeyStoreMgtUtil;
 import org.wso2.carbon.utils.CarbonUtils;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -66,31 +59,17 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 
 public class KeyStoreAdmin {
 
-    //trust store
-    public static final String SERVER_TRUSTSTORE_FILE = "Security.TrustStore.Location";
-    public static final String SERVER_TRUSTSTORE_PASSWORD = "Security.TrustStore.Password";
-    public static final String SERVER_TRUSTSTORE_TYPE = "Security.TrustStore.Type";
-
     private static final Log log = LogFactory.getLog(KeyStoreAdmin.class);
-    private Registry registry = null;
-    private int tenantId;
+    private final KeyStoreManager keyStoreManager;
     private boolean includeCert = false;
-
-    private static String TRUST_STORE_LOCATION;
-    private static String TRUST_STORE_PASSWORD;
 
     public KeyStoreAdmin(int tenantId, Registry registry) {
 
-        ServerConfiguration config = ServerConfiguration.getInstance();
-        TRUST_STORE_LOCATION = config.getFirstProperty(SERVER_TRUSTSTORE_FILE);
-        TRUST_STORE_PASSWORD = config.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD);
-        this.registry = registry;
-        this.tenantId = tenantId;
+        keyStoreManager = KeyStoreManager.getInstance(tenantId);
     }
 
     public boolean isIncludeCert() {
@@ -102,93 +81,41 @@ public class KeyStoreAdmin {
     }
 
     /**
-     * Method to retrive keystore data.
+     * Method to retrieve keystore data.
      *
-     * @param isSuperTenant - Indication whether the querying super tennat data
-     * @return
-     * @throws SecurityConfigException
+     * @param isSuperTenant - Indication whether the querying super tenant data.
+     * @return Array of KeyStoreData objects.
+     * @throws SecurityConfigException If an error occurs while retrieving keystore data.
      */
     public KeyStoreData[] getKeyStores(boolean isSuperTenant) throws SecurityConfigException {
+
         CarbonUtils.checkSecurity();
-        KeyStoreData[] names = new KeyStoreData[0];
+        List<KeyStoreData> keyStoreDataList = new ArrayList<>();
         try {
-            if (registry.resourceExists(SecurityConstants.KEY_STORES)) {
-                Collection collection = (Collection) registry.get(SecurityConstants.KEY_STORES);
-                String[] ks = collection.getChildren();
-                List<KeyStoreData> lst = new ArrayList<>();
-                for (int i = 0; i < ks.length; i++) {
-                    String fullname = ks[i];
+            KeyStoreMetadata[] keyStoreMetadataArray = keyStoreManager.getKeyStoresMetadata(isSuperTenant);
+            for (KeyStoreMetadata keyStoreMetadata : keyStoreMetadataArray) {
+                KeyStoreData keyStoreData = new KeyStoreData();
+                keyStoreData.setKeyStoreName(keyStoreMetadata.getKeyStoreName());
+                keyStoreData.setKeyStoreType(keyStoreMetadata.getKeyStoreType());
+                keyStoreData.setProvider(keyStoreMetadata.getProvider());
+                keyStoreData.setPrivateStore(keyStoreMetadata.isPrivateStore());
 
-                    if (RegistryResources.SecurityManagement.PRIMARY_KEYSTORE_PHANTOM_RESOURCE
-                            .equals(fullname)) {
-                        continue;
-                    }
+                // Dump the generated public key to the file system for sub tenants.
+                if (!isSuperTenant && keyStoreMetadata.getPublicCert() != null
+                        && StringUtils.isNotBlank(keyStoreMetadata.getPublicCertId())
+                        && MessageContext.getCurrentMessageContext() != null) {
 
-                    Resource store = registry.get(ks[i]);
-                    int lastIndex = fullname.lastIndexOf("/");
-                    String name = fullname.substring(lastIndex + 1);
-                    String type = store.getProperty(SecurityConstants.PROP_TYPE);
-                    String provider = store.getProperty(SecurityConstants.PROP_PROVIDER);
-
-                    KeyStoreData data = new KeyStoreData();
-                    data.setKeyStoreName(name);
-                    data.setKeyStoreType(type);
-                    data.setProvider(provider);
-
-                    String alias = store.getProperty(SecurityConstants.PROP_PRIVATE_KEY_ALIAS);
-                    if (alias != null) {
-                        data.setPrivateStore(true);
-                    } else {
-                        data.setPrivateStore(false);
-                    }
-
-                    // Dump the generated public key to the file system for sub tenants 
-                    if (!isSuperTenant) {
-                        Association[] associations = registry.getAssociations(
-                                ks[i], SecurityConstants.ASSOCIATION_TENANT_KS_PUB_KEY);
-                        if (associations != null && associations.length > 0) {
-                            Resource pubKeyResource = registry.get(associations[0].getDestinationPath());
-                            String fileName = generatePubCertFileName(ks[i],
-                                    pubKeyResource.getProperty(
-                                            SecurityConstants.PROP_TENANT_PUB_KEY_FILE_NAME_APPENDER));
-                            if (MessageContext.getCurrentMessageContext() != null) {
-                                String pubKeyFilePath = KeyStoreMgtUtil.dumpCert(
-                                        MessageContext.getCurrentMessageContext().getConfigurationContext(),
-                                        (byte[]) pubKeyResource.getContent(), fileName);
-                                data.setPubKeyFilePath(pubKeyFilePath);
-                            }
-                        }
-                    }
-                    lst.add(data);
-
+                    String fileName = generatePubCertFileName(keyStoreMetadata.getKeyStoreName(),
+                            keyStoreMetadata.getPublicCertId());
+                    String pubKeyFilePath = KeyStoreMgtUtil.dumpCert(
+                            MessageContext.getCurrentMessageContext().getConfigurationContext(),
+                            keyStoreMetadata.getPublicCert(), fileName);
+                    keyStoreData.setPubKeyFilePath(pubKeyFilePath);
                 }
-                names = new KeyStoreData[lst.size() + 1];
-                Iterator<KeyStoreData> ite = lst.iterator();
-                int count = 0;
-                while (ite.hasNext()) {
-                    names[count] = ite.next();
-                    count++;
-                }
-
-                if (isSuperTenant) {
-                    KeyStoreData data = new KeyStoreData();
-                    ServerConfiguration config = ServerConfiguration.getInstance();
-                    String fileName = config
-                            .getFirstProperty(RegistryResources.SecurityManagement.SERVER_PRIMARY_KEYSTORE_FILE);
-                    String type = config
-                            .getFirstProperty(RegistryResources.SecurityManagement.SERVER_PRIMARY_KEYSTORE_TYPE);
-                    String name = KeyStoreUtil.getKeyStoreFileName(fileName);
-                    data.setKeyStoreName(name);
-                    data.setKeyStoreType(type);
-                    data.setProvider(" ");
-                    data.setPrivateStore(true);
-
-                    names[count] = data;
-                }
-
+                keyStoreDataList.add(keyStoreData);
             }
-            return names;
-        } catch (RegistryException e) {
+            return keyStoreDataList.toArray(new KeyStoreData[0]);
+        } catch (SecurityException e) {
             String msg = "Error when getting keyStore data";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -213,56 +140,10 @@ public class KeyStoreAdmin {
 
     public void addKeyStore(byte[] content, String filename, String password, String provider,
                             String type, String pvtkeyPass) throws SecurityConfigException {
-        if (filename == null) {
-            throw new SecurityConfigException("Key Store name can't be null");
-        }
+
         try {
-            if (KeyStoreUtil.isPrimaryStore(filename)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-            if (isTrustStore(filename)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-            String path = SecurityConstants.KEY_STORES + "/" + filename;
-            if (registry.resourceExists(path)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-
-            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(type);
-            keyStore.load(new ByteArrayInputStream(content), password.toCharArray());
-
-            // check for more private keys
-            Enumeration enumeration = keyStore.aliases();
-            String pvtKeyAlias = null;
-            while (enumeration.hasMoreElements()) {
-                String alias = (String) enumeration.nextElement();
-                if (keyStore.isKeyEntry(alias)) {
-                    pvtKeyAlias = alias;
-                }
-            }
-
-            // just to test weather pvt key password is correct.
-            keyStore.getKey(pvtKeyAlias, pvtkeyPass.toCharArray());
-
-            CryptoUtil cryptoUtil = CryptoUtil.getDefaultCryptoUtil();
-
-            Resource resource = registry.newResource();
-            resource.addProperty(SecurityConstants.PROP_PASSWORD, cryptoUtil
-                    .encryptAndBase64Encode(password.getBytes()));
-            resource.addProperty(SecurityConstants.PROP_PROVIDER, provider);
-            resource.addProperty(SecurityConstants.PROP_TYPE, type);
-
-            if (pvtKeyAlias != null) {
-                resource.addProperty(SecurityConstants.PROP_PRIVATE_KEY_ALIAS, pvtKeyAlias);
-                resource.addProperty(SecurityConstants.PROP_PRIVATE_KEY_PASS, cryptoUtil
-                        .encryptAndBase64Encode(pvtkeyPass.getBytes()));
-            }
-
-            resource.setContent(content);
-            registry.put(path, resource);
-        } catch (SecurityConfigException e) {
-            throw e;
-        } catch (Exception e) {
+            keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
+        } catch (SecurityException e) {
             String msg = "Error when adding a keyStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -275,33 +156,12 @@ public class KeyStoreAdmin {
         addTrustStore(content, filename, password, provider, type);
     }
 
-    public void addTrustStore(byte[] content, String filename, String password, String provider, String type) throws SecurityConfigException {
-        if (filename == null) {
-            throw new SecurityConfigException("Key Store name can't be null");
-        }
+    public void addTrustStore(byte[] content, String filename, String password, String provider, String type)
+            throws SecurityConfigException {
+
         try {
-            if (KeyStoreUtil.isPrimaryStore(filename)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-
-            String path = SecurityConstants.KEY_STORES + "/" + filename;
-            if (registry.resourceExists(path)) {
-                throw new SecurityConfigException("Key store " + filename + " already available");
-            }
-
-            KeyStore keyStore = KeystoreUtils.getKeystoreInstance(type);
-            keyStore.load(new ByteArrayInputStream(content), password.toCharArray());
-            CryptoUtil cryptoUtil = CryptoUtil.getDefaultCryptoUtil();
-            Resource resource = registry.newResource();
-            resource.addProperty(SecurityConstants.PROP_PASSWORD, cryptoUtil
-                    .encryptAndBase64Encode(password.getBytes()));
-            resource.addProperty(SecurityConstants.PROP_PROVIDER, provider);
-            resource.addProperty(SecurityConstants.PROP_TYPE, type);
-            resource.setContent(content);
-            registry.put(path, resource);
-        } catch (SecurityConfigException e) {
-            throw e;
-        } catch (Exception e) {
+            keyStoreManager.addKeyStore(content, filename, password, provider, type, null);
+        } catch (SecurityException e) {
             String msg = "Error when adding a trustStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -309,33 +169,10 @@ public class KeyStoreAdmin {
     }
 
     public void deleteStore(String keyStoreName) throws SecurityConfigException {
+
         try {
-
-            if (StringUtils.isBlank(keyStoreName)) {
-                throw new SecurityConfigException("Key Store name can't be null");
-            }
-
-            if (KeyStoreUtil.isPrimaryStore(keyStoreName)) {
-                throw new SecurityConfigException("Not allowed to delete the primary key store : "
-                        + keyStoreName);
-            }
-            if (isTrustStore(keyStoreName)) {
-                throw new SecurityConfigException("Not allowed to delete the trust store : "
-                        + keyStoreName);
-            }
-            String path = SecurityConstants.KEY_STORES + "/" + keyStoreName;
-            boolean isFound = false;
-            Association[] assocs = registry.getAllAssociations(path);
-            if (assocs.length > 0) {
-                isFound = true;
-            }
-
-            if (isFound) {
-                throw new SecurityConfigException("Key store : " + keyStoreName +
-                        " is already in use and can't be deleted");
-            }
-            registry.delete(path);
-        } catch (RegistryException e) {
+            keyStoreManager.deleteStore(keyStoreName);
+        } catch (SecurityException e) {
             String msg = "Error when deleting a keyStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
@@ -349,7 +186,7 @@ public class KeyStoreAdmin {
                 throw new SecurityConfigException("Key Store name can't be null");
             }
 
-            KeyStore ks = getKeyStore(keyStoreName);
+            KeyStore ks = this.keyStoreManager.getKeyStore(keyStoreName);
             X509Certificate cert = extractCertificate(certData);
 
             if (ks.getCertificateAlias(cert) != null) {
@@ -360,9 +197,9 @@ public class KeyStoreAdmin {
 
             ks.setCertificateEntry(fileName, cert);
 
-            updateKeyStore(keyStoreName, ks);
+            this.keyStoreManager.updateKeyStore(keyStoreName, ks);
 
-            if (isTrustStore(keyStoreName)) {
+            if (KeyStoreUtil.isTrustStore(keyStoreName)) {
                 System.setProperty(IdentityUtil.PROP_TRUST_STORE_UPDATE_REQUIRED, "true");
             }
 
@@ -385,7 +222,7 @@ public class KeyStoreAdmin {
                 throw new SecurityConfigException("Key Store name can't be null");
             }
 
-            KeyStore ks = getKeyStore(keyStoreName);
+            KeyStore ks = this.keyStoreManager.getKeyStore(keyStoreName);
             X509Certificate cert = extractCertificate(certData);
 
             if (ks.getCertificateAlias(cert) != null) {
@@ -396,9 +233,9 @@ public class KeyStoreAdmin {
             alias = cert.getSubjectDN().getName();
             ks.setCertificateEntry(alias, cert);
 
-            updateKeyStore(keyStoreName, ks);
+            this.keyStoreManager.updateKeyStore(keyStoreName, ks);
 
-            if (isTrustStore(keyStoreName)) {
+            if (KeyStoreUtil.isTrustStore(keyStoreName)) {
                 System.setProperty(IdentityUtil.PROP_TRUST_STORE_UPDATE_REQUIRED, "true");
             }
 
@@ -420,16 +257,16 @@ public class KeyStoreAdmin {
                 throw new SecurityConfigException("Key Store name can't be null");
             }
 
-            KeyStore ks = getKeyStore(keyStoreName);
+            KeyStore ks = this.keyStoreManager.getKeyStore(keyStoreName);
 
             if (ks.getCertificate(alias) == null) {
                 return;
             }
 
             ks.deleteEntry(alias);
-            updateKeyStore(keyStoreName, ks);
+            this.keyStoreManager.updateKeyStore(keyStoreName, ks);
 
-            if (isTrustStore(keyStoreName)) {
+            if (KeyStoreUtil.isTrustStore(keyStoreName)) {
                 System.setProperty(IdentityUtil.PROP_TRUST_STORE_UPDATE_REQUIRED, Boolean.TRUE.toString());
             }
         } catch (SecurityConfigException e) {
@@ -449,7 +286,7 @@ public class KeyStoreAdmin {
             }
 
             //KeyStoreManager keyMan = KeyStoreManager.getInstance(tenantId);
-            KeyStore ks = getKeyStore(keyStoreName);
+            KeyStore ks = this.keyStoreManager.getKeyStore(keyStoreName);
 
             Enumeration<String> enm = ks.aliases();
             List<String> lst = new ArrayList<>();
@@ -478,42 +315,26 @@ public class KeyStoreAdmin {
      * @throws SecurityConfigException will be thrown
      */
     public KeyStoreData getKeystoreInfo(String keyStoreName) throws SecurityConfigException {
-        try {
 
+        try {
             if (keyStoreName == null) {
                 throw new Exception("keystore name cannot be null");
             }
 
             KeyStore keyStore;
             String keyStoreType;
-            String privateKeyPassword = null;
+            ServerConfiguration serverConfig = ServerConfiguration.getInstance();
             if (KeyStoreUtil.isPrimaryStore(keyStoreName)) {
-                KeyStoreManager keyMan = KeyStoreManager.getInstance(tenantId);
-                keyStore = keyMan.getPrimaryKeyStore();
-                ServerConfiguration serverConfig = ServerConfiguration.getInstance();
-                keyStoreType = serverConfig
-                        .getFirstProperty(RegistryResources.SecurityManagement.SERVER_PRIMARY_KEYSTORE_TYPE);
-                privateKeyPassword = serverConfig
-                        .getFirstProperty(RegistryResources.SecurityManagement.SERVER_PRIVATE_KEY_PASSWORD);
-            } else if (isTrustStore(keyStoreName)) {
-                keyStore = getTrustStore();
-                ServerConfiguration serverConfig = ServerConfiguration.getInstance();
-                keyStoreType = serverConfig.getFirstProperty(SERVER_TRUSTSTORE_TYPE);
-                privateKeyPassword = serverConfig.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD);
+                keyStore = this.keyStoreManager.getPrimaryKeyStore();
+                keyStoreType = serverConfig.getFirstProperty(
+                        RegistryResources.SecurityManagement.SERVER_PRIMARY_KEYSTORE_TYPE);
+            } else if (KeyStoreUtil.isTrustStore(keyStoreName)) {
+                keyStore = this.keyStoreManager.getTrustStore();
+                keyStoreType = serverConfig.getFirstProperty(
+                        RegistryResources.SecurityManagement.SERVER_TRUSTSTORE_TYPE);
             } else {
-                String path = SecurityConstants.KEY_STORES + "/" + keyStoreName;
-                if (!registry.resourceExists(path)) {
-                    throw new SecurityConfigException("Key Store not found");
-                }
-                Resource resource = registry.get(path);
-                keyStore = getKeyStore(keyStoreName);
-                keyStoreType = resource.getProperty(SecurityConstants.PROP_TYPE);
-
-                String encpass = resource.getProperty(SecurityConstants.PROP_PRIVATE_KEY_PASS);
-                if (encpass != null) {
-                    CryptoUtil util = CryptoUtil.getDefaultCryptoUtil();
-                    privateKeyPassword = new String(util.base64DecodeAndDecrypt(encpass));
-                }
+                keyStore = this.keyStoreManager.getKeyStore(keyStoreName);
+                keyStoreType = keyStore.getType();
             }
             // Fill the information about the certificates
             Enumeration<String> aliases = keyStore.aliases();
@@ -544,8 +365,7 @@ public class KeyStoreAdmin {
                 if (keyStore.isKeyEntry(alias)) {
                     X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
                     keyStoreData.setKey(fillCertData(cert, alias, formatter));
-                    PrivateKey key = (PrivateKey) keyStore.getKey(alias, privateKeyPassword
-                            .toCharArray());
+                    PrivateKey key = (PrivateKey) this.keyStoreManager.getPrivateKey(keyStoreName, alias);
                     String pemKey;
                     pemKey = "-----BEGIN PRIVATE KEY-----\n";
                     pemKey += Base64.encode(key.getEncoded());
@@ -562,7 +382,6 @@ public class KeyStoreAdmin {
             log.error(msg, e);
             throw new SecurityConfigException(msg);
         }
-
     }
 
     public Key getPrivateKey(String alias, boolean isSuperTenant) throws SecurityConfigException {
@@ -574,8 +393,7 @@ public class KeyStoreAdmin {
 
             for (int i = 0; i < keystores.length; i++) {
                 if (KeyStoreUtil.isPrimaryStore(keystores[i].getKeyStoreName())) {
-                    KeyStoreManager keyMan = KeyStoreManager.getInstance(tenantId);
-                    keyStore = keyMan.getPrimaryKeyStore();
+                    keyStore = this.keyStoreManager.getPrimaryKeyStore();
                     ServerConfiguration serverConfig = ServerConfiguration.getInstance();
                     privateKeyPassowrd = serverConfig
                             .getFirstProperty(RegistryResources.SecurityManagement.SERVER_PRIVATE_KEY_PASSWORD);
@@ -642,21 +460,21 @@ public class KeyStoreAdmin {
     }
 
     /**
-     * This method is used to generate the file name of the pub. cert of a tenant
+     * This method is used to generate the file name of the public cert of a tenant.
      *
-     * @param ksLocation keystore location in the registry
-     * @param uuid       UUID appender
-     * @return file name of the pub. cert
+     * @param keyStoreName Keystore Name.
+     * @param uuid         UUID appender.
+     * @return file name of the public cert.
      */
-    private String generatePubCertFileName(String ksLocation, String uuid) {
-        String tenantName = ksLocation.substring(ksLocation.lastIndexOf("/"));
+    private String generatePubCertFileName(String keyStoreName, String uuid) {
+
         for (KeystoreUtils.StoreFileType fileType: KeystoreUtils.StoreFileType.values()) {
             String fileExtension = KeystoreUtils.StoreFileType.getExtension(fileType);
-            if (tenantName.endsWith(fileExtension)) {
-                tenantName = tenantName.replace(fileExtension, "");
+            if (keyStoreName.endsWith(fileExtension)) {
+                keyStoreName = keyStoreName.replace(fileExtension, "");
             }
         }
-        return tenantName + "-" + uuid + ".cert";
+        return keyStoreName + "-" + uuid + ".cert";
     }
 
     /**
@@ -738,9 +556,9 @@ public class KeyStoreAdmin {
 
         try {
             // Get keystore.
-            KeyStore keyStore = getKeyStore(tenantId, keyStoreName);
+            KeyStore keyStore = this.keyStoreManager.getKeyStore(keyStoreName);
             // Get keystore type.
-            String keyStoreType = getKeyStoreType(keyStoreName);
+            String keyStoreType = keyStore.getType();
 
             // Extract certificates from aliases as list.
             List<CertData> certDataList = getCertificates(keyStore);
@@ -786,9 +604,9 @@ public class KeyStoreAdmin {
 
         try {
             // Get keystore.
-            KeyStore keyStore = getKeyStore(tenantId, keyStoreName);
+            KeyStore keyStore = this.keyStoreManager.getKeyStore(keyStoreName);
             // Get keystore type.
-            String keyStoreType = getKeyStoreType(keyStoreName);
+            String keyStoreType = keyStore.getType();
 
             // Extract certificates from aliases as list.
             List<CertData> certDataList = getCertificates(keyStore);
@@ -804,55 +622,6 @@ public class KeyStoreAdmin {
         } catch (Exception e) {
             throw new SecurityConfigException(e.getMessage());
         }
-    }
-
-    /**
-     * @param tenantId     Tenant Id.
-     * @param keyStoreName Keystore Name.
-     * @return
-     * @throws Exception
-     */
-    private KeyStore getKeyStore(int tenantId, String keyStoreName) throws Exception {
-    
-        KeyStore keyStore;
-        if (KeyStoreUtil.isPrimaryStore(keyStoreName)) {
-            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-            keyStore = keyStoreManager.getPrimaryKeyStore();
-        } else if (isTrustStore(keyStoreName)) {
-            keyStore = getTrustStore();
-        } else {
-            keyStore = getKeyStore(keyStoreName);
-        }
-        return keyStore;
-    }
-
-    /**
-     * Get keystore type.
-     *
-     * @param keyStoreName Keystore name.
-     * @return
-     * @throws SecurityConfigException
-     * @throws RegistryException
-     */
-    private String getKeyStoreType(String keyStoreName) throws SecurityConfigException, RegistryException {
-    
-        String keyStoreType;
-        if (KeyStoreUtil.isPrimaryStore(keyStoreName)) {
-            ServerConfiguration serverConfig = ServerConfiguration.getInstance();
-            keyStoreType = serverConfig
-                    .getFirstProperty(RegistryResources.SecurityManagement.SERVER_PRIMARY_KEYSTORE_TYPE);
-        } else if (isTrustStore(keyStoreName)) {
-            ServerConfiguration serverConfig = ServerConfiguration.getInstance();
-            keyStoreType = serverConfig.getFirstProperty(SERVER_TRUSTSTORE_TYPE);
-        } else {
-            String path = SecurityConstants.KEY_STORES + "/" + keyStoreName;
-            if (!registry.resourceExists(path)) {
-                throw new SecurityConfigException("Keystore " + keyStoreName + " not found at " + path);
-            }
-            Resource resource = registry.get(path);
-            keyStoreType = resource.getProperty(SecurityConstants.PROP_TYPE);
-        }
-        return keyStoreType;
     }
 
     /**
@@ -953,63 +722,11 @@ public class KeyStoreAdmin {
      */
     public KeyStore getTrustStore() throws SecurityConfigException {
     
-        //Allow only the super tenant to access the default trust store.
-        if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
-            throw new SecurityConfigException("Permission denied for accessing trust store");
-        }
-
-        KeyStore trustStore;
-        ServerConfiguration serverConfiguration = ServerConfiguration.getInstance();
-        String file = new File(serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE)).getAbsolutePath();
-
-        KeyStore store;
         try {
-            store = KeystoreUtils.getKeystoreInstance(serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_TYPE));
-        } catch (KeyStoreException | NoSuchProviderException e) {
+            return this.keyStoreManager.getTrustStore();
+        } catch (CarbonException | SecurityException e) {
             throw new SecurityConfigException("Error occurred while loading keystore.", e);
         }
-
-        String password = serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_PASSWORD);
-
-        try (FileInputStream in = new FileInputStream(file)) {
-            store.load(in, password.toCharArray());
-            trustStore = store;
-        } catch (CertificateException | NoSuchAlgorithmException | IOException e) {
-            throw new SecurityConfigException("Error occurred while loading trust store", e);
-        }
-        return trustStore;
-    }
-
-    /**
-     * Check if the supplied id is the system configured trust store
-     *
-     * @param id id (file name) of the keystore
-     * @return boolean true if supplied id is the configured trust store
-     */
-    private boolean isTrustStore(String id) {
-
-        ServerConfiguration serverConfiguration = ServerConfiguration.getInstance();
-        String fileName = serverConfiguration.getFirstProperty(SERVER_TRUSTSTORE_FILE);
-        int index = fileName.lastIndexOf('/');
-        if (index != -1) {
-            String name = fileName.substring(index + 1);
-            if (name.equals(id)) {
-                return true;
-            }
-        } else {
-            index = fileName.lastIndexOf(File.separatorChar);
-            String name;
-            if (index != -1) {
-                name = fileName.substring(fileName.lastIndexOf(File.separatorChar));
-            } else {
-                name = fileName;
-            }
-
-            if (name.equals(id)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -1021,36 +738,7 @@ public class KeyStoreAdmin {
      */
     public KeyStore getKeyStore(String keyStoreName) throws Exception {
 
-        if (isTrustStore(keyStoreName)) {
-            return getTrustStore();
-        } else {
-            KeyStoreManager keyMan = KeyStoreManager.getInstance(tenantId);
-            return keyMan.getKeyStore(keyStoreName);
-        }
-    }
-
-    private void updateKeyStore(String name, KeyStore keyStore) throws Exception {
-
-        FileOutputStream resource1;
-        String outputStream1;
-        String path;
-        if (isTrustStore(name)) {
-            path = (new File(TRUST_STORE_LOCATION)).getAbsolutePath();
-            resource1 = null;
-
-            try {
-                resource1 = new FileOutputStream(path);
-                outputStream1 = TRUST_STORE_PASSWORD;
-                keyStore.store(resource1, outputStream1.toCharArray());
-            } finally {
-                if (resource1 != null) {
-                    resource1.close();
-                }
-            }
-        } else {
-            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-            keyStoreManager.updateKeyStore(name, keyStore);
-        }
+        return this.keyStoreManager.getKeyStore(keyStoreName);
     }
 
     /**
