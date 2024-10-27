@@ -48,6 +48,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -75,7 +76,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
                             org.wso2.carbon.identity.certificate.management.cache,
-                            org.wso2.carbon.identity.certificate.management.constants,
+                            org.wso2.carbon.identity.certificate.management.constant,
                             org.wso2.carbon.identity.certificate.management.dao.*,
                             org.wso2.carbon.identity.certificate.management.internal,
                             org.wso2.carbon.identity.certificate.management.service.impl,
@@ -95,7 +96,9 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.database.utils.jdbc;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.database.utils.jdbc.exceptions;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>
