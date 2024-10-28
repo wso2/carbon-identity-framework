@@ -75,10 +75,10 @@ public class UserDefinedLocalAuthenticatorValidator {
      *
      * @throws AuthenticatorMgtClientException   if the authenticator is not a user defined authenticator.
      */
-    public void validateDefinedByType(LocalAuthenticatorConfig authenticatorConfig)
+    public void validateDefinedByType(DefinedByType definedByType)
             throws AuthenticatorMgtClientException {
 
-        if (authenticatorConfig.getDefinedByType() != DefinedByType.USER) {
+        if (definedByType != DefinedByType.USER) {
             ErrorMessages error = ErrorMessages.ERROR_OP_ON_SYSTEM_AUTHENTICATOR;
             throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
                     String.format(error.getDescription(), authenticatorConfig.getName()));

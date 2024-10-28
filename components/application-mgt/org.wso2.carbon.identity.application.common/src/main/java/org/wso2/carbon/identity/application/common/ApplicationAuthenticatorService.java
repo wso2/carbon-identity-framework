@@ -209,7 +209,7 @@ public class ApplicationAuthenticatorService {
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
         authenticatorValidator.validateForBlank("Display name", authenticatorConfig.getDisplayName());
-        authenticatorValidator.validateDefinedByType(authenticatorConfig);
+        authenticatorValidator.validateDefinedByType(authenticatorConfig.getDefinedByType());
 
         return CACHE_BACKED_DAO.addUserDefinedLocalAuthenticator(
                 authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain), type);
@@ -229,7 +229,7 @@ public class ApplicationAuthenticatorService {
 
         LocalAuthenticatorConfig existingConfig = resolveExistingAuthenticator(
                 authenticatorConfig.getName(), tenantDomain);
-        authenticatorValidator.validateDefinedByType(existingConfig);
+        authenticatorValidator.validateDefinedByType(existingConfig.getDefinedByType());
         authenticatorValidator.validateForBlank("Display name", authenticatorConfig.getDisplayName());
 
         return CACHE_BACKED_DAO.updateUserDefinedLocalAuthenticator(
@@ -248,7 +248,7 @@ public class ApplicationAuthenticatorService {
             throws AuthenticatorMgtException {
 
         LocalAuthenticatorConfig existingConfig = resolveExistingAuthenticator(authenticatorName, tenantDomain);
-        authenticatorValidator.validateDefinedByType(existingConfig);
+        authenticatorValidator.validateDefinedByType(existingConfig.getDefinedByType());
 
         CACHE_BACKED_DAO.deleteUserDefinedLocalAuthenticator(authenticatorName,
                 IdentityTenantUtil.getTenantId(tenantDomain));

@@ -29,26 +29,26 @@ public class AuthenticatorMgtErrorConstants {
     public enum ErrorMessages {
 
         // Client errors.
-        ERROR_NOT_FOUND_AUTHENTICATOR("60001", "No Authenticator is found.",
-                "No authenticator is found by given authenticator name: %s."),
+        ERROR_NOT_FOUND_AUTHENTICATOR("60001", "No Authenticator found.",
+                "No Authenticator found by given authenticator name: %s."),
         ERROR_OP_ON_SYSTEM_AUTHENTICATOR("60002", "No operations allowed on system authenticators.",
                 "Do not allow to perform any operation on system defined authenticator: %s."),
-        ERROR_AUTHENTICATOR_ALREADY_EXIST("60003", "There is already an authenticator.",
-                "There is already an authenticator by the given name: %s."),
-        ERROR_INVALID_AUTHENTICATOR_NAME("60004", "Invalid authenticator name is provided.",
+        ERROR_AUTHENTICATOR_ALREADY_EXIST("60003", "An authenticator already exists.",
+                "As authenticator already exists for the given name: %s."),
+        ERROR_INVALID_AUTHENTICATOR_NAME("60004", "Authenticator name is invalid.",
                 "The provided authenticator name %s is not in the expected format %s."),
-        ERROR_BLANK_FIELD_VALUE("60004", "Blank field value is provided.",
-                "The provided authenticator field value %s should not be empty."),
+        ERROR_BLANK_FIELD_VALUE("60004", "Invalid empty or blank value.",
+                "Value for %s should not be empty or blank."),
 
         // Server errors.
         ERROR_WHILE_ADDING_AUTHENTICATOR("65001", "Error while adding authenticator.",
-                "Error while persisting authenticator in the system."),
+                "Error while persisting authenticator from the system."),
         ERROR_WHILE_UPDATING_AUTHENTICATOR("65002", "Error while updating authenticator.",
-                "Error while updating authenticator in the system."),
+                "Error while updating authenticator from the system."),
         ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME("65003", "Error while retrieving authenticator.",
-                "Error while retrieving authenticator in the system."),
+                "Error while retrieving authenticator from the system."),
         ERROR_WHILE_DELETING_AUTHENTICATOR("65004", "Error while deleting authenticator.",
-                "Error while deleting authenticator in the system."),;
+                "Error while deleting authenticator from the system."),;
 
         private final String code;
         private final String message;
