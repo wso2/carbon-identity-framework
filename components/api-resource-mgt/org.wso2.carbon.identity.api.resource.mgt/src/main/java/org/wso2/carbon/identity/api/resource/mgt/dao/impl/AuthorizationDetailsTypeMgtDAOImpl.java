@@ -218,8 +218,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             throws APIResourceMgtException {
 
         FilterQueryBuilder filterQueryBuilder = getAuthorizationDetailsTypesFilterQueryBuilder(expressionNodes);
-        final String sqlStmt = SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_TENANT_ID +
-                filterQueryBuilder.getFilterQuery() + SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL;
+        final String sqlStmt = this.buildGetAuthorizationDetailsTypesSqlStatement(filterQueryBuilder.getFilterQuery());
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement = dbConnection.prepareStatement(sqlStmt)) {
 
@@ -375,5 +374,11 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 .description(resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME))
                 .schema(parseSchema(resultSet.getString(SQLConstants.AUTHORIZATION_DETAILS_SCHEMA_COLUMN_NAME)))
                 .build();
+    }
+
+    private String buildGetAuthorizationDetailsTypesSqlStatement(final String filterQuery) {
+
+        return String.format(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_TENANT_ID_FORMAT,
+                filterQuery, SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL);
     }
 }
