@@ -219,6 +219,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 .get(FrameworkConstants.ATTRIBUTE_SYNC_METHOD).toString();
         String idp = attributes.remove(FrameworkConstants.IDP_ID);
         String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
+        char[] password;
 
         Map<String, String> userClaims = prepareClaimMappings(attributes);
 
@@ -297,12 +298,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
         } else {
-            String password = generatePassword();
-            String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
-            if (StringUtils.isNotEmpty(passwordFromUser)) {
-                password = passwordFromUser;
-            }
-
+            char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
+                    ? userClaims.get(FrameworkConstants.PASSWORD).toCharArray() : null;
+            password = (passwordFromUser != null && passwordFromUser.length > 0) ?
+                    passwordFromUser : generatePassword();
             // Check for inconsistencies in username attribute and the username claim.
             if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
                 // If so update the username claim with the username attribute.
@@ -324,7 +323,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (FrameworkUtils.isJITProvisionEnhancedFeatureEnabled()) {
                     setJitProvisionedSource(tenantDomain, idp, userClaims);
                 }
-                userStoreManager.addUser(username, password, null, userClaims, null);
+                userStoreManager.addUser(username, String.valueOf(password), null, userClaims, null);
             } catch (UserStoreException e) {
                 // Add user operation will fail if a user operation workflow is already defined for the same user.
                 if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
@@ -339,6 +338,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             } finally {
                 UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                 UserCoreUtil.removeSkipUsernamePatternValidationThreadLocal();
+                Arrays.fill(password, '\0');
             }
 
             if (userWorkflowEngaged ||
@@ -718,7 +718,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      *
      * @return
      */
-    protected String generatePassword() {
+    protected char[] generatePassword() {
 
         // Pick from some letters that won't be easily mistaken for each other.
         // So, for example, omit o O and 0, 1 l and L.
@@ -737,11 +737,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         for (int i = 0; i < passwordLength - mandatoryCharactersCount; i++) {
             pw.append(characters.charAt(secureRandom.nextInt(characters.length())));
         }
-        pw.append(digits.charAt(secureRandom.nextInt(digits.length())));
-        pw.append(lowercaseLetters.charAt(secureRandom.nextInt(lowercaseLetters.length())));
-        pw.append(uppercaseLetters.charAt(secureRandom.nextInt(uppercaseLetters.length())));
-        pw.append(specialCharacters.charAt(secureRandom.nextInt(specialCharacters.length())));
-        return pw.toString();
+        pw.insert(secureRandom.nextInt(pw.length()), digits.charAt(secureRandom.nextInt(digits.length())));
+        pw.insert(secureRandom.nextInt(pw.length()), lowercaseLetters.charAt(secureRandom.nextInt(
+                lowercaseLetters.length())));
+        pw.insert(secureRandom.nextInt(pw.length()), uppercaseLetters.charAt(secureRandom.nextInt(
+                uppercaseLetters.length())));
+        pw.insert(secureRandom.nextInt(pw.length()), specialCharacters.charAt(secureRandom.nextInt(
+                specialCharacters.length())));
+        return pw.toString().toCharArray();
     }
 
     /**
