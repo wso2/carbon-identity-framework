@@ -28,4 +28,15 @@ public class AuthenticatorPropertyConstants {
         SYSTEM,
         USER
     }
+
+    /**
+     * The Authentication Type -
+     * Identification: Can collect the user identifier and authenticator. Can engage in any step of the login flow.
+     * Verification: Only perform additional verification. Can engage in 2nd or later step of the login flow.
+     */
+    public static enum AuthenticationType {
+
+        IDENTIFICATION,
+        VERIFICATION
+    }
 }
