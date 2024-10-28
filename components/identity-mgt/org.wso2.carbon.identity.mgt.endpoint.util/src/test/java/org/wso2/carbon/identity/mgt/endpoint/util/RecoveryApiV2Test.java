@@ -65,7 +65,9 @@ public class RecoveryApiV2Test {
     private static final String TEST_ACCEPT_HEADER = "testAcceptHeader";
     private static final String TEST_CONTENT_HEADER = "testContentHeader";
     private static final String TEST_PATH = "testPath";
-    private static final Map<String, String> headers = new HashMap<>();
+    private static final Map<String, String> headers = new HashMap<String, String>() {{
+        put("Test-Header", "TestHeaderValue");
+    }};
 
     @Mock
     ApiClient apiClient;
@@ -108,7 +110,7 @@ public class RecoveryApiV2Test {
                     getBasePath(tenantDomain, RECOVERY_API_V2_RELATIVE_PATH)).thenReturn(TEST_PATH);
 
             List<AccountRecoveryType> result =
-                    recoveryApiV2.initiateUsernameRecovery(new RecoveryInitRequest(), tenantDomain, headers);
+                    recoveryApiV2.initiateUsernameRecovery(new RecoveryInitRequest(), "", headers);
             assertEquals(result, expected);
         }
     }
@@ -127,7 +129,7 @@ public class RecoveryApiV2Test {
             identityManagementEndpointUtilMockedStatic.when(() -> IdentityManagementEndpointUtil.
                     getBasePath(tenantDomain, RECOVERY_API_V2_RELATIVE_PATH)).thenReturn(TEST_PATH);
 
-            RecoveryResponse result = recoveryApiV2.recoverUsername(new RecoveryRequest(), tenantDomain, headers);
+            RecoveryResponse result = recoveryApiV2.recoverUsername(new RecoveryRequest(), "", headers);
             assertEquals(result, expected);
         }
     }
@@ -149,8 +151,7 @@ public class RecoveryApiV2Test {
                     getBasePath(tenantDomain, RECOVERY_API_V2_RELATIVE_PATH)).thenReturn(TEST_PATH);
 
             List<AccountRecoveryType> result =
-                    recoveryApiV2.initiatePasswordRecovery(new RecoveryInitRequest(), tenantDomain,
-                            headers);
+                    recoveryApiV2.initiatePasswordRecovery(new RecoveryInitRequest(), "", headers);
             assertEquals(result, expected);
         }
     }
@@ -169,7 +170,7 @@ public class RecoveryApiV2Test {
             identityManagementEndpointUtilMockedStatic.when(() -> IdentityManagementEndpointUtil.
                     getBasePath(tenantDomain, RECOVERY_API_V2_RELATIVE_PATH)).thenReturn(TEST_PATH);
 
-            RecoveryResponse result = recoveryApiV2.recoverPassword(new RecoveryRequest(), tenantDomain, headers);
+            RecoveryResponse result = recoveryApiV2.recoverPassword(new RecoveryRequest(), "", headers);
             assertEquals(result, expected);
         }
     }
@@ -189,7 +190,7 @@ public class RecoveryApiV2Test {
                     getBasePath(tenantDomain, RECOVERY_API_V2_RELATIVE_PATH)).thenReturn(TEST_PATH);
 
             ResendResponse result =
-                    recoveryApiV2.resendPasswordNotification(new ResendRequest(), tenantDomain, headers);
+                    recoveryApiV2.resendPasswordNotification(new ResendRequest(), "", headers);
             assertEquals(result, expected);
         }
     }
@@ -208,7 +209,8 @@ public class RecoveryApiV2Test {
             identityManagementEndpointUtilMockedStatic.when(() -> IdentityManagementEndpointUtil.
                     getBasePath(tenantDomain, RECOVERY_API_V2_RELATIVE_PATH)).thenReturn(TEST_PATH);
 
-            ConfirmResponse result = recoveryApiV2.confirmPasswordRecovery(new ConfirmRequest(), tenantDomain, headers);
+            ConfirmResponse result = recoveryApiV2.
+                    confirmPasswordRecovery(new ConfirmRequest(), "", headers);
             assertEquals(result, expected);
         }
     }
@@ -227,7 +229,7 @@ public class RecoveryApiV2Test {
             identityManagementEndpointUtilMockedStatic.when(() -> IdentityManagementEndpointUtil.
                     getBasePath(tenantDomain, RECOVERY_API_V2_RELATIVE_PATH)).thenReturn(TEST_PATH);
 
-            ResetResponse result = recoveryApiV2.resetUserPassword(new ResetRequest(), tenantDomain, headers);
+            ResetResponse result = recoveryApiV2.resetUserPassword(new ResetRequest(), "", headers);
             assertEquals(result, expected);
         }
     }
@@ -246,4 +248,33 @@ public class RecoveryApiV2Test {
         assertEquals(recoveryApiV2.getApiClient(), apiClient);
     }
 
+    @Test(expectedExceptions = ApiException.class)
+    public void testInitiateUsernameRecoveryWithNullRequest() throws ApiException {
+
+        recoveryApiV2.initiateUsernameRecovery(null, tenantDomain, headers);
+    }
+
+    @Test(expectedExceptions = ApiException.class)
+    public void testRecoverUsernameWithNullRequest() throws ApiException {
+
+        recoveryApiV2.recoverUsername(null, tenantDomain, headers);
+    }
+
+    @Test(expectedExceptions = ApiException.class)
+    public void testResendPasswordNotificationWithNullRequest() throws ApiException {
+
+        recoveryApiV2.resendPasswordNotification(null, tenantDomain, headers);
+    }
+
+    @Test(expectedExceptions = ApiException.class)
+    public void testConfirmPasswordRecoveryWithNullRequest() throws ApiException {
+
+        recoveryApiV2.confirmPasswordRecovery(null, tenantDomain, headers);
+    }
+
+    @Test(expectedExceptions = ApiException.class)
+    public void testResetUserPasswordWithNullRequest() throws ApiException {
+
+        recoveryApiV2.resetUserPassword(null, tenantDomain, headers);
+    }
 }
