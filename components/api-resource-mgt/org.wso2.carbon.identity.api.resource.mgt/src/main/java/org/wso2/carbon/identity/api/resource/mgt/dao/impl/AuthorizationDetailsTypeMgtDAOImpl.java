@@ -82,10 +82,12 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
 
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE)) {
+
             for (AuthorizationDetailsType authzDetailsType : authorizationDetailsTypes) {
+                prepStmt.setString(3, apiId);
+                prepStmt.setObject(7, tenantId);
 
                 if (this.isAuthorizationDetailsTypeExists(dbConnection, apiId, authzDetailsType.getType(), tenantId)) {
-
                     throw APIResourceManagementUtil.handleClientException(
                             APIResourceManagementConstants.ErrorMessages.ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS,
                             authzDetailsType.getType());
@@ -94,11 +96,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 authzDetailsType.setId(UUID.randomUUID().toString());
                 prepStmt.setString(1, authzDetailsType.getId());
                 prepStmt.setString(2, authzDetailsType.getType());
-                prepStmt.setString(3, apiId);
                 prepStmt.setString(4, authzDetailsType.getName());
                 prepStmt.setString(5, authzDetailsType.getDescription());
                 prepStmt.setString(6, toJsonString(authzDetailsType.getSchema()));
-                prepStmt.setObject(7, tenantId);
                 prepStmt.addBatch();
             }
             prepStmt.executeBatch();
@@ -217,12 +217,12 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                                                                        Integer tenantId)
             throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            FilterQueryBuilder filterQueryBuilder = getAuthorizationDetailsTypesFilterQueryBuilder(expressionNodes);
-            String query = SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_TENANT_ID_PREFIX +
-                    filterQueryBuilder.getFilterQuery() + SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL;
+        FilterQueryBuilder filterQueryBuilder = getAuthorizationDetailsTypesFilterQueryBuilder(expressionNodes);
+        final String sqlStmt = SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_TENANT_ID +
+                filterQueryBuilder.getFilterQuery() + SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL;
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement preparedStatement = dbConnection.prepareStatement(sqlStmt)) {
 
-            PreparedStatement preparedStatement = dbConnection.prepareStatement(query);
             preparedStatement.setInt(1, tenantId);
             int filterAttrSize = 0;
             if (filterQueryBuilder.getFilterAttributeValue() != null) {
@@ -310,6 +310,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         try (PreparedStatement prepStmt =
                      dbConnection.prepareStatement(SQLConstants.UPDATE_AUTHORIZATION_DETAILS_TYPES)) {
 
+            prepStmt.setString(5, apiId);
+            prepStmt.setObject(7, tenantId);
             for (final AuthorizationDetailsType authorizationDetailsType : authorizationDetailsTypes) {
 
                 if (isBlank(authorizationDetailsType.getType()) || isBlank(authorizationDetailsType.getId())) {
@@ -320,9 +322,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 prepStmt.setString(2, authorizationDetailsType.getType());
                 prepStmt.setString(3, authorizationDetailsType.getDescription());
                 prepStmt.setObject(4, toJsonString(authorizationDetailsType.getSchema()));
-                prepStmt.setString(5, apiId);
                 prepStmt.setString(6, authorizationDetailsType.getId());
-                prepStmt.setObject(7, tenantId);
                 prepStmt.addBatch();
             }
             prepStmt.executeBatch();

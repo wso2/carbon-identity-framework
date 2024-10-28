@@ -228,7 +228,7 @@ public class TestDAOUtils {
     public static String getFilePath(String fileName) {
 
         if (StringUtils.isNotBlank(fileName)) {
-            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbScripts", fileName)
+            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", fileName)
                     .toString();
         }
         return null;

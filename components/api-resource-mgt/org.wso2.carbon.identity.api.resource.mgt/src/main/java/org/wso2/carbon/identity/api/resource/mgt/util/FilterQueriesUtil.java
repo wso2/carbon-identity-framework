@@ -300,4 +300,8 @@ public class FilterQueriesUtil {
             setExpressionNodeList(node.getRightNode(), expression);
         }
     }
+
+    private FilterQueriesUtil() {
+        // To hide the public constructor
+    }
 }
