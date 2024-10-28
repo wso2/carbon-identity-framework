@@ -28,6 +28,8 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -602,6 +604,42 @@ public class ApplicationMgtUtilTest {
 
             assertEquals(ApplicationMgtUtil.getItemsPerPage(), itemsPerPage);
         }
+    }
+
+    @DataProvider(name = "getApplicationUpdatedVersionDataProvider")
+    public Object[][] getApplicationUpdatedVersionDataProvider() {
+
+        return new Object[][]{
+                { "v0.0.0", "oauth2", "v0.0.0" },
+                { "v1.0.0", "oauth2", "v1.0.0" },
+                { "v2.0.0", "oauth2", "v2.0.0" },
+                { "v0.0.0", "samlsso", "v2.0.0" },
+                { "v1.0.0", "samlsso", "v2.0.0" },
+                { "v2.0.0", "samlsso", "v2.0.0" },
+                { "v0.0.0", null, "v2.0.0" },
+                { "v1.0.0", null, "v2.0.0" },
+                { "v2.0.0", null, "v2.0.0" },
+        };
+    }
+
+    @Test(dataProvider = "getApplicationUpdatedVersionDataProvider")
+    public void testGetApplicationUpdatedVersion(String currentVersion, String authType,
+                                                 String expectedUpdatedVersion) {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationVersion(currentVersion);
+        InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
+        InboundAuthenticationRequestConfig inboundAuthenticationRequestConfigs =
+                new InboundAuthenticationRequestConfig();
+        inboundAuthenticationRequestConfigs.setInboundAuthType(authType);
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(
+                new InboundAuthenticationRequestConfig[]{inboundAuthenticationRequestConfigs});
+        serviceProvider.setInboundAuthenticationConfig(inboundAuthenticationConfig);
+
+        String updatedVersion = ApplicationMgtUtil.getApplicationUpdatedVersion(serviceProvider);
+
+        assertEquals(updatedVersion, expectedUpdatedVersion);
+
     }
 
     private void mockTenantRegistry(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,
