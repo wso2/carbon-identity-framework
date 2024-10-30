@@ -93,18 +93,6 @@
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.balana</groupId>
-            <artifactId>org.wso2.balana.utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -146,8 +134,6 @@
                             org.wso2.carbon.identity.provisioning.internal,
                         </Private-Package>
                         <Import-Package>
-                            org.wso2.balana.*;
-                            version="${balana.imp.pkg.version.range}",
                             org.wso2.carbon.identity.entitlement.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
