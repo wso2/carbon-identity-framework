@@ -21,8 +21,10 @@ package org.wso2.carbon.identity.core.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.CertificateRetriever;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
@@ -31,16 +33,13 @@ import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
 import org.wso2.carbon.identity.core.model.SPProperty;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.user.api.Tenant;
 
 import java.security.cert.X509Certificate;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
@@ -89,7 +88,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
-    public SAMLSSOServiceProviderDAOImpl(int tenantId) throws IdentityException {
+    public SAMLSSOServiceProviderDAOImpl(int tenantId) {
 
         this.tenantId = tenantId;
     }
@@ -98,28 +97,20 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
 
         validateServiceProvider(serviceProviderDO);
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
-                if (processIsServiceProviderExists(connection, serviceProviderDO.getIssuer())) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
-                    }
-                    return false;
-                }
-                processAddServiceProvider(connection, serviceProviderDO);
-                processAddSPProperties(connection, serviceProviderDO);
-
-                IdentityDatabaseUtil.commitTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    log.debug(serviceProviderInfo(serviceProviderDO) + " is added successfully.");
-                }
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw e;
+        try {
+            if (processIsServiceProviderExists(serviceProviderDO.getIssuer())) {
+                debugLog(serviceProviderInfo(serviceProviderDO) + " already exists.");
+                return false;
             }
+            NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+            namedJdbcTemplate.withTransaction(template -> {
+                processAddServiceProvider(serviceProviderDO);
+                processAddSPProperties(serviceProviderDO);
+                return null;
+            });
+            debugLog(serviceProviderInfo(serviceProviderDO) + " is added successfully.");
             return true;
-        } catch (SQLException e) {
+        } catch (TransactionException | DataAccessException e) {
             String msg = "Error while adding " + serviceProviderInfo(serviceProviderDO);
             log.error(msg, e);
             throw new IdentityException(msg, e);
@@ -131,31 +122,24 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             throws IdentityException {
 
         validateServiceProvider(serviceProviderDO);
-
         String newIssuer = serviceProviderDO.getIssuer();
-
         boolean isIssuerUpdated = !StringUtils.equals(currentIssuer, newIssuer);
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
-                if (isIssuerUpdated && processIsServiceProviderExists(connection, newIssuer)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
-                    }
-                    return false;
-                }
-                int serviceProviderId = processGetServiceProviderId(connection, currentIssuer);
-                processUpdateServiceProvider(connection, serviceProviderDO, serviceProviderId);
-                processUpdateSPProperties(connection, serviceProviderDO, serviceProviderId);
-                IdentityDatabaseUtil.commitTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    log.debug(serviceProviderInfo(serviceProviderDO) + " is updated successfully.");
-                }
-                return true;
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw e;
+
+        try {
+            if (isIssuerUpdated && processIsServiceProviderExists(newIssuer)) {
+                debugLog(serviceProviderInfo(serviceProviderDO) + " already exists.");
+                return false;
             }
-        } catch (SQLException e) {
+            int serviceProviderId = processGetServiceProviderId(currentIssuer);
+            NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+            namedJdbcTemplate.withTransaction(template -> {
+                processUpdateServiceProvider(serviceProviderDO, serviceProviderId);
+                processUpdateSPProperties(serviceProviderDO, serviceProviderId);
+                return null;
+            });
+            debugLog(serviceProviderInfo(serviceProviderDO) + " is updated successfully.");
+            return true;
+        } catch (TransactionException | DataAccessException e) {
             String msg = "Error while updating " + serviceProviderInfo(serviceProviderDO);
             log.error(msg, e);
             throw new IdentityException(msg, e);
@@ -166,9 +150,9 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
 
         List<SAMLSSOServiceProviderDO> serviceProvidersList;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            serviceProvidersList = processGetServiceProviders(connection);
-        } catch (SQLException e) {
+        try {
+            serviceProvidersList = processGetServiceProviders();
+        } catch (DataAccessException e) {
             log.error("Error reading Service Providers", e);
             throw new IdentityException("Error reading Service Providers", e);
         }
@@ -181,17 +165,14 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         if (issuer == null || StringUtils.isEmpty(issuer.trim())) {
             throw new IllegalArgumentException("Trying to delete issuer \'" + issuer + "\'");
         }
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            if (!processIsServiceProviderExists(connection, issuer)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Service Provider with issuer " + issuer + " does not exist.");
-                }
+        try {
+            if (!processIsServiceProviderExists(issuer)) {
+                debugLog("Service Provider with issuer " + issuer + " does not exist.");
                 return false;
             }
-            processDeleteServiceProvider(connection, issuer);
+            processDeleteServiceProvider(issuer);
             return true;
-        } catch (SQLException e) {
+        } catch (DataAccessException e) {
             String msg = "Error removing the service provider with name: " + issuer;
             log.error(msg, e);
             throw new IdentityException(msg, e);
@@ -203,18 +184,18 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         SAMLSSOServiceProviderDO serviceProviderDO = null;
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try {
             if (isServiceProviderExists(issuer)) {
-                serviceProviderDO = processGetServiceProvider(connection, issuer);
+                serviceProviderDO = processGetServiceProvider(issuer);
             }
-        } catch (SQLException e) {
-            throw IdentityException.error(String.format("An error occurred while retrieving the " +
-                    "the service provider with the issuer '%s'", issuer), e);
+        } catch (DataAccessException e) {
+            throw IdentityException.error(String.format(
+                            "An error occurred while retrieving the " + "the service provider with the issuer '%s'", issuer),
+                    e);
         }
         if (serviceProviderDO == null) {
             return null;
         }
-
         try {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
             // Load the certificate stored in the database, if signature validation is enabled.
@@ -226,7 +207,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
                 serviceProviderDO.setX509Certificate(getApplicationCertificate(serviceProviderDO, tenant));
             }
             serviceProviderDO.setTenantDomain(tenantDomain);
-        } catch (SQLException | CertificateRetrievingException e) {
+        } catch (DataAccessException | CertificateRetrievingException e) {
             throw IdentityException.error(String.format("An error occurred while getting the " +
                     "application certificate for validating the requests from the issuer '%s'", issuer), e);
         }
@@ -236,9 +217,9 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     @Override
     public boolean isServiceProviderExists(String issuer) throws IdentityException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            return processIsServiceProviderExists(connection, issuer);
-        } catch (SQLException e) {
+        try {
+            return processIsServiceProviderExists(issuer);
+        } catch (DataAccessException e) {
             String msg = "Error while checking existence of Service Provider with issuer: " + issuer;
             log.error(msg, e);
             throw new IdentityException(msg, e);
@@ -249,56 +230,27 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
 
-        validateServiceProvider(serviceProviderDO);
-        if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null || StringUtils.isBlank(
-                serviceProviderDO.getDefaultAssertionConsumerUrl())) {
-            throw new IdentityException("No default assertion consumer URL provided for service provider :" +
-                    serviceProviderDO.getIssuer());
-        }
+        addServiceProvider(serviceProviderDO);
+        return serviceProviderDO;
+    }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
-                if (processIsServiceProviderExists(connection, serviceProviderDO.getIssuer())) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
-                    }
-                    throw IdentityException.error("A Service Provider already exists.");
-                }
+    private void debugLog(String message) {
 
-                processAddServiceProvider(connection, serviceProviderDO);
-                processAddSPProperties(connection, serviceProviderDO);
-
-                IdentityDatabaseUtil.commitTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    log.debug(serviceProviderInfo(serviceProviderDO) + " is added successfully.");
-                }
-                return serviceProviderDO;
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw e;
-            }
-        } catch (SQLException e) {
-            String msg = "Error while adding " + serviceProviderInfo(serviceProviderDO);
-            log.error(msg, e);
-            throw new IdentityException(msg, e);
+        if (log.isDebugEnabled()) {
+            log.debug(message);
         }
     }
 
-    private boolean processIsServiceProviderExists(Connection connection, String issuer) throws SQLException {
+    private boolean processIsServiceProviderExists(String issuer) throws DataAccessException {
 
-        boolean isExist = false;
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    isExist = true;
-                }
-            }
-        }
-        return isExist;
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        Integer serviceProviderId =
+                namedJdbcTemplate.fetchSingleRecord(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER,
+                        (resultSet, rowNumber) -> resultSet.getInt(ID), preparedStatement -> {
+                            preparedStatement.setString(ISSUER, issuer);
+                            preparedStatement.setInt(TENANT_ID, tenantId);
+                        });
+        return serviceProviderId != null;
     }
 
     private void validateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
@@ -317,9 +269,8 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     private String serviceProviderInfo(SAMLSSOServiceProviderDO serviceProviderDO) {
 
         if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            return "SAML2 Service Provider with issuer: " + getIssuerWithoutQualifier
-                    (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
-                    .getIssuerQualifier();
+            return "SAML2 Service Provider with issuer: " + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) +
+                    " and qualifier name " + serviceProviderDO.getIssuerQualifier();
         } else {
             return "SAML2 Service Provider with issuer: " + serviceProviderDO.getIssuer();
         }
@@ -387,27 +338,20 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         return serviceProviderDO;
     }
 
-    private void addProperties(Connection connection, int serviceProviderId,
-                               SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
+    private void addProperties(int serviceProviderId, SAMLSSOServiceProviderDO serviceProviderDO)
+            throws DataAccessException {
 
-        List<SPProperty> properties = new ArrayList<>();
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SSO_ATTR_BY_ID)) {
-            statement.setInt(SP_ID, serviceProviderId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    String key = resultSet.getString(PROPERTY_NAME);
-                    String value = resultSet.getString(PROPERTY_VALUE);
-                    properties.add(new SPProperty(key, value));
-                }
-                serviceProviderDO.addMultiValuedProperties(properties);
-            }
-        }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        List<SPProperty> properties =
+                namedJdbcTemplate.executeQuery(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SSO_ATTR_BY_ID,
+                        (resultSet, rowNumber) -> new SPProperty(resultSet.getString(PROPERTY_NAME),
+                                resultSet.getString(PROPERTY_VALUE)),
+                        namedPreparedStatement -> namedPreparedStatement.setInt(SP_ID, serviceProviderId));
+        serviceProviderDO.addMultiValuedProperties(properties);
     }
 
     private void setServiceProviderParameters(NamedPreparedStatement statement,
-                                              SAMLSSOServiceProviderDO serviceProviderDO)
-            throws SQLException {
+                                              SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
 
         statement.setInt(TENANT_ID, tenantId);
         statement.setString(ISSUER, serviceProviderDO.getIssuer());
@@ -429,8 +373,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         statement.setString(SLO_REQUEST_URL, serviceProviderDO.getSloRequestURL());
         statement.setBoolean(IDP_INIT_SSO_ENABLED, serviceProviderDO.isIdPInitSSOEnabled());
         statement.setBoolean(IDP_INIT_SLO_ENABLED, serviceProviderDO.isIdPInitSLOEnabled());
-        statement.setBoolean(QUERY_REQUEST_PROFILE_ENABLED,
-                serviceProviderDO.isAssertionQueryRequestProfileEnabled());
+        statement.setBoolean(QUERY_REQUEST_PROFILE_ENABLED, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
         statement.setBoolean(ECP_ENABLED, serviceProviderDO.isSamlECP());
         statement.setBoolean(ARTIFACT_BINDING_ENABLED, serviceProviderDO.isEnableSAML2ArtifactBinding());
         statement.setBoolean(ARTIFACT_RESOLVE_REQ_SIG_VALIDATION,
@@ -441,142 +384,124 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
                 serviceProviderDO.getSupportedAssertionQueryRequestTypes());
     }
 
-    private int processGetServiceProviderId(Connection connection, String issuer) throws SQLException {
+    private int processGetServiceProviderId(String issuer) throws DataAccessException {
 
-        int serviceProviderId;
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    serviceProviderId = resultSet.getInt(ID);
-                } else {
-                    throw new SQLException("Error while retrieving the service provider ID for issuer: " + issuer);
-                }
-            }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        Integer serviceProviderId =
+                namedJdbcTemplate.fetchSingleRecord(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER,
+                        (resultSet, rowNumber) -> resultSet.getInt(ID), namedPreparedStatement -> {
+                            namedPreparedStatement.setString(ISSUER, issuer);
+                            namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                        });
+        if (serviceProviderId == null) {
+            throw new DataAccessException("No record found for the given issuer: " + issuer);
         }
-        return serviceProviderId;
+        return serviceProviderId.intValue();
     }
 
-    private void processAddServiceProvider(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO)
-            throws SQLException {
+    private void processAddServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws DataAccessException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML2_SSO_CONFIG)) {
-            setServiceProviderParameters(statement, serviceProviderDO);
-            statement.executeUpdate();
-        }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        namedJdbcTemplate.executeInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML2_SSO_CONFIG,
+                namedPreparedStatement -> setServiceProviderParameters(namedPreparedStatement, serviceProviderDO),
+                serviceProviderDO, false);
     }
 
-    private void processAddSPProperties(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO)
-            throws SQLException {
+    private void processAddSPProperties(SAMLSSOServiceProviderDO serviceProviderDO) throws DataAccessException {
 
         List<SPProperty> properties = serviceProviderDO.getMultiValuedProperties();
-        int serviceProviderId = processGetServiceProviderId(connection, serviceProviderDO.getIssuer());
+        int serviceProviderId = processGetServiceProviderId(serviceProviderDO.getIssuer());
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR)) {
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
 
-            for (SPProperty property : properties) {
-                String key = property.getKey();
-                String value = property.getValue();
-                statement.setInt(SP_ID, serviceProviderId);
-                statement.setString(PROPERTY_NAME, key);
-                statement.setString(PROPERTY_VALUE, value);
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
+        namedJdbcTemplate.executeBatchInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR,
+                (namedPreparedStatement -> {
+                    for (SPProperty property : properties) {
+                        namedPreparedStatement.setInt(SP_ID, serviceProviderId);
+                        namedPreparedStatement.setString(PROPERTY_NAME, property.getKey());
+                        namedPreparedStatement.setString(PROPERTY_VALUE, property.getValue());
+                        namedPreparedStatement.addBatch();
+                    }
+                }), serviceProviderDO);
     }
 
-    private void processUpdateServiceProvider(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
-                                              int serviceProviderId) throws SQLException {
+    private void processUpdateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int serviceProviderId)
+            throws DataAccessException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.UPDATE_SAML2_SSO_CONFIG)) {
-            statement.setInt(ID, serviceProviderId);
-            setServiceProviderParameters(statement, serviceProviderDO);
-            statement.executeUpdate();
-        }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.UPDATE_SAML2_SSO_CONFIG,
+                namedPreparedStatement -> {
+                    namedPreparedStatement.setInt(ID, serviceProviderId);
+                    setServiceProviderParameters(namedPreparedStatement, serviceProviderDO);
+                });
     }
 
-    private void processUpdateSPProperties(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
-                                           int serviceProviderId) throws SQLException {
+    private void processUpdateSPProperties(SAMLSSOServiceProviderDO serviceProviderDO, int serviceProviderId)
+            throws DataAccessException {
 
         List<SPProperty> properties = serviceProviderDO.getMultiValuedProperties();
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR_BY_ID)) {
-            statement.setInt(SP_ID, serviceProviderId);
-            statement.executeUpdate();
-        }
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR_BY_ID,
+                namedPreparedStatement -> namedPreparedStatement.setInt(SP_ID, serviceProviderId));
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR)) {
-            for (SPProperty property : properties) {
-                String key = property.getKey();
-                String value = property.getValue();
-                statement.setInt(SP_ID, serviceProviderId);
-                statement.setString(PROPERTY_NAME, key);
-                statement.setString(PROPERTY_VALUE, value);
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
+        namedJdbcTemplate.executeBatchInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR,
+                (namedPreparedStatement -> {
+                    for (SPProperty property : properties) {
+                        namedPreparedStatement.setInt(SP_ID, serviceProviderId);
+                        namedPreparedStatement.setString(PROPERTY_NAME, property.getKey());
+                        namedPreparedStatement.setString(PROPERTY_VALUE, property.getValue());
+                        namedPreparedStatement.addBatch();
+                    }
+                }), serviceProviderDO);
     }
 
-    private SAMLSSOServiceProviderDO processGetServiceProvider(Connection connection, String issuer)
-            throws SQLException {
+    private SAMLSSOServiceProviderDO processGetServiceProvider(String issuer) throws DataAccessException {
 
-        SAMLSSOServiceProviderDO serviceProviderDO = null;
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    serviceProviderDO = resourceToObject(resultSet);
-                    addProperties(connection, resultSet.getInt(1), serviceProviderDO);
-                }
-            }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        SAMLSSOServiceProviderDO serviceProviderDO = namedJdbcTemplate.fetchSingleRecord(
+                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIG_BY_ISSUER,
+                (resultSet, rowNumber) -> resourceToObject(resultSet), namedPreparedStatement -> {
+                    namedPreparedStatement.setString(ISSUER, issuer);
+                    namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                });
+
+        if (serviceProviderDO != null) {
+            addProperties(processGetServiceProviderId(issuer), serviceProviderDO);
         }
         return serviceProviderDO;
     }
 
-    private List<SAMLSSOServiceProviderDO> processGetServiceProviders(Connection connection) throws SQLException {
+    private List<SAMLSSOServiceProviderDO> processGetServiceProviders() throws DataAccessException {
 
-        List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIGS)) {
-            statement.setInt(TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    SAMLSSOServiceProviderDO serviceProviderDO = resourceToObject(resultSet);
-                    addProperties(connection, resultSet.getInt(1), serviceProviderDO);
-                    serviceProvidersList.add(serviceProviderDO);
-                }
-            }
+        List<SAMLSSOServiceProviderDO> serviceProvidersList;
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        serviceProvidersList =
+                namedJdbcTemplate.executeQuery(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIGS,
+                        (resultSet, rowNumber) -> resourceToObject(resultSet),
+                        namedPreparedStatement -> namedPreparedStatement.setInt(TENANT_ID, tenantId));
+
+        for (SAMLSSOServiceProviderDO serviceProviderDO : serviceProvidersList) {
+            addProperties(processGetServiceProviderId(serviceProviderDO.getIssuer()), serviceProviderDO);
         }
         return serviceProvidersList;
     }
 
-    private void processDeleteServiceProvider(Connection connection, String issuer) throws SQLException {
+    private void processDeleteServiceProvider(String issuer) throws DataAccessException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            statement.executeUpdate();
-        }
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR)) {
-            statement.setString(ISSUER, issuer);
-            statement.setInt(TENANT_ID, tenantId);
-            statement.executeUpdate();
-        }
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML2_SSO_CONFIG_BY_ISSUER,
+                namedPreparedStatement -> {
+                    namedPreparedStatement.setString(ISSUER, issuer);
+                    namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                });
+
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR,
+                namedPreparedStatement -> {
+                    namedPreparedStatement.setString(ISSUER, issuer);
+                    namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                });
     }
 
     /**
@@ -590,7 +515,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
      * @throws CertificateRetrievingException
      */
     private X509Certificate getApplicationCertificate(SAMLSSOServiceProviderDO serviceProviderDO, Tenant tenant)
-            throws SQLException, CertificateRetrievingException {
+            throws CertificateRetrievingException, DataAccessException {
 
         // Check whether there is a certificate stored against the service provider (in the database)
         int applicationCertificateId = getApplicationCertificateId(serviceProviderDO.getIssuer(), tenant.getId());
@@ -615,29 +540,20 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
      * @return
      * @throws SQLException
      */
-    private int getApplicationCertificateId(String issuer, int tenantId) throws SQLException {
+    private int getApplicationCertificateId(String issuer, int tenantId) throws DataAccessException {
 
-        try {
-            String sqlStmt = isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 :
-                    QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
-            try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-                 PreparedStatement statementToGetApplicationCertificate =
-                         connection.prepareStatement(sqlStmt)) {
-                statementToGetApplicationCertificate.setString(1, CERTIFICATE_PROPERTY_NAME);
-                statementToGetApplicationCertificate.setString(2, issuer);
-                statementToGetApplicationCertificate.setInt(3, tenantId);
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        String sqlStmt =
+                isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 : QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
+        Integer certificateId =
+                namedJdbcTemplate.fetchSingleRecord(sqlStmt, (resultSet, rowNumber) -> resultSet.getInt(1),
+                        namedPreparedStatement -> {
+                            namedPreparedStatement.setString(1, CERTIFICATE_PROPERTY_NAME);
+                            namedPreparedStatement.setString(2, issuer);
+                            namedPreparedStatement.setInt(3, tenantId);
+                        });
 
-                try (ResultSet queryResults = statementToGetApplicationCertificate.executeQuery()) {
-                    if (queryResults.next()) {
-                        return queryResults.getInt(1);
-                    }
-                }
-            }
-            return -1;
-        } catch (DataAccessException e) {
-            String errorMsg = "Error while retrieving application certificate data for issuer: " + issuer +
-                    " and tenant Id: " + tenantId;
-            throw new SQLException(errorMsg, e);
-        }
+        return certificateId != null ? certificateId : -1;
     }
+
 }
