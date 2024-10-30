@@ -107,6 +107,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
@@ -4189,5 +4190,59 @@ public class FrameworkUtils {
     public static boolean isURLRelative(String uriString) throws URISyntaxException {
 
         return !new URI(uriString).isAbsolute();
+    }
+
+    /**
+     * Retrieve the user id claim configured for the federated IDP.
+     *
+     * @param federatedIdpName Federated IDP name.
+     * @param tenantDomain     Tenant domain.
+     * @return User ID claim configured for the IDP.
+     * @throws PostAuthenticationFailedException PostAuthenticationFailedException.
+     */
+    public static String getUserIdClaimURI(String federatedIdpName, String tenantDomain)
+            throws PostAuthenticationFailedException {
+
+        String usernameLocalClaim = "http://wso2.org/claims/username";
+        String userIdClaimURI;
+        IdentityProvider idp;
+        try {
+            idp = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
+                    .getIdPByName(federatedIdpName, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw new PostAuthenticationFailedException(
+                    ERROR_WHILE_GETTING_IDP_BY_NAME.getCode(),
+                    String.format(FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME.getMessage(),
+                            tenantDomain), e);
+        }
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        if (claimMappings == null || claimMappings.length < 1) {
+            return null;
+        }
+        userIdClaimURI = claimConfigs.getUserClaimURI();
+        if (userIdClaimURI != null) {
+            return userIdClaimURI;
+        }
+        ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
+                        StringUtils.equals(usernameLocalClaim, claimMapping.getLocalClaim().getClaimUri()))
+                .findFirst()
+                .orElse(null);
+        if (userNameClaimMapping != null) {
+            userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
+        }
+        return userIdClaimURI;
+    }
+
+    public static boolean isConfiguredIdpSubForFederatedUserAssociationEnabled() {
+
+//      return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION));
+        return true;
     }
 }
