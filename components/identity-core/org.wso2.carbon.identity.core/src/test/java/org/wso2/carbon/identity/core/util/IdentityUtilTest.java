@@ -1058,8 +1058,7 @@ public class IdentityUtilTest {
         assertTrue(scopes.contains(apiResource2));
     }
 
-    private KeyStore getKeyStoreFromFile(String keystoreName, String password)
-            throws Exception {
+    private KeyStore getKeyStoreFromFile(String keystoreName, String password) throws Exception {
 
         Path tenantKeystorePath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "repository", "resources", "security", keystoreName);
         FileInputStream file = new FileInputStream(tenantKeystorePath.toString());
