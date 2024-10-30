@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.5.97-SNAPSHOT</version>
+    <version>7.5.100-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1905,7 +1905,7 @@
         </org.wso2.carbon.identity.organization.management.core.version.range>
 
         <!--Carbon registry version-->
-        <org.wso2.carbon.registry.version>4.8.12</org.wso2.carbon.registry.version>
+        <org.wso2.carbon.registry.version>4.8.37</org.wso2.carbon.registry.version>
         <carbon.registry.common.imp.pkg.version.range>[0.0.0,1.0.0)</carbon.registry.common.imp.pkg.version.range>
         <carbon.registry.indexing.imp.pkg.version.range>[4.7.3,5.0.0)</carbon.registry.indexing.imp.pkg.version.range>
 

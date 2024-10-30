@@ -259,7 +259,7 @@
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
-  "oauth.oidc.enable_claims_separation_for_access_tokens": true,
+  "oauth.oidc.enable_claims_separation_for_access_tokens": false,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -1447,6 +1447,9 @@
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
+  "console.user_stores.disabled_features": [
+    "userStores.type.remote"
+  ],
   "console.user_stores.scopes.feature": ["console:userstores"],
   "console.user_stores.scopes.create": ["internal_userstore_create"],
   "console.user_stores.scopes.read": ["internal_userstore_view"],
