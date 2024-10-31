@@ -108,7 +108,6 @@ public class IdentityCoreConstants {
 
     // SCIM2 constants.
     public static final String SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED = "SCIM2.UserEndpointMaxItemsPerPageEnabled";
-    public static final String CONSIDER_SERVER_WIDE_MAX_LIMIT_ENABLED= "SCIM2.ConsiderServerWideUserEndpointMaxLimit";
 
     // Actions constants.
     public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";

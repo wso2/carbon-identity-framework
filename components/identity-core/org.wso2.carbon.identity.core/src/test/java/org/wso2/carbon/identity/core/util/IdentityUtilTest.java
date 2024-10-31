@@ -1066,31 +1066,4 @@ public class IdentityUtilTest {
         keystore.load(file, password.toCharArray());
         return keystore;
     }
-
-    @DataProvider
-    public Object[][] getServerWideUserEndpointMaxLimitEnabledData() {
-        return new Object[][]{
-                {IdentityCoreConstants.CONSIDER_SERVER_WIDE_MAX_LIMIT_ENABLED, "", true},
-                {IdentityCoreConstants.CONSIDER_SERVER_WIDE_MAX_LIMIT_ENABLED, null, true},
-                {IdentityCoreConstants.CONSIDER_SERVER_WIDE_MAX_LIMIT_ENABLED, "true", true},
-                {IdentityCoreConstants.CONSIDER_SERVER_WIDE_MAX_LIMIT_ENABLED, "false", false},
-        };
-    }
-
-    @Test(dataProvider = "getServerWideUserEndpointMaxLimitEnabledData")
-    public void testIsConsiderServerWideUserEndpointMaxLimitEnabled(String key, Object value,
-                                                                    boolean isExpectedResultTrue) throws Exception {
-
-        Map<String, Object> mockConfig = new HashMap<>();
-        mockConfig.put(key, value);
-
-        setPrivateStaticField(IdentityUtil.class, "configuration", mockConfig);
-        if (isExpectedResultTrue) {
-            assertTrue(IdentityUtil.isConsiderServerWideUserEndpointMaxLimitEnabled());
-        } else {
-            assertFalse(IdentityUtil.isConsiderServerWideUserEndpointMaxLimitEnabled());
-        }
-
-    }
-
 }

@@ -1962,20 +1962,4 @@ public class IdentityUtil {
         }
         return Boolean.parseBoolean(scim2UserMaxItemsPerPageEnabledProperty);
     }
-
-    /**
-     * Read the SCIM User Endpoint Consider Server Wide config and returns it.
-     *
-     * @return If SCIM User Endpoint Consider Server Wise Config is enabled.
-     */
-    public static boolean isConsiderServerWideUserEndpointMaxLimitEnabled() {
-
-        String considerServerWideUserEndpointMaxLimitProperty =
-                IdentityUtil.getProperty(IdentityCoreConstants.CONSIDER_SERVER_WIDE_MAX_LIMIT_ENABLED);
-
-        if (StringUtils.isBlank(considerServerWideUserEndpointMaxLimitProperty)) {
-            return true;
-        }
-        return Boolean.parseBoolean(considerServerWideUserEndpointMaxLimitProperty);
-    }
 }
