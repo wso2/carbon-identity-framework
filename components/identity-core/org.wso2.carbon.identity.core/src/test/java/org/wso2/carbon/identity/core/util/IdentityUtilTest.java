@@ -1066,4 +1066,5 @@ public class IdentityUtilTest {
         keystore.load(file, password.toCharArray());
         return keystore;
     }
+
 }
