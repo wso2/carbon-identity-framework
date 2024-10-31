@@ -1223,12 +1223,14 @@
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+        <FailAuthnOnProvisionFailure>false</FailAuthnOnProvisionFailure>
         <EnableEnhancedFeature>false</EnableEnhancedFeature>
     </JITProvisioning>
 
     <OutboundProvisioning>
         <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
+        <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
     </OutboundProvisioning>
 
     <EventListeners>
