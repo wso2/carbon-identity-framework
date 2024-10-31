@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -109,11 +108,9 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -602,7 +599,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         // you can change application name, description, isSasApp...
         updateBasicApplicationData(serviceProvider, connection);
 
-        updateApplicationCertificate(serviceProvider, tenantID, connection);
+        updateApplicationCertificate(serviceProvider, tenantID);
 
         updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
                 connection);
@@ -769,10 +766,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      *
      * @param serviceProvider Service provider object.
      * @param tenantID        Tenant ID.
-     * @param connection      Database connection.
      * @throws IdentityApplicationManagementException If an error occurs while updating the certificate.
      */
-    private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID, Connection connection)
+    private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID)
             throws IdentityApplicationManagementException {
 
         // If the certificate content is empty, remove the certificate reference property if exists.
@@ -793,6 +789,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         break;
                     }
                 }
+
 
                 // If there is a certificate reference, remove it from the properties array.
                 // Removing will be done by creating a new array and copying the elements other than the
@@ -838,7 +835,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                  There is no existing reference.
                  Persisting the certificate in the given service provider as a new record.
                   */
-                persistApplicationCertificate(serviceProvider, tenantID, connection);
+                persistApplicationCertificate(serviceProvider, tenantID);
             }
         }
     }
@@ -868,11 +865,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      *
      * @param serviceProvider Service provider object.
      * @param tenantID        Tenant ID.
-     * @param connection      Database connection.
      * @throws IdentityApplicationManagementException If an error occurs while adding the certificate.
      */
-    private void persistApplicationCertificate(ServiceProvider serviceProvider, int tenantID,
-                                               Connection connection)
+    private void persistApplicationCertificate(ServiceProvider serviceProvider, int tenantID)
             throws IdentityApplicationManagementException {
 
         try {
