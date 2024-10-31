@@ -18,22 +18,16 @@
 
 package org.wso2.carbon.identity.certificate.management.util;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
-
-import java.io.ByteArrayInputStream;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
  * This class is responsible for validating certificates.
  */
 public class CertificateValidator {
 
-    private static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
-    private static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
     public static final String NAME_FIELD = "Name";
     public static final String CERTIFICATE_FIELD = "Certificate";
 
@@ -89,19 +83,7 @@ public class CertificateValidator {
      */
     public static void validatePemFormat(String certificate) throws CertificateMgtClientException {
 
-        if (!certificate.startsWith(BEGIN_CERTIFICATE) || !certificate.endsWith(END_CERTIFICATE)) {
-            CertificateMgtExceptionHandler
-                    .throwClientException(CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS);
-        }
-
-        try {
-            String certificateContentString = certificate.substring(
-                certificate.indexOf(BEGIN_CERTIFICATE) + BEGIN_CERTIFICATE.length(),
-                certificate.indexOf(END_CERTIFICATE));
-            byte[] bytes = Base64.decode(certificateContentString);
-
-            CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(bytes));
-        } catch (CertificateException e) {
+        if (!IdentityUtil.isValidPEMCertificate(certificate)) {
             CertificateMgtExceptionHandler.throwClientException(CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT);
         }
     }

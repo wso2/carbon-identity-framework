@@ -89,7 +89,6 @@
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
-                            org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
