@@ -35,6 +35,7 @@ import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -70,6 +71,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByTyp
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtServerException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.ApplicationCertificateManagementService;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -114,6 +116,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -170,6 +173,7 @@ public class ApplicationManagementServiceImplTest {
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
+    private ApplicationCertificateManagementService applicationCertificateManagementService;
 
     @BeforeClass
     public void setup() throws RegistryException, UserStoreException, SecretManagementException {
@@ -203,6 +207,10 @@ public class ApplicationManagementServiceImplTest {
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
         MockedStatic<DefinedByType> definedByType = mockStatic(DefinedByType.class);
         definedByType.when(() -> DefinedByType.valueOf(anyString())).thenReturn(DefinedByType.SYSTEM);
+
+        applicationCertificateManagementService = mock(ApplicationCertificateManagementService.class);
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setApplicationCertificateMgtService(applicationCertificateManagementService);
     }
 
     @DataProvider(name = "addApplicationDataProvider")
@@ -1321,38 +1329,42 @@ public class ApplicationManagementServiceImplTest {
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);
     }
-    
-    @Test
-    public void applicationCertificate() throws CertificateMgtException, IdentityApplicationManagementException {
+
+    @DataProvider(name = "applicationCertificateDataProvider")
+    public Object[][] applicationCertificateDataProvider() {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        inputSP.setCertificateContent(CERTIFICATE);
 
         Certificate certificate = new Certificate.Builder()
                 .id(String.valueOf(CERTIFICATE_ID))
                 .name(APPLICATION_NAME_1)
                 .certificateContent(CERTIFICATE)
                 .build();
-        ApplicationCertificateManagementService applicationCertificateManagementService =
-                mock(ApplicationCertificateManagementService.class);
-        ApplicationManagementServiceComponentHolder.getInstance()
-                .setApplicationCertificateMgtService(applicationCertificateManagementService);
+
+        return new Object[][] {
+                {inputSP, certificate}
+        };
+    }
+
+    @Test(dataProvider = "applicationCertificateDataProvider")
+    public void applicationCertificateSuccessTest(ServiceProvider inputSP, Certificate certificate)
+            throws CertificateMgtException, IdentityApplicationManagementException {
+
+        // Add new application with certificate.
         when(applicationCertificateManagementService.addCertificate(any(), anyString()))
                 .thenReturn(0);
         when(applicationCertificateManagementService.getCertificateByName(any(), anyString()))
                 .thenReturn(certificate);
-        ServiceProvider inputSP = new ServiceProvider();
-        inputSP.setApplicationName(APPLICATION_NAME_1);
-        inputSP.setCertificateContent(CERTIFICATE);
 
-        // Adding new application.
         String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);
 
-        when(applicationCertificateManagementService.getCertificate(anyInt(), anyString()))
-                .thenReturn(certificate);
-        //  Retrieving added application.
+        // Retrieve added application with certificate.
+        when(applicationCertificateManagementService.getCertificate(anyInt(), anyString())).thenReturn(certificate);
         ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId,
                 SUPER_TENANT_DOMAIN_NAME);
-        Assert.assertEquals(retrievedSP.getCertificateContent(), CERTIFICATE);
-        // Find the "CERTIFICATE" property in the array
         String certificateValue = Arrays.stream(retrievedSP.getSpProperties())
                 .filter(prop -> "CERTIFICATE".equals(prop.getName()))
                 .map(ServiceProviderProperty::getValue)
@@ -1361,34 +1373,27 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertEquals(Integer.parseInt(certificateValue), CERTIFICATE_ID);
         Assert.assertEquals(retrievedSP.getCertificateContent(), CERTIFICATE);
 
-        // Updating the application by changing the certificate.
-        retrievedSP.setCertificateContent(UPDATED_CERTIFICATE);
+        // Update the application by updating the certificate.
         doNothing().when(applicationCertificateManagementService).updateCertificateContent(anyInt(), anyString(),
                 anyString());
-        applicationManagementService.updateApplicationByResourceId(resourceId, retrievedSP, SUPER_TENANT_DOMAIN_NAME,
-                REGISTRY_SYSTEM_USERNAME);
-
-        // Updated application with invalid certificate.
-        CertificateMgtErrors invalidCertExp = CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT;
-        CertificateMgtClientException clientException = new CertificateMgtClientException(invalidCertExp.getMessage(),
-                        invalidCertExp.getDescription(), invalidCertExp.getCode());
-        doThrow(clientException).when(applicationCertificateManagementService).updateCertificateContent(anyInt(),
-                any(), anyString());
+        retrievedSP.setCertificateContent(UPDATED_CERTIFICATE);
         try {
-            retrievedSP.setCertificateContent(CERTIFICATE);
             applicationManagementService.updateApplicationByResourceId(resourceId, retrievedSP,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
-        } catch (IdentityApplicationManagementException e) {
-            Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
-            Assert.assertEquals(e.getMessage(), invalidCertExp.getDescription());
+        } catch (Exception e) {
+            Assert.fail();
         }
 
-        // Delete the certificate.
+        // Update application by deleting certificate.
         retrievedSP.setCertificateContent(StringUtils.EMPTY);
         doNothing().when(applicationCertificateManagementService).updateCertificateContent(anyInt(), anyString(),
                 anyString());
-        applicationManagementService.updateApplicationByResourceId(resourceId, retrievedSP, SUPER_TENANT_DOMAIN_NAME,
-                REGISTRY_SYSTEM_USERNAME);
+        try {
+            applicationManagementService.updateApplicationByResourceId(resourceId, retrievedSP,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        } catch (Exception e) {
+            Assert.fail();
+        }
         ServiceProvider updatedSp = applicationManagementService.getApplicationByResourceId(resourceId,
                 SUPER_TENANT_DOMAIN_NAME);
         certificateValue = Arrays.stream(retrievedSP.getSpProperties())
@@ -1402,21 +1407,103 @@ public class ApplicationManagementServiceImplTest {
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);
+    }
 
-        when(applicationCertificateManagementService.addCertificate(any(), anyString()))
-                .thenThrow(clientException);
+    @Test(dataProvider = "applicationCertificateDataProvider")
+    public void applicationCertificateClientErrorTest(ServiceProvider inputSP, Certificate certificate)
+            throws CertificateMgtException, IdentityApplicationManagementException {
 
+        CertificateMgtErrors invalidCertExp = CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT;
+        CertificateMgtClientException clientException = new CertificateMgtClientException(invalidCertExp.getMessage(),
+                invalidCertExp.getDescription(), invalidCertExp.getCode());
+
+        // Create an application with certificate.
+        doReturn(CERTIFICATE_ID).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+        String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        //  Retrieving added application.
+        doReturn(certificate).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                SUPER_TENANT_DOMAIN_NAME);
+
+        // Update application with invalid certificate (client error).
+        doThrow(clientException).when(applicationCertificateManagementService).updateCertificateContent(anyInt(),
+                any(), anyString());
         try {
-            inputSP = new ServiceProvider();
-            inputSP.setApplicationName(APPLICATION_NAME_2);
-            inputSP.setCertificateContent(CERTIFICATE);
-            // Adding new application.
-            resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
-                    REGISTRY_SYSTEM_USERNAME);
+            retrievedSP.setCertificateContent(UPDATED_CERTIFICATE);
+            applicationManagementService.updateApplicationByResourceId(resourceId, retrievedSP,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            Assert.fail();
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
             Assert.assertEquals(e.getMessage(), invalidCertExp.getDescription());
         }
+
+        // Deleting added application.
+        doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @Test(dataProvider = "applicationCertificateDataProvider")
+    public void applicationCertificateServerErrorTest(ServiceProvider inputSP, Certificate certificate)
+            throws CertificateMgtException, IdentityApplicationManagementException {
+
+        CertificateMgtServerException serverException = new CertificateMgtServerException("server_error_message",
+                "server_error_description", "65010", new Throwable());
+
+        // Create an application with certificate.
+        doReturn(CERTIFICATE_ID).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+        String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        //  Retrieving added application.
+        doReturn(certificate).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
+        ServiceProvider retrievedSP = applicationManagementService.getApplicationByResourceId(resourceId,
+                SUPER_TENANT_DOMAIN_NAME);
+
+        // Update application with server error when updating certificate.
+        doThrow(serverException).when(applicationCertificateManagementService).updateCertificateContent(anyInt(),
+                any(), anyString());
+        try {
+            retrievedSP.setCertificateContent(UPDATED_CERTIFICATE);
+            applicationManagementService.updateApplicationByResourceId(resourceId, retrievedSP,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            Assert.fail();
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
+            Assert.assertTrue(e.getMessage().contains("Error while updating application with resourceId: "
+                    + resourceId + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+        }
+
+        // Retrieve application with server error when retrieving certificate.
+        doThrow(serverException).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
+        try {
+            applicationManagementService.getApplicationByResourceId(resourceId, SUPER_TENANT_DOMAIN_NAME);
+            Assert.fail();
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
+            Assert.assertTrue(e.getMessage().contains("Error while retrieving application with resourceId: "
+                    + resourceId + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+        }
+
+        // Update application with server error when deleting certificate.
+        doReturn(certificate).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
+        doThrow(serverException).when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        try {
+            retrievedSP.setCertificateContent(StringUtils.EMPTY);
+            applicationManagementService.updateApplicationByResourceId(resourceId, retrievedSP,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            Assert.fail();
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
+            Assert.assertTrue(e.getMessage().contains("Error while updating application with resourceId: "
+                    + resourceId + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+        }
+
+        // Deleting added application.
+        doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        applicationManagementService.deleteApplication(inputSP.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {

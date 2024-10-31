@@ -5727,6 +5727,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityDatabaseUtil.commitTransaction(connection);
             return resourceId;
         } catch (IdentityApplicationManagementClientException e) {
+            rollbackAddApplicationTransaction(connection, application, tenantDomain);
             throw e;
         } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             log.error("Error while creating the application with name: " + application.getApplicationName()
@@ -6559,7 +6560,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            deleteCertificate(application.getApplicationName(), IdentityTenantUtil.getTenantId(tenantDomain));
+            deleteApplicationCertificate(application, tenantDomain);
         } catch (Exception e) {
             throw new IdentityApplicationManagementException("Error while rolling back the transaction.", e);
         }
