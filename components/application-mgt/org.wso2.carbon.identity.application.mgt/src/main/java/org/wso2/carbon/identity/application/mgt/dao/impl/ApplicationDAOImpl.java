@@ -825,7 +825,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                     IdentityTenantUtil.getTenantDomain(tenantID));
                 } catch (CertificateMgtClientException e) {
                     throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(),
-                            e.getMessage(), e);
+                            e.getDescription(), e);
                 } catch (CertificateMgtException e) {
                     throw new IdentityApplicationManagementException("An error occurred while updating the " +
                             "certificate.", e);
@@ -889,7 +889,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             addApplicationCertificateReferenceAsServiceProviderProperty(serviceProvider, newlyAddedCertificateID);
         } catch (CertificateMgtClientException e) {
-            throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getMessage(), e);
+            throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
             throw new IdentityApplicationManagementException("Error while updating certificate for application: " +
                     serviceProvider.getApplicationName(), e);
@@ -5755,6 +5755,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             updatedApp.setApplicationID(appIdUsingResourceId);
 
             updateApplication(updatedApp, tenantDomain);
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
         } catch (IdentityApplicationManagementException ex) {
             // Send error code.
             throw new IdentityApplicationManagementServerException("Error while updating application with resourceId: "
