@@ -116,13 +116,8 @@ public class CertificateValidatorTest {
     public Object[][] invalidPEMFormatDataProvider() {
 
         return new Object[][]{
-                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS,
-                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
-                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_MARKER,
-                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
-                {TestUtil.CERTIFICATE_WITHOUT_END_MARKER,
-                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
-                {TestUtil.INVALID_CERTIFICATE, CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT}
+                {TestUtil.INVALID_CERTIFICATE, CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT},
+                {TestUtil.INVALID_ENCODED_CERTIFICATE, CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT}
         };
     }
 
@@ -143,7 +138,9 @@ public class CertificateValidatorTest {
 
         return new String[][]{
                 {TestUtil.CERTIFICATE},
-                {TestUtil.UPDATED_CERTIFICATE}
+                {TestUtil.UPDATED_CERTIFICATE},
+                {TestUtil.ENCODED_CERTIFICATE},
+                {TestUtil.UPDATED_ENCODED_CERTIFICATE},
         };
     }
 
@@ -163,12 +160,8 @@ public class CertificateValidatorTest {
         return new Object[][]{
                 {"", CertificateMgtErrors.ERROR_INVALID_FIELD},
                 {"   ", CertificateMgtErrors.ERROR_INVALID_FIELD},
-                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS,
-                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
-                {TestUtil.CERTIFICATE_WITHOUT_BEGIN_MARKER,
-                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
-                {TestUtil.CERTIFICATE_WITHOUT_END_MARKER,
-                        CertificateMgtErrors.ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS},
+                {TestUtil.INVALID_ENCODED_CERTIFICATE,
+                        CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT},
                 {TestUtil.INVALID_CERTIFICATE, CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT}
         };
     }
@@ -196,7 +189,9 @@ public class CertificateValidatorTest {
 
         return new String[][]{
                 {TestUtil.CERTIFICATE},
-                {TestUtil.UPDATED_CERTIFICATE}
+                {TestUtil.UPDATED_CERTIFICATE},
+                {TestUtil.ENCODED_CERTIFICATE},
+                {TestUtil.UPDATED_ENCODED_CERTIFICATE},
         };
     }
 

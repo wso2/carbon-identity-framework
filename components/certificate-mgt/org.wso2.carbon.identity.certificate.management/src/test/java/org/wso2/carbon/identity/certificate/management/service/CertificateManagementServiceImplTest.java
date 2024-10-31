@@ -31,15 +31,13 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_WITHOUT_BEGIN_MARKER;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_WITHOUT_END_MARKER;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.ENCODED_CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.INVALID_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.INVALID_ENCODED_CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_OTHER_UUID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_DOMAIN;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_ENCODED_CERTIFICATE;
 
 /**
  * This class is a test suite for the CertificateManagementServiceImpl class.
@@ -65,7 +63,7 @@ public class CertificateManagementServiceImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificateContent(CERTIFICATE)
+                .certificateContent(ENCODED_CERTIFICATE)
                 .build();
         certificateId = certificateManagementService.addCertificate(creatingCertificate, TEST_TENANT_DOMAIN);
         Assert.assertNotNull(certificateId);
@@ -78,18 +76,18 @@ public class CertificateManagementServiceImplTest {
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), certificateId);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), ENCODED_CERTIFICATE);
     }
 
     @DataProvider
     public String[][] invalidDataProvider() {
 
         return new String[][]{
-                {"", CERTIFICATE},
-                {"   ", CERTIFICATE},
+                {"", ENCODED_CERTIFICATE},
+                {"   ", ENCODED_CERTIFICATE},
                 {CERTIFICATE_NAME, ""},
                 {CERTIFICATE_NAME, " "},
-                {CERTIFICATE_NAME, CERTIFICATE_WITHOUT_BEGIN_END_MARKERS},
+                {CERTIFICATE_NAME, INVALID_ENCODED_CERTIFICATE},
                 {CERTIFICATE_NAME, INVALID_CERTIFICATE},
                 {" ", INVALID_CERTIFICATE}
         };
@@ -117,28 +115,27 @@ public class CertificateManagementServiceImplTest {
     @Test(priority = 5)
     public void testUpdateCertificateContent() throws CertificateMgtException {
 
-        certificateManagementService.updateCertificateContent(certificateId, UPDATED_CERTIFICATE, TEST_TENANT_DOMAIN);
+        certificateManagementService.updateCertificateContent(certificateId, UPDATED_ENCODED_CERTIFICATE,
+                TEST_TENANT_DOMAIN);
 
         Certificate updatedCertificate = certificateManagementService.getCertificate(certificateId, TEST_TENANT_DOMAIN);
         Assert.assertEquals(updatedCertificate.getId(), certificateId);
         Assert.assertEquals(updatedCertificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(updatedCertificate.getCertificateContent(), UPDATED_CERTIFICATE);
+        Assert.assertEquals(updatedCertificate.getCertificateContent(), UPDATED_ENCODED_CERTIFICATE);
     }
 
     @Test(priority = 6, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to perform the operation.")
     public void testUpdateCertificateWithInvalidId() throws CertificateMgtException {
 
-        certificateManagementService.updateCertificateContent(TEST_OTHER_UUID, CERTIFICATE, TEST_TENANT_DOMAIN);
+        certificateManagementService.updateCertificateContent(TEST_OTHER_UUID, ENCODED_CERTIFICATE, TEST_TENANT_DOMAIN);
     }
 
     @DataProvider
     public String[][] invalidCertificateContentDataProvider() {
 
         return new String[][]{
-                {CERTIFICATE_WITHOUT_BEGIN_END_MARKERS},
-                {CERTIFICATE_WITHOUT_BEGIN_MARKER},
-                {CERTIFICATE_WITHOUT_END_MARKER},
+                {INVALID_ENCODED_CERTIFICATE},
                 {INVALID_CERTIFICATE}
         };
     }
