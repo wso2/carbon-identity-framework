@@ -51,7 +51,7 @@ import static org.testng.Assert.assertEquals;
 
 public class RecoveryApiV2Test {
 
-    public static final String RECOVERY_API_V2_RELATIVE_PATH = "/api/users/v2/recovery";
+    private static final String RECOVERY_API_V2_RELATIVE_PATH = "/api/users/v2/recovery";
     private static final String TENANT_DOMAIN = "carbon.super";
     private static final String POST = "POST";
     private static final String PATH_PASSWORD_RECOVERY_INIT = "/password/init";
