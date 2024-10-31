@@ -618,7 +618,8 @@ public class IdPManagementConstants {
                 "applications of Identity Provider with resource ID: %s."),
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
                 "the outbound provisioning roles"),
-        ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups");
+        ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups"),
+        ERROR_CODE_ASSOCIATED_ACTION_MGT("IDP-65010", "Error occurred with associated action management."),;
 
         private final String code;
         private final String message;

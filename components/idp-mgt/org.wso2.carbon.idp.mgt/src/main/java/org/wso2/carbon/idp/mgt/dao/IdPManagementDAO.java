@@ -62,6 +62,7 @@ import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
+import org.wso2.carbon.idp.mgt.util.AuthenticatorEndpointConfigurationManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -106,6 +107,7 @@ import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.ERROR_CODE_ASSOCIATED_ACTION_MGT;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
@@ -125,6 +127,8 @@ public class IdPManagementDAO {
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
             = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
+    private final AuthenticatorEndpointConfigurationManager endpointConfigurationManager =
+            new AuthenticatorEndpointConfigurationManager();
 
     /**
      * @param dbConnection
@@ -1116,7 +1120,7 @@ public class IdPManagementDAO {
      */
     private FederatedAuthenticatorConfig[] getFederatedAuthenticatorConfigs(
             Connection dbConnection, String idPName, IdentityProvider federatedIdp, int tenantId)
-            throws IdentityProviderManagementClientException, SQLException {
+            throws IdentityProviderManagementClientException, SQLException, IdentityProviderManagementServerException {
 
         int idPId = getIdentityProviderIdentifier(dbConnection, idPName, tenantId);
 
@@ -1138,7 +1142,9 @@ public class IdPManagementDAO {
             rs = prepStmt1.executeQuery();
 
             while (rs.next()) {
-                FederatedAuthenticatorConfig authnConfig = new FederatedAuthenticatorConfig();
+                FederatedAuthenticatorConfig authnConfig = endpointConfigurationManager
+                        .createFederatedAuthenticatorConfig(DefinedByType.valueOf(
+                                rs.getString("DEFINED_BY")));
                 int authnId = rs.getInt("ID");
                 authnConfig.setName(rs.getString("NAME"));
 
@@ -1149,7 +1155,6 @@ public class IdPManagementDAO {
                 }
 
                 authnConfig.setDisplayName(rs.getString("DISPLAY_NAME"));
-                authnConfig.setDefinedByType(DefinedByType.valueOf(rs.getString("DEFINED_BY")));
 
                 if (defaultAuthName != null && authnConfig.getName().equals(defaultAuthName)) {
                     federatedIdp.getDefaultAuthenticatorConfig().setDisplayName(authnConfig.getDisplayName());
@@ -1170,6 +1175,7 @@ public class IdPManagementDAO {
                     properties.add(property);
                 }
                 authnConfig.setProperties(properties.toArray(new Property[properties.size()]));
+                endpointConfigurationManager.resolveEndpointConfigurations(authnConfig, tenantId);
 
                 if (isEmailOTPAuthenticator(authnConfig.getName())) {
                     // This is to support backward compatibility.
@@ -1327,6 +1333,8 @@ public class IdPManagementDAO {
         PreparedStatement prepStmt1 = null;
 
         try {
+            endpointConfigurationManager.updateEndpointConfigurations(newFederatedAuthenticatorConfig,
+                    oldFederatedAuthenticatorConfig, tenantId);
             String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_AUTH_SQL;
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
 
@@ -1416,6 +1424,7 @@ public class IdPManagementDAO {
         String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_SQL;
 
         try {
+            endpointConfigurationManager.addEndpointConfigurations(authnConfig, tenantId);
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
             prepStmt1.setInt(1, idpId);
             prepStmt1.setInt(2, tenantId);
@@ -1461,6 +1470,7 @@ public class IdPManagementDAO {
                                                     Connection dbConnection, int idpId, int tenantId)
             throws IdentityProviderManagementException, SQLException {
 
+        endpointConfigurationManager.deleteEndpointConfigurations(authnConfig, tenantId);
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(IdPManagementConstants.SQLQueries
                 .DELETE_IDP_AUTH_SQL)) {
             prepStmt.setInt(1, idpId);
@@ -3981,9 +3991,17 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            endpointConfigurationManager.deleteEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             throw new IdentityProviderManagementException("Error occurred while adding Identity Provider for tenant "
                     + tenantId, e);
-        } catch (ConnectorException e) {
+        } catch (IdentityProviderManagementException e) {
+            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+                IdentityDatabaseUtil.rollbackTransaction(dbConnection);;
+            }
+            throw e;
+        }
+        catch (ConnectorException e) {
             throw new IdentityProviderManagementException("An error occurred while filtering IDP properties.", e);
         } catch (SecretManagementException e) {
             throw new IdentityProviderManagementException("An error occurred while storing encrypted IDP secrets of " +
@@ -4310,8 +4328,15 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            endpointConfigurationManager.updateEndpointConfigurations(currentIdentityProvider
+                    .getDefaultAuthenticatorConfig(), newIdentityProvider.getDefaultAuthenticatorConfig(), tenantId);
             throw new IdentityProviderManagementException("Error occurred while updating Identity Provider " +
                     "information  for tenant " + tenantId, e);
+        } catch (IdentityProviderManagementException e) {
+            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+                IdentityDatabaseUtil.rollbackTransaction(dbConnection);;
+            }
+            throw e;
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("An error occurred while filtering IDP properties.", e);
         } catch (SecretManagementException e) {
@@ -4374,19 +4399,29 @@ public class IdPManagementDAO {
             throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        IdentityProvider identityProvider = null;
         try {
-            IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId,
+            identityProvider = getIdPByName(dbConnection, idPName, tenantId,
                     tenantDomain);
             if (identityProvider == null) {
                 String msg = "Trying to delete non-existent Identity Provider: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, idPName, tenantDomain));
             }
+            endpointConfigurationManager.deleteEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             deleteIdP(dbConnection, tenantId, idPName, null);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            endpointConfigurationManager.addEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
+        } catch (IdentityProviderManagementException e) {
+            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+                IdentityDatabaseUtil.rollbackTransaction(dbConnection);;
+            }
+            throw e;
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
@@ -4405,6 +4440,7 @@ public class IdPManagementDAO {
                     IdPManagementConstants.SQLQueries.DELETE_ALL_IDP_BY_TENANT_ID_SQL);
             prepStmt.setInt(1, tenantId);
             prepStmt.executeUpdate();
+
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Providers of tenant "
                     + tenantId, e);
@@ -4422,14 +4458,17 @@ public class IdPManagementDAO {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         String idPName = "";
+        IdentityProvider identityProvider = null;
         try {
-            IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
+            identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                     tenantDomain);
             if (identityProvider == null) {
                 String msg = "Trying to delete non-existent Identity Provider with resource ID: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, resourceId, tenantDomain));
             }
             idPName = identityProvider.getIdentityProviderName();
+            endpointConfigurationManager.deleteEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             deleteIdP(dbConnection, tenantId, null, resourceId);
             // Delete IdP related secrets from the IDN_SECRET table.
             if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
@@ -4441,8 +4480,15 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            endpointConfigurationManager.addEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
+        } catch (IdentityProviderManagementException e) {
+            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+                IdentityDatabaseUtil.rollbackTransaction(dbConnection);;
+            }
+            throw e;
         } catch (SecretManagementException e) {
             throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider : " +
                     idPName + " in tenant : " + tenantDomain, e);
@@ -4456,8 +4502,9 @@ public class IdPManagementDAO {
                                String tenantDomain) throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        IdentityProvider identityProvider = null;
         try {
-            IdentityProvider identityProvider = getIdPByName(dbConnection, idPName, tenantId, tenantDomain);
+            identityProvider = getIdPByName(dbConnection, idPName, tenantId, tenantDomain);
             if (identityProvider == null) {
                 String msg = "Trying to force delete non-existent Identity Provider: %s in tenantDomain: %s";
                 throw new IdentityProviderManagementException(String.format(msg, idPName, tenantDomain));
@@ -4473,14 +4520,23 @@ public class IdPManagementDAO {
                 log.debug(String.format("Deleting SP Provisioning Associations for IDP:%s of tenantDomain:%s",
                         idPName, tenantDomain));
             }
+            endpointConfigurationManager.deleteEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             deleteIdpSpProvisioningAssociations(dbConnection, tenantId, idPName);
             deleteIdP(dbConnection, tenantId, idPName, null);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            endpointConfigurationManager.addEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             throw new IdentityProviderManagementException(
                     String.format("Error occurred while deleting Identity Provider:%s of tenant:%s ",
                             idPName, tenantDomain), e);
+        } catch (IdentityProviderManagementException e) {
+            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+                IdentityDatabaseUtil.rollbackTransaction(dbConnection);;
+            }
+            throw e;
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
@@ -4490,8 +4546,9 @@ public class IdPManagementDAO {
             IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        IdentityProvider identityProvider = null;
         try {
-            IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
+            identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                     tenantDomain);
             if (identityProvider == null) {
                 String msg = "Trying to force delete non-existent Identity Provider with resource ID: %s in " +
@@ -4510,13 +4567,22 @@ public class IdPManagementDAO {
                         identityProvider.getIdentityProviderName(), tenantDomain));
             }
             deleteIdpSpProvisioningAssociations(dbConnection, tenantId, identityProvider.getIdentityProviderName());
+            endpointConfigurationManager.deleteEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             deleteIdP(dbConnection, tenantId, null, resourceId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            endpointConfigurationManager.addEndpointConfigurations(identityProvider.getDefaultAuthenticatorConfig(),
+                    tenantId);
             throw new IdentityProviderManagementException(
                     String.format("Error occurred while deleting Identity Provider with resource ID:%s of tenant:%s ",
                             resourceId, tenantDomain), e);
+        } catch (IdentityProviderManagementException e) {
+            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+                IdentityDatabaseUtil.rollbackTransaction(dbConnection);;
+            }
+            throw e;
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }

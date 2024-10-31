@@ -33,6 +33,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -489,5 +490,22 @@ public class IdPManagementServiceComponent {
     protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
 
         IdpMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
+            name = "action.management.service",
+            service = ActionManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionManagementService"
+    )
+    protected void setActionManagementService(ActionManagementService actionManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+    }
+
+    protected void unsetActionManagementService(ActionManagementService actionManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(null);
     }
 }
