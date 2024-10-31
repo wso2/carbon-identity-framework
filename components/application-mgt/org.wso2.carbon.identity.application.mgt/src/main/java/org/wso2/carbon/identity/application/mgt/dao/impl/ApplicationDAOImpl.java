@@ -574,11 +574,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, serviceProvider, tenantDomain);
 
             IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (IdentityApplicationManagementClientException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw e;
         } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            if (e instanceof IdentityApplicationManagementClientException) {
-                throw (IdentityApplicationManagementClientException) e;
-            }
             throw new IdentityApplicationManagementException("Failed to update application id: " + applicationId, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
@@ -826,11 +826,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .updateCertificateContent(Integer.parseInt(certificateReferenceIdString),
                                     serviceProvider.getCertificateContent(),
                                     IdentityTenantUtil.getTenantDomain(tenantID));
+                } catch (CertificateMgtClientException e) {
+                    throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(),
+                            e.getMessage(), e);
                 } catch (CertificateMgtException e) {
-                    if (e instanceof CertificateMgtClientException) {
-                        throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(),
-                                e.getMessage(), e);
-                    }
                     throw new IdentityApplicationManagementException("An error occurred while updating the " +
                             "certificate.", e);
                 }
@@ -891,14 +890,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (log.isDebugEnabled()) {
                     log.debug("JDBC Driver did not return the application id, executing Select operation");
                 }
-                newlyAddedCertificateID = getCertificateIDByName(serviceProvider.getApplicationName(),
-                        tenantID, connection);
+                newlyAddedCertificateID = getCertificateIDByName(serviceProvider.getApplicationName(), tenantID);
             }
             addApplicationCertificateReferenceAsServiceProviderProperty(serviceProvider, newlyAddedCertificateID);
+        } catch (CertificateMgtClientException e) {
+            throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getMessage(), e);
         } catch (CertificateMgtException e) {
-            if (e instanceof CertificateMgtClientException) {
-                throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getMessage(), e);
-            }
             throw new IdentityApplicationManagementException("Error while updating certificate for application: " +
                     serviceProvider.getApplicationName(), e);
         }
@@ -941,11 +938,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      *
      * @param applicationName Name of the application.
      * @param tenantID        Tenant ID.
-     * @param connection      Database connection.
      * @return Certificate ID.
      * @throws IdentityApplicationManagementException If an error occurs while retrieving the certificate ID.
      */
-    private int getCertificateIDByName(String applicationName, int tenantID, Connection connection)
+    private int getCertificateIDByName(String applicationName, int tenantID)
             throws IdentityApplicationManagementException {
 
         try {
@@ -1896,11 +1892,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * service provider.
      *
      * @param serviceProviderProperties List of service provider properties.
-     * @param connection                Database connection.
      * @return Certificate content.
      * @throws CertificateRetrievingException If an error occurs while retrieving the certificate.
      */
-    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties, Connection connection)
+    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties)
             throws CertificateRetrievingException {
 
         String certificateReferenceId = null;
@@ -2266,7 +2261,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
 
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
-            serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
+            serviceProvider.setCertificateContent(getCertificateContent(propertyList));
 
             // Set role associations.
             serviceProvider.setAssociatedRolesConfig(
@@ -2423,7 +2418,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
                         serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
-                        serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
+                        serviceProvider.setCertificateContent(getCertificateContent(propertyList));
                     }
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
@@ -5304,39 +5299,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
-    /**
-     * Get string from inputStream of a blob
-     *
-     * @param is input stream
-     * @return
-     * @throws IOException
-     */
-    private String getBlobValue(InputStream is) throws IOException {
-
-        if (is != null) {
-            BufferedReader br = null;
-            StringBuilder sb = new StringBuilder();
-            String line;
-            try {
-                br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-                while ((line = br.readLine()) != null) {
-                    sb.append(line);
-                }
-            } finally {
-                if (br != null) {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        log.error("Error in retrieving the Blob value", e);
-                    }
-                }
-            }
-
-            return sb.toString();
-        }
-        return null;
-    }
-
     private void updateConfigurationsAsServiceProperties(ServiceProvider sp)
             throws IdentityApplicationManagementException {
 
@@ -5769,6 +5731,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             addApplicationConfigurations(connection, application, tenantDomain);
             IdentityDatabaseUtil.commitTransaction(connection);
             return resourceId;
+        } catch (IdentityApplicationManagementClientException e) {
+            throw e;
         } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
             log.error("Error while creating the application with name: " + application.getApplicationName()
                     + " in tenantDomain: " + tenantDomain + ". Rolling back created application information.");
@@ -5777,9 +5741,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 throw new IdentityApplicationManagementClientException(APPLICATION_ALREADY_EXISTS.getCode(),
                         "Application already exists with name: " + application.getApplicationName()
                                 + " in tenantDomain: " + tenantDomain);
-            }
-            if (e instanceof IdentityApplicationManagementClientException) {
-                throw (IdentityApplicationManagementException) e;
             }
             throw new IdentityApplicationManagementException("Error while creating an application: "
                     + application.getApplicationName() + " in tenantDomain: " + tenantDomain, e);
@@ -6605,15 +6566,5 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (Exception e) {
             throw new IdentityApplicationManagementException("Error while rolling back the transaction.", e);
         }
-    }
-
-    private String decodeAndGetPEMCertificate(String encodedCert) {
-
-        return new String(Base64.decode(encodedCert)).trim();
-    }
-
-    private String encodePEMCertificate(String pemCert) {
-
-        return Base64.encode(pemCert.getBytes(StandardCharsets.UTF_8));
     }
 }
