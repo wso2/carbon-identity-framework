@@ -1325,12 +1325,19 @@ public class ApplicationManagementServiceImplTest {
     @Test
     public void applicationCertificate() throws CertificateMgtException, IdentityApplicationManagementException {
 
+        Certificate certificate = new Certificate.Builder()
+                .id(String.valueOf(CERTIFICATE_ID))
+                .name(APPLICATION_NAME_1)
+                .certificateContent(CERTIFICATE)
+                .build();
         ApplicationCertificateManagementService applicationCertificateManagementService =
                 mock(ApplicationCertificateManagementService.class);
         ApplicationManagementServiceComponentHolder.getInstance()
                 .setApplicationCertificateMgtService(applicationCertificateManagementService);
         when(applicationCertificateManagementService.addCertificate(any(), anyString()))
-                .thenReturn(CERTIFICATE_ID);
+                .thenReturn(0);
+        when(applicationCertificateManagementService.getCertificateByName(any(), anyString()))
+                .thenReturn(certificate);
         ServiceProvider inputSP = new ServiceProvider();
         inputSP.setApplicationName(APPLICATION_NAME_1);
         inputSP.setCertificateContent(CERTIFICATE);
@@ -1339,11 +1346,6 @@ public class ApplicationManagementServiceImplTest {
         String resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);
 
-        Certificate certificate = new Certificate.Builder()
-                .id(String.valueOf(CERTIFICATE_ID))
-                .name(APPLICATION_NAME_1)
-                .certificateContent(CERTIFICATE)
-                .build();
         when(applicationCertificateManagementService.getCertificate(anyInt(), anyString()))
                 .thenReturn(certificate);
         //  Retrieving added application.
@@ -1400,6 +1402,21 @@ public class ApplicationManagementServiceImplTest {
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), SUPER_TENANT_DOMAIN_NAME,
                 REGISTRY_SYSTEM_USERNAME);
+
+        when(applicationCertificateManagementService.addCertificate(any(), anyString()))
+                .thenThrow(clientException);
+
+        try {
+            inputSP = new ServiceProvider();
+            inputSP.setApplicationName(APPLICATION_NAME_2);
+            inputSP.setCertificateContent(CERTIFICATE);
+            // Adding new application.
+            resourceId = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
+            Assert.assertEquals(e.getMessage(), invalidCertExp.getDescription());
+        }
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
