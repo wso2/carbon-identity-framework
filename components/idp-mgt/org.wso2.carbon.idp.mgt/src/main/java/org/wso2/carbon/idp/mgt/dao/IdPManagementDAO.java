@@ -1428,6 +1428,8 @@ public class IdPManagementDAO {
             prepStmt1.setString(4, authnConfig.getName());
             prepStmt1.setString(5, authnConfig.getDisplayName());
             prepStmt1.setString(6, authnConfig.getDefinedByType().toString());
+            /* Federated authenticators are always intended to authenticate externally managed users and share user
+            identity and attributes. Therefore, always will be the 'IDENTIFICATION' type. */
             prepStmt1.setString(7, AuthenticationType.IDENTIFICATION.toString());
             prepStmt1.execute();
 

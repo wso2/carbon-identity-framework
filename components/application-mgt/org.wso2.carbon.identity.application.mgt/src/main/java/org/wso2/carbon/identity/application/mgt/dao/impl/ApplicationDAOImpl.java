@@ -5140,6 +5140,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             prepStmt.setString(5, "1");
             prepStmt.setString(6, authenticatorDispalyName);
             prepStmt.setString(7, definedByType);
+            // By default, unless specified, the authentication type is 'IDENTIFICATION' for local authenticators.
             prepStmt.setString(8, AuthenticationType.IDENTIFICATION.toString());
             prepStmt.execute();
             rs = prepStmt.getGeneratedKeys();
