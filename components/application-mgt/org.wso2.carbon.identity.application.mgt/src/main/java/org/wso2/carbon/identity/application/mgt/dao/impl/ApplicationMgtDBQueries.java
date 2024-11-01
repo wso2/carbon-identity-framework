@@ -348,6 +348,10 @@ public class ApplicationMgtDBQueries {
     @Deprecated
     public static final String REMOVE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE ID = ?";
     /**
+     * This query was previously used to delete all certificates associated with a tenant as part of tenant deletion.
+     * However, there is no product entry point for invoking this method directly. Since tenant deletion is managed
+     * as an administrative process, it is now recommended to handle certificate removal for a tenant through such
+     * process.
      * @deprecated
      */
     @Deprecated

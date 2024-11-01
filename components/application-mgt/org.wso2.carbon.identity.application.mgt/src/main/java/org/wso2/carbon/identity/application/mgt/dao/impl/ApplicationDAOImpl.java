@@ -826,8 +826,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param indexToRemove  The index of the property to be removed from the array.
      * @return A new array of service provider properties, excluding the property at the specified index.
      */
-    private static ServiceProviderProperty[] getFilteredSpProperties(ServiceProviderProperty[] spProperties,
-                                                                     int indexToRemove) {
+    private ServiceProviderProperty[] getFilteredSpProperties(ServiceProviderProperty[] spProperties,
+                                                              int indexToRemove) {
 
         ServiceProviderProperty[] updatedSpProperties = new ServiceProviderProperty[spProperties.length - 1];
         System.arraycopy(spProperties, 0, updatedSpProperties, 0, indexToRemove);
@@ -845,7 +845,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param tenantID           Tenant ID.
      * @throws IdentityApplicationManagementException If an error occurs while updating the certificate.
      */
-    private static void updateCertificate(String certificateId, String certificateContent, int tenantID)
+    private void updateCertificate(String certificateId, String certificateContent, int tenantID)
             throws IdentityApplicationManagementException {
 
         try {
@@ -910,7 +910,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (CertificateMgtClientException e) {
             throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
-            throw new IdentityApplicationManagementException("Error while updating certificate for application: " +
+            throw new IdentityApplicationManagementException("Error while adding certificate for application: " +
                     serviceProvider.getApplicationName(), e);
         }
     }
