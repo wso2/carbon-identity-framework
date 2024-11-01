@@ -938,8 +938,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         ServiceProviderProperty propertyForCertificate = new ServiceProviderProperty();
-        propertyForCertificate.setDisplayName("CERTIFICATE");
-        propertyForCertificate.setName("CERTIFICATE");
+        propertyForCertificate.setDisplayName(SP_PROPERTY_NAME_CERTIFICATE);
+        propertyForCertificate.setName(SP_PROPERTY_NAME_CERTIFICATE);
         propertyForCertificate.setValue(String.valueOf(newlyAddedCertificateID));
 
         newServiceProviderProperties[newServiceProviderProperties.length - 1] = propertyForCertificate;
@@ -1914,7 +1914,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         String certificateReferenceId = null;
         for (ServiceProviderProperty property : serviceProviderProperties) {
-            if ("CERTIFICATE".equals(property.getName())) {
+            if (SP_PROPERTY_NAME_CERTIFICATE.equals(property.getName())) {
                 certificateReferenceId = property.getValue();
             }
         }
