@@ -790,7 +790,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     }
                 }
 
-
                 // If there is a certificate reference, remove it from the properties array.
                 // Removing will be done by creating a new array and copying the elements other than the
                 // certificate reference from the existing array,
