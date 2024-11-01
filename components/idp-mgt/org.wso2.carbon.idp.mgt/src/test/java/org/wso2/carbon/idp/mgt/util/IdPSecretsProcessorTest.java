@@ -1,7 +1,6 @@
 package org.wso2.carbon.idp.mgt.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.codec.Charsets;
 import org.mockito.MockedStatic;
@@ -13,7 +12,6 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
-import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 

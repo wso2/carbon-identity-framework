@@ -39,14 +39,9 @@ import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.
  */
 public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
 
-    private final SecretManager secretManager;
-    private final SecretResolveManager secretResolveManager;
     private final Gson gson;
 
     public IdPSecretsProcessor() {
-
-        this.secretManager = IdpMgtServiceComponentHolder.getInstance().getSecretManager();
-        this.secretResolveManager = IdpMgtServiceComponentHolder.getInstance().getSecretResolveManager();
         this.gson = new Gson();
     }
 
@@ -60,9 +55,11 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                     continue;
                 }
                 String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                if (IdpMgtServiceComponentHolder.getInstance().getSecretManager()
+                        .isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
                     ResolvedSecret resolvedSecret =
-                            secretResolveManager.getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                            IdpMgtServiceComponentHolder.getInstance().getSecretResolveManager()
+                                    .getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
                     // Replace secret reference with decrypted original secret.
                     prop.setValue(resolvedSecret.getResolvedSecretValue());
                 }
@@ -82,7 +79,8 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                     continue;
                 }
                 String secretName = buildSecretName(clonedIdP.getId(), fedAuthConfig.getName(), prop.getName());
-                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                if (IdpMgtServiceComponentHolder.getInstance().getSecretManager()
+                        .isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
                     // Update existing secret property.
                     updateExistingSecretProperty(secretName, prop);
                     prop.setValue(buildSecretReference(secretName));
@@ -109,8 +107,10 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
                     continue;
                 }
                 String secretName = buildSecretName(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
-                if (secretManager.isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
-                    secretManager.deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+                if (IdpMgtServiceComponentHolder.getInstance().getSecretManager()
+                        .isSecretExist(IDN_SECRET_TYPE_IDP_SECRETS, secretName)) {
+                    IdpMgtServiceComponentHolder.getInstance().getSecretManager()
+                            .deleteSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
                 }
             }
         }
@@ -123,7 +123,8 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
 
     private String buildSecretReference(String secretName) throws SecretManagementException {
 
-        SecretType secretType = secretManager.getSecretType(IDN_SECRET_TYPE_IDP_SECRETS);
+        SecretType secretType = IdpMgtServiceComponentHolder.getInstance().getSecretManager()
+                .getSecretType(IDN_SECRET_TYPE_IDP_SECRETS);
         return secretType.getId() + ":" + secretName;
     }
 
@@ -132,14 +133,17 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
         Secret secret = new Secret();
         secret.setSecretName(secretName);
         secret.setSecretValue(property.getValue());
-        secretManager.addSecret(IDN_SECRET_TYPE_IDP_SECRETS, secret);
+        IdpMgtServiceComponentHolder.getInstance().getSecretManager()
+                .addSecret(IDN_SECRET_TYPE_IDP_SECRETS, secret);
     }
 
     private void updateExistingSecretProperty(String secretName, Property property) throws SecretManagementException {
 
-        ResolvedSecret resolvedSecret = secretResolveManager.getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
+        ResolvedSecret resolvedSecret = IdpMgtServiceComponentHolder.getInstance().getSecretResolveManager()
+                .getResolvedSecret(IDN_SECRET_TYPE_IDP_SECRETS, secretName);
         if (!resolvedSecret.getResolvedSecretValue().equals(property.getValue())) {
-            secretManager.updateSecretValue(IDN_SECRET_TYPE_IDP_SECRETS, secretName, property.getValue());
+            IdpMgtServiceComponentHolder.getInstance().getSecretManager()
+                    .updateSecretValue(IDN_SECRET_TYPE_IDP_SECRETS, secretName, property.getValue());
         }
     }
 }

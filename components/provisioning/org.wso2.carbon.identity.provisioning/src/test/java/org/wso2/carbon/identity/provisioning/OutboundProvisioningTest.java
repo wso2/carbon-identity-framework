@@ -25,10 +25,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.testng.MockitoTestNGListener;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -49,6 +46,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener;
@@ -56,8 +54,11 @@ import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -66,6 +67,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -110,7 +112,7 @@ public class OutboundProvisioningTest {
     private static final String SUPER_TENANT_DOMAIN = "carbon.super";
 
     private static final String DB_NAME = "test";
-    private final IdPManagementDAO idPManagementDAO = new IdPManagementDAO();
+    private IdPManagementDAO idPManagementDAO;
     private static final String PROVISIONED_USER_NAME = "PRIMARY/John";
     private static final String PROVISIONED_USER_ID = "123456789";
     private static final String ROLE_UUID = "gt6y1ji1-htda7611";
@@ -122,6 +124,26 @@ public class OutboundProvisioningTest {
     IdentityProvider identityProvider = createIDPWithData();
     ServiceProvider serviceProvider = new ServiceProvider();
 
+    @BeforeClass
+    public void setUpClass() throws Exception {
+
+        IdPSecretsProcessor idpSecretsProcessor = mock(IdPSecretsProcessor.class);
+        when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        idPManagementDAO = new IdPManagementDAO();
+
+        Field idpSecretsProcessorField = IdPManagementDAO.class.getDeclaredField("idpSecretsProcessorService");
+        idpSecretsProcessorField.setAccessible(true);
+        idpSecretsProcessorField.set(idPManagementDAO, idpSecretsProcessor);
+        CacheBackedIdPMgtDAO cacheBackedIdPMgtDAO = new CacheBackedIdPMgtDAO(idPManagementDAO);
+
+        IdentityProviderManager identityProviderManager = mock(IdentityProviderManager.class);
+        Field cacheBackedIdPMgtDAOField = IdentityProviderManager.class.getDeclaredField("dao");
+        cacheBackedIdPMgtDAOField.setAccessible(true);
+        cacheBackedIdPMgtDAOField.set(identityProviderManager, cacheBackedIdPMgtDAO);
+    }
 
     @BeforeTest
     public void setup() throws Exception {

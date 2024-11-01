@@ -18,15 +18,14 @@
 
 package org.wso2.carbon.idp.mgt.dao;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.MockedStatic;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -46,14 +45,17 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
-import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -65,11 +67,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
@@ -93,7 +95,9 @@ public class IdPManagementDAOTest {
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    MockedStatic<IdpMgtServiceComponentHolder> idpMgtServiceComponentHolder;
+    MockedStatic<CryptoUtil> cryptoUtil;
+    private SecretManagerImpl secretManager;
+    private CryptoUtil mockCryptoUtil;
 
     private IdPManagementDAO idPManagementDAO;
 
@@ -135,22 +139,45 @@ public class IdPManagementDAOTest {
         dataSourceMap.put(databaseName, dataSource);
     }
 
+    @BeforeClass
+    public void setUp() throws Exception {
+
+        secretManager = mock(SecretManagerImpl.class);
+        SecretType secretType = mock(SecretType.class);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        when(secretType.getId()).thenReturn("secretId");
+        doReturn(secretType).when(secretManager).getSecretType(any());
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+
+        cryptoUtil = mockStatic(CryptoUtil.class);
+        mockCryptoUtil = mock(CryptoUtil.class);
+        cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
+        when(mockCryptoUtil.encryptAndBase64Encode(any())).thenReturn("ENCRYPTED_VALUE2");
+        when(mockCryptoUtil.base64DecodeAndDecrypt(anyString())).thenReturn("ENCRYPTED_VALUE2".getBytes());
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+
+        cryptoUtil.close();
+    }
+
     @BeforeMethod
     public void setup() throws Exception {
 
+        IdPSecretsProcessor idpSecretsProcessor = mock(IdPSecretsProcessor.class);
+        when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
+        Field idpSecretsProcessorField = IdPManagementDAO.class.getDeclaredField("idpSecretsProcessorService");
+        idpSecretsProcessorField.setAccessible(true);
+        idpSecretsProcessorField.set(idPManagementDAO, idpSecretsProcessor);
+
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
-        idpMgtServiceComponentHolder = mockStatic(IdpMgtServiceComponentHolder.class);
-        IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
-        idpMgtServiceComponentHolder.when(
-                IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
-
-        SecretManager secretManager = mock(SecretManager.class);
-        SecretResolveManager secretResolveManager = mock(SecretResolveManager.class);
-        when(mockIdpMgtServiceComponentHolder.getSecretManager()).thenReturn(secretManager);
-        when(mockIdpMgtServiceComponentHolder.getSecretResolveManager()).thenReturn(secretResolveManager);
     }
 
     @AfterMethod
@@ -158,7 +185,6 @@ public class IdPManagementDAOTest {
 
         closeH2Database();
         identityTenantUtil.close();
-        idpMgtServiceComponentHolder.close();
     }
 
     @DataProvider

@@ -18,11 +18,15 @@
 
 package org.wso2.carbon.idp.mgt;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -48,8 +52,8 @@ import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
-import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
@@ -66,8 +70,8 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -87,6 +91,27 @@ public class IdentityProviderManagementServiceTest {
 
     MetadataConverter mockMetadataConverter;
     private IdentityProviderManagementService identityProviderManagementService;
+    private MockedStatic<CryptoUtil> cryptoUtil;
+
+    @BeforeClass
+    public void setUpClass() throws Exception {
+
+        SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
+        SecretType secretType = mock(SecretType.class);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        when(secretType.getId()).thenReturn("secretId");
+        doReturn(secretType).when(secretManager).getSecretType(any());
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+
+        cryptoUtil = mockStatic(CryptoUtil.class);
+        CryptoUtil mockCryptoUtil = mock(CryptoUtil.class);
+        cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+        cryptoUtil.close();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -95,11 +120,6 @@ public class IdentityProviderManagementServiceTest {
         identityProviderManagementService = new IdentityProviderManagementService();
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
         IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
-
-        SecretManager secretManager = mock(SecretManager.class);
-        SecretResolveManager secretResolveManager = mock(SecretResolveManager.class);
-        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
-        IdpMgtServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
     }
 
     @AfterMethod
