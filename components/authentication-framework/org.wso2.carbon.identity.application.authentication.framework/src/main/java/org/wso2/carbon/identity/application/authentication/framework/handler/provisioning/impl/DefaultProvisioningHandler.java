@@ -359,10 +359,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     protected char[] resolvePassword(Map<String, String> userClaims) {
 
-        char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
-                ? userClaims.get(FrameworkConstants.PASSWORD).toCharArray() : null;
-        return (passwordFromUser != null && passwordFromUser.length > 0) ?
-                passwordFromUser : generatePassword();
+        char[] passwordFromUser = null;
+        if (userClaims.get(FrameworkConstants.PASSWORD) != null) {
+            passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD).toCharArray();
+        }
+        if (passwordFromUser == null || passwordFromUser.length == 0) {
+            return generatePassword();
+        }
+        return passwordFromUser;
     }
 
     private void handleV1Roles(String username, UserStoreManager userStoreManager, UserRealm realm,
