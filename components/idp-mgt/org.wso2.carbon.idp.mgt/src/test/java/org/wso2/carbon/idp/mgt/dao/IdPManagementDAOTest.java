@@ -45,8 +45,8 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -65,7 +65,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -147,14 +146,11 @@ public class IdPManagementDAOTest {
         IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
         idpMgtServiceComponentHolder.when(
                 IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
-        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
-                IdPSecretsProcessor.class);
-        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService())
-                .thenReturn(idpSecretsProcessor);
-        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService()
-                .decryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
-        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService()
-                .encryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
+
+        SecretManager secretManager = mock(SecretManager.class);
+        SecretResolveManager secretResolveManager = mock(SecretResolveManager.class);
+        when(mockIdpMgtServiceComponentHolder.getSecretManager()).thenReturn(secretManager);
+        when(mockIdpMgtServiceComponentHolder.getSecretResolveManager()).thenReturn(secretResolveManager);
     }
 
     @AfterMethod

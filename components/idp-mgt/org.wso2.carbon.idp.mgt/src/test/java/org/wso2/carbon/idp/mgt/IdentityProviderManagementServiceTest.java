@@ -48,8 +48,8 @@ import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
@@ -96,12 +96,10 @@ public class IdentityProviderManagementServiceTest {
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
         IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
 
-        SecretsProcessor<IdentityProvider> identityProviderSecretsProcessor = mock(IdPSecretsProcessor.class);
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(identityProviderSecretsProcessor);
-        when(identityProviderSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
-                invocation -> invocation.getArguments()[0]);
-        when(identityProviderSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
-                invocation -> invocation.getArguments()[0]);
+        SecretManager secretManager = mock(SecretManager.class);
+        SecretResolveManager secretResolveManager = mock(SecretResolveManager.class);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        IdpMgtServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
     }
 
     @AfterMethod

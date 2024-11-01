@@ -55,8 +55,6 @@ import org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListene
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
-import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
@@ -72,10 +70,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -85,7 +81,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.APPLICATION_BASED_OUTBOUND_PROVISIONING_ENABLED;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE;
 
 @Listeners(MockitoTestNGListener.class)
@@ -162,13 +157,6 @@ public class OutboundProvisioningTest {
         serviceProvider.setApplicationName(ApplicationConstants.CONSOLE_APPLICATION_NAME);
 
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
-
-        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
-                IdPSecretsProcessor.class);
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idpSecretsProcessor);
-
-        when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
-        when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
 
         OutboundProvisioningConfig outboundProvisioningConfig = new OutboundProvisioningConfig();
         outboundProvisioningConfig.setProvisioningIdentityProviders(new IdentityProvider[]{identityProvider});
