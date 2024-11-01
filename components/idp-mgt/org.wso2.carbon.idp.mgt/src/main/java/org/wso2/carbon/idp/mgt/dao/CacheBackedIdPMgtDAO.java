@@ -983,6 +983,49 @@ public class CacheBackedIdPMgtDAO {
         return idPMgtDAO.getConnectedApplications(resourceId, limit, offset);
     }
 
+    /**
+     * Check whether the IDP with the given resource ID is associated with any service providers.
+     *
+     * @param idpName  Name of the IDP.
+     * @param tenantId ID of the tenant.
+     * @return Whether the given IDP is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP associations.
+     */
+    public boolean isIdpReferredBySP(String idpName, int tenantId) throws IdentityProviderManagementException {
+
+        return idPMgtDAO.isIdpReferredBySP(idpName, tenantId);
+    }
+
+    /**
+     * Check whether the specified IDP authenticator is associated with any service providers.
+     *
+     * @param idpName           Name of the IDP.
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantId          ID of the tenant.
+     * @return Whether the specified IDP authenticator is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP authenticator associations.
+     */
+    public boolean isAuthenticatorReferredBySP(String idpName, String authenticatorName, int tenantId)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.isAuthenticatorReferredBySP(idpName, authenticatorName, tenantId);
+    }
+
+    /**
+     * Check whether the specified IDP outbound connector is associated with any service providers.
+     *
+     * @param idpName       Name of the IDP.
+     * @param connectorName Name of the outbound connector.
+     * @param tenantId      ID of the tenant.
+     * @return Whether the specified IDP outbound connector is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP outbound connector associations.
+     */
+    public boolean isOutboundConnectorReferredBySP(String idpName, String connectorName, int tenantId)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.isOutboundConnectorReferredBySP(idpName, connectorName, tenantId);
+    }
+
     public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
                                                                     Integer limit, Integer offset)
             throws IdentityProviderManagementException {
