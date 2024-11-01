@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -23,14 +25,34 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
-import static org.mockito.Mockito.mockStatic;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 public class DefaultProvisioningHandlerTest {
+
+    @Mock
+    private RealmService mockRealmService;
+
+    @Mock
+    private UserRealm mockUserRealm;
+
+    @Mock
+    private UserStoreManager mockUserStoreManager;
 
     private DefaultProvisioningHandler provisioningHandler;
 
@@ -72,8 +94,10 @@ public class DefaultProvisioningHandlerTest {
                                              String idp) throws Exception {
 
         try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
-            frameworkUtils.when(() -> FrameworkUtils.startTenantFlow("tenantDomain")).thenAnswer(invocation -> null);
-            provisioningHandler.associateUser("dummy_user_name", "DUMMY_DOMAIN", "dummy.com", subject, idp);
+            frameworkUtils.when(() -> FrameworkUtils.startTenantFlow("tenantDomain"))
+                    .thenAnswer(invocation -> null);
+            provisioningHandler.associateUser("dummy_user_name", "DUMMY_DOMAIN",
+                    "dummy.com", subject, idp);
         }
     }
 
@@ -82,5 +106,14 @@ public class DefaultProvisioningHandlerTest {
         char[] randomPassword = provisioningHandler.generatePassword();
         assertNotNull(randomPassword);
         assertEquals(randomPassword.length, 12);
+    }
+
+    @Test
+    public void testResolvePassword() throws Exception {
+
+        Map<String, String> userClaims = new HashMap<>();
+        userClaims.put(FrameworkConstants.PASSWORD, "dummy_password");
+        char[] resolvedPassword = provisioningHandler.resolvePassword(userClaims);
+        assertEquals(resolvedPassword, "dummy_password".toCharArray());
     }
 }

@@ -298,10 +298,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
         } else {
-            char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
-                    ? userClaims.get(FrameworkConstants.PASSWORD).toCharArray() : null;
-            password = (passwordFromUser != null && passwordFromUser.length > 0) ?
-                    passwordFromUser : generatePassword();
+            password = resolvePassword(userClaims);
             // Check for inconsistencies in username attribute and the username claim.
             if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
                 // If so update the username claim with the username attribute.
@@ -358,6 +355,14 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 log.debug("Federated user: " + username + " is provisioned by authentication framework.");
             }
         }
+    }
+
+    protected char[] resolvePassword(Map<String, String> userClaims) {
+
+        char[] passwordFromUser = (userClaims.get(FrameworkConstants.PASSWORD) != null)
+                ? userClaims.get(FrameworkConstants.PASSWORD).toCharArray() : null;
+        return (passwordFromUser != null && passwordFromUser.length > 0) ?
+                passwordFromUser : generatePassword();
     }
 
     private void handleV1Roles(String username, UserStoreManager userStoreManager, UserRealm realm,
@@ -745,25 +750,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         pw.insert(secureRandom.nextInt(pw.length()), specialCharacters.charAt(secureRandom.nextInt(
                 specialCharacters.length())));
         return pw.toString().toCharArray();
-    }
-
-    /**
-     * remove user store domain from names except the domain 'Internal'
-     *
-     * @param names
-     * @return
-     */
-    private List<String> removeDomainFromNamesExcludeInternal(List<String> names, int tenantId) {
-        List<String> nameList = new ArrayList<String>();
-        for (String name : names) {
-            String userStoreDomain = IdentityUtil.extractDomainFromName(name);
-            if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain)) {
-                nameList.add(name);
-            } else {
-                nameList.add(UserCoreUtil.removeDomainFromName(name));
-            }
-        }
-        return nameList;
     }
 
     /**
