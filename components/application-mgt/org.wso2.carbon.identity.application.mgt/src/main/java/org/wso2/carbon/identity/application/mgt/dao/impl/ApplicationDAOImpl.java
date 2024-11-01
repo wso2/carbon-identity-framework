@@ -127,9 +127,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
@@ -771,71 +773,89 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private void updateApplicationCertificate(ServiceProvider serviceProvider, int tenantID)
             throws IdentityApplicationManagementException {
 
-        // If the certificate content is empty, remove the certificate reference property if exists.
-        // And remove the certificate.
         if (StringUtils.isBlank(serviceProvider.getCertificateContent())) {
-
-            ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
-
-            if (serviceProviderProperties != null) {
-
-                // Get the index of the certificate reference property index in the properties array.
-                int certificateReferenceIdIndex = -1;
-                String certificateReferenceId = null;
-                for (int i = 0; i < serviceProviderProperties.length; i++) {
-                    if ("CERTIFICATE".equals(serviceProviderProperties[i].getName())) {
-                        certificateReferenceIdIndex = i;
-                        certificateReferenceId = serviceProviderProperties[i].getValue();
-                        break;
-                    }
-                }
-
-                // If there is a certificate reference, remove it from the properties array.
-                // Removing will be done by creating a new array and copying the elements other than the
-                // certificate reference from the existing array,
-                if (certificateReferenceIdIndex > -1) {
-
-                    ServiceProviderProperty[] propertiesWithoutCertificateReference =
-                            new ServiceProviderProperty[serviceProviderProperties.length - 1];
-
-                    System.arraycopy(serviceProviderProperties, 0, propertiesWithoutCertificateReference,
-                            0, certificateReferenceIdIndex);
-                    System.arraycopy(serviceProviderProperties, certificateReferenceIdIndex + 1,
-                            propertiesWithoutCertificateReference, certificateReferenceIdIndex,
-                            propertiesWithoutCertificateReference.length - certificateReferenceIdIndex);
-
-                    serviceProvider.setSpProperties(propertiesWithoutCertificateReference);
-                    deleteCertificate(Integer.parseInt(certificateReferenceId),
-                            IdentityTenantUtil.getTenantDomain(tenantID));
-                }
-            }
+            // Remove the certificate reference property if exists and remove the certificate.
+            removeCertificateReferenceAndDelete(serviceProvider, tenantID);
         } else {
-            // First get the certificate reference from the application properties.
-            ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
-
-            String certificateReferenceIdString = getCertificateReferenceID(serviceProviderProperties);
-
-            // If there is a reference, update the relevant certificate record.
-            if (certificateReferenceIdString != null) { // Update the existing record.
-                try {
-                    ApplicationManagementServiceComponentHolder.getInstance().getApplicationCertificateMgtService()
-                            .updateCertificateContent(Integer.parseInt(certificateReferenceIdString),
-                                    serviceProvider.getCertificateContent(),
-                                    IdentityTenantUtil.getTenantDomain(tenantID));
-                } catch (CertificateMgtClientException e) {
-                    throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(),
-                            e.getDescription(), e);
-                } catch (CertificateMgtException e) {
-                    throw new IdentityApplicationManagementException("An error occurred while updating the " +
-                            "certificate.", e);
-                }
+            String certificateReferenceIdString = getCertificateReferenceID(serviceProvider.getSpProperties());
+            if (certificateReferenceIdString != null) {
+                // If there is a reference, update the relevant existing certificate record.
+                updateCertificate(certificateReferenceIdString, serviceProvider.getCertificateContent(), tenantID);
             } else {
-                /*
-                 There is no existing reference.
-                 Persisting the certificate in the given service provider as a new record.
-                  */
+                // There is no existing reference. Persisting the certificate as a new record.
                 persistApplicationCertificate(serviceProvider, tenantID);
             }
+        }
+    }
+
+    /**
+     * Removes the certificate reference property from the given service provider object and deletes the certificate
+     * record from the database.
+     *
+     * @param serviceProvider Service provider object.
+     * @param tenantID        Tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while removing the certificate reference.
+     */
+    private void removeCertificateReferenceAndDelete(ServiceProvider serviceProvider, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
+
+        if (spProperties == null) {
+            return;
+        }
+
+        OptionalInt certificateReferenceIdIndex = IntStream.range(0, spProperties.length)
+                .filter(index -> SP_PROPERTY_NAME_CERTIFICATE.equals(spProperties[index].getName()))
+                .findFirst();
+
+        if (certificateReferenceIdIndex.isPresent()) {
+            int certificateReferenceIndex = certificateReferenceIdIndex.getAsInt();
+            int certificateID = Integer.parseInt(spProperties[certificateReferenceIdIndex.getAsInt()].getValue());
+
+            serviceProvider.setSpProperties(getFilteredSpProperties(spProperties, certificateReferenceIndex));
+            deleteCertificate(certificateID, IdentityTenantUtil.getTenantDomain(tenantID));
+        }
+    }
+
+    /**
+     * Returns a new array of service provider properties with the property at the specified index removed.
+     * This method creates a copy of the original `spProperties` array, omitting the element at `indexToRemove`.
+     *
+     * @param spProperties   An array of service provider properties.
+     * @param indexToRemove  The index of the property to be removed from the array.
+     * @return A new array of service provider properties, excluding the property at the specified index.
+     */
+    private static ServiceProviderProperty[] getFilteredSpProperties(ServiceProviderProperty[] spProperties,
+                                                                     int indexToRemove) {
+
+        ServiceProviderProperty[] updatedSpProperties = new ServiceProviderProperty[spProperties.length - 1];
+        System.arraycopy(spProperties, 0, updatedSpProperties, 0, indexToRemove);
+        System.arraycopy(spProperties, indexToRemove + 1, updatedSpProperties, indexToRemove,
+                updatedSpProperties.length - indexToRemove);
+
+        return updatedSpProperties;
+    }
+
+    /**
+     * Update the existing certificate record with the given certificate ID.
+     *
+     * @param certificateId      Certificate ID.
+     * @param certificateContent Certificate content to be updated.
+     * @param tenantID           Tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while updating the certificate.
+     */
+    private static void updateCertificate(String certificateId, String certificateContent, int tenantID)
+            throws IdentityApplicationManagementException {
+
+        try {
+            ApplicationManagementServiceComponentHolder.getInstance().getApplicationCertificateMgtService()
+                    .updateCertificateContent(Integer.parseInt(certificateId), certificateContent,
+                            IdentityTenantUtil.getTenantDomain(tenantID));
+        } catch (CertificateMgtClientException e) {
+            throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
+        } catch (CertificateMgtException e) {
+            throw new IdentityApplicationManagementException("An error occurred while updating the certificate.", e);
         }
     }
 
