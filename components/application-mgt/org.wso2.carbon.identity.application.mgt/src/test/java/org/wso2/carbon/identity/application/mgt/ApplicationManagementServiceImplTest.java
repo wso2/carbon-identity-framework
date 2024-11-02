@@ -1372,6 +1372,7 @@ public class ApplicationManagementServiceImplTest {
         doThrow(serverException).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
         try {
             applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
+            // Successful retrieval of the application without an exception is considered as a failure.
             Assert.fail();
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
@@ -1429,6 +1430,7 @@ public class ApplicationManagementServiceImplTest {
             appWithCert.setCertificateContent(UPDATED_CERTIFICATE);
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            // Successful update of the application without an exception is considered as a failure.
             Assert.fail();
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
@@ -1454,6 +1456,7 @@ public class ApplicationManagementServiceImplTest {
             appWithCert.setCertificateContent(UPDATED_CERTIFICATE);
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            // Successful update of the application without an exception is considered as a failure.
             Assert.fail();
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
@@ -1476,6 +1479,7 @@ public class ApplicationManagementServiceImplTest {
             appWithCert.setCertificateContent(StringUtils.EMPTY);
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            // Successful update of the application without an exception is considered as a failure.
             Assert.fail();
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
@@ -1524,6 +1528,7 @@ public class ApplicationManagementServiceImplTest {
         try {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
+            // Successful creation of the application without an exception is considered as a failure.
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("Error while creating an application: "
@@ -1550,6 +1555,7 @@ public class ApplicationManagementServiceImplTest {
         try {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
+            // Successful creation of the application without an exception is considered as a failure.
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
@@ -1578,6 +1584,7 @@ public class ApplicationManagementServiceImplTest {
         try {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
+            // Successful creation of the application without an exception is considered as a failure.
             Assert.fail();
         } catch (IdentityApplicationManagementException e) {
             Assert.assertTrue(e.getMessage().contains("Error while creating an application: "

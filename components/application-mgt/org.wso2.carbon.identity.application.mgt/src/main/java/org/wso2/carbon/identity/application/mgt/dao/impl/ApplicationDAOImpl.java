@@ -811,7 +811,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         if (certificateReferenceIdIndex.isPresent()) {
             int certificateReferenceIndex = certificateReferenceIdIndex.getAsInt();
-            int certificateID = Integer.parseInt(spProperties[certificateReferenceIdIndex.getAsInt()].getValue());
+            int certificateID = Integer.parseInt(spProperties[certificateReferenceIndex].getValue());
 
             serviceProvider.setSpProperties(getFilteredSpProperties(spProperties, certificateReferenceIndex));
             deleteCertificate(certificateID, IdentityTenantUtil.getTenantDomain(tenantID));
