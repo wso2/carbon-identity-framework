@@ -644,16 +644,18 @@ public class ApplicationManagementServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetApplicationCertificateManagementService"
     )
-    private void setApplicationCertificateManagementService(ApplicationCertificateManagementService
+    protected void setApplicationCertificateManagementService(ApplicationCertificateManagementService
                                                                     applicationCertificateManagementService) {
 
         ApplicationManagementServiceComponentHolder.getInstance()
                 .setApplicationCertificateMgtService(applicationCertificateManagementService);
+        log.debug("ApplicationCertificateManagementService set in ApplicationManagementServiceComponent bundle.");
     }
 
-    private void unsetApplicationCertificateManagementService(ApplicationCertificateManagementService
+    protected void unsetApplicationCertificateManagementService(ApplicationCertificateManagementService
                                                                       applicationCertificateManagementService) {
 
         ApplicationManagementServiceComponentHolder.getInstance().setApplicationCertificateMgtService(null);
+        log.debug("ApplicationCertificateManagementService unset in ApplicationManagementServiceComponent bundle.");
     }
 }

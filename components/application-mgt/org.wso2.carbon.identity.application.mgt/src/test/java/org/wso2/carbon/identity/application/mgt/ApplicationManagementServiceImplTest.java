@@ -1355,7 +1355,6 @@ public class ApplicationManagementServiceImplTest {
         inputSP.setCertificateContent(certificate.getCertificateContent());
         addApplicationConfigurations(inputSP);
 
-        reset(applicationCertificateManagementService);
         doReturn(0).when(applicationCertificateManagementService).addCertificate(any(), anyString());
         doReturn(certificate).when(applicationCertificateManagementService).getCertificateByName(any(), anyString());
         try {
@@ -1369,7 +1368,6 @@ public class ApplicationManagementServiceImplTest {
     @Test(groups = "certificate", priority = 2, dependsOnMethods = "testAddApplicationWithCertificate")
     public void testGetApplicationWithServerErrorWhenRetrievingCert() throws CertificateMgtException {
 
-        reset(applicationCertificateManagementService);
         doThrow(serverException).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
         try {
             applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
@@ -1506,6 +1504,14 @@ public class ApplicationManagementServiceImplTest {
             Assert.fail("Application update with certificate deletion should be successful without any exceptions");
         }
 
+        appWithCert = applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
+        Optional<String> certificateValue = Arrays.stream(appWithCert.getSpProperties())
+                .filter(prop -> "CERTIFICATE".equals(prop.getName()))
+                .map(ServiceProviderProperty::getValue)
+                .findFirst();
+        Assert.assertFalse(certificateValue.isPresent(), "Certificate property should be removed");
+        Assert.assertNull(appWithCert.getCertificateContent());
+
         // Deleting added application.
         doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
         applicationManagementService.deleteApplication(appWithCert.getApplicationName(),
@@ -1526,7 +1532,7 @@ public class ApplicationManagementServiceImplTest {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
             Assert.fail("Successful creation of the application without an exception is considered as a failure");
-        } catch (Exception e) {
+        } catch (IdentityApplicationManagementException e) {
             Assert.assertTrue(e.getMessage().contains("Error while creating an application: "
                     + inputSP.getApplicationName() + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
             for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
@@ -1552,7 +1558,7 @@ public class ApplicationManagementServiceImplTest {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
             Assert.fail("Successful creation of the application without an exception is considered as a failure");
-        } catch (Exception e) {
+        } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
             Assert.assertEquals(e.getMessage(), clientException.getDescription());
             for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
@@ -1590,6 +1596,36 @@ public class ApplicationManagementServiceImplTest {
             }
             Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
         }
+    }
+
+    @Test(groups = "certificate", priority = 12)
+    public void testAddCertificateToExistingApplication() throws IdentityApplicationManagementException,
+            CertificateMgtException {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP);
+
+        String appIdWithoutCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        ServiceProvider appWithoutCert = applicationManagementService.getApplicationByResourceId(appIdWithoutCert,
+                SUPER_TENANT_DOMAIN_NAME);
+
+        reset(applicationCertificateManagementService);
+        doReturn(2).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+
+        try {
+            appWithoutCert.setCertificateContent(certificate.getCertificateContent());
+            applicationManagementService.updateApplicationByResourceId(appIdWithoutCert, appWithoutCert,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        } catch (Exception e) {
+            Assert.fail("Application update with certificate addition should be successful without any exceptions");
+        }
+
+        // Deleting added application.
+        doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        applicationManagementService.deleteApplication(appWithoutCert.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {

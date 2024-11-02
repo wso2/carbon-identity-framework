@@ -855,7 +855,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (CertificateMgtClientException e) {
             throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
-            throw new IdentityApplicationManagementException("An error occurred while updating the certificate.", e);
+            throw new IdentityApplicationManagementException("Error while updating certificate", e);
         }
     }
 
@@ -910,7 +910,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } catch (CertificateMgtClientException e) {
             throw new IdentityApplicationManagementClientException(INVALID_REQUEST.getCode(), e.getDescription(), e);
         } catch (CertificateMgtException e) {
-            throw new IdentityApplicationManagementException("Error while adding certificate for application: " +
+            throw new IdentityApplicationManagementServerException("Error while adding certificate for application: " +
                     serviceProvider.getApplicationName(), e);
         }
     }
@@ -4686,7 +4686,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             ApplicationManagementServiceComponentHolder.getInstance().getApplicationCertificateMgtService()
                     .deleteCertificate(id, tenantDomain);
         } catch (CertificateMgtException e) {
-            throw new IdentityApplicationManagementException("Error while deleting certificate.", e);
+            throw new IdentityApplicationManagementException("Error while deleting certificate", e);
         }
     }
 
