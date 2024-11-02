@@ -5798,6 +5798,37 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return applicationBasicInfo;
     }
 
+    @Override
+    public String getApplicationUUIDByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting application UUID for name: " + name
+                    + " in tenantDomain: " + tenantDomain);
+        }
+
+        String applicationUuid = null;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement statement =
+                         new NamedPreparedStatement(connection,
+                                 ApplicationMgtDBQueries.GET_APP_UUID_BY_TENANT_AND_NAME)) {
+                statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
+                statement.setString(ApplicationTableColumns.APP_NAME, name);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        applicationUuid = resultSet.getString(ApplicationTableColumns.UUID);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            String message = "Error while getting application uuid for name: %s in " +
+                    "tenantDomain: %s";
+            throw new IdentityApplicationManagementException(String.format(message, name, tenantDomain), e);
+        }
+        return applicationUuid;
+    }
+
     public String addApplication(ServiceProvider application,
                                  String tenantDomain) throws IdentityApplicationManagementException {
 
