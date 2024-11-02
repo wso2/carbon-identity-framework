@@ -108,6 +108,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -1361,7 +1362,7 @@ public class ApplicationManagementServiceImplTest {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
         } catch (Exception e) {
-            Assert.fail();
+            Assert.fail("Application addition with certificate addition should be successful without any exceptions");
         }
     }
 
@@ -1372,8 +1373,7 @@ public class ApplicationManagementServiceImplTest {
         doThrow(serverException).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
         try {
             applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
-            // Successful retrieval of the application without an exception is considered as a failure.
-            Assert.fail();
+            Assert.fail("Successful retrieval of the application without an exception is considered as a failure");
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
             Assert.assertTrue(e.getMessage().contains("Error while retrieving application with resourceId: "
@@ -1383,7 +1383,7 @@ public class ApplicationManagementServiceImplTest {
                     return;
                 }
             }
-            Assert.fail();
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
         }
     }
 
@@ -1395,12 +1395,12 @@ public class ApplicationManagementServiceImplTest {
         when(applicationCertificateManagementService.getCertificate(anyInt(), anyString())).thenReturn(certificate);
         appWithCert = applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
 
-        String certificateValue = Arrays.stream(appWithCert.getSpProperties())
+        Optional<String> certificateValue = Arrays.stream(appWithCert.getSpProperties())
                 .filter(prop -> "CERTIFICATE".equals(prop.getName()))
                 .map(ServiceProviderProperty::getValue)
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("Certificate property not found"));
-        Assert.assertEquals(Integer.parseInt(certificateValue), CERTIFICATE_ID);
+                .findFirst();
+        Assert.assertTrue(certificateValue.isPresent(), "Certificate property not found");
+        Assert.assertEquals(Integer.parseInt(certificateValue.get()), CERTIFICATE_ID);
         Assert.assertEquals(appWithCert.getCertificateContent(), certificate.getCertificateContent());
     }
 
@@ -1415,7 +1415,7 @@ public class ApplicationManagementServiceImplTest {
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
         } catch (Exception e) {
-            Assert.fail();
+            Assert.fail("Application update with certificate update should be successful without any exceptions");
         }
     }
 
@@ -1430,8 +1430,7 @@ public class ApplicationManagementServiceImplTest {
             appWithCert.setCertificateContent(UPDATED_CERTIFICATE);
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
-            // Successful update of the application without an exception is considered as a failure.
-            Assert.fail();
+            Assert.fail("Successful update of the application without an exception is considered as a failure");
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
             Assert.assertTrue(e.getMessage().contains("Error while updating application with resourceId: "
@@ -1441,7 +1440,7 @@ public class ApplicationManagementServiceImplTest {
                     return;
                 }
             }
-            Assert.fail();
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
         }
     }
 
@@ -1456,8 +1455,7 @@ public class ApplicationManagementServiceImplTest {
             appWithCert.setCertificateContent(UPDATED_CERTIFICATE);
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
-            // Successful update of the application without an exception is considered as a failure.
-            Assert.fail();
+            Assert.fail("Successful update of the application without an exception is considered as a failure");
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
             Assert.assertEquals(e.getMessage(), clientException.getDescription());
@@ -1466,7 +1464,7 @@ public class ApplicationManagementServiceImplTest {
                     return;
                 }
             }
-            Assert.fail();
+            Assert.fail("Expected cause of type CertificateMgtClientException was not found in the exception chain");
         }
     }
 
@@ -1479,8 +1477,7 @@ public class ApplicationManagementServiceImplTest {
             appWithCert.setCertificateContent(StringUtils.EMPTY);
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
-            // Successful update of the application without an exception is considered as a failure.
-            Assert.fail();
+            Assert.fail("Successful update of the application without an exception is considered as a failure");
         } catch (IdentityApplicationManagementException e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
             Assert.assertTrue(e.getMessage().contains("Error while updating application with resourceId: "
@@ -1490,7 +1487,7 @@ public class ApplicationManagementServiceImplTest {
                     return;
                 }
             }
-            Assert.fail();
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
         }
     }
 
@@ -1506,7 +1503,7 @@ public class ApplicationManagementServiceImplTest {
             applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
                     SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
         } catch (Exception e) {
-            Assert.fail();
+            Assert.fail("Application update with certificate deletion should be successful without any exceptions");
         }
 
         // Deleting added application.
@@ -1528,8 +1525,7 @@ public class ApplicationManagementServiceImplTest {
         try {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
-            // Successful creation of the application without an exception is considered as a failure.
-            Assert.fail();
+            Assert.fail("Successful creation of the application without an exception is considered as a failure");
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("Error while creating an application: "
                     + inputSP.getApplicationName() + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
@@ -1538,7 +1534,7 @@ public class ApplicationManagementServiceImplTest {
                     return;
                 }
             }
-            Assert.fail();
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
         }
     }
 
@@ -1555,8 +1551,7 @@ public class ApplicationManagementServiceImplTest {
         try {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
-            // Successful creation of the application without an exception is considered as a failure.
-            Assert.fail();
+            Assert.fail("Successful creation of the application without an exception is considered as a failure");
         } catch (Exception e) {
             Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
             Assert.assertEquals(e.getMessage(), clientException.getDescription());
@@ -1565,7 +1560,7 @@ public class ApplicationManagementServiceImplTest {
                     return;
                 }
             }
-            Assert.fail();
+            Assert.fail("Expected cause of type CertificateMgtClientException was not found in the exception chain");
         }
     }
 
@@ -1584,8 +1579,7 @@ public class ApplicationManagementServiceImplTest {
         try {
             appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
                     REGISTRY_SYSTEM_USERNAME);
-            // Successful creation of the application without an exception is considered as a failure.
-            Assert.fail();
+            Assert.fail("Successful creation of the application without an exception is considered as a failure");
         } catch (IdentityApplicationManagementException e) {
             Assert.assertTrue(e.getMessage().contains("Error while creating an application: "
                     + inputSP.getApplicationName() + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
@@ -1594,7 +1588,7 @@ public class ApplicationManagementServiceImplTest {
                     return;
                 }
             }
-            Assert.fail();
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
         }
     }
 
