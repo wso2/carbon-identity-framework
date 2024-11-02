@@ -75,6 +75,8 @@ public class IdentityManagementEndpointConstants {
         public static final String RECOVERY_API_V2_RELATIVE_PATH = "/api/users/v2/recovery";
         public static final String USER_API_RELATIVE_PATH = "/api/identity/user/v1.0";
         public static final String RECOVERY_CALLBACK_REGEX = "Recovery.CallbackRegex";
+        public static final String MOBILE_CLAIM_REGEX =  "^\\s*(?:\\+?(\\d{1,3}))?[\\-. (]*(\\d{2,3})[\\-. )]*" +
+                "(\\d{3})[\\-. ]*(\\d{4,6})(?: *x(\\d+))?\\s*$";
     }
 
     public static final class UserInfoRecoveryErrorDesc {
