@@ -100,6 +100,9 @@ public class ApplicationMgtDBQueries {
             "IMAGE_URL, ACCESS_URL, IS_DISCOVERABLE, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE " +
             "TENANT_ID = :TENANT_ID; AND APP_NAME = :APP_NAME;";
 
+    public static final String GET_APP_UUID_BY_TENANT_AND_NAME = "SELECT UUID FROM SP_APP WHERE " +
+            "TENANT_ID = :TENANT_ID; AND APP_NAME = :APP_NAME;";
+
     // Load application basic information for listing with pagination
     public static final String LOAD_APP_NAMES_BY_TENANT_MYSQL = "SELECT ID, APP_NAME, VERSION, DESCRIPTION, " +
             "UUID, IMAGE_URL, ACCESS_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = ? AND " +

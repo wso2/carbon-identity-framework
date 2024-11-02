@@ -707,6 +707,25 @@ public class ApplicationManagementServiceImplTest {
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
+    @Test()
+    public void testGetApplicationUUIDFromName()
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(APPLICATION_NAME_1);
+        // Adding new application.
+        String resourceId = applicationManagementService.createApplication(serviceProvider,
+                SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Retrieving added application info.
+        String applicationUUID = applicationManagementService.getApplicationUUIDByName(
+                serviceProvider.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(applicationUUID, resourceId);
+
+        // Deleting added application.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
     @Test
     public void testGetConfiguredAuthenticators() throws IdentityApplicationManagementException {
 

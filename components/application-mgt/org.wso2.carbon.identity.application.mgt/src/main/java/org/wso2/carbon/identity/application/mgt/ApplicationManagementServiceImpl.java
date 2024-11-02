@@ -656,6 +656,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return basicAppInfo;
     }
 
+    @Override
+    public String getApplicationUUIDByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting application UUID for name: " + name
+                    + " in tenantDomain: " + tenantDomain);
+        }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationUUIDByName(name, tenantDomain);
+    }
+
     /**
      * Get count of all Application Basic Information.
      *
