@@ -70,7 +70,7 @@ public class ActionManagementServiceImplTest {
     private static final String PRE_ISSUE_ACCESS_TOKEN = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam();
 
     @BeforeClass
-    public void setUpClass() throws Exception {
+    public void setUpClass() {
 
         serviceImpl = ActionManagementServiceImpl.getInstance();
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();

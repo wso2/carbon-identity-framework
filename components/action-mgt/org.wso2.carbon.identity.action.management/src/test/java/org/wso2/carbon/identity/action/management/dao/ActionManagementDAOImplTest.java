@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -69,13 +68,13 @@ public class ActionManagementDAOImplTest {
     private Action action;
 
     @BeforeClass
-    public void setUpClass() throws Exception {
+    public void setUpClass() {
 
         daoImpl = new ActionManagementDAOImpl();
     }
 
     @BeforeMethod
-    public void setUp() throws SQLException, SecretManagementException {
+    public void setUp() throws SecretManagementException {
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
@@ -125,7 +124,7 @@ public class ActionManagementDAOImplTest {
     }
 
     @Test(priority = 3)
-    public void testGetActionsByActionType() throws ActionMgtException, SQLException {
+    public void testGetActionsByActionType() throws ActionMgtException {
 
         Assert.assertEquals(1, daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).size());
         Action result = daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).get(0);
@@ -154,7 +153,7 @@ public class ActionManagementDAOImplTest {
     }
 
     @Test(priority = 5)
-    public void testDeleteAction() throws ActionMgtException, SQLException {
+    public void testDeleteAction() throws ActionMgtException {
 
         daoImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
         Assert.assertNull(daoImpl.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID));
@@ -346,7 +345,7 @@ public class ActionManagementDAOImplTest {
     }
 
     @Test(priority = 15)
-    public void testUpdateActionEndpointAuthNonSecretProperties() throws ActionMgtException, SQLException {
+    public void testUpdateActionEndpointAuthNonSecretProperties() throws ActionMgtException {
 
         Action sampleAction = buildMockAction(
                 "Pre Issue Access Token",
