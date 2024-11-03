@@ -19,10 +19,8 @@
 package org.wso2.carbon.identity.action.management.dao;
 
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.mockito.MockedStatic;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -33,6 +31,7 @@ import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceCompo
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -40,15 +39,12 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
-import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -60,6 +56,7 @@ import static org.mockito.Mockito.when;
  * in the ActionManagementDAOImpl class.
  */
 @WithH2Database(files = {"dbscripts/h2.sql"})
+@WithCarbonHome
 public class ActionManagementDAOImplTest {
 
     private ActionManagementDAOImpl daoImpl;
@@ -75,18 +72,15 @@ public class ActionManagementDAOImplTest {
     public void setUpClass() throws Exception {
 
         daoImpl = new ActionManagementDAOImpl();
-        initiateH2Database(getFilePath());
     }
 
     @BeforeMethod
     public void setUp() throws SQLException, SecretManagementException {
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-        identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
         SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
         SecretType secretType = mock(SecretType.class);
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
-        mockDBConnection();
         identityTenantUtil.when(()-> IdentityTenantUtil.getTenantId(anyString())).thenReturn(TENANT_ID);
         when(secretType.getId()).thenReturn("secretId");
         when(secretManager.getSecretType(any())).thenReturn(secretType);
@@ -96,13 +90,6 @@ public class ActionManagementDAOImplTest {
     public void tearDown() {
 
         identityTenantUtil.close();
-        identityDatabaseUtil.close();
-    }
-
-    @AfterClass
-    public void wrapUp() throws Exception {
-
-        closeH2Database();
     }
 
     @Test(priority = 1)
@@ -141,7 +128,6 @@ public class ActionManagementDAOImplTest {
     public void testGetActionsByActionType() throws ActionMgtException, SQLException {
 
         Assert.assertEquals(1, daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).size());
-        mockDBConnection();
         Action result = daoImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, TENANT_ID).get(0);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
@@ -171,7 +157,6 @@ public class ActionManagementDAOImplTest {
     public void testDeleteAction() throws ActionMgtException, SQLException {
 
         daoImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), action, TENANT_ID);
-        mockDBConnection();
         Assert.assertNull(daoImpl.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN, action.getId(), TENANT_ID));
     }
 
@@ -195,7 +180,7 @@ public class ActionManagementDAOImplTest {
                 action.getEndpoint().getAuthentication().getType());
     }
 
-    @Test(priority = 7)
+    @Test(priority = 7, dependsOnMethods = "testAddActionWithoutDescription")
     public void testUpdateAction() throws ActionMgtException {
 
         Action updatingAction = buildMockAction(
@@ -370,7 +355,6 @@ public class ActionManagementDAOImplTest {
                  buildMockAPIKeyAuthentication("header", "value"));
         Action updatingAction = daoImpl.updateAction(
                 PRE_ISSUE_ACCESS_TOKEN, action.getId(), sampleAction, action, TENANT_ID);
-        mockDBConnection();
         Authentication authentication = buildMockAPIKeyAuthentication("updatingheader", "updatingvalue");
         Action result = daoImpl.updateActionEndpointAuthProperties(PRE_ISSUE_ACCESS_TOKEN, updatingAction.getId(),
                 authentication, TENANT_ID);
@@ -457,43 +441,5 @@ public class ActionManagementDAOImplTest {
                 .description(description)
                 .endpoint(buildMockEndpointConfig(uri, authentication))
                 .build();
-    }
-
-    private void mockDBConnection() throws SQLException {
-
-        Connection connection = dataSourceMap.get(DB_NAME).getConnection();
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
-    }
-
-    private void initiateH2Database(String scriptPath) throws Exception {
-
-        BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUsername("username");
-        dataSource.setPassword("password");
-        dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME);
-        dataSource.setTestOnBorrow(true);
-        dataSource.setValidationQuery("select 1");
-        try (Connection connection = dataSource.getConnection()) {
-            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
-        }
-        dataSourceMap.put(DB_NAME, dataSource);
-    }
-
-    private static String getFilePath() {
-
-        if (StringUtils.isNotBlank("h2.sql")) {
-            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "h2.sql")
-                    .toString();
-        }
-        throw new IllegalArgumentException("DB Script file name cannot be empty.");
-    }
-
-    private static void closeH2Database() throws SQLException {
-
-        BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
-        if (dataSource != null) {
-            dataSource.close();
-        }
     }
 }
