@@ -46,8 +46,16 @@ public class ApplicationMgtDBQueries {
     public static final String UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION = "UPDATE SP_APP SET " +
             "IS_SEND_AUTH_LIST_OF_IDPS=?, IS_USE_TENANT_DOMAIN_SUBJECT=?, IS_USE_USER_DOMAIN_SUBJECT=?, " +
             "ENABLE_AUTHORIZATION=?, SUBJECT_CLAIM_URI=?, AUTH_TYPE=? WHERE TENANT_ID= ? AND ID = ?";
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String UPDATE_CERTIFICATE = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? WHERE " +
             "ID = ?";
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String ADD_CERTIFICATE = "INSERT INTO IDN_CERTIFICATE(NAME, CERTIFICATE_IN_PEM, TENANT_ID) " +
             "VALUES(?, ?, ?)";
     public static final String UPDATE_BASIC_APPINFO_WITH_PRO_PROPERTIES = "UPDATE SP_APP SET PROVISIONING_USERSTORE_" +
@@ -325,11 +333,31 @@ public class ApplicationMgtDBQueries {
 
     public static final String DELETE_SP_METADATA = "DELETE FROM SP_METADATA WHERE SP_ID = ?";
 
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String GET_CERTIFICATE_BY_ID = "SELECT CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE WHERE ID = ?";
 
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String GET_CERTIFICATE_ID_BY_NAME = "SELECT ID FROM IDN_CERTIFICATE WHERE NAME = ? AND " +
             "TENANT_ID = ?";
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String REMOVE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE ID = ?";
+    /**
+     * This query was previously used to delete all certificates associated with a tenant as part of tenant deletion.
+     * However, there is no product entry point for invoking this method directly. Since tenant deletion is managed
+     * as an administrative process, it is now recommended to handle certificate removal for a tenant through such
+     * process.
+     * @deprecated
+     */
+    @Deprecated
     public static final String REMOVE_CERTIFICATES_BY_TENANT_ID = "DELETE FROM IDN_CERTIFICATE WHERE TENANT_ID = ?";
     public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MYSQL = "SELECT ID FROM IDN_CERTIFICATE " +
             "LIMIT 1";

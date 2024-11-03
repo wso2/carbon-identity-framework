@@ -66,6 +66,7 @@ import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionPr
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
+import org.wso2.carbon.identity.certificate.management.service.ApplicationCertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
@@ -634,5 +635,27 @@ public class ApplicationManagementServiceComponent {
     private void unsetSecretResolveManagerService(SecretResolveManager secretResolveManager) {
 
         ApplicationManagementServiceComponentHolder.getInstance().setSecretResolveManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.certificate.management.service.ApplicationCertificateManagementService",
+            service = ApplicationCertificateManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationCertificateManagementService"
+    )
+    protected void setApplicationCertificateManagementService(ApplicationCertificateManagementService
+                                                                    applicationCertificateManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setApplicationCertificateMgtService(applicationCertificateManagementService);
+        log.debug("ApplicationCertificateManagementService set in ApplicationManagementServiceComponent bundle.");
+    }
+
+    protected void unsetApplicationCertificateManagementService(ApplicationCertificateManagementService
+                                                                      applicationCertificateManagementService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setApplicationCertificateMgtService(null);
+        log.debug("ApplicationCertificateManagementService unset in ApplicationManagementServiceComponent bundle.");
     }
 }
