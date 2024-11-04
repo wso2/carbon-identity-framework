@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.ConnectorConfig;
@@ -1427,6 +1428,9 @@ public class IdPManagementDAO {
             prepStmt1.setString(4, authnConfig.getName());
             prepStmt1.setString(5, authnConfig.getDisplayName());
             prepStmt1.setString(6, authnConfig.getDefinedByType().toString());
+            /* Federated authenticators are always intended to authenticate externally managed users and share user
+            identity and attributes. Therefore, always will be the 'IDENTIFICATION' type. */
+            prepStmt1.setString(7, AuthenticationType.IDENTIFICATION.toString());
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
