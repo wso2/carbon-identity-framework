@@ -625,7 +625,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         Authentication updatingAuthentication = updatingEndpoint.getAuthentication();
         if (updatingAuthentication == null) {
-            // When updating action update the URI only.
+            // When updating action, updates the URI only.
             updateActionEndpointProperties(actionId, getEndpointProperties(updatingEndpoint.getUri(), null,
                     null), tenantId);
             return;
@@ -633,7 +633,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         Authentication existingAuthentication = existingAction.getEndpoint().getAuthentication();
         if (updatingAuthentication.getType().equals(existingAuthentication.getType())) {
-            // When updating action update the URI and the authentication properties only.
+            // When updating action, updates the URI and the authentication properties only.
             if (updatingEndpoint.getUri() != null) {
                 updateActionEndpointProperties(actionId, getEndpointProperties(updatingEndpoint.getUri(), null,
                         null), tenantId);
@@ -642,7 +642,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return;
         }
 
-        // When updating action update the entire endpoint.
+        // When updating action, updates the entire endpoint.
         updatingEndpoint = StringUtils.isNotEmpty(updatingEndpoint.getUri()) ? updatingEndpoint :
                 new EndpointConfig.EndpointConfigBuilder()
                         .uri(existingAction.getEndpoint().getUri())
