@@ -39,7 +39,7 @@ public class ClaimConstants {
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
-    public static final String EXCLUDED_USER_STORE_DOMAINS_PROPERTY = "ExcludedUserStoreDomains";
+    public static final String EXCLUDED_USER_STORES_PROPERTY = "ExcludedUserStores";
     public static final String MIN_LENGTH = "minLength";
     public static final String MAX_LENGTH = "maxLength";
 
