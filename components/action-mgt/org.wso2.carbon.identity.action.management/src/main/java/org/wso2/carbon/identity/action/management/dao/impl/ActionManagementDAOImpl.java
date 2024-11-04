@@ -38,7 +38,7 @@ import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,36 +101,25 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     @Override
     public List<Action> getActionsByActionType(String actionType, Integer tenantId) throws ActionMgtException {
 
-        List<Action> actions = new ArrayList<>();
-        Map<String, Action.ActionResponseBuilder> actionBuilderMap = new HashMap<>();
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTIONS_BASIC_INFO_BY_ACTION_TYPE,
-                (resultSet, rowNumber) -> {
-                    String actionId = resultSet.getString(ActionMgtSQLConstants.Column.ACTION_UUID);
-                    Action.ActionResponseBuilder builder = new Action.ActionResponseBuilder()
-                            .id(actionId)
-                            .type(Action.ActionTypes
-                                    .valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
-                            .name(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
-                            .description(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
-                            .status(Action.Status
-                                .valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)));
-
-                    actionBuilderMap.put(actionId, builder);
-                    return null;
-                }, statement -> {
+            return jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTIONS_BASIC_INFO_BY_ACTION_TYPE,
+                (resultSet, rowNumber) -> new Action.ActionResponseBuilder()
+                        .id(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_UUID))
+                        .type(Action.ActionTypes
+                                .valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
+                        .name(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
+                        .description(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
+                        .status(Action.Status
+                                .valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
+                        .endpoint(getActionEndpointConfigById(
+                                resultSet.getString(ActionMgtSQLConstants.Column.ACTION_UUID), tenantId))
+                        .build(),
+                statement -> {
                     statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
                     statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                 });
-
-            for (Map.Entry<String, Action.ActionResponseBuilder> entry : actionBuilderMap.entrySet()) {
-                EndpointConfig endpoint = getActionEndpointConfigById(entry.getKey(), tenantId);
-                actions.add(entry.getValue().endpoint(endpoint).build());
-            }
-
-            return actions;
-        } catch (ActionMgtException | DataAccessException e) {
+        } catch (DataAccessException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
         }
@@ -241,7 +230,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             }
 
             return action;
-        } catch (ActionMgtException e) {
+        } catch (ActionMgtException | SQLException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
         }
@@ -418,9 +407,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param actionUUID   UUID of the created Action.
      * @param tenantId     Tenant ID.
      * @return Endpoint Configuration.
-     * @throws ActionMgtServerException If an error occurs while retrieving endpoint properties from the database.
+     * @throws SQLException If an error occurs while retrieving endpoint properties from the database.
      */
-    private EndpointConfig getActionEndpointConfigById(String actionUUID, Integer tenantId) throws ActionMgtException {
+    private EndpointConfig getActionEndpointConfigById(String actionUUID, Integer tenantId) throws SQLException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
@@ -471,9 +460,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return new EndpointConfig.EndpointConfigBuilder()
                     .uri(actionEndpointProperties.get(ActionMgtConstants.URI_ATTRIBUTE))
                     .authentication(authentication).build();
-        } catch (DataAccessException e) {
-            throw ActionManagementUtil.handleServerException(
-                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_ENDPOINT_PROPERTIES, e);
+        } catch (ActionMgtServerException | DataAccessException e) {
+            throw new SQLException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_ENDPOINT_PROPERTIES.getMessage(), e);
         }
     }
 
