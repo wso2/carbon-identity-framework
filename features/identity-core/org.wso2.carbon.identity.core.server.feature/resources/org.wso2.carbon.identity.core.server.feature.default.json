@@ -1637,6 +1637,7 @@
   "tenant_mgt.enable_email_domain": false,
 
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
+  "on_demand_config.on_initial_use.enable_sms_username_recovery_if_connector_enabled": false,
 
   "actions.http_client.connection_timeout": 2000,
   "actions.http_client.read_timeout": 5000,

@@ -2676,6 +2676,7 @@
     <OnDemandConfig>
         <OnInitialUse>
             <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>false</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+            <EnableSMSUsernameRecoveryIfConnectorEnabled>false</EnableSMSUsernameRecoveryIfConnectorEnabled>
         </OnInitialUse>
     </OnDemandConfig>
 </Server>

@@ -125,6 +125,8 @@ public class IdPManagementDAO {
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
             = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
+    private static final String ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED
+            = "OnDemandConfig.OnInitialUse.EnableSMSUsernameRecoveryIfConnectorEnabled";
 
     /**
      * @param dbConnection
@@ -999,6 +1001,10 @@ public class IdPManagementDAO {
         boolean isEmailLinkNotificationPasswordRecoveryEnabled = false;
         boolean isSmsOtpNotificationPasswordRecoveryEnabled = false;
 
+        boolean isUsernameRecoveryEnabled = false;
+        boolean isEmailUsernameRecoveryEnabled = false;
+        boolean isSmsUsernameRecoveryEnabled = false;
+
         try {
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
                     IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
@@ -1020,6 +1026,15 @@ public class IdPManagementDAO {
                     isSmsOtpNotificationPasswordRecoveryEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
+                if (IdPManagementConstants.USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isEmailUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isSmsUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
@@ -1028,6 +1043,10 @@ public class IdPManagementDAO {
             if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled
                     && !isSmsOtpNotificationPasswordRecoveryEnabled) {
                 performConfigCorrectionForPasswordRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
+            }
+            // If username recovery configs are inconsistent, correct the configurations.
+            if (isUsernameRecoveryEnabled && !isEmailUsernameRecoveryEnabled && !isSmsUsernameRecoveryEnabled) {
+                performConfigCorrectionForUsernameRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
             }
         } catch (DataAccessException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
@@ -6050,6 +6069,37 @@ public class IdPManagementDAO {
                                 IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                                 identityProviderProperty.setName(
                                         IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
+                                identityProviderProperty.setValue("true");
+                                idpProperties.add(identityProviderProperty);
+                            });
+        }
+        updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
+    }
+
+    private void performConfigCorrectionForUsernameRecoveryConfigs(Connection dbConnection, int tenantId, int idpId,
+                                                                   List<IdentityProviderProperty> idpProperties) throws SQLException {
+        // Enable all recovery options when Recovery.Notification.Password.Enable value is set as enabled.
+        // This keeps functionality consistent with previous API versions for migrating customers.
+        idpProperties.stream().filter(
+                        idp -> IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                .ifPresentOrElse(
+                        emailLinkProperty -> emailLinkProperty.setValue(String.valueOf(true)),
+                        () -> {
+                            IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                            identityProviderProperty.setName(
+                                    IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY);
+                            identityProviderProperty.setValue("true");
+                            idpProperties.add(identityProviderProperty);
+                        });
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED))) {
+            idpProperties.stream().filter(
+                            idp -> IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                    .ifPresentOrElse(
+                            smsOtpProperty -> smsOtpProperty.setValue(String.valueOf(true)),
+                            () -> {
+                                IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                                identityProviderProperty.setName(
+                                        IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY);
                                 identityProviderProperty.setValue("true");
                                 idpProperties.add(identityProviderProperty);
                             });
