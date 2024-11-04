@@ -352,7 +352,8 @@ public class IdPManagementUtil {
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Disabling all recovery options when recovery connector is enabled, is not allowed.");
 
-            } if (StringUtils.isNotBlank(usernameRecoveryProp) && !usernameRecoveryProperty &&
+            }
+            if (StringUtils.isNotBlank(usernameRecoveryProp) && !usernameRecoveryProperty &&
                     (usernameRecoveryEmailProperty || usernameRecoverySmsProperty)) {
                 // Enabling any recovery options when connector is disabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
