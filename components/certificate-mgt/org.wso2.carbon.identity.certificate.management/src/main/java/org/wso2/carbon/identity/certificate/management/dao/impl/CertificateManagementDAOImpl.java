@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtEr
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtSQLConstants;
 import org.wso2.carbon.identity.certificate.management.dao.CertificateManagementDAO;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtRuntimeException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.util.CertificateMgtExceptionHandler;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -85,7 +86,8 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                     preparedStatement.setInt(2, tenantId);
                 }
             );
-        } catch (DataAccessException e) {
+        } catch (CertificateMgtRuntimeException | DataAccessException e) {
+            // Handling CertificateMgtRuntimeException since it is caused by an underlying IOException.
             CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE,
                     e, certificateId);
         }
@@ -165,6 +167,7 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 sb.append(line);
             }
         } catch (IOException e) {
+            // Throwing a runtime exception because NamedQueryFilter does not handle IOExceptions.
             CertificateMgtExceptionHandler.throwRuntimeException("Error while reading the InputStream", e);
         }
 
