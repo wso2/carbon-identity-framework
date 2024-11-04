@@ -36,8 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This class is the implementation of the Application Certificate Management DAO.
@@ -78,30 +76,21 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
     public Certificate getCertificate(int certificateId, int tenantId) throws CertificateMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        Map<String, Object> attributeMap = new HashMap<>();
         Certificate certificate = null;
         try {
-            jdbcTemplate.fetchSingleRecord(ApplicationCertificateMgtSQLQueries.GET_CERTIFICATE_BY_ID,
-                (resultSet, rowNumber) -> {
-                    attributeMap.put(CertificateMgtSQLConstants.Column.NAME,
-                            resultSet.getString(CertificateMgtSQLConstants.Column.NAME));
-                    attributeMap.put(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM,
-                            resultSet.getBinaryStream(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM));
-                    return null;
-                }, preparedStatement -> {
+            certificate = jdbcTemplate.fetchSingleRecord(ApplicationCertificateMgtSQLQueries.GET_CERTIFICATE_BY_ID,
+                (resultSet, rowNumber) -> new Certificate.Builder()
+                        .id(String.valueOf(certificateId))
+                        .name(resultSet.getString(CertificateMgtSQLConstants.Column.NAME))
+                        .certificateContent(getStringValueFromBlob(resultSet.getBinaryStream(
+                                CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
+                        .build(),
+                preparedStatement -> {
                     preparedStatement.setInt(1, certificateId);
                     preparedStatement.setInt(2, tenantId);
                 }
             );
-            if (!attributeMap.isEmpty()) {
-                certificate = new Certificate.Builder()
-                        .id(String.valueOf(certificateId))
-                        .name((String) attributeMap.get(CertificateMgtSQLConstants.Column.NAME))
-                        .certificateContent(getStringValueFromBlob((InputStream)
-                                attributeMap.get(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
-                        .build();
-            }
-        } catch (DataAccessException | IOException e) {
+        } catch (DataAccessException e) {
             CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE,
                     e, String.valueOf(certificateId));
         }
@@ -113,30 +102,21 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
     public Certificate getCertificateByName(String certificateName, int tenantId) throws CertificateMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        Map<String, Object> attributeMap = new HashMap<>();
         Certificate certificate = null;
         try {
-            jdbcTemplate.fetchSingleRecord(ApplicationCertificateMgtSQLQueries.GET_CERTIFICATE_BY_NAME,
-                (resultSet, rowNumber) -> {
-                    attributeMap.put(CertificateMgtSQLConstants.Column.ID,
-                            resultSet.getString(CertificateMgtSQLConstants.Column.ID));
-                    attributeMap.put(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM,
-                            resultSet.getBinaryStream(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM));
-                    return null;
-                }, preparedStatement -> {
+            certificate = jdbcTemplate.fetchSingleRecord(ApplicationCertificateMgtSQLQueries.GET_CERTIFICATE_BY_NAME,
+                (resultSet, rowNumber) -> new Certificate.Builder()
+                        .id(resultSet.getString(CertificateMgtSQLConstants.Column.ID))
+                        .name(certificateName)
+                        .certificateContent(getStringValueFromBlob(resultSet.getBinaryStream(
+                                CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
+                        .build()
+                , preparedStatement -> {
                     preparedStatement.setString(1, certificateName);
                     preparedStatement.setInt(2, tenantId);
                 }
             );
-            if (!attributeMap.isEmpty()) {
-                certificate = new Certificate.Builder()
-                        .id(String.valueOf(attributeMap.get(CertificateMgtSQLConstants.Column.ID)))
-                        .name(certificateName)
-                        .certificateContent(getStringValueFromBlob((InputStream)
-                                attributeMap.get(CertificateMgtSQLConstants.Column.CERTIFICATE_IN_PEM)))
-                        .build();
-            }
-        } catch (DataAccessException | IOException e) {
+        } catch (DataAccessException e) {
             CertificateMgtExceptionHandler.throwServerException(
                     CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE_BY_NAME, e, certificateName);
         }
@@ -204,9 +184,8 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
      *
      * @param stream InputStream containing blob data.
      * @return String content of the blob, or null if the input stream is null.
-     * @throws IOException If an I/O error occurs while reading the stream.
      */
-    private String getStringValueFromBlob(InputStream stream) throws IOException {
+    private String getStringValueFromBlob(InputStream stream) {
 
         if (stream == null) {
             return null;
@@ -218,6 +197,8 @@ public class ApplicationCertificateManagementDAOImpl implements ApplicationCerti
             while ((line = br.readLine()) != null) {
                 sb.append(line);
             }
+        } catch (IOException e) {
+            CertificateMgtExceptionHandler.throwRuntimeException("Error while reading the InputStream", e);
         }
 
         return sb.toString();
