@@ -87,7 +87,10 @@ public class CertificateManagementDAOImpl implements CertificateManagementDAO {
                 }
             );
         } catch (CertificateMgtRuntimeException | DataAccessException e) {
-            // Handling CertificateMgtRuntimeException since it is caused by an underlying IOException.
+            /**
+             * Handling CertificateMgtRuntimeException, which is intentionally thrown to represent an underlying
+             * IOException from the {@link #getStringValueFromBlob(InputStream)} method.
+             */
             CertificateMgtExceptionHandler.throwServerException(CertificateMgtErrors.ERROR_WHILE_RETRIEVING_CERTIFICATE,
                     e, certificateId);
         }
