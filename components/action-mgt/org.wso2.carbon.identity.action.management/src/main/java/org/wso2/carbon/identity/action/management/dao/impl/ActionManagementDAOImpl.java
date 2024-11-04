@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtRuntimeException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
@@ -38,7 +39,6 @@ import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +119,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
                     statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                 });
-        } catch (DataAccessException e) {
+        } catch (ActionMgtRuntimeException | DataAccessException e) {
+            /**
+             * Handling {@link ActionMgtRuntimeException}, which is intentionally thrown to represent underlying
+             * exceptions from the {@link #getActionEndpointConfigById(String, Integer)} method.
+             */
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
         }
@@ -230,7 +234,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             }
 
             return action;
-        } catch (ActionMgtException | SQLException e) {
+        } catch (ActionMgtException | ActionMgtRuntimeException e) {
+            /**
+             * Handling {@link ActionMgtRuntimeException}, which is intentionally thrown to represent underlying
+             * exceptions from the {@link #getActionEndpointConfigById(String, Integer)} method.
+             */
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
         }
@@ -407,9 +415,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param actionUUID   UUID of the created Action.
      * @param tenantId     Tenant ID.
      * @return Endpoint Configuration.
-     * @throws SQLException If an error occurs while retrieving endpoint properties from the database.
+     * @throws ActionMgtRuntimeException If an error occurs while retrieving endpoint properties from the database.
      */
-    private EndpointConfig getActionEndpointConfigById(String actionUUID, Integer tenantId) throws SQLException {
+    private EndpointConfig getActionEndpointConfigById(String actionUUID, Integer tenantId)
+            throws ActionMgtRuntimeException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
@@ -452,16 +461,21 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         break;
                 }
             } else {
-                ActionMgtConstants.ErrorMessages error =
-                        ActionMgtConstants.ErrorMessages.ERROR_NO_AUTHENTICATION_TYPE;
-                throw new ActionMgtServerException(error.getMessage(), error.getDescription(), error.getCode());
+                throw ActionManagementUtil.handleServerException(
+                        ActionMgtConstants.ErrorMessages.ERROR_NO_AUTHENTICATION_TYPE, null);
             }
 
             return new EndpointConfig.EndpointConfigBuilder()
                     .uri(actionEndpointProperties.get(ActionMgtConstants.URI_ATTRIBUTE))
                     .authentication(authentication).build();
         } catch (ActionMgtServerException | DataAccessException e) {
-            throw new SQLException(
+            /**
+             * Throwing a runtime exception because {@link ActionMgtServerException} and {@link DataAccessException}
+             * is not handled in {@link org.wso2.carbon.database.utils.jdbc.RowMapper} of
+             * {@link NamedJdbcTemplate#executeQuery(String, org.wso2.carbon.database.utils.jdbc.RowMapper,
+             * org.wso2.carbon.database.utils.jdbc.NamedQueryFilter)}
+             */
+            throw ActionManagementUtil.handleRuntimeException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_ENDPOINT_PROPERTIES.getMessage(), e);
         }
     }

@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management;
 
-import org.apache.commons.dbcp.BasicDataSource;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -40,7 +39,6 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,9 +62,7 @@ public class ActionManagementServiceImplTest {
     private String tenantDomain;
     private ActionManagementService serviceImpl;
     private Map<String, String> secretProperties;
-    private static final String DB_NAME = "action_mgt";
     private static final String ACCESS_TOKEN = "6e47f1f7-bd29-41e9-b5dc-e9dd70ac22b7";
-    private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private static final String PRE_ISSUE_ACCESS_TOKEN = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam();
 
     @BeforeClass

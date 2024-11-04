@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management.dao;
 
-import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
@@ -33,13 +32,11 @@ import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,10 +56,7 @@ import static org.mockito.Mockito.when;
 public class ActionManagementDAOImplTest {
 
     private ActionManagementDAOImpl daoImpl;
-    private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
-    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    private static final String DB_NAME = "action_mgt_dao";
     private static final String PRE_ISSUE_ACCESS_TOKEN = "PRE_ISSUE_ACCESS_TOKEN";
     private static final int TENANT_ID = 2;
     private Action action;
