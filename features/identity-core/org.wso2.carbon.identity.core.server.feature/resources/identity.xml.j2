@@ -2384,8 +2384,7 @@
         by setting analytics.publish_active_session_count = true -->
         {% if analytics.publish_active_session_count is defined %}
         <PublishActiveSessionCount>{{analytics.publish_active_session_count}}</PublishActiveSessionCount>
-        {% endif %}
-        {% if analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
+        {% elif analytics.elk.enable is defined && analytics.elk.enable is sameas true %}
         <PublishActiveSessionCount>true</PublishActiveSessionCount>
         {% endif %}
     </Analytics>
