@@ -37,7 +37,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.E
  */
 public class AuthenticatorEndpointConfigurationManager {
 
-    private final String ACTION_ID_PROPERTY = "actionId";
+    private static final String ACTION_ID_PROPERTY = "actionId";
 
     /**
      * Create a new action for given endpoint configurations of the user defined authenticator.
@@ -163,7 +163,7 @@ public class AuthenticatorEndpointConfigurationManager {
         }
 
         return new UserDefinedFederatedAuthenticatorConfig(
-                AuthenticatorPropertyConstants.AuthenticationType.Identification);
+                AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION);
     }
 
     private Action buildActionToCreate(String authenticatorName, EndpointConfig endpointConfig) {
@@ -191,6 +191,6 @@ public class AuthenticatorEndpointConfigurationManager {
                 return property.getValue();
             }
         }
-        throw new IdentityProviderManagementServerException(String.format("No action id found from the property."));
+        throw new IdentityProviderManagementServerException("No action id found from the property.");
     }
 }

@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.Authenticati
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 /**
- * Verification authenticator configuration.
+ * The user defined federated authenticator configuration model.
  */
 public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
 
@@ -43,7 +43,7 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
     }
 
     /**
-     * Get the endpoint config of the Local authenticator config.
+     * Get the endpoint config of the User defined federated authenticator config.
      *
      * @return DefinedByType
      */
@@ -53,9 +53,9 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
     }
 
     /**
-     * Set the defined by type of the Local authenticator config.
+     * Set the defined by type of the User defined federated authenticator config.
      *
-     * @param endpointConfig    The endpoint config of the local authenticator config.
+     * @param endpointConfig    The endpoint config of the User defined federated authenticator config.
      */
     public void setEndpointConfig(EndpointConfig endpointConfig) {
 

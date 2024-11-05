@@ -58,6 +58,7 @@ public class IdpMgtServiceComponentHolder {
     private ClaimMetadataManagementService claimMetadataManagementService;
     private SecretManager secretManager;
     private SecretResolveManager  secretResolveManager;
+    private ActionManagementService actionManagementService;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -190,11 +191,21 @@ public class IdpMgtServiceComponentHolder {
         this.claimMetadataManagementService = claimMetadataManagementService;
     }
 
+    /**
+     * Get the Action Management Service.
+     *
+     * @return ActionManagementService instance.
+     */
     public ActionManagementService getActionManagementService() {
 
         return actionManagementService;
     }
 
+    /**
+     * Set the Action Management Service.
+     *
+     * @param actionManagementService ActionManagementService instance.
+     */
     public void setActionManagementService(ActionManagementService actionManagementService) {
 
         this.actionManagementService = actionManagementService;
