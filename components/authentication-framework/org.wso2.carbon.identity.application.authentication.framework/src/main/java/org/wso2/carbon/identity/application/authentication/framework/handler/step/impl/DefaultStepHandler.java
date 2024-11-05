@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
@@ -67,9 +68,12 @@ import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.IOException;
@@ -755,6 +759,28 @@ public class DefaultStepHandler implements StepHandler {
                 context.getSubject().setUserResidentOrganization(userResidentOrganization);
                 // Set the accessing org as the user resident org. The accessing org will be changed when org switching.
                 context.getSubject().setAccessingOrganization(userResidentOrganization);
+                int tenantId = IdentityTenantUtil.getTenantId(userResidentOrganization);
+
+                try {
+                    AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) FrameworkServiceDataHolder
+                            .getInstance().getRealmService().getTenantUserRealm(tenantId)
+                            .getUserStoreManager();
+                    Map<String, String> claimsMap;
+                    claimsMap = userStoreManager
+                            .getUserClaimValuesWithID(context.getSubject().getAuthenticatedSubjectIdentifier(),
+                                    new String[]{"http://wso2.org/claims/identity/managedOrg"}, null);
+                    String managedOrgValue = claimsMap.get("http://wso2.org/claims/identity/managedOrg");
+                    if (managedOrgValue != null) {
+                        context.getSubject().setUserResidentOrganization(managedOrgValue);
+                        String residentUserId =
+                                FrameworkServiceDataHolder.getInstance().getOrganizationManager().getAssociatedUserId(
+                                        context.getSubject().getAuthenticatedSubjectIdentifier(),
+                                        userResidentOrganization);
+                        context.getSubject().setAuthenticatedSubjectIdentifier(residentUserId);
+                    }
+                } catch (UserStoreException | OrganizationManagementException e) {
+                    LOG.error("Error while resolving the original user id for shared user.", e);
+                }
             }
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
