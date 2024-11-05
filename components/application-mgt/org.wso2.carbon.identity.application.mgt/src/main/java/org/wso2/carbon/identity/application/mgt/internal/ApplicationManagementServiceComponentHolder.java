@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
+import org.wso2.carbon.identity.certificate.management.service.ApplicationCertificateManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -78,6 +79,8 @@ public class ApplicationManagementServiceComponentHolder {
 
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
+
+    private ApplicationCertificateManagementService applicationCertificateMgtService;
 
     private ApplicationManagementServiceComponentHolder() {
 
@@ -417,5 +420,24 @@ public class ApplicationManagementServiceComponentHolder {
     public List<ApplicationInboundAuthConfigHandler> getApplicationInboundAuthConfigHandler() {
         
         return applicationInboundAuthConfigHandlers;
+    }
+
+    /**
+     * Gets the ApplicationCertificateManagementService instance.
+     * @return The ApplicationCertificateManagementService instance.
+     */
+    public ApplicationCertificateManagementService getApplicationCertificateMgtService() {
+
+        return applicationCertificateMgtService;
+    }
+
+    /**
+     * Sets the ApplicationCertificateManagementService instance.
+     * @param applicationCertificateMgtService The ApplicationCertificateManagementService instance to be set.
+     */
+    public void setApplicationCertificateMgtService(
+            ApplicationCertificateManagementService applicationCertificateMgtService) {
+
+        this.applicationCertificateMgtService = applicationCertificateMgtService;
     }
 }

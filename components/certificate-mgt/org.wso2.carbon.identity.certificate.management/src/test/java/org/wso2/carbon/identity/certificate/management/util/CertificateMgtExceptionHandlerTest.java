@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtRuntimeException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtServerException;
 
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -78,6 +79,27 @@ public class CertificateMgtExceptionHandlerTest {
             Assert.assertEquals(e.getMessage(), error.getMessage());
             Assert.assertEquals(e.getDescription(), String.format(error.getDescription(), data));
             Assert.assertEquals(e.getErrorCode(), error.getCode());
+            return;
+        }
+        Assert.fail();
+    }
+
+    @DataProvider
+    public Object[][] certificateMgtRuntimeExceptionDataProvider() {
+
+        return new Object[][]{
+                {"Error while reading the InputStream", new Throwable()}
+        };
+    }
+
+    @Test(dataProvider = "certificateMgtRuntimeExceptionDataProvider")
+    public void testThrowRuntimeException(String errorMessage, Throwable throwable) {
+
+        try {
+            CertificateMgtExceptionHandler.throwRuntimeException(errorMessage, throwable);
+        } catch (CertificateMgtRuntimeException e) {
+            Assert.assertEquals(e.getMessage(), errorMessage);
+            Assert.assertEquals(e.getCause(), throwable);
             return;
         }
         Assert.fail();

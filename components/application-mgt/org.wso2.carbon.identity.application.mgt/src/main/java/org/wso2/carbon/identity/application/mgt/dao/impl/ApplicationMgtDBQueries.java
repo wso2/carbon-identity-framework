@@ -46,8 +46,16 @@ public class ApplicationMgtDBQueries {
     public static final String UPDATE_BASIC_APPINFO_WITH_LOCAL_AND_OUTBOUND_CONFIGURATION = "UPDATE SP_APP SET " +
             "IS_SEND_AUTH_LIST_OF_IDPS=?, IS_USE_TENANT_DOMAIN_SUBJECT=?, IS_USE_USER_DOMAIN_SUBJECT=?, " +
             "ENABLE_AUTHORIZATION=?, SUBJECT_CLAIM_URI=?, AUTH_TYPE=? WHERE TENANT_ID= ? AND ID = ?";
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String UPDATE_CERTIFICATE = "UPDATE IDN_CERTIFICATE SET CERTIFICATE_IN_PEM = ? WHERE " +
             "ID = ?";
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String ADD_CERTIFICATE = "INSERT INTO IDN_CERTIFICATE(NAME, CERTIFICATE_IN_PEM, TENANT_ID) " +
             "VALUES(?, ?, ?)";
     public static final String UPDATE_BASIC_APPINFO_WITH_PRO_PROPERTIES = "UPDATE SP_APP SET PROVISIONING_USERSTORE_" +
@@ -98,6 +106,9 @@ public class ApplicationMgtDBQueries {
             "AND SP_APP.APP_NAME != ? %s AND (%s)";
     public static final String LOAD_APP_BY_TENANT_AND_NAME = "SELECT ID, APP_NAME, VERSION, DESCRIPTION, UUID, " +
             "IMAGE_URL, ACCESS_URL, IS_DISCOVERABLE, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE " +
+            "TENANT_ID = :TENANT_ID; AND APP_NAME = :APP_NAME;";
+
+    public static final String GET_APP_UUID_BY_TENANT_AND_NAME = "SELECT UUID FROM SP_APP WHERE " +
             "TENANT_ID = :TENANT_ID; AND APP_NAME = :APP_NAME;";
 
     // Load application basic information for listing with pagination
@@ -297,8 +308,8 @@ public class ApplicationMgtDBQueries {
             " B.DEFINED_BY FROM IDP A JOIN IDP_AUTHENTICATOR B ON A.ID = B.IDP_ID WHERE B.ID =? AND ((A.TENANT_ID =?" +
             " AND B.TENANT_ID =?) OR  (A.TENANT_ID=? AND A.NAME LIKE 'SHARED_%' AND B.TENANT_ID=?))";
     public static final String STORE_LOCAL_AUTHENTICATOR = "INSERT INTO IDP_AUTHENTICATOR (TENANT_ID, IDP_ID, NAME," +
-            "IS_ENABLED, DISPLAY_NAME, DEFINED_BY) VALUES " +
-            "(?, (SELECT ID FROM IDP WHERE IDP.NAME=? AND IDP.TENANT_ID =?), ?, ?, ?, ?)";
+            "IS_ENABLED, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) VALUES " +
+            "(?, (SELECT ID FROM IDP WHERE IDP.NAME=? AND IDP.TENANT_ID =?), ?, ?, ?, ?, ?)";
 
     public static final String GET_SP_METADATA_BY_SP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM SP_METADATA " +
             "WHERE SP_ID = ?";
@@ -322,11 +333,31 @@ public class ApplicationMgtDBQueries {
 
     public static final String DELETE_SP_METADATA = "DELETE FROM SP_METADATA WHERE SP_ID = ?";
 
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String GET_CERTIFICATE_BY_ID = "SELECT CERTIFICATE_IN_PEM FROM IDN_CERTIFICATE WHERE ID = ?";
 
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String GET_CERTIFICATE_ID_BY_NAME = "SELECT ID FROM IDN_CERTIFICATE WHERE NAME = ? AND " +
             "TENANT_ID = ?";
+    /**
+     * @deprecated Use ApplicationCertificateMgtService instead.
+     */
+    @Deprecated
     public static final String REMOVE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE ID = ?";
+    /**
+     * This query was previously used to delete all certificates associated with a tenant as part of tenant deletion.
+     * However, there is no product entry point for invoking this method directly. Since tenant deletion is managed
+     * as an administrative process, it is now recommended to handle certificate removal for a tenant through such
+     * process.
+     * @deprecated
+     */
+    @Deprecated
     public static final String REMOVE_CERTIFICATES_BY_TENANT_ID = "DELETE FROM IDN_CERTIFICATE WHERE TENANT_ID = ?";
     public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MYSQL = "SELECT ID FROM IDN_CERTIFICATE " +
             "LIMIT 1";
