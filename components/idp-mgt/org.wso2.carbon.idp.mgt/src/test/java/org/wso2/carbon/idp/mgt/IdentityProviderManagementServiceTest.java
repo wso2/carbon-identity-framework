@@ -54,11 +54,14 @@ import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -70,8 +73,10 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -106,6 +111,13 @@ public class IdentityProviderManagementServiceTest {
         cryptoUtil = mockStatic(CryptoUtil.class);
         CryptoUtil mockCryptoUtil = mock(CryptoUtil.class);
         cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
+
+        CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
+        IdentityProviderManager identityProviderManager = mock(IdentityProviderManager.class);
+        identityProviderManagementService = new IdentityProviderManagementService();
+        Field field = IdentityProviderManager.class.getDeclaredField("dao");
+        field.setAccessible(true);
+        field.set(identityProviderManager, dao);
     }
 
     @AfterClass
@@ -117,7 +129,6 @@ public class IdentityProviderManagementServiceTest {
     public void setUp() throws Exception {
 
         mockMetadataConverter = mock(MetadataConverter.class);
-        identityProviderManagementService = new IdentityProviderManagementService();
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
         IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
     }
