@@ -18,11 +18,8 @@
 
 package org.wso2.carbon.identity.action.management;
 
-import org.apache.commons.dbcp.BasicDataSource;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -33,29 +30,21 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.common.testng.WithAxisConfiguration;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
-import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -63,10 +52,8 @@ import static org.mockito.Mockito.when;
  * It contains unit tests to verify the functionality of the methods
  * in the ActionManagementServiceImpl class.
  */
-@WithAxisConfiguration
 @WithCarbonHome
 @WithH2Database(files = {"dbscripts/h2.sql"})
-@WithRegistry
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
 public class ActionManagementServiceImplTest {
 
@@ -75,41 +62,24 @@ public class ActionManagementServiceImplTest {
     private String tenantDomain;
     private ActionManagementService serviceImpl;
     private Map<String, String> secretProperties;
-    private static final String DB_NAME = "action_mgt";
     private static final String ACCESS_TOKEN = "6e47f1f7-bd29-41e9-b5dc-e9dd70ac22b7";
-    private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private static final String PRE_ISSUE_ACCESS_TOKEN = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam();
 
     @BeforeClass
-    public void setUpClass() throws Exception {
+    public void setUpClass() {
 
         serviceImpl = ActionManagementServiceImpl.getInstance();
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        initiateH2Database(getFilePath());
     }
 
     @BeforeMethod
     public void setUp() throws SecretManagementException {
 
-        identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
         SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
         SecretType secretType = mock(SecretType.class);
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
         when(secretType.getId()).thenReturn("secretId");
         when(secretManager.getSecretType(any())).thenReturn(secretType);
-        mockDBConnection();
-    }
-
-    @AfterMethod
-    public void tearDown() {
-
-        identityDatabaseUtil.close();
-    }
-
-    @AfterClass
-    public void wrapUp() throws Exception {
-
-        closeH2Database();
     }
 
     @Test(priority = 1)
@@ -395,48 +365,5 @@ public class ActionManagementServiceImplTest {
                 .description(description)
                 .endpoint(buildMockEndpointConfig(uri, authentication))
                 .build();
-    }
-
-    private void mockDBConnection() {
-
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
-                .thenAnswer(invocation -> getConnection());
-    }
-
-    private Connection getConnection() throws Exception {
-
-        if (dataSourceMap.get(DB_NAME) != null) {
-            return dataSourceMap.get(DB_NAME).getConnection();
-        }
-        throw new RuntimeException("Invalid datasource.");
-    }
-
-    private void initiateH2Database(String scriptPath) throws Exception {
-
-        BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUsername("username");
-        dataSource.setPassword("password");
-        dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME);
-        dataSource.setTestOnBorrow(true);
-        dataSource.setValidationQuery("select 1");
-        try (Connection connection = dataSource.getConnection()) {
-            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + scriptPath + "'");
-        }
-        dataSourceMap.put(DB_NAME, dataSource);
-    }
-
-    private static String getFilePath() {
-
-        return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "h2.sql")
-                .toString();
-    }
-
-    private static void closeH2Database() throws SQLException {
-
-        BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
-        if (dataSource != null) {
-            dataSource.close();
-        }
     }
 }
