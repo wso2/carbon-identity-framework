@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
-import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -45,6 +44,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
     private static final String PROPERTIES = "properties";
     private static final String VALUE = "value";
     private static final String KEY = "key";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
 
     public Map<String, String> getDiscoveryConfiguration(String tenantDomain)
             throws OrganizationDiscoveryConfigDataRetrievalClientException {
@@ -97,6 +97,6 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
-        httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION, CLIENT + authHeader);
+        httpMethod.addHeader(AUTHORIZATION_HEADER, CLIENT + authHeader);
     }
 }
