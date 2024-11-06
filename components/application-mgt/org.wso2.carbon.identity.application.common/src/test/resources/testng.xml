@@ -21,6 +21,7 @@
         <!--<parameter name="log-level" value="debug"/>-->
         <classes>
             <class name="org.wso2.carbon.identity.application.common.model.test.ProvisioningConnectorConfigTest"/>
+            <class name="org.wso2.carbon.identity.application.common.model.test.UserDefinedAuthenticatorTest"/>
         </classes>
     </test>
 </suite>
