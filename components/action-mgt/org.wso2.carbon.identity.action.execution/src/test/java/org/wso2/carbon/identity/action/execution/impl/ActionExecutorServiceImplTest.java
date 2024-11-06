@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.execution.model.Organization;
 import org.wso2.carbon.identity.action.execution.model.Param;
 import org.wso2.carbon.identity.action.execution.model.Request;
+import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
@@ -128,7 +129,7 @@ public class ActionExecutorServiceImplTest {
         actionExecutorConfigStatic.close();
     }
 
-    @Test
+    @Test(expectedExceptions = ActionExecutionException.class)
     public void testActionExecuteFailureWhenNoActionsAvailableForActionType() throws Exception {
 
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(Collections.emptyList());
@@ -189,7 +190,7 @@ public class ActionExecutorServiceImplTest {
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
     }
 
-    @Test
+    @Test(expectedExceptions = ActionExecutionException.class)
     public void testActionExecuteFailureAtExceptionFromRequestBuilderForActionType() throws Exception {
 
         // Mock Action and its dependencies
@@ -366,8 +367,7 @@ public class ActionExecutorServiceImplTest {
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
-        ActionExecutionStatus expectedStatus =
-                new ActionExecutionStatus(ActionExecutionStatus.Status.SUCCESS, eventContext);
+        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processSuccessResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -414,8 +414,7 @@ public class ActionExecutorServiceImplTest {
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
-        ActionExecutionStatus expectedStatus =
-                new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processFailureResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -463,8 +462,7 @@ public class ActionExecutorServiceImplTest {
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
-        ActionExecutionStatus expectedStatus =
-                new ActionExecutionStatus(ActionExecutionStatus.Status.ERROR, eventContext);
+        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processErrorResponse(any(), any(), any())).thenReturn(
                 expectedStatus);

@@ -254,8 +254,7 @@ public class APIClient {
             JsonNode rootNode = objectMapper.readTree(jsonResponse);
             String actionStatus = rootNode.path(ACTION_STATUS).asText();
             if (actionStatus.isEmpty()) {
-                throw new ActionInvocationException("Received HTTP response is not compliant with the " +
-                        "defined API contract.");
+                throw new ActionInvocationException("Reading JSON response failed.");
             }
             if (actionStatus.equals(ActionExecutionStatus.Status.SUCCESS.name())) {
                 return objectMapper.readValue(jsonResponse, ActionInvocationSuccessResponse.class);

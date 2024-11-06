@@ -144,7 +144,7 @@ public class APIClientTest {
         assertFalse(apiResponse.isRetry());
         assertNotNull(apiResponse.getErrorLog());
         assertEquals(apiResponse.getErrorLog(),
-                "Unexpected response for status code: 200. Parsing JSON response failed.");
+                "Unexpected response for status code: 200. Reading JSON response failed.");
     }
 
     @Test
@@ -207,7 +207,7 @@ public class APIClientTest {
                 {HttpStatus.SC_BAD_GATEWAY, ContentType.DEFAULT_TEXT.getMimeType(),
                         "", "Failed to execute the action request. Received status code: 502."},
                 {HttpStatus.SC_CONFLICT, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Unexpected response received with status code: 409."}
+                        "", "Failed to execute the action request or maximum retry attempts reached."}
         };
     }
 
