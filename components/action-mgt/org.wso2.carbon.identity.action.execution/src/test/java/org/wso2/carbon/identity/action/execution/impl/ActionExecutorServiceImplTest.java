@@ -474,7 +474,8 @@ public class ActionExecutorServiceImplTest {
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
-        ActionExecutionStatus expectedStatus = new FailedStatus(new Failure("ererer", "werwer"));
+        ActionExecutionStatus expectedStatus = new FailedStatus(new Failure("Error_reason",
+                "Error_description"));
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processFailureResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -484,6 +485,9 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+        assertEquals(((FailedStatus) actualStatus).getResponse().getReason(), "Error_reason");
+        assertEquals(((FailedStatus) actualStatus).getResponse().getDescription(), "Error_description");
+
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
                 actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
@@ -559,7 +563,8 @@ public class ActionExecutorServiceImplTest {
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
-        ActionExecutionStatus expectedStatus = new ErrorStatus(new Error("werwerwe", "werwerwer"));
+        ActionExecutionStatus expectedStatus = new ErrorStatus(new Error("Error_message",
+                "Error_description"));
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processErrorResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -569,6 +574,8 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+        assertEquals(((ErrorStatus) actualStatus).getResponse().getErrorMessage(), "Error_message");
+        assertEquals(((ErrorStatus) actualStatus).getResponse().getErrorDescription(), "Error_description");
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
                 actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
