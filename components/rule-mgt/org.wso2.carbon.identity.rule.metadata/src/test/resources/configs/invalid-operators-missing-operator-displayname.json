@@ -1,0 +1,14 @@
+{
+  "equals": {
+    "name": "equals",
+    "displayName": "equals"
+  },
+  "notEquals": {
+    "name": "notEquals"
+  },
+  "contains": {
+    "name": "contains",
+    "displayName": "contains"
+  }
+}
+

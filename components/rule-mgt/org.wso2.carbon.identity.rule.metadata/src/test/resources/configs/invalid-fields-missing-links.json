@@ -1,0 +1,16 @@
+{
+  "application": {
+    "field": {
+      "displayName": "application"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "reference",
+      "valueReferenceAttribute": "id"
+    }
+  }
+}
