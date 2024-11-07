@@ -18,169 +18,101 @@
 
 package org.wso2.carbon.identity.core.dao;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.CertificateRetriever;
 import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.DatabaseCertificateRetriever;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
-import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.ConfigTuple;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.user.api.Tenant;
-import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.security.cert.X509Certificate;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ID;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.TENANT_UUID;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.TENANT_ID;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ISSUER;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.DEFAULT_ASSERTION_CONSUMER_URL;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ISSUER_CERT_ALIAS;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.NAME_ID_FORMAT;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGNING_ALGORITHM;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.DIGEST_ALGORITHM;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ASSERTION_ENCRYPTION_ALGORITHM;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.KEY_ENCRYPTION_ALGORITHM;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SINGLE_LOGOUT;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SIGN_RESPONSE;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ASSERTION_QUERY_REQUEST_PROFILE;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SAML2_ARTIFACT_BINDING;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_SIGN_ASSERTIONS;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ECP;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ATTRIBUTES_BY_DEFAULT;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_IDP_INIT_SSO;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_IDP_INIT_SLO;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENABLE_ENCRYPTED_ASSERTION;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.VALIDATE_SIGNATURE_IN_REQUESTS;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SAML2_SSO_ID;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ATTR_NAME;
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ATTR_VALUE;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.CERT_ALIAS;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.REQ_SIG_VALIDATION;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGN_RESPONSE;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGN_ASSERTIONS;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGNING_ALGO;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.DIGEST_ALGO;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENCRYPT_ASSERTION;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ASSERTION_ENCRYPTION_ALGO;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.KEY_ENCRYPTION_ALGO;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ATTR_PROFILE_ENABLED;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ATTR_SERVICE_INDEX;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SLO_PROFILE_ENABLED;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SLO_METHOD;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SLO_RESPONSE_URL;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SLO_REQUEST_URL;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.IDP_INIT_SSO_ENABLED;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.IDP_INIT_SLO_ENABLED;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.QUERY_REQUEST_PROFILE_ENABLED;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ECP_ENABLED;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ARTIFACT_BINDING_ENABLED;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ARTIFACT_RESOLVE_REQ_SIG_VALIDATION;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.IDP_ENTITY_ID_ALIAS;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ISSUER_QUALIFIER;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.PROPERTY_NAME;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.PROPERTY_VALUE;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SP_ID;
 
 public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
 
     private static final Log log = LogFactory.getLog(SAMLSSOServiceProviderDAOImpl.class);
     private final int tenantId;
-
-    private final String tenantUUID;
-
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
             "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
-
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 = "SELECT " +
             "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
-    public SAMLSSOServiceProviderDAOImpl(int tenantId) throws IdentityException {
+    public SAMLSSOServiceProviderDAOImpl(int tenantId) {
 
         this.tenantId = tenantId;
-        this.tenantUUID = getTenantUUID(tenantId);
-    }
-
-    private String getTenantUUID(int tenantId) throws IdentityException {
-        // Super tenant does not have a tenant UUID. Therefore, set a hard coded value.
-        if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
-            // Set a hard length of 32 characters for super tenant ID.
-            // This is to avoid the database column length constraint violation.
-            return String.format("%1$-32d", tenantId);
-        }
-        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
-            throw new IdentityException("Invalid tenant id: " + tenantId);
-        }
-        RealmService realmService = IdentityCoreServiceDataHolder.getInstance().getRealmService();
-        try {
-            Tenant tenant = realmService.getTenantManager().getTenant(tenantId);
-            if (tenant != null && StringUtils.isBlank(tenant.getTenantUniqueID())) {
-                return tenant.getTenantUniqueID();
-            }
-            throw new IdentityException("Invalid tenant id: " + tenantId);
-        } catch (UserStoreException e) {
-            throw new IdentityException("Error occurred while getting tenant from tenant id :" + tenantId);
-        }
     }
 
     @Override
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
 
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
-                // Check whether the issuer already exists.
-                if (processIsServiceProviderExists(connection, serviceProviderDO.getIssuer())) {
-                    if (log.isDebugEnabled()) {
-                        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                    + serviceProviderDO.getIssuerQualifier());
-                        } else {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + serviceProviderDO.getIssuer());
-                        }
-                    }
-                    return false;
-                }
-                String configId = UUID.randomUUID().toString();
-                processAddServiceProvider(configId, connection, serviceProviderDO);
-                // Add custom properties.
-                processAddCustomAttributes(configId, connection, serviceProviderDO);
-
-                IdentityDatabaseUtil.commitTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
-                                serviceProviderDO.getIssuerQualifier() + " is added successfully.");
-                    } else {
-                        log.debug(
-                                "SAML2 Service Provider " + serviceProviderDO.getIssuer() + " is added successfully.");
-                    }
-                }
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw e;
+        validateServiceProvider(serviceProviderDO);
+        try {
+            if (processIsServiceProviderExists(serviceProviderDO.getIssuer())) {
+                debugLog(serviceProviderInfo(serviceProviderDO) + " already exists.");
+                return false;
             }
+            NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+            namedJdbcTemplate.withTransaction(template -> {
+                processAddServiceProvider(serviceProviderDO);
+                processAddSPProperties(serviceProviderDO);
+                return null;
+            });
+            debugLog(serviceProviderInfo(serviceProviderDO) + " is added successfully.");
             return true;
-        } catch (SQLException e) {
-            String msg;
-            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                msg = "Error while adding SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
-                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
-                        .getIssuerQualifier();
-            } else {
-                msg = "Error while adding SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
-            }
+        } catch (TransactionException | DataAccessException e) {
+            String msg = "Error while adding " + serviceProviderInfo(serviceProviderDO);
             log.error(msg, e);
             throw new IdentityException(msg, e);
         }
@@ -190,66 +122,26 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer)
             throws IdentityException {
 
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
-
+        validateServiceProvider(serviceProviderDO);
         String newIssuer = serviceProviderDO.getIssuer();
-
         boolean isIssuerUpdated = !StringUtils.equals(currentIssuer, newIssuer);
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            try {
-                // Check if the updated issuer value already exists.
-                if (isIssuerUpdated && processIsServiceProviderExists(connection, newIssuer)) {
-                    if (log.isDebugEnabled()) {
-                        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                    + serviceProviderDO.getIssuerQualifier());
-                        } else {
-                            log.debug("SAML2 Service Provider already exists with the same issuer name "
-                                    + serviceProviderDO.getIssuer());
-                        }
-                    }
-                    return false;
-                }
-                String configId = processGetServiceProviderConfigId(connection, currentIssuer);
-                // Update the resource.
-                processUpdateServiceProvider(connection, serviceProviderDO, configId);
-                // Update custom properties.
-                processUpdateCustomAttributes(connection, serviceProviderDO, configId);
-                IdentityDatabaseUtil.commitTransaction(connection);
-                if (log.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() + " with issuer "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier " +
-                                serviceProviderDO.getIssuerQualifier() + " is updated successfully.");
-                    } else {
-                        log.debug("SAML2 Service Provider " + serviceProviderDO.getIssuer() +
-                                " is updated successfully.");
-                    }
-                }
-                return true;
-            } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw e;
+
+        try {
+            if (isIssuerUpdated && processIsServiceProviderExists(newIssuer)) {
+                debugLog(serviceProviderInfo(serviceProviderDO) + " already exists.");
+                return false;
             }
-        } catch (SQLException e) {
-            String msg;
-            if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                msg = "Error while updating SAML2 Service Provider for issuer: " + getIssuerWithoutQualifier
-                        (serviceProviderDO.getIssuer()) + " and qualifier name " + serviceProviderDO
-                        .getIssuerQualifier();
-            } else {
-                msg = "Error while updating SAML2 Service Provider for issuer: " + serviceProviderDO.getIssuer();
-            }
+            int serviceProviderId = processGetServiceProviderId(currentIssuer);
+            NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+            namedJdbcTemplate.withTransaction(template -> {
+                processUpdateServiceProvider(serviceProviderDO, serviceProviderId);
+                processUpdateSPProperties(serviceProviderDO, serviceProviderId);
+                return null;
+            });
+            debugLog(serviceProviderInfo(serviceProviderDO) + " is updated successfully.");
+            return true;
+        } catch (TransactionException | DataAccessException e) {
+            String msg = "Error while updating " + serviceProviderInfo(serviceProviderDO);
             log.error(msg, e);
             throw new IdentityException(msg, e);
         }
@@ -259,9 +151,9 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
 
         List<SAMLSSOServiceProviderDO> serviceProvidersList;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            serviceProvidersList = processGetServiceProviders(connection);
-        } catch (SQLException e) {
+        try {
+            serviceProvidersList = processGetServiceProviders();
+        } catch (DataAccessException e) {
             log.error("Error reading Service Providers", e);
             throw new IdentityException("Error reading Service Providers", e);
         }
@@ -274,19 +166,15 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         if (issuer == null || StringUtils.isEmpty(issuer.trim())) {
             throw new IllegalArgumentException("Trying to delete issuer \'" + issuer + "\'");
         }
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            if (!processIsServiceProviderExists(connection, issuer)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Service Provider with issuer " + issuer + " does not exist.");
-                }
+        try {
+            if (!processIsServiceProviderExists(issuer)) {
+                debugLog("Service Provider with issuer " + issuer + " does not exist.");
                 return false;
             }
-
-            processDeleteServiceProvider(connection, issuer);
+            processDeleteServiceProvider(issuer);
             return true;
-        } catch (SQLException e) {
-            String msg = "Error removing the service provider from with name: " + issuer;
+        } catch (DataAccessException e) {
+            String msg = "Error removing the service provider with name: " + issuer;
             log.error(msg, e);
             throw new IdentityException(msg, e);
         }
@@ -297,21 +185,21 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         SAMLSSOServiceProviderDO serviceProviderDO = null;
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try {
             if (isServiceProviderExists(issuer)) {
-                serviceProviderDO = processGetServiceProvider(connection, issuer);
+                serviceProviderDO = processGetServiceProvider(issuer);
             }
-        } catch (SQLException e) {
-            throw IdentityException.error(String.format("An error occurred while getting the " +
-                    "application certificate id for validating the requests from the issuer '%s'", issuer), e);
+        } catch (DataAccessException e) {
+            throw IdentityException.error(String.format(
+                            "An error occurred while retrieving the " + "the service provider with the issuer '%s'", issuer),
+                    e);
         }
         if (serviceProviderDO == null) {
             return null;
         }
-
         try {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            // Load the certificate stored in the database, if signature validation is enabled..
+            // Load the certificate stored in the database, if signature validation is enabled.
             if (serviceProviderDO.isDoValidateSignatureInRequests() ||
                     serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
                     serviceProviderDO.isDoEnableEncryptedAssertion()) {
@@ -320,7 +208,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
                 serviceProviderDO.setX509Certificate(getApplicationCertificate(serviceProviderDO, tenant));
             }
             serviceProviderDO.setTenantDomain(tenantDomain);
-        } catch (SQLException | CertificateRetrievingException e) {
+        } catch (DataAccessException | CertificateRetrievingException e) {
             throw IdentityException.error(String.format("An error occurred while getting the " +
                     "application certificate for validating the requests from the issuer '%s'", issuer), e);
         }
@@ -328,282 +216,65 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     }
 
     @Override
-    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
-            throws IdentityException {
-
-        throw new NotImplementedException("This operation is not implemented.");
-
-    }
-
-    @Override
     public boolean isServiceProviderExists(String issuer) throws IdentityException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            return processIsServiceProviderExists(connection, issuer);
-        } catch (SQLException e) {
+        try {
+            return processIsServiceProviderExists(issuer);
+        } catch (DataAccessException e) {
             String msg = "Error while checking existence of Service Provider with issuer: " + issuer;
             log.error(msg, e);
             throw new IdentityException(msg, e);
         }
     }
 
-    // Private methods
+    @Override
+    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
+            throws IdentityException {
 
-    private boolean processIsServiceProviderExists(Connection connection, String issuer) throws SQLException {
-
-        boolean isExist = false;
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIG_ID_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setString(TENANT_UUID, tenantUUID);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    isExist = true;
-                }
-            }
-        }
-        return isExist;
-    }
-
-    private String processGetServiceProviderConfigId(Connection connection, String issuer) throws SQLException {
-
-        String configId = null;
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIG_ID_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setString(TENANT_UUID, tenantUUID);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    configId = resultSet.getString(ID);
-                }
-            }
-        }
-        return configId;
-    }
-
-    private void processAddServiceProvider(String configId, Connection connection,
-                                           SAMLSSOServiceProviderDO serviceProviderDO)
-            throws SQLException {
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    SAMLSSOServiceProviderConstants.SqlQueries.ADD_SAML2_SSO_CONFIG)) {
-            statement.setString(ID, configId);
-            statement.setString(TENANT_UUID, tenantUUID);
-
-            statement.setString(ISSUER, serviceProviderDO.getIssuer());
-            statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
-            statement.setString(ISSUER_CERT_ALIAS, serviceProviderDO.getCertAlias());
-            statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
-            statement.setString(SIGNING_ALGORITHM, serviceProviderDO.getSigningAlgorithmUri());
-            statement.setString(DIGEST_ALGORITHM, serviceProviderDO.getDigestAlgorithmUri());
-            statement.setString(ASSERTION_ENCRYPTION_ALGORITHM, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
-            statement.setString(KEY_ENCRYPTION_ALGORITHM, serviceProviderDO.getKeyEncryptionAlgorithmUri());
-
-            statement.setBoolean(ENABLE_SINGLE_LOGOUT, serviceProviderDO.isDoSingleLogout());
-            statement.setBoolean(ENABLE_SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
-            statement.setBoolean(ENABLE_ASSERTION_QUERY_REQUEST_PROFILE, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
-            statement.setBoolean(ENABLE_SAML2_ARTIFACT_BINDING, serviceProviderDO.isEnableSAML2ArtifactBinding());
-            statement.setBoolean(ENABLE_SIGN_ASSERTIONS, serviceProviderDO.isDoSignAssertions());
-            statement.setBoolean(ENABLE_ECP, serviceProviderDO.isSamlECP());
-            statement.setBoolean(ENABLE_ATTRIBUTES_BY_DEFAULT, serviceProviderDO.isEnableAttributesByDefault());
-            statement.setBoolean(ENABLE_IDP_INIT_SSO, serviceProviderDO.isIdPInitSSOEnabled());
-            statement.setBoolean(ENABLE_IDP_INIT_SLO, serviceProviderDO.isIdPInitSLOEnabled());
-            statement.setBoolean(ENABLE_ENCRYPTED_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
-            statement.setBoolean(VALIDATE_SIGNATURE_IN_REQUESTS, serviceProviderDO.isDoValidateSignatureInRequests());
-            statement.setBoolean(VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE, serviceProviderDO.isDoValidateSignatureInArtifactResolve());
-
-            statement.executeUpdate();
-        }
-    }
-
-    private void processAddCustomAttributes(String configId, Connection connection,
-                                            SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
-
-        List<ConfigTuple> customAttributes = serviceProviderDO.getCustomAttributes();
-
-        // Add custom attributes as a batch.
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.ADD_SAML_SSO_ATTR)) {
-
-            for (ConfigTuple customAttribute : customAttributes) {
-                String key = customAttribute.getKey();
-                String value = customAttribute.getValue();
-                statement.setString(ID, UUID.randomUUID().toString());
-                statement.setString(SAML2_SSO_ID, configId);
-                statement.setString(ATTR_NAME, key);
-                statement.setString(ATTR_VALUE, value);
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
-    }
-
-    private void processUpdateServiceProvider(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
-                                              String configId)
-            throws SQLException {
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.UPDATE_SAML2_SSO_CONFIG)) {
-            statement.setString(ISSUER, serviceProviderDO.getIssuer());
-            statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
-            statement.setString(ISSUER_CERT_ALIAS, serviceProviderDO.getCertAlias());
-            statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
-            statement.setString(SIGNING_ALGORITHM, serviceProviderDO.getSigningAlgorithmUri());
-            statement.setString(DIGEST_ALGORITHM, serviceProviderDO.getDigestAlgorithmUri());
-            statement.setString(ASSERTION_ENCRYPTION_ALGORITHM, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
-            statement.setString(KEY_ENCRYPTION_ALGORITHM, serviceProviderDO.getKeyEncryptionAlgorithmUri());
-
-            statement.setBoolean(ENABLE_SINGLE_LOGOUT, serviceProviderDO.isDoSingleLogout());
-            statement.setBoolean(ENABLE_SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
-            statement.setBoolean(ENABLE_ASSERTION_QUERY_REQUEST_PROFILE, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
-            statement.setBoolean(ENABLE_SAML2_ARTIFACT_BINDING, serviceProviderDO.isEnableSAML2ArtifactBinding());
-            statement.setBoolean(ENABLE_SIGN_ASSERTIONS, serviceProviderDO.isDoSignAssertions());
-            statement.setBoolean(ENABLE_ECP, serviceProviderDO.isSamlECP());
-            statement.setBoolean(ENABLE_ATTRIBUTES_BY_DEFAULT, serviceProviderDO.isEnableAttributesByDefault());
-            statement.setBoolean(ENABLE_IDP_INIT_SSO, serviceProviderDO.isIdPInitSSOEnabled());
-            statement.setBoolean(ENABLE_IDP_INIT_SLO, serviceProviderDO.isIdPInitSLOEnabled());
-            statement.setBoolean(ENABLE_ENCRYPTED_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
-            statement.setBoolean(VALIDATE_SIGNATURE_IN_REQUESTS, serviceProviderDO.isDoValidateSignatureInRequests());
-            statement.setBoolean(VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE, serviceProviderDO.isDoValidateSignatureInArtifactResolve());
-
-            statement.setString(ID, configId);
-            statement.setString(TENANT_UUID, tenantUUID);
-
-            statement.executeUpdate();
-        }
-    }
-
-    private void processUpdateCustomAttributes(Connection connection, SAMLSSOServiceProviderDO serviceProviderDO,
-                                               String configId) throws SQLException {
-
-        List<ConfigTuple> customAttributes = serviceProviderDO.getCustomAttributes();
-
-        // Delete existing custom attributes.
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.DELETE_SAML_SSO_ATTR_BY_ID)) {
-            statement.setString(SAML2_SSO_ID, configId);
-            statement.executeUpdate();
-        }
-
-        // Add custom attributes as a batch.
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.ADD_SAML_SSO_ATTR)) {
-            for (ConfigTuple customAttribute : customAttributes) {
-                String key = customAttribute.getKey();
-                String value = customAttribute.getValue();
-                statement.setString(ID, UUID.randomUUID().toString());
-                statement.setString(SAML2_SSO_ID, configId);
-                statement.setString(ATTR_NAME, key);
-                statement.setString(ATTR_VALUE, value);
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
-    }
-
-    private SAMLSSOServiceProviderDO processGetServiceProvider(Connection connection, String issuer)
-            throws SQLException {
-
-        SAMLSSOServiceProviderDO serviceProviderDO = null;
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setString(TENANT_UUID, tenantUUID);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    serviceProviderDO = resourceToObject(resultSet);
-                    // Get custom attributes.
-                    serviceProviderDO.addCustomAttributes(
-                            processGetCustomAttributes(connection, resultSet.getString(1)));
-                }
-            }
-        }
+        addServiceProvider(serviceProviderDO);
         return serviceProviderDO;
     }
 
-    private List<SAMLSSOServiceProviderDO> processGetServiceProviders(Connection connection) throws SQLException {
+    private void debugLog(String message) {
 
-        List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML2_SSO_CONFIGS)) {
-            statement.setString(TENANT_UUID, tenantUUID);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    SAMLSSOServiceProviderDO serviceProviderDO = resourceToObject(resultSet);
-                    // Get custom attributes.
-                    serviceProviderDO.addCustomAttributes(
-                            processGetCustomAttributes(connection, resultSet.getString(1)));
-                    serviceProvidersList.add(serviceProviderDO);
-                }
-            }
-        }
-        return serviceProvidersList;
-    }
-
-    private List<ConfigTuple> processGetCustomAttributes(Connection connection, String configId) throws SQLException {
-
-        List<ConfigTuple> customAttributes = new ArrayList<>();
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.GET_SAML_SSO_ATTR_BY_ID)) {
-            statement.setString(SAML2_SSO_ID, configId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    String key = resultSet.getString(ATTR_NAME);
-                    String value = resultSet.getString(ATTR_VALUE);
-                    customAttributes.add(new ConfigTuple(key, value));
-                }
-            }
-        }
-        return customAttributes;
-    }
-
-    private void processDeleteServiceProvider(Connection connection, String issuer) throws SQLException {
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.DELETE_SAML2_SSO_CONFIG_BY_ISSUER)) {
-            statement.setString(ISSUER, issuer);
-            statement.setString(TENANT_UUID, tenantUUID);
-            statement.executeUpdate();
-        }
-
-        // Delete custom attributes.
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                SAMLSSOServiceProviderConstants.SqlQueries.DELETE_SAML_SSO_ATTR)) {
-            statement.setString(ISSUER, issuer);
-            statement.setString(TENANT_UUID, tenantUUID);
-            statement.executeUpdate();
+        if (log.isDebugEnabled()) {
+            log.debug(message);
         }
     }
 
-    private SAMLSSOServiceProviderDO resourceToObject(ResultSet resultSet) throws SQLException {
+    private boolean processIsServiceProviderExists(String issuer) throws DataAccessException {
 
-        SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        Integer serviceProviderId =
+                namedJdbcTemplate.fetchSingleRecord(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER,
+                        (resultSet, rowNumber) -> resultSet.getInt(ID), preparedStatement -> {
+                            preparedStatement.setString(ISSUER, issuer);
+                            preparedStatement.setInt(TENANT_ID, tenantId);
+                        });
+        return serviceProviderId != null;
+    }
 
-        serviceProviderDO.setIssuer(resultSet.getString(ISSUER));
-        serviceProviderDO.setDefaultAssertionConsumerUrl(resultSet.getString(DEFAULT_ASSERTION_CONSUMER_URL));
-        serviceProviderDO.setCertAlias(resultSet.getString(ISSUER_CERT_ALIAS));
-        serviceProviderDO.setNameIDFormat(resultSet.getString(NAME_ID_FORMAT));
-        serviceProviderDO.setSigningAlgorithmUri(resultSet.getString(SIGNING_ALGORITHM));
-        serviceProviderDO.setDigestAlgorithmUri(resultSet.getString(DIGEST_ALGORITHM));
-        serviceProviderDO.setAssertionEncryptionAlgorithmUri(resultSet.getString(ASSERTION_ENCRYPTION_ALGORITHM));
-        serviceProviderDO.setKeyEncryptionAlgorithmUri(resultSet.getString(KEY_ENCRYPTION_ALGORITHM));
+    private void validateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
 
-        serviceProviderDO.setDoSingleLogout(resultSet.getBoolean(ENABLE_SINGLE_LOGOUT));
-        serviceProviderDO.setDoSignResponse(resultSet.getBoolean(ENABLE_SIGN_RESPONSE));
-        serviceProviderDO.setAssertionQueryRequestProfileEnabled(resultSet.getBoolean(ENABLE_ASSERTION_QUERY_REQUEST_PROFILE));
-        serviceProviderDO.setEnableSAML2ArtifactBinding(resultSet.getBoolean(ENABLE_SAML2_ARTIFACT_BINDING));
-        serviceProviderDO.setDoSignAssertions(resultSet.getBoolean(ENABLE_SIGN_ASSERTIONS));
-        serviceProviderDO.setSamlECP(resultSet.getBoolean(ENABLE_ECP));
-        serviceProviderDO.setEnableAttributesByDefault(resultSet.getBoolean(ENABLE_ATTRIBUTES_BY_DEFAULT));
-        serviceProviderDO.setIdPInitSSOEnabled(resultSet.getBoolean(ENABLE_IDP_INIT_SSO));
-        serviceProviderDO.setIdPInitSLOEnabled(resultSet.getBoolean(ENABLE_IDP_INIT_SLO));
-        serviceProviderDO.setDoEnableEncryptedAssertion(resultSet.getBoolean(ENABLE_ENCRYPTED_ASSERTION));
-        serviceProviderDO.setDoValidateSignatureInRequests(resultSet.getBoolean(VALIDATE_SIGNATURE_IN_REQUESTS));
-        serviceProviderDO.setDoValidateSignatureInArtifactResolve(resultSet.getBoolean(VALIDATE_SIGNATURE_IN_ARTIFACT_RESOLVE));
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
+                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
+            throw new IdentityException("Issuer cannot be found in the provided arguments.");
+        }
 
-        return serviceProviderDO;
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            serviceProviderDO.setIssuer(
+                    getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier()));
+        }
+    }
+
+    private String serviceProviderInfo(SAMLSSOServiceProviderDO serviceProviderDO) {
+
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            return "SAML2 Service Provider with issuer: " + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) +
+                    " and qualifier name " + serviceProviderDO.getIssuerQualifier();
+        } else {
+            return "SAML2 Service Provider with issuer: " + serviceProviderDO.getIssuer();
+        }
     }
 
     /**
@@ -628,6 +299,213 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         return StringUtils.substringBeforeLast(issuerWithQualifier, IdentityRegistryResources.QUALIFIER_ID);
     }
 
+    private SAMLSSOServiceProviderDO resourceToObject(ResultSet resultSet) throws SQLException {
+
+        SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
+
+        serviceProviderDO.setIssuer(resultSet.getString(ISSUER));
+        serviceProviderDO.setDefaultAssertionConsumerUrl(resultSet.getString(DEFAULT_ASSERTION_CONSUMER_URL));
+        serviceProviderDO.setNameIDFormat(resultSet.getString(NAME_ID_FORMAT));
+        serviceProviderDO.setCertAlias(resultSet.getString(CERT_ALIAS));
+        serviceProviderDO.setDoValidateSignatureInRequests(resultSet.getBoolean(REQ_SIG_VALIDATION));
+        serviceProviderDO.setDoSignResponse(resultSet.getBoolean(SIGN_RESPONSE));
+        serviceProviderDO.setDoSignAssertions(resultSet.getBoolean(SIGN_ASSERTIONS));
+        serviceProviderDO.setSigningAlgorithmUri(resultSet.getString(SIGNING_ALGO));
+        serviceProviderDO.setDigestAlgorithmUri(resultSet.getString(DIGEST_ALGO));
+        serviceProviderDO.setDoEnableEncryptedAssertion(resultSet.getBoolean(ENCRYPT_ASSERTION));
+        serviceProviderDO.setAssertionEncryptionAlgorithmUri(resultSet.getString(ASSERTION_ENCRYPTION_ALGO));
+        serviceProviderDO.setKeyEncryptionAlgorithmUri(resultSet.getString(KEY_ENCRYPTION_ALGO));
+        serviceProviderDO.setEnableAttributesByDefault(resultSet.getBoolean(ATTR_PROFILE_ENABLED));
+        serviceProviderDO.setAttributeConsumingServiceIndex(resultSet.getString(ATTR_SERVICE_INDEX));
+        serviceProviderDO.setDoSingleLogout(resultSet.getBoolean(SLO_PROFILE_ENABLED));
+        serviceProviderDO.setSloResponseURL(resultSet.getString(SLO_RESPONSE_URL));
+        serviceProviderDO.setSloRequestURL(resultSet.getString(SLO_REQUEST_URL));
+        serviceProviderDO.setIdPInitSSOEnabled(resultSet.getBoolean(IDP_INIT_SSO_ENABLED));
+        serviceProviderDO.setIdPInitSLOEnabled(resultSet.getBoolean(IDP_INIT_SLO_ENABLED));
+        serviceProviderDO.setAssertionQueryRequestProfileEnabled(resultSet.getBoolean(QUERY_REQUEST_PROFILE_ENABLED));
+        serviceProviderDO.setSamlECP(resultSet.getBoolean(ECP_ENABLED));
+        serviceProviderDO.setEnableSAML2ArtifactBinding(resultSet.getBoolean(ARTIFACT_BINDING_ENABLED));
+        serviceProviderDO.setDoValidateSignatureInArtifactResolve(
+                resultSet.getBoolean(ARTIFACT_RESOLVE_REQ_SIG_VALIDATION));
+        serviceProviderDO.setIdpEntityIDAlias(resultSet.getString(IDP_ENTITY_ID_ALIAS));
+        serviceProviderDO.setIssuerQualifier(resultSet.getString(ISSUER_QUALIFIER));
+        serviceProviderDO.setSupportedAssertionQueryRequestTypes(
+                resultSet.getString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES));
+        serviceProviderDO.setDoFrontChannelLogout(!"BackChannel".equals(resultSet.getString(SLO_METHOD)));
+        if (serviceProviderDO.isDoFrontChannelLogout()) {
+            serviceProviderDO.setFrontChannelLogoutBinding(resultSet.getString(SLO_METHOD));
+        }
+
+        return serviceProviderDO;
+    }
+
+    private void addProperties(int serviceProviderId, SAMLSSOServiceProviderDO serviceProviderDO)
+            throws DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        List<ConfigTuple> properties =
+                namedJdbcTemplate.executeQuery(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SSO_ATTR_BY_ID,
+                        (resultSet, rowNumber) -> new ConfigTuple(resultSet.getString(PROPERTY_NAME),
+                                resultSet.getString(PROPERTY_VALUE)),
+                        namedPreparedStatement -> namedPreparedStatement.setInt(SP_ID, serviceProviderId));
+        serviceProviderDO.addCustomAttributes(properties);
+    }
+
+    private void setServiceProviderParameters(NamedPreparedStatement statement,
+                                              SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
+
+        statement.setInt(TENANT_ID, tenantId);
+        statement.setString(ISSUER, serviceProviderDO.getIssuer());
+        statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
+        statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
+        statement.setString(CERT_ALIAS, serviceProviderDO.getCertAlias());
+        statement.setBoolean(REQ_SIG_VALIDATION, serviceProviderDO.isDoValidateSignatureInRequests());
+        statement.setBoolean(SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
+        statement.setBoolean(SIGN_ASSERTIONS, serviceProviderDO.isDoSignAssertions());
+        statement.setString(SIGNING_ALGO, serviceProviderDO.getSigningAlgorithmUri());
+        statement.setString(DIGEST_ALGO, serviceProviderDO.getDigestAlgorithmUri());
+        statement.setBoolean(ENCRYPT_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
+        statement.setString(ASSERTION_ENCRYPTION_ALGO, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
+        statement.setString(KEY_ENCRYPTION_ALGO, serviceProviderDO.getKeyEncryptionAlgorithmUri());
+        statement.setBoolean(ATTR_PROFILE_ENABLED, serviceProviderDO.isEnableAttributesByDefault());
+        statement.setString(ATTR_SERVICE_INDEX, serviceProviderDO.getAttributeConsumingServiceIndex());
+        statement.setBoolean(SLO_PROFILE_ENABLED, serviceProviderDO.isDoSingleLogout());
+        statement.setString(SLO_METHOD, serviceProviderDO.getSingleLogoutMethod());
+        statement.setString(SLO_RESPONSE_URL, serviceProviderDO.getSloResponseURL());
+        statement.setString(SLO_REQUEST_URL, serviceProviderDO.getSloRequestURL());
+        statement.setBoolean(IDP_INIT_SSO_ENABLED, serviceProviderDO.isIdPInitSSOEnabled());
+        statement.setBoolean(IDP_INIT_SLO_ENABLED, serviceProviderDO.isIdPInitSLOEnabled());
+        statement.setBoolean(QUERY_REQUEST_PROFILE_ENABLED, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
+        statement.setBoolean(ECP_ENABLED, serviceProviderDO.isSamlECP());
+        statement.setBoolean(ARTIFACT_BINDING_ENABLED, serviceProviderDO.isEnableSAML2ArtifactBinding());
+        statement.setBoolean(ARTIFACT_RESOLVE_REQ_SIG_VALIDATION,
+                serviceProviderDO.isDoValidateSignatureInArtifactResolve());
+        statement.setString(IDP_ENTITY_ID_ALIAS, serviceProviderDO.getIdpEntityIDAlias());
+        statement.setString(ISSUER_QUALIFIER, serviceProviderDO.getIssuerQualifier());
+        statement.setString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
+                serviceProviderDO.getSupportedAssertionQueryRequestTypes());
+    }
+
+    private int processGetServiceProviderId(String issuer) throws DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        Integer serviceProviderId =
+                namedJdbcTemplate.fetchSingleRecord(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SP_ID_BY_ISSUER,
+                        (resultSet, rowNumber) -> resultSet.getInt(ID), namedPreparedStatement -> {
+                            namedPreparedStatement.setString(ISSUER, issuer);
+                            namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                        });
+        if (serviceProviderId == null) {
+            throw new DataAccessException("No record found for the given issuer: " + issuer);
+        }
+        return serviceProviderId.intValue();
+    }
+
+    private void processAddServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        namedJdbcTemplate.executeInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML2_SSO_CONFIG,
+                namedPreparedStatement -> setServiceProviderParameters(namedPreparedStatement, serviceProviderDO),
+                serviceProviderDO, false);
+    }
+
+    private void processAddSPProperties(SAMLSSOServiceProviderDO serviceProviderDO) throws DataAccessException {
+
+        List<ConfigTuple> properties = serviceProviderDO.getCustomAttributes();
+        int serviceProviderId = processGetServiceProviderId(serviceProviderDO.getIssuer());
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+
+        namedJdbcTemplate.executeBatchInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR,
+                (namedPreparedStatement -> {
+                    for (ConfigTuple property : properties) {
+                        namedPreparedStatement.setInt(SP_ID, serviceProviderId);
+                        namedPreparedStatement.setString(PROPERTY_NAME, property.getKey());
+                        namedPreparedStatement.setString(PROPERTY_VALUE, property.getValue());
+                        namedPreparedStatement.addBatch();
+                    }
+                }), serviceProviderDO);
+    }
+
+    private void processUpdateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int serviceProviderId)
+            throws DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.UPDATE_SAML2_SSO_CONFIG,
+                namedPreparedStatement -> {
+                    namedPreparedStatement.setInt(ID, serviceProviderId);
+                    setServiceProviderParameters(namedPreparedStatement, serviceProviderDO);
+                });
+    }
+
+    private void processUpdateSPProperties(SAMLSSOServiceProviderDO serviceProviderDO, int serviceProviderId)
+            throws DataAccessException {
+
+        List<ConfigTuple> properties = serviceProviderDO.getCustomAttributes();
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR_BY_ID,
+                namedPreparedStatement -> namedPreparedStatement.setInt(SP_ID, serviceProviderId));
+
+        namedJdbcTemplate.executeBatchInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR,
+                (namedPreparedStatement -> {
+                    for (ConfigTuple property : properties) {
+                        namedPreparedStatement.setInt(SP_ID, serviceProviderId);
+                        namedPreparedStatement.setString(PROPERTY_NAME, property.getKey());
+                        namedPreparedStatement.setString(PROPERTY_VALUE, property.getValue());
+                        namedPreparedStatement.addBatch();
+                    }
+                }), serviceProviderDO);
+    }
+
+    private SAMLSSOServiceProviderDO processGetServiceProvider(String issuer) throws DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        SAMLSSOServiceProviderDO serviceProviderDO = namedJdbcTemplate.fetchSingleRecord(
+                SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIG_BY_ISSUER,
+                (resultSet, rowNumber) -> resourceToObject(resultSet), namedPreparedStatement -> {
+                    namedPreparedStatement.setString(ISSUER, issuer);
+                    namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                });
+
+        if (serviceProviderDO != null) {
+            addProperties(processGetServiceProviderId(issuer), serviceProviderDO);
+        }
+        return serviceProviderDO;
+    }
+
+    private List<SAMLSSOServiceProviderDO> processGetServiceProviders() throws DataAccessException {
+
+        List<SAMLSSOServiceProviderDO> serviceProvidersList;
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        serviceProvidersList =
+                namedJdbcTemplate.executeQuery(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML2_SSO_CONFIGS,
+                        (resultSet, rowNumber) -> resourceToObject(resultSet),
+                        namedPreparedStatement -> namedPreparedStatement.setInt(TENANT_ID, tenantId));
+
+        for (SAMLSSOServiceProviderDO serviceProviderDO : serviceProvidersList) {
+            addProperties(processGetServiceProviderId(serviceProviderDO.getIssuer()), serviceProviderDO);
+        }
+        return serviceProvidersList;
+    }
+
+    private void processDeleteServiceProvider(String issuer) throws DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML2_SSO_CONFIG_BY_ISSUER,
+                namedPreparedStatement -> {
+                    namedPreparedStatement.setString(ISSUER, issuer);
+                    namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                });
+
+        namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR,
+                namedPreparedStatement -> {
+                    namedPreparedStatement.setString(ISSUER, issuer);
+                    namedPreparedStatement.setInt(TENANT_ID, tenantId);
+                });
+    }
+
     /**
      * Returns the {@link java.security.cert.Certificate} which should used to validate the requests
      * for the given service provider.
@@ -639,7 +517,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
      * @throws CertificateRetrievingException
      */
     private X509Certificate getApplicationCertificate(SAMLSSOServiceProviderDO serviceProviderDO, Tenant tenant)
-            throws SQLException, CertificateRetrievingException {
+            throws CertificateRetrievingException, DataAccessException {
 
         // Check whether there is a certificate stored against the service provider (in the database)
         int applicationCertificateId = getApplicationCertificateId(serviceProviderDO.getIssuer(), tenant.getId());
@@ -664,29 +542,20 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
      * @return
      * @throws SQLException
      */
-    private int getApplicationCertificateId(String issuer, int tenantId) throws SQLException {
+    private int getApplicationCertificateId(String issuer, int tenantId) throws DataAccessException {
 
-        try {
-            String sqlStmt = isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 :
-                    QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
-            try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-                 PreparedStatement statementToGetApplicationCertificate =
-                         connection.prepareStatement(sqlStmt)) {
-                statementToGetApplicationCertificate.setString(1, CERTIFICATE_PROPERTY_NAME);
-                statementToGetApplicationCertificate.setString(2, issuer);
-                statementToGetApplicationCertificate.setInt(3, tenantId);
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        String sqlStmt =
+                isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 : QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
+        Integer certificateId =
+                namedJdbcTemplate.fetchSingleRecord(sqlStmt, (resultSet, rowNumber) -> resultSet.getInt(1),
+                        namedPreparedStatement -> {
+                            namedPreparedStatement.setString(1, CERTIFICATE_PROPERTY_NAME);
+                            namedPreparedStatement.setString(2, issuer);
+                            namedPreparedStatement.setInt(3, tenantId);
+                        });
 
-                try (ResultSet queryResults = statementToGetApplicationCertificate.executeQuery()) {
-                    if (queryResults.next()) {
-                        return queryResults.getInt(1);
-                    }
-                }
-            }
-            return -1;
-        } catch (DataAccessException e) {
-            String errorMsg = "Error while retrieving application certificate data for issuer: " + issuer +
-                    " and tenant Id: " + tenantId;
-            throw new SQLException(errorMsg, e);
-        }
+        return certificateId != null ? certificateId : -1;
     }
+
 }
