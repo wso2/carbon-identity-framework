@@ -52,6 +52,7 @@ import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.CERT_ALIAS;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.REQ_SIG_VALIDATION;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGN_RESPONSE;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGN_ASSERTIONS;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SIGNING_ALGO;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.DIGEST_ALGO;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ENCRYPT_ASSERTION;
@@ -308,6 +309,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         serviceProviderDO.setCertAlias(resultSet.getString(CERT_ALIAS));
         serviceProviderDO.setDoValidateSignatureInRequests(resultSet.getBoolean(REQ_SIG_VALIDATION));
         serviceProviderDO.setDoSignResponse(resultSet.getBoolean(SIGN_RESPONSE));
+        serviceProviderDO.setDoSignAssertions(resultSet.getBoolean(SIGN_ASSERTIONS));
         serviceProviderDO.setSigningAlgorithmUri(resultSet.getString(SIGNING_ALGO));
         serviceProviderDO.setDigestAlgorithmUri(resultSet.getString(DIGEST_ALGO));
         serviceProviderDO.setDoEnableEncryptedAssertion(resultSet.getBoolean(ENCRYPT_ASSERTION));
@@ -333,7 +335,6 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         if (serviceProviderDO.isDoFrontChannelLogout()) {
             serviceProviderDO.setFrontChannelLogoutBinding(resultSet.getString(SLO_METHOD));
         }
-        serviceProviderDO.setDoSignAssertions(Boolean.TRUE);
 
         return serviceProviderDO;
     }
@@ -360,6 +361,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
         statement.setString(CERT_ALIAS, serviceProviderDO.getCertAlias());
         statement.setBoolean(REQ_SIG_VALIDATION, serviceProviderDO.isDoValidateSignatureInRequests());
         statement.setBoolean(SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
+        statement.setBoolean(SIGN_ASSERTIONS, serviceProviderDO.isDoSignAssertions());
         statement.setString(SIGNING_ALGO, serviceProviderDO.getSigningAlgorithmUri());
         statement.setString(DIGEST_ALGO, serviceProviderDO.getDigestAlgorithmUri());
         statement.setBoolean(ENCRYPT_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
