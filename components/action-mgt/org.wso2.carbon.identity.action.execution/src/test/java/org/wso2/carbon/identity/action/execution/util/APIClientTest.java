@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -37,15 +38,18 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.Operation;
+import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -186,6 +190,41 @@ public class APIClientTest {
         assertNull(apiResponse.getErrorLog());
     }
 
+    @Test
+    public void testCallAPIAcceptablePayloadForFailureResponse() throws Exception {
+
+        String failureResponse =
+                "{\"actionStatus\":\"FAILED\",\"failureReason\":\"Error_reason\"," +
+                        "\"failureDescription\":\"Error_description\"}";
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+
+        InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(failureResponse.getBytes(
+                StandardCharsets.UTF_8)));
+        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        AuthProperty authProperty = new AuthProperty.AuthPropertyBuilder()
+                .name("accessToken")
+                .value("value")
+                .isConfidential(true)
+                .build();
+        AuthMethods.AuthMethod bearAuth =  new AuthMethods.BearerAuth(Collections.singletonList(authProperty));
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", bearAuth, "{}");
+
+        assertNotNull(apiResponse);
+        assertNotNull(apiResponse.getResponse());
+        assertEquals(apiResponse.getResponse().getActionStatus(), ActionInvocationResponse.Status.FAILED);
+        assertEquals(((ActionInvocationFailureResponse) apiResponse.getResponse()).getFailureReason(),
+                "Error_reason");
+        assertEquals(((ActionInvocationFailureResponse) apiResponse.getResponse()).getFailureDescription(),
+                "Error_description");
+        assertFalse(apiResponse.isRetry());
+        assertNull(apiResponse.getErrorLog());
+    }
+
     @DataProvider(name = "unexpectedErrorResponses")
     public Object[][] unexpectedErrorResponses() {
 
@@ -207,7 +246,7 @@ public class APIClientTest {
                 {HttpStatus.SC_BAD_GATEWAY, ContentType.DEFAULT_TEXT.getMimeType(),
                         "", "Failed to execute the action request. Received status code: 502."},
                 {HttpStatus.SC_CONFLICT, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Failed to execute the action request or maximum retry attempts reached."}
+                        "", "Unexpected response received with status code: 409."}
         };
     }
 
@@ -319,6 +358,18 @@ public class APIClientTest {
         assertTrue(response.isError());
         assertEquals(response.getErrorLog(), "Failed to execute the action request or maximum retry attempts reached.");
         verify(httpClient, times(2)).execute(any(HttpPost.class));
+    }
+
+    @Test
+    public void testUnexpectedExceptionFromHttpClient() throws Exception {
+
+        when(httpClient.execute(any(HttpPost.class))).thenThrow(new ClientProtocolException("Unexpected exception"));
+
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        assertNotNull(apiResponse);
+        assertTrue(apiResponse.isError());
+        assertEquals(apiResponse.getErrorLog(),
+                "Failed to execute the action request or maximum retry attempts reached.");
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
