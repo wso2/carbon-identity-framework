@@ -228,6 +228,28 @@ public class ActionExecutorServiceImplTest {
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
     }
 
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Failed to execute actions for action type: PRE_ISSUE_ACCESS_TOKEN")
+    public void testActionExecuteFailureWhenBuildingActionExecutionRequestForActionId() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+
+        Action action = createAction();
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
+
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(actionType))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(actionType))
+                .thenReturn(actionExecutionResponseProcessor);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenThrow(
+                new ActionExecutionRequestBuilderException("Error while executing request builder."));
+
+        actionExecutorService.execute(actionType, new String[]{"actionId"}, Collections.emptyMap(),
+                "tenantDomain");
+    }
+
     @Test(expectedExceptions = ActionExecutionException.class)
     public void testActionExecuteFailureAtExceptionFromRequestBuilderForActionType() throws Exception {
 
@@ -468,6 +490,43 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Failed to execute actions for action type: PRE_ISSUE_ACCESS_TOKEN")
+    public void testActionExecuteFailureWithoutAPIResponse() throws Exception {
+
+        // Setup
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Map<String, Object> eventContext = Collections.emptyMap();
+
+        // Mock Action and its dependencies
+        Action action = createAction();
+
+        // Mock ActionManagementService
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+
+        // Mock static methods
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        // Configure request builder
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
+                mock(ActionExecutionRequest.class));
+
+        // Mock APIClient response
+        ActionInvocationResponse actionInvocationResponse = createFailureActionInvocationResponseWithoutAPIResponse();
+        when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        // Execute and assert
+        actionExecutorService.execute(actionType, eventContext, "tenantDomain");
+    }
+
     @Test
     public void testExecuteError() throws Exception {
         // Setup
@@ -561,6 +620,19 @@ public class ActionExecutorServiceImplTest {
         ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
         when(actionInvocationResponse.isError()).thenReturn(true);
         when(actionInvocationResponse.getResponse()).thenReturn(errorResponse);
+        return actionInvocationResponse;
+    }
+
+    private ActionInvocationResponse createFailureActionInvocationResponseWithoutAPIResponse() {
+
+        ActionInvocationErrorResponse errorResponse = mock(ActionInvocationErrorResponse.class);
+        when(errorResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.ERROR);
+        when(errorResponse.getError()).thenReturn("Unauthorized");
+        when(errorResponse.getErrorDescription()).thenReturn("Request validation failed.");
+
+        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
+        when(actionInvocationResponse.isError()).thenReturn(true);
+        when(actionInvocationResponse.getResponse()).thenReturn(null);
         return actionInvocationResponse;
     }
 
