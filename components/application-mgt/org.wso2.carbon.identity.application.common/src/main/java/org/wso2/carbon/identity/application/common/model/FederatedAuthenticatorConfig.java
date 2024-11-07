@@ -67,11 +67,6 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @XmlElement(name = "DefinedBy")
     protected DefinedByType definedByType;
 
-    public FederatedAuthenticatorConfig() {
-
-        definedByType = DefinedByType.SYSTEM;
-    }
-
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {
 
         if (federatedAuthenticatorConfigOM == null) {
