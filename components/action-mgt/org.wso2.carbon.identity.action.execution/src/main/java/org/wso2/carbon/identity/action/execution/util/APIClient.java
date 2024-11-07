@@ -155,7 +155,8 @@ public class APIClient {
                 actionInvocationResponseBuilder.retry(true);
                 break;
             default:
-                handleError(actionInvocationResponseBuilder, responseEntity, statusCode);
+                actionInvocationResponseBuilder.errorLog("Unexpected response received with status code: " + statusCode
+                        + ".");
                 break;
         }
 
@@ -166,15 +167,6 @@ public class APIClient {
 
         try {
             builder.response(handleSuccessOrFailureResponse(entity));
-        } catch (ActionInvocationException e) {
-            builder.errorLog("Unexpected response for status code: " + statusCode + ". " + e.getMessage());
-        }
-    }
-
-    private void handleError(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
-
-        try {
-            builder.response(handleErrorResponse(entity));
         } catch (ActionInvocationException e) {
             builder.errorLog("Unexpected response for status code: " + statusCode + ". " + e.getMessage());
         }
