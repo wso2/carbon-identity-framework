@@ -81,6 +81,11 @@
 <!--        <KeyStores>database</KeyStores>-->
     </DataStorageType>
 
+    <NotificationTemplates>
+        <!-- Indicates whether the database uses native Unicode data types (e.g., NVARCHAR, NCHAR) -->
+        <UseUnicodeDataTypes>false</UseUnicodeDataTypes>
+    </NotificationTemplates>
+
     <!-- Time configurations are in minutes -->
     <TimeConfig>
         <SessionIdleTimeout>15</SessionIdleTimeout>
