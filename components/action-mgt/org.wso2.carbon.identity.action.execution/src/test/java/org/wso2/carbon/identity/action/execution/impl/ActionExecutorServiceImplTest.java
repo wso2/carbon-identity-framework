@@ -42,7 +42,11 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessRe
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.model.Application;
+import org.wso2.carbon.identity.action.execution.model.Error;
+import org.wso2.carbon.identity.action.execution.model.ErrorStatus;
 import org.wso2.carbon.identity.action.execution.model.Event;
+import org.wso2.carbon.identity.action.execution.model.FailedStatus;
+import org.wso2.carbon.identity.action.execution.model.Failure;
 import org.wso2.carbon.identity.action.execution.model.Header;
 import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.execution.model.Organization;
@@ -53,6 +57,7 @@ import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
+import org.wso2.carbon.identity.action.execution.util.ActionExecutionDiagnosticLogger;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.util.RequestFilter;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
@@ -63,10 +68,12 @@ import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -89,6 +96,8 @@ public class ActionExecutorServiceImplTest {
     private ActionExecutionResponseProcessor actionExecutionResponseProcessor;
     @Mock
     private APIClient apiClient;
+    @Mock
+    private ActionExecutionDiagnosticLogger actionExecutionDiagnosticLogger;
     @InjectMocks
     private ActionExecutorServiceImpl actionExecutorService;
     private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
@@ -111,6 +120,7 @@ public class ActionExecutorServiceImplTest {
         actionExecutionServiceComponentHolder.setActionManagementService(actionManagementService);
         // Set apiClient field using reflection
         setField(actionExecutorService, "apiClient", apiClient);
+        setFinalField(actionExecutorService, "DIAGNOSTIC_LOGGER", actionExecutionDiagnosticLogger);
 
         requestFilter = mockStatic(RequestFilter.class);
         loggerUtils = mockStatic(LoggerUtils.class);
@@ -137,6 +147,34 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actionExecutionStatus =
                 actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
         assertEquals(actionExecutionStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
+    }
+
+    @Test
+    public void testActionExecuteSuccessWhenNoActiveActionAvailableForActionType() throws Exception {
+
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Map<String, Object> eventContext = Collections.emptyMap();
+
+        Action action = mock(Action.class);
+        when(action.getStatus()).thenReturn(Action.Status.INACTIVE);
+        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        when(actionManagementService.getActionsByActionType(Action.ActionTypes.valueOf(actionType.name()).
+                getPathParam(), "tenantDomain")).thenReturn(new LinkedList<>(Collections.singleton(action)));
+
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(actionType))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(actionType))
+                .thenReturn(actionExecutionResponseProcessor);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenReturn(
+                mock(ActionExecutionRequest.class));
+
+        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
+        ActionExecutionStatus actualStatus =
+                actionExecutorService.execute(actionType, eventContext, "tenantDomain");
+
+        assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
@@ -414,7 +452,7 @@ public class ActionExecutorServiceImplTest {
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
-        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
+        ActionExecutionStatus expectedStatus = new FailedStatus(new Failure("ererer", "werwer"));
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processFailureResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -462,7 +500,7 @@ public class ActionExecutorServiceImplTest {
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Configure response processor
-        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
+        ActionExecutionStatus expectedStatus = new ErrorStatus(new Error("werwerwe", "werwerwer"));
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processErrorResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
@@ -589,6 +627,24 @@ public class ActionExecutorServiceImplTest {
         field.setAccessible(true);
         field.set(target, value);
     }
+
+    private void setFinalField(Object target, String fieldName, Object value) throws Exception {
+        Field field;
+        try {
+            field = target.getClass().getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            field = target.getClass().getSuperclass().getDeclaredField(fieldName);
+        }
+
+        field.setAccessible(true);
+
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+        field.set(target, value);
+    }
+
 
     private List<AllowedOperation> getAllowedOperations() {
 
