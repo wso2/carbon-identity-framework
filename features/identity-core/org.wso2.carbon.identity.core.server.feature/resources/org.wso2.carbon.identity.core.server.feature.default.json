@@ -1690,6 +1690,8 @@
 
   "oauth.authorize_all_scopes": false,
 
-  "system_applications.system_portals": ["Console", "My Account"]
+  "system_applications.system_portals": ["Console", "My Account"],
+
+  "notification_templates.sms_templates.apply": true
 }
 

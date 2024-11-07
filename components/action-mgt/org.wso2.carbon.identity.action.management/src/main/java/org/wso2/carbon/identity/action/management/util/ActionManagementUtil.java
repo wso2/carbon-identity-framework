@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.util;
 import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtRuntimeException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 
 /**
@@ -63,5 +64,16 @@ public class ActionManagementUtil {
         }
 
         return new ActionMgtServerException(error.getMessage(), description, error.getCode(), e);
+    }
+
+    /**
+     * Handle Action Management runtime exceptions.
+     *
+     * @param e Throwable.
+     * @return ActionMgtRuntimeException.
+     */
+    public static ActionMgtRuntimeException handleRuntimeException(String errorMessage, Throwable e) {
+
+        return new ActionMgtRuntimeException(errorMessage, e);
     }
 }
