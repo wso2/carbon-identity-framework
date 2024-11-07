@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.application.common.model.test;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.common.model.AuthenticatorEndpointConfiguration;
-import org.wso2.carbon.identity.application.common.model.AuthenticatorEndpointConfiguration.AuthenticatorEndpointConfigurationBuilder;
+import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
@@ -78,16 +78,18 @@ public class UserDefinedAuthenticatorTest {
     public void createEndpointConfigurationTest(String uri, String authenticationType, HashMap<String,
             String> endpointConfig) {
 
-        AuthenticatorEndpointConfigurationBuilder endpointConfigBuilder =
-                new AuthenticatorEndpointConfigurationBuilder();
+        UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder =
+                new UserDefinedAuthenticatorEndpointConfigBuilder();
         endpointConfigBuilder.uri(uri);
         endpointConfigBuilder.authenticationType(authenticationType);
         endpointConfigBuilder.authenticationProperties(endpointConfig);
-        AuthenticatorEndpointConfiguration authenticatorEndpointConfiguration = endpointConfigBuilder.build();
+        UserDefinedAuthenticatorEndpointConfig authEndpointConfig = endpointConfigBuilder.build();
 
-        assertEquals(authenticatorEndpointConfiguration.getUri(), uri);
-        assertEquals(authenticatorEndpointConfiguration.getAuthenticationType(), authenticationType);
-        assertEquals(authenticatorEndpointConfiguration.getAuthenticationProperties(), endpointConfig);
+        assertEquals(authEndpointConfig.getEndpointConfig().getUri(), uri);
+        assertEquals(authEndpointConfig.getEndpointConfig().getAuthentication().getType().getName(),
+                authenticationType);
+        assertEquals(authEndpointConfig.getEndpointConfig().getAuthentication().getProperties().size(),
+                endpointConfig.size());
     }
 
     @DataProvider(name = "invalidEndpointConfig")
@@ -106,12 +108,12 @@ public class UserDefinedAuthenticatorTest {
         };
     }
 
-    @Test(dataProvider = "invalidEndpointConfig", expectedExceptions = IllegalArgumentException.class)
+    @Test(dataProvider = "invalidEndpointConfig", expectedExceptions = RuntimeException.class)
     public void invalidEndpointConfigurationTest(String uri, String authenticationType, HashMap<String,
             String> endpointConfig) {
 
-        AuthenticatorEndpointConfigurationBuilder endpointConfigBuilder =
-                new AuthenticatorEndpointConfigurationBuilder();
+        UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder =
+                new UserDefinedAuthenticatorEndpointConfigBuilder();
         endpointConfigBuilder.uri(uri);
         endpointConfigBuilder.authenticationType(authenticationType);
         endpointConfigBuilder.authenticationProperties(endpointConfig);

@@ -29,7 +29,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     private static final String TAG_2FA = "2FA";
     private static final String TAG_CUSTOM = "CUSTOM";
 
-    protected AuthenticatorEndpointConfiguration endpointConfig;
+    protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedLocalAuthenticatorConfig(AuthenticationType type) {
 
@@ -46,7 +46,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
      *
      * @return DefinedByType
      */
-    public AuthenticatorEndpointConfiguration getEndpointConfig() {
+    public UserDefinedAuthenticatorEndpointConfig getEndpointConfig() {
 
         return endpointConfig;
     }
@@ -56,7 +56,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
      *
      * @param endpointConfig    The endpoint config of the User defined local authenticator config.
      */
-    public void setEndpointConfig(AuthenticatorEndpointConfiguration endpointConfig) {
+    public void setEndpointConfig(UserDefinedAuthenticatorEndpointConfig endpointConfig) {
 
         this.endpointConfig = endpointConfig;
     }

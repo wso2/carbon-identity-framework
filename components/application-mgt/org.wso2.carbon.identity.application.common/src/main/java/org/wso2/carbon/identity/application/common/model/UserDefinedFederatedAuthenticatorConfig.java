@@ -27,7 +27,7 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
 
     private static final String TAG_CUSTOM = "CUSTOM";
 
-    protected AuthenticatorEndpointConfiguration endpointConfig;
+    protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedFederatedAuthenticatorConfig() {
 
@@ -40,7 +40,7 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
      *
      * @return DefinedByType
      */
-    public AuthenticatorEndpointConfiguration getEndpointConfig() {
+    public UserDefinedAuthenticatorEndpointConfig getEndpointConfig() {
 
         return endpointConfig;
     }
@@ -50,7 +50,7 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
      *
      * @param endpointConfig    The endpoint config of the User defined federated authenticator config.
      */
-    public void setEndpointConfig(AuthenticatorEndpointConfiguration endpointConfig) {
+    public void setEndpointConfig(UserDefinedAuthenticatorEndpointConfig endpointConfig) {
 
         this.endpointConfig = endpointConfig;
     }
