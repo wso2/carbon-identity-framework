@@ -18,11 +18,15 @@
 
 package org.wso2.carbon.idp.mgt;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -48,13 +52,16 @@ import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -66,7 +73,9 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
@@ -87,21 +96,41 @@ public class IdentityProviderManagementServiceTest {
 
     MetadataConverter mockMetadataConverter;
     private IdentityProviderManagementService identityProviderManagementService;
+    private MockedStatic<CryptoUtil> cryptoUtil;
+
+    @BeforeClass
+    public void setUpClass() throws Exception {
+
+        SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
+        SecretType secretType = mock(SecretType.class);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        when(secretType.getId()).thenReturn("secretId");
+        doReturn(secretType).when(secretManager).getSecretType(any());
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+
+        cryptoUtil = mockStatic(CryptoUtil.class);
+        CryptoUtil mockCryptoUtil = mock(CryptoUtil.class);
+        cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
+
+        CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
+        IdentityProviderManager identityProviderManager = mock(IdentityProviderManager.class);
+        identityProviderManagementService = new IdentityProviderManagementService();
+        Field field = IdentityProviderManager.class.getDeclaredField("dao");
+        field.setAccessible(true);
+        field.set(identityProviderManager, dao);
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+        cryptoUtil.close();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
 
         mockMetadataConverter = mock(MetadataConverter.class);
-        identityProviderManagementService = new IdentityProviderManagementService();
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
         IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
-
-        SecretsProcessor<IdentityProvider> identityProviderSecretsProcessor = mock(IdPSecretsProcessor.class);
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(identityProviderSecretsProcessor);
-        when(identityProviderSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
-                invocation -> invocation.getArguments()[0]);
-        when(identityProviderSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
-                invocation -> invocation.getArguments()[0]);
     }
 
     @AfterMethod
