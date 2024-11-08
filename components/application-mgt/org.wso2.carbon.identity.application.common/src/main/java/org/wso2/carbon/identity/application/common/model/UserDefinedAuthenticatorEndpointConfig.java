@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import java.util.Map;
 
 /**
- * The authenticator endpoint configuration model.
+ * The authenticator endpoint configuration model for the user defined authenticator configurations.
  */
 public class UserDefinedAuthenticatorEndpointConfig {
 

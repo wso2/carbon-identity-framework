@@ -262,23 +262,25 @@ public class Authentication {
             switch (authType) {
                 case BASIC:
                     return new Authentication.BasicAuthBuilder(
-                            getProperty(authPropertiesMap, Property.USERNAME.getName()),
-                            getProperty(authPropertiesMap, Property.PASSWORD.getName())).build();
+                            getProperty(Type.BASIC, authPropertiesMap, Property.USERNAME.getName()),
+                            getProperty(Type.BASIC, authPropertiesMap, Property.PASSWORD.getName())).build();
                 case BEARER:
                     return new Authentication.BearerAuthBuilder(
-                            getProperty(authPropertiesMap, Property.ACCESS_TOKEN.getName())).build();
+                            getProperty(Type.BEARER, authPropertiesMap, Property.ACCESS_TOKEN.getName())).build();
                 case API_KEY:
                     return new Authentication.APIKeyAuthBuilder(
-                            getProperty(authPropertiesMap, Property.HEADER.getName()),
-                            getProperty(authPropertiesMap, Property.VALUE.getName())).build();
+                            getProperty(Type.API_KEY, authPropertiesMap, Property.HEADER.getName()),
+                            getProperty(Type.API_KEY, authPropertiesMap, Property.VALUE.getName())).build();
                 case NONE:
                     return new Authentication.NoneAuthBuilder().build();
                 default:
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException(String.format("An invalid authentication type '%s' is " +
+                            "provided for the authentication configuration of the endpoint.", authType.name()));
             }
         }
 
-        private String getProperty(Map<String, String> actionEndpointProperties, String propertyName) {
+        private String getProperty(Authentication.Type authType,  Map<String, String> actionEndpointProperties,
+                                   String propertyName) {
 
             if (actionEndpointProperties != null && actionEndpointProperties.containsKey(propertyName)) {
                 String propValue = actionEndpointProperties.get(propertyName);
@@ -288,8 +290,8 @@ public class Authentication {
                 throw new IllegalArgumentException(String.format("The Property %s cannot be blank.", propertyName));
             }
 
-            throw new NoSuchElementException(String.format("The Property %s is not found in the authentication " +
-                    "configuration.", propertyName));
+            throw new NoSuchElementException(String.format("The property %s must be provided as an authentication " +
+                    "property for the %s authentication type.", propertyName, authType.name()));
         }
     }
 }

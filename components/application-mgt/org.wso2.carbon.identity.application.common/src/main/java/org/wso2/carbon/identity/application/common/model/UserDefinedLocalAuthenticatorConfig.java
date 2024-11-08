@@ -42,9 +42,9 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Get the endpoint config of the User defined local authenticator config.
+     * Get the endpoint configurations of the User defined local authenticator config.
      *
-     * @return DefinedByType
+     * @return UserDefinedAuthenticatorEndpointConfig
      */
     public UserDefinedAuthenticatorEndpointConfig getEndpointConfig() {
 
@@ -52,7 +52,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Set the defined by type of the User defined local authenticator config.
+     * Set the endpoint configurations of the User defined local authenticator config.
      *
      * @param endpointConfig    The endpoint config of the User defined local authenticator config.
      */

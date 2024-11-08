@@ -36,9 +36,9 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
     }
 
     /**
-     * Get the endpoint config of the User defined federated authenticator config.
+     * Get the endpoint configurations of the User defined federated authenticator config.
      *
-     * @return DefinedByType
+     * @return UserDefinedAuthenticatorEndpointConfig
      */
     public UserDefinedAuthenticatorEndpointConfig getEndpointConfig() {
 
@@ -46,7 +46,7 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
     }
 
     /**
-     * Set the defined by type of the User defined federated authenticator config.
+     * Set the endpoint configurations of the User defined federated authenticator config.
      *
      * @param endpointConfig    The endpoint config of the User defined federated authenticator config.
      */
