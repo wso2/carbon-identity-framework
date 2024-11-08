@@ -90,7 +90,6 @@ public class RecoveryApiV2Test {
 
             recoveryApiV2 = new RecoveryApiV2(apiClient);
         }
-
     }
 
     @Test
