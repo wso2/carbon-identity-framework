@@ -127,7 +127,8 @@ public class APIClientTest {
     @DataProvider(name = "unacceptableSuccessResponsePayloads")
     public String[] unacceptableSuccessResponsePayloads() {
 
-        return new String[]{"{}", "", "success", "{\"actionStatus\":\"SUCCESS\"}", "{\"actionStatus\":\"ERROR\"}"};
+        return new String[]{"{}", "", "success", "{\"actionStatus\":\"SUCCESS\"}", "{\"actionStatus\":\"ERROR\"}, " +
+                "{\"actionStatus\": \"FAILED\"}"};
     }
 
     @Test(dataProvider = "unacceptableSuccessResponsePayloads")
@@ -211,7 +212,7 @@ public class APIClientTest {
                 .value("value")
                 .isConfidential(true)
                 .build();
-        AuthMethods.AuthMethod bearAuth =  new AuthMethods.BearerAuth(Collections.singletonList(authProperty));
+        AuthMethods.AuthMethod bearAuth = new AuthMethods.BearerAuth(Collections.singletonList(authProperty));
         ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", bearAuth, "{}");
 
         assertNotNull(apiResponse);
@@ -223,6 +224,45 @@ public class APIClientTest {
                 "Error_description");
         assertFalse(apiResponse.isRetry());
         assertNull(apiResponse.getErrorLog());
+    }
+
+    @DataProvider(name = "unexpectedFailureResponses")
+    public Object[][] unexpectedFailureResponses() {
+
+        return new Object[][]{
+                {HttpStatus.SC_OK, ContentType.DEFAULT_TEXT.getMimeType(), "",
+                        "Unexpected response for status code: 200. The response content type is not application/json."},
+                {HttpStatus.SC_OK, ContentType.APPLICATION_JSON.getMimeType(), "{\"actionStatus\":\"FAILED\"}",
+                        "Unexpected response for status code: 200. Reading JSON response failed."},
+                {HttpStatus.SC_OK, ContentType.APPLICATION_JSON.getMimeType(),
+                        "{\"actionStatus\":\"FAILED\", \"failedReason\": \"Scope validation failed\"}",
+                        "Unexpected response for status code: 200. Reading JSON response failed."},
+                {HttpStatus.SC_OK, ContentType.APPLICATION_JSON.getMimeType(),
+                        "{\"actionStatus\":\"FAILED\", \"failedReason\": \"Scope validation failed\"}, " +
+                                "\"failedDescription\": \"<alert();>\"}",
+                        "Unexpected response for status code: 200. Reading JSON response failed."}
+        };
+    }
+
+    @Test(dataProvider = "unexpectedFailureResponses")
+    public void testCallAPIUnexpectedFailureResponse(Object statusCode, Object contentType, Object payload,
+                                                     Object expectedErrorLog)
+            throws Exception {
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn((int) statusCode);
+        InputStreamEntity entity =
+                new InputStreamEntity(new ByteArrayInputStream(payload.toString().getBytes(StandardCharsets.UTF_8)));
+        entity.setContentType(contentType.toString());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        assertNotNull(apiResponse);
+        assertTrue(apiResponse.isError());
+        assertFalse(apiResponse.isRetry());
+        assertNotNull(apiResponse.getErrorLog());
+        assertEquals(apiResponse.getErrorLog(), expectedErrorLog.toString());
     }
 
     @DataProvider(name = "unexpectedErrorResponses")
@@ -240,6 +280,10 @@ public class APIClientTest {
                 {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
                         "{\"actionStatus\":\"SUCCESS\"}", "Unexpected error response received for the status " +
                         "code: 401. Parsing JSON response failed."},
+                {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
+                        "{\"actionStatus\": \"ERROR\", \"error\": \"Scope validation failed\"," +
+                                " \"errorDescription\": \"<alert;>\"}",
+                        "Unexpected error response received for the status code: 401. Parsing JSON response failed."},
                 {HttpStatus.SC_INTERNAL_SERVER_ERROR, ContentType.APPLICATION_JSON.getMimeType(),
                         "server_error", "Unexpected error response received for the status " +
                         "code: 500. Parsing JSON response failed."},
@@ -288,7 +332,10 @@ public class APIClientTest {
                                 "\"errorDescription\":\"internal server error\"}"},
                 {HttpStatus.SC_UNAUTHORIZED,
                         "{\"actionStatus\":\"ERROR\",\"error\":\"access_denied\"," +
-                                "\"errorDescription\":\"scope validation failed\"}"}
+                                "\"errorDescription\":\"scope validation failed\"}"},
+                {HttpStatus.SC_UNAUTHORIZED,
+                        "{\"actionStatus\":\"ERROR\",\"error\":\"access_denied\"," +
+                                "\"errorDescription\":\"\"}"}
         };
     }
 

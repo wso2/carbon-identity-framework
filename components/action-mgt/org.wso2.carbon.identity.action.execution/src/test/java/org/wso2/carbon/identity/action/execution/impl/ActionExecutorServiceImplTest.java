@@ -496,7 +496,7 @@ public class ActionExecutorServiceImplTest {
 
     @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "Failed to execute actions for action type: PRE_ISSUE_ACCESS_TOKEN")
-    public void testActionExecuteFailureWithoutAPIResponse() throws Exception {
+    public void testActionExecuteFailureForUnexpectedAPIResponse() throws Exception {
 
         // Setup
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
@@ -524,7 +524,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         // Mock APIClient response
-        ActionInvocationResponse actionInvocationResponse = createFailureActionInvocationResponseWithoutAPIResponse();
+        ActionInvocationResponse actionInvocationResponse = createActionInvocationResponseWithoutAPIResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         // Execute and assert
@@ -630,12 +630,7 @@ public class ActionExecutorServiceImplTest {
         return actionInvocationResponse;
     }
 
-    private ActionInvocationResponse createFailureActionInvocationResponseWithoutAPIResponse() {
-
-        ActionInvocationErrorResponse errorResponse = mock(ActionInvocationErrorResponse.class);
-        when(errorResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.ERROR);
-        when(errorResponse.getError()).thenReturn("Unauthorized");
-        when(errorResponse.getErrorDescription()).thenReturn("Request validation failed.");
+    private ActionInvocationResponse createActionInvocationResponseWithoutAPIResponse() {
 
         ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
         when(actionInvocationResponse.isError()).thenReturn(true);
