@@ -40,8 +40,12 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
+import org.wso2.carbon.identity.action.execution.model.Error;
+import org.wso2.carbon.identity.action.execution.model.Failure;
 import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.model.Request;
+import org.wso2.carbon.identity.action.execution.model.Success;
+import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutionDiagnosticLogger;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
@@ -58,7 +62,6 @@ import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -78,7 +81,6 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
     private final APIClient apiClient;
     private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(THREAD_POOL_SIZE);
-
     private ActionExecutorServiceImpl() {
 
         apiClient = new APIClient();
@@ -103,8 +105,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
-    public ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain)
-            throws ActionExecutionException {
+    public ActionExecutionStatus<?> execute(ActionType actionType, Map<String, Object> eventContext,
+                                            String tenantDomain) throws ActionExecutionException {
 
         try {
             List<Action> actions = getActionsByActionType(actionType, tenantDomain);
@@ -116,7 +118,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         } catch (ActionExecutionRuntimeException e) {
             DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+            throw new ActionExecutionException("Failed to execute actions for action type: " + actionType, e);
         }
     }
 
@@ -129,8 +131,9 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
-    public ActionExecutionStatus execute(ActionType actionType, String[] actionIdList, Map<String, Object> eventContext,
-                                         String tenantDomain) throws ActionExecutionException {
+    public ActionExecutionStatus<?> execute(ActionType actionType, String[] actionIdList,
+                                            Map<String, Object> eventContext, String tenantDomain)
+            throws ActionExecutionException {
 
         validateActionIdList(actionType, actionIdList);
         Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
@@ -140,7 +143,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         } catch (ActionExecutionRuntimeException e) {
             DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+            throw new ActionExecutionException("Failed to execute actions for action type: " + actionType, e);
         }
     }
 
@@ -156,18 +159,19 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private ActionExecutionStatus execute(Action action, Map<String, Object> eventContext)
+    private ActionExecutionStatus<?> execute(Action action, Map<String, Object> eventContext)
             throws ActionExecutionException {
 
         ActionType actionType = ActionType.valueOf(action.getType().getActionType());
         ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
         ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
-        return Optional.ofNullable(action)
-                .filter(activeAction -> activeAction.getStatus() == Action.Status.ACTIVE)
-                .map(activeAction -> executeAction(activeAction, actionRequest, eventContext,
-                        actionExecutionResponseProcessor))
-                .orElse(new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext));
+        if (action.getStatus() == Action.Status.ACTIVE) {
+            return executeAction(action, actionRequest, eventContext, actionExecutionResponseProcessor);
+        } else {
+            // If no active actions are detected, it is regarded as the action execution being successful.
+            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
+        }
     }
 
     private Action getActionByActionId(ActionType actionType, String actionId, String tenantDomain)
@@ -241,7 +245,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return responseProcessor;
     }
 
-    private ActionExecutionStatus executeAction(Action action,
+    private ActionExecutionStatus<?> executeAction(Action action,
                                                 ActionExecutionRequest actionRequest,
                                                 Map<String, Object> eventContext,
                                                 ActionExecutionResponseProcessor actionExecutionResponseProcessor)
@@ -294,7 +298,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private ActionExecutionStatus processActionResponse(Action action,
+    private ActionExecutionStatus<?> processActionResponse(Action action,
                                                         ActionInvocationResponse actionInvocationResponse,
                                                         Map<String, Object> eventContext,
                                                         ActionExecutionRequest actionRequest,
@@ -312,18 +316,17 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         } else if (actionInvocationResponse.isError() && actionInvocationResponse.getResponse() != null) {
             return processErrorResponse(action, (ActionInvocationErrorResponse) actionInvocationResponse.getResponse(),
                     eventContext, actionRequest, actionExecutionResponseProcessor);
-        } else {
-            logErrorResponse(action, actionInvocationResponse);
         }
-
-        return new ActionExecutionStatus(ActionExecutionStatus.Status.FAILED, eventContext);
+        logErrorResponse(action, actionInvocationResponse);
+        throw new ActionExecutionRuntimeException("Received an invalid or unexpected action status for action type: "
+                + action.getType() + " and action ID: " + action.getId());
     }
 
-    private ActionExecutionStatus processSuccessResponse(Action action,
-                                                         ActionInvocationSuccessResponse successResponse,
-                                                         Map<String, Object> eventContext,
-                                                         ActionExecutionRequest actionRequest,
-                                                         ActionExecutionResponseProcessor
+    private ActionExecutionStatus<Success> processSuccessResponse(Action action,
+                                                                  ActionInvocationSuccessResponse successResponse,
+                                                                  Map<String, Object> eventContext,
+                                                                  ActionExecutionRequest actionRequest,
+                                                                  ActionExecutionResponseProcessor
                                                                  actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
@@ -338,11 +341,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 actionRequest.getEvent(), successResponseBuilder.build());
     }
 
-    private ActionExecutionStatus processErrorResponse(Action action,
-                                                       ActionInvocationErrorResponse errorResponse,
-                                                       Map<String, Object> eventContext,
-                                                       ActionExecutionRequest actionRequest,
-                                                       ActionExecutionResponseProcessor
+    private ActionExecutionStatus<Error> processErrorResponse(Action action,
+                                                              ActionInvocationErrorResponse errorResponse,
+                                                              Map<String, Object> eventContext,
+                                                              ActionExecutionRequest actionRequest,
+                                                              ActionExecutionResponseProcessor
                                                                actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
@@ -351,11 +354,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 errorResponse);
     }
 
-    private ActionExecutionStatus processFailureResponse(Action action,
-                                                       ActionInvocationFailureResponse failureResponse,
-                                                       Map<String, Object> eventContext,
-                                                       ActionExecutionRequest actionRequest,
-                                                       ActionExecutionResponseProcessor
+    private ActionExecutionStatus<Failure> processFailureResponse(Action action,
+                                                                  ActionInvocationFailureResponse failureResponse,
+                                                                  Map<String, Object> eventContext,
+                                                                  ActionExecutionRequest actionRequest,
+                                                                  ActionExecutionResponseProcessor
                                                                actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
