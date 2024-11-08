@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Pattern;
 
@@ -102,7 +103,7 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
                 throw new IllegalArgumentException("actionStatus must be ERROR.");
             }
 
-            if (error == null || error.isEmpty()) {
+            if (StringUtils.isEmpty(error)) {
                 throw new IllegalArgumentException("error cannot be null or empty.");
             }
 
@@ -110,7 +111,7 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
                 throw new IllegalArgumentException("Invalid error format.");
             }
 
-            if (errorDescription != null && !errorDescription.isEmpty() && !ERROR_DESCRIPTION_VALIDATION_PATTERN
+            if (StringUtils.isNotEmpty(errorDescription) && !ERROR_DESCRIPTION_VALIDATION_PATTERN
                     .matcher(errorDescription).matches()) {
                 throw new IllegalArgumentException("Invalid errorDescription format.");
             }

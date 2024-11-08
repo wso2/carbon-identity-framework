@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Pattern;
 
@@ -103,7 +104,7 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
                 throw new IllegalArgumentException("The actionStatus must be FAILED.");
             }
 
-            if (failureReason == null || failureReason.isEmpty()) {
+            if (StringUtils.isEmpty(failureReason)) {
                 throw new IllegalArgumentException("The failureReason cannot be null or empty.");
             }
 
@@ -111,7 +112,7 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
                 throw new IllegalArgumentException("Invalid failureReason format.");
             }
 
-            if (failureDescription != null && !failureDescription.isEmpty() && !FAILURE_DESCRIPTION_VALIDATION_PATTERN
+            if (StringUtils.isNotEmpty(failureDescription) && !FAILURE_DESCRIPTION_VALIDATION_PATTERN
                     .matcher(failureDescription).matches()) {
                 throw new IllegalArgumentException("Invalid failureDescription format.");
             }
