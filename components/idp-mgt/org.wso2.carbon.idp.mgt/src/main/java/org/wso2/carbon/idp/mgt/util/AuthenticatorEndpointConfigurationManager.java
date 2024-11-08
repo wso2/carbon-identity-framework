@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
-import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
@@ -30,7 +29,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.ERROR_CODE_ASSOCIATED_ACTION_MGT;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.ERROR_CODE_ENDPOINT_CONFIG_MGT;
 
 /**
  * This class responsible for managing authenticator endpoint configurations as the actions associated.
@@ -64,7 +63,7 @@ public class AuthenticatorEndpointConfigurationManager {
             endpointProperty.setValue(action.getId());
             config.setProperties(new Property[]{endpointProperty});
         } catch (ActionMgtException e) {
-            throw new IdentityProviderManagementServerException(ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode(),
+            throw new IdentityProviderManagementServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
                     "Error occurred while adding associated action for the authenticator:" + config.getName(), e);
         }
     }
@@ -92,7 +91,7 @@ public class AuthenticatorEndpointConfigurationManager {
                     Action.ActionTypes.AUTHENTICATION.toString(), actionId, buildActionToUpdate(
                             castedConfig.getEndpointConfig()), IdentityTenantUtil.getTenantDomain(tenantId));
         } catch (ActionMgtException e) {
-            throw new IdentityProviderManagementServerException(ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode(),
+            throw new IdentityProviderManagementServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
                     String.format("Error occurred while updating associated action with id %s for the authenticator %s",
                             actionId, oldConfig.getName()), e);
         }
@@ -122,7 +121,7 @@ public class AuthenticatorEndpointConfigurationManager {
             castedConfig.setEndpointConfig(action.getEndpoint());
             return castedConfig;
         } catch (ActionMgtException e) {
-            throw new IdentityProviderManagementServerException(ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode(),
+            throw new IdentityProviderManagementServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
                     String.format("Error occurred retrieving associated action with id %s for the authenticator %s",
                             actionId, config.getName()), e);
         }
@@ -149,7 +148,7 @@ public class AuthenticatorEndpointConfigurationManager {
                     Action.ActionTypes.AUTHENTICATION.toString(), actionId,
                     IdentityTenantUtil.getTenantDomain(tenantId));
         } catch (ActionMgtException e) {
-            throw new IdentityProviderManagementServerException(ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode(),
+            throw new IdentityProviderManagementServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
                     String.format("Error occurred while deleting associated action with id %s for the authenticator %s",
                             actionId, config.getName()), e);
         }

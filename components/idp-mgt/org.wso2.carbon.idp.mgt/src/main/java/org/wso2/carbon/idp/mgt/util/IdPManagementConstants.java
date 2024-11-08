@@ -620,7 +620,8 @@ public class IdPManagementConstants {
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
                 "the outbound provisioning roles"),
         ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups"),
-        ERROR_CODE_ASSOCIATED_ACTION_MGT("IDP-65010", "Error occurred with managing associated action."),;
+        ERROR_CODE_ENDPOINT_CONFIG_MGT("IDP-65010", "An error occurred while managing endpoint " +
+                "configurations for the user-defined authenticator.");
 
         private final String code;
         private final String message;

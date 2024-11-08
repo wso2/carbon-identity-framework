@@ -109,7 +109,7 @@ import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.ERROR_CODE_ASSOCIATED_ACTION_MGT;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.ERROR_CODE_ENDPOINT_CONFIG_MGT;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
@@ -3993,7 +3993,7 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error occurred while adding Identity Provider for tenant "
                     + tenantId, e);
         } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             }
             throw e;
@@ -4328,7 +4328,7 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error occurred while updating Identity Provider " +
                     "information  for tenant " + tenantId, e);
         } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             }
             throw e;
@@ -4416,7 +4416,7 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
         } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             }
             throw e;
@@ -4480,7 +4480,7 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
         } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             }
             throw e;
@@ -4531,7 +4531,7 @@ public class IdPManagementDAO {
                     String.format("Error occurred while deleting Identity Provider:%s of tenant:%s ",
                             idPName, tenantDomain), e);
         } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             }
             throw e;
@@ -4580,7 +4580,7 @@ public class IdPManagementDAO {
                     String.format("Error occurred while deleting Identity Provider with resource ID:%s of tenant:%s ",
                             resourceId, tenantDomain), e);
         } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ASSOCIATED_ACTION_MGT.getCode().equals(e.getErrorCode())) {
+            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             }
             throw e;
