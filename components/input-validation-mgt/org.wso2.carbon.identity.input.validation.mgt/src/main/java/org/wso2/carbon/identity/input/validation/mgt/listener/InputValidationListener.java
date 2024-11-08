@@ -162,8 +162,10 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
                         validateAgainstConfiguration(configuration, validators, field, valueProvidedForField,
                                 tenantDomain);
                     } catch (InputValidationMgtClientException e) {
-                        LOG.error(new StringFormattedMessage("Failed to validate %s for user. " +
-                                e.getDescription(), field));
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug(new StringFormattedMessage("Failed to validate %s for user. " +
+                                    e.getDescription(), field));
+                        }
                         throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
                                 new PolicyViolationException(e.getDescription()));
                     }
