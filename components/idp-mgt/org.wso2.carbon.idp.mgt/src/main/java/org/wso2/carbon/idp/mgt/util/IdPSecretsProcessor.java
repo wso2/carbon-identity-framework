@@ -16,17 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.secret.mgt.core;
+package org.wso2.carbon.idp.mgt.util;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+
 import static org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS;
 
 /**
@@ -39,10 +44,9 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
     private final Gson gson;
 
     public IdPSecretsProcessor() {
-
-        this.secretManager = new SecretManagerImpl();
-        this.secretResolveManager = new SecretResolveManagerImpl();
         this.gson = new Gson();
+        secretManager = IdpMgtServiceComponentHolder.getInstance().getSecretManager();
+        secretResolveManager = IdpMgtServiceComponentHolder.getInstance().getSecretResolveManager();
     }
 
     @Override

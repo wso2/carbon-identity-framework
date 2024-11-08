@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -53,7 +55,8 @@ public class IdpMgtServiceComponentHolder {
     private volatile List<ConnectorConfig> identityConnectorConfigList = new ArrayList<>();
     private RoleManagementService roleManagementService;
     private ClaimMetadataManagementService claimMetadataManagementService;
-    private SecretsProcessor<IdentityProvider> idpSecretsProcessorService;
+    private SecretManager secretManager;
+    private SecretResolveManager  secretResolveManager;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -136,14 +139,44 @@ public class IdpMgtServiceComponentHolder {
         this.roleManagementService = roleManagementService;
     }
 
-    public SecretsProcessor<IdentityProvider> getIdPSecretsProcessorService() {
+    /**
+     * Get the SecretManager.
+     *
+     * @return SecretManager instance.
+     */
+    public SecretManager getSecretManager() {
 
-        return idpSecretsProcessorService;
+        return secretManager;
     }
 
-    public void setIdPSecretsProcessorService(SecretsProcessor<IdentityProvider> idpSecretsProcessorService) {
+    /**
+     * Set the SecretManager.
+     *
+     * @param secretManager SecretManager instance.
+     */
+    public void setSecretManager(SecretManager secretManager) {
 
-        this.idpSecretsProcessorService = idpSecretsProcessorService;
+        this.secretManager = secretManager;
+    }
+
+    /**
+     * Get the SecretResolveManager.
+     *
+     * @return SecretResolveManager instance.
+     */
+    public SecretResolveManager getSecretResolveManager() {
+
+        return secretResolveManager;
+    }
+
+    /**
+     * Set the SecretResolveManager.
+     *
+     * @param secretResolveManager SecretResolveManager instance.
+     */
+    public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        this.secretResolveManager = secretResolveManager;
     }
 
     public ClaimMetadataManagementService getClaimMetadataManagementService() {
