@@ -85,11 +85,9 @@ public class UserDefinedAuthenticatorTest {
         endpointConfigBuilder.authenticationProperties(endpointConfig);
         UserDefinedAuthenticatorEndpointConfig authEndpointConfig = endpointConfigBuilder.build();
 
-        assertEquals(authEndpointConfig.getEndpointConfig().getUri(), uri);
-        assertEquals(authEndpointConfig.getEndpointConfig().getAuthentication().getType().getName(),
-                authenticationType);
-        assertEquals(authEndpointConfig.getEndpointConfig().getAuthentication().getProperties().size(),
-                endpointConfig.size());
+        assertEquals(authEndpointConfig.getAuthenticatorEndpointUri(), uri);
+        assertEquals(authEndpointConfig.getAuthenticatorEndpointAuthenticationType(), authenticationType);
+        assertEquals(authEndpointConfig.getAuthenticatorEndpointAuthenticationProperties(), endpointConfig);
     }
 
     @DataProvider(name = "invalidEndpointConfig")
