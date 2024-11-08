@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.regex.Pattern;
+
 /**
  * This class is used to represent the error response of an action invocation.
  */
@@ -64,6 +66,11 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
         private String error;
         private String errorDescription;
 
+        private static final Pattern ERROR_VALIDATION_PATTERN =
+                Pattern.compile("^[a-zA-Z0-9\\s\\-_.!?;:'()\\[\\]]{1,100}$");
+        private static final Pattern ERROR_DESCRIPTION_VALIDATION_PATTERN =
+                Pattern.compile("^[a-zA-Z0-9\\s\\-_.!?;:'()\\[\\]]{1,300}$");
+
         @JsonProperty("actionStatus")
         public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
 
@@ -97,6 +104,15 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
 
             if (error == null || error.isEmpty()) {
                 throw new IllegalArgumentException("error cannot be null or empty.");
+            }
+
+            if (!ERROR_VALIDATION_PATTERN.matcher(error).matches()) {
+                throw new IllegalArgumentException("Invalid error format.");
+            }
+
+            if (errorDescription != null && !errorDescription.isEmpty() && !ERROR_DESCRIPTION_VALIDATION_PATTERN
+                    .matcher(errorDescription).matches()) {
+                throw new IllegalArgumentException("Invalid errorDescription format.");
             }
 
             return new ActionInvocationErrorResponse(this);

@@ -57,7 +57,6 @@ public class APIClient {
 
     public APIClient() {
 
-        // todo: read connection configurations related to the http client of actions from the server configuration.
         // Initialize the http client. Set connection time out to 2s and read time out to 5s.
         int readTimeout = ActionExecutorConfig.getInstance().getHttpReadTimeoutInMillis();
         int connectionRequestTimeout = ActionExecutorConfig.getInstance().getHttpConnectionRequestTimeoutInMillis();
