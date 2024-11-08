@@ -30,6 +30,11 @@ public class UserDefinedAuthenticatorEndpointConfig {
 
     private final EndpointConfig endpointConfig;
 
+    public UserDefinedAuthenticatorEndpointConfig(EndpointConfig endpointConfig) {
+
+        this.endpointConfig = endpointConfig;
+    }
+
     private UserDefinedAuthenticatorEndpointConfig(UserDefinedAuthenticatorEndpointConfigBuilder builder) {
 
         endpointConfig = builder.endpointConfig;

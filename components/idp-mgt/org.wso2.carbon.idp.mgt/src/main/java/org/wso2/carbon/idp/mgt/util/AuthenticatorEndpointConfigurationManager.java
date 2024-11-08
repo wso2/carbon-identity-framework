@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -32,7 +33,8 @@ import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.ERROR_CODE_ENDPOINT_CONFIG_MGT;
 
 /**
- * This class responsible for managing authenticator endpoint configurations as the actions associated.
+ * This class responsible for managing authenticator endpoint configurations for the user defined federated
+ * authenticators.
  */
 public class AuthenticatorEndpointConfigurationManager {
 
@@ -55,9 +57,11 @@ public class AuthenticatorEndpointConfigurationManager {
 
         try {
             UserDefinedFederatedAuthenticatorConfig castedConfig = (UserDefinedFederatedAuthenticatorConfig) config;
-            Action action = IdpMgtServiceComponentHolder.getInstance().getActionManagementService().addAction(Action.ActionTypes.AUTHENTICATION.toString(),
-                    buildActionToCreate(castedConfig.getName(), castedConfig.getEndpointConfig()),
-                    IdentityTenantUtil.getTenantDomain(tenantId));
+            Action action = IdpMgtServiceComponentHolder.getInstance().getActionManagementService()
+                    .addAction(Action.ActionTypes.AUTHENTICATION.toString(),
+                               buildActionToCreate(castedConfig.getName(),
+                                                castedConfig.getEndpointConfig().getEndpointConfig()),
+                               IdentityTenantUtil.getTenantDomain(tenantId));
             Property endpointProperty = new Property();
             endpointProperty.setName(ACTION_ID_PROPERTY);
             endpointProperty.setValue(action.getId());
@@ -84,12 +88,14 @@ public class AuthenticatorEndpointConfigurationManager {
             return;
         }
 
-        String actionId = getActionIdFromProperty(oldConfig.getProperties());
+        String actionId = getActionIdFromProperty(oldConfig.getProperties(), oldConfig.getName());
         try {
             UserDefinedFederatedAuthenticatorConfig castedConfig = (UserDefinedFederatedAuthenticatorConfig) newConfig;
-            IdpMgtServiceComponentHolder.getInstance().getActionManagementService().updateAction(
-                    Action.ActionTypes.AUTHENTICATION.toString(), actionId, buildActionToUpdate(
-                            castedConfig.getEndpointConfig()), IdentityTenantUtil.getTenantDomain(tenantId));
+            IdpMgtServiceComponentHolder.getInstance().getActionManagementService()
+                    .updateAction(Action.ActionTypes.AUTHENTICATION.toString(),
+                                  actionId,
+                                  buildActionToUpdate(castedConfig.getEndpointConfig().getEndpointConfig()),
+                                  IdentityTenantUtil.getTenantDomain(tenantId));
         } catch (ActionMgtException e) {
             throw new IdentityProviderManagementServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
                     String.format("Error occurred while updating associated action with id %s for the authenticator %s",
@@ -112,13 +118,14 @@ public class AuthenticatorEndpointConfigurationManager {
             return config;
         }
 
-        String actionId = getActionIdFromProperty(config.getProperties());
+        String actionId = getActionIdFromProperty(config.getProperties(), config.getName());
         try {
             UserDefinedFederatedAuthenticatorConfig castedConfig = (UserDefinedFederatedAuthenticatorConfig) config;
             Action action = IdpMgtServiceComponentHolder.getInstance().getActionManagementService()
-                    .getActionByActionId(Action.ActionTypes.AUTHENTICATION.toString(),
-                    actionId, IdentityTenantUtil.getTenantDomain(tenantId));
-            castedConfig.setEndpointConfig(action.getEndpoint());
+                                    .getActionByActionId(Action.ActionTypes.AUTHENTICATION.toString(),
+                                                         actionId,
+                                                         IdentityTenantUtil.getTenantDomain(tenantId));
+            castedConfig.setEndpointConfig(new UserDefinedAuthenticatorEndpointConfig(action.getEndpoint()));
             return castedConfig;
         } catch (ActionMgtException e) {
             throw new IdentityProviderManagementServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
@@ -142,11 +149,12 @@ public class AuthenticatorEndpointConfigurationManager {
             return;
         }
 
-        String actionId = getActionIdFromProperty(config.getProperties());
+        String actionId = getActionIdFromProperty(config.getProperties(), config.getName());
         try {
-            IdpMgtServiceComponentHolder.getInstance().getActionManagementService().deleteAction(
-                    Action.ActionTypes.AUTHENTICATION.toString(), actionId,
-                    IdentityTenantUtil.getTenantDomain(tenantId));
+            IdpMgtServiceComponentHolder.getInstance().getActionManagementService()
+                            .deleteAction(Action.ActionTypes.AUTHENTICATION.toString(),
+                                          actionId,
+                                          IdentityTenantUtil.getTenantDomain(tenantId));
         } catch (ActionMgtException e) {
             throw new IdentityProviderManagementServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
                     String.format("Error occurred while deleting associated action with id %s for the authenticator %s",
@@ -154,15 +162,18 @@ public class AuthenticatorEndpointConfigurationManager {
         }
     }
 
+    /**
+     * Create a new federated authenticator config based on the defined by property.
+     *
+     * @return UserDefinedAuthenticatorEndpointConfig
+     */
     public FederatedAuthenticatorConfig createFederatedAuthenticatorConfig(AuthenticatorPropertyConstants.DefinedByType
             definedByType) {
 
         if (definedByType == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
             return new FederatedAuthenticatorConfig();
         }
-
-        return new UserDefinedFederatedAuthenticatorConfig(
-                AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION);
+        return new UserDefinedFederatedAuthenticatorConfig();
     }
 
     private Action buildActionToCreate(String authenticatorName, EndpointConfig endpointConfig) {
@@ -184,12 +195,16 @@ public class AuthenticatorEndpointConfigurationManager {
         return actionRequestBuilder.build();
     }
 
-    private String getActionIdFromProperty(Property[] properties) throws IdentityProviderManagementServerException {
+    private String getActionIdFromProperty(Property[] properties, String authenticatorName)
+            throws IdentityProviderManagementServerException {
+
         for (Property property : properties) {
             if (ACTION_ID_PROPERTY.equals(property.getName())) {
                 return property.getValue();
             }
         }
-        throw new IdentityProviderManagementServerException("No action id found from the property.");
+        throw new IdentityProviderManagementServerException(
+                "No action Id was found in the properties of the authenticator configurations for the authenticator: "
+                        + authenticatorName);
     }
 }

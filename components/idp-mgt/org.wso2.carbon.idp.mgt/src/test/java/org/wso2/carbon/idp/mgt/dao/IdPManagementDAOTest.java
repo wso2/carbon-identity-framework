@@ -34,21 +34,7 @@ import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdPGroup;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
-import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.LocalRole;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -110,6 +96,7 @@ public class IdPManagementDAOTest {
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     private static final String ASSOCIATED_ACTION_ID = "Dummp_Action_ID";
+    private static final String CUSTOM_IDP_NAME = "customIdP";
     private static EndpointConfig endpointConfig;
     private static Action action;
     private IdentityProvider userDefinedIdP;
@@ -944,6 +931,7 @@ public class IdPManagementDAOTest {
                 {"testIdP1", 1, SAMPLE_TENANT_ID, true},
                 {"testIdP3", 3, SAMPLE_TENANT_ID2, true},
                 {"notExist", 4, SAMPLE_TENANT_ID, false},
+                {CUSTOM_IDP_NAME, 4, SAMPLE_TENANT_ID2, true},
         };
     }
 
@@ -969,6 +957,7 @@ public class IdPManagementDAOTest {
                 {"testIdP1", SAMPLE_TENANT_ID, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
                 {"notExist", SAMPLE_TENANT_ID, false},
+                {CUSTOM_IDP_NAME, SAMPLE_TENANT_ID2, true}
         };
     }
 
@@ -1364,6 +1353,7 @@ public class IdPManagementDAOTest {
         return new Object[][]{
                 {"testIdP1", SAMPLE_TENANT_ID},
                 {"testIdP3", SAMPLE_TENANT_ID2},
+                {CUSTOM_IDP_NAME, SAMPLE_TENANT_ID2},
         };
     }
 
@@ -2080,14 +2070,15 @@ public class IdPManagementDAOTest {
         userDefinedIdP.setIdentityProviderName("customIdP");
 
         UserDefinedFederatedAuthenticatorConfig userDefinedFederatedAuthenticatorConfig = new
-                UserDefinedFederatedAuthenticatorConfig(AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION);
+                UserDefinedFederatedAuthenticatorConfig();
         userDefinedFederatedAuthenticatorConfig.setDisplayName("DisplayName1");
         userDefinedFederatedAuthenticatorConfig.setName("customFedAuthenticator");
         userDefinedFederatedAuthenticatorConfig.setEnabled(true);
         userDefinedIdP.setFederatedAuthenticatorConfigs(
                 new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
 
-        userDefinedFederatedAuthenticatorConfig.setEndpointConfig(endpointConfig);
+        userDefinedFederatedAuthenticatorConfig.setEndpointConfig(
+                new UserDefinedAuthenticatorEndpointConfig(endpointConfig));
         userDefinedIdP.setFederatedAuthenticatorConfigs(
                 new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
         userDefinedIdP.setDefaultAuthenticatorConfig(userDefinedFederatedAuthenticatorConfig);
