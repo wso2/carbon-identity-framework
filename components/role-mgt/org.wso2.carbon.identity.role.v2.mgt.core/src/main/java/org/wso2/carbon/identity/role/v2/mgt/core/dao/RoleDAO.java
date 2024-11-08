@@ -463,6 +463,16 @@ public interface RoleDAO {
     int getRoleAudienceRefId(String audience, String audienceId) throws IdentityRoleManagementException;
 
     /**
+     * Retrieve the main role UUIDs corresponding to a list of shared role UUIDs.
+     *
+     * @param sharedRoleIds List of shared (sub-organization) role UUIDs for which main role UUIDs are to be found.
+     * @return List of main role UUIDs corresponding to the given shared role UUIDs.
+     * @throws IdentityRoleManagementException If an error occurs while retrieving the role mappings.
+     */
+    List<String> getMainRoleUUIDsForSharedRoles(List<String> sharedRoleIds)
+            throws IdentityRoleManagementException;
+
+    /**
      * Get shared hybrid roles for the given main role ID.
      *
      * @param roleId   The main role ID.

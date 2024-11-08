@@ -910,6 +910,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public List<String> getMainRoleUUIDsForSharedRoles(List<String> sharedRoleIds)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleIds);
+    }
+
+    @Override
     public List<RoleDTO> getSharedHybridRoles(String roleId, int mainTenantId) throws IdentityRoleManagementException {
 
         return roleDAO.getSharedHybridRoles(roleId, mainTenantId);
