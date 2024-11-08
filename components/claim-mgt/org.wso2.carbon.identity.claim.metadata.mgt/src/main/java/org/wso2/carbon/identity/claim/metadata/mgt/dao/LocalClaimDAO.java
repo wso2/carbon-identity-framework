@@ -34,8 +34,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
 
 /**
  * Data access object for org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim.
@@ -65,8 +69,13 @@ public class LocalClaimDAO extends ClaimDAO {
 
                 List<AttributeMapping> attributeMappingsOfClaim = claimAttributeMappingsOfDialect.get(claimId);
                 Map<String, String> propertiesOfClaim = claimPropertiesOfDialect.get(claimId);
-
-                localClaims.add(new LocalClaim(claim.getClaimURI(), attributeMappingsOfClaim, propertiesOfClaim));
+                LocalClaim localClaim = new LocalClaim(claim.getClaimURI(), attributeMappingsOfClaim, propertiesOfClaim);
+                if (shouldAddUniquenessScopeInClaimProperties(propertiesOfClaim)) {
+                    ClaimConstants.ClaimUniquenessScope uniquenessScope = getServerLevelClaimUniquenessScope();
+                    storeUniquenessScopeInClaimProperties(connection, claimId, uniquenessScope, tenantId);
+                    addUniquenessScopeToClaimProperties(localClaim,uniquenessScope);
+                }
+                localClaims.add(localClaim);
             }
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
@@ -179,6 +188,10 @@ public class LocalClaimDAO extends ClaimDAO {
             }
 
             addClaimAttributeMappings(connection, localClaimId, localClaim.getMappedAttributes(), tenantId);
+            if (shouldAddUniquenessScopeInClaimProperties(localClaim.getClaimProperties())) {
+                ClaimConstants.ClaimUniquenessScope uniquenessScope = getServerLevelClaimUniquenessScope();
+                addUniquenessScopeToClaimProperties(localClaim,uniquenessScope);
+            }
             addClaimProperties(connection, localClaimId, localClaim.getClaimProperties(), tenantId);
 
             // End transaction
@@ -209,6 +222,10 @@ public class LocalClaimDAO extends ClaimDAO {
             addClaimAttributeMappings(connection, localClaimId, localClaim.getMappedAttributes(), tenantId);
 
             deleteClaimProperties(connection, localClaimId, tenantId);
+            if (shouldAddUniquenessScopeInClaimProperties(localClaim.getClaimProperties())) {
+                ClaimConstants.ClaimUniquenessScope uniquenessScope = getServerLevelClaimUniquenessScope();
+                addUniquenessScopeToClaimProperties(localClaim,uniquenessScope);
+            }
             addClaimProperties(connection, localClaimId, localClaim.getClaimProperties(), tenantId);
 
             // End transaction
@@ -397,5 +414,57 @@ public class LocalClaimDAO extends ClaimDAO {
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while obtaining mapped external claims for local claim.", e);
         }
+    }
+
+    /**
+     * Checks if the uniqueness scope should be included in the given claim properties.
+     *
+     * @param claimProperties Map of claim properties to check.
+     * @return true if uniqueness scope should be included, false otherwise.
+     */
+    private boolean shouldAddUniquenessScopeInClaimProperties(Map<String, String> claimProperties) {
+
+        return claimProperties != null &&
+                Boolean.parseBoolean(claimProperties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY)) &&
+                !claimProperties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
+    }
+
+    /**
+     * Adds the specified uniqueness scope to the claim properties of a given LocalClaim.
+     * This method removes the legacy isUnique flag and replaces it with the new UniquenessScope property.
+     *
+     * @param localClaim      LocalClaim instance to which the uniqueness scope property will be added.
+     * @param uniquenessScope Enum value representing the uniqueness scope to be added.
+     */
+    private void addUniquenessScopeToClaimProperties(LocalClaim localClaim,
+                                                     ClaimConstants.ClaimUniquenessScope uniquenessScope) {
+
+        Map<String, String> claimProperties = localClaim.getClaimProperties();
+        claimProperties.remove(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
+        claimProperties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, uniquenessScope.toString());
+    }
+
+    /**
+     * Stores the uniqueness scope in the claim properties for a given claim in the database.
+     * This method removes the legacy IS_UNIQUE flag and replaces it with the new uniqueness scope property
+     * in an atomic transaction.
+     *
+     * @param connection      Database connection.
+     * @param claimId         ID of the claim for which the uniqueness scope will be stored.
+     * @param uniquenessScope Enum value representing the uniqueness scope to store.
+     * @param tenantId        ID of the tenant to which the claim belongs.
+     * @throws ClaimMetadataException if an error occurs while storing the claim properties.
+     */
+    private void storeUniquenessScopeInClaimProperties(Connection connection, int claimId,
+                                                       ClaimConstants.ClaimUniquenessScope uniquenessScope,
+                                                       int tenantId) throws ClaimMetadataException {
+
+        Map<String, String> newClaimProperties = new HashMap<>();
+        newClaimProperties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, uniquenessScope.toString());
+        
+        Set<String> claimPropertiesToDelete = new HashSet<>();
+        claimPropertiesToDelete.add(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
+        
+        updateClaimPropertiesAtomically(connection, claimId, newClaimProperties, claimPropertiesToDelete, tenantId);
     }
 }

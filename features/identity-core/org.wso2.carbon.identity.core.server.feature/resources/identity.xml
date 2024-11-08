@@ -1160,6 +1160,9 @@
         <!-- When updating the claim value, it can be validated against the provided regex pattern.
         To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
         <!--<EnableUserClaimInputRegexValidation>false</EnableUserClaimInputRegexValidation>-->
+        <UniquenessValidation>
+            <ScopeWithinUserstore>false</ScopeWithinUserstore>
+        </UniquenessValidation>
     </UserClaimUpdate>
 
     <AccountSuspension>

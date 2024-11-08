@@ -31,6 +31,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI;
 
@@ -230,6 +231,82 @@ public class ClaimDAO {
             prepStmt.execute();
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while deleting claim properties", e);
+        }
+    }
+
+    /**
+     * Deletes a set of claim properties.
+     *
+     * @param connection         Database connection
+     * @param claimId            ID of the claim
+     * @param claimPropertyNames Names of the claim properties to be deleted
+     * @param tenantId           Tenant ID
+     * @throws ClaimMetadataException if deletion fails
+     */
+    protected void deleteClaimProperties(Connection connection, int claimId,
+                                         Set<String> claimPropertyNames, int tenantId) throws ClaimMetadataException {
+
+        String query = SQLConstants.DELETE_CLAIM_PROPERTY_BY_NAME;
+        try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
+            prepStmt.setInt(1, claimId);
+            prepStmt.setInt(3, tenantId);
+            
+            for (String propertyName : claimPropertyNames) {
+                prepStmt.setString(2, propertyName);
+                prepStmt.addBatch();
+            }
+            prepStmt.executeBatch();
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error while deleting claim properties: " + claimPropertyNames, e);
+        }
+    }
+
+    /**
+     * Updates claim properties atomically by performing deletions and additions within a single transaction.
+     * This method ensures that all operations either complete successfully or are rolled back entirely.
+     *
+     * @param connection              Database connection to be used
+     * @param claimId                 ID of the claim whose properties are being updated
+     * @param newClaimProperties      Map of new claim properties to be added (property name to value mapping)
+     * @param claimPropertiesToDelete Set of claim property names to be deleted
+     * @param tenantId                ID of the tenant
+     * @throws ClaimMetadataException If an error occurs during the transaction or while managing claim properties
+     */
+    protected void updateClaimPropertiesAtomically(Connection connection, int claimId,
+                                                   Map<String, String> newClaimProperties,
+                                                   Set<String> claimPropertiesToDelete,
+                                                   int tenantId) throws ClaimMetadataException {
+
+        boolean autoCommit = false;
+        SQLException resetAutoCommitException = null;
+        
+        try {
+            autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            if (claimPropertiesToDelete != null && !claimPropertiesToDelete.isEmpty()) {
+                deleteClaimProperties(connection, claimId, claimPropertiesToDelete, tenantId);
+            }
+
+            if (newClaimProperties != null && !newClaimProperties.isEmpty()) {
+                addClaimProperties(connection, claimId, newClaimProperties, tenantId);
+            }
+
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new ClaimMetadataException("Error while updating claim properties atomically", e);
+        } finally {
+            try {
+                connection.setAutoCommit(autoCommit);
+            } catch (SQLException e) {
+                resetAutoCommitException = e;
+            }
+        }
+        
+        if (resetAutoCommitException != null) {
+            throw new ClaimMetadataException("Error occurred while resetting auto-commit state", 
+                    resetAutoCommitException);
         }
     }
 }

@@ -1880,6 +1880,15 @@
 
         <!-- Enable support for storing multiple email addresses and mobile numbers per user. -->
         <EnableMultipleEmailsAndMobileNumbers>{{identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers}}</EnableMultipleEmailsAndMobileNumbers>
+
+        <!-- 
+            Defines the scope for which claim uniqueness validation should happen, this can be either within userstore
+            or across userstore. This config is already defined in the EventListener with 
+            id="unique_claim_user_operation_event_listener" of type "UserOperationEventListener".
+        -->
+        <UniquenessValidation>
+            <ScopeWithinUserstore>{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</ScopeWithinUserstore>
+        </UniquenessValidation>
     </UserClaimUpdate>
 
      <AccountSuspension>

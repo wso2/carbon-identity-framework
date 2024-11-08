@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -37,6 +38,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
 
 /**
  * Utility class containing various claim metadata implementation related functionality.
@@ -317,5 +320,20 @@ public class ClaimMetadataUtils {
         claimMapping.getClaim().setDialectURI(externalClaim.getClaimDialectURI());
         claimMapping.getClaim().setClaimUri(externalClaim.getClaimURI());
         return claimMapping;
+    }
+
+    /**
+     * Retrieves the server-level uniqueness validation scope for claims based on configuration.
+     *
+     * @return Enum value of ClaimConstants.ClaimUniquenessScope indicating the server-level uniqueness scope.
+     * Returns WITHIN_USERSTORE if the configuration is set to restrict uniqueness within the user store;
+     * otherwise, returns ACROSS_USERSTORES.
+     */
+    public static ClaimConstants.ClaimUniquenessScope getServerLevelClaimUniquenessScope() {
+
+        boolean isScopeWithinUserstore = Boolean.parseBoolean(IdentityUtil.getProperty(UNIQUENESS_VALIDATION_SCOPE));
+
+        return isScopeWithinUserstore ? ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE :
+                ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES;
     }
 }
