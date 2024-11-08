@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,6 +40,40 @@ public class UserDefinedAuthenticatorEndpointConfig {
     public EndpointConfig getEndpointConfig() {
 
         return endpointConfig;
+    }
+
+    /**
+     * Get the URI of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return URI of the authenticator endpoint.
+     */
+    public String getAuthenticatorEndpointUri() {
+
+        return endpointConfig.getUri();
+    }
+
+    /**
+     * Get the authentication type of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Authentication type of the authenticator endpoint.
+     */
+    public String getAuthenticatorEndpointAuthenticationType() {
+
+        return endpointConfig.getAuthentication().getType().getName();
+    }
+
+    /**
+     * Get the authentication properties of the authenticator endpoint of the user defined authenticator.
+     *
+     * @return Authentication properties of the authenticator endpoint.
+     */
+    public Map<String, String> getAuthenticatorEndpointAuthenticationProperties() {
+
+        Map<String, String> propertyMap = new HashMap<>();
+        for (AuthProperty prop: endpointConfig.getAuthentication().getProperties()) {
+            propertyMap.put(prop.getName(), prop.getValue());
+        }
+        return propertyMap;
     }
 
     /**
