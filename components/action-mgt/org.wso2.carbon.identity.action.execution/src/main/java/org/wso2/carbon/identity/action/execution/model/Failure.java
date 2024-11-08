@@ -24,22 +24,22 @@ package org.wso2.carbon.identity.action.execution.model;
  */
 public class Failure {
 
-    private final String reason;
-    private final String description;
+    private final String failureReason;
+    private final String failureDescription;
 
-    public Failure(String reason, String description) {
+    public Failure(String failureReason, String failureDescription) {
 
-        this.reason = reason;
-        this.description = description;
+        this.failureReason = failureReason;
+        this.failureDescription = failureDescription;
     }
 
-    public String getReason() {
+    public String getFailureReason() {
 
-        return reason;
+        return failureReason;
     }
 
-    public String getDescription() {
+    public String getFailureDescription() {
 
-        return description;
+        return failureDescription;
     }
 }

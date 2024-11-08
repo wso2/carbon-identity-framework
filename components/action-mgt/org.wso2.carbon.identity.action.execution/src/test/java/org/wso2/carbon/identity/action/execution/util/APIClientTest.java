@@ -325,16 +325,16 @@ public class APIClientTest {
 
         return new Object[][]{
                 {HttpStatus.SC_BAD_REQUEST,
-                        "{\"actionStatus\":\"ERROR\",\"error\":\"invalid_request\"," +
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"invalid_request\"," +
                                 "\"errorDescription\":\"client_id is missing\"}"},
                 {HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        "{\"actionStatus\":\"ERROR\",\"error\":\"server_error\"," +
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"server_error\"," +
                                 "\"errorDescription\":\"internal server error\"}"},
                 {HttpStatus.SC_UNAUTHORIZED,
-                        "{\"actionStatus\":\"ERROR\",\"error\":\"access_denied\"," +
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"access_denied\"," +
                                 "\"errorDescription\":\"scope validation failed\"}"},
                 {HttpStatus.SC_UNAUTHORIZED,
-                        "{\"actionStatus\":\"ERROR\",\"error\":\"access_denied\"," +
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"access_denied\"," +
                                 "\"errorDescription\":\"\"}"}
         };
     }
@@ -362,9 +362,9 @@ public class APIClientTest {
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(payload.toString());
-        String error = rootNode.path("error").asText();
+        String error = rootNode.path("errorMessage").asText();
         String errorDescription = rootNode.path("errorDescription").asText();
-        assertEquals(errorResponseObject.getError(), error);
+        assertEquals(errorResponseObject.getErrorMessage(), error);
         assertEquals(errorResponseObject.getErrorDescription(), errorDescription);
         assertNull(apiResponse.getErrorLog());
     }

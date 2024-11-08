@@ -485,8 +485,8 @@ public class ActionExecutorServiceImplTest {
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
-        assertEquals(((FailedStatus) actualStatus).getResponse().getReason(), "Error_reason");
-        assertEquals(((FailedStatus) actualStatus).getResponse().getDescription(), "Error_description");
+        assertEquals(((FailedStatus) actualStatus).getResponse().getFailureReason(), "Error_reason");
+        assertEquals(((FailedStatus) actualStatus).getResponse().getFailureDescription(), "Error_description");
 
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
@@ -621,7 +621,7 @@ public class ActionExecutorServiceImplTest {
 
         ActionInvocationErrorResponse errorResponse = mock(ActionInvocationErrorResponse.class);
         when(errorResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.ERROR);
-        when(errorResponse.getError()).thenReturn("Unauthorized");
+        when(errorResponse.getErrorMessage()).thenReturn("Unauthorized");
         when(errorResponse.getErrorDescription()).thenReturn("Request validation failed.");
 
         ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);

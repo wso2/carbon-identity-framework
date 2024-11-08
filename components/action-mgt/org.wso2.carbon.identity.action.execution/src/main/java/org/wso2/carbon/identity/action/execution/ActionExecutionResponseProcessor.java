@@ -52,7 +52,7 @@ public interface ActionExecutionResponseProcessor {
                                                               ActionInvocationErrorResponse errorResponse) throws
             ActionExecutionResponseProcessorException {
 
-        return new ErrorStatus(new Error(errorResponse.getError(), errorResponse.getErrorDescription()));
+        return new ErrorStatus(new Error(errorResponse.getErrorMessage(), errorResponse.getErrorDescription()));
     }
 
     default ActionExecutionStatus<Failure> processFailureResponse(Map<String, Object> eventContext,
