@@ -81,6 +81,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
     private final APIClient apiClient;
     private final ExecutorService executorService = ThreadLocalAwareExecutors.newFixedThreadPool(THREAD_POOL_SIZE);
+
     private ActionExecutorServiceImpl() {
 
         apiClient = new APIClient();
@@ -118,7 +119,9 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         } catch (ActionExecutionRuntimeException e) {
             DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            throw new ActionExecutionException("Failed to execute actions for action type: " + actionType, e);
+            // Skip executing actions when no action available or due to a failure in retrieving actions,
+            // is considered as action execution being successful.
+            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
         }
     }
 
@@ -143,7 +146,9 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         } catch (ActionExecutionRuntimeException e) {
             DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            throw new ActionExecutionException("Failed to execute actions for action type: " + actionType, e);
+            // Skip executing actions when no action available or due to a failure in retrieving actions,
+            // is considered as action execution being successful.
+            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
         }
     }
 
@@ -230,7 +235,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             request.setAdditionalParams(RequestFilter.getFilteredParams(request.getAdditionalParams(), actionType));
             return actionExecutionRequest;
         } catch (ActionExecutionRequestBuilderException e) {
-            throw new ActionExecutionRuntimeException("Error occurred while building the request payload.", e);
+            throw new ActionExecutionException("Failed to build the request payload for action type: " + actionType, e);
         }
     }
 
@@ -246,10 +251,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private ActionExecutionStatus<?> executeAction(Action action,
-                                                ActionExecutionRequest actionRequest,
-                                                Map<String, Object> eventContext,
-                                                ActionExecutionResponseProcessor actionExecutionResponseProcessor)
-            throws ActionExecutionRuntimeException {
+                                                   ActionExecutionRequest actionRequest,
+                                                   Map<String, Object> eventContext,
+                                                   ActionExecutionResponseProcessor actionExecutionResponseProcessor)
+            throws ActionExecutionException {
 
         Authentication endpointAuthentication = action.getEndpoint().getAuthentication();
         AuthMethods.AuthMethod authenticationMethod;
@@ -265,13 +270,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             return processActionResponse(action, actionInvocationResponse, eventContext, actionRequest,
                     actionExecutionResponseProcessor);
         } catch (ActionMgtException | JsonProcessingException | ActionExecutionResponseProcessorException e) {
-            throw new ActionExecutionRuntimeException("Error occurred while executing action: " + action.getId(), e);
+            throw new ActionExecutionException("Error occurred while executing action: " + action.getId(), e);
         }
     }
 
     private ActionInvocationResponse executeActionAsynchronously(Action action,
                                                                  AuthMethods.AuthMethod authenticationMethod,
-                                                                 String payload) {
+                                                                 String payload) throws ActionExecutionException {
 
         String apiEndpoint = action.getEndpoint().getUri();
         CompletableFuture<ActionInvocationResponse> actionExecutor = CompletableFuture.supplyAsync(
@@ -279,7 +284,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         try {
             return actionExecutor.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new ActionExecutionRuntimeException("Error occurred while executing action: " + action.getId(),
+            throw new ActionExecutionException("Error occurred while executing action: " + action.getId(),
                     e);
         }
     }
@@ -299,12 +304,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private ActionExecutionStatus<?> processActionResponse(Action action,
-                                                        ActionInvocationResponse actionInvocationResponse,
-                                                        Map<String, Object> eventContext,
-                                                        ActionExecutionRequest actionRequest,
-                                                        ActionExecutionResponseProcessor
-                                                                actionExecutionResponseProcessor)
-            throws ActionExecutionResponseProcessorException {
+                                                           ActionInvocationResponse actionInvocationResponse,
+                                                           Map<String, Object> eventContext,
+                                                           ActionExecutionRequest actionRequest,
+                                                           ActionExecutionResponseProcessor
+                                                                   actionExecutionResponseProcessor)
+            throws ActionExecutionResponseProcessorException, ActionExecutionException {
 
         if (actionInvocationResponse.isSuccess()) {
             return processSuccessResponse(action,
@@ -318,8 +323,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     eventContext, actionRequest, actionExecutionResponseProcessor);
         }
         logErrorResponse(action, actionInvocationResponse);
-        throw new ActionExecutionRuntimeException("Received an invalid or unexpected action status for action type: "
-                + action.getType() + " and action ID: " + action.getId());
+        throw new ActionExecutionException("Received an invalid or unexpected response for action type: "
+                + action.getType() + " action ID: " + action.getId());
     }
 
     private ActionExecutionStatus<Success> processSuccessResponse(Action action,

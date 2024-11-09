@@ -139,14 +139,16 @@ public class ActionExecutorServiceImplTest {
         actionExecutorConfigStatic.close();
     }
 
-    @Test(expectedExceptions = ActionExecutionException.class)
-    public void testActionExecuteFailureWhenNoActionsAvailableForActionType() throws Exception {
+    @Test
+    public void testActionExecuteSuccessWhenNoActionsAvailableForActionType() throws Exception {
 
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(Collections.emptyList());
 
-        ActionExecutionStatus actionExecutionStatus =
+        ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
+        ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
-        assertEquals(actionExecutionStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
+
+        assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
     }
 
     @Test
@@ -229,7 +231,8 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
-            expectedExceptionsMessageRegExp = "Failed to execute actions for action type: PRE_ISSUE_ACCESS_TOKEN")
+            expectedExceptionsMessageRegExp = "Failed to build the request payload for action type: " +
+                    "PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenBuildingActionExecutionRequestForActionId() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
@@ -271,7 +274,7 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actionExecutionStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()},  any(), any());
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), ActionExecutionStatus.Status.FAILED);
     }
 
@@ -488,14 +491,14 @@ public class ActionExecutorServiceImplTest {
         assertEquals(((FailedStatus) actualStatus).getResponse().getFailureReason(), "Error_reason");
         assertEquals(((FailedStatus) actualStatus).getResponse().getFailureDescription(), "Error_description");
 
-
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
                 actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
-            expectedExceptionsMessageRegExp = "Failed to execute actions for action type: PRE_ISSUE_ACCESS_TOKEN")
+            expectedExceptionsMessageRegExp = "Received an invalid or unexpected response for action type: " +
+                    "PRE_ISSUE_ACCESS_TOKEN action ID: actionId")
     public void testActionExecuteFailureForUnexpectedAPIResponse() throws Exception {
 
         // Setup
@@ -703,6 +706,7 @@ public class ActionExecutorServiceImplTest {
     }
 
     private void setFinalField(Object target, String fieldName, Object value) throws Exception {
+
         Field field;
         try {
             field = target.getClass().getDeclaredField(fieldName);
@@ -718,7 +722,6 @@ public class ActionExecutorServiceImplTest {
 
         field.set(target, value);
     }
-
 
     private List<AllowedOperation> getAllowedOperations() {
 
