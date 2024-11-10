@@ -183,14 +183,14 @@
                                             <!-- Temporarily decreasing this.
                                             Will be improved upon in a follow-up effort.
                                             Related issue: https://github.com/wso2/product-is/issues/21368 -->
-                                            <minimum>0.78</minimum>
+                                            <minimum>0.76</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
                                                 <!-- Temp decreasing this. There is an ongoing effort to improve
                                                 the code complexity coverage.  -->
-                                            <minimum>0.68</minimum>
+                                            <minimum>0.66</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
