@@ -95,9 +95,9 @@ public class ActionMgtConstants {
                 "Error while persisting certificate in the system."),
         ERROR_WHILE_RETRIEVING_ACTION_CERTIFICATE("65016", "Error while retrieving action certificate.",
                 "Error while retrieving certificate from the system."),
-        ERROR_WHILE_UPDATING_ACTION_CERTIFICATE("65016", "Error while updating action certificate.",
+        ERROR_WHILE_UPDATING_ACTION_CERTIFICATE("65017", "Error while updating action certificate.",
                 "Error while updating certificate in the system."),
-        ERROR_WHILE_DELETING_ACTION_CERTIFICATE("65016", "Error while deleting action certificate.",
+        ERROR_WHILE_DELETING_ACTION_CERTIFICATE("65018", "Error while deleting action certificate.",
                 "Error while deleting certificate from the system.");
 
         private final String code;

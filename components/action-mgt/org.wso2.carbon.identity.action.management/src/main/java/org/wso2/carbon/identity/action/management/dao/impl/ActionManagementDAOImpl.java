@@ -507,7 +507,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     /**
-     * Resolves the endpoint properties for an action, supporting both addAction and updateAction scenarios.
+     * Resolves the endpoint properties for an action when action is updating.
      * This method ensures that authentication secrets are handled appropriately, and the URI is resolved
      * based on the provided or existing endpoint configurations.
      * When the updating action does not contain endpoint configuration, it uses the existing endpoint's properties.
@@ -537,9 +537,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     }
 
     /**
-     * Resolves the authentication properties for an endpoint, handling both addAction and updateAction scenarios.
-     * In addAction, the method generates new secrets based on the provided endpoint configuration.
-     * In updateAction, it deletes existing secrets and updates them with new properties as necessary.
+     * Resolves the authentication properties for an endpoint when action is updating.
+     * This deletes existing secrets and updates them with new properties as necessary.
      * When the updating endpoint does not contain authentication, it uses the existing endpoint's properties.
      *
      * @param actionId         Action ID.
@@ -557,8 +556,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         Authentication existingAuthentication = existingEndpoint.getAuthentication();
 
         Map<String, String> authentication = new HashMap<>();
-        Authentication.Type resolvedAuthType = existingAuthentication.getType();;
-        List<AuthProperty> resolvedAuthProperties = existingAuthentication.getProperties();;
+        Authentication.Type resolvedAuthType = existingAuthentication.getType();
+        List<AuthProperty> resolvedAuthProperties = existingAuthentication.getProperties();
 
         if (updatingAuthentication != null) {
             // Delete existing secrets.
@@ -605,10 +604,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 }
 
                 // Handle certificate changes.
-                String certId = handleCertificateChanges(actionId, inputPreUpdatePasswordAction,
+                String certificateId = handleCertificateChanges(actionId, inputPreUpdatePasswordAction,
                         existingPreUpdatePasswordAction, tenantId);
-                if (StringUtils.isNotEmpty(certId)) {
-                    actionTypeSpecificProperties.put(CERTIFICATE_ID_PROPERTY, certId);
+                if (StringUtils.isNotEmpty(certificateId)) {
+                    actionTypeSpecificProperties.put(CERTIFICATE_ID_PROPERTY, certificateId);
                 }
 
                 break;
@@ -661,26 +660,26 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                             PreUpdatePasswordAction existingAction, Integer tenantId)
             throws ActionMgtException {
 
-        String updatingCertificate = inputAction.getCertificate() != null ?
+        String inputCertificate = inputAction.getCertificate() != null ?
                 inputAction.getCertificate().getCertificateContent() : null;
-        String updatingCertificateId = existingAction != null && existingAction.getCertificate() != null
+        String certificateId = existingAction != null && existingAction.getCertificate() != null
                 ? existingAction.getCertificate().getId() : null;
 
-        if (updatingCertificate != null) {
-            if (updatingCertificateId == null) {
+        if (inputCertificate != null) {
+            if (StringUtils.isEmpty(certificateId)) {
                 // Add the new certificate.
-                updatingCertificateId = addCertificate(actionId, updatingCertificate, tenantId);
-            } else if (updatingCertificate.isEmpty()) {
+                certificateId = addCertificate(actionId, inputCertificate, tenantId);
+            } else if (inputCertificate.isEmpty()) {
                 // Delete the existing certificate.
-                deleteCertificate(updatingCertificateId, tenantId);
-                updatingCertificateId = null;
+                deleteCertificate(certificateId, tenantId);
+                certificateId = null;
             } else {
                 // Update the existing certificate.
-                updateCertificate(updatingCertificateId, updatingCertificate, tenantId);
+                updateCertificate(certificateId, inputCertificate, tenantId);
             }
         }
 
-        return updatingCertificateId;
+        return certificateId;
     }
 
     /**

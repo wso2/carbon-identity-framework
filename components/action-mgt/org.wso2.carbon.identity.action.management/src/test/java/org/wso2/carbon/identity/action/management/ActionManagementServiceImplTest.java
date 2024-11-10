@@ -18,23 +18,20 @@
 
 package org.wso2.carbon.identity.action.management;
 
-import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
@@ -46,6 +43,8 @@ import java.util.stream.Collectors;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_PATH;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_DOMAIN;
 
 /**
  * This class is a test suite for the ActionManagementServiceImpl class.
@@ -57,19 +56,15 @@ import static org.mockito.Mockito.when;
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
 public class ActionManagementServiceImplTest {
 
-    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
+    private ActionManagementService actionManagementService;
+
     private Action action;
-    private String tenantDomain;
-    private ActionManagementService serviceImpl;
     private Map<String, String> secretProperties;
-    private static final String ACCESS_TOKEN = "6e47f1f7-bd29-41e9-b5dc-e9dd70ac22b7";
-    private static final String PRE_ISSUE_ACCESS_TOKEN = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam();
 
     @BeforeClass
     public void setUpClass() {
 
-        serviceImpl = ActionManagementServiceImpl.getInstance();
-        tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        actionManagementService = ActionManagementServiceImpl.getInstance();
     }
 
     @BeforeMethod
@@ -85,13 +80,12 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 1)
     public void testAddAction() throws ActionMgtException, SecretManagementException {
 
-        Action creatingAction = buildMockAction(
+        Action creatingAction = TestUtil.buildMockAction(
                 "PreIssueAccessToken",
                 "To configure PreIssueAccessToken",
                 "https://example.com",
-                buildMockBasicAuthentication("admin", "admin"));
-        action = serviceImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction,
-                tenantDomain);
+                TestUtil.buildMockBasicAuthentication("admin", "admin"));
+        action = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
         Assert.assertNotNull(action.getId());
         Assert.assertEquals(creatingAction.getName(), action.getName());
         Assert.assertEquals(creatingAction.getDescription(), action.getDescription());
@@ -117,24 +111,24 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 2, expectedExceptions = ActionMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddActionWithInvalidData() throws ActionMgtException {
-        Action creatingAction = buildMockAction(
+        Action creatingAction = TestUtil.buildMockAction(
                 "PreIssueAccessToken_#1",
                 "To configure PreIssueAccessToken",
                 "https://example.com",
-                buildMockAPIKeyAuthentication("-test-header", "thisisapikey"));
-        Action action = serviceImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction, tenantDomain);
+                TestUtil.buildMockAPIKeyAuthentication("-test-header", "thisisapikey"));
+        Action action = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
         Assert.assertNull(action);
     }
 
     @Test(priority = 3, expectedExceptions = ActionMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddActionWithEmptyData() throws ActionMgtException {
-        Action creatingAction = buildMockAction(
+        Action creatingAction = TestUtil.buildMockAction(
                 "",
                 "To configure PreIssueAccessToken",
                 "https://example.com",
-                buildMockBasicAuthentication(null, "admin"));
-        Action action = serviceImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction, tenantDomain);
+                TestUtil.buildMockBasicAuthentication(null, "admin"));
+        Action action = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
         Assert.assertNull(action);
     }
 
@@ -142,19 +136,20 @@ public class ActionManagementServiceImplTest {
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddMaximumActionsPerType() throws ActionMgtException {
 
-        Action creatingAction = buildMockAction(
+        Action creatingAction = TestUtil.buildMockAction(
                 "PreIssueAccessToken",
                 "To configure PreIssueAccessToken",
                 "https://example.com",
-                buildMockBasicAuthentication("admin", "admin"));
-        action = serviceImpl.addAction(PRE_ISSUE_ACCESS_TOKEN, creatingAction,
-                tenantDomain);
+                TestUtil.buildMockBasicAuthentication("admin", "admin"));
+        action = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction,
+                TENANT_DOMAIN);
     }
 
     @Test(priority = 5)
     public void testGetActionsByActionType() throws ActionMgtException, SecretManagementException {
 
-        List<Action> actions = serviceImpl.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN, tenantDomain);
+        List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                TENANT_DOMAIN);
         Assert.assertEquals(1, actions.size());
         for (Action result: actions) {
             Assert.assertEquals(action.getId(), result.getId());
@@ -178,7 +173,8 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 6)
     public void testGetActionByActionId() throws ActionMgtException, SecretManagementException {
 
-        Action result = serviceImpl.getActionByActionId(action.getType().getPathParam(), action.getId(), tenantDomain);
+        Action result = actionManagementService.getActionByActionId(action.getType().getPathParam(), action.getId(), 
+                TENANT_DOMAIN);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(action.getName(), result.getName());
         Assert.assertEquals(action.getDescription(), result.getDescription());
@@ -200,8 +196,8 @@ public class ActionManagementServiceImplTest {
     public void testGetActionsByActionTypeFromCache() throws ActionMgtException, SecretManagementException {
 
         // Verify that the action is retrieved from the cache based on action type.
-        List<Action> actions = serviceImpl.getActionsByActionType(
-                PRE_ISSUE_ACCESS_TOKEN, tenantDomain);
+        List<Action> actions = actionManagementService.getActionsByActionType(
+                PRE_ISSUE_ACCESS_TOKEN_PATH, TENANT_DOMAIN);
         Assert.assertEquals(1, actions.size());
         Action result = actions.get(0);
         Assert.assertEquals(action.getId(), result.getId());
@@ -224,12 +220,13 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 8)
     public void testUpdateAction() throws ActionMgtException, SecretManagementException {
 
-        Action updatingAction = buildMockAction(
+        Action updatingAction = TestUtil.buildMockAction(
                 "Pre Issue Access Token",
                 "To update configuration pre issue access token",
                 "https://sample.com",
-                buildMockAPIKeyAuthentication("header", "value"));
-        Action result = serviceImpl.updateAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), updatingAction, tenantDomain);
+                TestUtil.buildMockAPIKeyAuthentication("header", "value"));
+        Action result = actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH, action.getId(),
+                updatingAction, TENANT_DOMAIN);
         Assert.assertEquals(action.getId(), result.getId());
         Assert.assertEquals(updatingAction.getName(), result.getName());
         Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
@@ -253,23 +250,23 @@ public class ActionManagementServiceImplTest {
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(Action.Status.ACTIVE, action.getStatus());
-        Action deactivatedAction = serviceImpl.deactivateAction(
-                PRE_ISSUE_ACCESS_TOKEN, action.getId(), tenantDomain);
+        Action deactivatedAction = actionManagementService.deactivateAction(
+                PRE_ISSUE_ACCESS_TOKEN_PATH, action.getId(), TENANT_DOMAIN);
         Assert.assertEquals(Action.Status.INACTIVE, deactivatedAction.getStatus());
     }
 
     @Test(priority = 10)
     public void testActivateAction() throws ActionMgtException {
 
-        Action result = serviceImpl.activateAction(
-                PRE_ISSUE_ACCESS_TOKEN, action.getId(), tenantDomain);
+        Action result = actionManagementService.activateAction(
+                PRE_ISSUE_ACCESS_TOKEN_PATH, action.getId(), TENANT_DOMAIN);
         Assert.assertEquals(Action.Status.ACTIVE, result.getStatus());
     }
 
     @Test(priority = 11)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
-        Map<String, Integer> actionMap = serviceImpl.getActionsCountPerType(tenantDomain);
+        Map<String, Integer> actionMap = actionManagementService.getActionsCountPerType(TENANT_DOMAIN);
         Assert.assertNull(actionMap.get(Action.ActionTypes.PRE_UPDATE_PASSWORD.getActionType()));
         Assert.assertNull(actionMap.get(Action.ActionTypes.PRE_UPDATE_PROFILE.getActionType()));
         Assert.assertNull(actionMap.get(Action.ActionTypes.PRE_REGISTRATION.getActionType()));
@@ -283,11 +280,11 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 12)
     public void testDeleteAction() throws ActionMgtException {
 
-        serviceImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), tenantDomain);
-        Assert.assertNull(serviceImpl.getActionByActionId(action.getType().getPathParam(), action.getId(),
-                tenantDomain));
-        Map<String, Integer> actions = serviceImpl.getActionsCountPerType(tenantDomain);
-        Assert.assertNull(actions.get(PRE_ISSUE_ACCESS_TOKEN));
+        actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, action.getId(), TENANT_DOMAIN);
+        Assert.assertNull(actionManagementService.getActionByActionId(action.getType().getPathParam(), action.getId(),
+                TENANT_DOMAIN));
+        Map<String, Integer> actions = actionManagementService.getActionsCountPerType(TENANT_DOMAIN);
+        Assert.assertNull(actions.get(PRE_ISSUE_ACCESS_TOKEN_PATH));
     }
 
     private Map<String, String> mapActionAuthPropertiesWithSecrets(Action action) throws SecretManagementException {
@@ -296,44 +293,5 @@ public class ActionManagementServiceImplTest {
                 .getPropertiesWithSecretReferences(action.getId())
                 .stream()
                 .collect(Collectors.toMap(AuthProperty::getName, AuthProperty::getValue));
-    }
-
-    private Authentication buildMockBasicAuthentication(String username, String password) {
-
-        return new Authentication.BasicAuthBuilder(username, password).build();
-    }
-
-    private Authentication buildMockBearerAuthentication(String accessToken) {
-
-        return new Authentication.BearerAuthBuilder(accessToken).build();
-    }
-
-    private Authentication buildMockAPIKeyAuthentication(String header, String value) {
-
-        return new Authentication.APIKeyAuthBuilder(header, value).build();
-    }
-
-    private EndpointConfig buildMockEndpointConfig(String uri, Authentication authentication) {
-
-        if (uri == null && authentication == null) {
-            return null;
-        }
-
-        return new EndpointConfig.EndpointConfigBuilder()
-                .uri(uri)
-                .authentication(authentication)
-                .build();
-    }
-
-    private Action buildMockAction(String name,
-                                   String description,
-                                   String uri,
-                                   Authentication authentication) {
-
-        return new Action.ActionRequestBuilder()
-                .name(name)
-                .description(description)
-                .endpoint(buildMockEndpointConfig(uri, authentication))
-                .build();
     }
 }

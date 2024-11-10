@@ -22,8 +22,8 @@
         <test name="action-mgt-tests" preserve-order="true" parallel="false">
                 <classes>
                         <class name="org.wso2.carbon.identity.action.management.dao.ActionManagementDAOImplTest"></class>
-                        <class name="org.wso2.carbon.identity.action.management.dao.PreUpdatePasswordActionManagementDAOImplTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.ActionManagementServiceImplTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.PreUpdatePasswordActionServiceImplTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.util.ActionValidatorTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.model.ActionTypesTest"></class>
                 </classes>

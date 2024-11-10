@@ -33,10 +33,13 @@ import java.util.UUID;
 public class TestUtil {
 
     public static final int TENANT_ID = 2;
-    public static final String TENANT_DOMAIN = "wso2.com";
+    public static final String TENANT_DOMAIN = "carbon.super";
 
     public static final String PRE_ISSUE_ACCESS_TOKEN_TYPE = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType();
     public static final String PRE_UPDATE_PASSWORD_TYPE = Action.ActionTypes.PRE_UPDATE_PASSWORD.getActionType();
+
+    public static final String PRE_ISSUE_ACCESS_TOKEN_PATH = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam();
+    public static final String PRE_UPDATE_PASSWORD_PATH = Action.ActionTypes.PRE_UPDATE_PASSWORD.getPathParam();
 
     public static final String PRE_ISSUE_ACCESS_TOKEN_ACTION_ID = String.valueOf(UUID.randomUUID());
     public static final String PRE_UPDATE_PASSWORD_ACTION_ID = String.valueOf(UUID.randomUUID());
@@ -45,10 +48,7 @@ public class TestUtil {
     public static final String CERTIFICATE = "sample-certificate";
     public static final String UPDATED_CERTIFICATE = "updated-sample-certificate";
 
-    public static Action buildMockAction(String name,
-                                         String description,
-                                         String uri,
-                                         Authentication authentication) {
+    public static Action buildMockAction(String name, String description, String uri, Authentication authentication) {
 
         return new Action.ActionRequestBuilder()
                 .name(name)
@@ -79,6 +79,11 @@ public class TestUtil {
     public static Authentication buildMockBearerAuthentication(String accessToken) {
 
         return new Authentication.BearerAuthBuilder(accessToken).build();
+    }
+
+    public static Authentication buildMockAPIKeyAuthentication(String header, String value) {
+
+        return new Authentication.APIKeyAuthBuilder(header, value).build();
     }
 
     public static Authentication buildMockNoneAuthentication() {

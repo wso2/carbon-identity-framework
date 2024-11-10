@@ -70,9 +70,6 @@ public class PreUpdatePasswordAction extends Action {
         private PasswordFormat passwordSharingFormat;
         private Certificate certificate;
 
-        public ResponseBuilder() {
-        }
-
         public ResponseBuilder passwordSharingFormat(PasswordFormat passwordSharingFormat) {
 
             this.passwordSharingFormat = passwordSharingFormat;
@@ -141,9 +138,6 @@ public class PreUpdatePasswordAction extends Action {
 
         private PasswordFormat passwordSharingFormat;
         private Certificate certificate;
-
-        public RequestBuilder() {
-        }
 
         public RequestBuilder passwordSharingFormat(PasswordFormat passwordSharingFormat) {
 
