@@ -57,6 +57,16 @@ public class ActionMgtConstants {
                 "%s is invalid."),
         ERROR_INVALID_ACTION_CERTIFICATE("60006", "Invalid request.", "Provided certificate is invalid."),
 
+        // Client errors thrown at REST API layer.
+        ERROR_INVALID_ACTION_ENDPOINT_AUTHENTICATION_PROPERTIES("60007", "Unable to perform the operation.",
+                "Required authentication properties are not provided or invalid."),
+        ERROR_INVALID_ACTION_ENDPOINT_AUTH_TYPE("60008", "Invalid Authentication Type for Action Endpoint.",
+                "Invalid authentication type used for path parameter."),
+        ERROR_EMPTY_ACTION_ENDPOINT_AUTHENTICATION_PROPERTIES("60009", "Unable to perform the operation.",
+                "Authentication property values cannot be empty."),
+        ERROR_NO_ACTION_FOUND_ON_GIVEN_ACTION_TYPE_AND_ID("60010", "Action is not found.",
+                "No action is found for given action id and action type"),
+
         // Server errors.
         ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
                 "Error while persisting Action in the system."),
@@ -98,7 +108,11 @@ public class ActionMgtConstants {
         ERROR_WHILE_UPDATING_ACTION_CERTIFICATE("65017", "Error while updating action certificate.",
                 "Error while updating certificate in the system."),
         ERROR_WHILE_DELETING_ACTION_CERTIFICATE("65018", "Error while deleting action certificate.",
-                "Error while deleting certificate from the system.");
+                "Error while deleting certificate from the system."),
+
+        // Server errors thrown at REST API layer.
+        ERROR_NOT_IMPLEMENTED_ACTION_TYPE("650015", "Unable to perform the operation.",
+                "The requested action type is not currently supported by the server.");
 
         private final String code;
         private final String message;
