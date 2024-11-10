@@ -28,9 +28,9 @@ import org.wso2.carbon.identity.action.management.ActionSecretProcessor;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtRuntimeException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.model.PreUpdatePasswordAction;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -94,6 +95,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
             return getActionByActionId(actionType, actionId, tenantId);
         } catch (TransactionException e) {
+            if (e.getCause() instanceof ActionMgtClientException) {
+                throw (ActionMgtClientException) e.getCause();
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while creating the Action of Action Type: %s in Tenant Domain: %s." +
                                 " Rolling back created action information and deleting added secrets.", actionType,
@@ -160,6 +164,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
             return getActionByActionId(actionType, actionId, tenantId);
         } catch (TransactionException e) {
+            if (e.getCause() instanceof ActionMgtClientException) {
+                throw (ActionMgtClientException) e.getCause();
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action of Action Type: %s and Action ID: %s in" +
                                 " Tenant Domain: %s. Rolling back updated action information.", actionType, actionId,
@@ -261,17 +268,29 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param actionId   UUID of the created Action.
      * @param action     Properties of the Action.
      * @param tenantId   Tenant ID.
-     * @throws ActionMgtServerException If an error occurs while adding action properties to the database.
+     * @throws ActionMgtException If an error occurs while adding action properties to the database.
      */
     private void addActionProperties(String actionType, String actionId, Action action,
                                      Integer tenantId) throws ActionMgtException {
 
         try {
-            Map<String, String> actionProperties = resolveEndpointProperties(actionId, action, null);
-            actionProperties.putAll(resolveActionTypeSpecificProperties(actionType, actionId, action, null, tenantId));
+            Map<String, String> actionProperties =
+                    resolveActionTypeSpecificProperties(actionType, actionId, action, null, tenantId);
+
+            EndpointConfig endpoint = action.getEndpoint();
+            // Encrypt the authentication secrets.
+            List<AuthProperty> authProperties =
+                    actionSecretProcessor.encryptAssociatedSecrets(endpoint.getAuthentication(), actionId);
+
+            actionProperties.put(URI_PROPERTY, endpoint.getUri());
+            actionProperties.put(AUTHN_TYPE_PROPERTY, endpoint.getAuthentication().getType().name());
+            authProperties.forEach(authProperty -> actionProperties.put(authProperty.getName(),
+                    authProperty.getValue()));
 
             addActionPropertiesToDB(actionId, actionProperties, tenantId);
-        } catch (CertificateMgtException | SecretManagementException | TransactionException e) {
+        } catch (ActionMgtClientException e) {
+            throw e;
+        } catch (ActionMgtException | SecretManagementException | TransactionException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_ACTION_PROPERTIES, e);
         }
@@ -313,19 +332,23 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param updatingAction Information to be updated.
      * @param existingAction Existing Action information.
      * @param tenantId       Tenant ID.
-     * @throws ActionMgtServerException  If an error occurs while updating the Action properties.
-     * @throws CertificateMgtException   If an error occurs while updating the Action certificate.
-     * @throws SecretManagementException If an error occurs while updating the Authentication secrets.
+     * @throws ActionMgtException If an error occurs while updating the Action properties.
      */
     private void updateActionProperties(String actionType, String actionId, Action updatingAction,
-                                        Action existingAction, Integer tenantId)
-            throws ActionMgtServerException, CertificateMgtException, SecretManagementException  {
+                                        Action existingAction, Integer tenantId) throws ActionMgtException {
 
-        Map<String, String> actionProperties = resolveEndpointProperties(actionId, updatingAction, existingAction);
-        actionProperties.putAll(resolveActionTypeSpecificProperties(actionType, actionId, updatingAction,
-                existingAction, tenantId));
+        try {
+            Map<String, String> actionProperties = resolveEndpointProperties(actionId, updatingAction, existingAction);
+            actionProperties.putAll(resolveActionTypeSpecificProperties(actionType, actionId, updatingAction,
+                    existingAction, tenantId));
 
-        updateActionPropertiesInDB(actionId, actionProperties, tenantId);
+            updateActionPropertiesInDB(actionId, actionProperties, tenantId);
+        } catch (ActionMgtClientException e) {
+            throw e;
+        } catch (ActionMgtException | SecretManagementException | TransactionException e) {
+            throw ActionManagementUtil.handleServerException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ACTION_PROPERTIES, e);
+        }
     }
 
     /**
@@ -334,33 +357,23 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param actionId           UUID of the created Action.
      * @param updatingProperties Action properties to be updated.
      * @param tenantId           Tenant ID.
-     * @throws ActionMgtServerException If an error occurs while updating the Action properties.
+     * @throws TransactionException If an error occurs while updating the Action properties.
      */
     private void updateActionPropertiesInDB(String actionId, Map<String, String> updatingProperties,
-                                            Integer tenantId) throws ActionMgtServerException {
+                                            Integer tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTIES,
-                        statement -> {
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
-                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                        });
+        jdbcTemplate.withTransaction(template -> {
+            template.executeUpdate(ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTIES,
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                    });
 
-                // Add updated action properties.
-                addActionPropertiesToDB(actionId, updatingProperties, tenantId);
-                return null;
-            });
-        } catch (TransactionException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Error while updating the Action properties of Action ID: %s in " +
-                                "Tenant Domain: %s. Rolling back updated action endpoint authentication.",
-                        actionId, IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
-            throw ActionManagementUtil.handleServerException(
-                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES, e);
-        }
+            // Add updated action properties.
+            addActionPropertiesToDB(actionId, updatingProperties, tenantId);
+            return null;
+        });
     }
 
     /**
@@ -465,10 +478,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param updatingAction Information to be updated.
      * @param existingAction Existing Action information.
      * @param tenantId       Tenant ID.
-     * @throws ActionMgtServerException If an error occurs while updating the Action basic information.
+     * @throws ActionMgtException If an error occurs while updating the Action basic information.
      */
     private void updateBasicInfo(String actionType, String actionId, Action updatingAction, Action existingAction,
-                                 Integer tenantId) throws ActionMgtServerException {
+                                 Integer tenantId) throws ActionMgtException {
 
         if (updatingAction.getName() == null && updatingAction.getDescription() == null) {
             return;
@@ -509,17 +522,15 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             throws SecretManagementException {
 
         EndpointConfig updatingEndpoint = updatingAction.getEndpoint();
-        EndpointConfig existingEndpoint = existingAction != null ? existingAction.getEndpoint() : null;
+        EndpointConfig existingEndpoint = existingAction.getEndpoint();
 
         Map<String, String> resolvedEndpointProperties =
                 resolveEndpointAuthenticationProperties(actionId, updatingEndpoint, existingEndpoint);
 
         if (updatingEndpoint != null && updatingEndpoint.getUri() != null) {
             resolvedEndpointProperties.put(URI_PROPERTY, updatingEndpoint.getUri());
-        } else if (existingEndpoint != null) {
-            resolvedEndpointProperties.put(URI_PROPERTY, existingEndpoint.getUri());
         } else {
-            throw new IllegalArgumentException("Both existing and input endpoint cannot be null.");
+            resolvedEndpointProperties.put(URI_PROPERTY, existingEndpoint.getUri());
         }
 
         return resolvedEndpointProperties;
@@ -543,26 +554,18 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             throws SecretManagementException {
 
         Authentication updatingAuthentication = updatingEndpoint != null ? updatingEndpoint.getAuthentication() : null;
-        Authentication existingAuthentication = existingEndpoint != null ? existingEndpoint.getAuthentication() : null;
+        Authentication existingAuthentication = existingEndpoint.getAuthentication();
 
         Map<String, String> authentication = new HashMap<>();
-        Authentication.Type resolvedAuthType;
-        List<AuthProperty> resolvedAuthProperties;
+        Authentication.Type resolvedAuthType = existingAuthentication.getType();;
+        List<AuthProperty> resolvedAuthProperties = existingAuthentication.getProperties();;
 
         if (updatingAuthentication != null) {
-            if (existingAuthentication != null) {
-                // Delete existing secrets.
-                actionSecretProcessor.deleteAssociatedSecrets(existingAuthentication, actionId);
-            }
+            // Delete existing secrets.
+            actionSecretProcessor.deleteAssociatedSecrets(existingAuthentication, actionId);
             // Add new secrets.
             resolvedAuthProperties = actionSecretProcessor.encryptAssociatedSecrets(updatingAuthentication, actionId);
             resolvedAuthType = updatingAuthentication.getType();
-        } else if (existingAuthentication != null) {
-            // Use existing properties if updating authentication is not provided.
-            resolvedAuthType = existingAuthentication.getType();
-            resolvedAuthProperties = existingAuthentication.getProperties();
-        } else {
-            throw new IllegalArgumentException("Both existing and input authentication cannot be null.");
         }
 
         authentication.put(AUTHN_TYPE_PROPERTY, resolvedAuthType.getName());
@@ -580,12 +583,12 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param existingAction A map containing the existing properties.
      * @param tenantId       Tenant ID.
      * @return A map containing the resolved action type specific properties.
-     * @throws CertificateMgtException If an error occurs while handling the certificate changes.
+     * @throws ActionMgtException If an error occurs while handling action type specific properties.
      */
     private Map<String, String> resolveActionTypeSpecificProperties(String actionType, String actionId,
                                                                     Action inputAction,
                                                                     Action existingAction,
-                                                                    Integer tenantId) throws CertificateMgtException {
+                                                                    Integer tenantId) throws ActionMgtException {
 
         Map<String, String> actionTypeSpecificProperties = new HashMap<>();
         switch (Action.ActionTypes.valueOf(actionType)) {
@@ -623,16 +626,16 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param actionType Type of the Action.
      * @param action     Action information.
      * @param tenantId   Tenant Id.
-     * @throws CertificateMgtException If an error occurs while deleting the certificate.
+     * @throws ActionMgtException If an error occurs while deleting action type specific properties.
      */
     private void deleteActionTypeSpecificProperties(String actionType, Action action, Integer tenantId)
-            throws CertificateMgtException {
+            throws ActionMgtException {
 
         switch (Action.ActionTypes.valueOf(actionType)) {
             case PRE_UPDATE_PASSWORD:
-                String certificateId = ((PreUpdatePasswordAction) action).getCertificate().getId();
-                if (certificateId != null) {
-                    deleteCertificate(certificateId, tenantId);
+                Certificate certificate = ((PreUpdatePasswordAction) action).getCertificate();
+                if (certificate != null) {
+                    deleteCertificate(certificate.getId(), tenantId);
                 }
                 break;
             case PRE_ISSUE_ACCESS_TOKEN:
@@ -652,15 +655,15 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param existingAction A map containing the existing properties, including the current certificate ID.
      * @param tenantId       Tenant ID.
      * @return The updated certificate ID, or null if the certificate was deleted.
-     * @throws CertificateMgtException If an error occurs while updating the certificate.
+     * @throws ActionMgtException If an error occurs while updating the certificate.
      */
     private String handleCertificateChanges(String actionId, PreUpdatePasswordAction inputAction,
                                             PreUpdatePasswordAction existingAction, Integer tenantId)
-            throws CertificateMgtException {
+            throws ActionMgtException {
 
         String updatingCertificate = inputAction.getCertificate() != null ?
                 inputAction.getCertificate().getCertificateContent() : null;
-        String updatingCertificateId = existingAction.getCertificate() != null
+        String updatingCertificateId = existingAction != null && existingAction.getCertificate() != null
                 ? existingAction.getCertificate().getId() : null;
 
         if (updatingCertificate != null) {
@@ -686,18 +689,25 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param actionId           UUID of the created Action.
      * @param certificateContent Certificate to be added.
      * @param tenantId           Tenant ID.
-     * @throws CertificateMgtException If an error occurs while adding the certificate.
+     * @throws ActionMgtException If an error occurs while adding the certificate.
      * @returns Certificate ID.
      */
     private String addCertificate(String actionId, String certificateContent, Integer tenantId)
-            throws CertificateMgtException {
-
-        Certificate certificate = new Certificate.Builder()
-                .name("ACTIONS:" + actionId)
-                .certificateContent(certificateContent)
-                .build();
-        return ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
-                .addCertificate(certificate, IdentityTenantUtil.getTenantDomain(tenantId));
+            throws ActionMgtException {
+        try {
+            Certificate certificate = new Certificate.Builder()
+                    .name("ACTIONS:" + actionId)
+                    .certificateContent(certificateContent)
+                    .build();
+            return ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
+                    .addCertificate(certificate, IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (CertificateMgtClientException e) {
+            throw ActionManagementUtil.handleClientException(
+                    ActionMgtConstants.ErrorMessages.ERROR_INVALID_ACTION_CERTIFICATE, e);
+        } catch (CertificateMgtException e) {
+            throw ActionManagementUtil.handleServerException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_ACTION_CERTIFICATE, e);
+        }
     }
 
     /**
@@ -706,12 +716,18 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param certificateId Certificate ID.
      * @param tenantId      Tenant ID.
      * @return Certificate information.
-     * @throws CertificateMgtException If an error occurs while retrieving the certificate from the database.
+     * @throws ActionMgtException If an error occurs while retrieving the certificate from the database.
      */
-    private Certificate getCertificate(String certificateId, Integer tenantId) throws CertificateMgtException {
+    private Certificate getCertificate(String certificateId, Integer tenantId)
+            throws ActionMgtException {
 
-        return ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
-                .getCertificate(certificateId, IdentityTenantUtil.getTenantDomain(tenantId));
+        try {
+            return ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
+                    .getCertificate(certificateId, IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (CertificateMgtException e) {
+            throw ActionManagementUtil.handleServerException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_CERTIFICATE, e);
+        }
     }
 
     /**
@@ -720,14 +736,22 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param certificateId       Certificate ID.
      * @param updatingCertificate Certificate to be updated.
      * @param tenantId            Tenant ID.
-     * @throws CertificateMgtException If an error occurs while updating the certificate in the database.
+     * @throws ActionMgtException If an error occurs while updating the certificate in the database.
      */
     private void updateCertificate(String certificateId, String updatingCertificate, Integer tenantId)
-            throws CertificateMgtException {
+            throws ActionMgtException {
 
-        ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
-                .updateCertificateContent(certificateId, updatingCertificate,
-                        IdentityTenantUtil.getTenantDomain(tenantId));
+        try {
+            ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
+                    .updateCertificateContent(certificateId, updatingCertificate,
+                            IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (CertificateMgtClientException e) {
+            throw ActionManagementUtil.handleClientException(
+                    ActionMgtConstants.ErrorMessages.ERROR_INVALID_ACTION_CERTIFICATE, e);
+        } catch (CertificateMgtException e) {
+            throw ActionManagementUtil.handleServerException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ACTION_CERTIFICATE, e);
+        }
     }
 
     /**
@@ -735,12 +759,17 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      *
      * @param certificateId Certificate ID.
      * @param tenantId      Tenant ID.
-     * @throws CertificateMgtException If an error occurs while deleting the certificate in the database.
+     * @throws ActionMgtException If an error occurs while deleting the certificate in the database.
      */
-    private void deleteCertificate(String certificateId, Integer tenantId) throws CertificateMgtException {
+    private void deleteCertificate(String certificateId, Integer tenantId) throws ActionMgtException {
 
-        ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
-                .deleteCertificate(certificateId, IdentityTenantUtil.getTenantDomain(tenantId));
+        try {
+            ActionMgtServiceComponentHolder.getInstance().getCertificateManagementService()
+                    .deleteCertificate(certificateId, IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (CertificateMgtException e) {
+            throw ActionManagementUtil.handleServerException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_DELETING_ACTION_CERTIFICATE, e);
+        }
     }
 
     /**
@@ -760,8 +789,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         try {
             switch (Action.ActionTypes.valueOf(actionType)) {
                 case PRE_UPDATE_PASSWORD:
+                    Certificate certificate = actionProperties.get(CERTIFICATE_ID_PROPERTY) != null ?
+                            getCertificate(actionProperties.get(CERTIFICATE_ID_PROPERTY), tenantId) : null;
+
                     actionResponseBuilder = new PreUpdatePasswordAction.ResponseBuilder()
-                            .certificate(getCertificate(actionProperties.get(CERTIFICATE_ID_PROPERTY), tenantId))
+                            .certificate(certificate)
                             .passwordSharingFormat(PreUpdatePasswordAction.PasswordFormat.valueOf(
                                     actionProperties.get(PASSWORD_SHARING_FORMAT_PROPERTY)));
                     break;
@@ -809,9 +841,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     .status(action.getStatus())
                     .endpoint(endpointConfig)
                     .build();
-        } catch (CertificateMgtException e) {
+        } catch (ActionMgtException e) {
             /**
-             * Throwing a runtime exception because {@link CertificateMgtException} is not handled in
+             * Throwing a runtime exception because {@link ActionMgtException} is not handled in
              * {@link org.wso2.carbon.database.utils.jdbc.RowMapper} of {@link NamedJdbcTemplate#executeQuery(String,
              * org.wso2.carbon.database.utils.jdbc.RowMapper,org.wso2.carbon.database.utils.jdbc.NamedQueryFilter)}
              * in {@link #getActionsByActionType(String, Integer)}

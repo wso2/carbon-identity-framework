@@ -48,6 +48,18 @@ public class ActionManagementUtil {
     }
 
     /**
+     * Handle Action Management client exceptions.
+     *
+     * @param error Error message.
+     * @param e     Throwable.
+     * @return ActionMgtClientException.
+     */
+    public static ActionMgtClientException handleClientException(ActionMgtConstants.ErrorMessages error, Throwable e) {
+
+        return new ActionMgtClientException(error.getMessage(), error.getDescription(), error.getCode(), e);
+    }
+
+    /**
      * Handle Action Management server exceptions.
      *
      * @param error Error message.

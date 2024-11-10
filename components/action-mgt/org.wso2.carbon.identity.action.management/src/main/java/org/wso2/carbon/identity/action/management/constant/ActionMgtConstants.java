@@ -55,6 +55,7 @@ public class ActionMgtConstants {
                 "%s is empty."),
         ERROR_INVALID_ACTION_REQUEST_FIELD("60005", "Invalid request.",
                 "%s is invalid."),
+        ERROR_INVALID_ACTION_CERTIFICATE("60006", "Invalid request.", "Provided certificate is invalid."),
 
         // Server errors.
         ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
@@ -67,7 +68,7 @@ public class ActionMgtConstants {
         ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE("65004", 
                 "Error while retrieving Actions by Action Type",
                 "Error while retrieving Actions by Action Type from the system."),
-        ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES("65005", 
+        ERROR_WHILE_UPDATING_ACTION_PROPERTIES("65005",
                 "Error while updating Action Endpoint properties",
                 "Error while updating Action Endpoint properties in the system."),
         ERROR_WHILE_UPDATING_ACTION("65006", "Error while updating Action.",
@@ -89,7 +90,15 @@ public class ActionMgtConstants {
         ERROR_WHILE_UPDATING_ACTION_BASIC_INFO("65013", "Error while updating basic Action information",
                 "Error while updating basic Action information in the system."),
         ERROR_WHILE_BUILDING_ACTION_RESPONSE("65014", "Error while building Action response.",
-                "Error while building Action response object."),;
+                "Error while building Action response object."),
+        ERROR_WHILE_ADDING_ACTION_CERTIFICATE("65015", "Error while adding action certificate.",
+                "Error while persisting certificate in the system."),
+        ERROR_WHILE_RETRIEVING_ACTION_CERTIFICATE("65016", "Error while retrieving action certificate.",
+                "Error while retrieving certificate from the system."),
+        ERROR_WHILE_UPDATING_ACTION_CERTIFICATE("65016", "Error while updating action certificate.",
+                "Error while updating certificate in the system."),
+        ERROR_WHILE_DELETING_ACTION_CERTIFICATE("65016", "Error while deleting action certificate.",
+                "Error while deleting certificate from the system.");
 
         private final String code;
         private final String message;

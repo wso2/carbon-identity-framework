@@ -27,4 +27,9 @@ public class ActionMgtClientException extends ActionMgtException {
 
         super(message, description, errorCode);
     }
+
+    public ActionMgtClientException(String message, String description, String errorCode, Throwable cause) {
+
+        super(message, description, errorCode, cause);
+    }
 }
