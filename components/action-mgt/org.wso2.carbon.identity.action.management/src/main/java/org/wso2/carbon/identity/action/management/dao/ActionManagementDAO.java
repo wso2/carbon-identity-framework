@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.action.management.dao;
 
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.util.List;
 import java.util.Map;
@@ -118,30 +116,4 @@ public interface ActionManagementDAO {
      * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
      */
     Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
-
-    /**
-     * Update the endpoint authentication properties of an {@link Action} by given Action ID.
-     *
-     * @param actionId       Action ID.
-     * @param authentication Authentication information to be updated.
-     * @param tenantId       Tenant Id.
-     * @return Updated <code>Action</code>.
-     * @throws ActionMgtException If an error occurs while updating the Action endpoint authentication properties.
-     */
-    Action updateActionEndpointAuthProperties(String actionType, String actionId, Authentication authentication,
-                                              int tenantId) throws ActionMgtException;
-
-    /**
-     * Update the endpoint authentication properties of an {@link Action} by given Action ID.
-     *
-     * @param actionType            Action Type.
-     * @param actionId              Action ID.
-     * @param endpoint              Endpoint information to be updated.
-     * @param currentAuthentication Current Action endpoint authentication information.
-     * @param tenantId              Tenant Id.
-     * @return Updated <code>Action</code>.
-     * @throws ActionMgtException If an error occurs while updating the Action endpoint.
-     */
-    Action updateActionEndpoint(String actionType, String actionId, EndpointConfig endpoint,
-                                Authentication currentAuthentication, int tenantId) throws ActionMgtException;
 }

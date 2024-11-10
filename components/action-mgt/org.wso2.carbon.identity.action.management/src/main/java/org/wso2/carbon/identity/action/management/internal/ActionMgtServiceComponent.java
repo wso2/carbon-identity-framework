@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.ActionManagementServiceImpl;
+import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
@@ -78,11 +79,13 @@ public class ActionMgtServiceComponent {
     private void setSecretManager(SecretManager secretManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        LOG.debug("SecretManager set in ActionMgtServiceComponentHolder bundle.");
     }
 
     private void unsetSecretManager(SecretManager secretManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(null);
+        LOG.debug("SecretManager unset in ActionMgtServiceComponentHolder bundle.");
     }
 
     @Reference(
@@ -95,10 +98,31 @@ public class ActionMgtServiceComponent {
     private void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+        LOG.debug("SecretResolveManager set in ActionMgtServiceComponentHolder bundle.");
     }
 
     private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(null);
+        LOG.debug("SecretResolveManager unset in ActionMgtServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.certificate.management.service.CertificateManagementService",
+            service = CertificateManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetCertificateManagementService"
+    )
+    private void setCertificateManagementService(CertificateManagementService certificateManagementService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setCertificateManagementService(certificateManagementService);
+        LOG.debug("CertificateManagementService set in ActionMgtServiceComponentHolder bundle.");
+    }
+
+    private void unsetCertificateManagementService(CertificateManagementService certificateManagementService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setCertificateManagementService(null);
+        LOG.debug("CertificateManagementService unset in ActionMgtServiceComponentHolder bundle.");
     }
 }

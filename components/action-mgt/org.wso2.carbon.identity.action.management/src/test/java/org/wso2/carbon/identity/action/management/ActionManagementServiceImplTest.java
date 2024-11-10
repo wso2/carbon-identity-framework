@@ -281,36 +281,6 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 12)
-    public void testUpdateEndpointConfigWithSameAuthenticationType()
-            throws ActionMgtException, SecretManagementException {
-
-        Authentication authentication = buildMockAPIKeyAuthentication("newheader", "newvalue");
-        Action result = serviceImpl.updateActionEndpointAuthentication(
-                PRE_ISSUE_ACCESS_TOKEN, action.getId(), authentication, tenantDomain);
-        Assert.assertEquals(Authentication.Type.API_KEY, result.getEndpoint().getAuthentication().getType());
-        Assert.assertEquals(authentication.getProperty(Authentication.Property.HEADER).getValue(),
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue());
-        secretProperties = mapActionAuthPropertiesWithSecrets(result);
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.VALUE).getValue(),
-                secretProperties.get(Authentication.Property.VALUE.getName()));
-    }
-
-    @Test(priority = 13)
-    public void testUpdateEndpointConfigWithDifferentAuthenticationType()
-            throws ActionMgtException, SecretManagementException {
-
-        Authentication authentication = buildMockBearerAuthentication(ACCESS_TOKEN);
-        Action result = serviceImpl.updateActionEndpointAuthentication(
-                PRE_ISSUE_ACCESS_TOKEN, action.getId(), authentication, tenantDomain);
-        Assert.assertEquals(Authentication.Type.BEARER, result.getEndpoint().getAuthentication().getType());
-        secretProperties = mapActionAuthPropertiesWithSecrets(result);
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
-                secretProperties.get(Authentication.Property.ACCESS_TOKEN.getName()));
-    }
-
-    @Test(priority = 14)
     public void testDeleteAction() throws ActionMgtException {
 
         serviceImpl.deleteAction(PRE_ISSUE_ACCESS_TOKEN, action.getId(), tenantDomain);

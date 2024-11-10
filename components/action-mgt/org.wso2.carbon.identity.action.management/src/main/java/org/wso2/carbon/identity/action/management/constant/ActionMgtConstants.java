@@ -23,8 +23,10 @@ package org.wso2.carbon.identity.action.management.constant;
  */
 public class ActionMgtConstants {
 
-    public static final String URI_ATTRIBUTE = "uri";
-    public static final String AUTHN_TYPE_ATTRIBUTE = "authnType";
+    public static final String URI_PROPERTY = "uri";
+    public static final String AUTHN_TYPE_PROPERTY = "authnType";
+    public static final String PASSWORD_SHARING_FORMAT_PROPERTY = "passwordSharingFormat";
+    public static final String CERTIFICATE_ID_PROPERTY = "certificateId";
     public static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_API_ENDPOINT_AUTH_SECRETS";
 
     public static final String ACTION_NAME_FIELD = "Action name";
@@ -57,11 +59,11 @@ public class ActionMgtConstants {
         // Server errors.
         ERROR_WHILE_ADDING_ACTION("65001", "Error while adding Action.",
                 "Error while persisting Action in the system."),
-        ERROR_WHILE_ADDING_ENDPOINT_PROPERTIES("65002", "Error while adding Endpoint properties",
-                "Error while persisting Action Endpoint properties in the system."),
-        ERROR_WHILE_RETRIEVING_ACTION_ENDPOINT_PROPERTIES("65003", 
-                "Error while retrieving Action Endpoint properties", 
-                "Error while retrieving Action Endpoint properties from the system."),
+        ERROR_WHILE_ADDING_ACTION_PROPERTIES("65002", "Error while adding Action properties",
+                "Error while persisting Action properties in the system."),
+        ERROR_WHILE_RETRIEVING_ACTION_PROPERTIES("65003",
+                "Error while retrieving Action properties",
+                "Error while retrieving Action properties from the system."),
         ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE("65004", 
                 "Error while retrieving Actions by Action Type",
                 "Error while retrieving Actions by Action Type from the system."),
@@ -84,11 +86,10 @@ public class ActionMgtConstants {
         ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES("65012",
                 "Error while decrypting Action Endpoint Authentication properties",
                 "Error while decrypting Action Endpoint Authentication properties in the system."),
-        ERROR_NO_AUTHENTICATION_TYPE("65013",
-                "Error while retrieving Action Endpoint Authentication configurations",
-                "Authentication type is not defined for the Action Endpoint."),
-        ERROR_WHILE_UPDATING_ACTION_BASIC_INFO("65014", "Error while updating basic Action information",
-                "Error while updating basic Action information in the system.");
+        ERROR_WHILE_UPDATING_ACTION_BASIC_INFO("65013", "Error while updating basic Action information",
+                "Error while updating basic Action information in the system."),
+        ERROR_WHILE_BUILDING_ACTION_RESPONSE("65014", "Error while building Action response.",
+                "Error while building Action response object."),;
 
         private final String code;
         private final String message;

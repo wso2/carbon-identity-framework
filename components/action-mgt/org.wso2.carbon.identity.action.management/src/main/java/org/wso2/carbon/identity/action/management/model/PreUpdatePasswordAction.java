@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.model;
 
-import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
-
-import java.util.Map;
+import org.wso2.carbon.identity.certificate.management.model.Certificate;
 
 /**
  * PreUpdatePasswordAction.
@@ -38,7 +36,7 @@ public class PreUpdatePasswordAction extends Action {
     }
 
     private final PasswordFormat passwordSharingFormat;
-    private final String certificate;
+    private final Certificate certificate;
 
     public PreUpdatePasswordAction(ResponseBuilder responseBuilder) {
 
@@ -59,29 +57,9 @@ public class PreUpdatePasswordAction extends Action {
         return passwordSharingFormat;
     }
 
-    public String getCertificate() {
+    public Certificate getCertificate() {
 
         return certificate;
-    }
-
-    /**
-     * Retrieves a map of property names and values from the endpoint configuration, along with the password
-     * sharing format and certificate if they are set.
-     *
-     * @return A map containing the endpoint properties, password sharing format, and certificate.
-     */
-    @Override
-    public Map<String, String> getPropertiesMap() {
-
-        Map<String, String> propertiesMap = super.getPropertiesMap();
-        if (getPasswordSharingFormat() != null) {
-            propertiesMap.put(ActionMgtConstants.PASSWORD_SHARING_FORMAT_PROPERTY, getPasswordSharingFormat().name());
-        }
-        if (getCertificate() != null) {
-            propertiesMap.put(ActionMgtConstants.CERTIFICATE_PROPERTY, getCertificate());
-        }
-
-        return propertiesMap;
     }
 
     /**
@@ -90,7 +68,7 @@ public class PreUpdatePasswordAction extends Action {
     public static class ResponseBuilder extends ActionResponseBuilder {
 
         private PasswordFormat passwordSharingFormat;
-        private String certificate;
+        private Certificate certificate;
 
         public ResponseBuilder() {
         }
@@ -101,7 +79,7 @@ public class PreUpdatePasswordAction extends Action {
             return this;
         }
 
-        public ResponseBuilder certificate(String certificate) {
+        public ResponseBuilder certificate(Certificate certificate) {
 
             this.certificate = certificate;
             return this;
@@ -149,30 +127,6 @@ public class PreUpdatePasswordAction extends Action {
             return this;
         }
 
-        /**
-         * Sets properties from a given map to the relevant attributes in the builder.
-         * Based on the provided properties, this method configures the {@link EndpointConfig}
-         * with the URI and the {@link Authentication} object.
-         *
-         * @param propertiesMap A map containing the endpoint URI, authentication type, and authentication properties.
-         * @return The current {@link ActionResponseBuilder} instance with the configured attributes.
-         */
-        @Override
-        public ActionResponseBuilder setPropertiesToAttributes(Map<String, String> propertiesMap) {
-
-            if (propertiesMap.isEmpty()) {
-                return this;
-            }
-
-            // Set the endpoint properties to the common attributes.
-            super.setPropertiesToAttributes(propertiesMap);
-            // Set other properties to the specific attributes of PRE_UPDATE_PASSWORD action type.
-
-            return this.passwordSharingFormat(PasswordFormat
-                            .valueOf(propertiesMap.get(ActionMgtConstants.PASSWORD_SHARING_FORMAT_PROPERTY)))
-                    .certificate(propertiesMap.get(ActionMgtConstants.CERTIFICATE_PROPERTY));
-        }
-
         @Override
         public PreUpdatePasswordAction build() {
 
@@ -186,7 +140,7 @@ public class PreUpdatePasswordAction extends Action {
     public static class RequestBuilder extends ActionRequestBuilder {
 
         private PasswordFormat passwordSharingFormat;
-        private String certificate;
+        private Certificate certificate;
 
         public RequestBuilder() {
         }
@@ -197,7 +151,7 @@ public class PreUpdatePasswordAction extends Action {
             return this;
         }
 
-        public RequestBuilder certificate(String certificate) {
+        public RequestBuilder certificate(Certificate certificate) {
 
             this.certificate = certificate;
             return this;

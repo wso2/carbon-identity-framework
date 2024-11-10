@@ -147,7 +147,6 @@ public class Action  {
         }
     }
 
-
     private String id;
     private ActionTypes type;
     private String name;
@@ -203,11 +202,6 @@ public class Action  {
     public EndpointConfig getEndpoint() {
 
         return endpointConfig;
-    }
-
-    public void setEndpoint(EndpointConfig endpointConfig) {
-
-        this.endpointConfig = endpointConfig;
     }
 
     /**

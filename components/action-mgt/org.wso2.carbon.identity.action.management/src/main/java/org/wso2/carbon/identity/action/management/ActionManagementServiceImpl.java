@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtClientExcep
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionManagementAuditLogger;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.action.management.util.ActionValidator;
@@ -238,32 +237,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     /**
-     * Update endpoint authentication of a given action.
-     *
-     * @param actionType     Action type.
-     * @param actionId       Action ID.
-     * @param authentication Authentication Information to be updated.
-     * @param tenantDomain   Tenant domain.
-     * @return Updated action.
-     * @throws ActionMgtException if an error occurred while updating endpoint authentication information.
-     */
-    @Override
-    public Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
-                                                     String tenantDomain) throws ActionMgtException {
-
-        String resolvedActionType = getActionTypeFromPath(actionType);
-        Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        doEndpointAuthenticationValidation(authentication);
-        if (existingAction.getEndpoint().getAuthentication().getType().equals(authentication.getType())) {
-            // Only need to update the properties since the authentication type is same.
-            return updateEndpointAuthenticationProperties(resolvedActionType, actionId, authentication, tenantDomain);
-        } else {
-            // Need to update the authentication type and properties.
-            return updateEndpoint(resolvedActionType, actionId, existingAction, authentication, tenantDomain);
-        }
-    }
-
-    /**
      * Get Action Type from path.
      *
      * @param actionType Action Type.
@@ -318,60 +291,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     }
 
     /**
-     * Update the authentication type and properties of the action endpoint.
-     *
-     * @param actionType     Action Type.
-     * @param actionId       Action Id.
-     * @param existingAction Existing Action Information.
-     * @param authentication Authentication Information to be updated.
-     * @param tenantDomain   Tenant Domain.
-     * @return Action response after update.
-     * @throws ActionMgtException If an error occurs while updating action endpoint authentication.
-     */
-    private Action updateEndpoint(String actionType, String actionId, Action existingAction,
-                                  Authentication authentication, String tenantDomain)
-            throws ActionMgtException {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Updating endpoint authentication of Action Type: %s " +
-                    "and Action ID: %s to Authentication Type: %s", actionType, actionId,
-                    authentication.getType().name()));
-        }
-        EndpointConfig endpoint = new EndpointConfig.EndpointConfigBuilder()
-                .uri(existingAction.getEndpoint().getUri())
-                .authentication(authentication).build();
-        return CACHE_BACKED_DAO.updateActionEndpoint(actionType, actionId, endpoint,
-                existingAction.getEndpoint().getAuthentication(), IdentityTenantUtil.getTenantId(tenantDomain));
-    }
-
-    /**
-     * Update the authentication properties of the action endpoint.
-     *
-     * @param actionType     Action Type.
-     * @param actionId       Action Id.
-     * @param authentication Authentication Information to be updated.
-     * @param tenantDomain   Tenant domain.
-     * @return Action response after update.
-     * @throws ActionMgtException If an error occurs while updating action endpoint authentication properties.
-     */
-    private Action updateEndpointAuthenticationProperties(String actionType, String actionId,
-                                                          Authentication authentication, String tenantDomain)
-            throws ActionMgtException {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Updating endpoint authentication properties of Action Type: %s " +
-                    "Action ID: %s and Authentication Type: %s", actionType, actionId,
-                    authentication.getType().name()));
-        }
-        return CACHE_BACKED_DAO.updateActionEndpointAuthProperties(actionType, actionId, authentication,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-    }
-
-    /**
      * Perform pre validations on action model when creating an action.
      *
      * @param action Action create model.
-     * @throws ActionMgtException if action model is invalid.
+     * @throws ActionMgtClientException if action model is invalid.
      */
     private void doPreAddActionValidations(Action action) throws ActionMgtClientException {
 
