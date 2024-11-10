@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
@@ -68,15 +69,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertThrows;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -97,8 +91,10 @@ public class IdPManagementDAOTest {
 
     private static final String ASSOCIATED_ACTION_ID = "Dummp_Action_ID";
     private static final String CUSTOM_IDP_NAME = "customIdP";
-    private static EndpointConfig endpointConfig;
     private static Action action;
+    private static EndpointConfig endpointConfig;
+    private static EndpointConfig endpointConfigToBeUpdated;
+    private IdentityProvider idpForErrorScenarios;
     private IdentityProvider userDefinedIdP;
 
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
@@ -162,7 +158,12 @@ public class IdPManagementDAOTest {
         when(mockCryptoUtil.encryptAndBase64Encode(any())).thenReturn("ENCRYPTED_VALUE2");
         when(mockCryptoUtil.base64DecodeAndDecrypt(anyString())).thenReturn("ENCRYPTED_VALUE2".getBytes());
 
-        createIdPWithUserDefinedFederatedAuthenticatorConfig();
+        endpointConfig = createEndpointConfig("http://localhost", "admin", "admin");
+        endpointConfigToBeUpdated = createEndpointConfig("http://localhost1", "admin1", "admin1");
+        action = createAction(endpointConfig);
+        userDefinedIdP = createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, action.getEndpoint());
+        idpForErrorScenarios = createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME + "Error", action.getEndpoint());
     }
 
     @AfterClass
@@ -188,32 +189,12 @@ public class IdPManagementDAOTest {
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
 
-        createAction();
         ActionManagementService actionManagementService = mock(ActionManagementService.class);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
         when(actionManagementService.addAction(anyString(), any(), any())).thenReturn(action);
         when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
         when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
-    }
-
-    private void createAction() {
-
-        Action.ActionResponseBuilder actionResponseBuilder = new Action.ActionResponseBuilder();
-        actionResponseBuilder.id(ASSOCIATED_ACTION_ID);
-        actionResponseBuilder.name("SampleAssociatedAction");
-        actionResponseBuilder.type(Action.ActionTypes.AUTHENTICATION);
-        actionResponseBuilder.description("SampleDescription");
-        actionResponseBuilder.status(Action.Status.ACTIVE);
-
-        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
-        endpointConfigBuilder.uri("https://example.com");
-        endpointConfigBuilder.authentication(
-                new Authentication.BasicAuthBuilder("admin", "admin").build());
-        endpointConfig = endpointConfigBuilder.build();
-        actionResponseBuilder.endpoint(endpointConfig);
-
-        action = actionResponseBuilder.build();
     }
 
     @AfterMethod
@@ -625,6 +606,28 @@ public class IdPManagementDAOTest {
         }
     }
 
+    @Test
+    public void testAddIdPActionException() throws Exception {
+
+        ActionManagementService actionManagementService = mock(ActionManagementService.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        when(actionManagementService.addAction(anyString(), any(), any())).thenThrow(ActionMgtException.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+                assertThrows(IdentityProviderManagementException.class, () ->
+                        idPManagementDAO.addIdP(idpForErrorScenarios, SAMPLE_TENANT_ID2));
+                // check identityDatabaseUtil.rollbackTransaction is called at least once.
+                identityDatabaseUtil.verify(() -> IdentityDatabaseUtil.rollbackTransaction(any()), atLeastOnce());
+            }
+        }
+    }
+
     @DataProvider
     public Object[][] addIdPData() {
 
@@ -931,7 +934,7 @@ public class IdPManagementDAOTest {
                 {"testIdP1", 1, SAMPLE_TENANT_ID, true},
                 {"testIdP3", 3, SAMPLE_TENANT_ID2, true},
                 {"notExist", 4, SAMPLE_TENANT_ID, false},
-                {CUSTOM_IDP_NAME, 4, SAMPLE_TENANT_ID2, true},
+                {userDefinedIdP.getIdentityProviderName(), 4, SAMPLE_TENANT_ID2, true},
         };
     }
 
@@ -957,7 +960,7 @@ public class IdPManagementDAOTest {
                 {"testIdP1", SAMPLE_TENANT_ID, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
                 {"notExist", SAMPLE_TENANT_ID, false},
-                {CUSTOM_IDP_NAME, SAMPLE_TENANT_ID2, true}
+                {userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID2, true}
         };
     }
 
@@ -1176,6 +1179,28 @@ public class IdPManagementDAOTest {
         }
     }
 
+    @Test
+    public void testUpdateIdPActionException() throws Exception {
+
+        IdentityProvider idpForErrorScenariosTobeUpdate = createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                idpForErrorScenarios.getDisplayName(), endpointConfig);
+        ActionManagementService actionManagementService = mock(ActionManagementService.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        when(actionManagementService.updateAction(any(), any(), any(), any())).thenThrow(ActionMgtException.class);
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+                assertThrows(IdentityProviderManagementException.class, () ->
+                        idPManagementDAO.updateIdP(
+                                idpForErrorScenariosTobeUpdate, idpForErrorScenarios, SAMPLE_TENANT_ID2));
+            }
+        }
+    }
+
     @DataProvider
     public Object[][] updateIdPData() {
 
@@ -1296,6 +1321,10 @@ public class IdPManagementDAOTest {
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("testIdP3New");
 
+        IdentityProvider userDefinedIdPToBeUpdated = createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME, endpointConfigToBeUpdated);
+        userDefinedIdPToBeUpdated.setDisplayName("updatedIdPName");
+
         return new Object[][]{
                 // Update PermissionsAndRoleConfig,FederatedAuthenticatorConfig,ProvisioningConnectorConfig,ClaimConfig.
                 {idp1, idp1New, SAMPLE_TENANT_ID},
@@ -1304,13 +1333,12 @@ public class IdPManagementDAOTest {
                 // Update name.
                 {idp3, idp3New, SAMPLE_TENANT_ID2},
                 // IDP with User Defined Federated Authenticator.
-                {userDefinedIdP, userDefinedIdP, SAMPLE_TENANT_ID2},
+                {userDefinedIdP, userDefinedIdPToBeUpdated, SAMPLE_TENANT_ID2},
         };
     }
 
-    @Test(dataProvider = "updateIdPData")
+    @Test(dataProvider = "updateIdPData", dependsOnMethods = {"testUpdateIdPActionException"})
     public void testUpdateIdP(Object oldIdp, Object newIdp, int tenantId) throws Exception {
-
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
@@ -1347,13 +1375,33 @@ public class IdPManagementDAOTest {
         }
     }
 
+    @Test
+    public void testDeleteIdPActionException() throws Exception {
+
+        ActionManagementService actionManagementService = mock(ActionManagementService.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        when(actionManagementService.updateAction(any(), any(), any(), any())).thenThrow(ActionMgtException.class);
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+                assertThrows(IdentityProviderManagementException.class, () ->
+                        idPManagementDAO.deleteIdP(userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID2,
+                                IdentityTenantUtil.getTenantDomain(SAMPLE_TENANT_ID2)));
+            }
+        }
+    }
+
     @DataProvider
     public Object[][] deleteIdPData() {
 
         return new Object[][]{
                 {"testIdP1", SAMPLE_TENANT_ID},
                 {"testIdP3", SAMPLE_TENANT_ID2},
-                {CUSTOM_IDP_NAME, SAMPLE_TENANT_ID2},
+                {userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID2},
         };
     }
 
@@ -2063,25 +2111,48 @@ public class IdPManagementDAOTest {
         return resultSize;
     }
 
-    private void createIdPWithUserDefinedFederatedAuthenticatorConfig() {
+    private Action createAction(EndpointConfig endpointConfig) {
+
+        Action.ActionResponseBuilder actionResponseBuilder = new Action.ActionResponseBuilder();
+        actionResponseBuilder.id(ASSOCIATED_ACTION_ID);
+        actionResponseBuilder.name("SampleAssociatedAction");
+        actionResponseBuilder.type(Action.ActionTypes.AUTHENTICATION);
+        actionResponseBuilder.description("SampleDescription");
+        actionResponseBuilder.status(Action.Status.ACTIVE);
+        actionResponseBuilder.endpoint(endpointConfig);
+        return actionResponseBuilder.build();
+    }
+
+    private EndpointConfig createEndpointConfig(String uri, String username, String password) {
+
+        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
+        endpointConfigBuilder.uri(uri);
+        endpointConfigBuilder.authentication(
+                new Authentication.BasicAuthBuilder(username, password).build());
+        return endpointConfigBuilder.build();
+    }
+
+    private IdentityProvider createIdPWithUserDefinedFederatedAuthenticatorConfig(String idpName,
+                                                                                  EndpointConfig endpointConfig) {
 
         // Initialize Test Identity Provider 4 with custom user defined federated authenticator.
-        userDefinedIdP = new IdentityProvider();
-        userDefinedIdP.setIdentityProviderName("customIdP");
+        IdentityProvider newUserDefinedIdp = new IdentityProvider();
+        newUserDefinedIdp.setIdentityProviderName(idpName);
 
         UserDefinedFederatedAuthenticatorConfig userDefinedFederatedAuthenticatorConfig = new
                 UserDefinedFederatedAuthenticatorConfig();
         userDefinedFederatedAuthenticatorConfig.setDisplayName("DisplayName1");
         userDefinedFederatedAuthenticatorConfig.setName("customFedAuthenticator");
         userDefinedFederatedAuthenticatorConfig.setEnabled(true);
-        userDefinedIdP.setFederatedAuthenticatorConfigs(
+        newUserDefinedIdp.setFederatedAuthenticatorConfigs(
                 new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
 
         userDefinedFederatedAuthenticatorConfig.setEndpointConfig(
                 new UserDefinedAuthenticatorEndpointConfig(endpointConfig));
-        userDefinedIdP.setFederatedAuthenticatorConfigs(
+        newUserDefinedIdp.setFederatedAuthenticatorConfigs(
                 new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
-        userDefinedIdP.setDefaultAuthenticatorConfig(userDefinedFederatedAuthenticatorConfig);
+        newUserDefinedIdp.setDefaultAuthenticatorConfig(userDefinedFederatedAuthenticatorConfig);
+        return newUserDefinedIdp;
     }
 
     private void assertIdPResult(IdentityProvider idpResult, String idpName, boolean isExist) {
@@ -2095,6 +2166,7 @@ public class IdPManagementDAOTest {
                     assertEquals(prop.length, 1);
                     assertEquals(prop[0].getName(), "actionId");
                     assertEquals(prop[0].getValue(), ASSOCIATED_ACTION_ID);
+                    userDefinedIdP = idpResult;
                 } else {
                     assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
                 }
