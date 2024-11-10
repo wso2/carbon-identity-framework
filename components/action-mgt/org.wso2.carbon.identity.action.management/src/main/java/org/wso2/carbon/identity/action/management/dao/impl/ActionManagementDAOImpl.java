@@ -560,11 +560,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         List<AuthProperty> resolvedAuthProperties = existingAuthentication.getProperties();
 
         if (updatingAuthentication != null) {
-            // Delete existing secrets.
-            actionSecretProcessor.deleteAssociatedSecrets(existingAuthentication, actionId);
-            // Add new secrets.
+            if (resolvedAuthType != updatingAuthentication.getType()) {
+                // Delete existing secrets.
+                actionSecretProcessor.deleteAssociatedSecrets(existingAuthentication, actionId);
+                resolvedAuthType = updatingAuthentication.getType();
+            }
+
+            // Add new secrets or update existing secrets.
             resolvedAuthProperties = actionSecretProcessor.encryptAssociatedSecrets(updatingAuthentication, actionId);
-            resolvedAuthType = updatingAuthentication.getType();
         }
 
         authentication.put(AUTHN_TYPE_PROPERTY, resolvedAuthType.getName());
