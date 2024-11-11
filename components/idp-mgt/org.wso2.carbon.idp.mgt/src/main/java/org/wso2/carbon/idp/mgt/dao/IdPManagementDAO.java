@@ -42,8 +42,10 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -56,6 +58,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
+import org.wso2.carbon.idp.mgt.AuthenticatorEndpointConfigurationServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -109,7 +112,6 @@ import static org.wso2.carbon.identity.core.util.JdbcUtils.isOracleDB;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_ONLY_NUMERIC_CHARS_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_USE_ALPHANUMERIC_CHARS_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage.ERROR_CODE_ENDPOINT_CONFIG_MGT;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOKEN_ISSUER;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
@@ -1123,7 +1125,7 @@ public class IdPManagementDAO {
      */
     private FederatedAuthenticatorConfig[] getFederatedAuthenticatorConfigs(
             Connection dbConnection, String idPName, IdentityProvider federatedIdp, int tenantId)
-            throws IdentityProviderManagementClientException, SQLException, IdentityProviderManagementServerException {
+            throws SQLException, IdentityProviderManagementException {
 
         int idPId = getIdentityProviderIdentifier(dbConnection, idPName, tenantId);
 
@@ -1145,8 +1147,7 @@ public class IdPManagementDAO {
             rs = prepStmt1.executeQuery();
 
             while (rs.next()) {
-                FederatedAuthenticatorConfig authnConfig = endpointConfigurationManager
-                        .createFederatedAuthenticatorConfig(DefinedByType.valueOf(
+                FederatedAuthenticatorConfig authnConfig = createFederatedAuthenticatorConfig(DefinedByType.valueOf(
                                 rs.getString("DEFINED_BY")));
                 int authnId = rs.getInt("ID");
                 authnConfig.setName(rs.getString("NAME"));
@@ -1336,8 +1337,6 @@ public class IdPManagementDAO {
         PreparedStatement prepStmt1 = null;
 
         try {
-            endpointConfigurationManager.updateEndpointConfigurations(newFederatedAuthenticatorConfig,
-                    oldFederatedAuthenticatorConfig, tenantId);
             String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_AUTH_SQL;
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
 
@@ -1352,6 +1351,8 @@ public class IdPManagementDAO {
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId,
                     newFederatedAuthenticatorConfig.getName());
+            endpointConfigurationManager.updateEndpointConfigurations(newFederatedAuthenticatorConfig,
+                    oldFederatedAuthenticatorConfig, tenantId);
 
             List<Property> unUpdatedProperties = new ArrayList<>();
             List<Property> singleValuedProperties = new ArrayList<>();
@@ -1427,7 +1428,6 @@ public class IdPManagementDAO {
         String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_SQL;
 
         try {
-            endpointConfigurationManager.addEndpointConfigurations(authnConfig, tenantId);
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
             prepStmt1.setInt(1, idpId);
             prepStmt1.setInt(2, tenantId);
@@ -1445,6 +1445,7 @@ public class IdPManagementDAO {
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
+            endpointConfigurationManager.addEndpointConfigurations(authnConfig, tenantId);
 
             sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_PROP_SQL;
 
@@ -1476,13 +1477,13 @@ public class IdPManagementDAO {
                                                     Connection dbConnection, int idpId, int tenantId)
             throws IdentityProviderManagementException, SQLException {
 
-        endpointConfigurationManager.deleteEndpointConfigurations(authnConfig, tenantId);
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(IdPManagementConstants.SQLQueries
                 .DELETE_IDP_AUTH_SQL)) {
             prepStmt.setInt(1, idpId);
             prepStmt.setString(2, authnConfig.getName());
             prepStmt.execute();
         }
+        endpointConfigurationManager.deleteEndpointConfigurations(authnConfig, tenantId);
     }
 
     private void updateSingleValuedFederatedConfigProperties(Connection dbConnection, int authnId, int tenantId,
@@ -3992,10 +3993,8 @@ public class IdPManagementDAO {
             }
             throw new IdentityProviderManagementException("Error occurred while adding Identity Provider for tenant "
                     + tenantId, e);
-        } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
-                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            }
+        } catch (AuthenticatorEndpointConfigurationServerException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         }
         catch (ConnectorException e) {
@@ -4327,10 +4326,8 @@ public class IdPManagementDAO {
             }
             throw new IdentityProviderManagementException("Error occurred while updating Identity Provider " +
                     "information  for tenant " + tenantId, e);
-        } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
-                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            }
+        } catch (AuthenticatorEndpointConfigurationServerException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } catch (ConnectorException e) {
             throw new IdentityProviderManagementException("An error occurred while filtering IDP properties.", e);
@@ -4415,10 +4412,8 @@ public class IdPManagementDAO {
             rollBackEndpointConfigurationDeletion(identityProvider, tenantId);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
-        } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
-                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            }
+        } catch (AuthenticatorEndpointConfigurationServerException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
@@ -4479,10 +4474,8 @@ public class IdPManagementDAO {
             rollBackEndpointConfigurationDeletion(identityProvider, tenantId);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
-        } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
-                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            }
+        } catch (AuthenticatorEndpointConfigurationServerException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } catch (SecretManagementException e) {
             throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider : " +
@@ -4530,10 +4523,8 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException(
                     String.format("Error occurred while deleting Identity Provider:%s of tenant:%s ",
                             idPName, tenantDomain), e);
-        } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
-                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            }
+        } catch (AuthenticatorEndpointConfigurationServerException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
@@ -4579,10 +4570,8 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException(
                     String.format("Error occurred while deleting Identity Provider with resource ID:%s of tenant:%s ",
                             resourceId, tenantDomain), e);
-        } catch (IdentityProviderManagementException e) {
-            if (ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode().equals(e.getErrorCode())) {
-                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            }
+        } catch (AuthenticatorEndpointConfigurationServerException e) {
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
@@ -6133,5 +6122,14 @@ public class IdPManagementDAO {
             endpointConfigurationManager.addEndpointConfigurations(
                     identityProvider.getFederatedAuthenticatorConfigs()[0], tenantId);
         }
+    }
+
+    private FederatedAuthenticatorConfig createFederatedAuthenticatorConfig(AuthenticatorPropertyConstants.DefinedByType
+                                                                                   definedByType) {
+
+        if (definedByType == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
+            return new FederatedAuthenticatorConfig();
+        }
+        return new UserDefinedFederatedAuthenticatorConfig();
     }
 }

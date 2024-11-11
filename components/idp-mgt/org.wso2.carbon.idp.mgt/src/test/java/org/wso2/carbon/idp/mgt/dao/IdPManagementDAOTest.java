@@ -33,6 +33,7 @@ import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.application.common.model.*;
@@ -2148,11 +2149,26 @@ public class IdPManagementDAOTest {
                 new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
 
         userDefinedFederatedAuthenticatorConfig.setEndpointConfig(
-                new UserDefinedAuthenticatorEndpointConfig(endpointConfig));
+                buildUserDefinedAuthenticatorEndpointConfig(endpointConfig));
         newUserDefinedIdp.setFederatedAuthenticatorConfigs(
                 new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
         newUserDefinedIdp.setDefaultAuthenticatorConfig(userDefinedFederatedAuthenticatorConfig);
         return newUserDefinedIdp;
+    }
+
+    private UserDefinedAuthenticatorEndpointConfig buildUserDefinedAuthenticatorEndpointConfig(
+            EndpointConfig endpointConfig) {
+
+        UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder =
+                new UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder();
+        endpointConfigBuilder.uri(endpointConfig.getUri());
+        endpointConfigBuilder.authenticationType(endpointConfig.getAuthentication().getType().getName());
+        Map<String, String> propMap = new HashMap<>();
+        for (AuthProperty prop : endpointConfig.getAuthentication().getProperties()) {
+            propMap.put(prop.getName(), prop.getValue());
+        }
+        endpointConfigBuilder.authenticationProperties(propMap);
+        return endpointConfigBuilder.build();
     }
 
     private void assertIdPResult(IdentityProvider idpResult, String idpName, boolean isExist) {

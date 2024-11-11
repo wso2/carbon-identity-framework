@@ -68,7 +68,7 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
             }
         }
 
-        return clonedIdP;
+        return identityProvider;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class IdPSecretsProcessor implements SecretsProcessor<IdentityProvider> {
             }
         }
 
-        return clonedIdP;
+        return identityProvider;
     }
 
     @Override

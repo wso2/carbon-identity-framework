@@ -289,6 +289,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
      */
     private void validateMaxActionsPerType(String actionType, String tenantDomain) throws ActionMgtException {
 
+        // In-flow actions are not limited by the maximum actions per action type; eg: AUTHENTICATION action type.
+        if (Action.ActionTypes.Category.IN_FLOW.equals(Action.ActionTypes.valueOf(actionType).getCategory())) {
+            return;
+        }
         Map<String, Integer> actionsCountPerType = getActionsCountPerType(tenantDomain);
         if (actionsCountPerType.containsKey(actionType) &&
                 actionsCountPerType.get(actionType) >= IdentityUtil.getMaximumActionsPerActionType()) {
