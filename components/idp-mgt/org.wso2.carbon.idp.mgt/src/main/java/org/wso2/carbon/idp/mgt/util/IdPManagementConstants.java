@@ -357,7 +357,8 @@ public class IdPManagementConstants {
         public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.\"VALUE\" = 'true' AND ";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
-                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY) VALUES (?,?,?,?,?,?)";
+                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) VALUES " +
+                "(?,?,?,?,?,?,?)";
 
         public static final String DELETE_IDP_AUTH_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE IDP_ID=? AND NAME=?";
 

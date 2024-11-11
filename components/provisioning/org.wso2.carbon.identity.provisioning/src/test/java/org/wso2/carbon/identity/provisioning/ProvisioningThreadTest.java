@@ -92,6 +92,8 @@ public class ProvisioningThreadTest {
                 PrivilegedCarbonContext.class)) {
             provisioningEntity = new ProvisioningEntity((ProvisioningEntityType) entityType,
                     (ProvisioningOperation) entityOperation, attributeMap);
+            provisioningEntity.setJitProvisioning(true);
+            when(mockConnector.isJitProvisioningEnabled()).thenReturn(true);
             CacheBackedProvisioningMgtDAO mockCacheBackedProvisioningMgDAO = mock(CacheBackedProvisioningMgtDAO.class);
             mockCarbonContext(privilegedCarbonContext);
             doNothing().when(mockCacheBackedProvisioningMgDAO).addProvisioningEntity(idPName, connectorType,
@@ -123,6 +125,28 @@ public class ProvisioningThreadTest {
                             idPName, cacheBackedProvisioningMgtDAO);
 
             provisioningThread.call();
+        }
+    }
+
+    @Test
+    public void testJITProvisionFlowWithJitOutboundDisabledConnector() throws IdentityProvisioningException {
+
+        System.setProperty("carbon.home", "");
+        try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+             MockedStatic<ProvisioningEntityCache> provisioningEntityCache =
+                     mockStatic(ProvisioningEntityCache.class)) {
+
+            provisioningEntity = new ProvisioningEntity(USER, POST, null);
+            provisioningEntity.setJitProvisioning(true);
+            CacheBackedProvisioningMgtDAO cacheBackedProvisioningMgtDAO =
+                    mockCacheBackedProvisioningMgtDAO(privilegedCarbonContext, provisioningEntityCache);
+            ProvisioningThread provisioningThread =
+                    new ProvisioningThread(provisioningEntity, "", mockConnector, connectorType,
+                            idPName, cacheBackedProvisioningMgtDAO);
+
+            when(mockConnector.isJitProvisioningEnabled()).thenReturn(false);
+            Boolean result = provisioningThread.call();
+            Assert.assertTrue(result);
         }
     }
 

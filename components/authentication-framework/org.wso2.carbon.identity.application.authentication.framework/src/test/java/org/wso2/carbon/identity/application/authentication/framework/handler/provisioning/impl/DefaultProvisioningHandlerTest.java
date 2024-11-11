@@ -23,8 +23,12 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
@@ -72,15 +76,26 @@ public class DefaultProvisioningHandlerTest {
                                              String idp) throws Exception {
 
         try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class)) {
-            frameworkUtils.when(() -> FrameworkUtils.startTenantFlow("tenantDomain")).thenAnswer(invocation -> null);
-            provisioningHandler.associateUser("dummy_user_name", "DUMMY_DOMAIN", "dummy.com", subject, idp);
+            frameworkUtils.when(() -> FrameworkUtils.startTenantFlow("tenantDomain"))
+                    .thenAnswer(invocation -> null);
+            provisioningHandler.associateUser("dummy_user_name", "DUMMY_DOMAIN",
+                    "dummy.com", subject, idp);
         }
     }
 
     @Test
     public void testGeneratePassword() throws Exception {
-        String randomPassword = provisioningHandler.generatePassword();
+        char[] randomPassword = provisioningHandler.generatePassword();
         assertNotNull(randomPassword);
-        assertEquals(randomPassword.length(), 12);
+        assertEquals(randomPassword.length, 12);
+    }
+
+    @Test
+    public void testResolvePassword() throws Exception {
+
+        Map<String, String> userClaims = new HashMap<>();
+        userClaims.put(FrameworkConstants.PASSWORD, "dummy_password");
+        char[] resolvedPassword = provisioningHandler.resolvePassword(userClaims);
+        assertEquals(resolvedPassword, "dummy_password".toCharArray());
     }
 }

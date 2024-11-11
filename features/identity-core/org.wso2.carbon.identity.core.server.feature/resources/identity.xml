@@ -1017,7 +1017,12 @@
             Default value : true
         -->
         <!--<EnableGroupBasedUserFilteringImprovements>true</EnableGroupBasedUserFilteringImprovements>-->
-
+        <!--
+            This configuration is added to consider the server-wide user endpoint max limit when the count query parameter is used.
+            Default value : true
+            Supported versions : IS 7.1.0 onwards
+        -->
+        <ConsiderServerWideUserEndpointMaxLimit>true</ConsiderServerWideUserEndpointMaxLimit>
     </SCIM2>
 
     <!--Recovery>
@@ -1223,12 +1228,14 @@
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+        <FailAuthnOnProvisionFailure>false</FailAuthnOnProvisionFailure>
         <EnableEnhancedFeature>false</EnableEnhancedFeature>
     </JITProvisioning>
 
     <OutboundProvisioning>
         <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
+        <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
     </OutboundProvisioning>
 
     <EventListeners>
@@ -1524,6 +1531,40 @@
         <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
+            <Scopes>internal_secret_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
+            <Scopes>internal_secret_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
+            <Scopes>internal_secret_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
+            <Scopes>internal_secret_mgt_delete</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
+            <Scopes>internal_secret_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
+            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
+            <Scopes>internal_secret_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
+            <Scopes>internal_secret_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
+            <Scopes>internal_secret_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="false" http-method="GET"/>

@@ -34,13 +34,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.ENCODED_CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_OTHER_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_UUID;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_ENCODED_CERTIFICATE;
 
 /**
  * Test class for CacheBackedCertificateMgtDAO.
@@ -75,7 +75,7 @@ public class CacheBackedApplicationCertificateMgtDAOTest {
         certificate = new Certificate.Builder()
                 .id(TEST_UUID)
                 .name(CERTIFICATE_NAME)
-                .certificateContent(CERTIFICATE)
+                .certificateContent(ENCODED_CERTIFICATE)
                 .build();
         when(applicationCertificateManagementDAO.addCertificate(TEST_UUID, certificate, TEST_TENANT_ID))
                 .thenReturn(TEST_ID);
@@ -126,13 +126,13 @@ public class CacheBackedApplicationCertificateMgtDAOTest {
     public void testUpdateCertificateContent() throws CertificateMgtException {
 
         // Update the certificate and invalidate the cache.
-        cacheBackedApplicationCertificateMgtDAO.updateCertificateContent(certificateId, UPDATED_CERTIFICATE,
+        cacheBackedApplicationCertificateMgtDAO.updateCertificateContent(certificateId, UPDATED_ENCODED_CERTIFICATE,
                 TEST_TENANT_ID);
         // Fetch again to verify the cache is invalidated.
         cacheBackedApplicationCertificateMgtDAO.getCertificate(certificateId, TEST_TENANT_ID);
 
         verify(applicationCertificateManagementDAO, times(1))
-                .updateCertificateContent(certificateId, UPDATED_CERTIFICATE, TEST_TENANT_ID);
+                .updateCertificateContent(certificateId, UPDATED_ENCODED_CERTIFICATE, TEST_TENANT_ID);
         verify(applicationCertificateManagementDAO, times(1)).getCertificate(certificateId,
                 TEST_TENANT_ID);
     }

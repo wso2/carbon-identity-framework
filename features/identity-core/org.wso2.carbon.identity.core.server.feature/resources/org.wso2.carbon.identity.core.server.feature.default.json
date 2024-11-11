@@ -369,6 +369,7 @@
   "scim2.consider_max_limit_for_total_results": false,
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
+  "scim2.consider_server_wide_user_endpoint_max_limit": true,
 
   "identity_mgt.password_policy.password_policy_validation_handler.enable": true,
   "identity_mgt.recovery.enable_v1_api": false,
@@ -517,11 +518,13 @@
   "idp_role_management.return_manually_added_local_roles": true,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
+  "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
+  "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
   "authentication.jit_provisioning.enable_enhanced_feature": false,
 
   "application_mgt.enable_role_validation": false,
@@ -1231,7 +1234,6 @@
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
     "branding.ai",
-    "branding.applicationLevelBranding",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
@@ -1421,7 +1423,7 @@
       "internal_user_mgt_list",
       "internal_session_view"
   ],
-  "console.secrets_management.enabled": false,
+  "console.secrets_management.enabled": true,
   "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
   "console.secrets_management.scopes.read": [ "internal_secret_mgt_view" ],
@@ -1447,6 +1449,9 @@
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
+  "console.user_stores.disabled_features": [
+    "userStores.type.remote"
+  ],
   "console.user_stores.scopes.feature": ["console:userstores"],
   "console.user_stores.scopes.create": ["internal_userstore_create"],
   "console.user_stores.scopes.read": ["internal_userstore_view"],
@@ -1685,6 +1690,8 @@
 
   "oauth.authorize_all_scopes": false,
 
-  "system_applications.system_portals": ["Console", "My Account"]
+  "system_applications.system_portals": ["Console", "My Account"],
+
+  "notification_templates.sms_templates.apply": true
 }
 
