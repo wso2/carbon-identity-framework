@@ -48,7 +48,11 @@ public class AuthenticatorMgtErrorConstants {
         ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME("65003", "Error while retrieving authenticator.",
                 "Error while retrieving authenticator from the system."),
         ERROR_WHILE_DELETING_AUTHENTICATOR("65004", "Error while deleting authenticator.",
-                "Error while deleting authenticator from the system."),;
+                "Error while deleting authenticator from the system."),
+        ERROR_CODE_ENDPOINT_CONFIG_MGT("65005", "Error while managing endpoint configurations.",
+                "Error while managing endpoint configurations for the user defined local authenticator %s."),
+        ERROR_CODE_INVALID_DEFINED_BY_AUTH_PROVIDED("65006", "Error while adding local authenticator.",
+                "Only system defined authenticators are allowed to add via this method.");
 
         private final String code;
         private final String message;

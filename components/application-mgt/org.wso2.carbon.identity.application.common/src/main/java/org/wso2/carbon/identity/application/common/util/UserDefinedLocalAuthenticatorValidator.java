@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.util;
 
-
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.util.regex.Pattern;
@@ -55,7 +53,6 @@ public class UserDefinedLocalAuthenticatorValidator {
      * Validate the user defined local authenticator name.
      *
      * @param name  The authenticator name.
-     *
      * @throws AuthenticatorMgtClientException   if the authenticator name is not valid.
      */
     public void validateAuthenticatorName(String name) throws AuthenticatorMgtClientException {
@@ -71,8 +68,7 @@ public class UserDefinedLocalAuthenticatorValidator {
     /**
      * Validate the authenticator is a user defined by authenticator.
      *
-     * @param authenticatorConfig  The authenticator config.
-     *
+     * @param definedByType  The defined by type of the authenticator config.
      * @throws AuthenticatorMgtClientException   if the authenticator is not a user defined authenticator.
      */
     public void validateDefinedByType(DefinedByType definedByType)
@@ -80,8 +76,7 @@ public class UserDefinedLocalAuthenticatorValidator {
 
         if (definedByType != DefinedByType.USER) {
             ErrorMessages error = ErrorMessages.ERROR_OP_ON_SYSTEM_AUTHENTICATOR;
-            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
-                    String.format(error.getDescription(), authenticatorConfig.getName()));
+            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(), error.getDescription());
         }
     }
 }

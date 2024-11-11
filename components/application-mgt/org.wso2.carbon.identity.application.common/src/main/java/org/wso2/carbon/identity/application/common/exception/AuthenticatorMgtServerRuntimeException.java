@@ -19,34 +19,16 @@
 package org.wso2.carbon.identity.application.common.exception;
 
 /**
- * Authenticator configuration management exception.
+ * Authenticator configuration management server runtime exception.
  */
-public class AuthenticatorMgtException extends Exception {
+public class AuthenticatorMgtServerRuntimeException extends RuntimeException {
 
-    private String errorCode;
-    private String description;
+    private final String errorCode;
+    private final String description;
 
-    public AuthenticatorMgtException(String message) {
-
-        super(message);
-    }
-
-    public AuthenticatorMgtException(String message, String errorCode, Throwable cause) {
-
-        super(message, cause);
-        this.errorCode = errorCode;
-    }
-
-    public AuthenticatorMgtException(String message, String description, String errorCode) {
+    public AuthenticatorMgtServerRuntimeException(String message, String description, String errorCode) {
 
         super(message);
-        this.errorCode = errorCode;
-        this.description = description;
-    }
-
-    public AuthenticatorMgtException(String message, String description, String errorCode, Throwable cause) {
-
-        super(message, cause);
         this.errorCode = errorCode;
         this.description = description;
     }

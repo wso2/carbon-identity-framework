@@ -28,11 +28,13 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
 
     private static final String TAG_2FA = "2FA";
     private static final String TAG_CUSTOM = "CUSTOM";
+    private AuthenticationType authenticationType;
 
     protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedLocalAuthenticatorConfig(AuthenticationType type) {
 
+        authenticationType = type;
         definedByType = DefinedByType.USER;
         if (AuthenticationType.VERIFICATION == type) {
             setTags(new String[]{TAG_CUSTOM, TAG_2FA});
@@ -59,5 +61,25 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     public void setEndpointConfig(UserDefinedAuthenticatorEndpointConfig endpointConfig) {
 
         this.endpointConfig = endpointConfig;
+    }
+
+    /**
+     * Get the authentication type of the User defined local authenticator config.
+     *
+     * @return AuthenticationType.
+     */
+    public AuthenticationType getAuthenticationType() {
+
+        return authenticationType;
+    }
+
+    /**
+     * Set the authentication type of the User defined local authenticator config.
+     *
+     * @param authenticationType    The authentication type of the User defined local authenticator config.
+     */
+    public void setAuthenticationType(AuthenticationType authenticationType) {
+
+        this.authenticationType = authenticationType;
     }
 }
