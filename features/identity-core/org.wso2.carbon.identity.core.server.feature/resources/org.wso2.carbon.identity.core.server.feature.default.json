@@ -1241,7 +1241,7 @@
   "console.branding.scopes.read": ["internal_application_mgt_view"],
   "console.branding.scopes.update": ["internal_branding_preference_update"],
   "console.branding.scopes.delete": ["internal_branding_preference_update"],
-  "console.certificates.enabled": true,
+  "console.certificates.enabled": false,
   "console.certificates.scopes.feature": ["console:certificates"],
   "console.certificates.scopes.create": ["internal_keystore_update"],
   "console.certificates.scopes.read": ["internal_keystore_view"],
