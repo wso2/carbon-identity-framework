@@ -1194,6 +1194,7 @@
   "console.applications.scopes.read": [
       "internal_application_mgt_view",
       "internal_claim_meta_view",
+      "internal_extensions_view",
       "internal_role_mgt_view",
       "internal_userstore_view",
       "internal_idp_view"
