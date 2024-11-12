@@ -275,6 +275,7 @@
         -->
         {% if oauth.extensions.token_generator is defined %}
         <IdentityOAuthTokenGenerator>{{oauth.extensions.token_generator}}</IdentityOAuthTokenGenerator>
+        <TokenType>{{oauth.extensions.token_type}}</TokenType>
         {% else %}
         <IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</IdentityOAuthTokenGenerator>
         {% endif %}
@@ -749,6 +750,7 @@
            {% for token_type in oauth.extensions.token_types %}
            <SupportedTokenType>
               <TokenTypeName>{{token_type.name}}</TokenTypeName>
+              <TokenType>{{token_type.type}}</TokenType>
               <TokenTypeImplClass>{{token_type.issuer}}</TokenTypeImplClass>
               {% if token_type.persist_access_token_alias is defined %}
               <PersistAccessTokenAlias>{{token_type.persist_access_token_alias}}</PersistAccessTokenAlias>

@@ -450,11 +450,13 @@
         <!--<SupportedTokenTypes>-->
             <!--<SupportedTokenType>-->
                 <!--<TokenTypeName>Default</TokenTypeName>-->
+                <!--<TokenType>JWT</TokenType>-->
                 <!--<TokenTypeImplClass>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</TokenTypeImplClass>-->
                 <!--<PersistAccessTokenAlias>true</PersistAccessTokenAlias>-->
             <!--</SupportedTokenType>-->
             <!--<SupportedTokenType>-->
                 <!--<TokenTypeName>JWT</TokenTypeName>-->
+                <!--<TokenType>JWT</TokenType>-->
                 <!--<TokenTypeImplClass>org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer</TokenTypeImplClass>-->
                 <!--<PersistAccessTokenAlias>true</PersistAccessTokenAlias>-->
             <!--</SupportedTokenType>-->
