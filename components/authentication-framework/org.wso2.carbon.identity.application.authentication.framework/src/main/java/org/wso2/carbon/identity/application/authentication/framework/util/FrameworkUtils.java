@@ -213,6 +213,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
@@ -258,7 +259,6 @@ public class FrameworkUtils {
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
-    private static final String usernameLocalClaim = "http://wso2.org/claims/username";
 
     private FrameworkUtils() {
     }
@@ -839,7 +839,7 @@ public class FrameworkUtils {
             return userIdClaimURI;
         }
         ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
-                        StringUtils.equals(usernameLocalClaim, claimMapping.getLocalClaim().getClaimUri()))
+                        StringUtils.equals(USERNAME_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
                 .findFirst()
                 .orElse(null);
         if (userNameClaimMapping != null) {
