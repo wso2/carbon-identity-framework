@@ -6059,13 +6059,16 @@ public class IdPManagementDAO {
     }
 
     private void performConfigCorrectionForUsernameRecoveryConfigs(Connection dbConnection, int tenantId, int idpId,
-                                                                   List<IdentityProviderProperty> idpProperties) throws SQLException {
-        // Enable all recovery options when Recovery.Notification.Password.Enable value is set as enabled.
+                                                                   List<IdentityProviderProperty> idpProperties)
+            throws SQLException {
+
+        // Enable all recovery options when Recovery.Notification.Username.Enable value is set as enabled.
         // This keeps functionality consistent with previous API versions for migrating customers.
         idpProperties.stream().filter(
-                        idp -> IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                        idp -> IdPManagementConstants.
+                                EMAIL_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
                 .ifPresentOrElse(
-                        emailLinkProperty -> emailLinkProperty.setValue(String.valueOf(true)),
+                        emailProperty -> emailProperty.setValue(String.valueOf(true)),
                         () -> {
                             IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                             identityProviderProperty.setName(
@@ -6075,9 +6078,10 @@ public class IdPManagementDAO {
                         });
         if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED))) {
             idpProperties.stream().filter(
-                            idp -> IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                            idp -> IdPManagementConstants.
+                                    SMS_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
                     .ifPresentOrElse(
-                            smsOtpProperty -> smsOtpProperty.setValue(String.valueOf(true)),
+                            smsProperty -> smsProperty.setValue(String.valueOf(true)),
                             () -> {
                                 IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                                 identityProviderProperty.setName(
