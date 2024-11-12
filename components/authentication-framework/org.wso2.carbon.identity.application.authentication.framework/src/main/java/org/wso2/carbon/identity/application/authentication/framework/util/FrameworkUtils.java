@@ -107,6 +107,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
@@ -205,6 +206,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
@@ -256,6 +258,7 @@ public class FrameworkUtils {
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
+    private static final String usernameLocalClaim = "http://wso2.org/claims/username";
 
     private FrameworkUtils() {
     }
@@ -797,6 +800,58 @@ public class FrameworkUtils {
                 .map(SequenceConfig::getApplicationConfig)
                 .map(ApplicationConfig::getServiceProvider)
                 .map(ServiceProvider::getApplicationResourceId);
+    }
+
+    /**
+     * Retrieve the user id claim configured for the federated IDP.
+     *
+     * @param federatedIdpName  Federated IDP name.
+     * @param tenantDomain      Tenant domain.
+     * @return  User ID claim configured for the IDP.
+     * @throws PostAuthenticationFailedException PostAuthenticationFailedException.
+     */
+    public static String getUserIdClaimURI(String federatedIdpName, String tenantDomain)
+            throws PostAuthenticationFailedException {
+        String userIdClaimURI;
+        IdentityProvider idp;
+        try {
+            idp = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
+                    .getIdPByName(federatedIdpName, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw new PostAuthenticationFailedException(
+                    ERROR_WHILE_GETTING_IDP_BY_NAME.getCode(),
+                    String.format(FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME.getMessage(),
+                            tenantDomain), e);
+        }
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        if (claimMappings == null || claimMappings.length < 1) {
+            return null;
+        }
+        userIdClaimURI = claimConfigs.getUserClaimURI();
+        if (userIdClaimURI != null) {
+            return userIdClaimURI;
+        }
+        ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
+                        StringUtils.equals(usernameLocalClaim, claimMapping.getLocalClaim().getClaimUri()))
+                .findFirst()
+                .orElse(null);
+        if (userNameClaimMapping != null) {
+            userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
+        }
+        return userIdClaimURI;
+    }
+
+
+    public static boolean isConfiguredIdpSubForFederatedUserAssociationEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION));
     }
 
     private static String getServiceProviderNameByReferer(HttpServletRequest request) {
@@ -2745,7 +2800,7 @@ public class FrameworkUtils {
                 }
                 // check for role claim uri in the idaps dialect.
                 for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                    if (StringUtils.isNotEmpty(idpRoleMappingURI) && 
+                    if (StringUtils.isNotEmpty(idpRoleMappingURI) &&
                         idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
                         idpRoleMappingURI = entry.getKey();
                     }
