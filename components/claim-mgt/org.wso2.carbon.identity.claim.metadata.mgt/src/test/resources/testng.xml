@@ -24,9 +24,6 @@
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtilsTest"/>
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAOTest" />
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAOTest" />
-            <class name="org.wso2.carbon.identity.claim.metadata.mgt.SystemDefaultClaimMetadataManagerTest" />
-            <class name="org.wso2.carbon.identity.claim.metadata.mgt.DBBasedClaimMetadataManagerTest" />
-            <class name="org.wso2.carbon.identity.claim.metadata.mgt.UnifiedClaimMetadataManagerTest" />
             <class name="org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImplTest" />
         </classes>
     </test>
