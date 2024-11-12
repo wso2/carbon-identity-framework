@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.SQLConstants;
@@ -61,6 +62,7 @@ public class ExternalClaimDAO extends ClaimDAO {
     public void addExternalClaim(ExternalClaim externalClaim, int tenantId) throws ClaimMetadataException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement prepStmt = null;
 
         String externalClaimURI = externalClaim.getClaimURI();
         String externalClaimDialectURI = externalClaim.getClaimDialectURI();
