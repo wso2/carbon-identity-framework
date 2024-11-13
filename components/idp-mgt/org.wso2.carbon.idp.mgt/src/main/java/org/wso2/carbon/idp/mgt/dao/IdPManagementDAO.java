@@ -3189,8 +3189,9 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
-                // Retrieve encrypted secrets from DB, decrypt and set to the federated authenticator configs.
-                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
+                        federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
                     federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
                 }
 
@@ -3910,9 +3911,12 @@ public class IdPManagementDAO {
                         dbConnection, idPId, tenantId);
             }
 
-            // Add federated authenticator secret properties to IDN_SECRET table.
             identityProvider.setId(createdIDP.getId());
-            identityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(identityProvider);
+            // Add system federated authenticator secret properties to IDN_SECRET table.
+            if (identityProvider.getFederatedAuthenticatorConfigs().length > 0 &&
+                    identityProvider.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                identityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(identityProvider);
+            }
 
             // add federated authenticators.
             addFederatedAuthenticatorConfigs(identityProvider.getFederatedAuthenticatorConfigs(),
@@ -4256,9 +4260,12 @@ public class IdPManagementDAO {
                 boolean isResidentIdP = IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                         .equals(newIdentityProvider.getIdentityProviderName());
 
-                // Update secrets in IDN_SECRET table.
                 newIdentityProvider.setId(Integer.toString(idpId));
-                newIdentityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(newIdentityProvider);
+                // Update secrets of system federated authenticator config in IDN_SECRET table.
+                if (newIdentityProvider.getFederatedAuthenticatorConfigs().length > 0 && newIdentityProvider
+                        .getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                    newIdentityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(newIdentityProvider);
+                }
 
                 // update federated authenticators.
                 updateFederatedAuthenticatorConfigs(

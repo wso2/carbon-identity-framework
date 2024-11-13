@@ -100,6 +100,7 @@ public class AuthenticatorEndpointConfigurationManager {
                                   actionId,
                                   buildActionToUpdate(castedConfig.getEndpointConfig().getEndpointConfig()),
                                   IdentityTenantUtil.getTenantDomain(tenantId));
+            newConfig.setProperties(oldConfig.getProperties());
         } catch (ActionMgtException e) {
             throw new AuthenticatorEndpointConfigurationServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
                     String.format("Error occurred while updating associated action with id %s for the authenticator %s",
