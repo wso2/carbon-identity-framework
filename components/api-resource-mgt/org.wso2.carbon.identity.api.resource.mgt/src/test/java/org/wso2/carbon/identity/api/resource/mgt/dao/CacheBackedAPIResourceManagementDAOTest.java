@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResourceMgtDAO;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -69,6 +70,7 @@ public class CacheBackedAPIResourceManagementDAOTest {
         daoImpl = new CacheBackedAPIResourceMgtDAO(apiResourceManagementDAO);
         initiateH2Database(getFilePath());
 
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
 
         // Add initial API resources.
         addAPIResourceToDB("Setup-1", getConnection(), TENANT_ID);

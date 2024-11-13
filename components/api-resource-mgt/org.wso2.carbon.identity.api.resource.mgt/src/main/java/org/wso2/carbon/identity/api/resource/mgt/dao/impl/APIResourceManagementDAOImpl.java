@@ -20,17 +20,18 @@ package org.wso2.carbon.identity.api.resource.mgt.dao.impl;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtClientException;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtServerException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.api.resource.mgt.dao.APIResourceManagementDAO;
+import org.wso2.carbon.identity.api.resource.mgt.dao.AuthorizationDetailsTypeMgtDAO;
 import org.wso2.carbon.identity.api.resource.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.APIResourceProperty;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -50,11 +51,25 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.AFTER;
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.BEFORE;
+import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getApiResourceFilterQueryBuilder;
+import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getScopeFilterQueryBuilder;
 
 /**
  * This class implements the {@link APIResourceManagementDAO} interface.
  */
 public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
+
+    private final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO;
+
+    public APIResourceManagementDAOImpl() {
+
+        this(new AuthorizationDetailsTypeMgtDAOImpl());
+    }
+
+    public APIResourceManagementDAOImpl(final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO) {
+
+        this.authorizationDetailsTypeMgtDAO = authorizationDetailsTypeMgtDAO;
+    }
 
     @Override
     public List<APIResource> getAPIResources(Integer limit, Integer tenantId, String sortOrder,
@@ -88,8 +103,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             expressionNodesCopy.removeIf(expressionNode -> AFTER.equals(expressionNode.getAttributeValue()) ||
                     BEFORE.equals(expressionNode.getAttributeValue()));
         }
-        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
-        appendFilterQuery(expressionNodesCopy, filterQueryBuilder, false);
+        FilterQueryBuilder filterQueryBuilder = getApiResourceFilterQueryBuilder(expressionNodesCopy);
 
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         String getAPIResourcesCountSqlStmtTail = SQLConstants.GET_API_RESOURCES_COUNT_TAIL;
@@ -145,6 +159,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 if (CollectionUtils.isNotEmpty(apiResource.getProperties())) {
                     // Add properties.
                     addAPIResourceProperties(dbConnection, generatedAPIId, apiResource.getProperties());
+                }
+                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes())) {
+                    // Add authorization details types.
+                    this.authorizationDetailsTypeMgtDAO.addAuthorizationDetailsTypes(dbConnection,
+                            generatedAPIId, apiResource.getAuthorizationDetailsTypes(), tenantId);
                 }
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
 
@@ -234,7 +253,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
             List<APIResourceProperty> apiResourceProperties = getAPIResourcePropertiesByAPIId(dbConnection, apiId);
-            return getApiResource(resultSet, apiResourceProperties);
+
+            final APIResource apiResource = getApiResource(resultSet, apiResourceProperties);
+            this.assignAuthorizationDetailsTypesToApiResource(apiResource, tenantId);
+
+            return apiResource;
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -253,7 +276,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             ResultSet resultSet = preparedStatement.executeQuery();
             List<APIResourceProperty> apiResourceProperties =
                     getAPIResourcePropertiesByAPIIdentifier(dbConnection, identifier, tenantId);
-            return getApiResource(resultSet, apiResourceProperties);
+
+            final APIResource apiResource = getApiResource(resultSet, apiResourceProperties);
+            this.assignAuthorizationDetailsTypesToApiResource(apiResource, tenantId);
+
+            return apiResource;
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -286,6 +313,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                 if (CollectionUtils.isNotEmpty(addedScopes)) {
                     // Add Scopes.
                     addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId);
+                }
+
+                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes())) {
+                    this.authorizationDetailsTypeMgtDAO.updateAuthorizationDetailsTypes(dbConnection,
+                            apiResource.getId(), apiResource.getAuthorizationDetailsTypes(), tenantId);
                 }
 
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
@@ -328,6 +360,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
+                authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(dbConnection, apiId, tenantId);
+
                 PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.DELETE_SCOPES_BY_API);
                 prepStmt.setString(1, apiId);
                 prepStmt.setInt(2, tenantId);
@@ -446,8 +480,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
-            appendFilterQuery(expressionNodes, filterQueryBuilder, true);
+            FilterQueryBuilder filterQueryBuilder = getScopeFilterQueryBuilder(expressionNodes);
             String query = SQLConstants.GET_SCOPES_BY_TENANT_ID + filterQueryBuilder.getFilterQuery() +
                     SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL;
             PreparedStatement preparedStatement = dbConnection.prepareStatement(query);
@@ -609,8 +642,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                                                   List<ExpressionNode> expressionNodes)
             throws APIResourceMgtException {
 
-        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
-        appendFilterQuery(expressionNodes, filterQueryBuilder, false);
+        FilterQueryBuilder filterQueryBuilder = getApiResourceFilterQueryBuilder(expressionNodes);
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
 
         List<APIResource> apiResources = new ArrayList<>();
@@ -680,8 +712,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                                                                 List<ExpressionNode> expressionNodes)
             throws APIResourceMgtException {
 
-        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
-        appendFilterQuery(expressionNodes, filterQueryBuilder, false);
+        FilterQueryBuilder filterQueryBuilder = getApiResourceFilterQueryBuilder(expressionNodes);
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
 
         Map<String, APIResource> apiResourceMap = new LinkedHashMap<>();
@@ -1031,166 +1062,24 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     /**
-     * Append the filter query to the query builder.
+     * Populates the authorization detail types for the specified API resource if available.
      *
-     * @param expressionNodes    List of expression nodes.
-     * @param filterQueryBuilder Filter query builder.
-     * @param isScopeFilter      Whether the filter is for scopes.
-     * @throws APIResourceMgtClientException If an error occurs while appending the filter query.
+     * @param apiResource The API resource to update with authorization detail types.
+     * @param tenantId    The tenant ID associated with the API resource.
+     * @throws APIResourceMgtException If an error occurs while retrieving authorization detail types.
      */
-    private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder,
-                                   boolean isScopeFilter) throws APIResourceMgtClientException {
+    private void assignAuthorizationDetailsTypesToApiResource(final APIResource apiResource, final Integer tenantId)
+            throws APIResourceMgtException {
 
-        int count = 1;
-        StringBuilder filter = new StringBuilder();
-        if (CollectionUtils.isEmpty(expressionNodes)) {
-            filterQueryBuilder.setFilterQuery(StringUtils.EMPTY);
-        } else {
-            for (ExpressionNode expressionNode : expressionNodes) {
-                String operation = expressionNode.getOperation();
-                String value = expressionNode.getValue();
-                String attributeValue = expressionNode.getAttributeValue();
-                String attributeName = APIResourceManagementConstants.ATTRIBUTE_COLUMN_MAP.get(attributeValue);
-
-                // If the filter is for scopes, get the column name from the scope attribute map.
-                if (isScopeFilter) {
-                    attributeName = APIResourceManagementConstants.SCOPE_ATTRIBUTE_COLUMN_MAP.get(attributeValue);
-                }
-
-                if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
-                        .isNotBlank(operation)) {
-                    switch (operation) {
-                        case APIResourceManagementConstants.EQ: {
-                            equalFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.NE: {
-                            notEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.SW: {
-                            startWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.EW: {
-                            endWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.CO: {
-                            containsFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.GE: {
-                            greaterThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.LE: {
-                            lessThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.GT: {
-                            greaterThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.LT: {
-                            lessThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        default: {
-                            break;
-                        }
-                    }
-                } else {
-                    throw APIResourceManagementUtil.handleClientException(
-                            APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_VALUE);
-                }
-            }
-            if (StringUtils.isBlank(filter.toString())) {
-                filterQueryBuilder.setFilterQuery(StringUtils.EMPTY);
-            } else {
-                filterQueryBuilder.setFilterQuery(filter.toString());
-            }
+        if (apiResource == null) {
+            return;
         }
-    }
 
-    private void equalFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                    FilterQueryBuilder filterQueryBuilder) {
+        final List<AuthorizationDetailsType> authorizationDetailsTypes =
+                this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantId);
 
-        String filterString = " = ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value);
-    }
-
-    private void notEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                    FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " <> ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value);
-    }
-
-    private void startWithFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                        FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " LIKE ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value + "%");
-    }
-
-    private void endWithFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                      FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " LIKE ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, "%" + value);
-    }
-
-    private void containsFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                       FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " LIKE ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, "%" + value + "%");
-    }
-
-    private void greaterThanOrEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                                 FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " >= ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value);
-    }
-
-    private void lessThanOrEqualFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                              FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " <= ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value);
-    }
-
-    private void greaterThanFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                          FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " > ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value);
-    }
-
-    private void lessThanFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
-                                       FilterQueryBuilder filterQueryBuilder) {
-
-        String filterString = " < ? AND ";
-        filter.append(attributeName).append(filterString);
-        filterQueryBuilder.setFilterAttributeValue(count, value);
+        if (CollectionUtils.isNotEmpty(authorizationDetailsTypes)) {
+            apiResource.setAuthorizationDetailsTypes(authorizationDetailsTypes);
+        }
     }
 }

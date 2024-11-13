@@ -27,20 +27,14 @@ import org.wso2.carbon.identity.api.resource.mgt.publisher.APIResourceManagerEve
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
-import org.wso2.carbon.identity.core.model.Node;
-import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
+
+import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getExpressionNodes;
 
 /**
  * API resource management service.
@@ -245,79 +239,4 @@ public class APIResourceManagerImpl implements APIResourceManager {
         return systemScopes;
     }
 
-    /**
-     * Get the filter node as a list.
-     *
-     * @param filter Filter string.
-     * @param after  After cursor.
-     * @param before Before cursor.
-     * @throws APIResourceMgtClientException Error when validate filters.
-     */
-    private List<ExpressionNode> getExpressionNodes(String filter, String after, String before)
-            throws APIResourceMgtClientException {
-
-        List<ExpressionNode> expressionNodes = new ArrayList<>();
-        filter = StringUtils.isBlank(filter) ? StringUtils.EMPTY : filter;
-        String paginatedFilter = this.getPaginatedFilter(filter, after, before);
-        try {
-            if (StringUtils.isNotBlank(paginatedFilter)) {
-                FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(paginatedFilter);
-                Node rootNode = filterTreeBuilder.buildTree();
-                this.setExpressionNodeList(rootNode, expressionNodes);
-            }
-            return expressionNodes;
-        } catch (IOException | IdentityException e) {
-            throw APIResourceManagementUtil.handleClientException(
-                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_FORMAT);
-        }
-    }
-
-    /**
-     * Get pagination filter.
-     *
-     * @param paginatedFilter Filter string.
-     * @param after           After cursor.
-     * @param before          Before cursor.
-     * @return Filter string.
-     * @throws APIResourceMgtClientException Error when validate filters.
-     */
-    private String getPaginatedFilter(String paginatedFilter, String after, String before) throws
-            APIResourceMgtClientException {
-
-        try {
-            if (StringUtils.isNotBlank(before)) {
-                String decodedString = new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8);
-                paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and " +
-                        APIResourceManagementConstants.BEFORE_GT + decodedString :
-                        APIResourceManagementConstants.BEFORE_GT + decodedString;
-            } else if (StringUtils.isNotBlank(after)) {
-                String decodedString = new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8);
-                paginatedFilter += StringUtils.isNotBlank(paginatedFilter) ? " and " +
-                        APIResourceManagementConstants.AFTER_LT + decodedString :
-                        APIResourceManagementConstants.AFTER_LT + decodedString;
-            }
-        } catch (IllegalArgumentException e) {
-            throw APIResourceManagementUtil.handleClientException(
-                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_CURSOR_FOR_PAGINATION);
-        }
-        return paginatedFilter;
-    }
-
-    /**
-     * Set the node values as list of expression.
-     *
-     * @param node       filter node.
-     * @param expression list of expression.
-     */
-    private void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
-
-        if (node instanceof ExpressionNode) {
-            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
-                expression.add((ExpressionNode) node);
-            }
-        } else if (node instanceof OperationNode) {
-            setExpressionNodeList(node.getLeftNode(), expression);
-            setExpressionNodeList(node.getRightNode(), expression);
-        }
-    }
 }
