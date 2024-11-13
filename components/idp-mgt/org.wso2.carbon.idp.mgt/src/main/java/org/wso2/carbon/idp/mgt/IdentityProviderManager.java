@@ -2359,13 +2359,10 @@ public class IdentityProviderManager implements IdpManager {
     private FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String authenticatorName, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        FederatedAuthenticatorConfig[] authenticators = getAllFederatedAuthenticators(tenantDomain);
-        for (FederatedAuthenticatorConfig authenticator : authenticators) {
-            if (authenticator.getName().equals(authenticatorName)) {
-                return authenticator;
-            }
-        }
-        return null;
+        return Arrays.stream(getAllFederatedAuthenticators(tenantDomain))
+                .filter(authenticator -> authenticator.getName().equals(authenticatorName))
+                .findFirst()
+                .orElse(null);
     }
 
     /**

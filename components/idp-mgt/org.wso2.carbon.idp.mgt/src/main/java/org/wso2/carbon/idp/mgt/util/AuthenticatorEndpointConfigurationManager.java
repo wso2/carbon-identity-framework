@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.AuthenticatorEndpointConfigurationServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +50,6 @@ public class AuthenticatorEndpointConfigurationManager {
      *
      * @param config        The federated application authenticator configuration.
      * @param tenantId      The id of Tenant domain.
-     *
      * @throws AuthenticatorEndpointConfigurationServerException If an error occurs while adding the action.
      */
     public void addEndpointConfigurations(FederatedAuthenticatorConfig config, int tenantId)
@@ -82,7 +82,6 @@ public class AuthenticatorEndpointConfigurationManager {
      * @param newConfig        The federated application authenticator configuration to be updated.
      * @param oldConfig        The current federated application authenticator configuration.
      * @param tenantId         The id of Tenant domain.
-     *
      * @throws AuthenticatorEndpointConfigurationServerException If an error occurs while updating associated action.
      */
     public void updateEndpointConfigurations(FederatedAuthenticatorConfig newConfig, FederatedAuthenticatorConfig oldConfig,
@@ -113,7 +112,7 @@ public class AuthenticatorEndpointConfigurationManager {
      *
      * @param config        The federated application authenticator configuration.
      * @param tenantId      The id of Tenant domain.
-     *
+     * @return Federated authenticator with endpoint configurations resolved.
      * @throws AuthenticatorEndpointConfigurationServerException If an error occurs retrieving updating associated action.
      */
     public FederatedAuthenticatorConfig resolveEndpointConfigurations(FederatedAuthenticatorConfig config,
@@ -148,9 +147,8 @@ public class AuthenticatorEndpointConfigurationManager {
         endpointConfigBuilder.uri(endpointConfig.getUri());
         endpointConfigBuilder.authenticationType(endpointConfig.getAuthentication().getType().getName());
         Map<String, String> propMap = new HashMap<>();
-        for (AuthProperty prop : endpointConfig.getAuthentication().getProperties()) {
-            propMap.put(prop.getName(), prop.getValue());
-        }
+        endpointConfig.getAuthentication().getProperties()
+                .forEach(prop -> propMap.put(prop.getName(), prop.getValue()));
         endpointConfigBuilder.authenticationProperties(propMap);
         return endpointConfigBuilder.build();
     }
@@ -205,13 +203,12 @@ public class AuthenticatorEndpointConfigurationManager {
     private String getActionIdFromProperty(Property[] properties, String authenticatorName)
             throws AuthenticatorEndpointConfigurationServerException {
 
-        for (Property property : properties) {
-            if (ACTION_ID_PROPERTY.equals(property.getName())) {
-                return property.getValue();
-            }
-        }
-        throw new AuthenticatorEndpointConfigurationServerException(
-                "No action Id was found in the properties of the authenticator configurations for the authenticator: "
-                        + authenticatorName);
+        return Arrays.stream(properties)
+                .filter(property -> ACTION_ID_PROPERTY.equals(property.getName()))
+                .map(Property::getValue)
+                .findFirst()
+                .orElseThrow(() -> new AuthenticatorEndpointConfigurationServerException(
+                        "No action Id was found in the properties of the authenticator configurations for the authenticator: "
+                                + authenticatorName));
     }
 }

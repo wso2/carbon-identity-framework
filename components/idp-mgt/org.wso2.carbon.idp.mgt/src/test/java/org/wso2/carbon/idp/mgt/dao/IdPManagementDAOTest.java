@@ -2164,9 +2164,8 @@ public class IdPManagementDAOTest {
         endpointConfigBuilder.uri(endpointConfig.getUri());
         endpointConfigBuilder.authenticationType(endpointConfig.getAuthentication().getType().getName());
         Map<String, String> propMap = new HashMap<>();
-        for (AuthProperty prop : endpointConfig.getAuthentication().getProperties()) {
-            propMap.put(prop.getName(), prop.getValue());
-        }
+        endpointConfig.getAuthentication().getProperties()
+                .forEach(prop -> propMap.put(prop.getName(), prop.getValue()));
         endpointConfigBuilder.authenticationProperties(propMap);
         return endpointConfigBuilder.build();
     }
