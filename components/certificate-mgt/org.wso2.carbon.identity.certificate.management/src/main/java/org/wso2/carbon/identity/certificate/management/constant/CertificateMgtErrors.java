@@ -30,9 +30,7 @@ public enum CertificateMgtErrors {
             "Certificate with the name: %s does not exist."),
     ERROR_EMPTY_FIELD("60002", "Invalid request.", "%s cannot be empty."),
     ERROR_INVALID_FIELD("60003", "Invalid request.", "%s is invalid."),
-    ERROR_MISSING_CERTIFICATE_BEGIN_END_MARKERS("60004", "Invalid request.",
-            "Missing BEGIN or END certificate markers."),
-    ERROR_INVALID_CERTIFICATE_CONTENT("60005", "Invalid request.",
+    ERROR_INVALID_CERTIFICATE_CONTENT("60004", "Invalid request.",
             "Certificate content is invalid."),
 
     // Server errors.

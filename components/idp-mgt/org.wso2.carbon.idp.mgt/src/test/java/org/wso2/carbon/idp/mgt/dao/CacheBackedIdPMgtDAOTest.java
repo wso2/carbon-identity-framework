@@ -44,8 +44,8 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByHRI;
@@ -60,7 +60,9 @@ import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -149,7 +151,17 @@ public class CacheBackedIdPMgtDAOTest {
     @BeforeMethod
     public void setup() throws Exception {
 
+        IdPSecretsProcessor idpSecretsProcessor = mock(IdPSecretsProcessor.class);
+        when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
+        when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
+                invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
+
+        Field idpSecretsProcessorField = IdPManagementDAO.class.getDeclaredField("idpSecretsProcessorService");
+        idpSecretsProcessorField.setAccessible(true);
+        idpSecretsProcessorField.set(idPManagementDAO, idpSecretsProcessor);
+
         cacheBackedIdPMgtDAO = new CacheBackedIdPMgtDAO(idPManagementDAO);
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
 
@@ -159,14 +171,6 @@ public class CacheBackedIdPMgtDAOTest {
         IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
         idpMgtServiceComponentHolder.when(
                 IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
-        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
-                IdPSecretsProcessor.class);
-        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService())
-                .thenReturn(idpSecretsProcessor);
-        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService()
-                .decryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
-        when(mockIdpMgtServiceComponentHolder.getIdPSecretsProcessorService()
-                .encryptAssociatedSecrets(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @AfterMethod

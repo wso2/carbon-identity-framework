@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.testng.annotations.BeforeMethod;
@@ -33,11 +31,9 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertTrue;
 
 public class PreferenceRetrievalClientTest {

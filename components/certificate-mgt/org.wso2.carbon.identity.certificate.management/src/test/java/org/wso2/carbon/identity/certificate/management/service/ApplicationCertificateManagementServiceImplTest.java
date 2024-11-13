@@ -31,13 +31,13 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_WITHOUT_BEGIN_END_MARKERS;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.ENCODED_CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.INVALID_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.INVALID_ENCODED_CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_OTHER_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_DOMAIN;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_ENCODED_CERTIFICATE;
 
 /**
  * This class is a test suite for the ApplicationCertificateManagementServiceImpl class.
@@ -64,7 +64,7 @@ public class ApplicationCertificateManagementServiceImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificateContent(CERTIFICATE)
+                .certificateContent(ENCODED_CERTIFICATE)
                 .build();
         certificateIntId = applicationCertificateManagementService.addCertificate(creatingCertificate, 
                 TEST_TENANT_DOMAIN);
@@ -79,7 +79,7 @@ public class ApplicationCertificateManagementServiceImplTest {
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), ENCODED_CERTIFICATE);
     }
 
     @Test(priority = 3)
@@ -90,18 +90,18 @@ public class ApplicationCertificateManagementServiceImplTest {
         Assert.assertNotNull(certificate);
         Assert.assertEquals(certificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), ENCODED_CERTIFICATE);
     }
 
     @DataProvider
     public Object[][] invalidCertificateDataProvider() {
 
         return new Object[][]{
-                {"", CERTIFICATE},
-                {"   ", CERTIFICATE},
+                {"", ENCODED_CERTIFICATE},
+                {"   ", ENCODED_CERTIFICATE},
                 {CERTIFICATE_NAME, ""},
                 {CERTIFICATE_NAME, " "},
-                {CERTIFICATE_NAME, CERTIFICATE_WITHOUT_BEGIN_END_MARKERS},
+                {CERTIFICATE_NAME, INVALID_ENCODED_CERTIFICATE},
                 {CERTIFICATE_NAME, INVALID_CERTIFICATE},
                 {" ", INVALID_CERTIFICATE}
         };
@@ -136,21 +136,21 @@ public class ApplicationCertificateManagementServiceImplTest {
     @Test(priority = 7)
     public void testUpdateCertificateWithId() throws CertificateMgtException {
 
-        applicationCertificateManagementService.updateCertificateContent(certificateIntId, UPDATED_CERTIFICATE,
+        applicationCertificateManagementService.updateCertificateContent(certificateIntId, UPDATED_ENCODED_CERTIFICATE,
                 TEST_TENANT_DOMAIN);
 
         Certificate updatedCertificate = applicationCertificateManagementService.getCertificate(certificateIntId,
                 TEST_TENANT_DOMAIN);
         Assert.assertEquals(updatedCertificate.getId(), String.valueOf(certificateIntId));
         Assert.assertEquals(updatedCertificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(updatedCertificate.getCertificateContent(), UPDATED_CERTIFICATE);
+        Assert.assertEquals(updatedCertificate.getCertificateContent(), UPDATED_ENCODED_CERTIFICATE);
     }
 
     @Test(priority = 8, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Unable to perform the operation.")
     public void testUpdateCertificateWithInvalidIntId() throws CertificateMgtException {
 
-        applicationCertificateManagementService.updateCertificateContent(TEST_OTHER_ID, CERTIFICATE,
+        applicationCertificateManagementService.updateCertificateContent(TEST_OTHER_ID, ENCODED_CERTIFICATE,
                 TEST_TENANT_DOMAIN);
     }
 
@@ -160,7 +160,7 @@ public class ApplicationCertificateManagementServiceImplTest {
         return new Object[][]{
                 {""},
                 {" "},
-                {CERTIFICATE_WITHOUT_BEGIN_END_MARKERS},
+                {INVALID_ENCODED_CERTIFICATE},
                 {INVALID_CERTIFICATE}
         };
     }

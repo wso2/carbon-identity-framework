@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.certificate.management.util;
 import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtRuntimeException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtServerException;
 
 /**
@@ -66,5 +67,18 @@ public class CertificateMgtExceptionHandler {
         }
 
         throw new CertificateMgtServerException(error.getMessage(), description, error.getCode(), e);
+    }
+
+    /**
+     * Throw Certificate Management runtime exception.
+     *
+     * @param errorMessage Error message.
+     * @param e            Throwable.
+     * @throws CertificateMgtRuntimeException If an error occurs from the server in the runtime.
+     */
+    public static void throwRuntimeException(String errorMessage, Throwable e)
+            throws CertificateMgtRuntimeException {
+
+        throw new CertificateMgtRuntimeException(errorMessage, e);
     }
 }

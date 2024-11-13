@@ -27,11 +27,12 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.ENCODED_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_OTHER_UUID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_UUID;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_ENCODED_CERTIFICATE;
 
 /**
  * This class is a test suite for the CertificateManagementDAOImpl class.
@@ -55,7 +56,7 @@ public class CertificateManagementDAOImplTest {
 
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificateContent(CERTIFICATE)
+                .certificateContent(ENCODED_CERTIFICATE)
                 .build();
         certificateMgtDAOImpl.addCertificate(TEST_UUID, creatingCertificate, TEST_TENANT_ID);
     }
@@ -66,30 +67,30 @@ public class CertificateManagementDAOImplTest {
         Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);
         Assert.assertEquals(certificate.getId(), TEST_UUID);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificateContent(), CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), ENCODED_CERTIFICATE);
     }
 
     @Test(priority = 3, expectedExceptions = CertificateMgtException.class,
             expectedExceptionsMessageRegExp = "Error while adding Certificate.")
     public void testAddInvalidCertificate() throws CertificateMgtException {
 
-        // Adding a certificate with null uuid to generate unique key constraint violation.
+        // Adding a certificate to the same tenant with the same name to generate unique key constraint violation.
         Certificate creatingCertificate = new Certificate.Builder()
                 .name(CERTIFICATE_NAME)
-                .certificateContent(CERTIFICATE)
+                .certificateContent(ENCODED_CERTIFICATE)
                 .build();
 
-        certificateMgtDAOImpl.addCertificate(null, creatingCertificate, TEST_TENANT_ID);
+        certificateMgtDAOImpl.addCertificate(TEST_OTHER_UUID, creatingCertificate, TEST_TENANT_ID);
     }
 
     @Test(priority = 4)
     public void testUpdateCertificateContent() throws CertificateMgtException {
 
-        certificateMgtDAOImpl.updateCertificateContent(TEST_UUID, UPDATED_CERTIFICATE, TEST_TENANT_ID);
+        certificateMgtDAOImpl.updateCertificateContent(TEST_UUID, UPDATED_ENCODED_CERTIFICATE, TEST_TENANT_ID);
         Certificate certificate = certificateMgtDAOImpl.getCertificate(TEST_UUID, TEST_TENANT_ID);
         Assert.assertEquals(certificate.getId(), TEST_UUID);
         Assert.assertEquals(certificate.getName(), CERTIFICATE_NAME);
-        Assert.assertEquals(certificate.getCertificateContent(), UPDATED_CERTIFICATE);
+        Assert.assertEquals(certificate.getCertificateContent(), UPDATED_ENCODED_CERTIFICATE);
     }
 
     @Test(priority = 6)

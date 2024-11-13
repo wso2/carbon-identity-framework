@@ -138,7 +138,7 @@ public class ActionExecutionDiagnosticLogger {
             return;
         }
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
-                ActionExecutionLogConstants.ActionIDs.VALIDATE_ACTION_OPERATIONS,
+                ActionExecutionLogConstants.ActionIDs.VALIDATE_ACTION_RESPONSE,
                 "Validated operations to perform on " + action.getType().getDisplayName() + " action.",
                 DiagnosticLog.ResultStatus.SUCCESS);
         triggerLogEvent(

@@ -34,12 +34,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.CERTIFICATE_NAME;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.ENCODED_CERTIFICATE;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_OTHER_UUID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_TENANT_ID;
 import static org.wso2.carbon.identity.certificate.management.util.TestUtil.TEST_UUID;
-import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_CERTIFICATE;
+import static org.wso2.carbon.identity.certificate.management.util.TestUtil.UPDATED_ENCODED_CERTIFICATE;
 
 /**
  * Test class for CacheBackedCertificateMgtDAO.
@@ -72,7 +72,7 @@ public class CacheBackedCertificateMgtDAOTest {
         certificate = new Certificate.Builder()
                 .id(TEST_UUID)
                 .name(CERTIFICATE_NAME)
-                .certificateContent(CERTIFICATE)
+                .certificateContent(ENCODED_CERTIFICATE)
                 .build();
         cacheBackedCertificateMgtDAO.addCertificate(TEST_UUID, certificate, TEST_TENANT_ID);
         verify(certificateManagementDAO, times(1)).addCertificate(TEST_UUID,
@@ -117,13 +117,13 @@ public class CacheBackedCertificateMgtDAOTest {
     public void testUpdateCertificateContent() throws CertificateMgtException {
 
         // Update the certificate and invalidate the cache.
-        cacheBackedCertificateMgtDAO.updateCertificateContent(TEST_UUID, UPDATED_CERTIFICATE,
+        cacheBackedCertificateMgtDAO.updateCertificateContent(TEST_UUID, UPDATED_ENCODED_CERTIFICATE,
                 TEST_TENANT_ID);
         // Fetch again to verify the cache is invalidated.
         cacheBackedCertificateMgtDAO.getCertificate(TEST_UUID, TEST_TENANT_ID);
 
         verify(certificateManagementDAO, times(1)).updateCertificateContent(TEST_UUID,
-                UPDATED_CERTIFICATE, TEST_TENANT_ID);
+                UPDATED_ENCODED_CERTIFICATE, TEST_TENANT_ID);
         verify(certificateManagementDAO, times(1)).getCertificate(TEST_UUID,
                 TEST_TENANT_ID);
     }

@@ -86,7 +86,9 @@ public class ActionMgtConstants {
                 "Error while decrypting Action Endpoint Authentication properties in the system."),
         ERROR_NO_AUTHENTICATION_TYPE("65013",
                 "Error while retrieving Action Endpoint Authentication configurations",
-                "Authentication type is not defined for the Action Endpoint.");
+                "Authentication type is not defined for the Action Endpoint."),
+        ERROR_WHILE_UPDATING_ACTION_BASIC_INFO("65014", "Error while updating basic Action information",
+                "Error while updating basic Action information in the system.");
 
         private final String code;
         private final String message;
