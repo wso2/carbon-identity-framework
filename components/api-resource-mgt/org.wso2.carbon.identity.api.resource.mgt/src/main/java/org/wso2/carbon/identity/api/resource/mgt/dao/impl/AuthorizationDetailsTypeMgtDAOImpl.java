@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.api.resource.mgt.dao.impl;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.constant.SQLConstants;
@@ -40,8 +42,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil.parseSchema;
-import static org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil.toJsonString;
+import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.assertRichAuthorizationRequestsEnabled;
+import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled;
+import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.parseSchema;
+import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.toJsonString;
 import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getAuthorizationDetailsTypesFilterQueryBuilder;
 
 /**
@@ -54,12 +58,14 @@ import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.g
  */
 public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsTypeMgtDAO {
 
+    private static final Log log = LogFactory.getLog(AuthorizationDetailsTypeMgtDAOImpl.class);
+
     @Override
     public List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
             String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes, Integer tenantId)
             throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
 
             final List<AuthorizationDetailsType> addedAuthorizationDetailsTypes =
                     this.addAuthorizationDetailsTypes(dbConnection, apiId, authorizationDetailsTypes, tenantId);
@@ -77,21 +83,19 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             Connection dbConnection, String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes,
             Integer tenantId) throws APIResourceMgtException {
 
+        assertRichAuthorizationRequestsEnabled();
+
         if (CollectionUtils.isEmpty(authorizationDetailsTypes)) {
             return authorizationDetailsTypes;
         }
 
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE)) {
 
+            prepStmt.setString(3, apiId);
+            prepStmt.setObject(7, tenantId);
             for (AuthorizationDetailsType authzDetailsType : authorizationDetailsTypes) {
-                prepStmt.setString(3, apiId);
-                prepStmt.setObject(7, tenantId);
 
-                if (this.isAuthorizationDetailsTypeExists(dbConnection, apiId, authzDetailsType.getType(), tenantId)) {
-                    throw APIResourceManagementUtil.handleClientException(
-                            APIResourceManagementConstants.ErrorMessages.ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS,
-                            authzDetailsType.getType());
-                }
+                this.assertAuthorizationDetailsTypeExistence(dbConnection, authzDetailsType.getType(), tenantId);
 
                 authzDetailsType.setId(UUID.randomUUID().toString());
                 prepStmt.setString(1, authzDetailsType.getId());
@@ -113,7 +117,11 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
     public void deleteAuthorizationDetailsTypeByApiIdAndType(String apiId, String type, Integer tenantId)
             throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        if (isRichAuthorizationRequestsDisabled()) {
+            return;
+        }
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement preparedStatement = dbConnection
                      .prepareStatement(SQLConstants.DELETE_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE)) {
             preparedStatement.setString(1, apiId);
@@ -132,7 +140,11 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
     public void deleteAuthorizationDetailsTypeByApiIdAndTypeId(String apiId, String typeId, Integer tenantId)
             throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        if (isRichAuthorizationRequestsDisabled()) {
+            return;
+        }
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
              PreparedStatement preparedStatement = dbConnection
                      .prepareStatement(SQLConstants.DELETE_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE_ID)) {
             preparedStatement.setString(1, apiId);
@@ -150,7 +162,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
     @Override
     public void deleteAuthorizationDetailsTypesByApiId(String apiId, Integer tenantId) throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
 
             this.deleteAuthorizationDetailsTypesByApiId(dbConnection, apiId, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
@@ -163,6 +175,10 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
     @Override
     public void deleteAuthorizationDetailsTypesByApiId(Connection dbConnection, String apiId, Integer tenantId)
             throws APIResourceMgtException {
+
+        if (isRichAuthorizationRequestsDisabled()) {
+            return;
+        }
 
         try (PreparedStatement preparedStatement =
                      dbConnection.prepareStatement(SQLConstants.DELETE_AUTHORIZATION_DETAILS_TYPE_BY_API_ID)) {
@@ -180,25 +196,16 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                                                                               Integer tenantId)
             throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-
-            return this.getAuthorizationDetailsTypeByApiIdAndType(dbConnection, apiId, type, tenantId);
-        } catch (SQLException e) {
-            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants
-                    .ErrorMessages.ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES, e);
+        if (isRichAuthorizationRequestsDisabled()) {
+            return null;
         }
-    }
-
-    @Override
-    public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndTypeId(String apiId, String typeId,
-                                                                                Integer tenantId)
-            throws APIResourceMgtException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement =
-                     dbConnection.prepareStatement(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE_ID)) {
+                     dbConnection.prepareStatement(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE)) {
+
             preparedStatement.setString(1, apiId);
-            preparedStatement.setString(2, typeId);
+            preparedStatement.setString(2, type);
             preparedStatement.setObject(3, tenantId);
 
             final ResultSet resultSet = preparedStatement.executeQuery();
@@ -213,9 +220,27 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
     }
 
     @Override
+    public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndTypeId(String apiId, String typeId,
+                                                                                Integer tenantId)
+            throws APIResourceMgtException {
+
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            return this.getAuthorizationDetailsTypeByApiIdAndTypeId(dbConnection, apiId, typeId, tenantId);
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants
+                    .ErrorMessages.ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES, e);
+        }
+    }
+
+    @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypes(List<ExpressionNode> expressionNodes,
                                                                        Integer tenantId)
             throws APIResourceMgtException {
+
+        if (isRichAuthorizationRequestsDisabled()) {
+            return null;
+        }
 
         FilterQueryBuilder filterQueryBuilder = getAuthorizationDetailsTypesFilterQueryBuilder(expressionNodes);
         final String sqlStmt = this.buildGetAuthorizationDetailsTypesSqlStatement(filterQueryBuilder.getFilterQuery());
@@ -263,13 +288,18 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                                                                               Integer tenantId)
             throws APIResourceMgtException {
 
+        final List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
+
+        if (isRichAuthorizationRequestsDisabled()) {
+            return authorizationDetailsTypes;
+        }
+
         try (PreparedStatement preparedStatement =
                      dbConnection.prepareStatement(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID)) {
             preparedStatement.setString(1, apiId);
             preparedStatement.setObject(2, tenantId);
 
             final ResultSet resultSet = preparedStatement.executeQuery();
-            final List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
             while (resultSet.next()) {
                 authorizationDetailsTypes.add(this.buildAuthorizationDetailsType(resultSet));
             }
@@ -291,7 +321,7 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
     public void updateAuthorizationDetailsTypes(String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes,
                                                 Integer tenantId) throws APIResourceMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
 
             this.updateAuthorizationDetailsTypes(dbConnection, apiId, authorizationDetailsTypes, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
@@ -306,6 +336,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                                                 List<AuthorizationDetailsType> authorizationDetailsTypes,
                                                 Integer tenantId) throws APIResourceMgtException {
 
+        assertRichAuthorizationRequestsEnabled();
+
         try (PreparedStatement prepStmt =
                      dbConnection.prepareStatement(SQLConstants.UPDATE_AUTHORIZATION_DETAILS_TYPES)) {
 
@@ -313,15 +345,37 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             prepStmt.setObject(7, tenantId);
             for (final AuthorizationDetailsType authorizationDetailsType : authorizationDetailsTypes) {
 
-                if (isBlank(authorizationDetailsType.getType()) || isBlank(authorizationDetailsType.getId())) {
+                final String newType = authorizationDetailsType.getType();
+                final String typeId = authorizationDetailsType.getId();
+
+                if (isBlank(typeId)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Authorization details type ID is missing for type %s", newType));
+                    }
                     continue;
                 }
 
-                prepStmt.setString(1, authorizationDetailsType.getName());
-                prepStmt.setString(2, authorizationDetailsType.getType());
+                final AuthorizationDetailsType existingAuthorizationDetailsType =
+                        this.getAuthorizationDetailsTypeByApiIdAndTypeId(dbConnection, apiId, typeId, tenantId);
+
+                if (existingAuthorizationDetailsType == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Unable to find an authorization details type for ID %s", typeId));
+                    }
+                    continue;
+                }
+
+                if (!existingAuthorizationDetailsType.getType().equals(newType)) {
+                    assertAuthorizationDetailsTypeExistence(dbConnection, newType, tenantId);
+                }
+
+                prepStmt.setString(1, isBlank(authorizationDetailsType.getName()) ?
+                        existingAuthorizationDetailsType.getName() : authorizationDetailsType.getName());
+                prepStmt.setString(2, isBlank(newType) ?
+                        existingAuthorizationDetailsType.getType() : newType);
                 prepStmt.setString(3, authorizationDetailsType.getDescription());
                 prepStmt.setObject(4, toJsonString(authorizationDetailsType.getSchema()));
-                prepStmt.setString(6, authorizationDetailsType.getId());
+                prepStmt.setString(6, typeId);
                 prepStmt.addBatch();
             }
             prepStmt.executeBatch();
@@ -331,29 +385,43 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
-    private boolean isAuthorizationDetailsTypeExists(Connection dbConnection, String apiId, String type,
-                                                     Integer tenantId) throws APIResourceMgtException {
-
-        return this.getAuthorizationDetailsTypeByApiIdAndType(dbConnection, apiId, type, tenantId) != null;
-    }
-
-    private AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndType(Connection dbConnection, String apiId,
-                                                                               String type, Integer tenantId)
+    private boolean isAuthorizationDetailsTypeExists(Connection dbConnection, String type, Integer tenantId)
             throws APIResourceMgtException {
 
         try (PreparedStatement preparedStatement =
-                     dbConnection.prepareStatement(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE)) {
+                     dbConnection.prepareStatement(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_TYPE)) {
+            preparedStatement.setString(1, type);
+            preparedStatement.setObject(2, tenantId);
+
+            final ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return this.buildAuthorizationDetailsType(resultSet) != null;
+            }
+        } catch (SQLException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants
+                    .ErrorMessages.ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES, e);
+        }
+        return false;
+    }
+
+    private AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndTypeId(Connection dbConnection, String apiId,
+                                                                                 String typeId, Integer tenantId)
+            throws SQLException {
+
+        if (isRichAuthorizationRequestsDisabled()) {
+            return null;
+        }
+
+        try (PreparedStatement preparedStatement =
+                     dbConnection.prepareStatement(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_API_ID_AND_TYPE_ID)) {
             preparedStatement.setString(1, apiId);
-            preparedStatement.setString(2, type);
+            preparedStatement.setString(2, typeId);
             preparedStatement.setObject(3, tenantId);
 
             final ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 return this.buildAuthorizationDetailsType(resultSet);
             }
-        } catch (SQLException e) {
-            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants
-                    .ErrorMessages.ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES, e);
         }
         return null;
     }
@@ -380,5 +448,23 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
 
         return String.format(SQLConstants.GET_AUTHORIZATION_DETAILS_TYPE_BY_TENANT_ID_FORMAT,
                 filterQuery, SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL);
+    }
+
+    private void assertAuthorizationDetailsTypeExistence(Connection dbConnection, String type, Integer tenantId)
+            throws APIResourceMgtException {
+
+        if (isBlank(type)) {
+            return;
+        }
+
+        if (this.isAuthorizationDetailsTypeExists(dbConnection, type, tenantId)) {
+
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Authorization details type '%s' already exists for tenant.", type));
+            }
+
+            throw APIResourceManagementUtil.handleClientException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS, type);
+        }
     }
 }

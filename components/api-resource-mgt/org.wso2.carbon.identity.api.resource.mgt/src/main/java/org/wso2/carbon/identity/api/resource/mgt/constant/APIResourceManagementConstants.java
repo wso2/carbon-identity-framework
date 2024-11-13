@@ -55,6 +55,7 @@ public class APIResourceManagementConstants {
     public static final String BEFORE_GT = "before gt ";
     public static final String AFTER_LT = "after lt ";
     public static final String ME_API = "Me API";
+    public static final String AUTHORIZATION_DETAILS_TYPES = "authorizationDetailsTypes";
     private static final Map<String, String> attributeColumnMap = new HashMap<>();
     private static final Map<String, String> scopeAttributeColumnMap = new HashMap<>();
     public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
@@ -118,6 +119,8 @@ public class APIResourceManagementConstants {
                 "Invalid identifier value provided."),
         ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS("60008", "Unable to add authorization details type.",
                 "The authorization details of type '%s' already exist for tenant."),
+        ERROR_PARAM_NOT_SUPPORTED("60009", "Unsupported parameter.",
+                "The parameter '%s' is not recognized or supported by the system."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",

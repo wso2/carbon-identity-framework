@@ -42,7 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil.parseSchema;
+import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled;
+import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.parseSchema;
 
 /**
  * Authorized API DAO implementation class.
@@ -62,8 +63,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
 
-            PreparedStatement prepStmt = dbConnection.prepareStatement(
-                    ApplicationMgtDBQueries.GET_AUTHORIZED_APIS);
+            PreparedStatement prepStmt = dbConnection.prepareStatement(buildGetAuthorizedAPIsSqlStatement());
             prepStmt.setString(1, applicationId);
             ResultSet resultSet = prepStmt.executeQuery();
             Map<String, AuthorizedAPI> authorizedAPIMap = new HashMap<>();
@@ -161,8 +161,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             throws IdentityApplicationManagementException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            PreparedStatement prepStmt = dbConnection.prepareStatement(
-                    ApplicationMgtDBQueries.GET_AUTHORIZED_API);
+            PreparedStatement prepStmt = dbConnection.prepareStatement(buildGetAuthorizedAPISqlStatement());
             prepStmt.setString(1, applicationId);
             prepStmt.setString(2, apiId);
             ResultSet resultSet = prepStmt.executeQuery();
@@ -221,11 +220,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                         authorizationDetailsTypesToRemove, tenantId);
 
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
-            } catch (SQLException e) {
+            } catch (SQLException | APIResourceMgtException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw e;
             }
-        } catch (SQLException e) {
+        } catch (SQLException | APIResourceMgtException e) {
             throw new IdentityApplicationManagementException("Error while updating the authorized API.", e);
         }
     }
@@ -234,6 +233,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     public List<AuthorizationDetailsType> getAuthorizedAuthorizationDetailsTypes(String applicationId, int tenantId)
             throws IdentityApplicationManagementException {
 
+        List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
+
+        if (isRichAuthorizationRequestsDisabled()) {
+            return authorizationDetailsTypes;
+        }
+
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt = dbConnection
                      .prepareStatement(ApplicationMgtDBQueries.GET_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES)) {
@@ -241,7 +246,6 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             prepStmt.setString(1, applicationId);
             ResultSet resultSet = prepStmt.executeQuery();
 
-            List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
             while (resultSet.next()) {
                 authorizationDetailsTypes.add(this.buildAuthorizationDetailsTypeWithSchema(resultSet));
             }
@@ -330,45 +334,65 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
     private void addAuthorizedAuthorizationDetailsTypes(Connection dbConnection, String appId, String apiId,
                                                         List<String> authorizationDetailsTypesToAdd, int tenantId)
-            throws SQLException {
+            throws SQLException, APIResourceMgtException {
 
-        if (CollectionUtils.isNotEmpty(authorizationDetailsTypesToAdd)) {
-            try (PreparedStatement prepStmt = dbConnection
-                    .prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES)) {
+        if (CollectionUtils.isEmpty(authorizationDetailsTypesToAdd) || isRichAuthorizationRequestsDisabled()) {
+            return;
+        }
 
-                prepStmt.setString(1, appId);
-                prepStmt.setString(2, apiId);
-                prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
-                for (String detailsType : authorizationDetailsTypesToAdd) {
-                    prepStmt.setString(3, detailsType);
-                    prepStmt.addBatch();
-                }
-                prepStmt.executeBatch();
+        try (PreparedStatement prepStmt = dbConnection
+                .prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES)) {
+
+            prepStmt.setString(1, appId);
+            prepStmt.setString(2, apiId);
+            prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
+            for (String detailsType : authorizationDetailsTypesToAdd) {
+                prepStmt.setString(3, detailsType);
+                prepStmt.addBatch();
             }
+            prepStmt.executeBatch();
         }
     }
 
     private void deleteAuthorizedAuthorizationDetailsTypes(Connection dbConnection, String appId, String apiId,
                                                            List<String> authorizationDetailsTypesToRemove, int tenantId)
-            throws SQLException {
+            throws SQLException, APIResourceMgtException {
 
-        if (CollectionUtils.isNotEmpty(authorizationDetailsTypesToRemove)) {
-            try (PreparedStatement prepStmt = dbConnection
-                    .prepareStatement(ApplicationMgtDBQueries.DELETE_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES)) {
+        if (CollectionUtils.isEmpty(authorizationDetailsTypesToRemove) || isRichAuthorizationRequestsDisabled()) {
+            return;
+        }
 
-                prepStmt.setString(1, appId);
-                prepStmt.setString(2, apiId);
-                prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
-                for (String detailsType : authorizationDetailsTypesToRemove) {
-                    prepStmt.setString(3, detailsType);
-                    prepStmt.addBatch();
-                }
-                prepStmt.executeBatch();
+        try (PreparedStatement prepStmt = dbConnection
+                .prepareStatement(ApplicationMgtDBQueries.DELETE_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES)) {
+
+            prepStmt.setString(1, appId);
+            prepStmt.setString(2, apiId);
+            prepStmt.setObject(4, tenantId == 0 ? null : tenantId);
+            for (String detailsType : authorizationDetailsTypesToRemove) {
+                prepStmt.setString(3, detailsType);
+                prepStmt.addBatch();
             }
+            prepStmt.executeBatch();
         }
     }
 
-    private AuthorizationDetailsType buildAuthorizationDetailsType(ResultSet resultSet) throws SQLException {
+    private AuthorizationDetailsType buildAuthorizationDetailsTypeWithSchema(ResultSet resultSet) throws SQLException {
+
+        final AuthorizationDetailsType authorizationDetailsType = this.buildAuthorizationDetailsType(resultSet);
+
+        if (authorizationDetailsType != null) {
+            authorizationDetailsType.setSchema(parseSchema(
+                    resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA)));
+        }
+
+        return authorizationDetailsType;
+    }
+
+    private AuthorizationDetailsType buildAuthorizationDetailsType(final ResultSet resultSet) throws SQLException {
+
+        if (isRichAuthorizationRequestsDisabled()) {
+            return null;
+        }
 
         final String authorizationDetailsTypeId =
                 resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_ID);
@@ -382,18 +406,6 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 .type(resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_TYPE))
                 .name(resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_NAME))
                 .build();
-    }
-
-    private AuthorizationDetailsType buildAuthorizationDetailsTypeWithSchema(ResultSet resultSet) throws SQLException {
-
-        final AuthorizationDetailsType authorizationDetailsType = this.buildAuthorizationDetailsType(resultSet);
-
-        if (authorizationDetailsType != null) {
-            authorizationDetailsType.setSchema(parseSchema(
-                    resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA)));
-        }
-
-        return authorizationDetailsType;
     }
 
     private void addScopeToAuthorizedApi(AuthorizedAPI authorizedAPI, Scope newScope) {
@@ -413,18 +425,31 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
     private void addAuthorizationDetailsTypeToAuthorizedApi(final AuthorizedAPI authorizedAPI,
                                                             final AuthorizationDetailsType authorizationDetailsType) {
-        if (authorizationDetailsType == null) {
+
+        if (authorizationDetailsType == null || authorizedAPI == null) {
             return;
         }
 
-        List<AuthorizationDetailsType> authorizationDetailsTypes = authorizedAPI.getAuthorizationDetailsTypes() == null
-                ? new ArrayList<>()
-                : new ArrayList<>(authorizedAPI.getAuthorizationDetailsTypes());
+        final List<AuthorizationDetailsType> authorizationDetailsTypes =
+                CollectionUtils.isEmpty(authorizedAPI.getAuthorizationDetailsTypes()) ? new ArrayList<>()
+                        : new ArrayList<>(authorizedAPI.getAuthorizationDetailsTypes());
 
         authorizationDetailsTypes.removeIf(type -> StringUtils.isBlank(type.getId()));
         authorizationDetailsTypes.removeIf(type -> type.getType().equals(authorizationDetailsType.getType()));
 
         authorizationDetailsTypes.add(authorizationDetailsType);
         authorizedAPI.setAuthorizationDetailsTypes(authorizationDetailsTypes);
+    }
+
+    private static String buildGetAuthorizedAPISqlStatement() {
+
+        return isRichAuthorizationRequestsDisabled() ? ApplicationMgtDBQueries.GET_AUTHORIZED_API
+                : ApplicationMgtDBQueries.GET_AUTHORIZED_API_WITH_AUTHORIZATION_DETAILS;
+    }
+
+    private static String buildGetAuthorizedAPIsSqlStatement() {
+
+        return isRichAuthorizationRequestsDisabled() ? ApplicationMgtDBQueries.GET_AUTHORIZED_APIS
+                : ApplicationMgtDBQueries.GET_AUTHORIZED_APIS_WITH_AUTHORIZATION_DETAILS;
     }
 }

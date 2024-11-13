@@ -80,6 +80,7 @@ public class AuthorizationDetailsTypeManagerTest {
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
         APIResourceManagementServiceComponentHolder.getInstance().setIdentityEventService(identityEventService);
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
 
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         apiResource = APIResourceManagerImpl.getInstance()
@@ -211,7 +212,7 @@ public class AuthorizationDetailsTypeManagerTest {
         assertTrue(isTypeExists(TEST_TYPE_2, authorizationDetailsTypes));
     }
 
-    @Test(priority = 2)
+    @Test(dependsOnMethods = {"shouldAddAuthorizationDetailsTypesSuccessfully"})
     public void shouldUpdateAuthorizationDetailsTypesSuccessfully() throws APIResourceMgtException {
 
         final String testValue = "test value";

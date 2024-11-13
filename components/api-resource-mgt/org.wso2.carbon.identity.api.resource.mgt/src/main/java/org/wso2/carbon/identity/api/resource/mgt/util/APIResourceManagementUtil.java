@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.api.resource.mgt.util;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -34,7 +32,6 @@ import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,8 +44,6 @@ import java.util.stream.Collectors;
 public class APIResourceManagementUtil {
 
     private static final Log LOG = LogFactory.getLog(APIResourceManagementUtil.class);
-    private static final Gson GSON = new Gson();
-    private static final Type SCHEMA_TYPE = new TypeToken<Map<String, Object>>() { }.getType();
 
     /**
      * Handle API Resource Management client exceptions.
@@ -219,27 +214,5 @@ public class APIResourceManagementUtil {
             return null;
         }
         return IdentityTenantUtil.getTenantId(tenantDomain);
-    }
-
-    /**
-     * Parses a JSON schema represented as a string and converts it into a map structure.
-     *
-     * @param schema the JSON schema string to be parsed. It must be a valid JSON string.
-     * @return a {@code Map<String, Object>} representing the parsed JSON schema.
-     */
-    public static Map<String, Object> parseSchema(final String schema) {
-
-        return GSON.fromJson(schema, SCHEMA_TYPE);
-    }
-
-    /**
-     * Converts a map representing a schema into its JSON string representation.
-     *
-     * @param schema the schema represented as a {@code Map<String, Object>} to be converted into a JSON string.
-     * @return a JSON string representation of the provided schema map.
-     */
-    public static String toJsonString(final Map<String, Object> schema) {
-
-        return GSON.toJson(schema, SCHEMA_TYPE);
     }
 }

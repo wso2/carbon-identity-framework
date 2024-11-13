@@ -253,10 +253,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             preparedStatement.setInt(2, tenantId);
             ResultSet resultSet = preparedStatement.executeQuery();
             List<APIResourceProperty> apiResourceProperties = getAPIResourcePropertiesByAPIId(dbConnection, apiId);
-            List<AuthorizationDetailsType> authorizationDetailsTypes = this.authorizationDetailsTypeMgtDAO
-                    .getAuthorizationDetailsTypesByApiId(dbConnection, apiId, tenantId);
 
-            return getApiResource(resultSet, apiResourceProperties, authorizationDetailsTypes);
+            final APIResource apiResource = getApiResource(resultSet, apiResourceProperties);
+            this.assignAuthorizationDetailsTypesToApiResource(apiResource, tenantId);
+
+            return apiResource;
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -275,10 +276,11 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             ResultSet resultSet = preparedStatement.executeQuery();
             List<APIResourceProperty> apiResourceProperties =
                     getAPIResourcePropertiesByAPIIdentifier(dbConnection, identifier, tenantId);
-            List<AuthorizationDetailsType> authorizationDetailsTypes =
-                    this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(identifier, tenantId);
 
-            return getApiResource(resultSet, apiResourceProperties, authorizationDetailsTypes);
+            final APIResource apiResource = getApiResource(resultSet, apiResourceProperties);
+            this.assignAuthorizationDetailsTypesToApiResource(apiResource, tenantId);
+
+            return apiResource;
         } catch (SQLException e) {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES, e);
@@ -768,8 +770,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @throws SQLException If an error occurs while retrieving API resource.
      */
     private static APIResource getApiResource(ResultSet resultSet,
-                                              List<APIResourceProperty> apiResourceProperties,
-                                              List<AuthorizationDetailsType> authorizationDetailsTypes)
+                                              List<APIResourceProperty> apiResourceProperties)
             throws SQLException {
 
         List<Scope> scopes = new ArrayList<>();
@@ -799,7 +800,6 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
         if (apiResource != null) {
             apiResource.setScopes(scopes);
-            apiResource.setAuthorizationDetailsTypes(authorizationDetailsTypes);
         }
         return apiResource;
     }
@@ -1059,6 +1059,28 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             throw APIResourceManagementUtil.handleServerException(
                     APIResourceManagementConstants.ErrorMessages.ERROR_CODE_ERROR_WHILE_ADDING_API_RESOURCE_PROPERTIES,
                     e);
+        }
+    }
+
+    /**
+     * Populates the authorization detail types for the specified API resource if available.
+     *
+     * @param apiResource The API resource to update with authorization detail types.
+     * @param tenantId    The tenant ID associated with the API resource.
+     * @throws APIResourceMgtException If an error occurs while retrieving authorization detail types.
+     */
+    private void assignAuthorizationDetailsTypesToApiResource(final APIResource apiResource, final Integer tenantId)
+            throws APIResourceMgtException {
+
+        if (apiResource == null) {
+            return;
+        }
+
+        final List<AuthorizationDetailsType> authorizationDetailsTypes =
+                this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantId);
+
+        if (CollectionUtils.isNotEmpty(authorizationDetailsTypes)) {
+            apiResource.setAuthorizationDetailsTypes(authorizationDetailsTypes);
         }
     }
 }

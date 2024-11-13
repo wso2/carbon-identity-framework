@@ -33,7 +33,9 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.AuthorizationDetailsTypeManager;
 import org.wso2.carbon.identity.api.resource.mgt.AuthorizationDetailsTypeManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
+import org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 
@@ -56,6 +58,8 @@ public class APIResourceManagementServiceComponent {
             bundleCtx.registerService(APIResourceManager.class, APIResourceManagerImpl.getInstance(), null);
             bundleCtx.registerService(AuthorizationDetailsTypeManager.class,
                     new AuthorizationDetailsTypeManagerImpl(), null);
+            APIResourceManagementServiceComponentHolder.getInstance()
+                    .setRichAuthorizationRequestsEnabled(this.isRichAuthorizationRequestsEnabled());
             // Register system APIs in the super tenant.
             APIResourceManagementUtil.addSystemAPIs();
             LOG.debug("API resource management bundle is activated");
@@ -130,4 +134,26 @@ public class APIResourceManagementServiceComponent {
         LOG.debug("IdentityEventService unset in API Resource Management bundle.");
     }
 
+    /**
+     * Checks if RAR is enabled by verifying the existence of required database tables.
+     * <p>
+     * This method iterates over a predefined list of database table names necessary for RAR functionality.
+     * If all tables exist, the method returns {@code true}.
+     * </p>
+     *
+     * @return {@code true} if all required tables for RAR are present in the database; {@code false} otherwise.
+     */
+    private boolean isRichAuthorizationRequestsEnabled() {
+
+        for (final String tableName : AuthorizationDetailsTypesUtil.RICH_AUTHORIZATION_REQUESTS_TABLES) {
+            if (!IdentityDatabaseUtil.isTableExists(tableName)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Rich Authorization Requests will not be enabled. '%s' Table is not found",
+                            tableName));
+                }
+                return false;
+            }
+        }
+        return true;
+    }
 }

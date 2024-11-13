@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.AuthorizationDetailsTypeMgtDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAuthorizationDetailsTypeMgtDAOImpl;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -79,6 +80,8 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
 
         apiResource = addAPIResourceToDB("testApiResource2", getConnection(), TEST_TENANT_ID, identityDatabaseUtil);
         uut = new CacheBackedAuthorizationDetailsTypeMgtDAOImpl(new AuthorizationDetailsTypeMgtDAOImpl());
+
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
     }
 
     @BeforeMethod
@@ -128,6 +131,7 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
                 .filter(type -> TEST_TYPE_1.equals(type.getType()))
                 .forEach(type -> type.setName(TEST_TYPE_NAME));
 
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
         uut.updateAuthorizationDetailsTypes(getConnection(), apiResource.getId(), fetchedTypes, TEST_TENANT_ID);
 
         AuthorizationDetailsType type1 =
