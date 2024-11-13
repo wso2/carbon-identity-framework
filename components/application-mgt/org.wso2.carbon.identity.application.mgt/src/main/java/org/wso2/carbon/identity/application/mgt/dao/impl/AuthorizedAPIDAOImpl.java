@@ -225,7 +225,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 throw e;
             }
         } catch (SQLException | APIResourceMgtException e) {
-            throw new IdentityApplicationManagementException("Error while updating the authorized API.", e);
+            throw new IdentityApplicationManagementException("Error while updating the authorized API. Caused by, ", e);
         }
     }
 
@@ -253,7 +253,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             return authorizationDetailsTypes;
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving " +
-                    "authorized authorization details types.", e);
+                    "authorized authorization details types. Caused by, ", e);
         }
     }
 
@@ -296,7 +296,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 throw e;
             }
         } catch (SQLException | APIResourceMgtException e) {
-            throw new IdentityApplicationManagementException("Error while adding authorized API.", e);
+            throw new IdentityApplicationManagementException("Error while adding authorized API. Caused by, ", e);
         }
     }
 

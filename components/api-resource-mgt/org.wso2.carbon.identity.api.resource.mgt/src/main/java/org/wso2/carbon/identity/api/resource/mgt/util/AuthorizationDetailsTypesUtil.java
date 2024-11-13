@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementC
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -36,15 +35,15 @@ import java.util.Map;
  */
 public class AuthorizationDetailsTypesUtil {
 
-    private static final Log LOG = LogFactory.getLog(AuthorizationDetailsTypesUtil.class);
-    private static final Gson GSON = new Gson();
-    private static final Type SCHEMA_TYPE = new TypeToken<Map<String, Object>>() { }.getType();
-
-    public static final List<String> RICH_AUTHORIZATION_REQUESTS_TABLES = Arrays.asList(
+    public static final List<String> RICH_AUTHORIZATION_REQUESTS_TABLES = List.of(
             "AUTHORIZATION_DETAILS_TYPES", "AUTHORIZED_AUTHORIZATION_DETAILS_TYPES",
             "IDN_OAUTH2_ACCESS_TOKEN_AUTHORIZATION_DETAILS", "IDN_OAUTH2_USER_CONSENTED_AUTHORIZATION_DETAILS",
             "IDN_OAUTH2_AUTHZ_CODE_AUTHORIZATION_DETAILS"
     );
+
+    private static final Log LOG = LogFactory.getLog(AuthorizationDetailsTypesUtil.class);
+    private static final Gson GSON = new Gson();
+    private static final Type SCHEMA_TYPE = new TypeToken<Map<String, Object>>() { }.getType();
 
     /**
      * Parses a JSON schema represented as a string and converts it into a map structure.
@@ -107,5 +106,9 @@ public class AuthorizationDetailsTypesUtil {
 
         LOG.debug("Rich Authorization Requests are not enabled due to missing mandatory database tables.");
         return false;
+    }
+
+    private AuthorizationDetailsTypesUtil() {
+        // Adding a private constructor to hide the implicit public one.
     }
 }

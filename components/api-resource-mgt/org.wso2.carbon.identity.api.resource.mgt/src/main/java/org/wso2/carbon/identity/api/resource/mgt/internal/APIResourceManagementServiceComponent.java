@@ -148,8 +148,7 @@ public class APIResourceManagementServiceComponent {
         for (final String tableName : AuthorizationDetailsTypesUtil.RICH_AUTHORIZATION_REQUESTS_TABLES) {
             if (!IdentityDatabaseUtil.isTableExists(tableName)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Rich Authorization Requests will not be enabled. '%s' Table is not found",
-                            tableName));
+                    LOG.debug(String.format("Rich Authorization Requests disabled. '%s' table is missing.", tableName));
                 }
                 return false;
             }

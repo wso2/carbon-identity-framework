@@ -769,8 +769,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
      * @return API resource.
      * @throws SQLException If an error occurs while retrieving API resource.
      */
-    private static APIResource getApiResource(ResultSet resultSet,
-                                              List<APIResourceProperty> apiResourceProperties)
+    private static APIResource getApiResource(ResultSet resultSet, List<APIResourceProperty> apiResourceProperties)
             throws SQLException {
 
         List<Scope> scopes = new ArrayList<>();

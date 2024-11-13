@@ -48,6 +48,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
         this.authorizationDetailsTypeMgtDAO = authorizationDetailsTypeMgtDAO;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
             String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes, String tenantDomain)
@@ -57,6 +60,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
                 getTenantId(tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypeByApiIdAndTypeId(String apiId, String typeId, String tenantDomain)
             throws APIResourceMgtException {
@@ -65,6 +71,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
                 .deleteAuthorizationDetailsTypeByApiIdAndTypeId(apiId, typeId, getTenantId(tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypesByApiId(String apiId, String tenantDomain)
             throws APIResourceMgtException {
@@ -72,6 +81,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
         this.authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(apiId, getTenantId(tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndTypeId(
             String apiId, String typeId, String tenantDomain) throws APIResourceMgtException {
@@ -80,6 +92,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
                 .getAuthorizationDetailsTypeByApiIdAndTypeId(apiId, typeId, getTenantId(tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypes(String filter, String tenantDomain)
             throws APIResourceMgtException {
@@ -88,6 +103,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
                 .getAuthorizationDetailsTypes(getExpressionNodes(filter, null, null), getTenantId(tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(String apiId, String tenantDomain)
             throws APIResourceMgtException {
@@ -96,12 +114,18 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
                 .getAuthorizationDetailsTypesByApiId(apiId, getTenantId(tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAuthorizationDetailsTypeExists(String filter, String tenantDomain) throws APIResourceMgtException {
 
         return CollectionUtils.isNotEmpty(this.getAuthorizationDetailsTypes(filter, tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAuthorizationDetailsTypeExists(String apiId, String type, String tenantDomain)
             throws APIResourceMgtException {
@@ -110,6 +134,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
                 .isAuthorizationDetailsTypeExists(apiId, type, getTenantId(tenantDomain));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void replaceAuthorizationDetailsTypes(String apiId, List<String> removedAuthorizationDetailsTypes,
                                                  List<AuthorizationDetailsType> addedAuthorizationDetailsTypes,
@@ -128,6 +155,9 @@ public class AuthorizationDetailsTypeManagerImpl implements AuthorizationDetails
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAuthorizationDetailsType(String apiId, AuthorizationDetailsType authorizationDetailsType,
                                                String tenantDomain) throws APIResourceMgtException {

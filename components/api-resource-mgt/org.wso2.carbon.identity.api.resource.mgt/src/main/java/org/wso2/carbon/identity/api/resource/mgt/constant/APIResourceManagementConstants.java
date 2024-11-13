@@ -119,7 +119,9 @@ public class APIResourceManagementConstants {
                 "Invalid identifier value provided."),
         ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS("60008", "Unable to add authorization details type.",
                 "The authorization details of type '%s' already exist for tenant."),
-        ERROR_PARAM_NOT_SUPPORTED("60009", "Unsupported parameter.",
+        ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EMPTY("60009", "Unable to add authorization details type.",
+                "The value of the authorization details type must not be empty."),
+        ERROR_PARAM_NOT_SUPPORTED("60010", "Unsupported parameter.",
                 "The parameter '%s' is not recognized or supported by the system."),
 
         // Server errors.
@@ -164,7 +166,7 @@ public class APIResourceManagementConstants {
                 "Error while deleting authorization details types from the database."),
         ERROR_CODE_ERROR_WHILE_UPDATING_AUTHORIZATION_DETAILS_TYPES("65019",
                 "Error while updating authorization details types.",
-                "Error while updating authorization details types from the database."),
+                "Error while updating authorization details types in the database."),
         ;
 
         private final String code;

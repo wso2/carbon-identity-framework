@@ -177,8 +177,8 @@ public class APIResourceManagementUtil {
                 APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
                 tenantDomain).getTotalCount();
         return new ArrayList<>(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
-                APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
-                tenantDomain).getAPIResources());
+                        APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
+                        tenantDomain).getAPIResources());
     }
 
     /**

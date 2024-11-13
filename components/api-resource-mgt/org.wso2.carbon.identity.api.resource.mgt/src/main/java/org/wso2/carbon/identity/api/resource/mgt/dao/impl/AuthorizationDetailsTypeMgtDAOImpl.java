@@ -60,6 +60,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
 
     private static final Log log = LogFactory.getLog(AuthorizationDetailsTypeMgtDAOImpl.class);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
             String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes, Integer tenantId)
@@ -78,16 +81,19 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
             Connection dbConnection, String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes,
             Integer tenantId) throws APIResourceMgtException {
 
-        assertRichAuthorizationRequestsEnabled();
-
         if (CollectionUtils.isEmpty(authorizationDetailsTypes)) {
             return authorizationDetailsTypes;
         }
+
+        assertRichAuthorizationRequestsEnabled();
 
         try (PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.ADD_AUTHORIZATION_DETAILS_TYPE)) {
 
@@ -113,6 +119,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         return authorizationDetailsTypes;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypeByApiIdAndType(String apiId, String type, Integer tenantId)
             throws APIResourceMgtException {
@@ -136,6 +145,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypeByApiIdAndTypeId(String apiId, String typeId, Integer tenantId)
             throws APIResourceMgtException {
@@ -159,6 +171,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypesByApiId(String apiId, Integer tenantId) throws APIResourceMgtException {
 
@@ -172,6 +187,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypesByApiId(Connection dbConnection, String apiId, Integer tenantId)
             throws APIResourceMgtException {
@@ -191,6 +209,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndType(String apiId, String type,
                                                                               Integer tenantId)
@@ -219,6 +240,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndTypeId(String apiId, String typeId,
                                                                                 Integer tenantId)
@@ -233,13 +257,18 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypes(List<ExpressionNode> expressionNodes,
                                                                        Integer tenantId)
             throws APIResourceMgtException {
 
+        final List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
+
         if (isRichAuthorizationRequestsDisabled()) {
-            return null;
+            return authorizationDetailsTypes;
         }
 
         FilterQueryBuilder filterQueryBuilder = getAuthorizationDetailsTypesFilterQueryBuilder(expressionNodes);
@@ -259,7 +288,6 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             preparedStatement.setInt(filterAttrSize + 1, tenantId);
 
             final ResultSet resultSet = preparedStatement.executeQuery();
-            final List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
             while (resultSet.next()) {
                 authorizationDetailsTypes.add(this.buildAuthorizationDetailsType(resultSet));
             }
@@ -270,6 +298,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(String apiId, Integer tenantId)
             throws APIResourceMgtException {
@@ -283,6 +314,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(Connection dbConnection, String apiId,
                                                                               Integer tenantId)
@@ -310,6 +344,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAuthorizationDetailsTypeExists(String apiId, String type, Integer tenantId)
             throws APIResourceMgtException {
@@ -317,6 +354,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         return this.getAuthorizationDetailsTypeByApiIdAndType(apiId, type, tenantId) != null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAuthorizationDetailsTypes(String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes,
                                                 Integer tenantId) throws APIResourceMgtException {
@@ -331,6 +371,9 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAuthorizationDetailsTypes(Connection dbConnection, String apiId,
                                                 List<AuthorizationDetailsType> authorizationDetailsTypes,
@@ -345,37 +388,15 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             prepStmt.setObject(7, tenantId);
             for (final AuthorizationDetailsType authorizationDetailsType : authorizationDetailsTypes) {
 
-                final String newType = authorizationDetailsType.getType();
-                final String typeId = authorizationDetailsType.getId();
-
-                if (isBlank(typeId)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format("Authorization details type ID is missing for type %s", newType));
-                    }
+                if (!this.isValidAuthorizationDetailsType(dbConnection, apiId, authorizationDetailsType, tenantId)) {
                     continue;
                 }
 
-                final AuthorizationDetailsType existingAuthorizationDetailsType =
-                        this.getAuthorizationDetailsTypeByApiIdAndTypeId(dbConnection, apiId, typeId, tenantId);
-
-                if (existingAuthorizationDetailsType == null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format("Unable to find an authorization details type for ID %s", typeId));
-                    }
-                    continue;
-                }
-
-                if (!existingAuthorizationDetailsType.getType().equals(newType)) {
-                    assertAuthorizationDetailsTypeExistence(dbConnection, newType, tenantId);
-                }
-
-                prepStmt.setString(1, isBlank(authorizationDetailsType.getName()) ?
-                        existingAuthorizationDetailsType.getName() : authorizationDetailsType.getName());
-                prepStmt.setString(2, isBlank(newType) ?
-                        existingAuthorizationDetailsType.getType() : newType);
+                prepStmt.setString(1, authorizationDetailsType.getName());
+                prepStmt.setString(2, authorizationDetailsType.getType());
                 prepStmt.setString(3, authorizationDetailsType.getDescription());
                 prepStmt.setObject(4, toJsonString(authorizationDetailsType.getSchema()));
-                prepStmt.setString(6, typeId);
+                prepStmt.setString(6, authorizationDetailsType.getId());
                 prepStmt.addBatch();
             }
             prepStmt.executeBatch();
@@ -454,7 +475,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
             throws APIResourceMgtException {
 
         if (isBlank(type)) {
-            return;
+            throw APIResourceManagementUtil.handleClientException(APIResourceManagementConstants
+                    .ErrorMessages.ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EMPTY);
         }
 
         if (this.isAuthorizationDetailsTypeExists(dbConnection, type, tenantId)) {
@@ -463,8 +485,39 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 log.debug(String.format("Authorization details type '%s' already exists for tenant.", type));
             }
 
-            throw APIResourceManagementUtil.handleClientException(
-                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS, type);
+            throw APIResourceManagementUtil.handleClientException(APIResourceManagementConstants
+                    .ErrorMessages.ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS, type);
         }
+    }
+
+    private boolean isValidAuthorizationDetailsType(Connection dbConnection, String apiId,
+                                                    AuthorizationDetailsType authorizationDetailsType, Integer tenantId)
+            throws SQLException, APIResourceMgtException {
+
+        final String newType = authorizationDetailsType.getType();
+        final String typeId = authorizationDetailsType.getId();
+
+        if (isBlank(typeId)) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Authorization details type ID is missing for type: %s", newType));
+            }
+            return false;
+        }
+
+        final AuthorizationDetailsType existingAuthorizationDetailsType =
+                this.getAuthorizationDetailsTypeByApiIdAndTypeId(dbConnection, apiId, typeId, tenantId);
+
+        if (existingAuthorizationDetailsType == null) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Unable to find an authorization details type for ID: %s", typeId));
+            }
+            return false;
+        }
+
+        if (!existingAuthorizationDetailsType.getType().equals(newType)) {
+            assertAuthorizationDetailsTypeExistence(dbConnection, newType, tenantId);
+        }
+
+        return true;
     }
 }
