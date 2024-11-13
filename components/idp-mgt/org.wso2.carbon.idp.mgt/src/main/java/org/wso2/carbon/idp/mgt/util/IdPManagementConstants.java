@@ -129,6 +129,9 @@ public class IdPManagementConstants {
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.smsOtp.Enable";
 
+    // User defined federated authenticator related constants.
+    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-_]*$";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
@@ -585,6 +588,8 @@ public class IdPManagementConstants {
         public static final String GET_IDP_GROUPS_BY_IDP_GROUP_IDS = "SELECT IDP_GROUP.UUID, IDP_GROUP.GROUP_NAME, " +
                 "IDP.UUID AS IDP_ID FROM IDP_GROUP LEFT JOIN IDP ON IDP.ID = IDP_GROUP.IDP_ID WHERE " +
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
+        public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
+                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ?";
     }
 
     public enum ErrorMessage {
@@ -607,6 +612,12 @@ public class IdPManagementConstants {
         ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
                 "provisioning roles does not exist"),
         ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION("IDP-60011", "Invalid connector configuration. %s"),
+        ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
+                "provided authenticator name %s."),
+        ERROR_CODE_FED_AUTH_NAME_ALREADY_TAKEN("IDP-60013", "Federated authenticator name " +
+                "is already taken."),
+        ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Authenticator name does not match regex " +
+                "pattern %s"),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),

@@ -546,4 +546,18 @@ public interface IdpManager {
 
         return null;
     }
+
+    /**
+     * Get the federated authenticator by authenticator ID.
+     *
+     * @param tenantDomain  Tenant Domain.
+     * @return User defined federated authenticator.
+     * @throws IdentityProviderManagementException If an error occurred while getting user defined
+     * federated authenticator.
+     */
+    default FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return new FederatedAuthenticatorConfig[0];
+    }
 }

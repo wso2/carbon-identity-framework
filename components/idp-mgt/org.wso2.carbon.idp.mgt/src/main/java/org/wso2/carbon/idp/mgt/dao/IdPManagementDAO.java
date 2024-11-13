@@ -6015,6 +6015,41 @@ public class IdPManagementDAO {
         }
     }
 
+    /**
+     * Get all user defined federated authenticators.
+     *
+     * @param tenantId Tenant ID.
+     * @return User defined FederatedAuthenticatorConfig list
+     * @throws IdentityProviderManagementException If an error occurred while retrieving user defined
+     * federated authenticator list.
+     */
+    public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(int tenantId)
+            throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(
+                    IdPManagementConstants.SQLQueries.GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS)) {
+                prepStmt.setInt(1, tenantId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    while (resultSet.next()) {
+                        UserDefinedFederatedAuthenticatorConfig federatedAuthenticatorConfig =
+                                new UserDefinedFederatedAuthenticatorConfig();
+                        federatedAuthenticatorConfig.setName(resultSet.getString("NAME"));
+                        federatedAuthenticatorConfig.setDisplayName(resultSet.getString("DISPLAY_NAME"));
+                        federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
+                        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
+                        federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
+                    }
+                }
+            }
+            return federatedAuthenticatorConfigs;
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving all user defined federated " +
+                    "authenticators for tenant: " + tenantId, e);
+        }
+    }
+
     private void resolveOtpConnectorProperties(
             Map<String, IdentityProviderProperty> propertiesFromConnectors) throws ConnectorException{
 

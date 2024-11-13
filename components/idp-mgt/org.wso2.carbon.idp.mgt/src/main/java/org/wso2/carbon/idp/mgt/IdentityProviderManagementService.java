@@ -386,7 +386,8 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators() throws IdentityProviderManagementException {
 
         try {
-            return IdentityProviderManager.getInstance().getAllFederatedAuthenticators();
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            return IdentityProviderManager.getInstance().getAllFederatedAuthenticators(tenantDomain);
         } catch (IdentityProviderManagementException idpException) {
             log.error("Error while getting Federated Authenticators", idpException);
             throw idpException;

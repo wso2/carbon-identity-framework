@@ -78,6 +78,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
@@ -94,6 +95,8 @@ public class IdentityProviderManager implements IdpManager {
     private static final int OTP_CODE_MAX_LENGTH = 10;
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
+    private final Pattern userDefinedAuthNameRegexPattern =
+            Pattern.compile(IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
 
     private IdentityProviderManager() {
 
@@ -1498,6 +1501,7 @@ public class IdentityProviderManager implements IdpManager {
 
         markConfidentialPropertiesUsingMetadata(identityProvider);
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        validateFederatedAuthenticatorConfigName(identityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         validateOutboundProvisioningRoles(identityProvider, tenantDomain);
 
         // Invoking the pre listeners.
@@ -1884,6 +1888,7 @@ public class IdentityProviderManager implements IdpManager {
      * @throws IdentityProviderManagementException Error when getting authenticators registered
      *                                             in the system
      */
+    @Deprecated
     @Override
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators()
             throws IdentityProviderManagementException {
@@ -2180,6 +2185,35 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
+    private void validateFederatedAuthenticatorConfigName(FederatedAuthenticatorConfig[] federatedAuthConfigs,
+                      String tenantDomain) throws IdentityProviderManagementException {
+
+        if (federatedAuthConfigs == null) {
+            return;
+        }
+
+        for (FederatedAuthenticatorConfig config : federatedAuthConfigs) {
+            if (config.getDefinedByType() == DefinedByType.SYSTEM) {
+                // Check if there is an authenticator registered in the system for the given authenticator ID.
+                if (ApplicationAuthenticatorService.getInstance()
+                        .getFederatedAuthenticatorByName(config.getName()) == null) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, config.getName());
+                }
+            } else {
+                if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) != null) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_FED_AUTH_NAME_ALREADY_TAKEN, config.getName());
+                }
+                if (!userDefinedAuthNameRegexPattern.matcher(config.getName()).matches()) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_INVALID_AUTHENTICATOR_NAME,
+                            IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
+                }
+            }
+        }
+    }
+
     /**
      * Validate input parameters for the updateIdPByResourceId function.
      *
@@ -2309,6 +2343,29 @@ public class IdentityProviderManager implements IdpManager {
             throw IdPManagementUtil.handleServerException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVING_IDP_GROUPS, null, e);
         }
+    }
+
+    @Override
+    public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> userDefinedAuthenticators =
+                dao.getAllUserDefinedFederatedAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+        userDefinedAuthenticators.addAll(Arrays.asList(
+                IdentityProviderManager.getInstance().getAllFederatedAuthenticators()));
+        return userDefinedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
+    }
+
+    private FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String authenticatorName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        FederatedAuthenticatorConfig[] authenticators = getAllFederatedAuthenticators(tenantDomain);
+        for (FederatedAuthenticatorConfig authenticator : authenticators) {
+            if (authenticator.getName().equals(authenticatorName)) {
+                return authenticator;
+            }
+        }
+        return null;
     }
 
     /**

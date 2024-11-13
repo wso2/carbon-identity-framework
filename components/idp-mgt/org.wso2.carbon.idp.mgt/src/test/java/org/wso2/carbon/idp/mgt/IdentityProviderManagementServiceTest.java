@@ -118,6 +118,13 @@ public class IdentityProviderManagementServiceTest {
         Field field = IdentityProviderManager.class.getDeclaredField("dao");
         field.setAccessible(true);
         field.set(identityProviderManager, dao);
+
+        FederatedAuthenticatorConfig config = new FederatedAuthenticatorConfig();
+        config.setName("Name");
+        FederatedAuthenticatorConfig samlConfig = new FederatedAuthenticatorConfig();
+        samlConfig.setName("SAMLSSOAuthenticator");
+        ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(config);
+        ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(samlConfig);
     }
 
     @AfterClass
@@ -738,7 +745,7 @@ public class IdentityProviderManagementServiceTest {
 
         FederatedAuthenticatorConfig[] allFederatedAuthenticators =
                 identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 0);
+        Assert.assertEquals(allFederatedAuthenticators.length, 2);
 
 
         FederatedAuthenticatorConfig federatedAuthenticatorConfig1 = mock(FederatedAuthenticatorConfig.class);
@@ -752,18 +759,18 @@ public class IdentityProviderManagementServiceTest {
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig1);
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 1);
+        Assert.assertEquals(allFederatedAuthenticators.length, 3);
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig2);
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 2);
+        Assert.assertEquals(allFederatedAuthenticators.length, 4);
 
         // Clear after the test.
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(federatedAuthenticatorConfig1);
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(federatedAuthenticatorConfig2);
 
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 0);
+        Assert.assertEquals(allFederatedAuthenticators.length, 2);
     }
 
     @Test
