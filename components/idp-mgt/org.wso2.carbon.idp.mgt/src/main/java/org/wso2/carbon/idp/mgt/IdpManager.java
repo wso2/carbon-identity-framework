@@ -548,12 +548,11 @@ public interface IdpManager {
     }
 
     /**
-     * Get the federated authenticator by authenticator ID.
+     * Get the all federated authenticator of the tenant domain (both system defined and user defined).
      *
      * @param tenantDomain  Tenant Domain.
-     * @return User defined federated authenticator.
-     * @throws IdentityProviderManagementException  If an error occurred while getting user defined
-     *                                              federated authenticator.
+     * @return User all federated authenticators.
+     * @throws IdentityProviderManagementException  If an error occurred while getting all federated authenticator.
      */
     default FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
             throws IdentityProviderManagementException {

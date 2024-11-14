@@ -1085,7 +1085,7 @@ public class CacheBackedIdPMgtDAO {
      * @param tenantId Tenant ID.
      * @return User defined FederatedAuthenticatorConfig list
      * @throws IdentityProviderManagementException If an error occurred while retrieving user defined
-     * federated authenticator list.
+     *                                             federated authenticator list.
      */
     public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(int tenantId)
             throws IdentityProviderManagementException {

@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
@@ -146,6 +147,46 @@ public class IdentityProviderManagementServiceTest {
         // Clear Database after every test.
         removeTestIdps();
     }
+
+    @DataProvider
+    public Object[][] addFederatedAuthenticatorData() {
+
+        FederatedAuthenticatorConfig systemDefinedAuthWithInvalidName = new FederatedAuthenticatorConfig();
+        systemDefinedAuthWithInvalidName.setDisplayName("DisplayName1");
+        systemDefinedAuthWithInvalidName.setName("NonRegisteredAuthenticator");
+        systemDefinedAuthWithInvalidName.setEnabled(true);
+        systemDefinedAuthWithInvalidName.setDefinedByType(DefinedByType.SYSTEM);
+
+        FederatedAuthenticatorConfig userDefinedAuthWithExistingName = new UserDefinedFederatedAuthenticatorConfig();
+        userDefinedAuthWithExistingName.setDisplayName("DisplayName1");
+        userDefinedAuthWithExistingName.setName("SAMLSSOAuthenticator");
+        userDefinedAuthWithExistingName.setEnabled(true);
+        userDefinedAuthWithExistingName.setDefinedByType(DefinedByType.USER);
+
+        FederatedAuthenticatorConfig userDefinedAuthWithInvalidName = new UserDefinedFederatedAuthenticatorConfig();
+        userDefinedAuthWithInvalidName.setDisplayName("DisplayName1");
+        userDefinedAuthWithInvalidName.setName("SAMLSSOAuthenticator");
+        userDefinedAuthWithInvalidName.setEnabled(true);
+        userDefinedAuthWithInvalidName.setDefinedByType(DefinedByType.USER);
+
+        return new Object[][]{
+                {systemDefinedAuthWithInvalidName},
+                {userDefinedAuthWithExistingName},
+                {userDefinedAuthWithInvalidName}
+        };
+    }
+
+    @Test(dataProvider = "addFederatedAuthenticatorData")
+    public void testFederatedAuthenticatorNameValidation(FederatedAuthenticatorConfig config) {
+
+        IdentityProvider identityProvider = new IdentityProvider();
+        identityProvider.setDisplayName("testIdP1");
+        identityProvider.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{config});
+
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.addIdP(identityProvider));
+    }
+
 
     @DataProvider
     public Object[][] addIdPData() {

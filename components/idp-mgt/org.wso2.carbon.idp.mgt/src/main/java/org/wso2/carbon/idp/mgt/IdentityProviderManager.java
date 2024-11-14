@@ -1882,11 +1882,13 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Get the authenticators registered in the system.
+     * Get the authenticators registered in the system (system defined federated authenticators).
      *
-     * @return <code>FederatedAuthenticatorConfig</code> array.
+     * @return FederatedAuthenticatorConfig     Array of system defined federated authenticators.
      * @throws IdentityProviderManagementException Error when getting authenticators registered
      *                                             in the system
+     * @deprecated  It is recommended to use {@link #getAllFederatedAuthenticators(String)}, which return both system
+     *              defined and user defined federated authenticators of the provided tenant.
      */
     @Deprecated
     @Override
@@ -2194,17 +2196,19 @@ public class IdentityProviderManager implements IdpManager {
 
         for (FederatedAuthenticatorConfig config : federatedAuthConfigs) {
             if (config.getDefinedByType() == DefinedByType.SYSTEM) {
-                // Check if there is an authenticator registered in the system for the given authenticator ID.
+                // Check if there is a system registered authenticator given authenticator name.
                 if (ApplicationAuthenticatorService.getInstance()
                         .getFederatedAuthenticatorByName(config.getName()) == null) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                             .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, config.getName());
                 }
             } else {
+                // Check if the given authenticator name is already taken.
                 if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) != null) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                            .ERROR_CODE_FED_AUTH_NAME_ALREADY_TAKEN, config.getName());
+                            .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, config.getName());
                 }
+                // Check if the given authenticator name matches the regex pattern.
                 if (!userDefinedAuthNameRegexPattern.matcher(config.getName()).matches()) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                             .ERROR_INVALID_AUTHENTICATOR_NAME,
@@ -2349,11 +2353,10 @@ public class IdentityProviderManager implements IdpManager {
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
             throws IdentityProviderManagementException {
 
-        List<FederatedAuthenticatorConfig> userDefinedAuthenticators =
+        List<FederatedAuthenticatorConfig> allFederatedAuthenticators =
                 dao.getAllUserDefinedFederatedAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
-        userDefinedAuthenticators.addAll(Arrays.asList(
-                IdentityProviderManager.getInstance().getAllFederatedAuthenticators()));
-        return userDefinedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
+        allFederatedAuthenticators.addAll(Arrays.asList(getAllFederatedAuthenticators()));
+        return allFederatedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
     }
 
     private FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String authenticatorName, String tenantDomain)

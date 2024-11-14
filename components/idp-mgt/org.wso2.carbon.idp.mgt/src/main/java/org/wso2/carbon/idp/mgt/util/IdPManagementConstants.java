@@ -589,7 +589,7 @@ public class IdPManagementConstants {
                 "IDP.UUID AS IDP_ID FROM IDP_GROUP LEFT JOIN IDP ON IDP.ID = IDP_GROUP.IDP_ID WHERE " +
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
         public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
-                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ?";
+                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER'";
     }
 
     public enum ErrorMessage {
@@ -614,10 +614,10 @@ public class IdPManagementConstants {
         ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION("IDP-60011", "Invalid connector configuration. %s"),
         ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
                 "provided authenticator name %s."),
-        ERROR_CODE_FED_AUTH_NAME_ALREADY_TAKEN("IDP-60013", "Federated authenticator name " +
+        ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN("IDP-60013", "Federated authenticator name %s" +
                 "is already taken."),
-        ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Authenticator name does not match regex " +
-                "pattern %s"),
+        ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Federated authenticator name does not match the" +
+                " regex pattern %s."),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
@@ -631,8 +631,14 @@ public class IdPManagementConstants {
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
                 "the outbound provisioning roles"),
         ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups"),
-        ERROR_CODE_ENDPOINT_CONFIG_MGT("IDP-65010", "An error occurred while managing endpoint " +
-                "configurations for the user-defined authenticator.");
+        ERROR_CODE_ADDING_ENDPOINT_CONFIG("IDP-65010", "An error occurred while adding" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_UPDATING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while updating" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while retrieving" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
+                " endpoint configuration for authenticator: %s.");
 
         private final String code;
         private final String message;

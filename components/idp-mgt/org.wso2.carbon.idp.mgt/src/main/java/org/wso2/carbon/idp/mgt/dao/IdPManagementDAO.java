@@ -58,7 +58,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
-import org.wso2.carbon.idp.mgt.AuthenticatorEndpointConfigurationServerException;
+import org.wso2.carbon.idp.mgt.AuthenticatorEndpointConfigServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -66,7 +66,7 @@ import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
-import org.wso2.carbon.idp.mgt.util.AuthenticatorEndpointConfigurationManager;
+import org.wso2.carbon.idp.mgt.util.UserDefinedAuthenticatorEndpointConfigManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
@@ -132,8 +132,8 @@ public class IdPManagementDAO {
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
             = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
-    private final AuthenticatorEndpointConfigurationManager endpointConfigurationManager =
-            new AuthenticatorEndpointConfigurationManager();
+    private final UserDefinedAuthenticatorEndpointConfigManager endpointConfigurationManager =
+            new UserDefinedAuthenticatorEndpointConfigManager();
 
     /**
      * @param dbConnection
@@ -1179,7 +1179,7 @@ public class IdPManagementDAO {
                     properties.add(property);
                 }
                 authnConfig.setProperties(properties.toArray(new Property[properties.size()]));
-                endpointConfigurationManager.resolveEndpointConfigurations(authnConfig, tenantId);
+                endpointConfigurationManager.resolveEndpointConfig(authnConfig, tenantId);
 
                 if (isEmailOTPAuthenticator(authnConfig.getName())) {
                     // This is to support backward compatibility.
@@ -1351,7 +1351,7 @@ public class IdPManagementDAO {
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId,
                     newFederatedAuthenticatorConfig.getName());
-            endpointConfigurationManager.updateEndpointConfigurations(newFederatedAuthenticatorConfig,
+            endpointConfigurationManager.updateEndpointConfig(newFederatedAuthenticatorConfig,
                     oldFederatedAuthenticatorConfig, tenantId);
 
             List<Property> unUpdatedProperties = new ArrayList<>();
@@ -1445,7 +1445,7 @@ public class IdPManagementDAO {
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
-            endpointConfigurationManager.addEndpointConfigurations(authnConfig, tenantId);
+            endpointConfigurationManager.addEndpointConfig(authnConfig, tenantId);
 
             sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_PROP_SQL;
 
@@ -1483,7 +1483,7 @@ public class IdPManagementDAO {
             prepStmt.setString(2, authnConfig.getName());
             prepStmt.execute();
         }
-        endpointConfigurationManager.deleteEndpointConfigurations(authnConfig, tenantId);
+        endpointConfigurationManager.deleteEndpointConfig(authnConfig, tenantId);
     }
 
     private void updateSingleValuedFederatedConfigProperties(Connection dbConnection, int authnId, int tenantId,
@@ -3992,12 +3992,12 @@ public class IdPManagementDAO {
             /* Since only one federated authenticator per newly creating IDP is allowed, the custom IDPs will always
             have a single federated authenticator. For older IDPs, executing this 'if' code block is unnecessary. */
             if (identityProvider.getFederatedAuthenticatorConfigs().length == 1) {
-                endpointConfigurationManager.deleteEndpointConfigurations(
+                endpointConfigurationManager.deleteEndpointConfig(
                         identityProvider.getFederatedAuthenticatorConfigs()[0], tenantId);
             }
             throw new IdentityProviderManagementException("Error occurred while adding Identity Provider for tenant "
                     + tenantId, e);
-        } catch (AuthenticatorEndpointConfigurationServerException e) {
+        } catch (AuthenticatorEndpointConfigServerException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         }
@@ -4327,13 +4327,13 @@ public class IdPManagementDAO {
             /* Since only one federated authenticator per newly creating IDP is allowed, the custom IDPs will always
             have a single federated authenticator. For older IDPs, executing this 'if' code block is unnecessary. */
             if (currentIdentityProvider.getFederatedAuthenticatorConfigs().length == 1) {
-                endpointConfigurationManager.updateEndpointConfigurations(currentIdentityProvider
+                endpointConfigurationManager.updateEndpointConfig(currentIdentityProvider
                                 .getFederatedAuthenticatorConfigs()[0], newIdentityProvider.getFederatedAuthenticatorConfigs()[0],
                         tenantId);
             }
             throw new IdentityProviderManagementException("Error occurred while updating Identity Provider " +
                     "information  for tenant " + tenantId, e);
-        } catch (AuthenticatorEndpointConfigurationServerException e) {
+        } catch (AuthenticatorEndpointConfigServerException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } catch (ConnectorException e) {
@@ -4409,7 +4409,7 @@ public class IdPManagementDAO {
             /* Since only one federated authenticator per newly creating IDP is allowed, the custom IDPs will always
             have a single federated authenticator. For older IDPs, executing this 'if' code block is unnecessary. */
             if (identityProvider.getFederatedAuthenticatorConfigs().length == 1) {
-                endpointConfigurationManager.deleteEndpointConfigurations(
+                endpointConfigurationManager.deleteEndpointConfig(
                         identityProvider.getFederatedAuthenticatorConfigs()[0], tenantId);
             }
             deleteIdP(dbConnection, tenantId, idPName, null);
@@ -4419,7 +4419,7 @@ public class IdPManagementDAO {
             rollBackEndpointConfigurationDeletion(identityProvider, tenantId);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
-        } catch (AuthenticatorEndpointConfigurationServerException e) {
+        } catch (AuthenticatorEndpointConfigServerException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } finally {
@@ -4469,7 +4469,7 @@ public class IdPManagementDAO {
             /* Since only one federated authenticator per newly creating IDP is allowed, the custom IDPs will always
             have a single federated authenticator. For older IDPs, executing this 'if' code block is unnecessary. */
             if (identityProvider.getFederatedAuthenticatorConfigs().length == 1) {
-                endpointConfigurationManager.deleteEndpointConfigurations(
+                endpointConfigurationManager.deleteEndpointConfig(
                         identityProvider.getFederatedAuthenticatorConfigs()[0], tenantId);
             }
             deleteIdP(dbConnection, tenantId, null, resourceId);
@@ -4481,7 +4481,7 @@ public class IdPManagementDAO {
             rollBackEndpointConfigurationDeletion(identityProvider, tenantId);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Provider of tenant "
                     + tenantDomain, e);
-        } catch (AuthenticatorEndpointConfigurationServerException e) {
+        } catch (AuthenticatorEndpointConfigServerException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } catch (SecretManagementException e) {
@@ -4518,7 +4518,7 @@ public class IdPManagementDAO {
             /* Since only one federated authenticator per newly creating IDP is allowed, the custom IDPs will always
             have a single federated authenticator. For older IDPs, executing this 'if' code block is unnecessary. */
             if (identityProvider.getFederatedAuthenticatorConfigs().length == 1) {
-                endpointConfigurationManager.deleteEndpointConfigurations(
+                endpointConfigurationManager.deleteEndpointConfig(
                         identityProvider.getFederatedAuthenticatorConfigs()[0], tenantId);
             }
             deleteIdpSpProvisioningAssociations(dbConnection, tenantId, idPName);
@@ -4530,7 +4530,7 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException(
                     String.format("Error occurred while deleting Identity Provider:%s of tenant:%s ",
                             idPName, tenantDomain), e);
-        } catch (AuthenticatorEndpointConfigurationServerException e) {
+        } catch (AuthenticatorEndpointConfigServerException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } finally {
@@ -4566,7 +4566,7 @@ public class IdPManagementDAO {
             /* Since only one federated authenticator per newly creating IDP is allowed, the custom IDPs will always
             have a single federated authenticator. For older IDPs, executing this 'if' code block is unnecessary. */
             if (identityProvider.getFederatedAuthenticatorConfigs().length == 1) {
-                endpointConfigurationManager.deleteEndpointConfigurations(
+                endpointConfigurationManager.deleteEndpointConfig(
                         identityProvider.getFederatedAuthenticatorConfigs()[0], tenantId);
             }
             deleteIdP(dbConnection, tenantId, null, resourceId);
@@ -4577,7 +4577,7 @@ public class IdPManagementDAO {
             throw new IdentityProviderManagementException(
                     String.format("Error occurred while deleting Identity Provider with resource ID:%s of tenant:%s ",
                             resourceId, tenantDomain), e);
-        } catch (AuthenticatorEndpointConfigurationServerException e) {
+        } catch (AuthenticatorEndpointConfigServerException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw e;
         } finally {
@@ -6021,26 +6021,25 @@ public class IdPManagementDAO {
      * @param tenantId Tenant ID.
      * @return User defined FederatedAuthenticatorConfig list
      * @throws IdentityProviderManagementException If an error occurred while retrieving user defined
-     * federated authenticator list.
+     *                                             federated authenticator list.
      */
     public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(int tenantId)
             throws IdentityProviderManagementException {
 
         List<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
-            try (PreparedStatement prepStmt = connection.prepareStatement(
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = connection.prepareStatement(
                     IdPManagementConstants.SQLQueries.GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS)) {
-                prepStmt.setInt(1, tenantId);
-                try (ResultSet resultSet = prepStmt.executeQuery()) {
-                    while (resultSet.next()) {
-                        UserDefinedFederatedAuthenticatorConfig federatedAuthenticatorConfig =
-                                new UserDefinedFederatedAuthenticatorConfig();
-                        federatedAuthenticatorConfig.setName(resultSet.getString("NAME"));
-                        federatedAuthenticatorConfig.setDisplayName(resultSet.getString("DISPLAY_NAME"));
-                        federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
-                        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
-                        federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
-                    }
+            prepStmt.setInt(1, tenantId);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                while (resultSet.next()) {
+                    UserDefinedFederatedAuthenticatorConfig federatedAuthenticatorConfig =
+                            new UserDefinedFederatedAuthenticatorConfig();
+                    federatedAuthenticatorConfig.setName(resultSet.getString("NAME"));
+                    federatedAuthenticatorConfig.setDisplayName(resultSet.getString("DISPLAY_NAME"));
+                    federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
+                    federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
+                    federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
                 }
             }
             return federatedAuthenticatorConfigs;
@@ -6161,7 +6160,7 @@ public class IdPManagementDAO {
         /* Since only one federated authenticator per newly creating IDP is allowed, the custom IDPs will always have a
         single federated authenticator. For older IDPs, executing this 'if' code block is unnecessary. */
         if (identityProvider != null && identityProvider.getFederatedAuthenticatorConfigs().length == 1) {
-            endpointConfigurationManager.addEndpointConfigurations(
+            endpointConfigurationManager.addEndpointConfig(
                     identityProvider.getFederatedAuthenticatorConfigs()[0], tenantId);
         }
     }
