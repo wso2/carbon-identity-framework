@@ -187,6 +187,13 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyA
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL;
 import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.ADD_APPLICATION_ASSOC_ROLES_TAIL_ORACLE;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.GET_FILTERED_SHARED_APPLICATIONS;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SHARED_ORG_ID;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.SHARED_ORG_ID_LIST_PLACEHOLDER;
+import static org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries.SQLPlaceholders.SHARED_ORG_ID_PLACEHOLDER_PREFIX;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
@@ -6107,6 +6114,67 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementServerException(
                     String.format("Error while getting main application id for the shared application with id: %s",
                             sharedAppId), e);
+        }
+    }
+
+    @Override
+    public String getOwnerOrgId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (NamedPreparedStatement namedPreparedStatement = new NamedPreparedStatement(
+                    connection, ApplicationMgtDBQueries.GET_OWNER_ORG_ID_BY_SHARED_APP_ID)) {
+                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID, sharedAppId);
+                try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getString(DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID);
+                    }
+                }
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while getting owner organization id for the shared application with id: %s",
+                            sharedAppId), e);
+        }
+    }
+
+    @Override
+    public Map<String, String> getSharedApplicationIds(String mainAppId, String ownerOrgId, List<String> sharedOrgIds)
+            throws IdentityApplicationManagementServerException {
+
+        if (CollectionUtils.isEmpty(sharedOrgIds)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> sharedAppIds = new HashMap<>();
+
+        String placeholders = IntStream.range(0, sharedOrgIds.size())
+                .mapToObj(i -> ":" + SHARED_ORG_ID_PLACEHOLDER_PREFIX + i + ";")
+                .collect(Collectors.joining(", "));
+        String sqlStmt = GET_FILTERED_SHARED_APPLICATIONS.replace(SHARED_ORG_ID_LIST_PLACEHOLDER, placeholders);
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            try (NamedPreparedStatement namedPreparedStatement =
+                         new NamedPreparedStatement(connection, sqlStmt)) {
+                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID, mainAppId);
+                namedPreparedStatement.setString(DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID, ownerOrgId);
+                for (int i = 0; i < sharedOrgIds.size(); i++) {
+                    namedPreparedStatement.setString(SHARED_ORG_ID_PLACEHOLDER_PREFIX + i, sharedOrgIds.get(i));
+                }
+
+                try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        sharedAppIds.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_SHARED_ORG_ID),
+                                resultSet.getString(DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID));
+                    }
+                    return sharedAppIds;
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException(
+                    String.format("Error while resolving shared applications for the main application with id: %s in " +
+                            "organization: %s", mainAppId, ownerOrgId), e);
         }
     }
 
