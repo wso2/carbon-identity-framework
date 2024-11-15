@@ -58,6 +58,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
+/**
+ * Test class for AIHttpClientUtil.
+ */
 public class AIHttpClientUtilTest {
 
     @Mock

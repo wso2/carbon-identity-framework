@@ -53,8 +53,8 @@ import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.getTenantDom
  */
 public class AIAccessTokenManager {
 
-    private static volatile AIAccessTokenManager instance;  // Volatile for thread safety
-    private static final Object lock = new Object();  // Lock for synchronization
+    private static volatile AIAccessTokenManager instance;  // Volatile for thread safety.
+    private static final Object lock = new Object();  // Lock for synchronization.
 
     private static final Log LOG = LogFactory.getLog(AIAccessTokenManager.class);
 

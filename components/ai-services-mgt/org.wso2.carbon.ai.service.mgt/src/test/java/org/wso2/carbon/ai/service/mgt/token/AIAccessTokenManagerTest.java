@@ -29,7 +29,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -49,6 +48,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Test class for AIAccessTokenManager.
+ */
 public class AIAccessTokenManagerTest {
 
     @Mock
@@ -69,30 +71,22 @@ public class AIAccessTokenManagerTest {
     private CountDownLatch latch;
 
     @BeforeMethod
-    public void setUp() throws Exception {
+    public void setUp() {
 
         MockitoAnnotations.openMocks(this);
         testHelper = new TestAccessTokenRequestHelper(mockHttpClient);
         tokenManager = AIAccessTokenManager.getInstance();
         tokenManager.setAccessTokenRequestHelper(testHelper);
-//        mockClient = mock(CloseableHttpAsyncClient.class);
         helper = new AIAccessTokenManager.AccessTokenRequestHelper("key", "endpoint", mockHttpClient);
         latch = new CountDownLatch(1);
     }
 
     @AfterMethod
-    public void tearDown() throws Exception {
+    public void tearDown() {
 
-        // Reset other mocks and state
+        // Reset other mocks and state.
         tokenManager = null;
         testHelper = null;
-    }
-
-
-    @AfterClass
-    public void tearDownClass() {
-        // Close the static mock after all tests are complete
-//        logFactoryMockedStatic.close();
     }
 
     @Test
@@ -238,7 +232,7 @@ public class AIAccessTokenManagerTest {
         when(mockFuture.get()).thenReturn(mockResponse);
     }
 
-    // Custom AccessTokenRequestHelper for testing
+    // Custom AccessTokenRequestHelper for testing.
     private class TestAccessTokenRequestHelper extends AIAccessTokenManager.AccessTokenRequestHelper {
         public TestAccessTokenRequestHelper(CloseableHttpAsyncClient client) {
             super("testKey", "https://test.endpoint", client);
@@ -249,7 +243,7 @@ public class AIAccessTokenManagerTest {
             try {
                 return super.requestAccessToken();
             } catch (AIServerException e) {
-                // Rethrow AIServerException directly for testing purposes
+                // Rethrow AIServerException directly for testing purposes.
                 throw e;
             } catch (Exception e) {
                 throw new AIServerException("Test exception", e);

@@ -70,7 +70,6 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
             AIClientException {
 
         ObjectMapper objectMapper = new ObjectMapper();
-
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("user_query", userQuery);
         try {
