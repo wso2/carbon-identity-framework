@@ -22,6 +22,9 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+/**
+ * Test class for AIConstants.
+ */
 public class AIConstantsTest {
 
     @Test

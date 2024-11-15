@@ -24,6 +24,9 @@ import org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
+/**
+ * Test class for AIServerException.
+ */
 public class AIServerExceptionTest {
 
     @Test
