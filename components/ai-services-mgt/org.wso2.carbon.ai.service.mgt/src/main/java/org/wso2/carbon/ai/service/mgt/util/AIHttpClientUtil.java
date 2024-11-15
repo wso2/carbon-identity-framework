@@ -165,7 +165,7 @@ public class AIHttpClientUtil {
     }
 
     protected static HttpResponseWrapper executeHttpRequest(CloseableHttpAsyncClient client, HttpUriRequest httpRequest)
-            throws InterruptedException, ExecutionException, IOException {
+            throws InterruptedException, ExecutionException, IOException, AIServerException {
 
         Future<HttpResponse> apiResponse = client.execute(httpRequest, new FutureCallback<HttpResponse>() {
             @Override
@@ -186,7 +186,10 @@ public class AIHttpClientUtil {
                 LOG.warn("API request was cancelled");
             }
         });
-
+        if (apiResponse == null) {
+            throw new AIServerException("Unable to get the response from the AI service.",
+                    SERVER_ERROR_WHILE_CONNECTING_TO_AI_SERVICE.getCode());
+        }
         HttpResponse httpResponse = apiResponse.get();
         int status = httpResponse.getStatusLine().getStatusCode();
         String response = EntityUtils.toString(httpResponse.getEntity());

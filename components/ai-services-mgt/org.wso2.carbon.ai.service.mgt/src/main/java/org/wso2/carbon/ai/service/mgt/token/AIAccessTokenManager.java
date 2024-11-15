@@ -20,6 +20,7 @@ package org.wso2.carbon.ai.service.mgt.token;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +38,7 @@ import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
@@ -50,6 +52,9 @@ import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.getTenantDom
  * The purpose of this class is to retrieve an active token to access the AI service.
  */
 public class AIAccessTokenManager {
+
+    private static volatile AIAccessTokenManager instance;  // Volatile for thread safety
+    private static final Object lock = new Object();  // Lock for synchronization
 
     private static final Log LOG = LogFactory.getLog(AIAccessTokenManager.class);
 
@@ -65,11 +70,6 @@ public class AIAccessTokenManager {
         // Prevent from initialization.
     }
 
-    private static final class AIAccessTokenInstanceHolder {
-
-        private static final AIAccessTokenManager instance = new AIAccessTokenManager();
-    }
-
     /**
      * Get the singleton instance of the LoginFlowAITokenService.
      *
@@ -77,7 +77,14 @@ public class AIAccessTokenManager {
      */
     public static AIAccessTokenManager getInstance() {
 
-        return AIAccessTokenInstanceHolder.instance;
+        if (instance == null) {
+            synchronized (lock) {
+                if (instance == null) {
+                    instance = new AIAccessTokenManager();
+                }
+            }
+        }
+        return instance;
     }
 
     /**
@@ -206,7 +213,7 @@ public class AIAccessTokenManager {
                                     LOG.error("Token request failed with status code: " +
                                             response.getStatusLine().getStatusCode());
                                 }
-                            } catch (IOException e) {
+                            } catch (IOException | JsonSyntaxException e) {
                                 LOG.error("Error parsing token response: " + e.getMessage(), e);
                             } finally {
                                 latch.countDown();
@@ -236,18 +243,13 @@ public class AIAccessTokenManager {
                         LOG.error("Token request timed out");
                     }
                     // Wait before retrying.
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(500);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        LOG.error("Retry sleep interrupted: " + e.getMessage(), e);
-                    }
+                    TimeUnit.MILLISECONDS.sleep(500);
                 }
-            } catch (IOException e) {
-                throw new AIServerException("Failed to close HTTP client: " + e.getMessage(), e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new AIServerException("Token request interrupted: " + e.getMessage(), e);
+            } catch (UnsupportedEncodingException e) {
+                throw new AIServerException("Error creating token request: " + e.getMessage(), e);
             } finally {
                 try {
                     client.close();

@@ -25,17 +25,28 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
 
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AIAccessTokenManagerTest {
@@ -54,20 +65,34 @@ public class AIAccessTokenManagerTest {
 
     private AIAccessTokenManager tokenManager;
     private TestAccessTokenRequestHelper testHelper;
+    private AIAccessTokenManager.AccessTokenRequestHelper helper;
+    private CountDownLatch latch;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws Exception {
 
         MockitoAnnotations.openMocks(this);
         testHelper = new TestAccessTokenRequestHelper(mockHttpClient);
         tokenManager = AIAccessTokenManager.getInstance();
         tokenManager.setAccessTokenRequestHelper(testHelper);
+//        mockClient = mock(CloseableHttpAsyncClient.class);
+        helper = new AIAccessTokenManager.AccessTokenRequestHelper("key", "endpoint", mockHttpClient);
+        latch = new CountDownLatch(1);
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown() throws Exception {
 
-        tokenManager.setAccessTokenRequestHelper(null);
+        // Reset other mocks and state
+        tokenManager = null;
+        testHelper = null;
+    }
+
+
+    @AfterClass
+    public void tearDownClass() {
+        // Close the static mock after all tests are complete
+//        logFactoryMockedStatic.close();
     }
 
     @Test
@@ -120,6 +145,84 @@ public class AIAccessTokenManagerTest {
     public void testGetAccessToken_MaxRetriesExceeded() throws Exception {
         setupMockHttpResponse(HttpStatus.SC_BAD_REQUEST, "Bad Request");
         tokenManager.getAccessToken(false);
+    }
+
+    @Test(expectedExceptions = AIServerException.class)
+    public void testGetAccessToken_InterruptedDuringRequest() throws Exception {
+        when(mockHttpClient.execute(any(HttpPost.class), any(FutureCallback.class))).thenAnswer(invocation -> {
+            Thread.currentThread().interrupt();
+            throw new InterruptedException("Request interrupted");
+        });
+
+        try {
+            tokenManager.getAccessToken(false);
+        } finally {
+            Assert.assertTrue(Thread.interrupted(), "Thread interrupt flag should be cleared");
+        }
+    }
+
+    @Test
+    public void completed_InvalidJsonResponse() throws Exception {
+        setupMockHttpResponse(HttpStatus.SC_OK, "Invalid JSON");
+
+        try {
+            tokenManager.getAccessToken(true);
+            Assert.fail("Expected AIServerException to be thrown");
+        } catch (AIServerException e) {
+            Assert.assertTrue(e.getMessage().contains("Failed to obtain access token after 3 attempts."));
+        }
+    }
+
+    @Test
+    public void testFailedScenario() throws Exception {
+        ArgumentCaptor<FutureCallback<HttpResponse>> captor = ArgumentCaptor.forClass(FutureCallback.class);
+        doNothing().when(mockHttpClient).start();
+        doAnswer(invocation -> {
+            FutureCallback<HttpResponse> callback = captor.getValue();
+            callback.failed(new Exception("Test Exception"));
+            return null;
+        }).when(mockHttpClient).execute(any(), captor.capture());
+
+        try {
+            helper.requestAccessToken();
+        } catch (AIServerException e) {
+            assertEquals("Failed to obtain access token after 3 attempts.", e.getMessage());
+        }
+
+        verify(mockHttpClient, times(1)).start();
+        verify(mockHttpClient, times(3)).execute(any(), any(FutureCallback.class));
+    }
+
+    @Test
+    public void testCancelledScenario() throws Exception {
+
+        ArgumentCaptor<FutureCallback<HttpResponse>> captor = ArgumentCaptor.forClass(FutureCallback.class);
+        doNothing().when(mockHttpClient).start();
+        doAnswer(invocation -> {
+            FutureCallback<HttpResponse> callback = captor.getValue();
+            callback.cancelled();
+            return null;
+        }).when(mockHttpClient).execute(any(), captor.capture());
+
+        try {
+            helper.requestAccessToken();
+        } catch (AIServerException e) {
+            assertEquals("Failed to obtain access token after 3 attempts.", e.getMessage());
+        }
+
+        verify(mockHttpClient, times(1)).start();
+        verify(mockHttpClient, times(3)).execute(any(), any(FutureCallback.class));
+    }
+
+    @Test(expectedExceptions = AIServerException.class)
+    public void testRequestAccessToken_IOException() throws Exception {
+        CloseableHttpAsyncClient mockClient = mock(CloseableHttpAsyncClient.class);
+        doThrow(new IOException("Test IOException")).when(mockClient).close();
+
+        AIAccessTokenManager.AccessTokenRequestHelper helper =
+                new AIAccessTokenManager.AccessTokenRequestHelper("key", "endpoint", mockClient);
+
+        helper.requestAccessToken();
     }
 
     private void setupMockHttpResponse(int statusCode, String responseBody) throws Exception {

@@ -44,7 +44,7 @@ public class AIServerException extends Exception {
 
     public AIServerException(String message, Throwable cause) {
 
-        super(cause);
+        super(message, cause);
     }
 
     public AIServerException(String message, String errorCode, Throwable cause) {
