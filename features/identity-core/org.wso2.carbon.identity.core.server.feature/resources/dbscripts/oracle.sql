@@ -1672,6 +1672,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('c385a42a-5697-4604-b49a-62456621e926', 'DCR_CONFIGURATION', 'A resource type to keep the DCR configurations.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('3e5b1f91-72d8-4fbc-94d1-1b9a4f8c3b07', 'IMPERSONATION_CONFIGURATION', 'A resource type to keep the tenant impersonation preferences.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('a731af34-f96a-4069-812d-30dc3b713a28', 'response-max-limit-configurations', 'A resource type to max limit configurations for API response.')
 SELECT 1 FROM dual
 /
 
