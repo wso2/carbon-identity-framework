@@ -117,6 +117,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOK
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLConstants.DEFINED_BY_COLUMN;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
@@ -1167,7 +1168,7 @@ public class IdPManagementDAO {
 
             while (rs.next()) {
                 FederatedAuthenticatorConfig authnConfig = createFederatedAuthenticatorConfig(DefinedByType.valueOf(
-                                rs.getString("DEFINED_BY")));
+                                rs.getString(DEFINED_BY_COLUMN)));
                 int authnId = rs.getInt("ID");
                 authnConfig.setName(rs.getString("NAME"));
 
@@ -3450,7 +3451,7 @@ public class IdPManagementDAO {
                 String roleClaimUri = rs.getString("ROLE_CLAIM_URI");
 
                 String defaultAuthenticatorName = rs.getString("DEFAULT_AUTHENTICATOR_NAME");
-                String defaultAuthenticatorDefinedByType = rs.getString("DEFINED_BY");
+                String defaultAuthenticatorDefinedByType = rs.getString(DEFINED_BY_COLUMN);
                 String defaultProvisioningConnectorConfigName = rs.getString("DEFAULT_PRO_CONNECTOR_NAME");
                 federatedIdp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
 

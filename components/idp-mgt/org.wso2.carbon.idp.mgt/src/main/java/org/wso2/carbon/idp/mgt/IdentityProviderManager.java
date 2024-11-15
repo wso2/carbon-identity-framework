@@ -68,9 +68,11 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1501,8 +1503,8 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         markConfidentialPropertiesUsingMetadata(identityProvider);
-        validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
         validateFederatedAuthenticatorConfigName(identityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
+        validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
         validateOutboundProvisioningRoles(identityProvider, tenantDomain);
 
         // Invoking the pre listeners.
@@ -1853,6 +1855,7 @@ public class IdentityProviderManager implements IdpManager {
 
         newIdentityProvider.setTrustedTokenIssuer(isTrustedTokenIssuer(newIdentityProvider));
         validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
+        validateFederatedAuthenticatorConfigName(newIdentityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
 
         // Invoking the post listeners.
@@ -2201,7 +2204,8 @@ public class IdentityProviderManager implements IdpManager {
                 if (ApplicationAuthenticatorService.getInstance()
                         .getFederatedAuthenticatorByName(config.getName()) == null) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                            .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, config.getName());
+                            .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, new String(
+                            Base64.getEncoder().encode(config.getName().getBytes(StandardCharsets.UTF_8))));
                 }
             } else {
                 // Check if the given authenticator name is already taken.

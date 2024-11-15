@@ -21,7 +21,7 @@ package org.wso2.carbon.idp.mgt;
 /**
  * Exception class for user defined federated authenticator endpoint configurations related exceptions.
  */
-public class AuthenticatorEndpointConfigServerException extends IdentityProviderManagementServerException {
+public class AuthenticatorEndpointConfigServerException extends IdentityProviderManagementException {
 
         public AuthenticatorEndpointConfigServerException(String message) {
 

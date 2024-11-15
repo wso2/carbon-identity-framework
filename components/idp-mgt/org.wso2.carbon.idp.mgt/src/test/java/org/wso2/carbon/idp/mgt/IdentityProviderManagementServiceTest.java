@@ -165,7 +165,7 @@ public class IdentityProviderManagementServiceTest {
 
         FederatedAuthenticatorConfig userDefinedAuthWithInvalidName = new UserDefinedFederatedAuthenticatorConfig();
         userDefinedAuthWithInvalidName.setDisplayName("DisplayName1");
-        userDefinedAuthWithInvalidName.setName("SAMLSSOAuthenticator");
+        userDefinedAuthWithInvalidName.setName("Invalid regex name");
         userDefinedAuthWithInvalidName.setEnabled(true);
         userDefinedAuthWithInvalidName.setDefinedByType(DefinedByType.USER);
 
@@ -177,7 +177,8 @@ public class IdentityProviderManagementServiceTest {
     }
 
     @Test(dataProvider = "addFederatedAuthenticatorData")
-    public void testFederatedAuthenticatorNameValidation(FederatedAuthenticatorConfig config) {
+    public void testFederatedAuthenticatorNameValidation(FederatedAuthenticatorConfig config)
+            throws IdentityProviderManagementException {
 
         IdentityProvider identityProvider = new IdentityProvider();
         identityProvider.setDisplayName("testIdP1");
@@ -185,6 +186,7 @@ public class IdentityProviderManagementServiceTest {
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.addIdP(identityProvider));
+        identityProviderManagementService.deleteIdP("testIdP1");
     }
 
 

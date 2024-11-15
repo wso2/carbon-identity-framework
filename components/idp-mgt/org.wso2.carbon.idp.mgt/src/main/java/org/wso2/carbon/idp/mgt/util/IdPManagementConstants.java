@@ -137,6 +137,11 @@ public class IdPManagementConstants {
     public static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
 
+    public static class SQLConstants {
+
+        public static final String DEFINED_BY_COLUMN = "DEFINED_BY";
+    }
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
@@ -618,7 +623,7 @@ public class IdPManagementConstants {
                 "provisioning roles does not exist"),
         ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION("IDP-60011", "Invalid connector configuration. %s"),
         ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
-                "provided authenticator name %s."),
+                "provided authenticator Id %s."),
         ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN("IDP-60013", "Federated authenticator name %s" +
                 "is already taken."),
         ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Federated authenticator name does not match the" +
