@@ -16,12 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution;
+package org.wso2.carbon.identity.action.execution.impl;
 
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 
 import static org.mockito.Mockito.when;

@@ -44,14 +44,17 @@
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
+                <Scope name="internal_secret_mgt_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_application_mgt_delete"/>
                 <Scope name="internal_shared_application_delete"/>
+                <Scope name="internal_secret_mgt_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_application_mgt_create"/>
                 <Scope name="internal_shared_application_create"/>
+                <Scope name="internal_secret_mgt_add"/>
             </Create>
             <Read>
                 <Scope name="internal_cors_origins_view"/>
@@ -68,6 +71,7 @@
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_shared_application_view"/>
                 <Scope name="internal_extensions_view"/>
+                <Scope name="internal_secret_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -193,6 +197,25 @@
             </Create>
             <Read>
                 <Scope name="internal_email_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="smsTemplates" displayName="SMS Templates" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:smsTemplates"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_notification_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_notification_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_notification_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_notification_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -408,6 +431,25 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="secretsManagement" displayName="Secrets Management" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:secretsManagement"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_secret_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_secret_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_secret_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_secret_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
     <APIResourceCollection name="roles" displayName="Roles" type="tenant">
         <Scopes>
             <Feature>
@@ -524,6 +566,25 @@
             </Create>
             <Read>
                 <Scope name="internal_action_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="tenants" displayName="Root Organizations" type="tenant">
+        <Scopes>
+            <Feature>
+                <Scope name="console:tenants"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_modify_tenants"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_modify_tenants"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_create_tenants"/>
+            </Create>
+            <Read>
+                <Scope name="internal_list_tenants"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -760,6 +821,22 @@
             </Create>
             <Read>
                 <Scope name="internal_org_email_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_smsTemplates" displayName="SMS Templates" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:smsTemplates"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+                <Scope name="internal_org_template_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

@@ -192,7 +192,7 @@ public class IdentityManagementEndpointUtil {
                 ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
                 String myAccountAccessUrl;
                 try {
-                    if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME == true) {
+                    if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
                         myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
                                 My_ACCOUNT_APPLICATION_NAME);
                     } else {

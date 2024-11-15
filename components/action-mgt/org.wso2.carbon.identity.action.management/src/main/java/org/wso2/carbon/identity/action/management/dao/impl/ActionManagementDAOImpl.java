@@ -21,12 +21,15 @@ package org.wso2.carbon.identity.action.management.dao.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.action.management.ActionSecretProcessor;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtRuntimeException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
@@ -35,12 +38,7 @@ import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,75 +61,69 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     public Action addAction(String actionType, String actionId, Action action, Integer tenantId)
             throws ActionMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                    ActionMgtSQLConstants.Query.ADD_ACTION_TO_ACTION_TYPE)) {
-
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, action.getName());
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION, action.getDescription());
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS, String.valueOf(Action.Status.ACTIVE));
-                statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                statement.executeUpdate();
+            jdbcTemplate.withTransaction(template -> {
+                template.executeInsert(ActionMgtSQLConstants.Query.ADD_ACTION_TO_ACTION_TYPE,
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, action.getName());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION, action.getDescription());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS,
+                                String.valueOf(Action.Status.ACTIVE));
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                    }, action, false);
 
                 // Encrypt secrets.
                 List<AuthProperty> encryptedAuthProperties = actionSecretProcessor
                         .encryptAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
-                // Add Endpoint configuration properties.
-                addEndpointProperties(dbConnection, actionId, getEndpointProperties(action.getEndpoint().getUri(),
-                        action.getEndpoint().getAuthentication().getType().name(), encryptedAuthProperties), tenantId);
-                IdentityDatabaseUtil.commitTransaction(dbConnection);
 
-                return getActionByActionId(actionType, actionId, tenantId);
-            } catch (SQLException | ActionMgtException e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Error while creating the Action of Action Type: %s in Tenant Domain: %s." +
-                                    " Rolling back created action information and deleting added secrets.", actionType,
-                            IdentityTenantUtil.getTenantDomain(tenantId)));
-                }
-                actionSecretProcessor.deleteAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
-                IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-                throw ActionManagementUtil.handleServerException(
-                        ActionMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_ACTION, e);
+                // Add Endpoint configuration properties.
+                addEndpointProperties(actionId, getEndpointProperties(action.getEndpoint().getUri(),
+                        action.getEndpoint().getAuthentication().getType().name(), encryptedAuthProperties), tenantId);
+
+                return null;
+            });
+
+            return getActionByActionId(actionType, actionId, tenantId);
+        } catch (TransactionException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Error while creating the Action of Action Type: %s in Tenant Domain: %s." +
+                                " Rolling back created action information and deleting added secrets.", actionType,
+                        IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-        } catch (SecretManagementException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_ACTION, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
     @Override
     public List<Action> getActionsByActionType(String actionType, Integer tenantId) throws ActionMgtException {
 
-        List<Action> actions = new ArrayList<>();
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                     ActionMgtSQLConstants.Query.GET_ACTIONS_BASIC_INFO_BY_ACTION_TYPE)) {
-
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    String actionId = rs.getString(ActionMgtSQLConstants.Column.ACTION_UUID);
-
-                    actions.add(new Action.ActionResponseBuilder()
-                            .id(actionId)
-                            .type(Action.ActionTypes.valueOf(
-                                    rs.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
-                            .name(rs.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
-                            .description(rs.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
-                            .status(Action.Status.valueOf(
-                                    rs.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
-                            .endpoint(getActionEndpointConfigById(dbConnection, actionId, tenantId)).build());
-                }
-            }
-            return actions;
-        } catch (SQLException | ActionMgtException e) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTIONS_BASIC_INFO_BY_ACTION_TYPE,
+                (resultSet, rowNumber) -> new Action.ActionResponseBuilder()
+                        .id(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_UUID))
+                        .type(Action.ActionTypes
+                                .valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
+                        .name(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
+                        .description(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
+                        .status(Action.Status
+                                .valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
+                        .endpoint(getActionEndpointConfigById(
+                                resultSet.getString(ActionMgtSQLConstants.Column.ACTION_UUID), tenantId))
+                        .build(),
+                statement -> {
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                    statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                });
+        } catch (ActionMgtRuntimeException | DataAccessException e) {
+            /**
+             * Handling {@link ActionMgtRuntimeException}, which is intentionally thrown to represent underlying
+             * exceptions from the {@link #getActionEndpointConfigById(String, Integer)} method.
+             */
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
         }
@@ -139,39 +131,28 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     @Override
     public Action updateAction(String actionType, String actionId, Action updatingAction, Action existingAction,
-                               Integer tenantId)
-            throws ActionMgtException {
+                               Integer tenantId) throws ActionMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.UPDATE_ACTION_BASIC_INFO)) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                // Update Basic Info.
+                updateBasicInfo(actionType, actionId, updatingAction, existingAction, tenantId);
+                // Update Endpoint URI and Authentication.
+                updateEndpointUriAndAuthentication(actionId, updatingAction, existingAction, tenantId);
 
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, StringUtils.isEmpty(updatingAction.getName())
-                    ? existingAction.getName() : updatingAction.getName());
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION, updatingAction.getDescription() == null
-                    ? existingAction.getDescription() : updatingAction.getDescription());
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-            statement.executeUpdate();
-
-            // Update Endpoint URI and Authentication.
-            updateEndpointUriAndAuthentication(dbConnection, actionType, actionId, updatingAction, existingAction,
-                    tenantId);
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
+                return null;
+            });
 
             return getActionByActionId(actionType, actionId, tenantId);
-        } catch (SQLException | ActionMgtException e) {
+        } catch (TransactionException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action of Action Type: %s and Action ID: %s in" +
                                 " Tenant Domain: %s. Rolling back updated action information.", actionType, actionId,
                         IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ACTION, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
@@ -179,29 +160,28 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     public void deleteAction(String actionType, String actionId, Action action, Integer tenantId)
             throws ActionMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.DELETE_ACTION)) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(ActionMgtSQLConstants.Query.DELETE_ACTION,
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+                // Delete action endpoint authentication related secrets.
+                actionSecretProcessor.deleteAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
 
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-            statement.executeUpdate();
-
-            // Delete action endpoint authentication related secrets.
-            actionSecretProcessor.deleteAssociatedSecrets(action.getEndpoint().getAuthentication(), actionId);
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-        } catch (SQLException | SecretManagementException e) {
+                return null;
+            });
+        } catch (TransactionException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while deleting the Action of Action Type: %s and Action ID: %s in" +
                                 " Tenant Domain: %s. Rolling back deleted action information.", actionType, actionId,
                         IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_DELETING_ACTION, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
@@ -221,20 +201,17 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     public Map<String, Integer> getActionsCountPerType(Integer tenantId) throws ActionMgtException {
 
         Map<String, Integer> actionTypesCountMap = new HashMap<>();
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                     ActionMgtSQLConstants.Query.GET_ACTIONS_COUNT_PER_ACTION_TYPE)) {
-
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTIONS_COUNT_PER_ACTION_TYPE,
+                (resultSet, rowNumber) -> {
                     actionTypesCountMap.put(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE),
                             resultSet.getInt(ActionMgtSQLConstants.Column.ACTION_COUNT));
-                }
-            }
+                    return null;
+                }, statement -> statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId));
+
             return actionTypesCountMap;
-        } catch (SQLException e) {
+        } catch (DataAccessException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTIONS_COUNT_PER_TYPE, e);
         }
@@ -243,14 +220,25 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     @Override
     public Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            Action action = getActionBasicInfoById(dbConnection, actionType, actionId, tenantId);
+        try {
+            Action action = getActionBasicInfoById(actionType, actionId, tenantId);
             if (action != null) {
-                action.setEndpoint(getActionEndpointConfigById(dbConnection, actionId, tenantId));
+                action = new Action.ActionResponseBuilder()
+                        .id(actionId)
+                        .type(Action.ActionTypes.valueOf(actionType))
+                        .name(action.getName())
+                        .description(action.getDescription())
+                        .status(action.getStatus())
+                        .endpoint(getActionEndpointConfigById(actionId, tenantId))
+                        .build();
             }
 
             return action;
-        } catch (SQLException e) {
+        } catch (ActionMgtException | ActionMgtRuntimeException e) {
+            /**
+             * Handling {@link ActionMgtRuntimeException}, which is intentionally thrown to represent underlying
+             * exceptions from the {@link #getActionEndpointConfigById(String, Integer)} method.
+             */
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
         }
@@ -260,9 +248,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     public Action updateActionEndpointAuthProperties(String actionType, String actionId, Authentication authentication,
                                                      int tenantId) throws ActionMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
-        updateActionEndpointAuthProperties(dbConnection, actionId, authentication, tenantId);
-        IdentityDatabaseUtil.closeConnection(dbConnection);
+        updateActionEndpointAuthProperties(actionId, authentication, tenantId);
         return getActionByActionId(actionType, actionId, tenantId);
     }
 
@@ -271,42 +257,41 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                        Authentication currentAuthentication, int tenantId)
             throws ActionMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
-        updateActionEndpoint(dbConnection, actionType, actionId, endpoint, currentAuthentication, tenantId);
-        IdentityDatabaseUtil.closeConnection(dbConnection);
+        updateActionEndpoint(actionId, endpoint, currentAuthentication, tenantId);
         return getActionByActionId(actionType, actionId, tenantId);
     }
 
     /**
      * Update the endpoint authentication properties of an {@link Action} by given Action ID.
      *
-     * @param dbConnection   DB Connection.
      * @param actionId       Action ID.
      * @param authentication Authentication information to be updated.
      * @param tenantId       Tenant Id.
      * @throws ActionMgtServerException If an error occurs while updating the Action endpoint authentication properties.
      */
-    private void updateActionEndpointAuthProperties(Connection dbConnection, String actionId,
-                                                    Authentication authentication, int tenantId)
+    private void updateActionEndpointAuthProperties(String actionId, Authentication authentication, int tenantId)
             throws ActionMgtServerException {
 
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             Map<String, String> nonSecretEndpointProperties = authentication.getProperties().stream()
                     .filter(property -> !property.getIsConfidential())
                     .collect(Collectors.toMap(AuthProperty::getName, AuthProperty::getValue));
-            // Update non-secret endpoint properties.
-            updateActionEndpointProperties(dbConnection, actionId, nonSecretEndpointProperties, tenantId);
-            // Encrypt and update secret endpoint properties.
-            actionSecretProcessor.encryptAssociatedSecrets(authentication, actionId);
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-        } catch (ActionMgtException | SecretManagementException e) {
+
+            jdbcTemplate.withTransaction(template -> {
+                // Update non-secret endpoint properties.
+                updateActionEndpointProperties(actionId, nonSecretEndpointProperties, tenantId);
+                // Encrypt and update secret endpoint properties.
+                actionSecretProcessor.encryptAssociatedSecrets(authentication, actionId);
+                return null;
+            });
+        } catch (TransactionException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action Endpoint Authentication Properties of " +
                                 "Auth type: %s and Action ID: %s in Tenant Domain: %s. Rolling back updated action" +
                                 " endpoint authentication properties.", authentication.getType(), actionId,
                         IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES, e);
         }
@@ -315,36 +300,37 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     /**
      * Update the endpoint information of an {@link Action} by given Action ID.
      *
-     * @param dbConnection          DB Connection.
-     * @param actionType            Action Type.
      * @param actionId              Action ID.
      * @param endpoint              Endpoint information to be updated.
      * @param currentAuthentication Current Action endpoint authentication information.
      * @param tenantId              Tenant Id.
      * @throws ActionMgtServerException If an error occurs while updating the Action endpoint.
      */
-    private void updateActionEndpoint(Connection dbConnection, String actionType, String actionId,
-                                      EndpointConfig endpoint, Authentication currentAuthentication, int tenantId)
-            throws ActionMgtServerException {
+    private void updateActionEndpoint(String actionId, EndpointConfig endpoint, Authentication currentAuthentication,
+                                      int tenantId) throws ActionMgtServerException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTIES)) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTIES,
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                    });
 
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-            statement.executeUpdate();
+                // Add new Endpoint configuration properties.
+                Map<String, String> propertiesMap = getEndpointProperties(endpoint.getUri(),
+                        endpoint.getAuthentication().getType().name(),
+                        endpoint.getAuthentication().getPropertiesWithSecretReferences(actionId));
+                addEndpointProperties(actionId, propertiesMap, tenantId);
+                // Encrypt and add new endpoint properties secrets.
+                actionSecretProcessor.encryptAssociatedSecrets(endpoint.getAuthentication(), actionId);
 
-            // Add new Endpoint configuration properties.
-            addEndpointProperties(dbConnection, actionId, getEndpointProperties(endpoint.getUri(),
-                    endpoint.getAuthentication().getType().name(),
-                    endpoint.getAuthentication().getPropertiesWithSecretReferences(actionId)), tenantId);
-            // Encrypt and add new endpoint properties secrets.
-            actionSecretProcessor.encryptAssociatedSecrets(endpoint.getAuthentication(), actionId);
-
-            // Delete old secrets.
-            actionSecretProcessor.deleteAssociatedSecrets(currentAuthentication, actionId);
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-        } catch (SQLException | ActionMgtException | SecretManagementException e) {
+                // Delete old secrets.
+                actionSecretProcessor.deleteAssociatedSecrets(currentAuthentication, actionId);
+                return null;
+            });
+        } catch (TransactionException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the Action Endpoint Authentication from Auth type: %s" +
                                 " to Auth type: %s of Action ID: %s in Tenant Domain: %s. Rolling back updated" +
@@ -352,7 +338,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         endpoint.getAuthentication().getType(), actionId,
                         IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES, e);
         }
@@ -361,28 +346,32 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     /**
      * Add Action Endpoint properties to the Database.
      *
-     * @param dbConnection       DB Connection.
      * @param actionId           UUID of the created Action.
      * @param endpointProperties Endpoint properties of the Action.
      * @param tenantId           Tenant ID.
      * @throws ActionMgtServerException If an error occurs while adding endpoint properties to the database.
      */
-    private void addEndpointProperties(Connection dbConnection, String actionId,
-                                       Map<String, String> endpointProperties, Integer tenantId)
+    private void addEndpointProperties(String actionId, Map<String, String> endpointProperties, Integer tenantId)
             throws ActionMgtException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.ADD_ACTION_ENDPOINT_PROPERTIES)) {
-
-            for (Map.Entry<String, String> property : endpointProperties.entrySet()) {
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME, property.getKey());
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE, property.getValue());
-                statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        } catch (SQLException e) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeBatchInsert(ActionMgtSQLConstants.Query.ADD_ACTION_ENDPOINT_PROPERTIES,
+                    statement -> {
+                        for (Map.Entry<String, String> property : endpointProperties.entrySet()) {
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME,
+                                    property.getKey());
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE,
+                                    property.getValue());
+                            statement.addBatch();
+                        }
+                    }, null);
+                return null;
+            });
+        } catch (TransactionException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_ADDING_ENDPOINT_PROPERTIES, e);
         }
@@ -391,115 +380,85 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     /**
      * Get Action Basic Info by Action ID.
      *
-     * @param dbConnection DB Connection.
      * @param actionId     UUID of the created Action.
      * @param tenantId     Tenant ID.
      * @return Action Basic Info.
      * @throws ActionMgtException If an error occurs while retrieving action basic info from the database.
      */
-    private Action getActionBasicInfoById(Connection dbConnection, String actionType, String actionId, Integer tenantId)
+    private Action getActionBasicInfoById(String actionType, String actionId, Integer tenantId)
             throws ActionMgtException {
 
-        Action action = null;
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.GET_ACTION_BASIC_INFO_BY_ID)) {
-
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-
-            try (ResultSet rs = statement.executeQuery()) {
-                if (rs.next()) {
-                    action = new Action.ActionResponseBuilder()
-                            .id(actionId)
-                            .type(Action.ActionTypes.valueOf(rs.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
-                            .name(rs.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
-                            .description(rs.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
-                            .status(Action.Status.valueOf(rs.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
-                            .build();
-                }
-            }
-        } catch (SQLException e) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.fetchSingleRecord(ActionMgtSQLConstants.Query.GET_ACTION_BASIC_INFO_BY_ID,
+                (resultSet, rowNumber) -> new Action.ActionResponseBuilder()
+                        .id(actionId)
+                        .type(Action.ActionTypes.valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
+                        .name(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
+                        .description(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
+                        .status(Action.Status.valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
+                        .build(),
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                });
+        } catch (DataAccessException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_BASIC_INFO, e);
         }
-        return action;
     }
 
     /**
      * Get Action Endpoint properties by ID.
      *
-     * @param dbConnection DB Connection.
      * @param actionUUID   UUID of the created Action.
      * @param tenantId     Tenant ID.
      * @return Endpoint Configuration.
-     * @throws ActionMgtServerException If an error occurs while retrieving endpoint properties from the database.
+     * @throws ActionMgtRuntimeException If an error occurs while retrieving endpoint properties from the database.
      */
-    private EndpointConfig getActionEndpointConfigById(Connection dbConnection, String actionUUID, Integer tenantId)
-            throws ActionMgtException {
+    private EndpointConfig getActionEndpointConfigById(String actionUUID, Integer tenantId)
+            throws ActionMgtRuntimeException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.GET_ACTION_ENDPOINT_INFO_BY_ID)) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            Map<String, String> actionEndpointProperties = new HashMap<>();
+            jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTION_ENDPOINT_INFO_BY_ID,
+                (resultSet, rowNumber) -> {
+                    actionEndpointProperties.put(
+                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME),
+                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE));
+                    return null;
+                },
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionUUID);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                });
 
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionUUID);
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-
-            try (ResultSet rs = statement.executeQuery()) {
-
-                String endpointUri = null;
-                Authentication authentication = null;
-                Authentication.Type authnType = null;
-                Map<String, String> authnPropertiesMap = new HashMap<>();
-
-                while (rs.next()) {
-                    String propName = rs.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME);
-                    String propValue = rs.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE);
-
-                    if (propName.equals(ActionMgtConstants.URI_ATTRIBUTE)) {
-                        endpointUri = propValue;
-                    } else if (propName.equals(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)) {
-                        authnType = Authentication.Type.valueOf(propValue);
-                    } else {
-                        // Authentication properties.
-                        authnPropertiesMap.put(propName, propValue);
-                    }
-                }
-
-                if (authnType != null) {
-                    switch (authnType) {
-                        case BASIC:
-                            authentication = new Authentication.BasicAuthBuilder(
-                                    authnPropertiesMap.get(Authentication.Property.USERNAME.getName()),
-                                    authnPropertiesMap.get(Authentication.Property.PASSWORD.getName())).build();
-                            break;
-                        case BEARER:
-                            authentication = new Authentication.BearerAuthBuilder(
-                                    authnPropertiesMap.get(Authentication.Property.ACCESS_TOKEN.getName())).build();
-                            break;
-                        case API_KEY:
-                            authentication = new Authentication.APIKeyAuthBuilder(
-                                    authnPropertiesMap.get(Authentication.Property.HEADER.getName()),
-                                    authnPropertiesMap.get(Authentication.Property.VALUE.getName())).build();
-                            break;
-                        case NONE:
-                            authentication = new Authentication.NoneAuthBuilder().build();
-                            break;
-                        default:
-                            break;
-                    }
-                } else {
-                    ActionMgtConstants.ErrorMessages error =
-                            ActionMgtConstants.ErrorMessages.ERROR_NO_AUTHENTICATION_TYPE;
-                    throw new ActionMgtServerException(error.getMessage(), error.getDescription(), error.getCode());
-                }
-
-                return new EndpointConfig.EndpointConfigBuilder()
-                        .uri(endpointUri)
-                        .authentication(authentication).build();
+            Authentication authentication = null;
+            if (actionEndpointProperties.containsKey(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)) {
+                authentication = new Authentication.AuthenticationBuilder()
+                        .type(Authentication.Type.valueOf(
+                                actionEndpointProperties.get(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)))
+                        .properties(actionEndpointProperties)
+                        .build();
+            } else {
+                throw ActionManagementUtil.handleServerException(
+                        ActionMgtConstants.ErrorMessages.ERROR_NO_AUTHENTICATION_TYPE, null);
             }
-        } catch (SQLException e) {
-            throw ActionManagementUtil.handleServerException(
-                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_ENDPOINT_PROPERTIES, e);
+
+            return new EndpointConfig.EndpointConfigBuilder()
+                    .uri(actionEndpointProperties.get(ActionMgtConstants.URI_ATTRIBUTE))
+                    .authentication(authentication).build();
+        } catch (ActionMgtServerException | DataAccessException e) {
+            /**
+             * Throwing a runtime exception because {@link ActionMgtServerException} and {@link DataAccessException}
+             * is not handled in {@link org.wso2.carbon.database.utils.jdbc.RowMapper} of
+             * {@link NamedJdbcTemplate#executeQuery(String, org.wso2.carbon.database.utils.jdbc.RowMapper,
+             * org.wso2.carbon.database.utils.jdbc.NamedQueryFilter)}
+             */
+            throw ActionManagementUtil.handleRuntimeException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ACTION_ENDPOINT_PROPERTIES.getMessage(), e);
         }
     }
 
@@ -533,27 +492,31 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     /**
      * Update Action Endpoint properties.
      *
-     * @param dbConnection       DB Connection.
      * @param actionId           UUID of the created Action.
      * @param endpointProperties Endpoint Properties to be updated.
      * @param tenantId           Tenant ID.
      */
-    private void updateActionEndpointProperties(Connection dbConnection, String actionId,
-                                                Map<String, String> endpointProperties, Integer tenantId)
-            throws ActionMgtException {
+    private void updateActionEndpointProperties(String actionId, Map<String, String> endpointProperties,
+                                                Integer tenantId) throws ActionMgtException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.UPDATE_ACTION_ENDPOINT_PROPERTIES)) {
-
-            for (Map.Entry<String, String> property : endpointProperties.entrySet()) {
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE, property.getValue());
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
-                statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME, property.getKey());
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        } catch (SQLException e) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeBatchInsert(ActionMgtSQLConstants.Query.UPDATE_ACTION_ENDPOINT_PROPERTIES,
+                    statement -> {
+                        for (Map.Entry<String, String> property : endpointProperties.entrySet()) {
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE,
+                                    property.getValue());
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME,
+                                    property.getKey());
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                            statement.addBatch();
+                        }
+                    }, null);
+                return null;
+            });
+        } catch (TransactionException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ENDPOINT_PROPERTIES, e);
         }
@@ -571,46 +534,70 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private Action changeActionStatus(String actionType, String actionId, String status, Integer tenantId)
             throws ActionMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                ActionMgtSQLConstants.Query.CHANGE_ACTION_STATUS)) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.executeUpdate(ActionMgtSQLConstants.Query.CHANGE_ACTION_STATUS,
+                statement -> {
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS, status);
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                    statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                });
 
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS, status);
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
-            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-            statement.executeUpdate();
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-
-            return getActionBasicInfoById(dbConnection, actionType, actionId, tenantId);
-        } catch (SQLException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Error while updating the Action Status to %s of Action type: %s in " +
-                                "Tenant Domain: %s. Rolling back updated action status.", status, actionType,
-                        IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
+            return getActionBasicInfoById(actionType, actionId, tenantId);
+        } catch (DataAccessException e) {
             throw ActionManagementUtil.handleServerException(
                     ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ACTION_STATUS, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
+        }
+    }
+
+    /**
+     * Update the basic information of an {@link Action} by given Action ID.
+     *
+     * @param actionType     Action Type.
+     * @param actionId       Action ID.
+     * @param updatingAction Information to be updated.
+     * @param existingAction Existing Action information.
+     * @param tenantId       Tenant ID.
+     * @throws ActionMgtServerException If an error occurs while updating the Action basic information.
+     */
+    private void updateBasicInfo(String actionType, String actionId, Action updatingAction, Action existingAction,
+                                 Integer tenantId) throws ActionMgtServerException {
+
+        if (updatingAction.getName() == null && updatingAction.getDescription() == null) {
+            return;
+        }
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.executeUpdate(ActionMgtSQLConstants.Query.UPDATE_ACTION_BASIC_INFO,
+                statement -> {
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME,
+                            updatingAction.getName() == null ? existingAction.getName() : updatingAction.getName());
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
+                            updatingAction.getDescription() == null ? existingAction.getDescription()
+                                    : updatingAction.getDescription());
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                    statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                });
+        } catch (DataAccessException e) {
+            throw ActionManagementUtil.handleServerException(
+                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_UPDATING_ACTION_BASIC_INFO, e);
         }
     }
 
     /**
      * Update the endpoint URI and authentication properties of an {@link Action} by given Action ID.
      *
-     * @param dbConnection   DB Connection.
-     * @param actionType     Action Type.
      * @param actionId       Action ID.
      * @param updatingAction Information to be updated.
      * @param existingAction Existing Action information.
      * @param tenantId       Tenant ID.
      * @throws ActionMgtException If an error occurs while updating the Action endpoint.
      */
-    private void updateEndpointUriAndAuthentication(Connection dbConnection, String actionType, String actionId,
-                                                    Action updatingAction, Action existingAction, Integer tenantId)
-            throws ActionMgtException {
+    private void updateEndpointUriAndAuthentication(String actionId, Action updatingAction, Action existingAction,
+                                                    Integer tenantId) throws ActionMgtException {
 
         EndpointConfig updatingEndpoint = updatingAction.getEndpoint();
         if (updatingEndpoint == null) {
@@ -619,31 +606,30 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
 
         Authentication updatingAuthentication = updatingEndpoint.getAuthentication();
-        Authentication existingAuthentication = existingAction.getEndpoint().getAuthentication();
-        boolean isUriUpdating = !StringUtils.isEmpty(updatingEndpoint.getUri());
-        boolean isAuthUpdating = updatingAuthentication != null;
-        boolean isSameAuthType = isAuthUpdating && updatingAuthentication.getType()
-                .equals(existingAuthentication.getType());
-
-        // Update URI if it's changing.
-        if (isUriUpdating && (!isAuthUpdating || isSameAuthType)) {
-            updateActionEndpointProperties(dbConnection, actionId, getEndpointProperties(updatingEndpoint.getUri(),
-                    null, null), tenantId);
+        if (updatingAuthentication == null) {
+            // When updating action, updates the URI only.
+            updateActionEndpointProperties(actionId, getEndpointProperties(updatingEndpoint.getUri(), null,
+                    null), tenantId);
+            return;
         }
 
-        // If authentication is updating, and it's the same type, update auth properties only;
-        // otherwise, update the entire endpoint.
-        if (isAuthUpdating) {
-            if (isSameAuthType) {
-                updateActionEndpointAuthProperties(dbConnection, actionId, updatingAuthentication, tenantId);
-            } else {
-                updatingEndpoint = isUriUpdating ? updatingEndpoint : new EndpointConfig.EndpointConfigBuilder()
+        Authentication existingAuthentication = existingAction.getEndpoint().getAuthentication();
+        if (updatingAuthentication.getType().equals(existingAuthentication.getType())) {
+            // When updating action, updates the URI and the authentication properties only.
+            if (updatingEndpoint.getUri() != null) {
+                updateActionEndpointProperties(actionId, getEndpointProperties(updatingEndpoint.getUri(), null,
+                        null), tenantId);
+            }
+            updateActionEndpointAuthProperties(actionId, updatingAuthentication, tenantId);
+            return;
+        }
+
+        // When updating action, updates the entire endpoint.
+        updatingEndpoint = StringUtils.isNotEmpty(updatingEndpoint.getUri()) ? updatingEndpoint :
+                new EndpointConfig.EndpointConfigBuilder()
                         .uri(existingAction.getEndpoint().getUri())
                         .authentication(updatingAuthentication)
                         .build();
-                updateActionEndpoint(dbConnection, actionType, actionId, updatingEndpoint, existingAuthentication,
-                        tenantId);
-            }
-        }
+        updateActionEndpoint(actionId, updatingEndpoint, existingAuthentication, tenantId);
     }
 }

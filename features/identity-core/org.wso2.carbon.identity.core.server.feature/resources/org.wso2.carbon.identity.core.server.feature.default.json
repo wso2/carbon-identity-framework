@@ -65,6 +65,7 @@
   "oauth.token_validation.refresh_token_validity": "1d",
   "oauth.timestamp_skew": "0m",
   "oauth.token_renewal.renew_refresh_token": true,
+  "oauth.token_renewal.validate_authenticated_user_for_refresh_grant": false,
   "oauth.enable_password_grant_enhancements": false,
   "oauth.token_renewal.extend_refresh_token_expiry_time_on_renewal": true,
   "oauth.token_renewal.renew_access_token_per_request": false,
@@ -258,7 +259,7 @@
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
-  "oauth.oidc.enable_claims_separation_for_access_tokens": false,
+  "oauth.oidc.enable_claims_separation_for_access_tokens": true,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -368,6 +369,7 @@
   "scim2.consider_max_limit_for_total_results": false,
   "scim2.consider_total_records_for_total_results_of_ldap": false,
   "scim2.user_endpoint_max_items_per_page.enable": true,
+  "scim2.consider_server_wide_user_endpoint_max_limit": true,
 
   "identity_mgt.password_policy.password_policy_validation_handler.enable": true,
   "identity_mgt.recovery.enable_v1_api": false,
@@ -516,11 +518,13 @@
   "idp_role_management.return_manually_added_local_roles": true,
   "outbound_provisioning_management.reset_provisioning_entities_on_config_update": true,
   "outbound_provisioning_management.enable_application_based_outbound_provisioning": false,
+  "outbound_provisioning_management.fail_on_blocking_outbound_provision_failure": false,
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
+  "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
   "authentication.jit_provisioning.enable_enhanced_feature": false,
 
   "application_mgt.enable_role_validation": false,
@@ -600,6 +604,9 @@
   "event.default_listener.organization_discovery_user_operation_listener.enable": true,
   "event.default_listener.organization_user_association_listener.priority": "128",
   "event.default_listener.organization_user_association_listener.enable": true,
+
+  "event.default_listener.provisioning_role_mgt_listener.enable": true,
+  "event.default_listener.provisioning_role_mgt_listener.priority": "999",
 
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,
@@ -1074,6 +1081,43 @@
       "description": "This email is sent to the impersonated user when the impersonation session is started"
     }
   ],
+  "console.extensions.smsTemplates": [
+    {
+      "description": "This SMS is sent when a user registers and needs to confirm their account.",
+      "displayName": "Account Confirmation",
+      "id": "YWNjb3VudGNvbmZpcm1hdGlvbg"
+    },
+    {
+      "description": "This SMS is sent when a user requests to recover their username.",
+      "displayName": "Account ID Recovery",
+      "id": "YWNjb3VudElkUmVjb3Zlcnk"
+    },
+    {
+      "description": "This SMS is sent to notify the user of a successful password reset.",
+      "displayName": "Password Reset Success",
+      "id": "cGFzc3dvcmRSZXNldFN1Y2Vzcw"
+    },
+    {
+      "description": "This SMS is sent when a user initiates a password reset.",
+      "displayName": "Password Reset",
+      "id": "cGFzc3dvcmRSZXNldA"
+    },
+    {
+      "description": "This SMS is sent when a user requests to resend the OTP for password reset.",
+      "displayName": "Resend Password Reset",
+      "id": "cmVzZW5kUGFzc3dvcmRSZXNldA"
+    },
+    {
+      "description": "This SMS is sent to provide a one-time password for verification.",
+      "displayName": "SMS OTP",
+      "id": "U01TT1RQ"
+    },
+    {
+      "description": "This SMS is sent to verify the user's mobile number after an update.",
+      "displayName": "Verify Mobile On Update",
+      "id": "dmVyaWZ5TW9iaWxlT25VcGRhdGU"
+    }
+  ],
   "console.ui.app_copyright": "WSO2 Identity Server",
   "console.ui.is_cookie_consent_banner_enabled": false,
   "console.ui.is_editing_system_roles_allowed": true,
@@ -1190,7 +1234,6 @@
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
     "branding.ai",
-    "branding.applicationLevelBranding",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
@@ -1226,6 +1269,12 @@
   "console.email_templates.scopes.read": ["internal_email_mgt_view"],
   "console.email_templates.scopes.update": ["internal_email_mgt_update"],
   "console.email_templates.scopes.delete": ["internal_email_mgt_delete"],
+  "console.sms_templates.enabled": false,
+  "console.sms_templates.scopes.feature": ["console:smsTemplates"],
+  "console.sms_templates.scopes.create": ["internal_notification_mgt_create"],
+  "console.sms_templates.scopes.read": ["internal_notification_mgt_view"],
+  "console.sms_templates.scopes.update": ["internal_notification_mgt_update"],
+  "console.sms_templates.scopes.delete": ["internal_notification_mgt_delete"],
   "console.event_publishing.enabled": false,
   "console.event_publishing.scopes.feature": ["console:eventPublishing"],
   "console.event_publishing.scopes.create": ["internal_event_config_update"],
@@ -1374,7 +1423,7 @@
       "internal_user_mgt_list",
       "internal_session_view"
   ],
-  "console.secrets_management.enabled": false,
+  "console.secrets_management.enabled": true,
   "console.secrets_management.scopes.feature": [ "console:secretsManagement" ],
   "console.secrets_management.scopes.create": [ "internal_secret_mgt_add" ],
   "console.secrets_management.scopes.read": [ "internal_secret_mgt_view" ],
@@ -1386,9 +1435,23 @@
   "console.server.scopes.read": ["internal_governance_view"],
   "console.server.scopes.update": ["internal_governance_update"],
   "console.server.scopes.delete": [],
+  "console.tenants.enabled": true,
+  "console.tenants.disabled_features": [
+    "tenants.add.tenant.from.dropdown",
+    "tenants.make.default",
+    "tenants.organizations.quick.nav.from.dropdown"
+  ],
+  "console.tenants.scopes.feature": ["console:tenants"],
+  "console.tenants.scopes.create": ["internal_create_tenants"],
+  "console.tenants.scopes.read": ["internal_list_tenants"],
+  "console.tenants.scopes.update": ["internal_modify_tenants"],
+  "console.tenants.scopes.delete": ["internal_modify_tenants"],
   "console.users.scopes.update": ["internal_user_mgt_update", "internal_session_delete"],
   "console.users.scopes.delete": ["internal_user_mgt_delete"],
   "console.user_stores.enabled": true,
+  "console.user_stores.disabled_features": [
+    "userStores.type.remote"
+  ],
   "console.user_stores.scopes.feature": ["console:userstores"],
   "console.user_stores.scopes.create": ["internal_userstore_create"],
   "console.user_stores.scopes.read": ["internal_userstore_view"],
@@ -1579,6 +1642,7 @@
   "tenant_mgt.enable_email_domain": false,
 
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
+  "on_demand_config.on_initial_use.enable_sms_username_recovery_if_connector_enabled": false,
 
   "actions.http_client.connection_timeout": 2000,
   "actions.http_client.read_timeout": 5000,
@@ -1627,6 +1691,8 @@
 
   "oauth.authorize_all_scopes": false,
 
-  "system_applications.system_portals": ["Console", "My Account"]
+  "system_applications.system_portals": ["Console", "My Account"],
+
+  "notification_templates.sms_templates.apply": true
 }
 

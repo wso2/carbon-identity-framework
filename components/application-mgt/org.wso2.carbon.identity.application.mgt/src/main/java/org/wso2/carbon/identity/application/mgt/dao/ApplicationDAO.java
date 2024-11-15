@@ -230,6 +230,20 @@ public interface ApplicationDAO {
         throw new NotImplementedException();
     }
 
+    /**
+     * Retrieve application UUID using the application name.
+     *
+     * @param name         Name of the application
+     * @param tenantDomain Tenant domain of the application
+     * @return Application UUID
+     * @throws IdentityApplicationManagementException
+     */
+    default String getApplicationUUIDByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
     default String addApplication(ServiceProvider application, String tenantDomain)
             throws IdentityApplicationManagementException {
 

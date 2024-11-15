@@ -173,7 +173,6 @@ import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.
 import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.updateOrInsertInbound;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
-import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_MANAGEMENT_ERROR_CODE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -654,6 +653,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
         return basicAppInfo;
+    }
+
+    @Override
+    public String getApplicationUUIDByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting application UUID for name: " + name
+                    + " in tenantDomain: " + tenantDomain);
+        }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationUUIDByName(name, tenantDomain);
     }
 
     /**
@@ -3023,7 +3035,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         validateAuthorization(updatedAppName, storedAppName, username, tenantDomain);
         validateAppName(storedAppName, updatedApp, tenantDomain);
-        validateApplicationCertificate(updatedApp, tenantDomain);
         boolean isValid = isAssociatedRolesConfigValid(updatedApp, tenantDomain);
         if (!isValid) {
             throw new IdentityApplicationManagementClientException(
@@ -3042,17 +3053,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         if (updatedApp.getPermissionAndRoleConfig() != null) {
             ApplicationMgtUtil.updatePermissions(updatedAppName,
                     updatedApp.getPermissionAndRoleConfig().getPermissions());
-        }
-    }
-
-    private void validateApplicationCertificate(ServiceProvider updatedApp,
-                                                String tenantDomain) throws IdentityApplicationManagementException {
-
-        if (!isValidPEMCertificate(updatedApp.getCertificateContent())) {
-            String error = "Provided application certificate for application with name: %s in tenantDomain: %s " +
-                    "is malformed.";
-            throw buildClientException(INVALID_REQUEST,
-                    String.format(error, updatedApp.getApplicationName(), tenantDomain));
         }
     }
 
