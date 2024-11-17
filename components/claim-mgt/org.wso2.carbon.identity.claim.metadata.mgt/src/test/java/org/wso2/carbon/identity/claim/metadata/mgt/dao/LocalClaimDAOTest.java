@@ -15,7 +15,7 @@
  */
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -25,14 +25,18 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
@@ -58,7 +62,7 @@ public class LocalClaimDAOTest {
     Map<String, String> claimProperties2;
     Map<String, String> claimProperties3;
 
-    @BeforeClass
+    @BeforeMethod
     public void initTest() throws Exception {
 
         attributeMapping1 = new AttributeMapping("PRIMARY", "givenname");
@@ -192,5 +196,125 @@ public class LocalClaimDAOTest {
                 },
 
                 };
+    }
+
+    @Test
+    public void testAddLocalClaimWithUniqueProperty() throws Exception {
+
+        // Add claim dialect
+        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+
+        // Add claim
+        localClaim3.getClaimProperties().put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+        localClaimDAO.addLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
+
+        // Retrieve and verify
+        List<LocalClaim> retrievedClaims = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
+        assertNotNull(retrievedClaims, "Retrieved claims should not be null");
+        assertEquals(retrievedClaims.size(), 1, "Should have retrieved exactly one claim");
+
+        LocalClaim retrievedClaim = retrievedClaims.get(0);
+        Map<String, String> retrievedProperties = retrievedClaim.getClaimProperties();
+
+        // Verify property transformation
+        verifyUniqueClaimProperties(retrievedProperties);
+
+        // Clean up
+        localClaimDAO.removeLocalClaim(localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
+        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+    }
+
+    @Test
+    public void testGetLocalClaimsWithUniqueProperty() throws Exception {
+
+        // Add claim dialect
+        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+
+        // Add initial claim
+        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+        localClaimDAO.addLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
+
+        // Get claim ID and add isUnique property directly using ClaimDAO
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            ClaimDAO claimDAO = new ClaimDAO();
+            int claimId = claimDAO.getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
+                    localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
+
+            Map<String, String> uniqueProperty = new HashMap<>();
+            uniqueProperty.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+            claimDAO.addClaimProperties(connection, claimId, uniqueProperty, TEST_LOCAL_TENANT_ID);
+
+            IdentityDatabaseUtil.commitTransaction(connection);
+        }
+
+        // Retrieve and verify
+        List<LocalClaim> retrievedClaims = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
+        assertNotNull(retrievedClaims, "Retrieved claims should not be null");
+        assertEquals(retrievedClaims.size(), 1, "Should have retrieved exactly one claim");
+
+        LocalClaim retrievedClaim = retrievedClaims.get(0);
+        Map<String, String> retrievedProperties = retrievedClaim.getClaimProperties();
+
+        // Verify property transformation
+        verifyUniqueClaimProperties(retrievedProperties);
+
+        // Clean up
+        localClaimDAO.removeLocalClaim(localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
+        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+    }
+
+    @Test
+    public void testUpdateLocalClaimWithUniqueProperty() throws ClaimMetadataException {
+
+        // Setup initial claim without isUnique property
+        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+
+        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+        localClaimDAO.addLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
+
+        // Update claim with isUnique property
+        Map<String, String> updatedProperties = new HashMap<>(localClaim3.getClaimProperties());
+        updatedProperties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+        localClaim3.setClaimProperties(updatedProperties);
+
+        localClaimDAO.updateLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
+
+        // Retrieve and verify
+        List<LocalClaim> retrievedClaims = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
+        assertNotNull(retrievedClaims, "Retrieved claims should not be null");
+        assertEquals(retrievedClaims.size(), 1, "Should have retrieved exactly one claim");
+
+        LocalClaim retrievedClaim = retrievedClaims.get(0);
+        Map<String, String> retrievedProperties = retrievedClaim.getClaimProperties();
+
+        // Verify property transformation
+        verifyUniqueClaimProperties(retrievedProperties);
+
+        // Clean up
+        localClaimDAO.removeLocalClaim(localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
+        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+    }
+
+    /**
+     * Verifies that the claim properties have been correctly transformed for unique claims.
+     *
+     * @param retrievedProperties The map of claim properties to verify
+     */
+    private void verifyUniqueClaimProperties(Map<String, String> retrievedProperties) {
+
+        assertFalse(retrievedProperties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY),
+                "isUnique property should have been removed");
+        assertTrue(retrievedProperties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
+                "UniquenessScope property should have been added");
+        assertEquals(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                retrievedProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
+                "UniquenessScope should be set to ACROSS_USERSTORES");
     }
 }
