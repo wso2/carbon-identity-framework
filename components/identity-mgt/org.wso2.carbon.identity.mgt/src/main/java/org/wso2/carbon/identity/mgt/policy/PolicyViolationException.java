@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,10 @@ public class PolicyViolationException extends IdentityException {
 
     public PolicyViolationException(String message) {
         super(message);
+    }
+
+    public PolicyViolationException(String errorCode, String message) {
+        super(errorCode, message);
     }
 
     public PolicyViolationException(String message, Throwable e) {
