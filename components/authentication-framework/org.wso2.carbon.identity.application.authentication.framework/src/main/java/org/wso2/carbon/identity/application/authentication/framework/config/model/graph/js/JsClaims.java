@@ -434,7 +434,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
                     ((AbstractUserStoreManager) userRealm.getUserStoreManager())
                             .getUserClaimValuesWithID(authenticatedUser.getUserId(), new String[] {claimUri}, null);
             return claimValues.get(claimUri);
-        } catch (UserStoreClientException e){
+        } catch (UserStoreClientException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
             }
