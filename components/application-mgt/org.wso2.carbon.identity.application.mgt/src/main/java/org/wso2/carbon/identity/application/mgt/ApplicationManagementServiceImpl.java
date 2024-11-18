@@ -2931,7 +2931,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         String ownerOrgId = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getOwnerOrgId(sharedAppId);
         if (StringUtils.isBlank(ownerOrgId)) {
-            throw buildServerException("Error while resolving the owner organization for the shared app with id: " +
+            throw buildServerException("Owner organization id cannot be blank for the shared app with id: " +
                     sharedAppId + " in organization: " + orgId);
         }
 
