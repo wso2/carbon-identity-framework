@@ -436,7 +436,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
             return claimValues.get(claimUri);
         } catch (UserStoreClientException e){
             if (LOG.isDebugEnabled()) {
-                LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
+                LOG.debug(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
             }
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
