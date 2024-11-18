@@ -1604,6 +1604,16 @@
             Supported versions : IS 7.1.0 onwards
         -->
         <ConsiderServerWideUserEndpointMaxLimit>{{scim2.consider_server_wide_user_endpoint_max_limit}}</ConsiderServerWideUserEndpointMaxLimit>
+
+        <!--
+            If you want to get the error code appended to the password policy violation error detail,
+            then enable this property value.
+            Default value : false
+            Supported versions : IS 6.0.0 onwards
+        -->
+        {% if scim2.enable_error_code_for_password_policy_violations is defined %}
+            <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
+        {% endif %}
     </SCIM2>
 
       <PasswordPolicy>
