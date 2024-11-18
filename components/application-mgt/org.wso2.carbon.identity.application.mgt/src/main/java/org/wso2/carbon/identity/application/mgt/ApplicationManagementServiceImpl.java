@@ -2930,6 +2930,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         String ownerOrgId = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getOwnerOrgId(sharedAppId);
+        if (StringUtils.isBlank(ownerOrgId)) {
+            throw buildServerException("Error while resolving the owner organization for the shared app with id: " +
+                    sharedAppId + " in organization: " + orgId);
+        }
+
         Map<String, String> ancestorAppIds = new HashMap<>();
         // Add main app to the map.
         ancestorAppIds.put(ownerOrgId, mainAppId);
