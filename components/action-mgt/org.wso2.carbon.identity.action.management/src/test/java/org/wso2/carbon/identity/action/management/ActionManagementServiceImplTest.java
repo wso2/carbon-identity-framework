@@ -44,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_PATH;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.SAMPLE_ACCESS_TOKEN;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_DOMAIN;
 
 /**
@@ -280,6 +281,36 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 12)
+    public void testUpdateEndpointConfigWithSameAuthenticationType() throws ActionMgtException,
+            SecretManagementException {
+
+        Authentication authentication = TestUtil.buildMockAPIKeyAuthentication("newheader", "newvalue");
+        Action result = actionManagementService.updateActionEndpointAuthentication(
+                PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), authentication, TENANT_DOMAIN);
+        Assert.assertEquals(Authentication.Type.API_KEY, result.getEndpoint().getAuthentication().getType());
+        Assert.assertEquals(authentication.getProperty(Authentication.Property.HEADER).getValue(),
+                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue());
+        secretProperties = mapActionAuthPropertiesWithSecrets(result);
+        Assert.assertEquals(
+                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.VALUE).getValue(),
+                secretProperties.get(Authentication.Property.VALUE.getName()));
+    }
+
+    @Test(priority = 13)
+    public void testUpdateEndpointConfigWithDifferentAuthenticationType()
+            throws ActionMgtException, SecretManagementException {
+
+        Authentication authentication = TestUtil.buildMockBearerAuthentication(SAMPLE_ACCESS_TOKEN);
+        Action result = actionManagementService.updateActionEndpointAuthentication(
+                PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), authentication, TENANT_DOMAIN);
+        Assert.assertEquals(Authentication.Type.BEARER, result.getEndpoint().getAuthentication().getType());
+        secretProperties = mapActionAuthPropertiesWithSecrets(result);
+        Assert.assertEquals(
+                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
+                secretProperties.get(Authentication.Property.ACCESS_TOKEN.getName()));
+    }
+
+    @Test(priority = 14)
     public void testDeleteAction() throws ActionMgtException {
 
         actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(),

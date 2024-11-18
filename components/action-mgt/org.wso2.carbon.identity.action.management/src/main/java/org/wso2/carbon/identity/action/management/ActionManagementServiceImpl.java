@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtClientExcep
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionManagementAuditLogger;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
 import org.wso2.carbon.identity.action.management.util.ActionValidator;
@@ -49,7 +50,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             new CacheBackedActionMgtDAO(new ActionManagementDAOImpl());
     private static final ActionValidator ACTION_VALIDATOR = new ActionValidator();
     private static final ActionManagementAuditLogger auditLogger = new ActionManagementAuditLogger();
-    private static final ActionSecretProcessor ACTION_SECRET_PROCESSOR = new ActionSecretProcessor();
 
     private ActionManagementServiceImpl() {
     }
@@ -233,6 +233,33 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Retrieving Action of Action ID: %s", actionId));
         }
         return CACHE_BACKED_DAO.getActionByActionId(getActionTypeFromPath(actionType), actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * Update endpoint authentication of a given action.
+     *
+     * @param actionType     Action type.
+     * @param actionId       Action ID.
+     * @param authentication Authentication Information to be updated.
+     * @param tenantDomain   Tenant domain.
+     * @return Updated action.
+     * @throws ActionMgtException if an error occurred while updating endpoint authentication information.
+     */
+    @Override
+    public Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
+                                                     String tenantDomain) throws ActionMgtException {
+
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        Action existingAction = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
+        doEndpointAuthenticationValidation(authentication);
+
+        Action updatingAction = new Action.ActionRequestBuilder()
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .authentication(authentication)
+                        .build())
+                .build();
+        return CACHE_BACKED_DAO.updateAction(resolvedActionType, actionId, updatingAction, existingAction,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 

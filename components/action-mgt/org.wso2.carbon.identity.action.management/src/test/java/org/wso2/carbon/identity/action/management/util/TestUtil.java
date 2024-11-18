@@ -43,6 +43,7 @@ public class TestUtil {
 
     public static final String PRE_ISSUE_ACCESS_TOKEN_ACTION_ID = String.valueOf(UUID.randomUUID());
     public static final String PRE_UPDATE_PASSWORD_ACTION_ID = String.valueOf(UUID.randomUUID());
+    public static final String SAMPLE_ACCESS_TOKEN = "5e482c2a-e83a-3afe-bc6a-ff79e1fdaaba";
     public static final String CERTIFICATE_ID = String.valueOf(UUID.randomUUID());
     public static final String CERTIFICATE_NAME = "ACTIONS:" + PRE_UPDATE_PASSWORD_ACTION_ID;
     public static final String CERTIFICATE = "sample-certificate";
