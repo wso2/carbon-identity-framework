@@ -625,7 +625,7 @@ public class IdPManagementConstants {
         ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
                 "provided authenticator Id %s."),
         ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN("IDP-60013", "Federated authenticator name %s" +
-                "is already taken."),
+                " is already taken."),
         ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Federated authenticator name does not match the" +
                 " regex pattern %s."),
 

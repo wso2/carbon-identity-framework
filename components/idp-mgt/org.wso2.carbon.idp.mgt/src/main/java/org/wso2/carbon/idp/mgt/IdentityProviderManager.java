@@ -62,6 +62,7 @@ import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
+import org.wso2.carbon.idp.mgt.util.UserDefinedAuthenticatorEndpointConfigManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -99,6 +100,8 @@ public class IdentityProviderManager implements IdpManager {
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
     private final Pattern userDefinedAuthNameRegexPattern =
             Pattern.compile(IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
+    private final UserDefinedAuthenticatorEndpointConfigManager endpointConfigurationManager =
+            new UserDefinedAuthenticatorEndpointConfigManager();
 
     private IdentityProviderManager() {
 
@@ -832,6 +835,7 @@ public class IdentityProviderManager implements IdpManager {
                         IdentityApplicationConstants.DEFAULT_IDP_CONFIG);
             }
         }
+        populateEndpointConfig(identityProvider, tenantDomain);
 
         return identityProvider;
     }
@@ -865,6 +869,7 @@ public class IdentityProviderManager implements IdpManager {
                         IdentityApplicationConstants.DEFAULT_IDP_CONFIG);
             }
         }
+        populateEndpointConfig(identityProvider, tenantDomain);
 
         return identityProvider;
     }
@@ -876,6 +881,7 @@ public class IdentityProviderManager implements IdpManager {
         validateGetIdPInputValues(resourceId);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         IdentityProvider identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+        populateEndpointConfig(identityProvider, tenantDomain);
         if (identityProvider == null) {
             identityProvider = new FileBasedIdPMgtDAO().getIdPByResourceId(resourceId, tenantDomain);
             if (identityProvider == null) {
@@ -920,6 +926,7 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         IdentityProvider idp = getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps);
+        populateEndpointConfig(idp, tenantDomain);
         if (idp != null && idp.isEnable()) {
             return idp;
         }
@@ -970,6 +977,7 @@ public class IdentityProviderManager implements IdpManager {
 
         IdentityProvider identityProvider = dao.getIdPByAuthenticatorPropertyValue(
                 null, property, value, tenantId, tenantDomain);
+        populateEndpointConfig(identityProvider, tenantDomain);
 
         if (identityProvider == null && !ignoreFileBasedIdps) {
             identityProvider = new FileBasedIdPMgtDAO()
@@ -1001,6 +1009,7 @@ public class IdentityProviderManager implements IdpManager {
 
         IdentityProvider identityProvider = dao.getIdPByAuthenticatorPropertyValue(
                 null, property, value, authenticator, tenantId, tenantDomain);
+        populateEndpointConfig(identityProvider, tenantDomain);
 
         if (identityProvider == null && !ignoreFileBasedIdps) {
             identityProvider = new FileBasedIdPMgtDAO()
@@ -1531,8 +1540,18 @@ public class IdentityProviderManager implements IdpManager {
 
         handleMetadata(tenantId, identityProvider);
         resolveAuthenticatorDefinedByProperty(identityProvider, true);
-        String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
+
+        String resourceId;
+        addEndpointConfig(identityProvider, tenantDomain);
+        try {
+            resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            deleteEndpointConfig(identityProvider, tenantDomain);
+            throw e;
+        }
+
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+        populateEndpointConfig(identityProvider, tenantDomain);
 
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1593,7 +1612,7 @@ public class IdentityProviderManager implements IdpManager {
         if (identityProvider == null) {
             return;
         }
-        deleteIDP(identityProvider.getResourceId(), idPName, tenantDomain);
+        deleteIDP(identityProvider, tenantDomain);
 
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1659,7 +1678,7 @@ public class IdentityProviderManager implements IdpManager {
         if (identityProvider == null) {
             return;
         }
-        deleteIDP(resourceId, identityProvider.getIdentityProviderName(), tenantDomain);
+        deleteIDP(identityProvider, tenantDomain);
 
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1689,20 +1708,27 @@ public class IdentityProviderManager implements IdpManager {
     /**
      * Delete an IDP.
      *
-     * @param resourceId Resource Id
-     * @param idpName Name of the IDP
+     * @param identityProvider Identity Provider
      * @param tenantDomain Tenant Domain
      * @throws IdentityProviderManagementException
      */
-    private void deleteIDP(String resourceId, String idpName, String tenantDomain) throws
+    private void deleteIDP(IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
         // Delete metadata strings of the IDP
-        deleteMetadataStrings(idpName, tenantId);
+        deleteMetadataStrings(identityProvider.getIdentityProviderName(), tenantId);
 
-        dao.deleteIdPByResourceId(resourceId, tenantId, tenantDomain);
+        deleteEndpointConfig(identityProvider, tenantDomain);
+
+        try {
+            dao.deleteIdPByResourceId(identityProvider.getResourceId(), tenantId, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            addEndpointConfig(identityProvider, tenantDomain);
+            throw e;
+        }
+
     }
 
     /**
@@ -1730,7 +1756,7 @@ public class IdentityProviderManager implements IdpManager {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_NAME_DOES_NOT_EXIST, idpName);
         }
-        forceDeleteIDP(identityProvider.getResourceId(), idpName, tenantDomain);
+        forceDeleteIDP(identityProvider, tenantDomain);
 
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1763,7 +1789,7 @@ public class IdentityProviderManager implements IdpManager {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
         }
-        forceDeleteIDP(resourceId, identityProvider.getIdentityProviderName(), tenantDomain);
+        forceDeleteIDP(identityProvider, tenantDomain);
 
         // Invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1774,17 +1800,23 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    private void forceDeleteIDP(String resourceId, String idpName, String tenantDomain) throws
+    private void forceDeleteIDP(IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         for (MetadataConverter metadataConverter : IdpMgtServiceComponentHolder.getInstance().getMetadataConverters()) {
-            if (metadataConverter.canDelete(tenantId, idpName)) {
-                metadataConverter.deleteMetadataString(tenantId, idpName);
+            if (metadataConverter.canDelete(tenantId, identityProvider.getIdentityProviderName())) {
+                metadataConverter.deleteMetadataString(tenantId, identityProvider.getIdentityProviderName());
             }
         }
 
-        dao.forceDeleteIdPByResourceId(resourceId, tenantId, tenantDomain);
+        deleteEndpointConfig(identityProvider, tenantDomain);
+        try {
+            dao.forceDeleteIdPByResourceId(identityProvider.getResourceId(), tenantId, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            addEndpointConfig(identityProvider, tenantDomain);
+            throw e;
+        }
     }
 
     /**
@@ -1855,7 +1887,6 @@ public class IdentityProviderManager implements IdpManager {
 
         newIdentityProvider.setTrustedTokenIssuer(isTrustedTokenIssuer(newIdentityProvider));
         validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
-        validateFederatedAuthenticatorConfigName(newIdentityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
 
         // Invoking the post listeners.
@@ -1865,7 +1896,9 @@ public class IdentityProviderManager implements IdpManager {
                 return null;
             }
         }
-        return dao.getUpdatedIdPByResourceId(resourceId, tenantId, tenantDomain);
+        IdentityProvider identityProvider = dao.getUpdatedIdPByResourceId(resourceId, tenantId, tenantDomain);
+        populateEndpointConfig(identityProvider, tenantDomain);
+        return identityProvider;
     }
 
     private void updateIDP(IdentityProvider currentIdentityProvider, IdentityProvider newIdentityProvider, int tenantId,
@@ -1882,7 +1915,14 @@ public class IdentityProviderManager implements IdpManager {
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
         resolveAuthenticatorDefinedByProperty(newIdentityProvider, false);
-        dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
+        updateEndpointConfig(newIdentityProvider, currentIdentityProvider, tenantDomain);
+        try {
+            dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            updateEndpointConfig(currentIdentityProvider, newIdentityProvider, tenantDomain);
+            throw e;
+        }
+
     }
 
     /**
@@ -2663,6 +2703,9 @@ public class IdentityProviderManager implements IdpManager {
         Map<String, List<String>> metaFedAuthConfigMap = new HashMap<>();
         FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
         for (FederatedAuthenticatorConfig metaFedAuthConfig : metaFedAuthConfigs) {
+            if (metaFedAuthConfig.getDefinedByType() == DefinedByType.USER) {
+                continue;
+            }
             List<String> secretProperties = new ArrayList<>();
             for (Property property : metaFedAuthConfig.getProperties()) {
                 if (property.isConfidential()) {
@@ -2744,5 +2787,57 @@ public class IdentityProviderManager implements IdpManager {
                 federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
             }
         }
+    }
+
+    private void populateEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
+            throws AuthenticatorEndpointConfigServerException {
+
+        if (identityProvider == null || identityProvider.getFederatedAuthenticatorConfigs().length != 1) {
+            return;
+        }
+        endpointConfigurationManager.resolveEndpointConfig(identityProvider.getFederatedAuthenticatorConfigs()[0],
+                tenantDomain);
+    }
+
+    private void addEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
+            throws AuthenticatorEndpointConfigServerException {
+
+        if (identityProvider == null || identityProvider.getFederatedAuthenticatorConfigs().length != 1) {
+            return;
+        }
+        endpointConfigurationManager.addEndpointConfig(identityProvider.getFederatedAuthenticatorConfigs()[0],
+                tenantDomain);
+    }
+
+    private void updateEndpointConfig(IdentityProvider newIdentityProvider, IdentityProvider oldIdentityProvider,
+                                      String tenantDomain)
+            throws AuthenticatorEndpointConfigServerException {
+
+        if (newIdentityProvider == null || newIdentityProvider.getFederatedAuthenticatorConfigs().length != 1) {
+            return;
+        }
+        FederatedAuthenticatorConfig newFederatedAuth = newIdentityProvider.getFederatedAuthenticatorConfigs()[0];
+        FederatedAuthenticatorConfig oldFederatedAuth = oldIdentityProvider.getFederatedAuthenticatorConfigs()[0];
+        if (newFederatedAuth.getDefinedByType() == DefinedByType.SYSTEM) {
+            return;
+        }
+
+        if (StringUtils.equals(newFederatedAuth.getName(), oldFederatedAuth.getName())) {
+            endpointConfigurationManager.updateEndpointConfig(newIdentityProvider.getFederatedAuthenticatorConfigs()[0],
+                    oldIdentityProvider.getFederatedAuthenticatorConfigs()[0],
+                    tenantDomain);
+        }
+        endpointConfigurationManager.deleteEndpointConfig(oldFederatedAuth, tenantDomain);
+        endpointConfigurationManager.addEndpointConfig(newFederatedAuth, tenantDomain);
+    }
+
+    private void deleteEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
+            throws AuthenticatorEndpointConfigServerException {
+
+        if (identityProvider == null || identityProvider.getFederatedAuthenticatorConfigs().length != 1) {
+            return;
+        }
+        endpointConfigurationManager.deleteEndpointConfig(identityProvider.getFederatedAuthenticatorConfigs()[0],
+                tenantDomain);
     }
 }
