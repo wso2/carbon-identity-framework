@@ -42,6 +42,7 @@ public class ClaimConstants {
     public static final String EXCLUDED_USER_STORES_PROPERTY = "ExcludedUserStores";
     public static final String MIN_LENGTH = "minLength";
     public static final String MAX_LENGTH = "maxLength";
+    public static final String IS_SYSTEM_CLAIM = "isSystemClaim";
 
     /**
      * Enum for error messages.
