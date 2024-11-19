@@ -1704,6 +1704,18 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertEquals(resolvedAncestorAppIds.get(ROOT_ORG_ID), rootAppId);
     }
 
+    @Test(groups = "b2b-shared-apps", priority = 16, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetAncestorAppIdsOfInvalidApp() throws Exception {
+
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenReturn(ROOT_TENANT_DOMAIN);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds("invalid-app-id", ROOT_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 0);
+    }
+
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
 
         serviceProvider.setDescription("Created for testing");
