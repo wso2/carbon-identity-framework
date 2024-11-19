@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimPropertyDTO;
@@ -26,17 +28,22 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.claim.ClaimKey;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
+import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 
 /**
  * Utility class containing various claim metadata implementation related functionality.
@@ -317,5 +324,79 @@ public class ClaimMetadataUtils {
         claimMapping.getClaim().setDialectURI(externalClaim.getClaimDialectURI());
         claimMapping.getClaim().setClaimUri(externalClaim.getClaimURI());
         return claimMapping;
+    }
+
+    /**
+     * This method is used to build system default claims from claim config.
+     *
+     * @param claimConfig Claim Mapping
+     * @return Claim Dialect
+     */
+    public static Map<String, List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim>> getClaimsMapFromClaimConfig
+            (ClaimConfig claimConfig) {
+
+        Map<String, List<org.wso2.carbon.identity.claim.metadata.mgt.model.Claim>> claims = new HashMap<>();
+        if (claimConfig != null && MapUtils.isNotEmpty(claimConfig.getClaimMap())) {
+            for (Map.Entry<ClaimKey, ClaimMapping> entry : claimConfig.getClaimMap().entrySet()) {
+                ClaimKey claimKey = entry.getKey();
+                ClaimMapping claimMapping = entry.getValue();
+                String claimDialectURI = claimKey.getDialectUri();
+                org.wso2.carbon.identity.claim.metadata.mgt.model.Claim claim;
+
+                if (LOCAL_CLAIM_DIALECT_URI.equals(claimDialectURI)) {
+                    claim = createLocalClaim(claimKey, claimMapping,
+                            filterClaimProperties(claimConfig.getPropertyHolderMap().get(claimKey)));
+                } else {
+                    claim = createExternalClaim(claimKey, claimConfig.getPropertyHolderMap().get(claimKey));
+                }
+                claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
+            }
+        }
+        return claims;
+    }
+
+    public static Map<String, String> filterClaimProperties(Map<String, String> claimProperties) {
+
+        claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
+        claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
+        claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
+        claimProperties.remove(ClaimConstants.IS_SYSTEM_CLAIM);
+
+        claimProperties.putIfAbsent(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
+        claimProperties.computeIfPresent(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY,
+                (k, v) -> StringUtils.isBlank(v) ? "true" : v);
+        claimProperties.computeIfPresent(ClaimConstants.READ_ONLY_PROPERTY,
+                (k, v) -> StringUtils.isBlank(v) ? "true" : v);
+        claimProperties.computeIfPresent(ClaimConstants.REQUIRED_PROPERTY,
+                (k, v) -> StringUtils.isBlank(v) ? "true" : v);
+        return claimProperties;
+    }
+
+    private static LocalClaim createLocalClaim(ClaimKey claimKey, ClaimMapping claimMapping,
+                                               Map<String, String> claimProperties) {
+
+        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+        List<AttributeMapping> mappedAttributes = new ArrayList<>();
+        if (StringUtils.isNotBlank(claimMapping.getMappedAttribute())) {
+            mappedAttributes
+                    .add(new AttributeMapping(primaryDomainName, claimMapping.getMappedAttribute()));
+        }
+
+        if (claimMapping.getMappedAttributes() != null) {
+            for (Map.Entry<String, String> claimMappingEntry : claimMapping.getMappedAttributes()
+                    .entrySet()) {
+                mappedAttributes.add(new AttributeMapping(claimMappingEntry.getKey(),
+                        claimMappingEntry.getValue()));
+            }
+        }
+        return new LocalClaim(claimKey.getClaimUri(), mappedAttributes, claimProperties);
+    }
+
+    private static ExternalClaim createExternalClaim(ClaimKey claimKey, Map<String, String> claimProperties) {
+
+        String mappedLocalClaimURI = claimProperties.get(ClaimConstants.MAPPED_LOCAL_CLAIM_PROPERTY);
+        Map<String, String> filteredClaimProperties = filterClaimProperties(claimProperties);
+        return new ExternalClaim(claimKey.getDialectUri(), claimKey.getClaimUri(),
+                mappedLocalClaimURI, filteredClaimProperties);
     }
 }
