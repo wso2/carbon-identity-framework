@@ -141,15 +141,14 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
     private UserDefinedAuthenticatorEndpointConfig buildUserDefinedAuthenticatorEndpointConfig(
             EndpointConfig endpointConfig) {
 
-        UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder =
-                new UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder();
-        endpointConfigBuilder.uri(endpointConfig.getUri());
-        endpointConfigBuilder.authenticationType(endpointConfig.getAuthentication().getType().getName());
         Map<String, String> propMap = new HashMap<>();
         endpointConfig.getAuthentication().getProperties()
                 .forEach(prop -> propMap.put(prop.getName(), prop.getValue()));
-        endpointConfigBuilder.authenticationProperties(propMap);
-        return endpointConfigBuilder.build();
+        return new UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder()
+                .uri(endpointConfig.getUri())
+                .authenticationType(endpointConfig.getAuthentication().getType().getName())
+                .authenticationProperties(propMap)
+                .build();
     }
 
     /**

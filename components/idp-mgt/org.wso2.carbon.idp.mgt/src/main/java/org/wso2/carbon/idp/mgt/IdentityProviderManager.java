@@ -1503,8 +1503,8 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         markConfidentialPropertiesUsingMetadata(identityProvider);
-        validateFederatedAuthenticatorConfigName(identityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        validateFederatedAuthenticatorConfigName(identityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         validateOutboundProvisioningRoles(identityProvider, tenantDomain);
 
         // Invoking the pre listeners.
