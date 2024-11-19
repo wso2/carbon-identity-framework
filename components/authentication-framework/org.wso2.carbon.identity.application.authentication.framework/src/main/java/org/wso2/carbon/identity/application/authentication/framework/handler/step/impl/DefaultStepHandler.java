@@ -930,8 +930,10 @@ public class DefaultStepHandler implements StepHandler {
                         equals(errorContext.getErrorCode()) && !(rootCause instanceof UserStoreClientException) &&
                         !IdentityCoreConstants.USER_ACCOUNT_LOCKED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
                         !IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE.equals(errorContext.getErrorCode()) &&
-                        !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE
-                        .equals(errorContext.getErrorCode())) {
+                        !IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE.equals(
+                                errorContext.getErrorCode()) &&
+                        !IdentityCoreConstants.USERNAME_PARAMETER_NOT_FOUND_ERROR_CODE.equals(
+                                errorContext.getErrorCode())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Authentication failed exception!", e);
                     }
