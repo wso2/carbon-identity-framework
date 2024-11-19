@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.mgt.constants;
 
 /**
- * Password policy violation related constants
+ * Password policy violation related constants.
  */
 public class PasswordPolicyStatusCodes {
 
