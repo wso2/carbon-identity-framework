@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
-import org.wso2.carbon.idp.mgt.AuthenticatorEndpointConfigServerException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 
@@ -47,12 +47,12 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      *
      * @param config        The federated application authenticator configuration.
      * @param tenantDomain      The id of Tenant domain.
-     * @throws AuthenticatorEndpointConfigServerException If an error occurs while adding the action.
+     * @throws IdentityProviderManagementServerException If an error occurs while adding the action.
      */
     public void addEndpointConfig(FederatedAuthenticatorConfig config, String tenantDomain)
-            throws AuthenticatorEndpointConfigServerException {
+            throws IdentityProviderManagementServerException {
 
-        if (config.getDefinedByType() == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
+        if (config.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return;
         }
 
@@ -70,7 +70,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             config.setProperties(new Property[]{endpointProperty});
         } catch (ActionMgtException e) {
             ErrorMessage error = ErrorMessage.ERROR_CODE_ADDING_ENDPOINT_CONFIG;
-            throw new AuthenticatorEndpointConfigServerException(error.getCode(), String.format(error.getMessage(),
+            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
                     config.getName()), e);
         }
     }
@@ -81,12 +81,12 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @param newConfig        The federated application authenticator configuration to be updated.
      * @param oldConfig        The current federated application authenticator configuration.
      * @param tenantDomain         The id of Tenant domain.
-     * @throws AuthenticatorEndpointConfigServerException If an error occurs while updating associated action.
+     * @throws IdentityProviderManagementServerException If an error occurs while updating associated action.
      */
     public void updateEndpointConfig(FederatedAuthenticatorConfig newConfig, FederatedAuthenticatorConfig oldConfig,
-                                       String tenantDomain) throws AuthenticatorEndpointConfigServerException {
+                                       String tenantDomain) throws IdentityProviderManagementServerException {
 
-        if (oldConfig.getDefinedByType() == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
+        if (oldConfig.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return;
         }
 
@@ -101,7 +101,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             newConfig.setProperties(oldConfig.getProperties());
         } catch (ActionMgtException e) {
             ErrorMessage error = ErrorMessage.ERROR_CODE_UPDATING_ENDPOINT_CONFIG;
-            throw new AuthenticatorEndpointConfigServerException(error.getCode(), String.format(error.getMessage(),
+            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
                     newConfig.getName()), e);
         }
     }
@@ -112,12 +112,12 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @param config        The federated application authenticator configuration.
      * @param tenantDomain      The id of Tenant domain.
      * @return Federated authenticator with endpoint configurations resolved.
-     * @throws AuthenticatorEndpointConfigServerException If an error occurs retrieving updating associated action.
+     * @throws IdentityProviderManagementServerException If an error occurs retrieving updating associated action.
      */
     public FederatedAuthenticatorConfig resolveEndpointConfig(FederatedAuthenticatorConfig config,
-                        String tenantDomain) throws AuthenticatorEndpointConfigServerException {
+                        String tenantDomain) throws IdentityProviderManagementServerException {
 
-        if (config.getDefinedByType() == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
+        if (config.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return config;
         }
 
@@ -133,7 +133,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             return castedConfig;
         } catch (ActionMgtException e) {
             ErrorMessage error = ErrorMessage.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG;
-            throw new AuthenticatorEndpointConfigServerException(error.getCode(), String.format(error.getMessage(),
+            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
                     config.getName()), e);
         }
     }
@@ -157,12 +157,12 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @param config                The federated application authenticator configuration.
      * @param tenantDomain              The id of Tenant domain.
      *
-     * @throws AuthenticatorEndpointConfigServerException If an error occurs while deleting associated action.
+     * @throws IdentityProviderManagementServerException If an error occurs while deleting associated action.
      */
     public void deleteEndpointConfig(FederatedAuthenticatorConfig config, String tenantDomain) throws
-            AuthenticatorEndpointConfigServerException {
+            IdentityProviderManagementServerException {
 
-        if (config.getDefinedByType() == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
+        if (config.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return;
         }
 
@@ -174,7 +174,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                                           tenantDomain);
         } catch (ActionMgtException e) {
             ErrorMessage error = ErrorMessage.ERROR_CODE_DELETING_ENDPOINT_CONFIG;
-            throw new AuthenticatorEndpointConfigServerException(error.getCode(), String.format(error.getMessage(),
+            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
                     config.getName()), e);
         }
     }
@@ -199,13 +199,13 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
     }
 
     private String getActionIdFromProperty(Property[] properties, String authenticatorName)
-            throws AuthenticatorEndpointConfigServerException {
+            throws IdentityProviderManagementServerException {
 
         return Arrays.stream(properties)
                 .filter(property -> ACTION_ID_PROPERTY.equals(property.getName()))
                 .map(Property::getValue)
                 .findFirst()
-                .orElseThrow(() -> new AuthenticatorEndpointConfigServerException(
+                .orElseThrow(() -> new IdentityProviderManagementServerException(
                         "No action Id was found in the properties of the authenticator configurations for the " +
                                 "authenticator: " + authenticatorName));
     }

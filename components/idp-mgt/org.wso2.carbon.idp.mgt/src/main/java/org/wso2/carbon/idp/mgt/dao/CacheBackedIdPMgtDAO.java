@@ -56,7 +56,7 @@ public class CacheBackedIdPMgtDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedIdPMgtDAO.class);
 
-    private IdPManagementDAO idPMgtDAO = null;
+    private IdPManagementFacade idPManagementFacade = null;
 
     private IdPCacheByName idPCacheByName = null;
     private IdPCacheByHRI idPCacheByHRI = null;
@@ -68,7 +68,7 @@ public class CacheBackedIdPMgtDAO {
      * @param idPMgtDAO
      */
     public CacheBackedIdPMgtDAO(IdPManagementDAO idPMgtDAO) {
-        this.idPMgtDAO = idPMgtDAO;
+        idPManagementFacade = new IdPManagementFacade(idPMgtDAO);
         idPCacheByName = IdPCacheByName.getInstance();
         idPCacheByHRI = IdPCacheByHRI.getInstance();
         idPCacheByAuthProperty = IdPCacheByAuthProperty.getInstance();
@@ -86,7 +86,7 @@ public class CacheBackedIdPMgtDAO {
     public List<IdentityProvider> getIdPs(Connection dbConnection, int tenantId,
                                           String tenantDomain) throws IdentityProviderManagementException {
 
-        return idPMgtDAO.getIdPs(dbConnection, tenantId, tenantDomain);
+        return idPManagementFacade.getIdPs(dbConnection, tenantId, tenantDomain);
     }
 
     /**
@@ -100,7 +100,7 @@ public class CacheBackedIdPMgtDAO {
     public List<IdentityProvider> getIdPsSearch(Connection dbConnection,
             int tenantId, String tenantDomain, String filter)
 			throws IdentityProviderManagementException {
-		return idPMgtDAO.getIdPsSearch(dbConnection, tenantId, tenantDomain,
+		return idPManagementFacade.getIdPsSearch(dbConnection, tenantId, tenantDomain,
 				filter);
 	}
 
@@ -121,7 +121,7 @@ public class CacheBackedIdPMgtDAO {
                                                          int limit, int offset, String sortOrder, String sortBy)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        return idPMgtDAO.getIdPsSearch(tenantId, expressionConditions, limit, offset, sortOrder, sortBy);
+        return idPManagementFacade.getIdPsSearch(tenantId, expressionConditions, limit, offset, sortOrder, sortBy);
     }
 
     /**
@@ -144,7 +144,7 @@ public class CacheBackedIdPMgtDAO {
                                                          List<String> requiredAttributes)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        return idPMgtDAO
+        return idPManagementFacade
                 .getIdPsSearch(tenantId, expressionConditions, limit, offset, sortOrder, sortBy, requiredAttributes);
     }
 
@@ -168,7 +168,7 @@ public class CacheBackedIdPMgtDAO {
                                                                         List<String> requiredAttributes)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        return idPMgtDAO.getTrustedTokenIssuerSearch(tenantId, expressionConditions, limit, offset, sortOrder,
+        return idPManagementFacade.getTrustedTokenIssuerSearch(tenantId, expressionConditions, limit, offset, sortOrder,
                 sortBy, requiredAttributes);
     }
 
@@ -184,7 +184,7 @@ public class CacheBackedIdPMgtDAO {
     public int getTotalIdPCount(int tenantId, List<ExpressionNode> expressionConditions)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        return idPMgtDAO.getCountOfFilteredIdPs(tenantId, expressionConditions);
+        return idPManagementFacade.getCountOfFilteredIdPs(tenantId, expressionConditions);
     }
 
     /**
@@ -199,7 +199,7 @@ public class CacheBackedIdPMgtDAO {
     public int getTotalTrustedTokenIssuerCount(int tenantId, List<ExpressionNode> expressionConditions)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        return idPMgtDAO.getCountOfFilteredTokenIssuers(tenantId, expressionConditions);
+        return idPManagementFacade.getCountOfFilteredTokenIssuers(tenantId, expressionConditions);
     }
 
     /**
@@ -227,7 +227,7 @@ public class CacheBackedIdPMgtDAO {
                     + ". Fetching entry from DB");
         }
 
-        IdentityProvider identityProvider = idPMgtDAO.getIdPByName(dbConnection, idPName,
+        IdentityProvider identityProvider = idPManagementFacade.getIdPByName(dbConnection, idPName,
                                                                    tenantId, tenantDomain);
 
         if (identityProvider != null) {
@@ -256,7 +256,7 @@ public class CacheBackedIdPMgtDAO {
     public IdentityProvider getIdPById(Connection dbConnection, int id,
                                        int tenantId, String tenantDomain) throws IdentityProviderManagementException {
 
-        IdentityProvider identityProvider = idPMgtDAO.getIDPbyId(dbConnection, id,
+        IdentityProvider identityProvider = idPManagementFacade.getIDPbyId(dbConnection, id,
                 tenantId, tenantDomain);
 
         if (identityProvider != null) {
@@ -306,7 +306,7 @@ public class CacheBackedIdPMgtDAO {
                 log.debug("Cache entry not found for Identity Provider with resource ID: " + resourceId
                         + ". Fetching entry from DB");
             }
-            identityProvider = idPMgtDAO.getIDPbyResourceId(null, resourceId,
+            identityProvider = idPManagementFacade.getIDPbyResourceId(null, resourceId,
                     tenantId, tenantDomain);
 
             if (identityProvider != null) {
@@ -352,7 +352,7 @@ public class CacheBackedIdPMgtDAO {
                     tenantId, tenantDomain);
         }
 
-        identityProvider = idPMgtDAO.getIDPbyResourceId(null, resourceId, tenantId, tenantDomain);
+        identityProvider = idPManagementFacade.getIDPbyResourceId(null, resourceId, tenantId, tenantDomain);
 
         if (identityProvider == null) {
             if (log.isDebugEnabled()) {
@@ -382,7 +382,7 @@ public class CacheBackedIdPMgtDAO {
             log.debug("Cache entry not found for Identity Provider with resource ID: " + resourceId
                     + ". Fetching the name from DB");
         }
-        return idPMgtDAO.getIDPNameByResourceId(resourceId);
+        return idPManagementFacade.getIDPNameByResourceId(resourceId);
     }
 
     /**
@@ -411,7 +411,7 @@ public class CacheBackedIdPMgtDAO {
                     + " and with value " + value + ". Fetching entry from DB");
         }
 
-        IdentityProvider identityProvider = idPMgtDAO.getIdPByAuthenticatorPropertyValue(dbConnection, property, value,
+        IdentityProvider identityProvider = idPManagementFacade.getIdPByAuthenticatorPropertyValue(dbConnection, property, value,
                                                                                          tenantId, tenantDomain);
 
         if (identityProvider != null) {
@@ -461,7 +461,7 @@ public class CacheBackedIdPMgtDAO {
                     + " and with value " + value + ". Fetching entry from DB");
         }
 
-        IdentityProvider identityProvider = idPMgtDAO.getIdPByAuthenticatorPropertyValue(dbConnection, property,
+        IdentityProvider identityProvider = idPManagementFacade.getIdPByAuthenticatorPropertyValue(dbConnection, property,
                 value, authenticator, tenantId, tenantDomain);
 
         if (identityProvider != null) {
@@ -503,7 +503,7 @@ public class CacheBackedIdPMgtDAO {
                     + ". Fetching entry from DB");
         }
 
-        IdentityProvider identityProvider = idPMgtDAO.getIdPByRealmId(realmId, tenantId, tenantDomain);
+        IdentityProvider identityProvider = idPManagementFacade.getIdPByRealmId(realmId, tenantId, tenantDomain);
 
         if (identityProvider != null) {
             log.debug("Entry fetched from DB for Identity Provider with Home Realm ID " + realmId
@@ -552,7 +552,7 @@ public class CacheBackedIdPMgtDAO {
             }
         }
 
-        IdentityProvider identityProvider = idPMgtDAO.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
+        IdentityProvider identityProvider = idPManagementFacade.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
 
         if (identityProvider != null) {
             if (log.isDebugEnabled()) {
@@ -582,7 +582,7 @@ public class CacheBackedIdPMgtDAO {
     public String addIdP(IdentityProvider identityProvider, int tenantId, String
             tenantDomain) throws IdentityProviderManagementException {
 
-        return idPMgtDAO.addIdPWithResourceId(identityProvider, tenantId);
+        return idPManagementFacade.addIdPWithResourceId(identityProvider, tenantId);
     }
 
     /**
@@ -602,7 +602,7 @@ public class CacheBackedIdPMgtDAO {
         }
         clearIdpCache(currentIdentityProvider.getIdentityProviderName(), currentIdentityProvider.getResourceId(),
                 tenantId, tenantDomain);
-        idPMgtDAO.updateIdPWithResourceId(currentIdentityProvider.getResourceId(),
+        idPManagementFacade.updateIdPWithResourceId(currentIdentityProvider.getResourceId(),
                 newIdentityProvider, currentIdentityProvider, tenantId);
     }
 
@@ -615,14 +615,14 @@ public class CacheBackedIdPMgtDAO {
     public void deleteIdP(String idPName, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        if (idPMgtDAO.isIdpReferredBySP(idPName, tenantId)) {
+        if (idPManagementFacade.isIdpReferredBySP(idPName, tenantId)) {
             throw new IdentityProviderManagementException("Identity Provider '" + idPName + "' " +
                     "cannot be deleted as it is referred by Service Providers.");
         }
 
         IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
         if (identityProvider != null) {
-            idPMgtDAO.deleteIdP(idPName, tenantId, tenantDomain);
+            idPManagementFacade.deleteIdP(idPName, tenantId, tenantDomain);
             clearIdpCache(idPName, tenantId, tenantDomain);
         } else {
             if (log.isDebugEnabled()) {
@@ -640,7 +640,7 @@ public class CacheBackedIdPMgtDAO {
      */
     public void deleteIdPs(int tenantId) throws IdentityProviderManagementException {
 
-        idPMgtDAO.deleteIdPs(tenantId);
+        idPManagementFacade.deleteIdPs(tenantId);
         if (log.isDebugEnabled()) {
             log.debug(String.format("All Identity Providers of tenant:%d are deleted", tenantId));
         }
@@ -659,14 +659,14 @@ public class CacheBackedIdPMgtDAO {
         IdentityProvider identityProvider = this.getIdPByResourceId(resourceId, tenantId, tenantDomain);
         if (identityProvider != null) {
             String idPName = identityProvider.getIdentityProviderName();
-            if (idPMgtDAO.isIdpReferredBySP(idPName, tenantId)) {
+            if (idPManagementFacade.isIdpReferredBySP(idPName, tenantId)) {
                 String data = "Identity Provider '" + idPName + "' cannot be deleted as it is referred by Service " +
                         "Providers.";
                 throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                         .ERROR_CODE_DELETE_IDP, data);
             }
 
-            idPMgtDAO.deleteIdPByResourceId(resourceId, tenantId, tenantDomain);
+            idPManagementFacade.deleteIdPByResourceId(resourceId, tenantId, tenantDomain);
             clearIdpCache(idPName, resourceId, tenantId, tenantDomain);
         } else {
             if (log.isDebugEnabled()) {
@@ -686,7 +686,7 @@ public class CacheBackedIdPMgtDAO {
         // Remove cache entries related to the force deleted idps.
         IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
         if (identityProvider != null) {
-            idPMgtDAO.forceDeleteIdP(idPName, tenantId, tenantDomain);
+            idPManagementFacade.forceDeleteIdP(idPName, tenantId, tenantDomain);
             clearIdpCache(idPName, tenantId, tenantDomain);
         } else {
             if (log.isDebugEnabled()) {
@@ -712,7 +712,7 @@ public class CacheBackedIdPMgtDAO {
         // Remove cache entries related to the force deleted idps.
         IdentityProvider identityProvider = this.getIdPByResourceId(resourceId, tenantId, tenantDomain);
         if (identityProvider != null) {
-            idPMgtDAO.forceDeleteIdPByResourceId(resourceId, tenantId, tenantDomain);
+            idPManagementFacade.forceDeleteIdPByResourceId(resourceId, tenantId, tenantDomain);
             clearIdpCache(identityProvider.getIdentityProviderName(), resourceId, tenantId, tenantDomain);
         } else {
             if (log.isDebugEnabled()) {
@@ -844,7 +844,7 @@ public class CacheBackedIdPMgtDAO {
             }
         }
 
-        idPMgtDAO.deleteTenantRole(tenantId, role, tenantDomain);
+        idPManagementFacade.deleteTenantRole(tenantId, role, tenantDomain);
     }
 
     /**
@@ -882,7 +882,7 @@ public class CacheBackedIdPMgtDAO {
             }
         }
 
-        idPMgtDAO.renameTenantRole(newRoleName, oldRoleName, tenantId, tenantDomain);
+        idPManagementFacade.renameTenantRole(newRoleName, oldRoleName, tenantId, tenantDomain);
     }
 
     /**
@@ -917,7 +917,7 @@ public class CacheBackedIdPMgtDAO {
             }
         }
 
-        idPMgtDAO.deleteTenantRole(tenantId, claimURI, tenantDomain);
+        idPManagementFacade.deleteTenantRole(tenantId, claimURI, tenantDomain);
     }
 
     /**
@@ -953,7 +953,7 @@ public class CacheBackedIdPMgtDAO {
             }
         }
 
-        idPMgtDAO.renameTenantRole(newClaimURI, oldClaimURI, tenantId, tenantDomain);
+        idPManagementFacade.renameTenantRole(newClaimURI, oldClaimURI, tenantId, tenantDomain);
     }
 
     /**
@@ -966,7 +966,7 @@ public class CacheBackedIdPMgtDAO {
                                                           String idPEntityId, int tenantId)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticatorName, propertyName, idPEntityId, tenantId);
+        return idPManagementFacade.isIdPAvailableForAuthenticatorProperty(authenticatorName, propertyName, idPEntityId, tenantId);
     }
 
     /**
@@ -981,14 +981,14 @@ public class CacheBackedIdPMgtDAO {
     public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset) throws
             IdentityProviderManagementException {
 
-        return idPMgtDAO.getConnectedApplications(resourceId, limit, offset);
+        return idPManagementFacade.getConnectedApplications(resourceId, limit, offset);
     }
 
     public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
                                                                     Integer limit, Integer offset)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
+        return idPManagementFacade.getConnectedAppsOfLocalAuthenticator(authenticatorId, tenantId, limit, offset);
     }
 
     /**
@@ -1022,7 +1022,7 @@ public class CacheBackedIdPMgtDAO {
             }
         }
 
-        idPName = idPMgtDAO.getIdPNameByMetadataProperty(dbConnection, property, value, tenantId);
+        idPName = idPManagementFacade.getIdPNameByMetadataProperty(dbConnection, property, value, tenantId);
         if (idPName != null) {
             if (log.isDebugEnabled()) {
                 log.debug("DB entry IDP name: " + idPName + " found for IDP metadata property name: "
@@ -1062,7 +1062,7 @@ public class CacheBackedIdPMgtDAO {
     public Map<String, String> getIdPNamesById(int tenantId, Set<String> idpIds)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.getIdPNamesById(tenantId, idpIds);
+        return idPManagementFacade.getIdPNamesById(tenantId, idpIds);
     }
 
     /**
@@ -1076,7 +1076,7 @@ public class CacheBackedIdPMgtDAO {
     public List<IdPGroup> getIdPGroupsByIds(List<String> idpGroupIds, int tenantId)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.getIdPGroupsByIds(idpGroupIds, tenantId);
+        return idPManagementFacade.getIdPGroupsByIds(idpGroupIds, tenantId);
     }
 
     /**
@@ -1090,6 +1090,6 @@ public class CacheBackedIdPMgtDAO {
     public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(int tenantId)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.getAllUserDefinedFederatedAuthenticators(tenantId);
+        return idPManagementFacade.getAllUserDefinedFederatedAuthenticators(tenantId);
     }
 }

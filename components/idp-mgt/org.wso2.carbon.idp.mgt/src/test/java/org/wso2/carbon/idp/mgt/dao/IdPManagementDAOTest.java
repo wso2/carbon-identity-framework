@@ -30,9 +30,6 @@ import org.testng.annotations.Test;
 
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.identity.action.management.ActionManagementService;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -83,8 +80,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -105,7 +108,6 @@ public class IdPManagementDAOTest {
 
     private static final String ASSOCIATED_ACTION_ID = "Dummp_Action_ID";
     private static final String CUSTOM_IDP_NAME = "customIdP";
-    private static Action action;
     private static EndpointConfig endpointConfig;
     private static EndpointConfig endpointConfigToBeUpdated;
     private IdentityProvider idpForErrorScenarios;
@@ -174,10 +176,9 @@ public class IdPManagementDAOTest {
 
         endpointConfig = createEndpointConfig("http://localhost", "admin", "admin");
         endpointConfigToBeUpdated = createEndpointConfig("http://localhost1", "admin1", "admin1");
-        action = createAction(endpointConfig);
-        userDefinedIdP = createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, action.getEndpoint());
+        userDefinedIdP = createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, endpointConfig);
         idpForErrorScenarios = createIdPWithUserDefinedFederatedAuthenticatorConfig(
-                CUSTOM_IDP_NAME + "Error", action.getEndpoint());
+                CUSTOM_IDP_NAME + "Error", endpointConfig);
     }
 
     @AfterClass
@@ -202,13 +203,6 @@ public class IdPManagementDAOTest {
         initiateH2Database(DB_NAME, getFilePath("h2.sql"));
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
-
-        ActionManagementService actionManagementService = mock(ActionManagementService.class);
-        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
-        when(actionManagementService.addAction(anyString(), any(), any())).thenReturn(action);
-        when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
-        when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
-        doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
     }
 
     @AfterMethod
@@ -1321,6 +1315,12 @@ public class IdPManagementDAOTest {
                 CUSTOM_IDP_NAME + "new", createEndpointConfig("http://localhostnew1", "adminnew1", "adminnew1"));
 
         return new Object[][]{
+                // Update PermissionsAndRoleConfig,FederatedAuthenticatorConfig,ProvisioningConnectorConfig,ClaimConfig.
+                {idp1, idp1New, SAMPLE_TENANT_ID},
+                // Update name, LocalClaimDialect, ClaimConfig.
+                {idp2, idp2New, SAMPLE_TENANT_ID},
+                // Update name.
+                {idp3, idp3New, SAMPLE_TENANT_ID2},
                 // IDP with User Defined Federated Authenticator.
                 {userDefinedIdP, userDefinedIdPToBeUpdated, SAMPLE_TENANT_ID2},
         };
@@ -2079,18 +2079,6 @@ public class IdPManagementDAOTest {
         statement.clearParameters();
         statement.close();
         return resultSize;
-    }
-
-    private Action createAction(EndpointConfig endpointConfig) {
-
-        Action.ActionResponseBuilder actionResponseBuilder = new Action.ActionResponseBuilder();
-        actionResponseBuilder.id(ASSOCIATED_ACTION_ID);
-        actionResponseBuilder.name("SampleAssociatedAction");
-        actionResponseBuilder.type(Action.ActionTypes.AUTHENTICATION);
-        actionResponseBuilder.description("SampleDescription");
-        actionResponseBuilder.status(Action.Status.ACTIVE);
-        actionResponseBuilder.endpoint(endpointConfig);
-        return actionResponseBuilder.build();
     }
 
     private EndpointConfig createEndpointConfig(String uri, String username, String password) {

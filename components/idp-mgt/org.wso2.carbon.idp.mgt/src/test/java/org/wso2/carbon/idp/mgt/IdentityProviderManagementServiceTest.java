@@ -81,16 +81,19 @@ import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -109,7 +112,12 @@ public class IdentityProviderManagementServiceTest {
 
     MetadataConverter mockMetadataConverter;
     private IdentityProviderManagementService identityProviderManagementService;
+    private CacheBackedIdPMgtDAO dao;
+    private CacheBackedIdPMgtDAO daoForException;
+    private Field field;
+    private IdentityProviderManager identityProviderManager;
     private MockedStatic<CryptoUtil> cryptoUtil;
+    private ActionManagementService actionManagementService;
 
     private static final String ASSOCIATED_ACTION_ID = "Dummp_Action_ID";
     private static final String CUSTOM_IDP_NAME = "customIdP";
@@ -133,10 +141,10 @@ public class IdentityProviderManagementServiceTest {
         CryptoUtil mockCryptoUtil = mock(CryptoUtil.class);
         cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
 
-        CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
-        IdentityProviderManager identityProviderManager = mock(IdentityProviderManager.class);
+        dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
+        identityProviderManager = mock(IdentityProviderManager.class);
         identityProviderManagementService = new IdentityProviderManagementService();
-        Field field = IdentityProviderManager.class.getDeclaredField("dao");
+        field = IdentityProviderManager.class.getDeclaredField("dao");
         field.setAccessible(true);
         field.set(identityProviderManager, dao);
 
@@ -158,11 +166,12 @@ public class IdentityProviderManagementServiceTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
+        field.set(identityProviderManager, dao);
         mockMetadataConverter = mock(MetadataConverter.class);
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
         IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
 
-        ActionManagementService actionManagementService = mock(ActionManagementService.class);
+        actionManagementService = mock(ActionManagementService.class);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
         when(actionManagementService.addAction(anyString(), any(), any())).thenReturn(action);
         when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
@@ -173,6 +182,8 @@ public class IdentityProviderManagementServiceTest {
     @AfterMethod
     public void tearDown() throws Exception {
 
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        field.set(identityProviderManager, dao);
         // Clear Database after every test.
         removeTestIdps();
     }
@@ -247,9 +258,10 @@ public class IdentityProviderManagementServiceTest {
     @Test
     public void testAddIdPActionException() throws Exception {
 
-        ActionManagementService actionManagementService = mock(ActionManagementService.class);
-        when(actionManagementService.addAction(anyString(), any(), any())).thenThrow(ActionMgtException.class);
-        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.addAction(anyString(), any(), any()))
+                .thenThrow(ActionMgtException.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.addIdP(idpForErrorScenarios));
@@ -610,18 +622,15 @@ public class IdentityProviderManagementServiceTest {
 
         identityProviderManagementService.addIdP(userDefinedIdP);
 
-        ActionManagementService actionManagementService = mock(ActionManagementService.class);
-        doThrow(ActionMgtException.class).when(actionManagementService).deleteAction(any(), any(), any());
-        when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
-        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        doThrow(ActionMgtException.class).when(actionManagementServiceForException).deleteAction(any(), any(), any());
+        when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
         Assert.assertNotNull(identityProviderManagementService.getIdPByName(userDefinedIdP
                 .getIdentityProviderName()));
-
-        // Clean up.
-        doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
     }
 
     @DataProvider
@@ -706,15 +715,16 @@ public class IdentityProviderManagementServiceTest {
     public void testUpdateIdPActionException() throws Exception {
 
         IdentityProvider idpForErrorScenariosTobeUpdate = createIdPWithUserDefinedFederatedAuthenticatorConfig(
-                idpForErrorScenarios.getDisplayName(), endpointConfig);
+                idpForErrorScenarios.getIdentityProviderName(), endpointConfig);
         identityProviderManagementService.addIdP(idpForErrorScenarios);
 
-        ActionManagementService actionManagementService = mock(ActionManagementService.class);
-        when(actionManagementService.updateAction(any(), any(), any(), any())).thenThrow(ActionMgtException.class);
-        when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
-        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.updateAction(any(), any(), any(), any()))
+                .thenThrow(ActionMgtException.class);
+        when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
 
-        assertThrows(IdentityProviderManagementException.class, () ->
+        assertThrows(IdentityProviderManagementServerException.class, () ->
                 identityProviderManagementService.updateIdP(idpForErrorScenariosTobeUpdate.getIdentityProviderName(),
                         idpForErrorScenarios));
         identityProviderManagementService.getIdPByName(idpForErrorScenarios.getIdentityProviderName());
@@ -860,6 +870,20 @@ public class IdentityProviderManagementServiceTest {
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.updateIdP(oldIdpName, (IdentityProvider) newIdp));
+    }
+
+    @Test
+    public void testGetIdPActionException() throws Exception {
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.addAction(anyString(), any(), any())).thenReturn(action);
+        when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any()))
+                .thenThrow(ActionMgtException.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
+
+        IdentityProviderManagementException error = assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.addIdP(idpForErrorScenarios));
+        assertEquals(error.getErrorCode(), ErrorMessage.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG.getCode());
     }
 
     @Test
@@ -1128,6 +1152,61 @@ public class IdentityProviderManagementServiceTest {
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.getResidentIDPMetadata());
+    }
+
+    @Test
+    public void testAddIdPDAOException() throws Exception {
+
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementServerException.class).when(daoForError)
+                .addIdPWithResourceId(any(), anyInt());
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.addIdP(userDefinedIdP));
+
+        // check ActionManagementService actionManagementService.deleteAction() is called.
+        verify(actionManagementService, times(1)).deleteAction(anyString(), any(), any());
+    }
+
+    @Test
+    public void testUpdateIdPDAOException() throws Exception {
+
+        identityProviderManagementService.addIdP(userDefinedIdP);
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementServerException.class).when(daoForError).updateIdPWithResourceId(anyString(),
+                any(), any(), anyInt());
+        when(daoForError.getIdPByName(any(), anyString(), anyInt(), anyString())).thenReturn(userDefinedIdP);
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.updateIdP(userDefinedIdP.getIdentityProviderName(), userDefinedIdP));
+
+        // check ActionManagementService actionManagementService.deleteAction() is called.
+        verify(actionManagementService, times(2)).updateAction(anyString(), anyString(),
+                any(), anyString());
+    }
+
+    @Test
+    public void testDeleteIdPDAOException() throws Exception {
+
+        identityProviderManagementService.addIdP(userDefinedIdP);
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementException.class).when(daoForError)
+                .deleteIdPByResourceId(anyString(), anyInt(), anyString());
+        when(daoForError.getIdPByName(any(), anyString(), anyInt(), anyString())).thenReturn(userDefinedIdP);
+        when(daoForError.getIDPbyResourceId(any(), anyString(), anyInt(), anyString())).thenReturn(userDefinedIdP);
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
+
+        /* check ActionManagementService actionManagementService.deleteAction() is called. Two time, when  creating idp
+         and rollback when idp deletion. */
+        verify(actionManagementService, times(2)).addAction(anyString(), any(), anyString());
     }
 
     private void addTestIdps() throws IdentityProviderManagementException {
@@ -1404,13 +1483,13 @@ public class IdentityProviderManagementServiceTest {
 
         for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
             if (config instanceof UserDefinedFederatedAuthenticatorConfig) {
-                assertEquals(DefinedByType.USER, config.getDefinedByType());
+                Assert.assertEquals(config.getDefinedByType(), DefinedByType.USER);
                 Property[] prop = idpResult.getFederatedAuthenticatorConfigs()[0].getProperties();
-                assertEquals(1, prop.length);
-                assertEquals("actionId", prop[0].getName());
-                assertEquals(ASSOCIATED_ACTION_ID, prop[0].getValue());
+                assertEquals(prop.length, 1);
+                assertEquals(prop[0].getName(), "actionId");
+                assertEquals(prop[0].getValue(), ASSOCIATED_ACTION_ID);
             } else {
-                assertEquals(DefinedByType.SYSTEM, config.getDefinedByType());
+                Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
             }
         }
     }
