@@ -166,34 +166,33 @@ public class IdentityProvisionServiceComponent {
             log.debug("Removed provisioning connector : " + connectorFactory.getConnectorType());
         }
     }
-//    TODO: Will be uncommented when the XACML connector repo is ready
-//
-//    @Reference(
-//            name = "identity.provisioning.rule.handler.xacml",
-//            service = org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler.class,
-//            cardinality = ReferenceCardinality.AT_LEAST_ONE,
-//            policy = ReferencePolicy.DYNAMIC,
-//            unbind = "unsetOutboundProvisioningHandler"
-//    )
-//    protected void setOutboundProvisioningHandler(ProvisioningHandler provisioningHandler) {
-//
-//        if (log.isDebugEnabled()) {
-//            log.debug("Outbound provisioning handler is set in the Identity Provisioning bundle");
-//        }
-//        ProvisioningServiceDataHolder.getInstance().setProvisioningHandler(provisioningHandler);
-//    }
-//
-//    protected void unsetOutboundProvisioningHandler(ProvisioningHandler provisioningHandler) {
-//
-//        if (log.isDebugEnabled()) {
-//            log.debug("Outbound provisioning handler is unset in the Identity Provisioning bundle");
-//        }
-//        ProvisioningServiceDataHolder.getInstance().setProvisioningHandler(null);
-//    }
-//
-//    public static ProvisioningHandler getProvisioningHandler() {
-//        return ProvisioningServiceDataHolder.getInstance().getProvisioningHandler();
-//    }
+
+    @Reference(
+            name = "identity.provisioning.rule.handler.xacml",
+            service = org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler.class,
+            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOutboundProvisioningHandler"
+    )
+    protected void setOutboundProvisioningHandler(ProvisioningHandler provisioningHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Outbound provisioning handler is set in the Identity Provisioning bundle");
+        }
+        ProvisioningServiceDataHolder.getInstance().setProvisioningHandler(provisioningHandler);
+    }
+
+    protected void unsetOutboundProvisioningHandler(ProvisioningHandler provisioningHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Outbound provisioning handler is unset in the Identity Provisioning bundle");
+        }
+        ProvisioningServiceDataHolder.getInstance().setProvisioningHandler(null);
+    }
+
+    public static ProvisioningHandler getProvisioningHandler() {
+        return ProvisioningServiceDataHolder.getInstance().getProvisioningHandler();
+    }
 
     @Reference(
             name = "user.mgt.role.permission",
