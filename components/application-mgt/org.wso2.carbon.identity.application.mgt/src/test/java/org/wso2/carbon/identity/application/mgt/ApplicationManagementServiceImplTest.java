@@ -83,6 +83,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -1714,6 +1715,30 @@ public class ApplicationManagementServiceImplTest {
 
         Assert.assertNotNull(resolvedAncestorAppIds);
         Assert.assertEquals(resolvedAncestorAppIds.size(), 0);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 17, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testServerExceptionsWhileRetrievingAncestorAppIds() throws Exception {
+
+        // Server exceptions while retrieving ancestor organization ids of level 2 organization.
+        when(organizationManager.getAncestorOrganizationIds(L2_ORG_ID))
+                .thenThrow(OrganizationManagementServerException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(l2AppId, L2_ORG_ID);
+        });
+
+        // Server exceptions while retrieving ancestor organization ids of level 1 organization.
+        when(organizationManager.getAncestorOrganizationIds(L1_ORG_ID))
+                .thenThrow(OrganizationManagementServerException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(l1AppId, L1_ORG_ID);
+        });
+
+        // Server exceptions while resolving tenant domain of root organization.
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenThrow(OrganizationManagementException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
+        });
     }
 
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
