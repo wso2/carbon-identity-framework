@@ -51,6 +51,7 @@
         <module>components/identity-mgt</module>
         <module>components/identity-event</module>
         <module>components/notification-mgt</module>
+        <module>components/org-mgt</module>
         <module>components/provisioning</module>
         <module>components/user-store</module>
         <module>components/idp-mgt</module>
@@ -654,6 +655,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.notification.mgt.json</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.org.resource.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
