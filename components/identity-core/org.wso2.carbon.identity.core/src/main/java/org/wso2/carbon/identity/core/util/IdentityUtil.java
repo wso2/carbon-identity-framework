@@ -100,6 +100,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALLOW_SENSITIVE_DATA_IN_URL;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
@@ -1253,6 +1254,16 @@ public class IdentityUtil {
         String disableEmailUsernameValidationProperty = ServerConfiguration.getInstance()
                 .getFirstProperty(DISABLE_EMAIL_USERNAME_VALIDATION);
         return Boolean.parseBoolean(disableEmailUsernameValidationProperty);
+    }
+
+    /**
+     * Checks whether sensitive data is allowed to be included in URLs.
+     *
+     * @return true if sensitive data is allowed in URLs, false otherwise.
+     */
+    public static boolean shouldAllowSensitiveDataInURL() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ALLOW_SENSITIVE_DATA_IN_URL));
     }
 
      /**

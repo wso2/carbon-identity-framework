@@ -922,5 +922,6 @@
 
   "show_pending_user_information.enable": true,
   "identity_util.enable_sha256": false,
-  "cert_thumbprint.enable_sha256": false
+  "cert_thumbprint.enable_sha256": false,
+  "request_parameters.allow_sensitive_data_in_url": true
 }
