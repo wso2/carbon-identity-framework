@@ -37,11 +37,15 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.AssertJUnit.fail;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
@@ -53,6 +57,9 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 @WithCarbonHome
 @Listeners(MockitoTestNGListener.class)
 public class IdPManagementUtilTest {
+
+    private static final String TRUE_STRING = "true";
+    private static final String FALSE_STRING = "false";
 
     @Mock
     private IdentityProviderManager mockedIdentityProviderManager;
@@ -78,7 +85,7 @@ public class IdPManagementUtilTest {
     public void testGetTenantIdOfDomain(String tenantDomain, int tenantId, String expectedResult) throws Exception {
 
         try (MockedStatic<IdPManagementServiceComponent> idPManagementServiceComponent =
-                mockStatic(IdPManagementServiceComponent.class)) {
+                     mockStatic(IdPManagementServiceComponent.class)) {
             idPManagementServiceComponent.when(
                     IdPManagementServiceComponent::getRealmService).thenReturn(mockedRealmService);
             lenient().when(mockedRealmService.getTenantManager()).thenReturn(mockedTenantManager);
@@ -247,4 +254,111 @@ public class IdPManagementUtilTest {
         assertEquals(exception2.getErrorCode(), "IDP-65002");
         assertEquals(exception2.getMessage(), "Error while adding the Identity Provider: test2.");
     }
+
+    @Test
+    public void testExceptionValidateUsernameRecoveryPropertyValues() {
+
+        Map<String, String> configDetails1 = new HashMap<>();
+        configDetails1.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails1.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails1.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        try {
+            IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails1);
+            fail("Expected an IdentityProviderManagementServerException to be thrown");
+        } catch (IdentityProviderManagementClientException e) {
+            assertEquals(e.getErrorCode(),
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION.getCode());
+        }
+
+        Map<String, String> configDetails2 = new HashMap<>();
+        configDetails2.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails2.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        try {
+            IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails2);
+            fail("Expected an IdentityProviderManagementServerException to be thrown");
+        } catch (IdentityProviderManagementClientException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION.getCode());
+        }
+
+        Map<String, String> configDetails3 = new HashMap<>();
+        configDetails3.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails3.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        try {
+            IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails3);
+            fail("Expected an IdentityProviderManagementServerException to be thrown");
+        } catch (IdentityProviderManagementClientException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION.getCode());
+        }
+
+    }
+
+    @Test(dataProvider = "setSuccessConfigDetails")
+    public void testSuccessVerificationsInValidateUsernameRecoveryPropertyValues(Map<String, String> configDetails)
+            throws IdentityProviderManagementClientException {
+
+        IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails);
+    }
+
+    @DataProvider(name = "setSuccessConfigDetails")
+    public Object[][] setSuccessConfigDetails() {
+
+        Map<String, String> configDetails1 = new HashMap<>();
+        configDetails1.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails1.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails1.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails2 = new HashMap<>();
+        configDetails2.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails2.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails2.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails3 = new HashMap<>();
+        configDetails3.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails3.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails3.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails4 = new HashMap<>();
+        configDetails4.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails4.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails5 = new HashMap<>();
+        configDetails5.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails5.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails6 = new HashMap<>();
+        configDetails6.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails7 = new HashMap<>();
+        configDetails7.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails8 = new HashMap<>();
+        configDetails8.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails9 = new HashMap<>();
+        configDetails9.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails10 = new HashMap<>();
+        configDetails10.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails10.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails11 = new HashMap<>();
+        configDetails11.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails11.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        return new Object[][]{
+                {configDetails1},
+                {configDetails2},
+                {configDetails3},
+                {configDetails4},
+                {configDetails5},
+                {configDetails6},
+                {configDetails7},
+                {configDetails8},
+                {configDetails9},
+                {configDetails10},
+                {configDetails11}
+        };
+    }
+
 }

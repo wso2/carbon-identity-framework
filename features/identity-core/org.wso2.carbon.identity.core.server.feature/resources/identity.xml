@@ -641,7 +641,7 @@
                 <EnableCibaProfile>false</EnableCibaProfile>
                 <EnableSecurityProfile>false</EnableSecurityProfile>
             </FAPI>
-            <EnableClaimsSeparationForAccessToken>false</EnableClaimsSeparationForAccessToken>
+            <EnableClaimsSeparationForAccessToken>true</EnableClaimsSeparationForAccessToken>
         </OpenIDConnect>
 
         <!--
@@ -1023,6 +1023,14 @@
             Supported versions : IS 7.1.0 onwards
         -->
         <ConsiderServerWideUserEndpointMaxLimit>true</ConsiderServerWideUserEndpointMaxLimit>
+
+        <!--
+            If you want to get the error code appended to the password policy violation error detail,
+            then enable this property value.
+            Default value : false
+            Supported versions : IS 6.0.0 onwards
+        -->
+        <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
     </SCIM2>
 
     <!--Recovery>
@@ -2717,6 +2725,7 @@
     <OnDemandConfig>
         <OnInitialUse>
             <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>false</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+            <EnableSMSUsernameRecoveryIfConnectorEnabled>false</EnableSMSUsernameRecoveryIfConnectorEnabled>
         </OnInitialUse>
     </OnDemandConfig>
 </Server>

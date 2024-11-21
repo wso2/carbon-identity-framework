@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -378,6 +378,33 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementServerException Error when obtaining main application id.
      */
     default String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the id the owner organization of the main application of the given shared app.
+     *
+     * @param sharedAppId Shared application id.
+     * @return Owner organization id of the given shared application.
+     * @throws IdentityApplicationManagementServerException Error when obtaining owner organization id.
+     */
+    default String getOwnerOrgId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Method that returns the shared application ids of the main application.
+     *
+     * @param mainAppId    Main application id.
+     * @param ownerOrgId   Owner organization id.
+     * @param sharedOrgIds List of shared organization ids.
+     * @return Map containing shared application ids and their organization ids.
+     * @throws IdentityApplicationManagementServerException Error when obtaining shared applications.
+     */
+    default Map<String, String> getSharedApplicationIds(String mainAppId, String ownerOrgId, List<String> sharedOrgIds)
+            throws IdentityApplicationManagementServerException {
 
         throw new NotImplementedException();
     }
