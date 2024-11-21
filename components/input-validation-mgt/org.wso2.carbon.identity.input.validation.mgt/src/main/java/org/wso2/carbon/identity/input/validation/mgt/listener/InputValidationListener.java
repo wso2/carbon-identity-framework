@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -51,6 +51,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_WHILE_UPDATING_CONFIGURATIONS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.INPUT_VALIDATION_USERNAME_ENABLED_CONFIG;
+import static org.wso2.carbon.identity.mgt.constants.PasswordPolicyStatusCodes.ERROR_CODE_PASSWORD_POLICY_VIOLATION;
 
 /**
  * Lister class to validate the password.
@@ -167,7 +168,7 @@ public class InputValidationListener extends AbstractIdentityUserOperationEventL
                                     e.getDescription(), field));
                         }
                         throw new UserStoreException(ERROR_CODE_PREFIX + e.getErrorCode() + ":" + e.getDescription(),
-                                new PolicyViolationException(e.getDescription()));
+                                new PolicyViolationException(ERROR_CODE_PASSWORD_POLICY_VIOLATION, e.getDescription()));
                     }
                 }
             }
