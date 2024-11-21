@@ -24,15 +24,35 @@ public class PolicyViolationException extends IdentityException {
 
     private static final long serialVersionUID = 7267202484738844205L;
 
+    /**
+     * Constructs a PolicyViolationException with the specified error message.
+     *
+     * @param message the detail message to describe the violation.
+     */
     public PolicyViolationException(String message) {
+    
         super(message);
     }
-
+    
+    /**
+     * Constructs a PolicyViolationException with the specified error code and message.
+     *
+     * @param errorCode the specific error code for this violation.
+     * @param message   the detail message to describe the violation.
+     */
     public PolicyViolationException(String errorCode, String message) {
+    
         super(errorCode, message);
     }
-
+    
+    /**
+     * Constructs a PolicyViolationException with the specified message and cause.
+     *
+     * @param message the detail message to describe the violation.
+     * @param e       the cause of this exception.
+     */
     public PolicyViolationException(String message, Throwable e) {
+    
         super(message, e);
     }
 }
