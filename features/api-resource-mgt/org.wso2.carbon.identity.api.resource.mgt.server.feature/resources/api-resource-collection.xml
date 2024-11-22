@@ -373,6 +373,7 @@
             </Feature>
             <Update>
                 <Scope name="internal_organization_update"/>
+                <Scope name="internal_organization_config_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_organization_delete"/>
@@ -395,6 +396,7 @@
             </Feature>
             <Update>
                 <Scope name="internal_organization_discovery_update"/>
+                <Scope name="internal_organization_config_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_organization_discovery_delete"/>
