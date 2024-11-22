@@ -31,10 +31,9 @@ public class ActionMgtException extends Exception {
         super(message);
     }
 
-    public ActionMgtException(String message, String errorCode) {
+    public ActionMgtException(String message, Throwable cause) {
 
-        super(message);
-        this.errorCode = errorCode;
+        super(message, cause);
     }
 
     public ActionMgtException(String message, String errorCode, Throwable cause) {

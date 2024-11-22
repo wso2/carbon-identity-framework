@@ -68,12 +68,17 @@ public class ActionMgtSQLConstants {
                 ":DESCRIPTION; WHERE UUID = :UUID; AND TYPE = :TYPE; AND TENANT_ID = :TENANT_ID;";
         public static final String DELETE_ACTION_ENDPOINT_PROPERTIES = "DELETE FROM IDN_ACTION_PROPERTIES WHERE " +
                 "ACTION_UUID = :ACTION_UUID; AND TENANT_ID = :TENANT_ID;";
+        public static final String DELETE_ACTION_PROPERTY = "DELETE FROM IDN_ACTION_PROPERTIES WHERE " +
+                "PROPERTY_NAME = :PROPERTY_NAME; AND ACTION_UUID = :ACTION_UUID; AND TENANT_ID = :TENANT_ID;";
         public static final String DELETE_ACTION = "DELETE FROM IDN_ACTION WHERE UUID = :UUID; AND TYPE = :TYPE;" +
                 " AND TENANT_ID = :TENANT_ID;";
         public static final String CHANGE_ACTION_STATUS = "UPDATE IDN_ACTION SET STATUS = :STATUS; WHERE UUID = " +
                 ":UUID; AND TYPE = :TYPE; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_ACTIONS_COUNT_PER_ACTION_TYPE = "SELECT TYPE, COUNT(UUID) AS COUNT" +
                 " FROM IDN_ACTION WHERE TENANT_ID = :TENANT_ID; GROUP BY TYPE";
+        public static final String UPDATE_ACTION_PROPERTIES = "UPDATE IDN_ACTION_PROPERTIES SET " +
+                "PROPERTY_VALUE = :PROPERTY_VALUE; WHERE ACTION_UUID = :ACTION_UUID; AND " +
+                "TENANT_ID = :TENANT_ID; AND PROPERTY_NAME = :PROPERTY_NAME;";
 
         private Query() {
 

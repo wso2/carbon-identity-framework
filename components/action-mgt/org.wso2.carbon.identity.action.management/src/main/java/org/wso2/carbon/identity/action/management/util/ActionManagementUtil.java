@@ -19,9 +19,8 @@
 package org.wso2.carbon.identity.action.management.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
+import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtRuntimeException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 
 /**
@@ -36,8 +35,7 @@ public class ActionManagementUtil {
      * @param data  Data.
      * @return ActionMgtClientException.
      */
-    public static ActionMgtClientException handleClientException(
-            ActionMgtConstants.ErrorMessages error, String... data) {
+    public static ActionMgtClientException handleClientException(ErrorMessage error, String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
@@ -54,7 +52,7 @@ public class ActionManagementUtil {
      * @param e     Throwable.
      * @return ActionMgtClientException.
      */
-    public static ActionMgtClientException handleClientException(ActionMgtConstants.ErrorMessages error, Throwable e) {
+    public static ActionMgtClientException handleClientException(ErrorMessage error, Throwable e) {
 
         return new ActionMgtClientException(error.getMessage(), error.getDescription(), error.getCode(), e);
     }
@@ -67,8 +65,7 @@ public class ActionManagementUtil {
      * @param data  Data.
      * @return ActionMgtServerException.
      */
-    public static ActionMgtServerException handleServerException(
-            ActionMgtConstants.ErrorMessages error, Throwable e, String... data) {
+    public static ActionMgtServerException handleServerException(ErrorMessage error, Throwable e, String... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
@@ -76,16 +73,5 @@ public class ActionManagementUtil {
         }
 
         return new ActionMgtServerException(error.getMessage(), description, error.getCode(), e);
-    }
-
-    /**
-     * Handle Action Management runtime exceptions.
-     *
-     * @param e Throwable.
-     * @return ActionMgtRuntimeException.
-     */
-    public static ActionMgtRuntimeException handleRuntimeException(String errorMessage, Throwable e) {
-
-        return new ActionMgtRuntimeException(errorMessage, e);
     }
 }

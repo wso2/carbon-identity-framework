@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management;
+package org.wso2.carbon.identity.action.management.util;
 
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.management.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
+import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 
 import java.util.regex.Pattern;
@@ -48,8 +49,7 @@ public class ActionValidator {
     public void validateForBlank(String fieldName, String fieldValue) throws ActionMgtClientException {
 
         if (StringUtils.isBlank(fieldValue)) {
-            throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_EMPTY_ACTION_REQUEST_FIELD, fieldName);
+            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_EMPTY_ACTION_REQUEST_FIELD, fieldName);
         }
     }
 
@@ -63,8 +63,8 @@ public class ActionValidator {
 
         boolean isValidName = actionNameRegexPattern.matcher(name).matches();
         if (!isValidName) {
-            throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ACTION_NAME_FIELD);
+            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
+                    ActionMgtConstants.ACTION_NAME_FIELD);
         }
     }
 
@@ -78,8 +78,8 @@ public class ActionValidator {
 
         boolean isValidUri = endpointUriRegexPattern.matcher(uri).matches();
         if (!isValidUri) {
-            throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ENDPOINT_URI_FIELD);
+            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
+                    ActionMgtConstants.ENDPOINT_URI_FIELD);
         }
     }
 
@@ -93,8 +93,8 @@ public class ActionValidator {
 
         boolean isValidHeader = headerRegexPattern.matcher(header).matches();
         if (!isValidHeader) {
-            throw ActionManagementUtil.handleClientException(ActionMgtConstants.ErrorMessages.
-                    ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.API_KEY_HEADER_FIELD);
+            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
+                    ActionMgtConstants.API_KEY_HEADER_FIELD);
         }
     }
 }

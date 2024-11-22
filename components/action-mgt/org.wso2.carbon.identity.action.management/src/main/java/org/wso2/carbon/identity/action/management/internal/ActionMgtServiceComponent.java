@@ -28,8 +28,12 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.action.management.ActionManagementService;
-import org.wso2.carbon.identity.action.management.ActionManagementServiceImpl;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.ActionBuilder;
+import org.wso2.carbon.identity.action.management.ActionPropertyResolver;
+import org.wso2.carbon.identity.action.management.service.impl.CacheBackedActionManagementService;
+import org.wso2.carbon.identity.action.management.factory.ActionBuilderFactory;
+import org.wso2.carbon.identity.action.management.factory.ActionPropertyResolverFactory;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -50,7 +54,8 @@ public class ActionMgtServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.registerService(ActionManagementService.class, ActionManagementServiceImpl.getInstance(), null);
+            bundleCtx.registerService(ActionManagementService.class, CacheBackedActionManagementService.getInstance(),
+                    null);
             LOG.debug("Action management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing Action management component.", e);
@@ -67,6 +72,56 @@ public class ActionMgtServiceComponent {
         } catch (Throwable e) {
             LOG.error("Error while deactivating Action management component.", e);
         }
+    }
+
+    @Reference(
+            name = "action.builder",
+            service = ActionBuilder.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionBuilder"
+    )
+    protected void setActionBuilder(ActionBuilder actionBuilder) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Registering ActionBuilder: " + actionBuilder.getClass().getName() +
+                    " in the ActionMgtServiceComponent.");
+        }
+        ActionBuilderFactory.registerActionBuilder(actionBuilder);
+    }
+
+    protected void unsetActionBuilder(ActionBuilder actionBuilder) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unregistering ActionBuilder: " + actionBuilder.getClass().getName() +
+                    " in the ActionMgtServiceComponent.");
+        }
+        ActionBuilderFactory.unregisterActionBuilder(actionBuilder);
+    }
+
+    @Reference(
+            name = "action.property.resolver",
+            service = ActionPropertyResolver.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionPropertyResolver"
+    )
+    protected void setActionPropertyResolver(ActionPropertyResolver actionPropertyResolver) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Registering ActionPropertyResolver: " + actionPropertyResolver.getClass().getName() +
+                    " in the ActionMgtServiceComponent.");
+        }
+        ActionPropertyResolverFactory.registerActionPropertyResolver(actionPropertyResolver);
+    }
+
+    protected void unsetActionPropertyResolver(ActionPropertyResolver actionPropertyResolver) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unregistering ActionPropertyResolver: " + actionPropertyResolver.getClass().getName() +
+                    " in the ActionMgtServiceComponent.");
+        }
+        ActionPropertyResolverFactory.unregisterActionPropertyResolver(actionPropertyResolver);
     }
 
     @Reference(
