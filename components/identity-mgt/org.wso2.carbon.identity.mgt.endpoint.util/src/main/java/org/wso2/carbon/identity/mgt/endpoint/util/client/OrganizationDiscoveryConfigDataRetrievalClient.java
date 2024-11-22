@@ -37,6 +37,10 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Client which interacts with the organization discovery configuration API
+ * to retrieve organization discovery configuration data.
+ */
 public class OrganizationDiscoveryConfigDataRetrievalClient {
 
     private static final String CLIENT = "Client ";
@@ -46,6 +50,14 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
     private static final String KEY = "key";
     private static final String AUTHORIZATION_HEADER = "Authorization";
 
+    /**
+     * Retrieves organization discovery configuration data for a given organization.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Organization discovery configuration data.
+     * @throws OrganizationDiscoveryConfigDataRetrievalClientException If an error occurs while retrieving organization
+     *                                                                 discovery configuration data.
+     */
     public Map<String, String> getDiscoveryConfiguration(String tenantDomain)
             throws OrganizationDiscoveryConfigDataRetrievalClientException {
 
@@ -57,7 +69,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
 
             try (CloseableHttpResponse httpResponse = httpClient.execute(request)) {
                 if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    JSONObject configObject =  new JSONObject(new JSONTokener(new InputStreamReader(
+                    JSONObject configObject = new JSONObject(new JSONTokener(new InputStreamReader(
                             httpResponse.getEntity().getContent())));
 
                     if (configObject.has(PROPERTIES) && configObject.get(PROPERTIES) instanceof JSONArray) {
@@ -69,7 +81,6 @@ public class OrganizationDiscoveryConfigDataRetrievalClient {
                     }
                 }
                 return organizationDiscoveryConfig;
-
             } finally {
                 request.releaseConnection();
             }

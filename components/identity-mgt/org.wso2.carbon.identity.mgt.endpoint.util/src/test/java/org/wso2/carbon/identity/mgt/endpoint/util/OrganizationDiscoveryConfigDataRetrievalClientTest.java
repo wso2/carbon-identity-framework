@@ -28,8 +28,11 @@ import org.wso2.carbon.utils.HTTPClientUtils;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
 
+/**
+ * Unit tests for OrganizationDiscoveryConfigDataRetrievalClient class.
+ */
 public class OrganizationDiscoveryConfigDataRetrievalClientTest extends RetrievalClientBaseTest {
 
     private final OrganizationDiscoveryConfigDataRetrievalClient orgDiscoveryConfigDataRetrievalClient =

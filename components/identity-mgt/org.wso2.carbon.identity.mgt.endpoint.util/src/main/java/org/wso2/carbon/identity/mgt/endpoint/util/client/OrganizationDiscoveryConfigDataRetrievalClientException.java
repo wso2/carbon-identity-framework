@@ -18,7 +18,12 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
-public class OrganizationDiscoveryConfigDataRetrievalClientException extends Exception {
+import org.wso2.carbon.identity.base.IdentityException;
+
+/**
+ * Exception for organization discovery config data retrieval.
+ */
+public class OrganizationDiscoveryConfigDataRetrievalClientException extends IdentityException {
 
     /**
      * Client Exception with error message.
@@ -26,6 +31,7 @@ public class OrganizationDiscoveryConfigDataRetrievalClientException extends Exc
      * @param message Error message.
      */
     public OrganizationDiscoveryConfigDataRetrievalClientException(String message) {
+
         super(message);
     }
 
@@ -36,7 +42,21 @@ public class OrganizationDiscoveryConfigDataRetrievalClientException extends Exc
      * @param throwable Throwable.
      */
     public OrganizationDiscoveryConfigDataRetrievalClientException(String message, Throwable throwable) {
+
         super(message, throwable);
+    }
+
+    /**
+     * Client exception with error code, message and a throwable.
+     *
+     * @param errorCode Error code.
+     * @param message   Error message.
+     * @param throwable Throwable.
+     */
+    public OrganizationDiscoveryConfigDataRetrievalClientException(String errorCode, String message,
+                                                                   Throwable throwable) {
+
+        super(errorCode, message, throwable);
     }
 
 }
