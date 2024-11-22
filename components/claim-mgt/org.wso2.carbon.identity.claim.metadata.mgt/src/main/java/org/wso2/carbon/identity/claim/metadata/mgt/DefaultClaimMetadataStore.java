@@ -19,16 +19,10 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedClaimDialectDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimConfigInitDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
-import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -40,15 +34,13 @@ import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.claim.ClaimKey;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.SKIP_CLAIM_METADATA_PERSISTENCE;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStore} interface.
@@ -69,7 +61,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     public DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
         try {
-            if (unifiedClaimMetadataManager.getClaimDialects(tenantId).size() == 0) {
+            ReadWriteClaimMetadataManager dbBasedClaimMetadataManager = new DBBasedClaimMetadataManager();
+            if (!skipClaimMetadataPersistence() && dbBasedClaimMetadataManager.getClaimDialects(tenantId).isEmpty()) {
                 IdentityClaimManagementServiceDataHolder.getInstance().getClaimConfigInitDAO()
                         .initClaimConfig(claimConfig, tenantId);
             }
@@ -475,5 +468,10 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         }
 
         return false;
+    }
+
+    private boolean skipClaimMetadataPersistence() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(SKIP_CLAIM_METADATA_PERSISTENCE));
     }
 }
