@@ -94,13 +94,6 @@ public class IdPManagementFacade {
         return dao.getCountOfFilteredIdPs(tenantId, expressionConditions);
     }
 
-    public ProvisioningConnectorConfig[] getProvisioningConnectorConfigs(Connection dbConnection,
-                                                                         String idPName, int idPId, int tenantId)
-            throws IdentityProviderManagementException, SQLException {
-
-        return dao.getProvisioningConnectorConfigs(dbConnection, idPName, idPId, tenantId);
-    }
-
     public IdentityProvider getIdPByName(Connection dbConnection, String idPName, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -266,12 +259,6 @@ public class IdPManagementFacade {
             throws IdentityProviderManagementException {
 
         dao.renameTenantRole(newRoleName, oldRoleName, tenantId, tenantDomain);
-    }
-
-    public void renameClaimURI(String newClaimURI, String oldClaimURI, int tenantId, String tenantDomain)
-            throws IdentityProviderManagementException {
-
-        dao.renameClaimURI(newClaimURI, oldClaimURI, tenantId, tenantDomain);
     }
 
     public boolean isIdPAvailableForAuthenticatorProperty(String authenticatorName, String propertyName,

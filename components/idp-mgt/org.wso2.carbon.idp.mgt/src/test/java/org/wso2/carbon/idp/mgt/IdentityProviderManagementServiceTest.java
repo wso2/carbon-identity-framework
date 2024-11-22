@@ -693,6 +693,25 @@ public class IdentityProviderManagementServiceTest {
         Assert.assertNull(identityProviderManagementService.getIdPByName(idpName));
     }
 
+    @Test(dataProvider = "forceDeleteIdPData")
+    public void testForceDeleteIdPDAOException(String idpName) throws Exception {
+
+        addTestIdps();
+        Assert.assertNotNull(identityProviderManagementService.getIdPByName(idpName));
+
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementServerException.class).when(daoForError)
+                .forceDeleteIdPByResourceId(anyString(), anyInt(), anyString());
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.forceDeleteIdP(idpName));
+
+        field.set(identityProviderManager, dao);
+        Assert.assertNotNull(identityProviderManagementService.getIdPByName(idpName));
+    }
+
     @DataProvider
     public Object[][] forceDeleteIdPExceptionData() {
 

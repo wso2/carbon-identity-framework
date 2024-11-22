@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -68,11 +69,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -80,14 +77,13 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.*;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
  * Unit tests for CacheBackedIdPManagementDAO.
  */
+@WithCarbonHome
 public class CacheBackedIdPMgtDAOTest {
 
     private static final String DB_NAME = "test";
@@ -469,6 +465,29 @@ public class CacheBackedIdPMgtDAOTest {
         }
     }
 
+    @Test
+    public void testGetIdPNamesById() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            Set<String> idpIds = new HashSet<>(Arrays.asList(
+                    cacheBackedIdPMgtDAO.getIdPByName(connection, "testIdP1", SAMPLE_TENANT_ID1, TENANT_DOMAIN)
+                            .getId(),
+                    cacheBackedIdPMgtDAO.getIdPByName(connection, "testIdP2", SAMPLE_TENANT_ID1, TENANT_DOMAIN)
+                            .getId()
+            ));
+            // Retrieving IDP form DB and adding to cache.
+            Map<String, String> idpNameMap = cacheBackedIdPMgtDAO.getIdPNamesById(SAMPLE_TENANT_ID1, idpIds);
+
+            assertTrue(idpNameMap.containsValue("testIdP1"));
+            assertTrue(idpNameMap.containsValue("testIdP2"));
+        }
+    }
+
     @DataProvider
     public Object[][] getIDPbyResourceIdData() {
 
@@ -554,6 +573,31 @@ public class CacheBackedIdPMgtDAOTest {
                             "'getIDPNameByResourceId' method fails");
                 }
                 assertEquals(name, idpName);
+            }
+        }
+    }
+
+    @Test(dataProvider = "getIDPNameByResourceIdData")
+    public void testGetIdPNameByResourceIdFromDB(String idpName, int tenantId) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
+                CarbonContext mockCarbonContext = mock(CarbonContext.class);
+                carbonContext.when(CarbonContext::getThreadLocalCarbonContext).thenReturn(mockCarbonContext);
+                when(CarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn(TENANT_DOMAIN);
+
+                // Retrieving IDP from DB.
+                IdentityProvider idPResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
+                String uuid = idPResult.getResourceId();
+
+                String nameFromDB = cacheBackedIdPMgtDAO.getIdPNameByResourceId(uuid);
+                assertEquals(nameFromDB, idpName);
             }
         }
     }
@@ -1113,7 +1157,7 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Deleting multiple IDPs on a tenant.
-            idPManagementDAO.deleteIdPs(tenantId);
+            cacheBackedIdPMgtDAO.deleteIdPs(tenantId);
         }
 
         try (Connection connection = getConnection(DB_NAME)) {
@@ -1128,6 +1172,20 @@ public class CacheBackedIdPMgtDAOTest {
             }
             statement.close();
             assertEquals(resultSize, 0);
+        }
+    }
+
+    @Test(dataProvider = "deleteIdPsData")
+    public void testDeleteIdPsDAOException(int tenantId) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            // Deleting multiple IDPs on a tenant.
+            cacheBackedIdPMgtDAO.deleteIdPs(tenantId);
         }
     }
 
@@ -1169,6 +1227,25 @@ public class CacheBackedIdPMgtDAOTest {
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'forceDeleteIdPByResourceId' method fails");
             IdentityProvider idpFromCache = idpFromCacheByResourceId(uuid);
+            assertNull(idpFromCache, "'deleteIdPByResourceId' method fails");
+        }
+    }
+
+    @Test(dataProvider = "deleteIdPData")
+    public void testForceDeleteIdP(String idpName, int tenantId) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            // Force delete IDP using resourceId.
+            cacheBackedIdPMgtDAO.forceDeleteIdP(idpName, tenantId, TENANT_DOMAIN);
+            int resultSize = getIdPCount(connection, idpName, tenantId);
+            assertEquals(resultSize, 0, "'forceDeleteIdPByResourceId' method fails");
+            IdentityProvider idpFromCache = idpFromCacheByName(idpName);
             assertNull(idpFromCache, "'deleteIdPByResourceId' method fails");
         }
     }
