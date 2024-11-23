@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -77,8 +78,12 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -102,9 +107,13 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.lang.Boolean.FALSE;
@@ -120,9 +129,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT;
@@ -170,6 +179,16 @@ public class ApplicationManagementServiceImplTest {
     private static final String UPDATED_CERTIFICATE = "updated_dummy_application_certificate";
     private static final int CERTIFICATE_ID = 1;
 
+    // B2B organization and application related constants.
+    private static final String B2B_APPLICATION_NAME = "B2B Test application";
+    private static final String ROOT_ORG_ID = "10084a8d-113f-4211-a0d5-efe36b082211";
+    private static final String ROOT_TENANT_DOMAIN = "carbon.super";
+    private static final int ROOT_TENANT_ID = -1234;
+    private static final String L1_ORG_ID = "93d996f9-a5ba-4275-a52b-adaad9eba869";
+    private static final int L1_TENANT_ID = 1;
+    private static final String L2_ORG_ID = "30b701c6-e309-4241-b047-0c299c45d1a0";
+    private static final int L2_TENANT_ID = 2;
+
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
     private ApplicationCertificateManagementService applicationCertificateManagementService;
@@ -179,6 +198,10 @@ public class ApplicationManagementServiceImplTest {
     private Certificate certificate;
     private CertificateMgtServerException serverException;
     private CertificateMgtClientException clientException;
+    private OrganizationManager organizationManager;
+    private String rootAppId;
+    private String l1AppId;
+    private String l2AppId;
 
     @BeforeClass
     public void setup() throws RegistryException, UserStoreException, SecretManagementException {
@@ -217,6 +240,9 @@ public class ApplicationManagementServiceImplTest {
                 new Throwable());
         clientException = new CertificateMgtClientException(ERROR_INVALID_CERTIFICATE_CONTENT.getMessage(),
                 ERROR_INVALID_CERTIFICATE_CONTENT.getDescription(), ERROR_INVALID_CERTIFICATE_CONTENT.getCode());
+
+        organizationManager = mock(OrganizationManager.class);
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
     }
 
     @DataProvider(name = "addApplicationDataProvider")
@@ -1636,6 +1662,85 @@ public class ApplicationManagementServiceImplTest {
                 SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
     }
 
+    @Test(groups = "b2b-shared-apps", priority = 13)
+    public void testGetAncestorAppIdsOfChildApp() throws Exception {
+
+        createB2BTestApp();
+        mockAncestorOrganizationRetrieval(L2_ORG_ID, L1_ORG_ID, ROOT_ORG_ID);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds(l2AppId, L2_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 3);
+        Assert.assertEquals(resolvedAncestorAppIds.get(L2_ORG_ID), l2AppId);
+        Assert.assertEquals(resolvedAncestorAppIds.get(L1_ORG_ID), l1AppId);
+        Assert.assertEquals(resolvedAncestorAppIds.get(ROOT_ORG_ID), rootAppId);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 14, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetAncestorAppIdsOfParentApp() throws Exception {
+
+        mockAncestorOrganizationRetrieval(L1_ORG_ID, ROOT_ORG_ID);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds(l1AppId, L1_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 2);
+        Assert.assertEquals(resolvedAncestorAppIds.get(L1_ORG_ID), l1AppId);
+        Assert.assertEquals(resolvedAncestorAppIds.get(ROOT_ORG_ID), rootAppId);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 15, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetAncestorAppIdsOfRootApp() throws Exception {
+
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenReturn(ROOT_TENANT_DOMAIN);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 1);
+        Assert.assertEquals(resolvedAncestorAppIds.get(ROOT_ORG_ID), rootAppId);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 16, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetAncestorAppIdsOfInvalidApp() throws Exception {
+
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenReturn(ROOT_TENANT_DOMAIN);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds("invalid-app-id", ROOT_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 0);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 17, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testServerExceptionsWhileRetrievingAncestorAppIds() throws Exception {
+
+        // Server exceptions while retrieving ancestor organization ids of level 2 organization.
+        when(organizationManager.getAncestorOrganizationIds(L2_ORG_ID))
+                .thenThrow(OrganizationManagementServerException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(l2AppId, L2_ORG_ID);
+        });
+
+        // Server exceptions while retrieving ancestor organization ids of level 1 organization.
+        when(organizationManager.getAncestorOrganizationIds(L1_ORG_ID))
+                .thenThrow(OrganizationManagementServerException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(l1AppId, L1_ORG_ID);
+        });
+
+        // Server exceptions while resolving tenant domain of root organization.
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenThrow(OrganizationManagementException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
+        });
+    }
+
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
 
         serviceProvider.setDescription("Created for testing");
@@ -1812,5 +1917,75 @@ public class ApplicationManagementServiceImplTest {
         } catch (Exception e) {
             throw new RuntimeException("Unable to set internal state on a private field.", e);
         }
+    }
+
+    private void mockAncestorOrganizationRetrieval(String orgId, String ...ancestorOrgIds)
+            throws OrganizationManagementException {
+
+        List<String> ancestorOrganizationIds = new ArrayList<>();
+        ancestorOrganizationIds.add(orgId);
+        if (ancestorOrgIds != null && ancestorOrgIds.length > 0) {
+            ancestorOrganizationIds.addAll(Arrays.asList(ancestorOrgIds));
+        }
+
+        when(organizationManager.getAncestorOrganizationIds(orgId)).thenReturn(ancestorOrganizationIds);
+    }
+
+    private void createB2BTestApp() throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(B2B_APPLICATION_NAME);
+        addApplicationConfigurations(serviceProvider);
+
+        // Since the app is the main app, it is not a fragment app.
+        ServiceProviderProperty isFragmentAppProperty = new ServiceProviderProperty();
+        isFragmentAppProperty.setName(IS_FRAGMENT_APP);
+        isFragmentAppProperty.setValue("false");
+        serviceProvider.setSpProperties(new ServiceProviderProperty[]{isFragmentAppProperty});
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = Mockito.mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(ROOT_TENANT_DOMAIN))
+                    .thenReturn(ROOT_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_ID)).thenReturn(L1_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L2_ORG_ID)).thenReturn(L2_TENANT_ID);
+            mockedIdentityTenantUtil.when(IdentityTenantUtil::getRealmService)
+                    .thenAnswer(InvocationOnMock::callRealMethod);
+
+            rootAppId = applicationManagementService.createApplication(serviceProvider, ROOT_TENANT_DOMAIN,
+                    REGISTRY_SYSTEM_USERNAME);
+            l1AppId = shareApplication(rootAppId, ROOT_ORG_ID, L1_ORG_ID);
+            l2AppId = shareApplication(rootAppId, ROOT_ORG_ID, L2_ORG_ID);
+        }
+    }
+
+    private String shareApplication(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(B2B_APPLICATION_NAME);
+        addApplicationConfigurations(serviceProvider);
+
+        // Since the app is shared, it is a fragment app.
+        ServiceProviderProperty isFragmentAppProperty = new ServiceProviderProperty();
+        isFragmentAppProperty.setName(IS_FRAGMENT_APP);
+        isFragmentAppProperty.setValue("true");
+        serviceProvider.setSpProperties(new ServiceProviderProperty[]{isFragmentAppProperty});
+
+        String sharedAppId = applicationManagementService.createApplication(serviceProvider, sharedOrgId,
+                REGISTRY_SYSTEM_USERNAME);
+
+        String query = "INSERT INTO SP_SHARED_APP (MAIN_APP_ID, OWNER_ORG_ID, SHARED_APP_ID, SHARED_ORG_ID) " +
+                "VALUES (?, ?, ?, ?)";
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, mainAppId);
+                preparedStatement.setString(2, ownerOrgId);
+                preparedStatement.setString(3, sharedAppId);
+                preparedStatement.setString(4, sharedOrgId);
+                preparedStatement.executeUpdate();
+            }
+        }
+
+        return sharedAppId;
     }
 }

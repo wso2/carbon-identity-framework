@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -511,6 +511,16 @@ public class ApplicationMgtDBQueries {
 
     public static final String GET_MAIN_APP_ID = "SELECT MAIN_APP_ID FROM SP_SHARED_APP WHERE SHARED_APP_ID = ?";
 
+    public static final String GET_OWNER_ORG_ID_BY_SHARED_APP_ID =
+            "SELECT OWNER_ORG_ID FROM SP_SHARED_APP WHERE SHARED_APP_ID = :" +
+                    SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID + ";";
+
+    public static final String GET_FILTERED_SHARED_APPLICATIONS =
+            "SELECT SHARED_ORG_ID, SHARED_APP_ID FROM SP_SHARED_APP WHERE MAIN_APP_ID = :" +
+                    SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID + "; AND OWNER_ORG_ID = :" +
+                    SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID + "; AND SHARED_ORG_ID IN (" +
+                    SQLPlaceholders.SHARED_ORG_ID_LIST_PLACEHOLDER + ")";
+
     public static final String GET_APP_TENANT_ID = "SELECT TENANT_ID FROM SP_APP WHERE UUID = ?";
 
     // Authorized API queries.
@@ -577,5 +587,13 @@ public class ApplicationMgtDBQueries {
         // Related to APP_ROLE_ASSOCIATION table.
         public static final String DB_SCHEMA_COLUMN_NAME_APP_ID = "APP_ID";
         public static final String DB_SCHEMA_COLUMN_NAME_ROLE_ID = "ROLE_ID";
+
+        // Related to SP_SHARED_APP table.
+        public static final String DB_SCHEMA_COLUMN_NAME_MAIN_APP_ID = "MAIN_APP_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_OWNER_ORG_ID = "OWNER_ORG_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_SHARED_APP_ID = "SHARED_APP_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_SHARED_ORG_ID = "SHARED_ORG_ID";
+        public static final String SHARED_ORG_ID_LIST_PLACEHOLDER = "_SHARED_ORG_ID_LIST_";
+        public static final String SHARED_ORG_ID_PLACEHOLDER_PREFIX = "SHARED_ORG_ID_";
     }
 }

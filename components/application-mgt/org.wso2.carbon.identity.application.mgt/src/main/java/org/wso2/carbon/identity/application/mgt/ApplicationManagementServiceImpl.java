@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -93,6 +93,7 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -160,6 +161,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
@@ -2909,6 +2911,50 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
+    public Map<String, String> getAncestorAppIds(String sharedAppId, String orgId)
+            throws IdentityApplicationManagementException {
+
+        String mainAppId = getMainAppId(sharedAppId);
+        if (StringUtils.isBlank(mainAppId)) {
+            String tenantDomain;
+            try {
+                tenantDomain = getOrganizationManager().resolveTenantDomain(orgId);
+            } catch (OrganizationManagementException e) {
+                throw buildServerException("Error while resolving the tenant domain for the organization id: " + orgId);
+            }
+            // Check if the child app is a main application.
+            if (isMainApp(sharedAppId, tenantDomain)) {
+                return Collections.singletonMap(orgId, sharedAppId);
+            }
+            return Collections.emptyMap();
+        }
+
+        String ownerOrgId = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getOwnerOrgId(sharedAppId);
+        if (StringUtils.isBlank(ownerOrgId)) {
+            throw buildServerException("Owner organization id cannot be blank for the shared app with id: " +
+                    sharedAppId + " in organization: " + orgId);
+        }
+
+        Map<String, String> ancestorAppIds = new HashMap<>();
+        // Add main app to the map.
+        ancestorAppIds.put(ownerOrgId, mainAppId);
+
+        List<String> ancestorOrganizationIds;
+        try {
+            ancestorOrganizationIds = getOrganizationManager().getAncestorOrganizationIds(orgId);
+        } catch (OrganizationManagementServerException e) {
+            throw buildServerException("Error while getting the ancestor organization ids for the organization id: " +
+                    orgId);
+        }
+
+        if (CollectionUtils.isNotEmpty(ancestorOrganizationIds) && ancestorOrganizationIds.size() > 1) {
+            ancestorAppIds.putAll(ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                    .getSharedApplicationIds(mainAppId, ownerOrgId, ancestorOrganizationIds));
+        }
+        return ancestorAppIds;
+    }
+
+    @Override
     public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
 
         return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getTenantIdByApp(appId);
@@ -3451,5 +3497,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static OrganizationManager getOrganizationManager() {
 
         return ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager();
+    }
+
+    private boolean isMainApp(String appId, String tenantDomain) throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationByResourceId(appId, tenantDomain);
+        if (serviceProvider != null) {
+            boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
+                    .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                            Boolean.parseBoolean(property.getValue()));
+            return !isFragmentApp;
+        }
+        return false;
     }
 }
