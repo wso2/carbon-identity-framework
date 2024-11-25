@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthent
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
- * Cache Entry for the User Defined Local Application Authenticator configurations.
+ * Cache Entry for the user defined local application authenticator configurations.
  */
 public class AuthenticatorCacheEntry extends CacheEntry {
 

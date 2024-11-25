@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.application.common.dao.impl;
 
+import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.UserDefinedAuthenticatorEndpointConfigManager;
-import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 
 import java.util.List;
 
@@ -29,34 +29,35 @@ import java.util.List;
  * This class responsible for managing authenticator endpoint configurations for the user defined local
  * authenticators.
  */
-public class AuthenticatorManagementFacade {
+public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO {
 
-    private final AuthenticatorManagementDAOImpl dao;
+    private final AuthenticatorManagementDAO dao;
     private UserDefinedAuthenticatorEndpointConfigManager endpointConfigManager =
             new UserDefinedAuthenticatorEndpointConfigManager();
 
-    public AuthenticatorManagementFacade(AuthenticatorManagementDAOImpl dao) {
+    public AuthenticatorManagementFacade(AuthenticatorManagementDAO dao) {
 
         this.dao = dao;
     }
 
+    @Override
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
-            UserDefinedLocalAuthenticatorConfig authenticatorConfig,
-            int tenantId, AuthenticatorPropertyConstants.AuthenticationType type) throws AuthenticatorMgtException {
+            UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
         endpointConfigManager.addEndpointConfigurations(authenticatorConfig, tenantId);
         try {
-            return dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId, type);
+            return dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId);
         } catch (AuthenticatorMgtException e) {
             endpointConfigManager.deleteEndpointConfigurations(authenticatorConfig, tenantId);
             throw e;
         }
     }
-    
-    public UserDefinedLocalAuthenticatorConfig updateUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig 
-            existingAuthenticatorConfig, UserDefinedLocalAuthenticatorConfig newAuthenticatorConfig, 
+
+    @Override
+    public UserDefinedLocalAuthenticatorConfig updateUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig
+            existingAuthenticatorConfig, UserDefinedLocalAuthenticatorConfig newAuthenticatorConfig,
             int tenantId) throws AuthenticatorMgtException {
-        
+
         endpointConfigManager.updateEndpointConfigurations(newAuthenticatorConfig, existingAuthenticatorConfig,
                 tenantId);
         try {
@@ -68,7 +69,8 @@ public class AuthenticatorManagementFacade {
             throw e;
         }
     }
-    
+
+    @Override
     public UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException {
 
@@ -76,7 +78,8 @@ public class AuthenticatorManagementFacade {
                     tenantId);
         return endpointConfigManager.resolveEndpointConfigurations(config, tenantId);
     }
-    
+
+    @Override
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticator(int tenantId)
             throws AuthenticatorMgtException {
 
@@ -86,10 +89,11 @@ public class AuthenticatorManagementFacade {
         }
         return configList;
     }
-    
+
+    @Override
     public void deleteUserDefinedLocalAuthenticator(String authenticatorConfigName, UserDefinedLocalAuthenticatorConfig
             authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
-        
+
         endpointConfigManager.deleteEndpointConfigurations(authenticatorConfig, tenantId);
         try {
             dao.deleteUserDefinedLocalAuthenticator(authenticatorConfigName, authenticatorConfig, tenantId);

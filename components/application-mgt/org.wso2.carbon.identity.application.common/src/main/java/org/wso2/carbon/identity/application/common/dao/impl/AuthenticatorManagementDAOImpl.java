@@ -52,8 +52,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
     @Override
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
-            UserDefinedLocalAuthenticatorConfig authenticatorConfig,
-            int tenantId, AuthenticationType type) throws AuthenticatorMgtException {
+            UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
 
@@ -61,7 +60,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             statement.setString(Column.NAME, authenticatorConfig.getName());
             statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
             statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
-            statement.setString(Column.AUTHENTICATION_TYPE, type.toString());
+            statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType().toString());
             statement.setInt(Column.IS_ENABLED, authenticatorConfig.isEnabled() ? 1 : 0);
             statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
             statement.setInt(Column.TENANT_ID, tenantId);
@@ -77,7 +76,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             IdentityDatabaseUtil.commitTransaction(dbConnection);
 
             return getUserDefinedLocalAuthenticatorByName(dbConnection, authenticatorConfig.getName(), tenantId);
-        } catch (SQLException | AuthenticatorMgtException e) {
+        } catch (SQLException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while adding the authenticator: %s in tenant domain: %s. " +
                                 "Rolling back added Authenticator information.", authenticatorConfig.getName(),

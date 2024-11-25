@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.common.cache;
 import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
- * Cache key for the Local Application Authenticator configurations.
+ * Cache key for the user defined local application authenticator configurations.
  */
 public class AuthenticatorCacheKey extends CacheKey {
 

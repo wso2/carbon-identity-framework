@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.application.common.cache.AuthenticatorCacheKey;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
-import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 
 import java.util.List;
 
@@ -37,21 +36,20 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
 
     private static final Log LOG = LogFactory.getLog(CacheBackedAuthenticatorMgtDAO.class);
     private final AuthenticatorCache authenticatorCache;
-    private final AuthenticatorManagementDAO authenticatorManagementDAO;
+    private final AuthenticatorManagementFacade authenticatorMgtFacade;
 
     public CacheBackedAuthenticatorMgtDAO(AuthenticatorManagementDAO authenticatorManagementDAO) {
 
-        this.authenticatorManagementDAO = authenticatorManagementDAO;
+        authenticatorMgtFacade = new AuthenticatorManagementFacade(authenticatorManagementDAO);
         authenticatorCache = AuthenticatorCache.getInstance();
     }
 
     @Override
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
-            UserDefinedLocalAuthenticatorConfig authenticatorConfig,
-            int tenantId, AuthenticationType type) throws AuthenticatorMgtException {
+            UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
-        UserDefinedLocalAuthenticatorConfig createdConfig = authenticatorManagementDAO.addUserDefinedLocalAuthenticator(
-                authenticatorConfig, tenantId, type);
+        UserDefinedLocalAuthenticatorConfig createdConfig = authenticatorMgtFacade.addUserDefinedLocalAuthenticator(
+                authenticatorConfig, tenantId);
 
         AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(authenticatorConfig.getName());
         authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(createdConfig), tenantId);
@@ -66,7 +64,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(existingAuthenticatorConfig.getName());
         authenticatorCache.clearCacheEntry(cacheKey, tenantId);
 
-        return authenticatorManagementDAO.updateUserDefinedLocalAuthenticator(
+        return authenticatorMgtFacade.updateUserDefinedLocalAuthenticator(
                 existingAuthenticatorConfig, newAuthenticatorConfig, tenantId);
     }
 
@@ -81,14 +79,14 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
             return entry.getAuthenticatorConfig();
         }
 
-        return authenticatorManagementDAO.getUserDefinedLocalAuthenticator(authenticatorConfigName, tenantId);
+        return authenticatorMgtFacade.getUserDefinedLocalAuthenticator(authenticatorConfigName, tenantId);
     }
 
     @Override
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticator(int tenantId)
             throws AuthenticatorMgtException {
 
-        return authenticatorManagementDAO.getAllUserDefinedLocalAuthenticator(tenantId);
+        return authenticatorMgtFacade.getAllUserDefinedLocalAuthenticator(tenantId);
     }
 
     @Override
@@ -96,7 +94,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
         authenticatorCache.clearCacheEntry(new AuthenticatorCacheKey(authenticatorConfigName), tenantId);
-        authenticatorManagementDAO.deleteUserDefinedLocalAuthenticator(authenticatorConfigName, authenticatorConfig,
+        authenticatorMgtFacade.deleteUserDefinedLocalAuthenticator(authenticatorConfigName, authenticatorConfig,
                 tenantId);
     }
 }

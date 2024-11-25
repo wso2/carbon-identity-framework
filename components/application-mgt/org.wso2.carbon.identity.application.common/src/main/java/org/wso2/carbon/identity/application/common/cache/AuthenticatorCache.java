@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.utils.CarbonUtils;
 
 /**
- * Cache for the Local Application Authenticator configurations.
+ * Cache for the user defined local application authenticator configurations.
  */
 public class AuthenticatorCache extends BaseCache<AuthenticatorCacheKey, AuthenticatorCacheEntry> {
 

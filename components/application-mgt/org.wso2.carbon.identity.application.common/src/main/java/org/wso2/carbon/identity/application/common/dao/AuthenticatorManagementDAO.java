@@ -20,33 +20,31 @@ package org.wso2.carbon.identity.application.common.dao;
 
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
-import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 
 import java.util.List;
 
 /**
- * This interface performs CRUD operations for the User defined Local Application Authenticator configurations.
+ * This interface performs CRUD operations for the user defined local application authenticator configurations.
  */
 public interface AuthenticatorManagementDAO {
 
     /**
-     * Create a new user defined Local Application Authenticator configuration.
+     * Create a new user defined local application authenticator configuration.
      *
-     * @param authenticatorConfig   Local Application Authenticator configuration.
+     * @param authenticatorConfig   Local application authenticator configuration.
      * @param tenantId              Tenant Id.
      *
      * @return Created UserDefinedLocalAuthenticatorConfig.
      * @throws AuthenticatorMgtException If an error occurs while adding the authenticator configuration.
      */
     UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
-            UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId, AuthenticationType type)
-            throws AuthenticatorMgtException;
+            UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException;
 
     /**
-     * Update a user defined Local Application Authenticator configuration.
+     * Update a user defined local application authenticator configuration.
      *
-     * @param existingAuthenticatorConfig   Existing  Local Application Authenticator configuration.
-     * @param updatedAuthenticatorConfig    New Local Application Authenticator configuration.
+     * @param existingAuthenticatorConfig   Existing Local application authenticator configuration.
+     * @param updatedAuthenticatorConfig    New local application authenticator configuration.
      * @param tenantId                      Tenant Id.
      *
      * @return Updated UserDefinedLocalAuthenticatorConfig.
@@ -60,7 +58,7 @@ public interface AuthenticatorManagementDAO {
     /**
      * Retrieve a Local user defined Application Authenticator configuration by name.
      *
-     * @param authenticatorConfigName   Name of the Local Application Authenticator configuration.
+     * @param authenticatorConfigName   Name of the local application authenticator configuration.
      * @param tenantId                  Tenant Id.
      *
      * @return Retrieved UserDefinedLocalAuthenticatorConfig
@@ -70,7 +68,7 @@ public interface AuthenticatorManagementDAO {
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException;
 
     /**
-     * Retrieve all user defined Local Application Authenticator configurations.
+     * Retrieve all user defined local application authenticator configurations.
      *
      * @param tenantId                  Tenant Id.
      *
@@ -81,9 +79,9 @@ public interface AuthenticatorManagementDAO {
             throws AuthenticatorMgtException;
 
     /**
-     * Create a new Local Application Authenticator configuration.
+     * Create a new user defined local application authenticator configuration.
      *
-     * @param authenticatorConfigName   Name of the Local Application Authenticator configuration.
+     * @param authenticatorConfigName   Name of the local application authenticator configuration.
      * @param tenantId                  Tenant Id.
      *
      * @throws AuthenticatorMgtException If an error occurs while deleting the authenticator configuration.
