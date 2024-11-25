@@ -59,6 +59,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.ActionMgtTestUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 
@@ -106,7 +107,7 @@ public class IdPManagementDAOTest {
     private static final String IDP_GROUP2_ID = "idpGroup2Id";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
-    private static final String ASSOCIATED_ACTION_ID = "Dummp_Action_ID";
+    private static final String ASSOCIATED_ACTION_ID = "Dummy_Action_ID";
     private static final String CUSTOM_IDP_NAME = "customIdP";
     private static EndpointConfig endpointConfig;
     private static EndpointConfig endpointConfigToBeUpdated;
@@ -174,10 +175,10 @@ public class IdPManagementDAOTest {
         when(mockCryptoUtil.encryptAndBase64Encode(any())).thenReturn("ENCRYPTED_VALUE2");
         when(mockCryptoUtil.base64DecodeAndDecrypt(anyString())).thenReturn("ENCRYPTED_VALUE2".getBytes());
 
-        endpointConfig = createEndpointConfig("http://localhost", "admin", "admin");
-        endpointConfigToBeUpdated = createEndpointConfig("http://localhost1", "admin1", "admin1");
-        userDefinedIdP = createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, endpointConfig);
-        idpForErrorScenarios = createIdPWithUserDefinedFederatedAuthenticatorConfig(
+        endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
+        endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig("http://localhost1", "admin1", "admin1");
+        userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, endpointConfig);
+        idpForErrorScenarios = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
                 CUSTOM_IDP_NAME + "Error", endpointConfig);
     }
 
@@ -1311,8 +1312,8 @@ public class IdPManagementDAOTest {
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("testIdP3New");
 
-        IdentityProvider userDefinedIdPToBeUpdated = createIdPWithUserDefinedFederatedAuthenticatorConfig(
-                CUSTOM_IDP_NAME + "new", createEndpointConfig("http://localhostnew1", "adminnew1", "adminnew1"));
+        IdentityProvider userDefinedIdPToBeUpdated = ActionMgtTestUtil
+                .createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME + "new", ActionMgtTestUtil.createEndpointConfig("http://localhostnew1", "adminnew1", "adminnew1"));
 
         return new Object[][]{
                 // Update PermissionsAndRoleConfig,FederatedAuthenticatorConfig,ProvisioningConnectorConfig,ClaimConfig.
@@ -2079,54 +2080,6 @@ public class IdPManagementDAOTest {
         statement.clearParameters();
         statement.close();
         return resultSize;
-    }
-
-    private EndpointConfig createEndpointConfig(String uri, String username, String password) {
-
-        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
-        endpointConfigBuilder.uri(uri);
-        endpointConfigBuilder.authentication(
-                new Authentication.BasicAuthBuilder(username, password).build());
-        return endpointConfigBuilder.build();
-    }
-
-    private IdentityProvider createIdPWithUserDefinedFederatedAuthenticatorConfig(String idpName,
-                                                                                  EndpointConfig endpointConfig) {
-
-        // Initialize Test Identity Provider 4 with custom user defined federated authenticator.
-        IdentityProvider newUserDefinedIdp = new IdentityProvider();
-        newUserDefinedIdp.setIdentityProviderName(idpName);
-
-        UserDefinedFederatedAuthenticatorConfig userDefinedFederatedAuthenticatorConfig = new
-                UserDefinedFederatedAuthenticatorConfig();
-        userDefinedFederatedAuthenticatorConfig.setDisplayName("DisplayName1");
-        userDefinedFederatedAuthenticatorConfig.setName("customFedAuthenticator");
-        userDefinedFederatedAuthenticatorConfig.setEnabled(true);
-        userDefinedFederatedAuthenticatorConfig.setEndpointConfig(
-                buildUserDefinedAuthenticatorEndpointConfig(endpointConfig));
-        Property property = new Property();
-        property.setName("actionId");
-        property.setValue(ASSOCIATED_ACTION_ID);
-        property.setConfidential(false);
-        userDefinedFederatedAuthenticatorConfig.setProperties(new Property[]{property});
-        newUserDefinedIdp.setFederatedAuthenticatorConfigs(
-                new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
-        newUserDefinedIdp.setDefaultAuthenticatorConfig(userDefinedFederatedAuthenticatorConfig);
-        return newUserDefinedIdp;
-    }
-
-    private UserDefinedAuthenticatorEndpointConfig buildUserDefinedAuthenticatorEndpointConfig(
-            EndpointConfig endpointConfig) {
-
-        UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder =
-                new UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder();
-        endpointConfigBuilder.uri(endpointConfig.getUri());
-        endpointConfigBuilder.authenticationType(endpointConfig.getAuthentication().getType().getName());
-        Map<String, String> propMap = new HashMap<>();
-        endpointConfig.getAuthentication().getProperties()
-                .forEach(prop -> propMap.put(prop.getName(), prop.getValue()));
-        endpointConfigBuilder.authenticationProperties(propMap);
-        return endpointConfigBuilder.build();
     }
 
     private void assertIdPResult(IdentityProvider idpResult, String idpName, boolean isExist) {

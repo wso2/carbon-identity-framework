@@ -30,7 +30,6 @@ import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
@@ -64,6 +63,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+import org.wso2.carbon.idp.mgt.util.ActionMgtTestUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
@@ -119,7 +119,7 @@ public class IdentityProviderManagementServiceTest {
     private MockedStatic<CryptoUtil> cryptoUtil;
     private ActionManagementService actionManagementService;
 
-    private static final String ASSOCIATED_ACTION_ID = "Dummp_Action_ID";
+    private static final String ASSOCIATED_ACTION_ID = "Dummy_Action_ID";
     private static final String CUSTOM_IDP_NAME = "customIdP";
     private static Action action;
     private static EndpointConfig endpointConfig;
@@ -150,11 +150,13 @@ public class IdentityProviderManagementServiceTest {
 
         registerSystemAuthenticators();
 
-        endpointConfig = createEndpointConfig("http://localhost", "admin", "admin");
-        endpointConfigToBeUpdated = createEndpointConfig("http://localhost1", "admin1", "admin1");
-        action = createAction(endpointConfig);
-        userDefinedIdP = createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, action.getEndpoint());
-        idpForErrorScenarios = createIdPWithUserDefinedFederatedAuthenticatorConfig(
+        endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
+        endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig(
+                "http://localhost1", "admin1", "admin1");
+        action = ActionMgtTestUtil.createAction(endpointConfig);
+        userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME, action.getEndpoint());
+        idpForErrorScenarios = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
                 CUSTOM_IDP_NAME + "Error", action.getEndpoint());
     }
 
@@ -733,7 +735,8 @@ public class IdentityProviderManagementServiceTest {
     @Test
     public void testUpdateIdPActionException() throws Exception {
 
-        IdentityProvider idpForErrorScenariosTobeUpdate = createIdPWithUserDefinedFederatedAuthenticatorConfig(
+        IdentityProvider idpForErrorScenariosTobeUpdate = ActionMgtTestUtil.
+                createIdPWithUserDefinedFederatedAuthenticatorConfig(
                 idpForErrorScenarios.getIdentityProviderName(), endpointConfig);
         identityProviderManagementService.addIdP(idpForErrorScenarios);
 
@@ -819,10 +822,10 @@ public class IdentityProviderManagementServiceTest {
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("testIdP3New");
 
-        IdentityProvider updateIdPWithExistingUserDefinedFedAuth = createIdPWithUserDefinedFederatedAuthenticatorConfig(
-                CUSTOM_IDP_NAME + "new", endpointConfigToBeUpdated);
-        IdentityProvider updateIdPWithNewUserDefinedFedAuth = createIdPWithUserDefinedFederatedAuthenticatorConfig(
-                CUSTOM_IDP_NAME + "new", endpointConfigToBeUpdated);
+        IdentityProvider updateIdPWithExistingUserDefinedFedAuth = ActionMgtTestUtil.
+                createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME + "new", endpointConfigToBeUpdated);
+        IdentityProvider updateIdPWithNewUserDefinedFedAuth = ActionMgtTestUtil.
+                createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME + "new", endpointConfigToBeUpdated);
         updateIdPWithNewUserDefinedFedAuth.getFederatedAuthenticatorConfigs()[0].setName("New Fed Auth");
 
 
@@ -1440,48 +1443,6 @@ public class IdentityProviderManagementServiceTest {
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig.setProperties(new Property[]{property});
         return federatedAuthenticatorConfig;
-    }
-
-    private Action createAction(EndpointConfig endpointConfig) {
-
-        Action.ActionResponseBuilder actionResponseBuilder = new Action.ActionResponseBuilder();
-        actionResponseBuilder.id(ASSOCIATED_ACTION_ID);
-        actionResponseBuilder.name("SampleAssociatedAction");
-        actionResponseBuilder.type(Action.ActionTypes.AUTHENTICATION);
-        actionResponseBuilder.description("SampleDescription");
-        actionResponseBuilder.status(Action.Status.ACTIVE);
-        actionResponseBuilder.endpoint(endpointConfig);
-        return actionResponseBuilder.build();
-    }
-
-    private EndpointConfig createEndpointConfig(String uri, String username, String password) {
-
-        EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
-        endpointConfigBuilder.uri(uri);
-        endpointConfigBuilder.authentication(
-                new Authentication.BasicAuthBuilder(username, password).build());
-        return endpointConfigBuilder.build();
-    }
-
-    private IdentityProvider createIdPWithUserDefinedFederatedAuthenticatorConfig(String idpName,
-                                                                                  EndpointConfig endpointConfig) {
-
-        // Initialize Test Identity Provider 4 with custom user defined federated authenticator.
-        IdentityProvider newUserDefinedIdp = new IdentityProvider();
-        newUserDefinedIdp.setIdentityProviderName(idpName);
-
-        UserDefinedFederatedAuthenticatorConfig userDefinedFederatedAuthenticatorConfig = new
-                UserDefinedFederatedAuthenticatorConfig();
-        userDefinedFederatedAuthenticatorConfig.setDisplayName("DisplayName1");
-        userDefinedFederatedAuthenticatorConfig.setName("customFedAuthenticator");
-        userDefinedFederatedAuthenticatorConfig.setEnabled(true);
-        userDefinedFederatedAuthenticatorConfig.setEndpointConfig(
-                buildUserDefinedAuthenticatorEndpointConfig(endpointConfig));
-        userDefinedFederatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
-        userDefinedFederatedAuthenticatorConfig.setProperties(new Property[]{});
-        newUserDefinedIdp.setFederatedAuthenticatorConfigs(
-                new FederatedAuthenticatorConfig[]{userDefinedFederatedAuthenticatorConfig});
-        return newUserDefinedIdp;
     }
 
     private UserDefinedAuthenticatorEndpointConfig buildUserDefinedAuthenticatorEndpointConfig(

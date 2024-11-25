@@ -22,11 +22,15 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.action.management.ActionManagementService;
+import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -45,8 +49,8 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
-import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByHRI;
@@ -60,6 +64,7 @@ import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.ActionMgtTestUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 
@@ -74,10 +79,12 @@ import java.util.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 
 /**
@@ -87,22 +94,25 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIO
 public class CacheBackedIdPMgtDAOTest {
 
     private static final String DB_NAME = "test";
-
     private static final Integer SAMPLE_TENANT_ID1 = -1234;
-
     private static final Integer SAMPLE_TENANT_ID2 = 1;
-
     private static final Integer SAMPLE_TENANT_ID3 = 2;
-
     private static final Integer NOT_EXISTING_TENANT_ID = 4;
-
     private static final String TENANT_DOMAIN = "carbon.super";
 
+    private static final String CUSTOM_IDP_NAME = "customIdP";
+
+    private static Action action;
+    private static EndpointConfig endpointConfig;
+    private static EndpointConfig endpointConfigToBeUpdated;
+    private IdentityProvider idpForErrorScenarios;
+    private IdentityProvider userDefinedIdP;
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
-
     private CacheBackedIdPMgtDAO cacheBackedIdPMgtDAO;
+    private CacheBackedIdPMgtDAO cacheBackedIdPMgtDAOForException;
     private IdPManagementDAO idPManagementDAO;
-
+    private IdPManagementDAO idPManagementDAOForException;
+    private ActionManagementService actionManagementService;
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
     MockedStatic<IdpMgtServiceComponentHolder> idpMgtServiceComponentHolder;
 
@@ -144,6 +154,32 @@ public class CacheBackedIdPMgtDAOTest {
         throw new RuntimeException("No datasource initiated for database: " + database);
     }
 
+    @BeforeClass
+    public void setUpClass() throws Exception {
+
+        SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
+        SecretType secretType = mock(SecretType.class);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        when(secretType.getId()).thenReturn("secretId");
+        doReturn(secretType).when(secretManager).getSecretType(any());
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+
+        endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
+        endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig(
+                "http://localhost1", "admin1", "admin1");
+        action = ActionMgtTestUtil.createAction(endpointConfig);
+        userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME, action.getEndpoint());
+        idpForErrorScenarios = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME + "Error", action.getEndpoint());
+
+        actionManagementService = mock(ActionManagementService.class);
+        when(actionManagementService.addAction(anyString(), any(), any())).thenReturn(action);
+        when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
+        when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
+        doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
+    }
+
     @BeforeMethod
     public void setup() throws Exception {
 
@@ -153,6 +189,8 @@ public class CacheBackedIdPMgtDAOTest {
         when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
                 invocation -> invocation.getArguments()[0]);
         idPManagementDAO = new IdPManagementDAO();
+        idPManagementDAOForException = mock(IdPManagementDAO.class);
+        cacheBackedIdPMgtDAOForException = new CacheBackedIdPMgtDAO(idPManagementDAOForException);
 
         Field idpSecretsProcessorField = IdPManagementDAO.class.getDeclaredField("idpSecretsProcessorService");
         idpSecretsProcessorField.setAccessible(true);
@@ -167,6 +205,7 @@ public class CacheBackedIdPMgtDAOTest {
         IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
         idpMgtServiceComponentHolder.when(
                 IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
+        when(mockIdpMgtServiceComponentHolder.getActionManagementService()).thenReturn(actionManagementService);
     }
 
     @AfterMethod
@@ -192,7 +231,7 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIdPsData() {
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID1, 2},
+                {SAMPLE_TENANT_ID1, 3},
                 {SAMPLE_TENANT_ID2, 1},
                 {NOT_EXISTING_TENANT_ID, 0}
         };
@@ -238,7 +277,7 @@ public class CacheBackedIdPMgtDAOTest {
         return new Object[][]{
                 {SAMPLE_TENANT_ID1, "testIdP1", 1},
                 {SAMPLE_TENANT_ID2, "testIdP3", 1},
-                {SAMPLE_TENANT_ID1, "", 2},
+                {SAMPLE_TENANT_ID1, "", 3},
                 {SAMPLE_TENANT_ID1, "test*", 2},
                 {SAMPLE_TENANT_ID1, "????IdP*", 2},
                 {SAMPLE_TENANT_ID1, "tes_I*", 2},
@@ -352,7 +391,7 @@ public class CacheBackedIdPMgtDAOTest {
         expressionNodesList2.add(expressionNode2);
 
         return new Object[][]{
-                {SAMPLE_TENANT_ID1, expressionNodesList1, 2},
+                {SAMPLE_TENANT_ID1, expressionNodesList1, 3},
                 {SAMPLE_TENANT_ID1, expressionNodesList2, 2},
                 {SAMPLE_TENANT_ID2, expressionNodesList1, 1},
         };
@@ -434,7 +473,7 @@ public class CacheBackedIdPMgtDAOTest {
         return new Object[][]{
                 {"testIdP1", 1, SAMPLE_TENANT_ID1, true},
                 {"testIdP3", 3, SAMPLE_TENANT_ID2, true},
-                {"notExist", 4, SAMPLE_TENANT_ID1, false},
+                {"notExist", 99, SAMPLE_TENANT_ID1, false},
         };
     }
 
@@ -1175,8 +1214,8 @@ public class CacheBackedIdPMgtDAOTest {
         }
     }
 
-    @Test(dataProvider = "deleteIdPsData")
-    public void testDeleteIdPsDAOException(int tenantId) throws Exception {
+    @Test
+    public void testDeleteIdPsDAOException() throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1184,8 +1223,16 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
+
+            List<IdentityProvider> idpList = idPManagementDAO.getIdPs(connection, SAMPLE_TENANT_ID1, TENANT_DOMAIN);
+            when(idPManagementDAOForException.getIdPs(any(), anyInt(), anyString()))
+                    .thenReturn(idpList);
+            doThrow(IdentityProviderManagementException.class).when(idPManagementDAOForException).deleteIdPs(anyInt());
+
             // Deleting multiple IDPs on a tenant.
-            cacheBackedIdPMgtDAO.deleteIdPs(tenantId);
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAOForException.deleteIdPs(SAMPLE_TENANT_ID1));
+            verify(actionManagementService, times(1)).addAction(anyString(), any(), anyString());
         }
     }
 
@@ -1244,9 +1291,57 @@ public class CacheBackedIdPMgtDAOTest {
             // Force delete IDP using resourceId.
             cacheBackedIdPMgtDAO.forceDeleteIdP(idpName, tenantId, TENANT_DOMAIN);
             int resultSize = getIdPCount(connection, idpName, tenantId);
-            assertEquals(resultSize, 0, "'forceDeleteIdPByResourceId' method fails");
+            assertEquals(resultSize, 0, "'forceDeleteIdP' method fails");
             IdentityProvider idpFromCache = idpFromCacheByName(idpName);
             assertNull(idpFromCache, "'deleteIdPByResourceId' method fails");
+        }
+    }
+
+    @Test
+    public void testForceDeleteIdPDAOException() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            doThrow(IdentityProviderManagementException.class).when(idPManagementDAOForException).forceDeleteIdP(
+                    anyString(), anyInt(), anyString());
+            when(idPManagementDAOForException.getIdPByName(any(), anyString(), anyInt(), anyString()))
+                    .thenReturn(userDefinedIdP);
+
+            // Deleting multiple IDPs on a tenant.
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAOForException.forceDeleteIdP(
+                            userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
+
+            verify(actionManagementService, times(2)).addAction(anyString(), any(), anyString());
+        }
+    }
+
+    @Test
+    public void testDeleteIdPDAOException() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            doThrow(IdentityProviderManagementException.class).when(idPManagementDAOForException).deleteIdP(
+                    anyString(), anyInt(), anyString());
+            when(idPManagementDAOForException.getIdPByName(any(), anyString(), anyInt(), anyString()))
+                    .thenReturn(userDefinedIdP);
+
+            // Deleting multiple IDPs on a tenant.
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAOForException.deleteIdP(
+                            userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
+
+            verify(actionManagementService, times(1)).addAction(anyString(), any(), anyString());
         }
     }
 
@@ -1604,6 +1699,10 @@ public class CacheBackedIdPMgtDAOTest {
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID1);
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
+        // IDP with user defined federated authenticators.
+        idPManagementDAO.addIdP(userDefinedIdP, SAMPLE_TENANT_ID1);
+        userDefinedIdP =  idPManagementDAO.getIdPByName(null, userDefinedIdP.getIdentityProviderName(),
+                SAMPLE_TENANT_ID1, TENANT_DOMAIN);
     }
 
     private void addTestIdps(Connection connection) throws IdentityProviderManagementException {
