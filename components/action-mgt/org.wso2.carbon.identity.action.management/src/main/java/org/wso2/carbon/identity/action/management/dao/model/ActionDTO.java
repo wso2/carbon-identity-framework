@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -224,7 +225,7 @@ public class ActionDTO {
         public Builder property(String propertyName, String propertyValue) {
 
             if (this.properties == null) {
-                this.properties = Collections.emptyMap();
+                this.properties = new HashMap<>();
             }
             this.properties.put(propertyName, propertyValue);
             return this;

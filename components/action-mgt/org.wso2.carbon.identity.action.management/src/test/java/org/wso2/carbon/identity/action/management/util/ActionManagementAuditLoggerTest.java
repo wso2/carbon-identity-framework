@@ -232,7 +232,7 @@ public class ActionManagementAuditLoggerTest {
         Assert.assertEquals(extractMapByField("ActionName", auditLogBuilder), "Test Action");
         Assert.assertEquals(extractMapByField("ActionType", auditLogBuilder),
                 Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
-        Assert.assertEquals(extractMapByField("ActionStatus", auditLogBuilder), Action.Status.ACTIVE.value());
+        Assert.assertEquals(extractMapByField("ActionStatus", auditLogBuilder), Action.Status.ACTIVE.name());
         Assert.assertEquals(extractMapByField("ActionDescription", auditLogBuilder),
                 "This is a test action.");
         Assert.assertEquals(extractEndpointMapByField("AuthenticationScheme", auditLogBuilder),

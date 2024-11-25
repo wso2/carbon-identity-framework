@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.management.model;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.util.ActionSecretProcessor;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
@@ -143,7 +144,7 @@ public class Authentication {
                     secretProcessor.decryptAssociatedSecrets(properties, type.getName(), actionId);
         } catch (SecretManagementException e) {
             throw ActionManagementUtil.handleServerException(
-                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES, e);
+                    ErrorMessage.ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES, e);
         }
     }
 

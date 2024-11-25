@@ -360,7 +360,12 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
-        Map<String, String> actionProperties = actionDTO.getProperties().entrySet().stream()
+        Map<String, Object> propertiesMap = actionDTO.getProperties();
+        if (propertiesMap == null) {
+            return;
+        }
+
+        Map<String, String> actionProperties = propertiesMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> (String) entry.getValue()));
         try {
             addActionPropertiesToDB(actionDTO.getId(), actionProperties, tenantId);
@@ -372,7 +377,12 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void updateProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                   Integer tenantId) throws ActionMgtException {
 
-        Map<String, String> updatingProperties = updatingActionDTO.getProperties().entrySet().stream()
+        Map<String, Object> propertiesMap = updatingActionDTO.getProperties();
+        if (propertiesMap == null) {
+            return;
+        }
+
+        Map<String, String> updatingProperties = propertiesMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> (String) entry.getValue()));
         try {
             // Delete existing properties.
