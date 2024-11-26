@@ -16,10 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management.factory;
+package org.wso2.carbon.identity.action.management.service.impl;
 
-import org.wso2.carbon.identity.action.management.ActionConverter;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.service.ActionConverter;
 
 import java.util.HashMap;
 import java.util.Map;

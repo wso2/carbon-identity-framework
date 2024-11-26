@@ -16,15 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management.factory;
+package org.wso2.carbon.identity.action.management.dao;
 
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.ActionPropertyResolver;
+import org.wso2.carbon.identity.action.management.dao.impl.ActionPropertyResolverFactory;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
 
 import static org.mockito.Mockito.doReturn;
 
