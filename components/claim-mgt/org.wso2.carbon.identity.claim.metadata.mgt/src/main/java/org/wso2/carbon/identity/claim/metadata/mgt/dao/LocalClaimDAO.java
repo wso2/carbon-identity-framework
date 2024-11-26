@@ -204,7 +204,6 @@ public class LocalClaimDAO extends ClaimDAO {
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement prepStmt = null;
 
         String localClaimURI = localClaim.getClaimURI();
 
