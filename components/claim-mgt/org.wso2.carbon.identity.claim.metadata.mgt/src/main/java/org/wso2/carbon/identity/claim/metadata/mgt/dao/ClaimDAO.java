@@ -235,78 +235,61 @@ public class ClaimDAO {
     }
 
     /**
-     * Deletes a set of claim properties.
+     * Updates a single claim property by changing both its name and value.
+     * This method is useful when you want to replace an existing property with a new one.
      *
-     * @param connection         Database connection
-     * @param claimId            ID of the claim
-     * @param claimPropertyNames Names of the claim properties to be deleted
-     * @param tenantId           Tenant ID
-     * @throws ClaimMetadataException if deletion fails
+     * @param connection       The database connection to be used.
+     * @param claimId          The ID of the claim whose property is being updated.
+     * @param oldPropertyName  The current name of the property to be updated.
+     * @param newPropertyName  The new name to replace the old property name.
+     * @param newPropertyValue The new value to be set for the property.
+     * @param tenantId         The ID of the tenant.
+     * @throws ClaimMetadataException If the property doesn't exist or the update fails.
      */
-    protected void deleteClaimProperties(Connection connection, int claimId,
-                                         Set<String> claimPropertyNames, int tenantId) throws ClaimMetadataException {
+    protected void updateClaimProperty(Connection connection, int claimId,
+                                       String oldPropertyName, String newPropertyName, String newPropertyValue,
+                                       int tenantId)
+            throws ClaimMetadataException {
 
-        String query = SQLConstants.DELETE_CLAIM_PROPERTY_BY_NAME;
-        try (PreparedStatement prepStmt = connection.prepareStatement(query)) {
-            prepStmt.setInt(1, claimId);
-            prepStmt.setInt(3, tenantId);
-            
-            for (String propertyName : claimPropertyNames) {
-                prepStmt.setString(2, propertyName);
-                prepStmt.addBatch();
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.UPDATE_CLAIM_PROPERTY)) {
+            prepStmt.setString(1, newPropertyName);
+            prepStmt.setString(2, newPropertyValue);
+            prepStmt.setInt(3, claimId);
+            prepStmt.setString(4, oldPropertyName);
+            prepStmt.setInt(5, tenantId);
+
+            int rowsUpdated = prepStmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new ClaimMetadataException("Property not found: " + oldPropertyName);
             }
-            prepStmt.executeBatch();
         } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while deleting claim properties: " + claimPropertyNames, e);
+            throw new ClaimMetadataException("Error while updating claim property", e);
         }
     }
 
     /**
-     * Updates claim properties atomically by performing deletions and additions within a single transaction.
-     * This method ensures that all operations either complete successfully or are rolled back entirely.
+     * Deletes a specific claim property by its name.
      *
-     * @param connection              Database connection to be used
-     * @param claimId                 ID of the claim whose properties are being updated
-     * @param newClaimProperties      Map of new claim properties to be added (property name to value mapping)
-     * @param claimPropertiesToDelete Set of claim property names to be deleted
-     * @param tenantId                ID of the tenant
-     * @throws ClaimMetadataException If an error occurs during the transaction or while managing claim properties
+     * @param connection   The database connection to be used.
+     * @param claimId      The ID of the claim whose property is being deleted.
+     * @param propertyName The name of the property to be deleted.
+     * @param tenantId     The ID of the tenant.
+     * @throws ClaimMetadataException If the property deletion fails.
      */
-    protected void updateClaimPropertiesAtomically(Connection connection, int claimId,
-                                                   Map<String, String> newClaimProperties,
-                                                   Set<String> claimPropertiesToDelete,
-                                                   int tenantId) throws ClaimMetadataException {
+    protected void deleteClaimProperty(Connection connection, int claimId, String propertyName, int tenantId)
+            throws ClaimMetadataException {
 
-        boolean autoCommit = false;
-        SQLException resetAutoCommitException = null;
-        
-        try {
-            autoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.DELETE_CLAIM_PROPERTY_BY_NAME)) {
+            prepStmt.setInt(1, claimId);
+            prepStmt.setString(2, propertyName);
+            prepStmt.setInt(3, tenantId);
 
-            if (claimPropertiesToDelete != null && !claimPropertiesToDelete.isEmpty()) {
-                deleteClaimProperties(connection, claimId, claimPropertiesToDelete, tenantId);
+            int rowsDeleted = prepStmt.executeUpdate();
+            if (rowsDeleted == 0) {
+                throw new ClaimMetadataException("Property not found: " + propertyName);
             }
-
-            if (newClaimProperties != null && !newClaimProperties.isEmpty()) {
-                addClaimProperties(connection, claimId, newClaimProperties, tenantId);
-            }
-
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new ClaimMetadataException("Error while updating claim properties atomically", e);
-        } finally {
-            try {
-                connection.setAutoCommit(autoCommit);
-            } catch (SQLException e) {
-                resetAutoCommitException = e;
-            }
-        }
-        
-        if (resetAutoCommitException != null) {
-            throw new ClaimMetadataException("Error occurred while resetting auto-commit state", 
-                    resetAutoCommitException);
+            throw new ClaimMetadataException("Error while deleting claim property: " + propertyName, e);
         }
     }
 }

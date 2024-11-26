@@ -23,11 +23,13 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ClaimUniquenessScope;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -199,7 +201,7 @@ public class LocalClaimDAOTest {
     }
 
     @Test
-    public void testAddLocalClaimWithUniqueProperty() throws Exception {
+    public void testAddLocalClaimWithUniqueProperty() throws ClaimMetadataException {
 
         // Add claim dialect
         ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
@@ -227,8 +229,9 @@ public class LocalClaimDAOTest {
         claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
     }
 
-    @Test
-    public void testGetLocalClaimsWithUniqueProperty() throws Exception {
+    @Test(dataProvider = "uniquenessValidationPropertiesData")
+    public void testGetLocalClaimsWithUniquenessValidationProperties(Map<String, String> uniquenessValidationProperties)
+            throws ClaimMetadataException, SQLException {
 
         // Add claim dialect
         ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
@@ -239,15 +242,13 @@ public class LocalClaimDAOTest {
         LocalClaimDAO localClaimDAO = new LocalClaimDAO();
         localClaimDAO.addLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
 
-        // Get claim ID and add isUnique property directly using ClaimDAO
+        // Get claim ID and add uniqueness validation property/properties directly using ClaimDAO
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             ClaimDAO claimDAO = new ClaimDAO();
             int claimId = claimDAO.getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
                     localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
 
-            Map<String, String> uniqueProperty = new HashMap<>();
-            uniqueProperty.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
-            claimDAO.addClaimProperties(connection, claimId, uniqueProperty, TEST_LOCAL_TENANT_ID);
+            claimDAO.addClaimProperties(connection, claimId, uniquenessValidationProperties, TEST_LOCAL_TENANT_ID);
 
             IdentityDatabaseUtil.commitTransaction(connection);
         }
@@ -266,6 +267,23 @@ public class LocalClaimDAOTest {
         // Clean up
         localClaimDAO.removeLocalClaim(localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
         claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+    }
+
+    @DataProvider(name = "uniquenessValidationPropertiesData")
+    public Object[][] getUniquenessValidationPropertiesData() {
+
+        Map<String, String> singleProperty = new HashMap<>();
+        singleProperty.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+
+        Map<String, String> bothProperties = new HashMap<>();
+        bothProperties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+        bothProperties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
+                ClaimUniquenessScope.ACROSS_USERSTORES.toString());
+
+        return new Object[][]{
+                {singleProperty},
+                {bothProperties}
+        };
     }
 
     @Test
