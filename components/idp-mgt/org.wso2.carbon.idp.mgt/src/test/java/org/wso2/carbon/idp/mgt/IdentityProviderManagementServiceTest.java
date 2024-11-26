@@ -1445,20 +1445,6 @@ public class IdentityProviderManagementServiceTest {
         return federatedAuthenticatorConfig;
     }
 
-    private UserDefinedAuthenticatorEndpointConfig buildUserDefinedAuthenticatorEndpointConfig(
-            EndpointConfig endpointConfig) {
-
-        UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder =
-                new UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder();
-        endpointConfigBuilder.uri(endpointConfig.getUri());
-        endpointConfigBuilder.authenticationType(endpointConfig.getAuthentication().getType().getName());
-        Map<String, String> propMap = new HashMap<>();
-        endpointConfig.getAuthentication().getProperties()
-                .forEach(prop -> propMap.put(prop.getName(), prop.getValue()));
-        endpointConfigBuilder.authenticationProperties(propMap);
-        return endpointConfigBuilder.build();
-    }
-
     private void assertIdPResult(IdentityProvider idpResult) {
 
         for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {

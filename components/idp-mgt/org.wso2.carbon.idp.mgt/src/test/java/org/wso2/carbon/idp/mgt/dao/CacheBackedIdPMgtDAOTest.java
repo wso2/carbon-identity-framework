@@ -31,18 +31,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.application.common.model.Claim;
-import org.wso2.carbon.identity.application.common.model.ClaimConfig;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
-import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
-import org.wso2.carbon.identity.application.common.model.LocalRole;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -99,6 +88,9 @@ public class CacheBackedIdPMgtDAOTest {
     private static final Integer SAMPLE_TENANT_ID3 = 2;
     private static final Integer NOT_EXISTING_TENANT_ID = 4;
     private static final String TENANT_DOMAIN = "carbon.super";
+    private static final String IDP_GROUP1 = "idpGroup1";
+    private static final String IDP_GROUP2 = "idpGroup2";
+    private static final String IDP_GROUP2_ID = "idpGroup2Id";
 
     private static final String CUSTOM_IDP_NAME = "customIdP";
 
@@ -578,6 +570,327 @@ public class CacheBackedIdPMgtDAOTest {
                 {"testIdP1", SAMPLE_TENANT_ID1},
                 {"testIdP3", SAMPLE_TENANT_ID2}
         };
+    }
+
+    @Test
+    public void getAllUserDefinedFederatedAuthenticators() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            List<FederatedAuthenticatorConfig> result = cacheBackedIdPMgtDAO
+                    .getAllUserDefinedFederatedAuthenticators(SAMPLE_TENANT_ID1);
+            assertEquals(result.size(), 1);
+            assertEquals(result.get(0).getName(), userDefinedIdP.getFederatedAuthenticatorConfigs()[0].getName());
+        }
+    }
+
+    @DataProvider
+    public Object[][] getIdPsSearchWithExpressionNodesData() {
+
+        ExpressionNode expressionNode1 = new ExpressionNode();
+        expressionNode1.setAttributeValue("name");
+        expressionNode1.setOperation("co");
+        expressionNode1.setValue("IdP");
+        List<ExpressionNode> expressionNodesList1 = new ArrayList<>();
+        expressionNodesList1.add(expressionNode1);
+
+        ExpressionNode expressionNode2 = new ExpressionNode();
+        List<ExpressionNode> expressionNodesList2 = new ArrayList<>();
+        expressionNode2.setAttributeValue("name");
+        expressionNode2.setOperation("eq");
+        expressionNode2.setValue("testIdP1");
+        expressionNodesList2.add(expressionNode2);
+
+        ExpressionNode expressionNode3 = new ExpressionNode();
+        List<ExpressionNode> expressionNodesList3 = new ArrayList<>();
+        expressionNode3.setAttributeValue("name");
+        expressionNode3.setOperation("ew");
+        expressionNode3.setValue("2");
+        expressionNodesList3.add(expressionNode3);
+
+        return new Object[][]{
+                {SAMPLE_TENANT_ID1, expressionNodesList1, 2, 0, "ASC", "NAME", 2, "customIdP"},
+                {SAMPLE_TENANT_ID1, expressionNodesList1, 2, 0, "DESC", "NAME", 2, "testIdP2"},
+                {SAMPLE_TENANT_ID2, expressionNodesList1, 1, 0, "ASC", "NAME", 1, "testIdP3"},
+                {SAMPLE_TENANT_ID1, expressionNodesList2, 1, 0, "ASC", "NAME", 1, "testIdP1"},
+                {SAMPLE_TENANT_ID1, expressionNodesList3, 1, 0, "ASC", "NAME", 1, "testIdP2"},
+        };
+    }
+
+    @Test
+    public void testGetIdPGroupsByIds() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+            IdPManagementDAO mockedIdPManagementDAO = mock(IdPManagementDAO.class);
+            CacheBackedIdPMgtDAO mockedCacheBackedIdPMgtDAO = new CacheBackedIdPMgtDAO(mockedIdPManagementDAO);
+
+            mockedCacheBackedIdPMgtDAO.getIdPGroupsByIds(Arrays.asList("testIdP1", "testIdP2"), SAMPLE_TENANT_ID1);
+            verify(mockedIdPManagementDAO, times(1))
+                    .getIdPGroupsByIds(any(), anyInt());
+        }
+    }
+
+    public void testGetConnectedAppsOfLocalAuthenticator() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+
+            IdPManagementDAO mockedIdPManagementDAO = mock(IdPManagementDAO.class);
+            CacheBackedIdPMgtDAO mockedCacheBackedIdPMgtDAO = new CacheBackedIdPMgtDAO(mockedIdPManagementDAO);
+
+            mockedCacheBackedIdPMgtDAO.getConnectedAppsOfLocalAuthenticator("testIdP1", SAMPLE_TENANT_ID1, 5, 0);
+            verify(mockedIdPManagementDAO, times(1))
+                    .getConnectedAppsOfLocalAuthenticator(anyString(), anyInt(), any(), any());
+        }
+    }
+
+    @Test(dataProvider = "getIdPsSearchWithExpressionNodesData")
+    public void testGetIdPsSearchWithExpressionNodes(int tenantId, List<ExpressionNode> expressionNodes, int limit,
+                                                     int offset, String sortOrder, String sortBy, int count,
+                                                     String firstIdp) throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            List<IdentityProvider> idps = cacheBackedIdPMgtDAO.getPaginatedIdPsSearch(
+                    tenantId, expressionNodes, limit, offset, sortOrder, sortBy);
+            assertEquals(idps.size(), count);
+            if (count > 0) {
+                assertEquals(idps.get(0).getIdentityProviderName(), firstIdp);
+            }
+        }
+    }
+
+    @DataProvider
+    public Object[][] getIdPDatForSearch() {
+
+        return new Object[][]{
+                {SAMPLE_TENANT_ID1, TENANT_DOMAIN, "testIdP1", 1},
+                {SAMPLE_TENANT_ID2, TENANT_DOMAIN, "testIdP3", 1},
+                {SAMPLE_TENANT_ID1, TENANT_DOMAIN, "", 2},
+                {SAMPLE_TENANT_ID1, TENANT_DOMAIN, "test*", 2},
+                {SAMPLE_TENANT_ID1, TENANT_DOMAIN, "????IdP*", 2},
+                {SAMPLE_TENANT_ID1, TENANT_DOMAIN, "tes_I*", 2},
+                {SAMPLE_TENANT_ID1, TENANT_DOMAIN, "*1", 1},
+                {SAMPLE_TENANT_ID1, TENANT_DOMAIN, "Notexist", 0},
+        };
+    }
+
+    @Test(dataProvider = "getIdPDatForSearch")
+    public void testGetTrustedTokenIssuersException(int tenantId, String tenantDomain, String filter, int resultCount)
+            throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            try (Connection connection = getConnection(DB_NAME)) {
+                identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+                identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+                addTestIdps();
+            }
+
+            assertThrows(IdentityProviderManagementException.class, () ->
+                    cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId, tenantDomain, filter));
+        }
+    }
+
+    @DataProvider
+    public Object[][] getTrustedTokenIssuersData() {
+
+        ExpressionNode expressionNode = new ExpressionNode();
+        List<ExpressionNode> expressionNodesList = new ArrayList<>();
+        expressionNodesList.add(expressionNode);
+
+        List<String> attributes1 = Arrays.asList("id", "name", "description", "isEnabled", "image", "isPrimary");
+        List<String> attributes2 = Arrays.asList("homeRealmIdentifier", "isFederationHub", "certificate", "alias",
+                "claims", "roles", "federatedAuthenticators", "provisioning");
+
+        return new Object[][]{
+                {SAMPLE_TENANT_ID1, expressionNodesList, 2, 0, "ASC", "NAME", attributes1, 1},
+                {SAMPLE_TENANT_ID1, expressionNodesList, 1, 1, "ASC", "NAME", attributes2, 0},
+                {SAMPLE_TENANT_ID1, expressionNodesList, 2, 0, "DESC", "NAME", attributes1, 1},
+        };
+    }
+
+    @Test(dataProvider = "getTrustedTokenIssuersData")
+    public void testGetTrustedTokenIssuers(int tenantId, List<ExpressionNode> expressionNodes, int limit, int offset,
+                                           String sortOrder, String sortBy, List<String> attributes, int resultCount)
+            throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestTrustedTokenIssuers();
+
+            List<IdentityProvider> idps1 = cacheBackedIdPMgtDAO.getPaginatedTrustedTokenIssuersSearch(tenantId,
+                    expressionNodes, limit, offset, sortOrder, sortBy, attributes);
+            assertEquals(idps1.size(), resultCount);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getCountOfFilteredTrustedTokenIssuersData() {
+
+        ExpressionNode expressionNode1 = new ExpressionNode();
+        List<ExpressionNode> expressionNodesList1 = new ArrayList<>();
+        expressionNodesList1.add(expressionNode1);
+        ExpressionNode expressionNode2 = new ExpressionNode();
+        expressionNode2.setAttributeValue("name");
+        expressionNode2.setOperation("sw");
+        expressionNode2.setValue("test");
+        List<ExpressionNode> expressionNodesList2 = new ArrayList<>();
+        expressionNodesList2.add(expressionNode2);
+
+        return new Object[][]{
+                {SAMPLE_TENANT_ID1, expressionNodesList1, 1},
+                {SAMPLE_TENANT_ID1, expressionNodesList2, 1},
+                {SAMPLE_TENANT_ID2, expressionNodesList1, 0},
+        };
+    }
+
+    @Test(dataProvider = "getCountOfFilteredTrustedTokenIssuersData")
+    public void testGetCountOfFilteredTrustedTokenIssuers(int tenantId, List<ExpressionNode> expNodes, int count)
+            throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestTrustedTokenIssuers();
+
+            int resultCount = cacheBackedIdPMgtDAO.getTotalTrustedTokenIssuerCount(tenantId, expNodes);
+            assertEquals(resultCount, count);
+        }
+    }
+
+    private void addTestTrustedTokenIssuers() throws IdentityProviderManagementException {
+
+        // Initialize Test Identity Provider 1.
+        IdentityProvider idp1 = new IdentityProvider();
+        idp1.setIdentityProviderName("testIdP1");
+        idp1.setHomeRealmId("1");
+        idp1.setEnable(true);
+        idp1.setPrimary(true);
+        idp1.setFederationHub(true);
+        idp1.setCertificate("");
+
+        RoleMapping roleMapping1 = new RoleMapping();
+        roleMapping1.setRemoteRole("Role1");
+        roleMapping1.setLocalRole(new LocalRole("1", "LocalRole1"));
+        RoleMapping roleMapping2 = new RoleMapping();
+        roleMapping2.setRemoteRole("Role2");
+        roleMapping2.setLocalRole(new LocalRole("2", "LocalRole2"));
+
+        PermissionsAndRoleConfig permissionsAndRoleConfig = new PermissionsAndRoleConfig();
+        permissionsAndRoleConfig.setIdpRoles(new String[]{"Role1", "Role2"});
+        permissionsAndRoleConfig.setRoleMappings(new RoleMapping[]{roleMapping1, roleMapping2});
+        idp1.setPermissionAndRoleConfig(permissionsAndRoleConfig);
+
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setDisplayName("DisplayName1");
+        federatedAuthenticatorConfig.setName("Name");
+        federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        Property property1 = new Property();
+        property1.setName("Property1");
+        property1.setValue("value1");
+        property1.setConfidential(true);
+        Property property2 = new Property();
+        property2.setName("Property2");
+        property2.setValue("value2");
+        property2.setConfidential(false);
+        federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
+        idp1.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
+
+        ProvisioningConnectorConfig provisioningConnectorConfig1 = new ProvisioningConnectorConfig();
+        provisioningConnectorConfig1.setName("ProvisiningConfig1");
+        provisioningConnectorConfig1.setProvisioningProperties(new Property[]{property1});
+        ProvisioningConnectorConfig provisioningConnectorConfig2 = new ProvisioningConnectorConfig();
+        provisioningConnectorConfig2.setName("ProvisiningConfig2");
+        provisioningConnectorConfig2.setProvisioningProperties(new Property[]{property2});
+        provisioningConnectorConfig2.setEnabled(true);
+        provisioningConnectorConfig2.setBlocking(true);
+        idp1.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{provisioningConnectorConfig1,
+                provisioningConnectorConfig2});
+
+        IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+        identityProviderProperty.setDisplayName("idpDisplayName");
+        identityProviderProperty.setName("idpPropertyName");
+        identityProviderProperty.setValue("idpPropertyValue");
+        idp1.setIdpProperties(new IdentityProviderProperty[]{identityProviderProperty});
+
+        ClaimConfig claimConfig = new ClaimConfig();
+        claimConfig.setLocalClaimDialect(false);
+        claimConfig.setRoleClaimURI("Country");
+        claimConfig.setUserClaimURI("Country");
+        ClaimMapping claimMapping = ClaimMapping.build("http://wso2.org/claims/country", "Country", "", true);
+        Claim remoteClaim = new Claim();
+        remoteClaim.setClaimId(0);
+        remoteClaim.setClaimUri("Country");
+        claimConfig.setClaimMappings(new ClaimMapping[]{claimMapping});
+        claimConfig.setIdpClaims(new Claim[]{remoteClaim});
+        idp1.setClaimConfig(claimConfig);
+
+        IdPGroup idPGroup1 = new IdPGroup();
+        idPGroup1.setIdpGroupName(IDP_GROUP1);
+        IdPGroup idPGroup2 = new IdPGroup();
+        idPGroup2.setIdpGroupName(IDP_GROUP2);
+        idp1.setIdPGroupConfig(new IdPGroup[]{idPGroup1, idPGroup2});
+
+        idp1.setTrustedTokenIssuer(true);
+
+        // Initialize Test Identity Provider 2.
+        IdentityProvider idp2 = new IdentityProvider();
+        idp2.setIdentityProviderName("testIdP2");
+        idp2.setHomeRealmId("2");
+
+        ClaimConfig claimConfig2 = new ClaimConfig();
+        claimConfig2.setLocalClaimDialect(true);
+        claimConfig2.setRoleClaimURI("http://wso2.org/claims/role");
+        claimConfig2.setUserClaimURI("http://wso2.org/claims/fullname");
+        ClaimMapping claimMapping2 = new ClaimMapping();
+        Claim localClaim2 = new Claim();
+        localClaim2.setClaimId(0);
+        localClaim2.setClaimUri("http://wso2.org/claims/fullname");
+        claimMapping2.setLocalClaim(localClaim2);
+        claimConfig2.setClaimMappings(new ClaimMapping[]{claimMapping2});
+        idp2.setClaimConfig(claimConfig2);
+
+        IdPGroup idPGroup3 = new IdPGroup();
+        idPGroup3.setIdpGroupName(IDP_GROUP1);
+        IdPGroup idPGroup4 = new IdPGroup();
+        idPGroup4.setIdpGroupName(IDP_GROUP2);
+        idPGroup4.setIdpGroupId(IDP_GROUP2_ID);
+        idp2.setIdPGroupConfig(new IdPGroup[]{idPGroup3, idPGroup4});
+
+        // Initialize Test Identity Provider 3.
+        IdentityProvider idp3 = new IdentityProvider();
+        idp3.setIdentityProviderName("testIdP3");
+        idp3.setHomeRealmId("3");
+
+        // IDP with PermissionsAndRoleConfig, FederatedAuthenticatorConfigs, ProvisioningConnectorConfigs, ClaimConfigs.
+        idPManagementDAO.addIdP(idp1, SAMPLE_TENANT_ID1);
+        // IDP with Local Cliam Dialect ClaimConfigs.
+        idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID1);
+        // IDP with Only name.
+        idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
     }
 
     @Test(dataProvider = "getIDPNameByResourceIdData")

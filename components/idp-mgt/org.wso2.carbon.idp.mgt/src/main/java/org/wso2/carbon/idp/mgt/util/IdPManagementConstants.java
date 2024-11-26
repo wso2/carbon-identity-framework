@@ -140,6 +140,8 @@ public class IdPManagementConstants {
     public static class SQLConstants {
 
         public static final String DEFINED_BY_COLUMN = "DEFINED_BY";
+        public static final String PROPERTY_KEY = "PROPERTY_KEY";
+        public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
     }
 
     public static class SQLQueries {

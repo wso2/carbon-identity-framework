@@ -1,6 +1,5 @@
 package org.wso2.carbon.idp.mgt.util;
 
-import org.testng.Assert;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
@@ -9,7 +8,6 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 
 import java.util.HashMap;
 import java.util.Map;

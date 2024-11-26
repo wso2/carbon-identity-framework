@@ -5987,12 +5987,35 @@ public class IdPManagementDAO {
                     federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
                     federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
                     federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
+                    int authnId = resultSet.getInt("ID");
+
+                    getFederatedProperties(connection, authnId, federatedAuthenticatorConfig);
                 }
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
             return federatedAuthenticatorConfigs;
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving all user defined federated " +
                     "authenticators for tenant: " + tenantId, e);
+        }
+    }
+
+    private void getFederatedProperties(Connection connection, int authnId,
+            FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws SQLException{
+
+        try (PreparedStatement prepStmtProp = connection.prepareStatement(
+                IdPManagementConstants.SQLQueries.GET_IDP_AUTH_PROPS_SQL)) {
+            prepStmtProp.setInt(1, authnId);
+            Set<Property> properties = new HashSet<Property>();
+            try (ResultSet resultSetProp = prepStmtProp.executeQuery()) {
+                while (resultSetProp.next()) {
+                    Property property = new Property();
+                    property.setName(resultSetProp.getString(IdPManagementConstants.SQLConstants.PROPERTY_KEY));
+                    property.setValue(resultSetProp.getString(IdPManagementConstants.SQLConstants.PROPERTY_VALUE));
+                    properties.add(property);
+                }
+                federatedAuthenticatorConfig.setProperties(properties.toArray(new Property[properties.size()]));
+            }
         }
     }
 
