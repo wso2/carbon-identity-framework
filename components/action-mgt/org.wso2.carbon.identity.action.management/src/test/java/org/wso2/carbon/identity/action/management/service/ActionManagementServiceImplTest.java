@@ -16,18 +16,18 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management;
+package org.wso2.carbon.identity.action.management.service;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.action.management.service.impl.ActionManagementServiceImpl;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
@@ -67,7 +67,7 @@ public class ActionManagementServiceImplTest {
     @BeforeClass
     public void setUpClass() {
 
-        actionManagementService = ActionManagementServiceImpl.getInstance();
+        actionManagementService = new ActionManagementServiceImpl(new ActionManagementDAOImpl());
     }
 
     @BeforeMethod

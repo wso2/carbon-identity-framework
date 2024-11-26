@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.action.management.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.action.management.ActionConverter;
 import org.wso2.carbon.identity.action.management.ActionPropertyResolver;
-import org.wso2.carbon.identity.action.management.ActionBuilder;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOFa
 import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.factory.ActionBuilderFactory;
+import org.wso2.carbon.identity.action.management.factory.ActionConverterFactory;
 import org.wso2.carbon.identity.action.management.factory.ActionPropertyResolverFactory;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
@@ -82,8 +82,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
-        ActionDTO resolvedActionDTO = buildActionDTO(actionType, generatedActionId, action);
-        doPreAddActionValidations(actionType, resolvedActionDTO);
+        ActionDTO resolvedActionDTO = buildActionDTO(resolvedActionType, generatedActionId, action);
+        doPreAddActionValidations(resolvedActionType, resolvedActionDTO);
 
         daoFacade.addAction(resolvedActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         Action createdAction = getActionByActionId(actionType, generatedActionId, tenantDomain);
@@ -106,12 +106,36 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Retrieving Actions for Action Type: %s.", actionType));
         }
-        List<ActionDTO> actionDTOS =  daoFacade.getActionsByActionType(getActionTypeFromPath(actionType),
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        List<ActionDTO> actionDTOS =  daoFacade.getActionsByActionType(resolvedActionType,
                 IdentityTenantUtil.getTenantId(tenantDomain));
 
         return actionDTOS.stream()
-                .map(actionDTO -> buildAction(actionType, actionDTO))
+                .map(actionDTO -> buildAction(resolvedActionType, actionDTO))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieve an action by action ID.
+     *
+     * @param actionType   Action type.
+     * @param actionId     Action ID.
+     * @param tenantDomain Tenant domain.
+     * @return Action object.
+     * @throws ActionMgtException if an error occurred while retrieving the action.
+     */
+    @Override
+    public Action getActionByActionId(String actionType, String actionId, String tenantDomain)
+            throws ActionMgtException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Retrieving Action of Action ID: %s", actionId));
+        }
+        String resolvedActionType = getActionTypeFromPath(actionType);
+        ActionDTO actionDTO = daoFacade.getActionByActionId(resolvedActionType, actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+
+        return buildAction(resolvedActionType, actionDTO);
     }
 
     /**
@@ -136,8 +160,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        ActionDTO updatingActionDTO = buildActionDTO(actionType, actionId, action);
-        doPreUpdateActionValidations(actionType, updatingActionDTO);
+        ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
+        doPreUpdateActionValidations(resolvedActionType, updatingActionDTO);
 
         daoFacade.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, actionId, action);
@@ -184,7 +208,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO activatedActionDTO = daoFacade.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, actionType, actionId);
-        return buildAction(actionType, activatedActionDTO);
+        return buildAction(resolvedActionType, activatedActionDTO);
     }
 
     /**
@@ -208,7 +232,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO deactivatedActionDTO = daoFacade.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, actionType, actionId);
-        return buildAction(actionType, deactivatedActionDTO);
+        return buildAction(resolvedActionType, deactivatedActionDTO);
     }
 
     /**
@@ -225,28 +249,6 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug("Retrieving Actions count per Type.");
         }
         return daoFacade.getActionsCountPerType(IdentityTenantUtil.getTenantId(tenantDomain));
-    }
-
-    /**
-     * Retrieve an action by action ID.
-     *
-     * @param actionType   Action type.
-     * @param actionId     Action ID.
-     * @param tenantDomain Tenant domain.
-     * @return Action object.
-     * @throws ActionMgtException if an error occurred while retrieving the action.
-     */
-    @Override
-    public Action getActionByActionId(String actionType, String actionId, String tenantDomain)
-            throws ActionMgtException {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Retrieving Action of Action ID: %s", actionId));
-        }
-        ActionDTO actionDTO = daoFacade.getActionByActionId(getActionTypeFromPath(actionType), actionId,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-
-        return buildAction(actionType, actionDTO);
     }
 
     /**
@@ -411,10 +413,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
     private ActionDTO buildActionDTO(String actionType, String actionId, Action action) {
 
-        ActionBuilder actionBuilder =
-                ActionBuilderFactory.getActionBuilder(Action.ActionTypes.valueOf(actionType));
-        if (actionBuilder != null) {
-            ActionDTO actionDTO = actionBuilder.buildActionDTO(action);
+        ActionConverter actionConverter =
+                ActionConverterFactory.getActionBuilder(Action.ActionTypes.valueOf(actionType));
+        if (actionConverter != null) {
+            ActionDTO actionDTO = actionConverter.buildActionDTO(action);
             actionDTO.setId(actionId);
             actionDTO.setType(Action.ActionTypes.valueOf(actionType));
 
@@ -434,10 +436,14 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
     private Action buildAction(String actionType, ActionDTO actionDTO) {
 
-        ActionBuilder actionBuilder =
-                ActionBuilderFactory.getActionBuilder(Action.ActionTypes.valueOf(actionType));
-        if (actionBuilder != null) {
-            return actionBuilder.buildAction(actionDTO);
+        if (actionDTO == null) {
+            return null;
+        }
+
+        ActionConverter actionConverter =
+                ActionConverterFactory.getActionBuilder(Action.ActionTypes.valueOf(actionType));
+        if (actionConverter != null) {
+            return actionConverter.buildAction(actionDTO);
         }
 
         return new Action.ActionResponseBuilder()
