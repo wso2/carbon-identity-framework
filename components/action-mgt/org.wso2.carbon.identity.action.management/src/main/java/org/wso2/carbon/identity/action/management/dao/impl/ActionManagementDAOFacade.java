@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
 import org.wso2.carbon.identity.action.management.factory.ActionPropertyResolverFactory;
-import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
@@ -90,7 +89,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
             getPropertiesOfActionDTOs(actionType, actionDTOS, tenantId);
 
             return actionDTOS;
-        } catch (ActionMgtException e) {
+        } catch (ActionMgtException | ActionPropertyResolverException e) {
             throw ActionManagementUtil.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
         }
@@ -102,11 +101,13 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
         try {
             ActionDTO actionDTO = actionManagementDAO.getActionByActionId(actionType, actionId, tenantId);
-            // Resolve action properties
-            getProperties(actionDTO, tenantId);
+            if (actionDTO != null) {
+                // Resolve action properties
+                getProperties(actionDTO, tenantId);
+            }
 
             return actionDTO;
-        } catch (ActionMgtException e) {
+        } catch (ActionMgtException | ActionPropertyResolverException e) {
             throw ActionManagementUtil.handleServerException(ErrorMessage.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
         }
     }
@@ -227,28 +228,24 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         }
     }
 
-    private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
+    private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionPropertyResolverException {
 
         Map<String, String> properties = null;
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(actionDTO.getType());
-        try {
-            if (actionPropertyResolver != null) {
-                properties = actionPropertyResolver.addProperties(actionDTO,
-                        IdentityTenantUtil.getTenantDomain(tenantId));
-            }
-            if (properties != null) {
-                actionDTO.setProperties(properties.entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            }
-        } catch (ActionPropertyResolverException e) {
-            throw new ActionMgtServerException("Failed to resolve Add Action properties for Action Type: "
-                    + actionDTO.getType().getDisplayName(), e);
+
+        if (actionPropertyResolver != null) {
+            properties = actionPropertyResolver.addProperties(actionDTO,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+        if (properties != null) {
+            actionDTO.setProperties(properties.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         }
     }
 
     private void getPropertiesOfActionDTOs(String actionType, List<ActionDTO> actionDTOS, Integer tenantId)
-            throws ActionMgtException {
+            throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(
@@ -257,62 +254,46 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
             return;
         }
 
-        try {
-            for (ActionDTO actionDTO : actionDTOS) {
-                actionDTO.setProperties(actionPropertyResolver.getProperties(actionDTO,
-                        IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
-        } catch (ActionPropertyResolverException e) {
-            throw new ActionMgtServerException("Error while resolving Properties of Actions of Action Type: "
-                    + Action.ActionTypes.valueOf(actionType).getDisplayName(), e);
+        for (ActionDTO actionDTO : actionDTOS) {
+            actionDTO.setProperties(actionPropertyResolver.getProperties(actionDTO,
+                    IdentityTenantUtil.getTenantDomain(tenantId)));
         }
     }
 
-    private void getProperties(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
+    private void getProperties(ActionDTO actionDTO, Integer tenantId) throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(actionDTO.getType());
-        try {
-            if (actionPropertyResolver != null) {
-                actionDTO.setProperties(actionPropertyResolver.getProperties(actionDTO,
-                        IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
-        } catch (ActionPropertyResolverException e) {
-            throw new ActionMgtServerException("Failed to fetch Action properties for Action Type: "
-                    + actionDTO.getType().getDisplayName(), e);
+
+        if (actionPropertyResolver != null) {
+            actionDTO.setProperties(actionPropertyResolver.getProperties(actionDTO,
+                    IdentityTenantUtil.getTenantDomain(tenantId)));
         }
     }
 
     private void updateProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
-            throws ActionMgtServerException {
+            throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(updatingActionDTO.getType());
-        try {
-            if (actionPropertyResolver != null) {
-                Map<String, String> properties = actionPropertyResolver.updateProperties(updatingActionDTO,
-                        existingActionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
-                updatingActionDTO.setProperties(properties.entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            }
-        } catch (ActionPropertyResolverException e) {
-            throw new ActionMgtServerException("Failed to resolve Update Action properties for Action Type: "
-                    + updatingActionDTO.getType().getDisplayName(), e);
+
+        if (actionPropertyResolver != null) {
+            Map<String, String> properties = actionPropertyResolver.updateProperties(updatingActionDTO,
+                    existingActionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
+            updatingActionDTO.setProperties(properties.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         }
     }
 
-    private void deleteProperties(ActionDTO deletingActionDTO, Integer tenantId) throws ActionMgtServerException {
+    private void deleteProperties(ActionDTO deletingActionDTO, Integer tenantId)
+            throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(deletingActionDTO.getType());
-        try {
-            if (actionPropertyResolver != null) {
-                actionPropertyResolver.deleteProperties(deletingActionDTO,
-                        IdentityTenantUtil.getTenantDomain(tenantId));
-            }
-        } catch (ActionPropertyResolverException e) {
-            throw new ActionMgtServerException("Failed to delete Action properties for Action Type: "
-                    + deletingActionDTO.getType().getDisplayName(), e);
+
+        if (actionPropertyResolver != null) {
+            actionPropertyResolver.deleteProperties(deletingActionDTO,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
         }
     }
 }

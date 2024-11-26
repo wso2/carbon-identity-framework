@@ -222,7 +222,7 @@ public class ActionDTO {
             return this;
         }
 
-        public Builder property(String propertyName, String propertyValue) {
+        public Builder property(String propertyName, Object propertyValue) {
 
             if (this.properties == null) {
                 this.properties = new HashMap<>();

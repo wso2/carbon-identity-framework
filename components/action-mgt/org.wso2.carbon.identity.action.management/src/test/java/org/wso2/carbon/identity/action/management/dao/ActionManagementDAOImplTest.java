@@ -18,11 +18,8 @@
 
 package org.wso2.carbon.identity.action.management.dao;
 
-import org.mockito.MockedStatic;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
@@ -33,15 +30,11 @@ import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mockStatic;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_ACTION_ID;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PASSWORD_ACTION_ID;
@@ -57,26 +50,12 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_ID
 public class ActionManagementDAOImplTest {
 
     private ActionManagementDAOImpl daoImpl;
-    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private ActionDTO createdActionDTO;
 
     @BeforeClass
     public void setUpClass() {
 
         daoImpl = new ActionManagementDAOImpl();
-    }
-
-    @BeforeMethod
-    public void setUp() throws SecretManagementException {
-
-        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
-        identityTenantUtil.when(()-> IdentityTenantUtil.getTenantId(anyString())).thenReturn(TENANT_ID);
-    }
-
-    @AfterMethod
-    public void tearDown() {
-
-        identityTenantUtil.close();
     }
 
     @Test(priority = 1)
@@ -180,7 +159,11 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 4)
     public void testDeleteAction() throws ActionMgtException {
 
-        daoImpl.deleteAction(createdActionDTO, TENANT_ID);
+        try {
+            daoImpl.deleteAction(createdActionDTO, TENANT_ID);
+        } catch (Exception e) {
+            Assert.fail();
+        }
         Assert.assertNull(daoImpl.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_TYPE, PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
                 TENANT_ID));
     }
