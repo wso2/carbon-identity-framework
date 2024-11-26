@@ -414,7 +414,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private ActionDTO buildActionDTO(String actionType, String actionId, Action action) {
 
         ActionConverter actionConverter =
-                ActionConverterFactory.getActionBuilder(Action.ActionTypes.valueOf(actionType));
+                ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
         if (actionConverter != null) {
             ActionDTO actionDTO = actionConverter.buildActionDTO(action);
             actionDTO.setId(actionId);
@@ -441,7 +441,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
 
         ActionConverter actionConverter =
-                ActionConverterFactory.getActionBuilder(Action.ActionTypes.valueOf(actionType));
+                ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
         if (actionConverter != null) {
             return actionConverter.buildAction(actionDTO);
         }

@@ -57,8 +57,9 @@ public class CacheBackedActionManagementService implements ActionManagementServi
     @Override
     public Action addAction(String actionType, Action action, String tenantDomain) throws ActionMgtException {
 
+        Action createdAction = ACTION_MGT_SERVICE.addAction(actionType, action, tenantDomain);
         actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
-        return ACTION_MGT_SERVICE.addAction(actionType, action, tenantDomain);
+        return createdAction;
     }
 
     @Override
@@ -91,41 +92,6 @@ public class CacheBackedActionManagementService implements ActionManagementServi
         }
 
         return actions;
-    }
-
-    @Override
-    public Action updateAction(String actionType, String actionId, Action action, String tenantDomain)
-            throws ActionMgtException {
-
-        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
-        return ACTION_MGT_SERVICE.updateAction(actionType, actionId, action, tenantDomain);
-    }
-
-    @Override
-    public void deleteAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
-
-        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
-        ACTION_MGT_SERVICE.deleteAction(actionType, actionId, tenantDomain);
-    }
-
-    @Override
-    public Action activateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
-
-        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
-        return ACTION_MGT_SERVICE.activateAction(actionType, actionId, tenantDomain);
-    }
-
-    @Override
-    public Action deactivateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
-
-        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
-        return ACTION_MGT_SERVICE.deactivateAction(actionType, actionId, tenantDomain);
-    }
-
-    @Override
-    public Map<String, Integer> getActionsCountPerType(String tenantDomain) throws ActionMgtException {
-
-        return ACTION_MGT_SERVICE.getActionsCountPerType(tenantDomain);
     }
 
     @Override
@@ -163,12 +129,51 @@ public class CacheBackedActionManagementService implements ActionManagementServi
     }
 
     @Override
+    public Action updateAction(String actionType, String actionId, Action action, String tenantDomain)
+            throws ActionMgtException {
+
+        Action updatedAction = ACTION_MGT_SERVICE.updateAction(actionType, actionId, action, tenantDomain);
+        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
+        return updatedAction;
+    }
+
+    @Override
+    public void deleteAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
+
+        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
+        ACTION_MGT_SERVICE.deleteAction(actionType, actionId, tenantDomain);
+    }
+
+    @Override
+    public Action activateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
+
+        Action activatedAction = ACTION_MGT_SERVICE.activateAction(actionType, actionId, tenantDomain);
+        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
+        return activatedAction;
+    }
+
+    @Override
+    public Action deactivateAction(String actionType, String actionId, String tenantDomain) throws ActionMgtException {
+
+        Action deactivatedAction = ACTION_MGT_SERVICE.deactivateAction(actionType, actionId, tenantDomain);
+        actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
+        return deactivatedAction;
+    }
+
+    @Override
+    public Map<String, Integer> getActionsCountPerType(String tenantDomain) throws ActionMgtException {
+
+        return ACTION_MGT_SERVICE.getActionsCountPerType(tenantDomain);
+    }
+
+    @Override
     public Action updateActionEndpointAuthentication(String actionType, String actionId, Authentication authentication,
                                                      String tenantDomain) throws ActionMgtException {
 
+        Action updatedAction = ACTION_MGT_SERVICE.updateActionEndpointAuthentication(actionType, actionId,
+                authentication, tenantDomain);
         actionCacheByType.clearCacheEntry(new ActionTypeCacheKey(actionType), tenantDomain);
-        return ACTION_MGT_SERVICE.updateActionEndpointAuthentication(actionType, actionId, authentication,
-                tenantDomain);
+        return updatedAction;
     }
 
     private void updateCache(Action action, ActionCacheEntry entry, ActionTypeCacheKey cacheKey, String tenantDomain) {

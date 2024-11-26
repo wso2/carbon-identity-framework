@@ -46,6 +46,11 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -53,12 +58,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.wso2.carbon.identity.action.management.util.TestUtil.CERTIFICATE_ID;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.CERTIFICATE_NAME;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.CERTIFICATE_PROPERTY_NAME;
@@ -69,7 +68,7 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDAT
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PASSWORD_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_ID;
-import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACCESS_TOKEN_SECRET_REFERENCE;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACCESS_TOKEN;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION_UPDATED;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_NAME;
@@ -250,8 +249,7 @@ public class ActionManagementDAOFacadeTest {
                 .description(TEST_ACTION_DESCRIPTION_UPDATED)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_ACTION_URI_UPDATED)
-                        .authentication(TestUtil.buildMockBearerAuthentication(
-                                TEST_ACCESS_TOKEN_SECRET_REFERENCE))
+                        .authentication(TestUtil.buildMockBearerAuthentication(TEST_ACCESS_TOKEN))
                         .build())
                 .property(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE_UPDATED)
                 .property(CERTIFICATE_PROPERTY_NAME,

@@ -21,11 +21,15 @@
 <suite name="org.wso2.carbon.identity.action.management">
         <test name="action-mgt-tests" preserve-order="true" parallel="false">
                 <classes>
-                        <class name="org.wso2.carbon.identity.action.management.dao.ActionManagementDAOImplTest"></class>
-                        <class name="org.wso2.carbon.identity.action.management.ActionManagementServiceImplTest"></class>
-                        <class name="org.wso2.carbon.identity.action.management.PreUpdatePasswordActionServiceImplTest"></class>
-                        <class name="org.wso2.carbon.identity.action.management.util.ActionValidatorTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.factory.ActionConverterFactoryTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.factory.ActionPropertyResolverFactoryTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.model.ActionTypesTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.util.ActionValidatorTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.dao.ActionManagementDAOImplTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.dao.ActionManagementDAOFacadeTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.service.ActionManagementServiceImplTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.service.CacheBackedActionManagementServiceTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.util.ActionManagementAuditLoggerTest"></class>
                 </classes>
         </test>
 </suite>

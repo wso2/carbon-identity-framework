@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.action.management.factory.ActionConverterFactory
 import org.wso2.carbon.identity.action.management.factory.ActionPropertyResolverFactory;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.action.management.service.impl.CacheBackedActionManagementService;
-import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.service;
 
+import org.apache.commons.lang.StringUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -46,8 +47,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_PATH;
-import static org.wso2.carbon.identity.action.management.util.TestUtil.SAMPLE_ACCESS_TOKEN;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACCESS_TOKEN;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_NAME;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_NAME_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_URI;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_HEADER;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_HEADER_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_VALUE;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_VALUE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_INVALID_ACTION_NAME;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_INVALID_API_KEY_HEADER;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USERNAME;
 
 /**
  * This class is a test suite for the ActionManagementServiceImpl class.
@@ -76,7 +90,7 @@ public class ActionManagementServiceImplTest {
         SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
         SecretType secretType = mock(SecretType.class);
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
-        when(secretType.getId()).thenReturn("secretId");
+        when(secretType.getId()).thenReturn(TestUtil.TEST_SECRET_TYPE_ID);
         when(secretManager.getSecretType(any())).thenReturn(secretType);
     }
 
@@ -84,10 +98,10 @@ public class ActionManagementServiceImplTest {
     public void testAddAction() throws ActionMgtException, SecretManagementException {
 
         Action creatingAction = TestUtil.buildMockAction(
-                "PreIssueAccessToken",
-                "To configure PreIssueAccessToken",
-                "https://example.com",
-                TestUtil.buildMockBasicAuthentication("admin", "admin"));
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD));
         preIssueAccessTokenAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction,
                 TENANT_DOMAIN);
         Assert.assertNotNull(preIssueAccessTokenAction.getId());
@@ -117,10 +131,10 @@ public class ActionManagementServiceImplTest {
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddActionWithInvalidData() throws ActionMgtException {
         Action creatingAction = TestUtil.buildMockAction(
-                "PreIssueAccessToken_#1",
-                "To configure PreIssueAccessToken",
-                "https://example.com",
-                TestUtil.buildMockAPIKeyAuthentication("-test-header", "thisisapikey"));
+                TEST_INVALID_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockAPIKeyAuthentication(TEST_INVALID_API_KEY_HEADER, TEST_API_KEY_VALUE));
         Action action = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
         Assert.assertNull(action);
     }
@@ -129,10 +143,10 @@ public class ActionManagementServiceImplTest {
             expectedExceptionsMessageRegExp = "Unable to create an Action.")
     public void testAddActionWithEmptyData() throws ActionMgtException {
         Action creatingAction = TestUtil.buildMockAction(
-                "",
-                "To configure PreIssueAccessToken",
-                "https://example.com",
-                TestUtil.buildMockBasicAuthentication(null, "admin"));
+                StringUtils.EMPTY,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockBasicAuthentication(null, TEST_PASSWORD));
         Action action = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
         Assert.assertNull(action);
     }
@@ -142,10 +156,10 @@ public class ActionManagementServiceImplTest {
     public void testAddMaximumActionsPerType() throws ActionMgtException {
 
         Action creatingAction = TestUtil.buildMockAction(
-                "PreIssueAccessToken",
-                "To configure PreIssueAccessToken",
-                "https://example.com",
-                TestUtil.buildMockBasicAuthentication("admin", "admin"));
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD));
         preIssueAccessTokenAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction,
                 TENANT_DOMAIN);
     }
@@ -226,10 +240,10 @@ public class ActionManagementServiceImplTest {
     public void testUpdateAction() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = TestUtil.buildMockAction(
-                "Pre Issue Access Token",
-                "To update configuration pre issue access token",
-                "https://sample.com",
-                TestUtil.buildMockAPIKeyAuthentication("header", "value"));
+                TEST_ACTION_NAME_UPDATED,
+                TEST_ACTION_DESCRIPTION_UPDATED,
+                TEST_ACTION_URI,
+                TestUtil.buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER, TEST_API_KEY_VALUE));
         Action result = actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 preIssueAccessTokenAction.getId(), updatingAction, TENANT_DOMAIN);
         Assert.assertEquals(preIssueAccessTokenAction.getId(), result.getId());
@@ -286,7 +300,8 @@ public class ActionManagementServiceImplTest {
     public void testUpdateEndpointConfigWithSameAuthenticationType() throws ActionMgtException,
             SecretManagementException {
 
-        Authentication authentication = TestUtil.buildMockAPIKeyAuthentication("newheader", "newvalue");
+        Authentication authentication = TestUtil.buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER_UPDATED,
+                TEST_API_KEY_VALUE_UPDATED);
         Action result = actionManagementService.updateActionEndpointAuthentication(
                 PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), authentication, TENANT_DOMAIN);
         Assert.assertEquals(Authentication.Type.API_KEY, result.getEndpoint().getAuthentication().getType());
@@ -302,7 +317,7 @@ public class ActionManagementServiceImplTest {
     public void testUpdateEndpointConfigWithDifferentAuthenticationType()
             throws ActionMgtException, SecretManagementException {
 
-        Authentication authentication = TestUtil.buildMockBearerAuthentication(SAMPLE_ACCESS_TOKEN);
+        Authentication authentication = TestUtil.buildMockBearerAuthentication(TEST_ACCESS_TOKEN);
         Action result = actionManagementService.updateActionEndpointAuthentication(
                 PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), authentication, TENANT_DOMAIN);
         Assert.assertEquals(Authentication.Type.BEARER, result.getEndpoint().getAuthentication().getType());

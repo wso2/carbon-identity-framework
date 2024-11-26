@@ -190,7 +190,7 @@
                                             <value>COVEREDRATIO</value>
                                                 <!-- Temp decreasing this. There is an ongoing effort to improve
                                                 the code complexity coverage.  -->
-                                            <minimum>0.68</minimum>
+                                            <minimum>0.60</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

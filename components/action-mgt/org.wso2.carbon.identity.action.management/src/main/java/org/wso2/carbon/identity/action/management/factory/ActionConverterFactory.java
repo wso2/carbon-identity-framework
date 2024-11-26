@@ -33,7 +33,7 @@ public class ActionConverterFactory {
 
     private static final Map<Action.ActionTypes, ActionConverter> actionConverters = new HashMap<>();
 
-    public static ActionConverter getActionBuilder(Action.ActionTypes actionType) {
+    public static ActionConverter getActionConverter(Action.ActionTypes actionType) {
 
         switch (actionType) {
             case PRE_UPDATE_PASSWORD:
