@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.management.model;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.ActionSecretProcessor;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
@@ -27,6 +28,8 @@ import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementExcept
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Authentication class which hold supported authentication types and their properties.
@@ -231,6 +234,64 @@ public class Authentication {
         public Authentication build() {
 
             return new Authentication(this);
+        }
+    }
+
+    /**
+     * This builder build endpoint by taking the authentication type and properties as input.
+     */
+    public static class AuthenticationBuilder {
+
+        private Type authType;
+        private Map<String, String> authPropertiesMap;
+
+        public AuthenticationBuilder type(Type type) {
+
+            this.authType = type;
+            return this;
+        }
+
+        public AuthenticationBuilder properties(Map<String, String> authPropertiesMap) {
+
+            this.authPropertiesMap = authPropertiesMap;
+            return this;
+        }
+
+        public Authentication build() {
+
+            switch (authType) {
+                case BASIC:
+                    return new Authentication.BasicAuthBuilder(
+                            getProperty(Type.BASIC, authPropertiesMap, Property.USERNAME.getName()),
+                            getProperty(Type.BASIC, authPropertiesMap, Property.PASSWORD.getName())).build();
+                case BEARER:
+                    return new Authentication.BearerAuthBuilder(
+                            getProperty(Type.BEARER, authPropertiesMap, Property.ACCESS_TOKEN.getName())).build();
+                case API_KEY:
+                    return new Authentication.APIKeyAuthBuilder(
+                            getProperty(Type.API_KEY, authPropertiesMap, Property.HEADER.getName()),
+                            getProperty(Type.API_KEY, authPropertiesMap, Property.VALUE.getName())).build();
+                case NONE:
+                    return new Authentication.NoneAuthBuilder().build();
+                default:
+                    throw new IllegalArgumentException(String.format("An invalid authentication type '%s' is " +
+                            "provided for the authentication configuration of the endpoint.", authType.name()));
+            }
+        }
+
+        private String getProperty(Authentication.Type authType,  Map<String, String> actionEndpointProperties,
+                                   String propertyName) {
+
+            if (actionEndpointProperties != null && actionEndpointProperties.containsKey(propertyName)) {
+                String propValue = actionEndpointProperties.get(propertyName);
+                if (StringUtils.isNotBlank(propValue)) {
+                    return propValue;
+                }
+                throw new IllegalArgumentException(String.format("The Property %s cannot be blank.", propertyName));
+            }
+
+            throw new NoSuchElementException(String.format("The property %s must be provided as an authentication " +
+                    "property for the %s authentication type.", propertyName, authType.name()));
         }
     }
 }

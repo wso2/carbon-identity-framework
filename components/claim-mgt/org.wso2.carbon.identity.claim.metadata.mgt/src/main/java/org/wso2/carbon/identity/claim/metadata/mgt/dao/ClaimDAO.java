@@ -234,6 +234,35 @@ public class ClaimDAO {
         }
     }
 
+    public int getIdOfClaim(Connection connection, String claimDialectURI, String claimURI, int tenantId) throws
+            ClaimMetadataException {
+
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+
+        int claimId = 0;
+        String query = SQLConstants.GET_CLAIM_ID;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setString(1, claimDialectURI);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setString(3, claimURI);
+            prepStmt.setInt(4, tenantId);
+            rs = prepStmt.executeQuery();
+
+            while (rs.next()) {
+                claimId = rs.getInt(SQLConstants.ID_COLUMN);
+            }
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error while retrieving ID for claim " + claimURI + " in dialect "
+                    + claimDialectURI, e);
+        } finally {
+            IdentityDatabaseUtil.closeResultSet(rs);
+            IdentityDatabaseUtil.closeStatement(prepStmt);
+        }
+        return claimId;
+    }
+
     /**
      * Updates a single claim property by changing both its name and value.
      * This method is useful when you want to replace an existing property with a new one.

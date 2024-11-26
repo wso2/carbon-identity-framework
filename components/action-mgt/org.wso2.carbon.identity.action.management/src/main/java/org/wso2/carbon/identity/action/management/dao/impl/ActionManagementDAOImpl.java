@@ -437,29 +437,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
             Authentication authentication = null;
             if (actionEndpointProperties.containsKey(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)) {
-                Authentication.Type authnType = Authentication.Type.valueOf(
-                        actionEndpointProperties.get(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE));
-                switch (authnType) {
-                    case BASIC:
-                        authentication = new Authentication.BasicAuthBuilder(
-                                actionEndpointProperties.get(Authentication.Property.USERNAME.getName()),
-                                actionEndpointProperties.get(Authentication.Property.PASSWORD.getName())).build();
-                        break;
-                    case BEARER:
-                        authentication = new Authentication.BearerAuthBuilder(
-                                actionEndpointProperties.get(Authentication.Property.ACCESS_TOKEN.getName())).build();
-                        break;
-                    case API_KEY:
-                        authentication = new Authentication.APIKeyAuthBuilder(
-                                actionEndpointProperties.get(Authentication.Property.HEADER.getName()),
-                                actionEndpointProperties.get(Authentication.Property.VALUE.getName())).build();
-                        break;
-                    case NONE:
-                        authentication = new Authentication.NoneAuthBuilder().build();
-                        break;
-                    default:
-                        break;
-                }
+                authentication = new Authentication.AuthenticationBuilder()
+                        .type(Authentication.Type.valueOf(
+                                actionEndpointProperties.get(ActionMgtConstants.AUTHN_TYPE_ATTRIBUTE)))
+                        .properties(actionEndpointProperties)
+                        .build();
             } else {
                 throw ActionManagementUtil.handleServerException(
                         ActionMgtConstants.ErrorMessages.ERROR_NO_AUTHENTICATION_TYPE, null);
