@@ -1832,8 +1832,6 @@
         <carbon.identity.package.export.version>${project.version}</carbon.identity.package.export.version>
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
 
-        <identity.app.authz.xacml.import.version.range>[2.4.0, 3.0.0)</identity.app.authz.xacml.import.version.range>
-
         <org.wso2.carbon.identity.organization.management.core.version>1.0.90
         </org.wso2.carbon.identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
