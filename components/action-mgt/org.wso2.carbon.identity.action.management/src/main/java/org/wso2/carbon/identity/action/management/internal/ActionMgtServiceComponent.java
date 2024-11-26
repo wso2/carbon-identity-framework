@@ -28,12 +28,12 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.action.management.service.ActionManagementService;
-import org.wso2.carbon.identity.action.management.ActionBuilder;
+import org.wso2.carbon.identity.action.management.ActionConverter;
 import org.wso2.carbon.identity.action.management.ActionPropertyResolver;
-import org.wso2.carbon.identity.action.management.service.impl.CacheBackedActionManagementService;
-import org.wso2.carbon.identity.action.management.factory.ActionBuilderFactory;
+import org.wso2.carbon.identity.action.management.factory.ActionConverterFactory;
 import org.wso2.carbon.identity.action.management.factory.ActionPropertyResolverFactory;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.service.impl.CacheBackedActionManagementService;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
@@ -75,28 +75,28 @@ public class ActionMgtServiceComponent {
     }
 
     @Reference(
-            name = "action.builder",
-            service = ActionBuilder.class,
+            name = "action.converter",
+            service = ActionConverter.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetActionBuilder"
+            unbind = "unsetActionConverter"
     )
-    protected void setActionBuilder(ActionBuilder actionBuilder) {
+    protected void setActionConverter(ActionConverter actionConverter) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering ActionBuilder: " + actionBuilder.getClass().getName() +
+            LOG.debug("Registering ActionConverter: " + actionConverter.getClass().getName() +
                     " in the ActionMgtServiceComponent.");
         }
-        ActionBuilderFactory.registerActionBuilder(actionBuilder);
+        ActionConverterFactory.registerActionConverter(actionConverter);
     }
 
-    protected void unsetActionBuilder(ActionBuilder actionBuilder) {
+    protected void unsetActionConverter(ActionConverter actionConverter) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering ActionBuilder: " + actionBuilder.getClass().getName() +
+            LOG.debug("Unregistering ActionConverter: " + actionConverter.getClass().getName() +
                     " in the ActionMgtServiceComponent.");
         }
-        ActionBuilderFactory.unregisterActionBuilder(actionBuilder);
+        ActionConverterFactory.unregisterActionConverter(actionConverter);
     }
 
     @Reference(
@@ -160,24 +160,5 @@ public class ActionMgtServiceComponent {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(null);
         LOG.debug("SecretResolveManager unset in ActionMgtServiceComponentHolder bundle.");
-    }
-
-    @Reference(
-            name = "org.wso2.carbon.identity.certificate.management.service.CertificateManagementService",
-            service = CertificateManagementService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetCertificateManagementService"
-    )
-    private void setCertificateManagementService(CertificateManagementService certificateManagementService) {
-
-        ActionMgtServiceComponentHolder.getInstance().setCertificateManagementService(certificateManagementService);
-        LOG.debug("CertificateManagementService set in ActionMgtServiceComponentHolder bundle.");
-    }
-
-    private void unsetCertificateManagementService(CertificateManagementService certificateManagementService) {
-
-        ActionMgtServiceComponentHolder.getInstance().setCertificateManagementService(null);
-        LOG.debug("CertificateManagementService unset in ActionMgtServiceComponentHolder bundle.");
     }
 }

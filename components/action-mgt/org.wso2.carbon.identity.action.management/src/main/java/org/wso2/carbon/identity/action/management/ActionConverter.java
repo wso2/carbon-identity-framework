@@ -22,11 +22,11 @@ import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Action;
 
 /**
- * This interface defines the Action Resolver.
- * Action Resolver is the component that is responsible for the conversions between Action and ExtendedAction
+ * This interface defines the Action ActionConverter.
+ * Action ActionConverter is the component that is responsible for the conversions between Action and ExtendedAction
  * objects.
  */
-public interface ActionBuilder {
+public interface ActionConverter {
 
     Action.ActionTypes getSupportedActionType();
 
@@ -45,7 +45,6 @@ public interface ActionBuilder {
                 .description(action.getDescription())
                 .status(action.getStatus())
                 .endpoint(action.getEndpoint())
-                .properties(null)
                 .build();
     }
     /**

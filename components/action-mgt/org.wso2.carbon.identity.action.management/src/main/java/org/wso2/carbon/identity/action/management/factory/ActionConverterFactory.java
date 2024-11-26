@@ -18,39 +18,39 @@
 
 package org.wso2.carbon.identity.action.management.factory;
 
-import org.wso2.carbon.identity.action.management.ActionBuilder;
+import org.wso2.carbon.identity.action.management.ActionConverter;
 import org.wso2.carbon.identity.action.management.model.Action;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class defines the Action Object Builder Factory.
- * Action Object Builder Factory is the component that is responsible for providing the {@link ActionBuilder}
+ * This class defines the Action Converter Factory.
+ * Action Converter Factory is the component that is responsible for providing the {@link ActionConverter}
  * based on the action type.
  */
-public class ActionBuilderFactory {
+public class ActionConverterFactory {
 
-    private static final Map<Action.ActionTypes, ActionBuilder> actionObjectBuilders = new HashMap<>();
+    private static final Map<Action.ActionTypes, ActionConverter> actionConverters = new HashMap<>();
 
-    public static ActionBuilder getActionBuilder(Action.ActionTypes actionType) {
+    public static ActionConverter getActionBuilder(Action.ActionTypes actionType) {
 
         switch (actionType) {
             case PRE_UPDATE_PASSWORD:
-                return actionObjectBuilders.get(Action.ActionTypes.PRE_UPDATE_PASSWORD);
+                return actionConverters.get(Action.ActionTypes.PRE_UPDATE_PASSWORD);
             case PRE_ISSUE_ACCESS_TOKEN:
             default:
                 return null;
         }
     }
 
-    public static void registerActionBuilder(ActionBuilder actionBuilder) {
+    public static void registerActionConverter(ActionConverter actionConverter) {
 
-        actionObjectBuilders.put(actionBuilder.getSupportedActionType(), actionBuilder);
+        actionConverters.put(actionConverter.getSupportedActionType(), actionConverter);
     }
 
-    public static void unregisterActionBuilder(ActionBuilder actionBuilder) {
+    public static void unregisterActionConverter(ActionConverter actionConverter) {
 
-        actionObjectBuilders.remove(actionBuilder.getSupportedActionType());
+        actionConverters.remove(actionConverter.getSupportedActionType());
     }
 }

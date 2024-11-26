@@ -86,24 +86,4 @@ public class ActionMgtServiceComponentHolder {
 
         this.secretResolveManager = secretResolveManager;
     }
-
-    /**
-     * Get the CertificateManagementService.
-     *
-     * @return CertificateManagementService instance.
-     */
-    public CertificateManagementService getCertificateManagementService() {
-
-        return certificateMgtService;
-    }
-
-    /**
-     * Set the CertificateManagementService.
-     *
-     * @param certificateMgtService CertificateManagementService instance.
-     */
-    public void setCertificateManagementService(CertificateManagementService certificateMgtService) {
-
-        this.certificateMgtService = certificateMgtService;
-    }
 }
