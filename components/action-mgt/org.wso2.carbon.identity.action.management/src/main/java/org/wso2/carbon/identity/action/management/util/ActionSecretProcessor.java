@@ -54,15 +54,15 @@ public class ActionSecretProcessor {
         return encryptedAuthProperties;
     }
 
-    public List<AuthProperty> decryptAssociatedSecrets(List<AuthProperty> authProperties, String authType,
-                                                       String actionId) throws SecretManagementException {
+    public List<AuthProperty> decryptAssociatedSecrets(Authentication authentication, String actionId)
+            throws SecretManagementException {
 
         List<AuthProperty> decryptedAuthProperties = new ArrayList<>();
-        for (AuthProperty authProperty : authProperties) {
+        for (AuthProperty authProperty : authentication.getProperties()) {
             if (!authProperty.getIsConfidential()) {
                 decryptedAuthProperties.add(authProperty);
             } else {
-                decryptedAuthProperties.add(decryptProperty(authProperty, authType, actionId));
+                decryptedAuthProperties.add(decryptProperty(authProperty, authentication.getType().name(), actionId));
             }
         }
 

@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.action.management.model;
 
 import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Action.
@@ -181,11 +180,6 @@ public class Action  {
     public EndpointConfig getEndpoint() {
 
         return endpointConfig;
-    }
-
-    public Map<String, Object> getProperties() {
-
-        return null;
     }
 
     /**

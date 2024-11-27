@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.action.management.service.impl;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -31,7 +31,11 @@ import java.util.Map;
  */
 public class ActionConverterFactory {
 
-    private static final Map<Action.ActionTypes, ActionConverter> actionConverters = new HashMap<>();
+    private static final Map<Action.ActionTypes, ActionConverter> actionConverters =
+            new EnumMap<>(Action.ActionTypes.class);
+
+    private ActionConverterFactory() {
+    }
 
     public static ActionConverter getActionConverter(Action.ActionTypes actionType) {
 

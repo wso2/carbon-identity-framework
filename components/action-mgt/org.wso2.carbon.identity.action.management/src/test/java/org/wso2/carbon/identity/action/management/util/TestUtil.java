@@ -57,6 +57,7 @@ public class TestUtil {
     public static final String TEST_PASSWORD_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
             Authentication.Type.BASIC.getName(), Authentication.Property.PASSWORD.getName());
     public static final String TEST_ACCESS_TOKEN = "5e482c2a-e83a-3afe-bc6a-ff79e1fdaaba";
+    public static final String TEST_ACCESS_TOKEN_UPDATED = "fe326c2a-e83a-41fe-bc6a-ee79e1feabba";
     public static final String TEST_ACCESS_TOKEN_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
             Authentication.Type.BEARER.getName(), Authentication.Property.ACCESS_TOKEN.getName());
     public static final String TEST_API_KEY_HEADER = "sampleHeader";

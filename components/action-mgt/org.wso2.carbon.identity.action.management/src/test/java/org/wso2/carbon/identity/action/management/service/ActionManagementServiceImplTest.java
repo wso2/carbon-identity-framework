@@ -75,8 +75,7 @@ public class ActionManagementServiceImplTest {
 
     private ActionManagementService actionManagementService;
 
-    private Action preIssueAccessTokenAction;
-    private Map<String, String> secretProperties;
+    private Action sampleAction;
 
     @BeforeClass
     public void setUpClass() {
@@ -102,28 +101,24 @@ public class ActionManagementServiceImplTest {
                 TEST_ACTION_DESCRIPTION,
                 TEST_ACTION_URI,
                 TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD));
-        preIssueAccessTokenAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction,
-                TENANT_DOMAIN);
-        Assert.assertNotNull(preIssueAccessTokenAction.getId());
-        Assert.assertEquals(creatingAction.getName(), preIssueAccessTokenAction.getName());
-        Assert.assertEquals(creatingAction.getDescription(), preIssueAccessTokenAction.getDescription());
-        Assert.assertEquals(Action.Status.ACTIVE, preIssueAccessTokenAction.getStatus());
-        Assert.assertEquals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType(),
-                preIssueAccessTokenAction.getType().getActionType());
-        Assert.assertEquals(creatingAction.getEndpoint().getUri(), preIssueAccessTokenAction.getEndpoint().getUri());
-        Assert.assertEquals(creatingAction.getEndpoint().getAuthentication().getType(),
-                preIssueAccessTokenAction.getEndpoint().getAuthentication().getType());
-        Assert.assertEquals(creatingAction.getEndpoint().getAuthentication().getProperties().size(),
-                preIssueAccessTokenAction.getEndpoint().getAuthentication().getProperties().size());
-        Assert.assertEquals(creatingAction.getEndpoint().getAuthentication().getProperties().size(),
-                preIssueAccessTokenAction.getEndpoint().getAuthentication().getPropertiesWithSecretReferences(
-                        preIssueAccessTokenAction.getId()).size());
-        secretProperties = mapActionAuthPropertiesWithSecrets(preIssueAccessTokenAction);
-        Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getAuthentication()
-                        .getProperty(Authentication.Property.USERNAME).getValue(),
+        sampleAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+
+        Assert.assertNotNull(sampleAction.getId());
+        Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
+        Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
+
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+        Authentication creatingActionAuth = creatingAction.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(creatingActionAuth, sampleAction.getId());
+
+        Assert.assertEquals(sampleActionAuth.getType(), creatingActionAuth.getType());
+        Assert.assertEquals(sampleActionAuth.getProperties().size(), creatingActionAuth.getProperties().size());
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
                 secretProperties.get(Authentication.Property.USERNAME.getName()));
-        Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getAuthentication()
-                        .getProperty(Authentication.Property.PASSWORD).getValue(),
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
                 secretProperties.get(Authentication.Property.PASSWORD.getName()));
     }
 
@@ -160,7 +155,7 @@ public class ActionManagementServiceImplTest {
                 TEST_ACTION_DESCRIPTION,
                 TEST_ACTION_URI,
                 TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD));
-        preIssueAccessTokenAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction,
+        sampleAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction,
                 TENANT_DOMAIN);
     }
 
@@ -170,73 +165,47 @@ public class ActionManagementServiceImplTest {
         List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 TENANT_DOMAIN);
         Assert.assertEquals(1, actions.size());
-        for (Action result: actions) {
-            Assert.assertEquals(preIssueAccessTokenAction.getId(), result.getId());
-            Assert.assertEquals(preIssueAccessTokenAction.getName(), result.getName());
-            Assert.assertEquals(preIssueAccessTokenAction.getDescription(), result.getDescription());
-            Assert.assertEquals(preIssueAccessTokenAction.getType().getActionType(), result.getType().getActionType());
-            Assert.assertEquals(preIssueAccessTokenAction.getStatus(), result.getStatus());
-            Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getUri(), result.getEndpoint().getUri());
-            Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getAuthentication().getType(),
-                    result.getEndpoint().getAuthentication().getType());
-            secretProperties = mapActionAuthPropertiesWithSecrets(result);
-            Assert.assertEquals(
-                    result.getEndpoint().getAuthentication().getProperty(Authentication.Property.USERNAME).getValue(),
-                    secretProperties.get(Authentication.Property.USERNAME.getName()));
-            Assert.assertEquals(
-                    result.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD).getValue(),
-                    secretProperties.get(Authentication.Property.PASSWORD.getName()));
-        }
+        Action result = actions.get(0);
+        Assert.assertEquals(result.getId(), sampleAction.getId());
+        Assert.assertEquals(result.getName(), sampleAction.getName());
+        Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
+        Assert.assertEquals(result.getType().getActionType(), sampleAction.getType().getActionType());
+        Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+
+        Assert.assertEquals(resultActionAuth.getType(), sampleActionAuth.getType());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
     @Test(priority = 6)
     public void testGetActionByActionId() throws ActionMgtException, SecretManagementException {
 
-        Action result = actionManagementService.getActionByActionId(preIssueAccessTokenAction.getType().getPathParam(),
-                preIssueAccessTokenAction.getId(), TENANT_DOMAIN);
-        Assert.assertEquals(preIssueAccessTokenAction.getId(), result.getId());
-        Assert.assertEquals(preIssueAccessTokenAction.getName(), result.getName());
-        Assert.assertEquals(preIssueAccessTokenAction.getDescription(), result.getDescription());
-        Assert.assertEquals(preIssueAccessTokenAction.getType(), result.getType());
-        Assert.assertEquals(preIssueAccessTokenAction.getStatus(), result.getStatus());
-        Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getUri(), result.getEndpoint().getUri());
-        Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getAuthentication().getType(),
-                result.getEndpoint().getAuthentication().getType());
-        secretProperties = mapActionAuthPropertiesWithSecrets(result);
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.USERNAME).getValue(),
-                secretProperties.get(Authentication.Property.USERNAME.getName()));
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD).getValue(),
-                secretProperties.get(Authentication.Property.PASSWORD.getName()));
+        Action result = actionManagementService.getActionByActionId(sampleAction.getType().getPathParam(),
+                sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertEquals(result.getId(), sampleAction.getId());
+        Assert.assertEquals(result.getName(), sampleAction.getName());
+        Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
+        Assert.assertEquals(result.getType(), sampleAction.getType());
+        Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+
+        Assert.assertEquals(resultActionAuth.getType(), sampleActionAuth.getType());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
     @Test(priority = 7)
-    public void testGetActionsByActionTypeFromCache() throws ActionMgtException, SecretManagementException {
-
-        // Verify that the action is retrieved from the cache based on action type.
-        List<Action> actions = actionManagementService.getActionsByActionType(
-                PRE_ISSUE_ACCESS_TOKEN_PATH, TENANT_DOMAIN);
-        Assert.assertEquals(1, actions.size());
-        Action result = actions.get(0);
-        Assert.assertEquals(preIssueAccessTokenAction.getId(), result.getId());
-        Assert.assertEquals(preIssueAccessTokenAction.getName(), result.getName());
-        Assert.assertEquals(preIssueAccessTokenAction.getDescription(), result.getDescription());
-        Assert.assertEquals(preIssueAccessTokenAction.getType(), result.getType());
-        Assert.assertEquals(preIssueAccessTokenAction.getStatus(), result.getStatus());
-        Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getUri(), result.getEndpoint().getUri());
-        Assert.assertEquals(preIssueAccessTokenAction.getEndpoint().getAuthentication().getType(),
-                result.getEndpoint().getAuthentication().getType());
-        secretProperties = mapActionAuthPropertiesWithSecrets(result);
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.USERNAME).getValue(),
-                secretProperties.get(Authentication.Property.USERNAME.getName()));
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD).getValue(),
-                secretProperties.get(Authentication.Property.PASSWORD.getName()));
-    }
-
-    @Test(priority = 8)
     public void testUpdateAction() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = TestUtil.buildMockAction(
@@ -244,45 +213,46 @@ public class ActionManagementServiceImplTest {
                 TEST_ACTION_DESCRIPTION_UPDATED,
                 TEST_ACTION_URI,
                 TestUtil.buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER, TEST_API_KEY_VALUE));
-        Action result = actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
-                preIssueAccessTokenAction.getId(), updatingAction, TENANT_DOMAIN);
-        Assert.assertEquals(preIssueAccessTokenAction.getId(), result.getId());
-        Assert.assertEquals(updatingAction.getName(), result.getName());
-        Assert.assertEquals(updatingAction.getDescription(), result.getDescription());
-        Assert.assertEquals(preIssueAccessTokenAction.getType(), result.getType());
-        Assert.assertEquals(preIssueAccessTokenAction.getStatus(), result.getStatus());
-        Assert.assertEquals(updatingAction.getEndpoint().getUri(), result.getEndpoint().getUri());
-        Assert.assertEquals(
-                updatingAction.getEndpoint().getAuthentication().getType(),
-                result.getEndpoint().getAuthentication().getType());
-        Assert.assertEquals(
-                updatingAction.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue(),
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue());
-        secretProperties = mapActionAuthPropertiesWithSecrets(result);
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.VALUE).getValue(),
+        Action result = actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                updatingAction, TENANT_DOMAIN);
+
+        Assert.assertEquals(result.getId(), sampleAction.getId());
+        Assert.assertEquals(result.getName(), updatingAction.getName());
+        Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
+        Assert.assertEquals(result.getType(), sampleAction.getType());
+        Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Authentication updatingActionAuth = updatingAction.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingActionAuth, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), updatingActionAuth.getType());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.HEADER).getValue(),
+                secretProperties.get(Authentication.Property.HEADER.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.VALUE).getValue(),
                 secretProperties.get(Authentication.Property.VALUE.getName()));
-        preIssueAccessTokenAction = result;
+        sampleAction = result;
+    }
+
+    @Test(priority = 8)
+    public void testDeactivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Action deactivatedAction = actionManagementService.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertEquals(deactivatedAction.getStatus(), Action.Status.INACTIVE);
     }
 
     @Test(priority = 9)
-    public void testDeactivateAction() throws ActionMgtException {
+    public void testActivateAction() throws ActionMgtException {
 
-        Assert.assertEquals(Action.Status.ACTIVE, preIssueAccessTokenAction.getStatus());
-        Action deactivatedAction = actionManagementService.deactivateAction(
-                PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), TENANT_DOMAIN);
-        Assert.assertEquals(Action.Status.INACTIVE, deactivatedAction.getStatus());
+        Action activatedAction = actionManagementService.activateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertEquals(activatedAction.getStatus(), Action.Status.ACTIVE);
     }
 
     @Test(priority = 10)
-    public void testActivateAction() throws ActionMgtException {
-
-        Action result = actionManagementService.activateAction(
-                PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), TENANT_DOMAIN);
-        Assert.assertEquals(Action.Status.ACTIVE, result.getStatus());
-    }
-
-    @Test(priority = 11)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = actionManagementService.getActionsCountPerType(TENANT_DOMAIN);
@@ -296,52 +266,55 @@ public class ActionManagementServiceImplTest {
         }
     }
 
-    @Test(priority = 12)
+    @Test(priority = 11)
     public void testUpdateEndpointConfigWithSameAuthenticationType() throws ActionMgtException,
             SecretManagementException {
 
-        Authentication authentication = TestUtil.buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER_UPDATED,
+        Authentication updatingAuthentication = TestUtil.buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER_UPDATED,
                 TEST_API_KEY_VALUE_UPDATED);
-        Action result = actionManagementService.updateActionEndpointAuthentication(
-                PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), authentication, TENANT_DOMAIN);
-        Assert.assertEquals(Authentication.Type.API_KEY, result.getEndpoint().getAuthentication().getType());
-        Assert.assertEquals(authentication.getProperty(Authentication.Property.HEADER).getValue(),
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.HEADER).getValue());
-        secretProperties = mapActionAuthPropertiesWithSecrets(result);
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.VALUE).getValue(),
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), updatingAuthentication.getType());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.HEADER).getValue(),
+                secretProperties.get(Authentication.Property.HEADER.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.VALUE).getValue(),
                 secretProperties.get(Authentication.Property.VALUE.getName()));
     }
 
-    @Test(priority = 13)
+    @Test(priority = 12)
     public void testUpdateEndpointConfigWithDifferentAuthenticationType()
             throws ActionMgtException, SecretManagementException {
 
-        Authentication authentication = TestUtil.buildMockBearerAuthentication(TEST_ACCESS_TOKEN);
-        Action result = actionManagementService.updateActionEndpointAuthentication(
-                PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(), authentication, TENANT_DOMAIN);
-        Assert.assertEquals(Authentication.Type.BEARER, result.getEndpoint().getAuthentication().getType());
-        secretProperties = mapActionAuthPropertiesWithSecrets(result);
-        Assert.assertEquals(
-                result.getEndpoint().getAuthentication().getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
+        Authentication updatingAuthentication = TestUtil.buildMockBearerAuthentication(TEST_ACCESS_TOKEN);
+        Action result = actionManagementService.updateActionEndpointAuthentication(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), updatingAuthentication, TENANT_DOMAIN);
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingAuthentication, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), updatingAuthentication.getType());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
                 secretProperties.get(Authentication.Property.ACCESS_TOKEN.getName()));
     }
 
-    @Test(priority = 14)
+    @Test(priority = 13)
     public void testDeleteAction() throws ActionMgtException {
 
-        actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, preIssueAccessTokenAction.getId(),
-                TENANT_DOMAIN);
-        Assert.assertNull(actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH,
-                preIssueAccessTokenAction.getId(), TENANT_DOMAIN));
+        actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertNull(actionManagementService.getActionByActionId(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                TENANT_DOMAIN));
         Map<String, Integer> actions = actionManagementService.getActionsCountPerType(TENANT_DOMAIN);
         Assert.assertNull(actions.get(PRE_ISSUE_ACCESS_TOKEN_PATH));
     }
 
-    private Map<String, String> mapActionAuthPropertiesWithSecrets(Action action) throws SecretManagementException {
+    private Map<String, String> resolveAuthPropertiesMap(Authentication authentication, String actionId)
+            throws SecretManagementException {
 
-        return action.getEndpoint().getAuthentication()
-                .getPropertiesWithSecretReferences(action.getId())
+        return authentication.getPropertiesWithSecretReferences(actionId)
                 .stream()
                 .collect(Collectors.toMap(AuthProperty::getName, AuthProperty::getValue));
     }

@@ -53,9 +53,6 @@ import static org.wso2.carbon.identity.action.management.constant.ActionMgtConst
  */
 public class ActionManagementDAOImpl implements ActionManagementDAO {
 
-    public ActionManagementDAOImpl() {
-    }
-
     @Override
     public void addAction(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 

@@ -506,10 +506,10 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 14)
     public void testDeactivateAction() throws ActionMgtException {
 
-        Assert.assertEquals(Action.Status.ACTIVE, createdActionDTO.getStatus());
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
         ActionDTO deactivatedActionDTO = daoImpl.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
-        Assert.assertEquals(Action.Status.INACTIVE, deactivatedActionDTO.getStatus());
+        Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
     }
 
     @Test(priority = 15)
@@ -517,7 +517,7 @@ public class ActionManagementDAOImplTest {
 
         ActionDTO activatedActionDTO = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
-        Assert.assertEquals(Action.Status.ACTIVE, activatedActionDTO.getStatus());
+        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
     }
 
     @Test(priority = 16)
@@ -539,9 +539,9 @@ public class ActionManagementDAOImplTest {
 
         Map<String, Integer> actionMap = daoImpl.getActionsCountPerType(TENANT_ID);
         Assert.assertTrue(actionMap.containsKey(PRE_ISSUE_ACCESS_TOKEN_TYPE));
-        Assert.assertEquals(1, actionMap.get(PRE_ISSUE_ACCESS_TOKEN_TYPE).intValue());
+        Assert.assertEquals(actionMap.get(PRE_ISSUE_ACCESS_TOKEN_TYPE).intValue(), 1);
         Assert.assertTrue(actionMap.containsKey(PRE_UPDATE_PASSWORD_TYPE));
-        Assert.assertEquals(1, actionMap.get(PRE_UPDATE_PASSWORD_TYPE).intValue());
+        Assert.assertEquals(actionMap.get(PRE_UPDATE_PASSWORD_TYPE).intValue(), 1);
 
         daoImpl.deleteAction(createdPreUpdatePasswordActionDTO, TENANT_ID);
         daoImpl.deleteAction(createdActionDTO, TENANT_ID);

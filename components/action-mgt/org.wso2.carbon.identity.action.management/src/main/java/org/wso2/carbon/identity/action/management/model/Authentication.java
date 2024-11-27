@@ -140,7 +140,7 @@ public class Authentication {
 
         try {
             return CollectionUtils.isEmpty(properties) ? properties :
-                    secretProcessor.decryptAssociatedSecrets(properties, type.getName(), actionId);
+                    secretProcessor.decryptAssociatedSecrets(this, actionId);
         } catch (SecretManagementException e) {
             throw ActionManagementUtil.handleServerException(
                     ErrorMessage.ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES, e);

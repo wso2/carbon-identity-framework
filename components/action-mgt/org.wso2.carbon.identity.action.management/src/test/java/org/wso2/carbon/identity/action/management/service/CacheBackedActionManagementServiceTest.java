@@ -278,16 +278,15 @@ public class CacheBackedActionManagementServiceTest {
         Assert.assertEquals(action.getType(), mockedAction.getType());
         Assert.assertEquals(action.getStatus(), mockedAction.getStatus());
         Assert.assertEquals(action.getEndpoint().getUri(), mockedAction.getEndpoint().getUri());
-        Assert.assertEquals(action.getEndpoint().getAuthentication().getType(),
-                mockedAction.getEndpoint().getAuthentication().getType());
-        Assert.assertEquals(action.getEndpoint().getAuthentication().getProperty(Authentication.Property.USERNAME)
-                        .getValue(),
-                mockedAction.getEndpoint().getAuthentication().getProperty(Authentication.Property.USERNAME)
-                        .getValue());
-        Assert.assertEquals(action.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD)
-                        .getValue(),
-                mockedAction.getEndpoint().getAuthentication().getProperty(Authentication.Property.PASSWORD)
-                        .getValue());
+
+        Authentication actionAuth = action.getEndpoint().getAuthentication();
+        Authentication mockedActionAuth = mockedAction.getEndpoint().getAuthentication();
+
+        Assert.assertEquals(actionAuth.getType(), mockedActionAuth.getType());
+        Assert.assertEquals(actionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                mockedActionAuth.getProperty(Authentication.Property.USERNAME).getValue());
+        Assert.assertEquals(actionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                mockedActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
     }
 
     private void setFinalField(Object target, String fieldName, Object value) throws Exception {

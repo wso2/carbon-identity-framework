@@ -308,10 +308,10 @@ public class ActionManagementDAOFacadeTest {
     @Test(priority = 4)
     public void testDeactivateAction() throws ActionMgtException {
 
-        Assert.assertEquals(Action.Status.ACTIVE, createdActionDTO.getStatus());
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
         ActionDTO deactivatedActionDTO = daoFacade.deactivateAction(PRE_UPDATE_PASSWORD_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
-        Assert.assertEquals(Action.Status.INACTIVE, deactivatedActionDTO.getStatus());
+        Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
     }
 
     @Test(priority = 5)
@@ -319,7 +319,7 @@ public class ActionManagementDAOFacadeTest {
 
         ActionDTO activatedActionDTO = daoFacade.activateAction(PRE_UPDATE_PASSWORD_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
-        Assert.assertEquals(Action.Status.ACTIVE, activatedActionDTO.getStatus());
+        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
     }
 
     @Test(priority = 6)
@@ -327,7 +327,7 @@ public class ActionManagementDAOFacadeTest {
 
         Map<String, Integer> actionMap = daoFacade.getActionsCountPerType(TENANT_ID);
         Assert.assertTrue(actionMap.containsKey(PRE_UPDATE_PASSWORD_TYPE));
-        Assert.assertEquals(1, actionMap.get(PRE_UPDATE_PASSWORD_TYPE).intValue());
+        Assert.assertEquals(actionMap.get(PRE_UPDATE_PASSWORD_TYPE).intValue(), 1);
     }
 
     @Test(priority = 7)

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.action.management.dao.impl;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -31,7 +31,11 @@ import java.util.Map;
  */
 public class ActionPropertyResolverFactory {
 
-    private static final Map<Action.ActionTypes, ActionPropertyResolver> actionPropertyResolvers = new HashMap<>();
+    private static final Map<Action.ActionTypes, ActionPropertyResolver> actionPropertyResolvers =
+            new EnumMap<>(Action.ActionTypes.class);
+
+    private ActionPropertyResolverFactory() {
+    }
 
     public static ActionPropertyResolver getActionPropertyResolver(Action.ActionTypes actionType) {
 

@@ -35,4 +35,7 @@ public class ActionMgtConstants {
     public static final String ACCESS_TOKEN_FIELD = "Access token";
     public static final String API_KEY_HEADER_FIELD = "API key header name";
     public static final String API_KEY_VALUE_FIELD = "API key value";
+
+    private ActionMgtConstants() {
+    }
 }

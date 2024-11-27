@@ -407,6 +407,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.API_KEY_VALUE_FIELD,
                         authentication.getProperty(Authentication.Property.VALUE).getValue());
                 break;
+            case NONE:
+            default:
+                break;
         }
     }
 
