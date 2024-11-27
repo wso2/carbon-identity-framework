@@ -261,7 +261,8 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
 
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) &&
+                !serviceProviderDO.getIssuer().contains(IdentityRegistryResources.QUALIFIER_ID)) {
             serviceProviderDO.setIssuer(
                     getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier()));
         }
