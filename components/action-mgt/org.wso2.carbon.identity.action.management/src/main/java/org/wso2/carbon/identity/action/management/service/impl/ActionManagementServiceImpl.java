@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOFacade;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionPropertyResolverFactory;
 import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
@@ -33,9 +32,8 @@ import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
-import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
 import org.wso2.carbon.identity.action.management.util.ActionManagementAuditLogger;
-import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
+import org.wso2.carbon.identity.action.management.util.ActionManagementExceptionHandler;
 import org.wso2.carbon.identity.action.management.util.ActionValidator;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -78,11 +76,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Adding Action for Action Type: %s.", actionType));
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
+        doPreAddActionValidations(action);
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
         ActionDTO resolvedActionDTO = buildActionDTO(resolvedActionType, generatedActionId, action);
-        doPreAddActionValidations(resolvedActionType, resolvedActionDTO);
 
         daoFacade.addAction(resolvedActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         Action createdAction = getActionByActionId(actionType, generatedActionId, tenantDomain);
@@ -158,9 +156,9 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Updating Action for Action Type: %s and Action ID: %s.", actionType, actionId));
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
+        doPreUpdateActionValidations(action);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
-        doPreUpdateActionValidations(resolvedActionType, updatingActionDTO);
 
         daoFacade.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, actionId, action);
@@ -286,7 +284,8 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .filter(type -> type.getPathParam().equals(actionType))
                 .map(Action.ActionTypes::getActionType)
                 .findFirst()
-                .orElseThrow(() -> ActionManagementUtil.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_TYPE));
+                .orElseThrow(() ->
+                        ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_TYPE));
     }
 
     /**
@@ -301,7 +300,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         Map<String, Integer> actionsCountPerType = getActionsCountPerType(tenantDomain);
         if (actionsCountPerType.containsKey(actionType) &&
                 actionsCountPerType.get(actionType) >= IdentityUtil.getMaximumActionsPerActionType()) {
-            throw ActionManagementUtil.handleClientException(
+            throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_MAXIMUM_ACTIONS_PER_ACTION_TYPE_REACHED);
         }
     }
@@ -321,7 +320,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO actionDTO = daoFacade.getActionByActionId(actionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (actionDTO == null || !actionType.equals(actionDTO.getType().name())) {
-            throw ActionManagementUtil.handleClientException(
+            throw ActionManagementExceptionHandler.handleClientException(
                     ErrorMessage.ERROR_NO_ACTION_CONFIGURED_ON_GIVEN_ACTION_TYPE_AND_ID);
         }
 
@@ -331,50 +330,35 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     /**
      * Perform pre validations on action model when creating an action.
      *
-     * @param actionType Action type.
-     * @param actionDTO  Action create model.
+     * @param action Action creation model.
      * @throws ActionMgtClientException if action model is invalid.
      */
-    private void doPreAddActionValidations(String actionType, ActionDTO actionDTO) throws ActionMgtClientException {
+    private void doPreAddActionValidations(Action action) throws ActionMgtClientException {
 
-        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ACTION_NAME_FIELD, actionDTO.getName());
-        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, actionDTO.getEndpoint().getUri());
-        ACTION_VALIDATOR.validateActionName(actionDTO.getName());
-        ACTION_VALIDATOR.validateEndpointUri(actionDTO.getEndpoint().getUri());
-        doEndpointAuthenticationValidation(actionDTO.getEndpoint().getAuthentication());
-
-        ActionPropertyResolver actionPropertyResolver =
-                ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.valueOf(actionType));
-        if (actionPropertyResolver != null) {
-            actionPropertyResolver.doPreAddActionPropertiesValidations(actionDTO);
-        }
+        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ACTION_NAME_FIELD, action.getName());
+        ACTION_VALIDATOR.validateForBlank(ActionMgtConstants.ENDPOINT_URI_FIELD, action.getEndpoint().getUri());
+        ACTION_VALIDATOR.validateActionName(action.getName());
+        ACTION_VALIDATOR.validateEndpointUri(action.getEndpoint().getUri());
+        doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
     }
 
     /**
      * Perform pre validations on action model when updating an existing action.
-     * This is specifically used during HTTP PATCH operation and
-     * only validate non-null and non-empty fields.
+     * This is specifically used during HTTP PATCH operation and only validate non-null and non-empty fields.
      *
-     * @param actionType Action type.
-     * @param actionDTO     Action update model.
+     * @param action Action update model.
      * @throws ActionMgtClientException if action model is invalid.
      */
-    private void doPreUpdateActionValidations(String actionType, ActionDTO actionDTO) throws ActionMgtClientException {
+    private void doPreUpdateActionValidations(Action action) throws ActionMgtClientException {
 
-        if (actionDTO.getName() != null) {
-            ACTION_VALIDATOR.validateActionName(actionDTO.getName());
+        if (action.getName() != null) {
+            ACTION_VALIDATOR.validateActionName(action.getName());
         }
-        if (actionDTO.getEndpoint() != null && actionDTO.getEndpoint().getUri() != null) {
-            ACTION_VALIDATOR.validateEndpointUri(actionDTO.getEndpoint().getUri());
+        if (action.getEndpoint() != null && action.getEndpoint().getUri() != null) {
+            ACTION_VALIDATOR.validateEndpointUri(action.getEndpoint().getUri());
         }
-        if (actionDTO.getEndpoint() != null && actionDTO.getEndpoint().getAuthentication() != null) {
-            doEndpointAuthenticationValidation(actionDTO.getEndpoint().getAuthentication());
-        }
-
-        ActionPropertyResolver actionPropertyResolver =
-                ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.valueOf(actionType));
-        if (actionPropertyResolver != null) {
-            actionPropertyResolver.doPreUpdateActionPropertiesValidations(actionDTO);
+        if (action.getEndpoint() != null && action.getEndpoint().getAuthentication() != null) {
+            doEndpointAuthenticationValidation(action.getEndpoint().getAuthentication());
         }
     }
 

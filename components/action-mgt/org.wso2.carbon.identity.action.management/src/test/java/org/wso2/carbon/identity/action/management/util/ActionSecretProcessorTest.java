@@ -105,18 +105,18 @@ public class ActionSecretProcessorTest {
 
         Assert.assertEquals(encryptedProperties.size(), authentication.getProperties().size());
         for (AuthProperty authProperty : encryptedProperties) {
-
             Authentication.Property property = Arrays.stream(Authentication.Property.values())
                     .filter(prop -> prop.getName().equals(authProperty.getName()))
                     .findFirst()
                     .orElse(null);
             AuthProperty inputAuthProperty = authentication.getProperty(property);
 
+            Assert.assertNotNull(property);
             Assert.assertEquals(authProperty.getName(), authentication.getProperty(property).getName());
             Assert.assertEquals(authProperty.getIsConfidential(), inputAuthProperty.getIsConfidential());
             if (authProperty.getIsConfidential()) {
-                Assert.assertEquals(authProperty.getValue(), TestUtil.buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-                        authentication.getType().name(), inputAuthProperty.getName()));
+                Assert.assertEquals(authProperty.getValue(),
+                        TestUtil.buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID, authentication.getType(), property));
             } else {
                 Assert.assertEquals(authProperty.getValue(), inputAuthProperty.getValue());
             }
@@ -140,7 +140,7 @@ public class ActionSecretProcessorTest {
         Assert.assertEquals(encryptedProperties.get(0).getName(), authentication.getProperties().get(0).getName());
         Assert.assertEquals(encryptedProperties.get(0).getName(), authentication.getProperties().get(0).getName());
         Assert.assertEquals(encryptedProperties.get(0).getValue(), buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-                Authentication.Type.BEARER.getName(), Authentication.Property.ACCESS_TOKEN.getName()));
+                Authentication.Type.BEARER, Authentication.Property.ACCESS_TOKEN));
     }
 
     @Test
@@ -152,7 +152,7 @@ public class ActionSecretProcessorTest {
         doReturn(true).when(secretManager).isSecretExist(any(), any());
 
         Authentication authentication = buildMockBearerAuthentication(buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-                        Authentication.Type.BEARER.getName(), Authentication.Property.ACCESS_TOKEN.getName()));
+                        Authentication.Type.BEARER, Authentication.Property.ACCESS_TOKEN));
 
         List<AuthProperty> decryptedProperties = actionSecretProcessor.decryptAssociatedSecrets(authentication,
                 PRE_ISSUE_ACCESS_TOKEN_ACTION_ID);
@@ -173,8 +173,8 @@ public class ActionSecretProcessorTest {
         doReturn(true).when(secretManager).isSecretExist(any(), any());
 
         Authentication authentication = buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER,
-                buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID, Authentication.Type.API_KEY.getName(),
-                        Authentication.Property.VALUE.getName()));
+                buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID, Authentication.Type.API_KEY,
+                        Authentication.Property.VALUE));
 
         List<AuthProperty> decryptedProperties = actionSecretProcessor.decryptAssociatedSecrets(authentication,
                 PRE_ISSUE_ACCESS_TOKEN_ACTION_ID);
@@ -201,7 +201,7 @@ public class ActionSecretProcessorTest {
 
         doReturn(false).when(secretManager).isSecretExist(any(), any());
         Authentication authentication = buildMockBearerAuthentication(buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-                Authentication.Type.BEARER.getName(), Authentication.Property.ACCESS_TOKEN.getName()));
+                Authentication.Type.BEARER, Authentication.Property.ACCESS_TOKEN));
 
         actionSecretProcessor.decryptAssociatedSecrets(authentication, PRE_ISSUE_ACCESS_TOKEN_ACTION_ID);
     }
@@ -213,8 +213,8 @@ public class ActionSecretProcessorTest {
         doNothing().when(secretManager).deleteSecret(any(), any());
 
         Authentication authentication = buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER,
-                buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID, Authentication.Type.API_KEY.getName(),
-                        Authentication.Property.VALUE.getName()));
+                buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID, Authentication.Type.API_KEY,
+                        Authentication.Property.VALUE));
 
         actionSecretProcessor.deleteAssociatedSecrets(authentication, PRE_ISSUE_ACCESS_TOKEN_ACTION_ID);
         verify(secretManager, times(1)).deleteSecret(any(), any());

@@ -24,6 +24,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.Action;
@@ -74,7 +75,6 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USER
 public class ActionManagementServiceImplTest {
 
     private ActionManagementService actionManagementService;
-
     private Action sampleAction;
 
     @BeforeClass
@@ -122,8 +122,8 @@ public class ActionManagementServiceImplTest {
                 secretProperties.get(Authentication.Property.PASSWORD.getName()));
     }
 
-    @Test(priority = 2, expectedExceptions = ActionMgtException.class,
-            expectedExceptionsMessageRegExp = "Unable to create an Action.")
+    @Test(priority = 2, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithInvalidData() throws ActionMgtException {
         Action creatingAction = TestUtil.buildMockAction(
                 TEST_INVALID_ACTION_NAME,
@@ -134,8 +134,8 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(action);
     }
 
-    @Test(priority = 3, expectedExceptions = ActionMgtException.class,
-            expectedExceptionsMessageRegExp = "Unable to create an Action.")
+    @Test(priority = 3, expectedExceptions = ActionMgtClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithEmptyData() throws ActionMgtException {
         Action creatingAction = TestUtil.buildMockAction(
                 StringUtils.EMPTY,
@@ -160,11 +160,11 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 5)
-    public void testGetActionsByActionType() throws ActionMgtException, SecretManagementException {
+    public void testGetActionsByActionType() throws ActionMgtException {
 
         List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 TENANT_DOMAIN);
-        Assert.assertEquals(1, actions.size());
+        Assert.assertEquals(actions.size(), 1);
         Action result = actions.get(0);
         Assert.assertEquals(result.getId(), sampleAction.getId());
         Assert.assertEquals(result.getName(), sampleAction.getName());
@@ -184,7 +184,7 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 6)
-    public void testGetActionByActionId() throws ActionMgtException, SecretManagementException {
+    public void testGetActionByActionId() throws ActionMgtException {
 
         Action result = actionManagementService.getActionByActionId(sampleAction.getType().getPathParam(),
                 sampleAction.getId(), TENANT_DOMAIN);
@@ -262,7 +262,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(actionMap.get(Action.ActionTypes.AUTHENTICATION.getActionType()));
         for (Map.Entry<String, Integer> entry: actionMap.entrySet()) {
             Assert.assertEquals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType(), entry.getKey());
-            Assert.assertEquals(1, entry.getValue().intValue());
+            Assert.assertEquals(entry.getValue().intValue(), 1);
         }
     }
 

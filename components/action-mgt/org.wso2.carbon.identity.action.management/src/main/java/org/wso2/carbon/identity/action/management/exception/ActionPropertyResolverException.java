@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.action.management.exception;
 
 /**
- * Exception class for Action Resolver.
+ * Exception class for Action Property Resolver.
  * This exception is thrown when there is an issue in performing action type specific operations.
  */
 public class ActionPropertyResolverException extends Exception {

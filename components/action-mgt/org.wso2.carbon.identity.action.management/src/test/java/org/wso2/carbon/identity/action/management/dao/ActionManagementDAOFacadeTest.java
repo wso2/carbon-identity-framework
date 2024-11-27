@@ -26,12 +26,17 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOFacade;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionPropertyResolverFactory;
 import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
+import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
+import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverServerException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
@@ -55,6 +60,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -97,6 +104,7 @@ public class ActionManagementDAOFacadeTest {
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     private ActionManagementDAOFacade daoFacade;
+    private ActionDTO creatingActionDTO;
     private ActionDTO createdActionDTO;
 
     @BeforeClass
@@ -119,19 +127,11 @@ public class ActionManagementDAOFacadeTest {
 
         MockitoAnnotations.openMocks(this);
         actionPropertyResolverFactory = mockStatic(ActionPropertyResolverFactory.class);
-    }
+        actionPropertyResolverFactory.when(() ->
+                        ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.PRE_UPDATE_PASSWORD))
+                .thenReturn(actionPropertyResolver);
 
-    @AfterMethod
-    public void tearDown() {
-
-        identityTenantUtil.close();
-        actionPropertyResolverFactory.close();
-    }
-
-    @Test(priority = 1)
-    public void testAddAction() throws ActionMgtException, ActionPropertyResolverException {
-
-        ActionDTO creatingActionDTO = new ActionDTO.Builder()
+        creatingActionDTO = new ActionDTO.Builder()
                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TEST_ACTION_NAME)
@@ -144,14 +144,60 @@ public class ActionManagementDAOFacadeTest {
                 .property(CERTIFICATE_PROPERTY_NAME,
                         new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build())
                 .build();
+    }
 
-        actionPropertyResolverFactory.when(
-                () -> ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.PRE_UPDATE_PASSWORD))
-                .thenReturn(actionPropertyResolver);
+    @AfterMethod
+    public void tearDown() {
+
+        identityTenantUtil.close();
+        actionPropertyResolverFactory.close();
+    }
+
+    @Test(priority = 1)
+    public void testAddActionWithActionPropertyResolverClientException() throws ActionPropertyResolverException {
+
+        doThrow(new ActionPropertyResolverClientException("Invalid Certificate.")).when(actionPropertyResolver)
+                .addProperties(any(), any());
+
+        try {
+            daoFacade.addAction(creatingActionDTO, TENANT_ID);
+            Assert.fail("Successful addition of the action without an exception is considered as a failure");
+        } catch (ActionMgtException e) {
+            Assert.assertEquals(e.getClass(), ActionMgtClientException.class);
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getCode());
+            Assert.assertEquals(e.getMessage(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getMessage());
+            Assert.assertEquals(e.getDescription(), "Invalid Certificate.");
+        }
+    }
+
+    @Test(priority = 2)
+    public void testAddActionWithActionPropertyResolverServerException() throws ActionPropertyResolverException {
+
+        doThrow(new ActionPropertyResolverServerException("Error adding Certificate.", new Throwable()))
+                .when(actionPropertyResolver).addProperties(any(), any());
+
+        try {
+            daoFacade.addAction(creatingActionDTO, TENANT_ID);
+            Assert.fail("Successful addition of the action without an exception is considered as a failure");
+        } catch (ActionMgtException e) {
+            Assert.assertEquals(e.getClass(), ActionMgtServerException.class);
+            Assert.assertEquals(e.getMessage(), ErrorMessage.ERROR_WHILE_ADDING_ACTION.getMessage());
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof ActionPropertyResolverServerException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected ActionPropertyResolverServerException was not found in the exception chain");
+        }
+    }
+
+    @Test(priority = 3)
+    public void testAddAction() throws ActionMgtException, ActionPropertyResolverException {
+
         Map<String, String> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE);
         properties.put(CERTIFICATE_PROPERTY_NAME, TestUtil.CERTIFICATE_ID);
-        when(actionPropertyResolver.addProperties(any(), any())).thenReturn(properties);
+        doReturn(properties).when(actionPropertyResolver).addProperties(any(), any());
 
         try {
             daoFacade.addAction(creatingActionDTO, TENANT_ID);
@@ -164,7 +210,7 @@ public class ActionManagementDAOFacadeTest {
         retrievedProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
                 .certificateContent(TEST_CERTIFICATE).build());
-        when(actionPropertyResolver.getProperties(any(), any())).thenReturn(retrievedProperties);
+        doReturn(retrievedProperties).when(actionPropertyResolver).getProperties(any(), any());
 
         createdActionDTO = daoFacade.getActionByActionId(PRE_UPDATE_PASSWORD_TYPE, PRE_UPDATE_PASSWORD_ACTION_ID,
                 TENANT_ID);
@@ -181,11 +227,11 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(createdAuthentication.getProperties().size(),
                 creatingActionDTO.getEndpoint().getAuthentication().getProperties().size());
         Assert.assertEquals(createdAuthentication.getProperty(Authentication.Property.USERNAME).getValue(),
-                TestUtil.buildSecretName(PRE_UPDATE_PASSWORD_ACTION_ID, Authentication.Type.BASIC.getName(),
-                        Authentication.Property.USERNAME.getName()));
+                TestUtil.buildSecretName(PRE_UPDATE_PASSWORD_ACTION_ID, Authentication.Type.BASIC,
+                        Authentication.Property.USERNAME));
         Assert.assertEquals(createdAuthentication.getProperty(Authentication.Property.PASSWORD).getValue(),
-                TestUtil.buildSecretName(PRE_UPDATE_PASSWORD_ACTION_ID, Authentication.Type.BASIC.getName(),
-                        Authentication.Property.PASSWORD.getName()));
+                TestUtil.buildSecretName(PRE_UPDATE_PASSWORD_ACTION_ID, Authentication.Type.BASIC,
+                        Authentication.Property.PASSWORD));
 
         Assert.assertEquals(createdActionDTO.getProperties().size(), creatingActionDTO.getProperties().size());
         Assert.assertTrue(createdActionDTO.getProperties().containsKey(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
@@ -196,18 +242,15 @@ public class ActionManagementDAOFacadeTest {
                         .getCertificateContent(), TEST_CERTIFICATE);
     }
 
-    @Test(priority = 2)
+    @Test(priority = 4)
     public void testGetActionsByType() throws ActionMgtException, ActionPropertyResolverException {
 
-        actionPropertyResolverFactory.when(
-                () -> ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.PRE_UPDATE_PASSWORD))
-                .thenReturn(actionPropertyResolver);
         Map<String, Object> retrievedProperties = new HashMap<>();
         retrievedProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE);
         retrievedProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
                 .certificateContent(TEST_CERTIFICATE).build());
-        when(actionPropertyResolver.getProperties(any(), any())).thenReturn(retrievedProperties);
+        doReturn(retrievedProperties).when(actionPropertyResolver).getProperties(any(), any());
 
         List<ActionDTO> actionDTOs = daoFacade.getActionsByActionType(PRE_UPDATE_PASSWORD_TYPE, TENANT_ID);
         ActionDTO result = actionDTOs.get(0);
@@ -239,7 +282,45 @@ public class ActionManagementDAOFacadeTest {
                 ((Certificate) createdActionDTO.getProperty(CERTIFICATE_PROPERTY_NAME)).getCertificateContent());
     }
 
-    @Test(priority = 3, dependsOnMethods = "testAddAction")
+    @Test(priority = 5)
+    public void testUpdateActionPropertyResolverClientException() throws ActionPropertyResolverException {
+
+        doThrow(new ActionPropertyResolverClientException("Invalid Certificate.")).when(actionPropertyResolver)
+                .updateProperties(any(), any(), any());
+
+        try {
+            daoFacade.updateAction(creatingActionDTO, createdActionDTO, TENANT_ID);
+            Assert.fail("Successful update of the actions without an exception is considered as a failure");
+        } catch (ActionMgtException e) {
+            Assert.assertEquals(e.getClass(), ActionMgtClientException.class);
+            Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getCode());
+            Assert.assertEquals(e.getMessage(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getMessage());
+            Assert.assertEquals(e.getDescription(), "Invalid Certificate.");
+        }
+    }
+
+    @Test(priority = 6)
+    public void testUpdateActionWithActionPropertyResolverServerException() throws ActionPropertyResolverException {
+
+        doThrow(new ActionPropertyResolverServerException("Error updating Certificate.")).when(actionPropertyResolver)
+                .updateProperties(any(), any(), any());
+
+        try {
+            daoFacade.updateAction(creatingActionDTO, createdActionDTO, TENANT_ID);
+            Assert.fail("Successful update of the actions without an exception is considered as a failure");
+        } catch (ActionMgtException e) {
+            Assert.assertEquals(e.getClass(), ActionMgtServerException.class);
+            Assert.assertEquals(e.getMessage(), ErrorMessage.ERROR_WHILE_UPDATING_ACTION.getMessage());
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof ActionPropertyResolverServerException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected ActionPropertyResolverServerException was not found in the exception chain");
+        }
+    }
+
+    @Test(priority = 7, dependsOnMethods = "testAddAction")
     public void testUpdateCompleteAction() throws ActionMgtException, ActionPropertyResolverException {
 
         ActionDTO updatingAction = new ActionDTO.Builder()
@@ -255,14 +336,10 @@ public class ActionManagementDAOFacadeTest {
                 .property(CERTIFICATE_PROPERTY_NAME,
                         new Certificate.Builder().certificateContent(TEST_CERTIFICATE_UPDATED).build())
                 .build();
-
-        actionPropertyResolverFactory.when(
-                () -> ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.PRE_UPDATE_PASSWORD))
-                .thenReturn(actionPropertyResolver);
         Map<String, String> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE_UPDATED);
         properties.put(CERTIFICATE_PROPERTY_NAME, CERTIFICATE_ID);
-        when(actionPropertyResolver.updateProperties(any(), any(), anyString())).thenReturn(properties);
+        doReturn(properties).when(actionPropertyResolver).updateProperties(any(), any(), anyString());
 
         try {
             daoFacade.updateAction(updatingAction, createdActionDTO, TENANT_ID);
@@ -275,7 +352,7 @@ public class ActionManagementDAOFacadeTest {
         retrievedProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
                 .certificateContent(TEST_CERTIFICATE_UPDATED).build());
-        when(actionPropertyResolver.getProperties(any(), any())).thenReturn(retrievedProperties);
+        doReturn(retrievedProperties).when(actionPropertyResolver).getProperties(any(), any());
 
         ActionDTO result = daoFacade.getActionByActionId(PRE_UPDATE_PASSWORD_TYPE, updatingAction.getId(), TENANT_ID);
         Assert.assertEquals(result.getId(), createdActionDTO.getId());
@@ -291,8 +368,8 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(updatedAuthentication.getProperties().size(),
                 updatingAction.getEndpoint().getAuthentication().getProperties().size());
         Assert.assertEquals(updatedAuthentication.getProperty(Authentication.Property.ACCESS_TOKEN).getValue(),
-                TestUtil.buildSecretName(PRE_UPDATE_PASSWORD_ACTION_ID, Authentication.Type.BEARER.getName(),
-                        Authentication.Property.ACCESS_TOKEN.getName()));
+                TestUtil.buildSecretName(PRE_UPDATE_PASSWORD_ACTION_ID, Authentication.Type.BEARER,
+                        Authentication.Property.ACCESS_TOKEN));
 
         Assert.assertEquals(result.getProperties().size(), updatingAction.getProperties().size());
 
@@ -305,7 +382,7 @@ public class ActionManagementDAOFacadeTest {
         createdActionDTO = result;
     }
 
-    @Test(priority = 4)
+    @Test(priority = 8)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
@@ -314,7 +391,7 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
     }
 
-    @Test(priority = 5)
+    @Test(priority = 9)
     public void testActivateAction() throws ActionMgtException {
 
         ActionDTO activatedActionDTO = daoFacade.activateAction(PRE_UPDATE_PASSWORD_TYPE, createdActionDTO.getId(),
@@ -322,7 +399,7 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
     }
 
-    @Test(priority = 6)
+    @Test(priority = 10)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
         Map<String, Integer> actionMap = daoFacade.getActionsCountPerType(TENANT_ID);
@@ -330,12 +407,9 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(actionMap.get(PRE_UPDATE_PASSWORD_TYPE).intValue(), 1);
     }
 
-    @Test(priority = 7)
+    @Test(priority = 11)
     public void testDeleteAction() throws ActionMgtException, ActionPropertyResolverException {
 
-        actionPropertyResolverFactory.when(
-                () -> ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.PRE_UPDATE_PASSWORD))
-                .thenReturn(actionPropertyResolver);
         doNothing().when(actionPropertyResolver).deleteProperties(any(), anyString());
 
         try {

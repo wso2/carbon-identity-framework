@@ -113,7 +113,7 @@ public class CacheBackedActionManagementServiceTest {
         List<Action> actions = cacheBackedActionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 TENANT_DOMAIN);
         verify(actionManagementServiceImpl, times(1)).getActionsByActionType(any(), any());
-        Assert.assertEquals(1, actions.size());
+        Assert.assertEquals(actions.size(), mockedActionsList.size());
         Action result = actions.get(0);
         assertAction(result);
     }
@@ -127,7 +127,7 @@ public class CacheBackedActionManagementServiceTest {
                 TENANT_DOMAIN);
         verify(actionManagementServiceImpl, never()).getActionsByActionType(any(), any());
         Assert.assertNotNull(actions);
-        Assert.assertEquals(1, actions.size());
+        Assert.assertEquals(actions.size(), mockedActionsList.size());
         Action result = actions.get(0);
         assertAction(result);
     }

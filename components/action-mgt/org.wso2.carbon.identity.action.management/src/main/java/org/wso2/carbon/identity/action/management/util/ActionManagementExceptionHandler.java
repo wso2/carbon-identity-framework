@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtServerExcep
 /**
  * Utility class for Action Management.
  */
-public class ActionManagementUtil {
+public class ActionManagementExceptionHandler {
 
     /**
      * Handle Action Management client exceptions.
@@ -43,18 +43,6 @@ public class ActionManagementUtil {
         }
 
         return new ActionMgtClientException(error.getMessage(), description, error.getCode());
-    }
-
-    /**
-     * Handle Action Management client exceptions.
-     *
-     * @param error Error message.
-     * @param e     Throwable.
-     * @return ActionMgtClientException.
-     */
-    public static ActionMgtClientException handleClientException(ErrorMessage error, Throwable e) {
-
-        return new ActionMgtClientException(error.getMessage(), error.getDescription(), error.getCode(), e);
     }
 
     /**

@@ -36,12 +36,6 @@ public class ActionMgtException extends Exception {
         super(message, cause);
     }
 
-    public ActionMgtException(String message, String errorCode, Throwable cause) {
-
-        super(message, cause);
-        this.errorCode = errorCode;
-    }
-
     public ActionMgtException(String message, String description, String errorCode) {
 
         super(message);
@@ -61,18 +55,8 @@ public class ActionMgtException extends Exception {
         return this.errorCode;
     }
 
-    public void setErrorCode(String errorCode) {
-
-        this.errorCode = errorCode;
-    }
-
     public String getDescription() {
 
         return this.description;
-    }
-
-    public void setDescription(String description) {
-
-        this.description = description;
     }
 }

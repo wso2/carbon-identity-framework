@@ -25,13 +25,15 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
+import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
-import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
+import org.wso2.carbon.identity.action.management.util.ActionManagementExceptionHandler;
 import org.wso2.carbon.identity.action.management.util.ActionSecretProcessor;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -73,10 +75,11 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
+            handleActionPropertyResolverClientException(e.getCause());
             LOG.debug("Error while creating the Action of Action Type: " + actionDTO.getType().getDisplayName() +
                             " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
                             ". Rolling back created action information, authentication secrets and action properties.");
-            throw ActionManagementUtil.handleServerException(ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
+            throw ActionManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
         }
     }
 
@@ -89,7 +92,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
             return actionDTOS;
         } catch (ActionMgtException | ActionPropertyResolverException e) {
-            throw ActionManagementUtil.handleServerException(
+            throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
         }
     }
@@ -107,7 +110,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
             return actionDTO;
         } catch (ActionMgtException | ActionPropertyResolverException e) {
-            throw ActionManagementUtil.handleServerException(ErrorMessage.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
+            throw ActionManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
         }
     }
 
@@ -127,11 +131,12 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
+            handleActionPropertyResolverClientException(e.getCause());
             LOG.debug("Error while updating the Action of Action Type: " +
                     updatingActionDTO.getType().getDisplayName() + " and Action ID: " + updatingActionDTO.getId() +
                     " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
                     ". Rolling back updated action information");
-            throw ActionManagementUtil.handleServerException(ErrorMessage.ERROR_WHILE_UPDATING_ACTION, e);
+            throw ActionManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_WHILE_UPDATING_ACTION, e);
         }
     }
 
@@ -154,7 +159,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                     deletingActionDTO.getType().getDisplayName() + " and Action ID: " + deletingActionDTO.getId() +
                     " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
                     ". Rolling back deleted action information");
-            throw ActionManagementUtil.handleServerException(ErrorMessage.ERROR_WHILE_DELETING_ACTION, e);
+            throw ActionManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_WHILE_DELETING_ACTION, e);
         }
     }
 
@@ -164,7 +169,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         try {
             return actionManagementDAO.activateAction(actionType, actionId, tenantId);
         } catch (ActionMgtException e) {
-            throw ActionManagementUtil.handleServerException(ErrorMessage.ERROR_WHILE_ACTIVATING_ACTION, e);
+            throw ActionManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_WHILE_ACTIVATING_ACTION, e);
         }
     }
 
@@ -174,7 +179,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         try {
             return actionManagementDAO.deactivateAction(actionType, actionId, tenantId);
         } catch (ActionMgtException e) {
-            throw ActionManagementUtil.handleServerException(ErrorMessage.ERROR_WHILE_DEACTIVATING_ACTION, e);
+            throw ActionManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_DEACTIVATING_ACTION, e);
         }
     }
 
@@ -293,6 +299,15 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         if (actionPropertyResolver != null) {
             actionPropertyResolver.deleteProperties(deletingActionDTO,
                     IdentityTenantUtil.getTenantDomain(tenantId));
+        }
+    }
+
+    private static void handleActionPropertyResolverClientException(Throwable throwable)
+            throws ActionMgtClientException {
+
+        if (throwable instanceof ActionPropertyResolverClientException) {
+            throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES,
+                    throwable.getMessage());
         }
     }
 }

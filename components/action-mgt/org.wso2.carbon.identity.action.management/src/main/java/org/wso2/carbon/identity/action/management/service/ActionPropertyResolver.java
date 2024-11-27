@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.action.management.service;
 
 import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
 import org.wso2.carbon.identity.action.management.model.Action;
 
@@ -54,11 +53,5 @@ public interface ActionPropertyResolver {
 
     default void deleteProperties(ActionDTO deletingActionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
-    }
-
-    default void doPreAddActionPropertiesValidations(ActionDTO actionDTO) throws ActionMgtClientException {
-    }
-
-    default void doPreUpdateActionPropertiesValidations(ActionDTO updatingActionDTO) throws ActionMgtClientException {
     }
 }

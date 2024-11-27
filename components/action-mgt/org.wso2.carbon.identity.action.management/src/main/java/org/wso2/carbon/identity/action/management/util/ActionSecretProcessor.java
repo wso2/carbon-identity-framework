@@ -36,9 +36,6 @@ import static org.wso2.carbon.identity.action.management.constant.ActionMgtConst
  */
 public class ActionSecretProcessor {
 
-    public ActionSecretProcessor() {
-    }
-
     public List<AuthProperty> encryptAssociatedSecrets(Authentication authentication, String actionId)
             throws SecretManagementException {
 

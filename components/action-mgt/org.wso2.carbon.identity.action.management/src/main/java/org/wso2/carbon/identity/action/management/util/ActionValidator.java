@@ -36,9 +36,9 @@ public class ActionValidator {
     // and should start with an alphanumeric character.
     private static final String HEADER_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-.]+$";
 
-    private Pattern actionNameRegexPattern = Pattern.compile(ACTION_NAME_REGEX);
-    private Pattern endpointUriRegexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
-    private Pattern headerRegexPattern = Pattern.compile(HEADER_REGEX);
+    private final Pattern actionNameRegexPattern = Pattern.compile(ACTION_NAME_REGEX);
+    private final Pattern endpointUriRegexPattern = Pattern.compile(ENDPOINT_URI_REGEX);
+    private final Pattern headerRegexPattern = Pattern.compile(HEADER_REGEX);
 
     /**
      * Validate whether required fields exist.
@@ -49,7 +49,8 @@ public class ActionValidator {
     public void validateForBlank(String fieldName, String fieldValue) throws ActionMgtClientException {
 
         if (StringUtils.isBlank(fieldValue)) {
-            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_EMPTY_ACTION_REQUEST_FIELD, fieldName);
+            throw ActionManagementExceptionHandler.handleClientException(ErrorMessage.ERROR_EMPTY_ACTION_REQUEST_FIELD,
+                    fieldName);
         }
     }
 
@@ -63,8 +64,8 @@ public class ActionValidator {
 
         boolean isValidName = actionNameRegexPattern.matcher(name).matches();
         if (!isValidName) {
-            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ACTION_NAME_FIELD);
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ACTION_NAME_FIELD);
         }
     }
 
@@ -78,8 +79,8 @@ public class ActionValidator {
 
         boolean isValidUri = endpointUriRegexPattern.matcher(uri).matches();
         if (!isValidUri) {
-            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.ENDPOINT_URI_FIELD);
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.ENDPOINT_URI_FIELD);
         }
     }
 
@@ -93,8 +94,8 @@ public class ActionValidator {
 
         boolean isValidHeader = headerRegexPattern.matcher(header).matches();
         if (!isValidHeader) {
-            throw ActionManagementUtil.handleClientException(ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD,
-                    ActionMgtConstants.API_KEY_HEADER_FIELD);
+            throw ActionManagementExceptionHandler.handleClientException(
+                    ErrorMessage.ERROR_INVALID_ACTION_REQUEST_FIELD, ActionMgtConstants.API_KEY_HEADER_FIELD);
         }
     }
 }

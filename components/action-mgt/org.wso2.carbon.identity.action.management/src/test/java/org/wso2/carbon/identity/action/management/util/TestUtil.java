@@ -52,21 +52,21 @@ public class TestUtil {
 
     public static final String TEST_USERNAME = "sampleUsername";
     public static final String TEST_USERNAME_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-            Authentication.Type.BASIC.getName(), Authentication.Property.USERNAME.getName());
+            Authentication.Type.BASIC, Authentication.Property.USERNAME);
     public static final String TEST_PASSWORD = "samplePassword";
     public static final String TEST_PASSWORD_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-            Authentication.Type.BASIC.getName(), Authentication.Property.PASSWORD.getName());
+            Authentication.Type.BASIC, Authentication.Property.PASSWORD);
     public static final String TEST_ACCESS_TOKEN = "5e482c2a-e83a-3afe-bc6a-ff79e1fdaaba";
     public static final String TEST_ACCESS_TOKEN_UPDATED = "fe326c2a-e83a-41fe-bc6a-ee79e1feabba";
     public static final String TEST_ACCESS_TOKEN_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-            Authentication.Type.BEARER.getName(), Authentication.Property.ACCESS_TOKEN.getName());
+            Authentication.Type.BEARER, Authentication.Property.ACCESS_TOKEN);
     public static final String TEST_API_KEY_HEADER = "sampleHeader";
     public static final String TEST_API_KEY_HEADER_UPDATED = "UpdatedSampleHeader";
     public static final String TEST_INVALID_API_KEY_HEADER = "-test-header";
     public static final String TEST_API_KEY_VALUE = "sampleValue";
     public static final String TEST_API_KEY_VALUE_UPDATED = "UpdatedSampleValue";
     public static final String TEST_API_KEY_VALUE_SECRET_REFERENCE = buildSecretName(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID,
-            Authentication.Type.API_KEY.getName(), Authentication.Property.VALUE.getName());
+            Authentication.Type.API_KEY, Authentication.Property.VALUE);
 
     public static final String TEST_ACTION_PROPERTY_NAME_1 = "samplePropertyName";
     public static final String TEST_ACTION_PROPERTY_VALUE_1 = "samplePropertyValue";
@@ -92,9 +92,10 @@ public class TestUtil {
                 .build();
     }
 
-    public static String buildSecretName(String actionId, String authType, String authPropertyName) {
+    public static String buildSecretName(String actionId, Authentication.Type authType,
+                                         Authentication.Property authProperty) {
 
-        return TEST_SECRET_TYPE_ID + ":" + actionId + ":" + authType + ":" + authPropertyName;
+        return TEST_SECRET_TYPE_ID + ":" + actionId + ":" + authType.getName() + ":" + authProperty.getName();
     }
 
     public static Authentication buildMockBasicAuthentication(String username, String password) {

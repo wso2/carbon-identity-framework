@@ -19,12 +19,18 @@
 package org.wso2.carbon.identity.action.management.exception;
 
 /**
- * Action management client exception.
+ * Server Exception class for Action Property Resolver.
+ * This exception is thrown when there is an issue in performing action type specific operations in the system.
  */
-public class ActionMgtClientException extends ActionMgtException {
+public class ActionPropertyResolverServerException extends ActionPropertyResolverException {
 
-    public ActionMgtClientException(String message, String description, String errorCode) {
+    public ActionPropertyResolverServerException(String message) {
 
-        super(message, description, errorCode);
+        super(message);
+    }
+
+    public ActionPropertyResolverServerException(String message, Throwable cause) {
+
+        super(message, cause);
     }
 }
