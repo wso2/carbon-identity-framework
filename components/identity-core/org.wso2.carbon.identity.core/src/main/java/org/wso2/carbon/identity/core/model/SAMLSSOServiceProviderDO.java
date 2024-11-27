@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class SAMLSSOServiceProviderDO implements Serializable {
 
@@ -669,7 +670,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     /**
-     * Get optional configs of the SAML SSO IdP.
+     * Get configs of the SAML SSO IdP.
      *
      * @return List of ConfigTuples.
      */
@@ -765,4 +766,69 @@ public class SAMLSSOServiceProviderDO implements Serializable {
             list.add(new ConfigTuple(key, value));
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SAMLSSOServiceProviderDO that = (SAMLSSOServiceProviderDO) o;
+        return doSingleLogout == that.doSingleLogout &&
+                doSignResponse == that.doSignResponse &&
+                doSignAssertions == that.doSignAssertions &&
+                enableAttributesByDefault == that.enableAttributesByDefault &&
+                isIdPInitSSOEnabled == that.isIdPInitSSOEnabled &&
+                idPInitSLOEnabled == that.idPInitSLOEnabled &&
+                doEnableEncryptedAssertion == that.doEnableEncryptedAssertion &&
+                doValidateSignatureInRequests == that.doValidateSignatureInRequests &&
+                doValidateSignatureInArtifactResolve == that.doValidateSignatureInArtifactResolve &&
+                enableSAML2ArtifactBinding == that.enableSAML2ArtifactBinding &&
+                samlECP == that.samlECP &&
+                doFrontChannelLogout == that.doFrontChannelLogout &&
+                Objects.equals(tenantDomain, that.tenantDomain) &&
+                Objects.equals(issuer, that.issuer) &&
+                Objects.equals(issuerQualifier, that.issuerQualifier) &&
+                Objects.equals(assertionConsumerUrl, that.assertionConsumerUrl) &&
+                Arrays.equals(assertionConsumerUrls, that.assertionConsumerUrls) &&
+                Objects.equals(defaultAssertionConsumerUrl, that.defaultAssertionConsumerUrl) &&
+                Objects.equals(certAlias, that.certAlias) &&
+                Objects.equals(sloResponseURL, that.sloResponseURL) &&
+                Objects.equals(sloRequestURL, that.sloRequestURL) &&
+                Objects.equals(loginPageURL, that.loginPageURL) &&
+                Objects.equals(attributeConsumingServiceIndex, that.attributeConsumingServiceIndex) &&
+                Arrays.equals(requestedClaims, that.requestedClaims) &&
+                Arrays.equals(requestedAudiences, that.requestedAudiences) &&
+                Arrays.equals(requestedRecipients, that.requestedRecipients) &&
+                Objects.equals(nameIdClaimUri, that.nameIdClaimUri) &&
+                Objects.equals(nameIDFormat, that.nameIDFormat) &&
+                Arrays.equals(idpInitSLOReturnToURLs, that.idpInitSLOReturnToURLs) &&
+                Objects.equals(signingAlgorithmUri, that.signingAlgorithmUri) &&
+                Objects.equals(digestAlgorithmUri, that.digestAlgorithmUri) &&
+                Objects.equals(assertionEncryptionAlgorithmUri, that.assertionEncryptionAlgorithmUri) &&
+                Objects.equals(keyEncryptionAlgorithmUri, that.keyEncryptionAlgorithmUri) &&
+                Objects.equals(signingCertificate, that.signingCertificate) &&
+                Objects.equals(encryptionCertificate, that.encryptionCertificate) &&
+                Objects.equals(idpEntityIDAlias, that.idpEntityIDAlias) &&
+                Objects.equals(frontChannelLogoutBinding, that.frontChannelLogoutBinding);
+    }
+
+    @Override
+    public int hashCode() {
+
+        int h = Objects.hash(tenantDomain, issuer, issuerQualifier, assertionConsumerUrl, defaultAssertionConsumerUrl,
+                certAlias, sloResponseURL, sloRequestURL, doSingleLogout, loginPageURL, doSignResponse,
+                doSignAssertions, attributeConsumingServiceIndex, enableAttributesByDefault, nameIdClaimUri,
+                nameIDFormat, isIdPInitSSOEnabled, idPInitSLOEnabled, doEnableEncryptedAssertion,
+                doValidateSignatureInRequests, doValidateSignatureInArtifactResolve, signingAlgorithmUri,
+                digestAlgorithmUri, assertionEncryptionAlgorithmUri, keyEncryptionAlgorithmUri, signingCertificate,
+                encryptionCertificate, isAssertionQueryRequestProfileEnabled, supportedAssertionQueryRequestTypes,
+                enableSAML2ArtifactBinding, samlECP, idpEntityIDAlias, doFrontChannelLogout, frontChannelLogoutBinding);
+        h = 31 * h + Arrays.hashCode(assertionConsumerUrls);
+        h = 31 * h + Arrays.hashCode(requestedClaims);
+        h = 31 * h + Arrays.hashCode(requestedAudiences);
+        h = 31 * h + Arrays.hashCode(requestedRecipients);
+        h = 31 * h + Arrays.hashCode(idpInitSLOReturnToURLs);
+        return h;
+    }
+
+
 }

@@ -30,6 +30,7 @@
             <class name="org.wso2.carbon.identity.core.ThreadLocalAwareThreadPoolExecutorTest"/>
             <class name="org.wso2.carbon.identity.core.IdentityKeyStoreResolverTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtilTest"/>
+            <class name="org.wso2.carbon.identity.core.SAMLSSOServiceProviderManagerTest"/>
         </classes>
     </test>
 </suite>
