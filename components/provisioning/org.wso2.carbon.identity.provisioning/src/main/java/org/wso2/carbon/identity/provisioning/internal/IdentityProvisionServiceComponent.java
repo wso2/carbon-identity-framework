@@ -170,7 +170,7 @@ public class IdentityProvisionServiceComponent {
     @Reference(
             name = "identity.provisioning.rule.handler.xacml",
             service = org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler.class,
-            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetOutboundProvisioningHandler"
     )
