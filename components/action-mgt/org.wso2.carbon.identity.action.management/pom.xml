@@ -89,19 +89,18 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.action.management.internal,
                             org.wso2.carbon.identity.action.management.cache,
-                            org.wso2.carbon.identity.action.management.dao,
-                            org.wso2.carbon.identity.action.management.dao.impl,
+                            org.wso2.carbon.identity.action.management.constant,
+                            org.wso2.carbon.identity.action.management.dao.*,
+                            org.wso2.carbon.identity.action.management.internal,
+                            org.wso2.carbon.identity.action.management.service.impl,
                             org.wso2.carbon.identity.action.management.util
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.action.management.internal,
-                            !org.wso2.carbon.identity.action.management.cache,
-                            !org.wso2.carbon.identity.action.management.dao,
-                            !org.wso2.carbon.identity.action.management.dao.impl,
-                            !org.wso2.carbon.identity.action.management.util,
-                            org.wso2.carbon.identity.action.management.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.action.management.constant.error,
+                            org.wso2.carbon.identity.action.management.exception,
+                            org.wso2.carbon.identity.action.management.model,
+                            org.wso2.carbon.identity.action.management.service; version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
