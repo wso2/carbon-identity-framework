@@ -396,8 +396,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             frameworkUtilsMockedStatic.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request))
                     .thenReturn(true);
             SessionContext sessionContext = mock(SessionContext.class);
-            frameworkUtilsMockedStatic.when(
-                            () -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext, testSessionId))
+            frameworkUtilsMockedStatic.
+                    when(() -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext, testSessionId))
                     .thenReturn(sessionContext);
 
             // Mock ApplicationManagementService.
