@@ -62,6 +62,8 @@ public class IdentityCoreConstants {
 
     public static final String USER_ACCOUNT_DISABLED = " User account is disabled";
 
+    public static final String ALLOW_SENSITIVE_DATA_IN_URL = "RequestParameters.AllowSensitiveDataInURL";
+
     //UserCoreConstants class define the rest of the relevant error codes.
     public static final String USER_ACCOUNT_LOCKED_ERROR_CODE = "17003";
     public static final String USER_ACCOUNT_DISABLED_ERROR_CODE = "17004";
