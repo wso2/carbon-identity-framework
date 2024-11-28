@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
@@ -65,8 +67,10 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
@@ -74,6 +78,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -371,7 +376,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         when(request.getParameter(FrameworkConstants.RequestParams.SESSION_ID)).thenReturn(testSessionId);
         when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(testIssuer);
 
-        AuthenticationContext authenticationContext = mock(AuthenticationContext.class);
+        AuthenticationContext authenticationContext = spy(AuthenticationContext.class);
         when(authenticationContext.getTenantDomain()).thenReturn(testTenantDomain);
         when(authenticationContext.getRequestType()).thenReturn(testRequestType);
 
@@ -380,14 +385,15 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
              MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class);
              MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic = mockStatic(
                      ApplicationManagementService.class)) {
+
             // Mock LoggerUtils.
             loggerUtilsMockedStatic.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
 
             // Mock ConfigurationFacade.
             ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
             SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-            when(configurationFacade.getSequenceConfig(null, testRequestType,
-                    testTenantDomain)).thenReturn(sequenceConfig);
+            when(configurationFacade.getSequenceConfig(null, testRequestType, testTenantDomain)).thenReturn(
+                    sequenceConfig);
             configurationFacadeMockedStatic.when(ConfigurationFacade::getInstance).thenReturn(configurationFacade);
 
             // Mock FrameworkUtils.
@@ -395,8 +401,8 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
                     .thenReturn(true);
             SessionContext sessionContext = mock(SessionContext.class);
             frameworkUtilsMockedStatic.when(
-                    () -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext,
-                            testSessionId)).thenReturn(sessionContext);
+                            () -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext, testSessionId))
+                    .thenReturn(sessionContext);
 
             // Mock ApplicationManagementService.
             ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
@@ -422,8 +428,28 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             when(sequenceConfig.getAuthenticatedUser()).thenReturn(authenticatedUser);
             when(authenticatedUser.getTenantDomain()).thenReturn(testTenantDomain);
 
-            // Call the method under test.
+            // Case 1: Authenticated user has a tenant domain.
             requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+
+            assertEquals(authenticationContext.getSubject(), authenticatedUser);
+            assertEquals(authenticationContext.getProperty(USER_TENANT_DOMAIN), testTenantDomain);
+
+            // clear the previous tenant domain.
+            authenticationContext.setProperty(USER_TENANT_DOMAIN, null);
+
+            // Case2: Authenticated user return null tenant domain.
+            when(authenticatedUser.getTenantDomain()).thenReturn(null);
+            requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+            assertNull(authenticationContext.getProperty(USER_TENANT_DOMAIN));
+
+            // Case 3: Authenticated user is null.
+            // clear the previous subject.
+            authenticationContext.setSubject(null);
+
+            when(sequenceConfig.getAuthenticatedUser()).thenReturn(null);
+            requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+            assertNull(authenticationContext.getSubject());
+
         } catch (IdentityApplicationManagementException e) {
             throw new RuntimeException(e);
         }
