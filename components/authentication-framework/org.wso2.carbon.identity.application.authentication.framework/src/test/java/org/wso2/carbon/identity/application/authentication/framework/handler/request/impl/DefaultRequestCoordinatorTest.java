@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+
 import org.junit.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
@@ -26,9 +27,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -39,6 +43,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -55,6 +60,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -349,6 +355,78 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             Assert.fail("NullPointerException occurred: " + e.getMessage());
         } catch (Exception e) {
             Assert.fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testFindPreviousAuthenticatedSession() throws FrameworkException {
+
+        // Define constants for test values.
+        final String testSessionId = "testId";
+        final String testIssuer = "testIssuer";
+        final String testTenantDomain = "carbon.super";
+        final String testRequestType = "testRequestType";
+        final String testAppName = "testApp";
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter(FrameworkConstants.RequestParams.SESSION_ID)).thenReturn(testSessionId);
+        when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(testIssuer);
+
+        AuthenticationContext authenticationContext = mock(AuthenticationContext.class);
+        when(authenticationContext.getTenantDomain()).thenReturn(testTenantDomain);
+        when(authenticationContext.getRequestType()).thenReturn(testRequestType);
+
+        try (MockedStatic<LoggerUtils> loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
+             MockedStatic<ConfigurationFacade> configurationFacadeMockedStatic = mockStatic(ConfigurationFacade.class);
+             MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic = mockStatic(
+                     ApplicationManagementService.class)) {
+            // Mock LoggerUtils.
+            loggerUtilsMockedStatic.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            // Mock ConfigurationFacade.
+            ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(configurationFacade.getSequenceConfig(eq(null), eq(testRequestType),
+                    eq(testTenantDomain))).thenReturn(sequenceConfig);
+            configurationFacadeMockedStatic.when(ConfigurationFacade::getInstance).thenReturn(configurationFacade);
+
+            // Mock FrameworkUtils.
+            frameworkUtilsMockedStatic.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(eq(request)))
+                    .thenReturn(true);
+            SessionContext sessionContext = mock(SessionContext.class);
+            frameworkUtilsMockedStatic.when(
+                    () -> FrameworkUtils.getSessionContextFromCache(eq(request), eq(authenticationContext),
+                            eq(testSessionId))).thenReturn(sessionContext);
+
+            // Mock ApplicationManagementService.
+            ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+            applicationManagementServiceMockedStatic.when(ApplicationManagementService::getInstance)
+                    .thenReturn(applicationManagementService);
+
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(applicationManagementService.getServiceProviderByClientId(anyString(), anyString(),
+                    anyString())).thenReturn(serviceProvider);
+
+            // Mock ApplicationConfig.
+            ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+            when(applicationConfig.getApplicationName()).thenReturn(testAppName);
+
+            // Mock authenticated sequences.
+            Map<String, SequenceConfig> mockedMap = mock(Map.class);
+            when(mockedMap.get(any())).thenReturn(sequenceConfig);
+            when(sessionContext.getAuthenticatedSequences()).thenReturn(mockedMap);
+
+            // Mock AuthenticatedUser.
+            AuthenticatedUser authenticatedUser = mock(AuthenticatedUser.class);
+            when(sequenceConfig.getAuthenticatedUser()).thenReturn(authenticatedUser);
+            when(authenticatedUser.getTenantDomain()).thenReturn(testTenantDomain);
+
+            // Call the method under test.
+            requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+        } catch (IdentityApplicationManagementException e) {
+            throw new RuntimeException(e);
         }
     }
 
