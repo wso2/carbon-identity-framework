@@ -163,9 +163,9 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                     .findFirst();
 
             if (matchingClaimInDB.isPresent()) {
-                matchingClaimInDB.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(matchingClaimInDB.get());
             } else {
-                systemClaim.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(systemClaim);
                 allLocalClaims.add(systemClaim);
             }
         });
@@ -186,13 +186,13 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         Optional<LocalClaim> localClaimInDB = this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
         if (localClaimInDB.isPresent()) {
             if (isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
-                localClaimInDB.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(localClaimInDB.get());
             }
             return localClaimInDB;
         }
         Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
         if (localClaimInSystem.isPresent()) {
-            localClaimInSystem.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+            markAsSystemClaim(localClaimInSystem.get());
             return localClaimInSystem;
         }
         return Optional.empty();
@@ -311,7 +311,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             ExternalClaim externalClaimWithSameLocalClaim = localClaimInDBMap.get(
                     externalClaimInSystem.getMappedLocalClaim());
             if (matchingClaimInDB != null) {
-                matchingClaimInDB.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(matchingClaimInDB);
                 allExternalClaims.add(matchingClaimInDB);
                 externalClaimsInDBMap.remove(externalClaimInSystem.getClaimURI());
             } else if (externalClaimWithSameLocalClaim == null) {
@@ -342,7 +342,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                 .findFirst();
         if (externalClaim.isPresent()) {
             if (isSystemDefaultExternalClaim(externalClaimDialectURI, claimURI, tenantId)) {
-                externalClaim.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(externalClaim.get());
             }
             return externalClaim;
         }
@@ -352,7 +352,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             boolean isMappedLocalClaimInDB = externalClaimsInDB.stream().anyMatch(claim ->
                     claim.getMappedLocalClaim().equals(externalClaimInSystem.get().getMappedLocalClaim()));
             if (!isMappedLocalClaimInDB) {
-                externalClaimInSystem.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(externalClaimInSystem.get());
                 return externalClaimInSystem;
             }
         }
@@ -583,5 +583,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         if (claimInSystem.isPresent()) {
             this.dbBasedClaimMetadataManager.addLocalClaim(claimInSystem.get(), tenantId);
         }
+    }
+
+    private void markAsSystemClaim(Claim claim) {
+
+        claim.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
     }
 }
