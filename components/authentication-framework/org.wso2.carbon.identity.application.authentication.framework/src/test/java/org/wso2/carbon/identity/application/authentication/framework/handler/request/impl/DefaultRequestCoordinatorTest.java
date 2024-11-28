@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
@@ -67,7 +64,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
