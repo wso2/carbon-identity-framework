@@ -979,16 +979,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                     if (authenticatedUser != null) {
                         String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
-                        // set the user for the current authentication/logout flow
+                        // Set the user for the current authentication/logout flow.
                         context.setSubject(authenticatedUser);
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Already authenticated by username: " + authenticatedUser
-                                    .getAuthenticatedSubjectIdentifier());
+                            log.debug("Already authenticated by username: " +
+                                    authenticatedUser.getAuthenticatedSubjectIdentifier());
                         }
 
                         if (authenticatedUserTenantDomain != null) {
-                            // set the user tenant domain for the current authentication/logout flow
+                            // Set the user tenant domain for the current authentication/logout flow.
                             context.setProperty(USER_TENANT_DOMAIN, authenticatedUserTenantDomain);
                             if (log.isDebugEnabled()) {
                                 log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
