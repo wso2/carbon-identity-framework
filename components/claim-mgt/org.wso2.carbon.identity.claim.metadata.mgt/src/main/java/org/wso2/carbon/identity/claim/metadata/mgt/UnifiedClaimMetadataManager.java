@@ -305,6 +305,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         Map<String, ExternalClaim> localClaimInDBMap = externalClaimsInDB.stream()
                 .collect(Collectors.toMap(ExternalClaim::getMappedLocalClaim, claim -> claim));
 
+        // If a system claim is also in the DB, then the claim retrieved from the DB gets the priority.
+        // Also, if there is a system claim that is mapped to the same local claim as another external claim in the same
+        // dialect, then we do not enforce the system claim on the tenant because that would violate the constraint of
+        // having a unique claim mapping within the dialect.
         List<ExternalClaim> allExternalClaims = new ArrayList<>();
         for (ExternalClaim externalClaimInSystem : externalClaimsInSystem) {
             ExternalClaim matchingClaimInDB = externalClaimsInDBMap.get(externalClaimInSystem.getClaimURI());
