@@ -51,7 +51,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -979,34 +978,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     AuthenticatedUser authenticatedUser = previousAuthenticatedSeq.getAuthenticatedUser();
 
                     if (authenticatedUser != null) {
+                        String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
+                        // set the user for the current authentication/logout flow
+                        context.setSubject(authenticatedUser);
 
-                        if (isUserAllowedToLogin(authenticatedUser)) {
-                            String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
-                            // set the user for the current authentication/logout flow
-                            context.setSubject(authenticatedUser);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Already authenticated by username: " + authenticatedUser
+                                    .getAuthenticatedSubjectIdentifier());
+                        }
 
+                        if (authenticatedUserTenantDomain != null) {
+                            // set the user tenant domain for the current authentication/logout flow
+                            context.setProperty(USER_TENANT_DOMAIN, authenticatedUserTenantDomain);
                             if (log.isDebugEnabled()) {
-                                log.debug("Already authenticated by username: " + authenticatedUser
-                                        .getAuthenticatedSubjectIdentifier());
+                                log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
                             }
-
-                            if (authenticatedUserTenantDomain != null) {
-                                // set the user tenant domain for the current authentication/logout flow
-                                context.setProperty(USER_TENANT_DOMAIN, authenticatedUserTenantDomain);
-
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
-                                }
-                            }
-                        } else {
-                            if (log.isDebugEnabled()) {
-                                log.debug(String.format("User %s is not allowed to authenticate from previous session.",
-                                        authenticatedUser.toString()));
-                            }
-                            context.setPreviousSessionFound(false);
-                            FrameworkUtils.removeSessionContextFromCache(sessionContextKey,
-                                    context.getLoginTenantDomain());
-                            sessionContext.setAuthenticatedIdPs(new HashMap<String, AuthenticatedIdPData>());
                         }
                     }
                     // This is done to reflect the changes done in SP to the sequence config. So, the requested claim
