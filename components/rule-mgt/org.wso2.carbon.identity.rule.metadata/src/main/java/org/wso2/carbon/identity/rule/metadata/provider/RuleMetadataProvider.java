@@ -40,6 +40,4 @@ public interface RuleMetadataProvider {
      */
     List<FieldDefinition> getExpressionMeta(FlowType flowType, String tenantDomain)
             throws RuleMetadataException;
-
 }
-

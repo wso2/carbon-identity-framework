@@ -58,4 +58,3 @@ public class StaticRuleMetadataProvider implements RuleMetadataProvider {
         return RuleMetadataConfigFactory.getFlowConfig().getFieldDefinitionsForFlow(flowType);
     }
 }
-

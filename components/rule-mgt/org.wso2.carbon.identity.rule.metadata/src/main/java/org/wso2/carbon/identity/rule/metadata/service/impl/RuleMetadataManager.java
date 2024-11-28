@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.rule.metadata.service.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataServerException;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
@@ -36,8 +38,9 @@ import java.util.Set;
  */
 public class RuleMetadataManager {
 
-    private static final RuleMetadataManager INSTANCE = new RuleMetadataManager();
+    private static final Log LOG = LogFactory.getLog(RuleMetadataManager.class);
 
+    private static final RuleMetadataManager INSTANCE = new RuleMetadataManager();
     private final List<RuleMetadataProvider> metadataProviders = new ArrayList<>();
 
     private RuleMetadataManager() {
@@ -52,11 +55,13 @@ public class RuleMetadataManager {
     public void registerMetadataProvider(RuleMetadataProvider metadataProvider) {
 
         metadataProviders.add(metadataProvider);
+        LOG.debug("Rule metadata provider: " + metadataProvider.getClass().getName() + " registered.");
     }
 
     public void unregisterMetadataProvider(RuleMetadataProvider metadataProvider) {
 
         metadataProviders.remove(metadataProvider);
+        LOG.debug("Rule metadata provider: " + metadataProvider.getClass().getName() + " unregistered.");
     }
 
     public List<FieldDefinition> getExpressionMetaForFlow(FlowType flowType, String tenantDomain)
@@ -67,6 +72,11 @@ public class RuleMetadataManager {
         for (RuleMetadataProvider metadataProvider : metadataProviders) {
             List<FieldDefinition> fieldDefinitionsFromProvider =
                     metadataProvider.getExpressionMeta(flowType, tenantDomain);
+            if (fieldDefinitionsFromProvider == null || fieldDefinitionsFromProvider.isEmpty()) {
+                LOG.debug("No field definitions found for the flow type: " + flowType + " in the provider: " +
+                        metadataProvider.getClass().getName());
+                continue;
+            }
             addFieldDefinitions(metadataProvider, fieldDefinitionsFromProvider, addedFieldNames, addedFieldDefinitions);
         }
         return addedFieldDefinitions;
@@ -88,4 +98,3 @@ public class RuleMetadataManager {
         addedFieldDefinitions.addAll(fieldDefinitionsFromProvider);
     }
 }
-

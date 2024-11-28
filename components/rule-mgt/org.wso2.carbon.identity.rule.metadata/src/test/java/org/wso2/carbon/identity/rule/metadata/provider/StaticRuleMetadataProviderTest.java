@@ -130,4 +130,3 @@ public class StaticRuleMetadataProviderTest {
         assertEquals(grantTypeFieldValue.getValueType(), Value.ValueType.STRING);
     }
 }
-

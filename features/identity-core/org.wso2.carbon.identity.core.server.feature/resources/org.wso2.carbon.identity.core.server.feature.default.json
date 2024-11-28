@@ -9,6 +9,7 @@
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
+  "identity_data_source.skip_claim_metadata_persistence": true,
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
@@ -216,7 +217,7 @@
   "oauth.token_validator.jwt.class": "org.wso2.carbon.identity.oauth2.validators.OAuth2JWTTokenValidator",
   "oauth.scope_validator.jdbc.enable": true,
   "oauth.scope_validator.jdbc.class": "org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator",
-  "oauth.scope_validator.xacml.enable": true,
+  "oauth.scope_validator.xacml.enable": false,
   "oauth.scope_validator.xacml.class": "org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator",
   "oauth.scope_validator.authz_implicit.enable": true,
   "oauth.scope_validator.preserve_case_sensitivity": false,

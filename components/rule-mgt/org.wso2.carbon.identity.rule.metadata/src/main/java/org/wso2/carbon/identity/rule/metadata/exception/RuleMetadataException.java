@@ -50,4 +50,3 @@ public class RuleMetadataException extends Exception {
         return description;
     }
 }
-
