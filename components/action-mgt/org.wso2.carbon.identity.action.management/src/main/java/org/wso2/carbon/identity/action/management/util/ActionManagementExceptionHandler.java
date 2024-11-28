@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtServerExcep
  */
 public class ActionManagementExceptionHandler {
 
+    private ActionManagementExceptionHandler() {
+    }
+
     /**
      * Handle Action Management client exceptions.
      *

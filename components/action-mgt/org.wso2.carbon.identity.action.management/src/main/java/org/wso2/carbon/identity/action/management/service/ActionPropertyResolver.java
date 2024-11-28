@@ -42,7 +42,7 @@ public interface ActionPropertyResolver {
     default Map<String, Object> getProperties(ActionDTO actionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
 
-        return null;
+        return Collections.emptyMap();
     }
 
     default Map<String, String> updateProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,

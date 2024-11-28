@@ -82,10 +82,8 @@ public class ActionMgtServiceComponent {
     )
     protected void setActionConverter(ActionConverter actionConverter) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering ActionConverter: " + actionConverter.getClass().getName() +
-                    " in the ActionMgtServiceComponent.");
-        }
+        LOG.debug("Registering ActionConverter: " + actionConverter.getClass().getName() +
+                " in the ActionMgtServiceComponent.");
         ActionConverterFactory.registerActionConverter(actionConverter);
     }
 
@@ -95,6 +93,7 @@ public class ActionMgtServiceComponent {
             LOG.debug("Unregistering ActionConverter: " + actionConverter.getClass().getName() +
                     " in the ActionMgtServiceComponent.");
         }
+
         ActionConverterFactory.unregisterActionConverter(actionConverter);
     }
 

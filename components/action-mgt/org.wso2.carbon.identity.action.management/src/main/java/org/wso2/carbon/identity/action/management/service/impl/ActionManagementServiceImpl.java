@@ -80,11 +80,11 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         // Check whether the maximum allowed actions per type is reached.
         validateMaxActionsPerType(resolvedActionType, tenantDomain);
         String generatedActionId = UUID.randomUUID().toString();
-        ActionDTO resolvedActionDTO = buildActionDTO(resolvedActionType, generatedActionId, action);
+        ActionDTO creatingActionDTO = buildActionDTO(resolvedActionType, generatedActionId, action);
 
-        daoFacade.addAction(resolvedActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
+        daoFacade.addAction(creatingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         Action createdAction = getActionByActionId(actionType, generatedActionId, tenantDomain);
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, createdAction);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, creatingActionDTO);
 
         return createdAction;
     }
@@ -161,7 +161,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
 
         daoFacade.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, actionId, action);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, actionId, updatingActionDTO);
         return getActionByActionId(actionType, actionId, tenantDomain);
     }
 
