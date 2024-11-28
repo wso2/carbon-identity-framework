@@ -314,7 +314,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                 matchingClaimInDB.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
                 allExternalClaims.add(matchingClaimInDB);
                 externalClaimsInDBMap.remove(externalClaimInSystem.getClaimURI());
-            } else if(externalClaimWithSameLocalClaim == null) {
+            } else if (externalClaimWithSameLocalClaim == null) {
                 externalClaimInSystem.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
                 allExternalClaims.add(externalClaimInSystem);
             }
