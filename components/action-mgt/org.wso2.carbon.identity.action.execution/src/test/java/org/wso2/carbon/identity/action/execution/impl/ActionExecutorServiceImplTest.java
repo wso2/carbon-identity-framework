@@ -231,6 +231,16 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving actions.")
+    public void testActionExecuteWithActionFailureWhenInvalidActionGiven() throws Exception {
+
+        when(actionManagementService.getActionsByActionType(any(), any())).thenThrow(
+                new ActionMgtException("Error occurred while retrieving actions."));
+
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "Failed to build the request payload for action type: " +
                     "PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenBuildingActionExecutionRequestForActionId() throws Exception {

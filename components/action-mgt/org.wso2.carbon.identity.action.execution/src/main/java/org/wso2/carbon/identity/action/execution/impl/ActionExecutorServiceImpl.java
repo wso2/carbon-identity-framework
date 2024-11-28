@@ -117,10 +117,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             DIAGNOSTIC_LOGGER.logActionInitiation(action);
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            // Skip executing actions when no action available or due to a failure in retrieving actions,
-            // is considered as action execution being successful.
+            // Skip executing actions when no action available is considered as action execution being successful.
             return new SuccessStatus.Builder().setResponseContext(eventContext).build();
         }
     }
@@ -144,10 +142,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         try {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            // Skip executing actions when no action available or due to a failure in retrieving actions,
-            // is considered as action execution being successful.
+            // Skip executing actions when no action available is considered as action execution being successful.
             return new SuccessStatus.Builder().setResponseContext(eventContext).build();
         }
     }
@@ -191,13 +187,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private List<Action> getActionsByActionType(ActionType actionType, String tenantDomain) throws
-            ActionExecutionRuntimeException {
+            ActionExecutionException {
 
         try {
             return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
                     .getActionsByActionType(Action.ActionTypes.valueOf(actionType.name()).getPathParam(), tenantDomain);
         } catch (ActionMgtException e) {
-            throw new ActionExecutionRuntimeException("Error occurred while retrieving actions.", e);
+            throw new ActionExecutionException("Error occurred while retrieving actions.", e);
         }
     }
 
