@@ -387,17 +387,17 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             // Mock ConfigurationFacade.
             ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
             SequenceConfig sequenceConfig = mock(SequenceConfig.class);
-            when(configurationFacade.getSequenceConfig(eq(null), eq(testRequestType),
-                    eq(testTenantDomain))).thenReturn(sequenceConfig);
+            when(configurationFacade.getSequenceConfig(null, testRequestType,
+                    testTenantDomain)).thenReturn(sequenceConfig);
             configurationFacadeMockedStatic.when(ConfigurationFacade::getInstance).thenReturn(configurationFacade);
 
             // Mock FrameworkUtils.
-            frameworkUtilsMockedStatic.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(eq(request)))
+            frameworkUtilsMockedStatic.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request))
                     .thenReturn(true);
             SessionContext sessionContext = mock(SessionContext.class);
             frameworkUtilsMockedStatic.when(
-                    () -> FrameworkUtils.getSessionContextFromCache(eq(request), eq(authenticationContext),
-                            eq(testSessionId))).thenReturn(sessionContext);
+                    () -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext,
+                            testSessionId)).thenReturn(sessionContext);
 
             // Mock ApplicationManagementService.
             ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
