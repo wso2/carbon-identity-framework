@@ -1958,7 +1958,7 @@ public class RoleDAOImpl implements RoleDAO {
         }
 
         String query = GET_MAIN_ROLE_OF_A_SHARED_ROLE_SQL +
-                String.join(COMMA+WHITE_SPACE, Collections.nCopies(sharedRoleUUIDs.size(), QUESTION_MARK)) +
+                String.join(COMMA + WHITE_SPACE, Collections.nCopies(sharedRoleUUIDs.size(), QUESTION_MARK)) +
                 CLOSE_PARENTHESIS;
 
         // To keep track of found sharedRoleUUIDs
