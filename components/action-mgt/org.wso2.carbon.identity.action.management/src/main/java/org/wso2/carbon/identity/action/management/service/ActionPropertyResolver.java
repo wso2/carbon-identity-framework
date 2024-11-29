@@ -18,12 +18,11 @@
 
 package org.wso2.carbon.identity.action.management.service;
 
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 /**
  * This interface defines the Action Property Resolver.
@@ -33,22 +32,28 @@ public interface ActionPropertyResolver {
 
     Action.ActionTypes getSupportedActionType();
 
-    default Map<String, String> addProperties(ActionDTO actionDTO, String tenantDomain)
+    default ActionDTO resolveAddingProperties(ActionDTO actionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
 
-        return Collections.emptyMap();
+        return actionDTO;
     }
 
-    default Map<String, Object> getProperties(ActionDTO actionDTO, String tenantDomain)
+    default ActionDTO populateProperties(ActionDTO actionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
 
-        return Collections.emptyMap();
+        return actionDTO;
     }
 
-    default Map<String, String> updateProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
-                                                 String tenantDomain) throws ActionPropertyResolverException {
+    default List<ActionDTO> populateProperties(List<ActionDTO> actionDTOList, String tenantDomain)
+            throws ActionPropertyResolverException {
 
-        return Collections.emptyMap();
+        return actionDTOList;
+    }
+
+    default ActionDTO resolveUpdatingProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
+                                                String tenantDomain) throws ActionPropertyResolverException {
+
+        return updatingActionDTO;
     }
 
     default void deleteProperties(ActionDTO deletingActionDTO, String tenantDomain)

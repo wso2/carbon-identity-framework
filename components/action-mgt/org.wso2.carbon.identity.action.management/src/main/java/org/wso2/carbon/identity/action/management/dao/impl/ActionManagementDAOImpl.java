@@ -23,16 +23,15 @@ import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtSQLConstants;
-import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.action.management.util.ActionManagementExceptionHandler;
+import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.sql.Connection;
@@ -78,24 +77,25 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
                     String actionId = rs.getString(ActionMgtSQLConstants.Column.ACTION_UUID);
-
-                    ActionDTO.Builder actionBuilder = new ActionDTO.Builder()
+                    ActionDTO actionDTO = new ActionDTOBuilder()
                             .id(actionId)
                             .type(org.wso2.carbon.identity.action.management.model.Action.ActionTypes.valueOf(
                                     rs.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
                             .name(rs.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
                             .description(rs.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
                             .status(org.wso2.carbon.identity.action.management.model.Action.Status.valueOf(
-                                    rs.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)));
-                    actionBuilder.setEndpointAndProperties(getActionPropertiesFromDB(actionId, tenantId));
+                                    rs.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
+                            .setEndpointAndProperties(getActionPropertiesFromDB(actionId, tenantId))
+                            .build();
 
-                    actionDTOS.add(actionBuilder.build());
+                    actionDTOS.add(actionDTO);
                 }
             }
 
             return actionDTOS;
         } catch (SQLException e) {
-            throw new ActionMgtServerException("Error while retrieving Actions Basic information by Action Type.", e);
+            throw new ActionMgtServerException("Error while retrieving Actions information by Action Type from " +
+                    "the system.", e);
         }
     }
 
@@ -103,7 +103,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     public ActionDTO getActionByActionId(String actionType, String actionId, Integer tenantId)
             throws ActionMgtException {
 
-        ActionDTO.Builder actionBuilder = getBasicInfo(actionType, actionId, tenantId);
+        ActionDTOBuilder actionBuilder = getBasicInfo(actionType, actionId, tenantId);
         if (actionBuilder == null) {
             return null;
         }
@@ -141,7 +141,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while deleting Action.", e);
+            throw new ActionMgtServerException("Error while deleting Action information in the system.", e);
         }
     }
 
@@ -171,8 +171,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
             return actionTypesCountMap;
         } catch (DataAccessException e) {
-            throw ActionManagementExceptionHandler.handleServerException(
-                    ErrorMessage.ERROR_WHILE_RETRIEVING_ACTIONS_COUNT_PER_TYPE, e);
+            throw new ActionMgtServerException("Error while retrieving Actions count per Action Type from the system.",
+                    e);
         }
     }
 
@@ -197,7 +197,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while adding Action Basic information.", e);
+            throw new ActionMgtServerException("Error while adding Action Basic information in the system.", e);
         }
     }
 
@@ -231,7 +231,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                 });
         } catch (DataAccessException e) {
-            throw new ActionMgtServerException("Error while updating Action Basic information.", e);
+            throw new ActionMgtServerException("Error while updating Action Basic information in the system.", e);
         }
     }
 
@@ -240,16 +240,16 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      *
      * @param actionId UUID of the created Action.
      * @param tenantId Tenant ID.
-     * @return Action Response Builder with action basic information.
+     * @return ActionDTO Builder with action basic information.
      * @throws ActionMgtException If an error occurs while retrieving action basic info from the database.
      */
-    private ActionDTO.Builder getBasicInfo(String actionType, String actionId, Integer tenantId)
+    private ActionDTOBuilder getBasicInfo(String actionType, String actionId, Integer tenantId)
             throws ActionMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             return jdbcTemplate.fetchSingleRecord(ActionMgtSQLConstants.Query.GET_ACTION_BASIC_INFO_BY_ID,
-                (resultSet, rowNumber) -> new ActionDTO.Builder()
+                (resultSet, rowNumber) -> new ActionDTOBuilder()
                         .id(actionId)
                         .type(Action.ActionTypes.valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
                         .name(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
@@ -261,7 +261,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                     statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                 });
         } catch (DataAccessException e) {
-            throw new ActionMgtServerException("Error while retrieving Action Basic information.", e);
+            throw new ActionMgtServerException("Error while retrieving Action Basic information from the system.", e);
         }
     }
 
@@ -277,7 +277,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
             addActionPropertiesToDB(actionDTO.getId(), endpointProperties, tenantId);
         } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while adding Action Endpoint configurations.", e);
+            throw new ActionMgtServerException("Error while adding Action Endpoint configurations in the system.", e);
         }
     }
 
@@ -298,7 +298,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             updateEndpointAuthentication(updatingActionDTO.getId(), updatingEndpoint.getAuthentication(),
                     existingActionDTO.getEndpoint().getAuthentication(), tenantId);
         } catch (ActionMgtException | TransactionException e) {
-            throw new ActionMgtServerException("Error while updating Action Endpoint.", e);
+            throw new ActionMgtServerException("Error while updating Action Endpoint information in the system.", e);
         }
     }
 
@@ -367,7 +367,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         try {
             addActionPropertiesToDB(actionDTO.getId(), actionProperties, tenantId);
         } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while adding Action Properties.", e);
+            throw new ActionMgtServerException("Error while adding Action Properties in the system.", e);
         }
     }
 
@@ -388,7 +388,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             // Add updated properties.
             addActionPropertiesToDB(updatingActionDTO.getId(), updatingProperties, tenantId);
         } catch (TransactionException e) {
-            throw new ActionMgtServerException("Error while updating Action Properties.", e);
+            throw new ActionMgtServerException("Error while updating Action Properties in the system.", e);
         }
     }
 
@@ -448,7 +448,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
             return actionEndpointProperties;
         } catch (DataAccessException e) {
-            throw new ActionMgtServerException("Error while retrieving Action Properties.", e);
+            throw new ActionMgtServerException("Error while retrieving Action Properties from the system.", e);
         }
     }
 

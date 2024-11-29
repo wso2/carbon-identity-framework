@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.action.management.dao;
 
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 
 import java.util.List;
 import java.util.Map;

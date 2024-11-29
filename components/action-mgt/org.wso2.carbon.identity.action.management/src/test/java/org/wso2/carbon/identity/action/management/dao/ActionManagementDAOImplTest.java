@@ -22,11 +22,12 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -44,6 +45,8 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_ID
 /**
  * This class is a test suite for the ActionManagementDAOImpl class.
  * It contains unit tests to verify the functionality of the methods in the ActionManagementDAOImpl class.
+ * This test class will utilize {@link TestActionPropertyResolver} class as the test implementation for
+ * ActionPropertyResolver interface.
  */
 @WithH2Database(files = {"dbscripts/h2.sql"})
 @WithCarbonHome
@@ -61,7 +64,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 1)
     public void testAddAction() throws ActionMgtException {
 
-        ActionDTO creatingActionDTO = new ActionDTO.Builder()
+        ActionDTO creatingActionDTO = new ActionDTOBuilder()
                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
@@ -107,10 +110,10 @@ public class ActionManagementDAOImplTest {
     }
 
     @Test(priority = 2, expectedExceptions = ActionMgtException.class,
-            expectedExceptionsMessageRegExp = "Error while adding Action Basic information.")
+            expectedExceptionsMessageRegExp = "Error while adding Action Basic information in the system.")
     public void testAddActionWithoutName() throws ActionMgtException {
 
-        ActionDTO creatingActionDTO = new ActionDTO.Builder()
+        ActionDTO creatingActionDTO = new ActionDTOBuilder()
                 .id(String.valueOf(UUID.randomUUID()))
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(null)
@@ -171,7 +174,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 5)
     public void testAddActionWithoutDescription() throws ActionMgtException {
 
-        ActionDTO creatingActionDTO = new ActionDTO.Builder()
+        ActionDTO creatingActionDTO = new ActionDTOBuilder()
                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
@@ -217,7 +220,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 7, dependsOnMethods = "testAddActionWithoutDescription")
     public void testUpdateCompleteAction() throws ActionMgtException {
 
-        ActionDTO updatingAction = new ActionDTO.Builder()
+        ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME_UPDATED)
@@ -262,7 +265,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 8)
     public void testUpdateActionBasicInfo() throws ActionMgtException {
 
-        ActionDTO updatingAction = new ActionDTO.Builder()
+        ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
@@ -301,7 +304,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 9)
     public void testUpdateActionEndpoint() throws ActionMgtException {
 
-        ActionDTO updatingAction = new ActionDTO.Builder()
+        ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
@@ -345,7 +348,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 10)
     public void testUpdateActionEndpointUri() throws ActionMgtException {
 
-        ActionDTO updatingAction = new ActionDTO.Builder()
+        ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
@@ -387,7 +390,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 11)
     public void testUpdateActionEndpointAuthenticationWithSameAuthType() throws ActionMgtException {
 
-        ActionDTO updatingAction = new ActionDTO.Builder()
+        ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
@@ -430,7 +433,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 12)
     public void testUpdateActionEndpointAuthenticationWithDifferentAuthType() throws ActionMgtException {
 
-        ActionDTO updatingAction = new ActionDTO.Builder()
+        ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
@@ -468,7 +471,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 13)
     public void testUpdateActionProperties() throws ActionMgtException {
 
-        ActionDTO updatingAction = new ActionDTO.Builder()
+        ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1, TestUtil.TEST_ACTION_PROPERTY_VALUE_1)
@@ -523,7 +526,7 @@ public class ActionManagementDAOImplTest {
     @Test(priority = 16)
     public void testGetActionsCountPerType() throws ActionMgtException {
 
-        ActionDTO creatingPreUpdatePasswordActionDTO = new ActionDTO.Builder()
+        ActionDTO creatingPreUpdatePasswordActionDTO = new ActionDTOBuilder()
                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TestUtil.TEST_ACTION_NAME)

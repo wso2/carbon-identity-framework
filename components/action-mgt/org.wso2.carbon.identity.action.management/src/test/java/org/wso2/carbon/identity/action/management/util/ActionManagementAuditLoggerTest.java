@@ -27,8 +27,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -103,7 +103,7 @@ public class ActionManagementAuditLoggerTest {
                 .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
                 .certificateContent(TEST_CERTIFICATE).build());
 
-        actionDTO = new ActionDTO.Builder()
+        actionDTO = new ActionDTOBuilder()
                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
                 .name(TEST_ACTION_NAME)
                 .description(TEST_ACTION_DESCRIPTION)

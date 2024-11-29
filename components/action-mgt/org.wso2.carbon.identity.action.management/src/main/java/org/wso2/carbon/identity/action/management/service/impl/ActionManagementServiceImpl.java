@@ -24,14 +24,15 @@ import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOFacade;
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.ActionManagementAuditLogger;
 import org.wso2.carbon.identity.action.management.util.ActionManagementExceptionHandler;
 import org.wso2.carbon.identity.action.management.util.ActionValidator;
@@ -403,20 +404,16 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
         if (actionConverter != null) {
             ActionDTO actionDTO = actionConverter.buildActionDTO(action);
-            actionDTO.setId(actionId);
-            actionDTO.setType(Action.ActionTypes.valueOf(actionType));
 
-            return actionDTO;
+            return new ActionDTOBuilder(actionDTO)
+                    .id(actionId)
+                    .type(Action.ActionTypes.valueOf(actionType))
+                    .build();
         }
 
-        return new ActionDTO.Builder()
-                .id(action.getId() != null ? action.getId() : actionId)
-                .type(action.getType() != null ? action.getType() : Action.ActionTypes.valueOf(actionType))
-                .name(action.getName())
-                .description(action.getDescription())
-                .status(action.getStatus())
-                .endpoint(action.getEndpoint())
-                .properties(null)
+        return new ActionDTOBuilder(action)
+                .id(actionId)
+                .type(Action.ActionTypes.valueOf(actionType))
                 .build();
     }
 

@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.action.management.service;
 
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 
 /**
  * This interface defines the Action ActionConverter.
@@ -38,14 +38,7 @@ public interface ActionConverter {
      */
     default ActionDTO buildActionDTO(Action action) {
 
-        return new ActionDTO.Builder()
-                .id(action.getId())
-                .type(action.getType())
-                .name(action.getName())
-                .description(action.getDescription())
-                .status(action.getStatus())
-                .endpoint(action.getEndpoint())
-                .build();
+        return new ActionDTO.Builder(action).build();
     }
     /**
      * Convert ActionDTO object into Action object.

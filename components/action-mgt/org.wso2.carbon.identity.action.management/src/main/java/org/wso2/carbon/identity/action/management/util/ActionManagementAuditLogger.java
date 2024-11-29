@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;

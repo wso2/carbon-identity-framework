@@ -24,15 +24,18 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
-import org.wso2.carbon.identity.action.management.dao.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
+import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
+import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.ActionManagementExceptionHandler;
 import org.wso2.carbon.identity.action.management.util.ActionSecretProcessor;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -66,12 +69,14 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
+                ActionDTOBuilder actionDTOBuilder = new ActionDTOBuilder(actionDTO);
                 // Encrypt authentication secrets
-                encryptAuthenticationSecrets(actionDTO);
+                encryptAddingAuthSecrets(actionDTOBuilder);
                 // Resolve action properties
-                addProperties(actionDTO, tenantId);
+                ActionDTO resolvedActionDTO = getActionDTOWithResolvedAddingProperties(actionDTOBuilder.build(),
+                        tenantId);
 
-                actionManagementDAO.addAction(actionDTO, tenantId);
+                actionManagementDAO.addAction(resolvedActionDTO, tenantId);
                 return null;
             });
         } catch (TransactionException e) {
@@ -88,9 +93,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
         try {
             List<ActionDTO> actionDTOS = actionManagementDAO.getActionsByActionType(actionType, tenantId);
-            getPropertiesOfActionDTOs(actionType, actionDTOS, tenantId);
 
-            return actionDTOS;
+            return getActionDTOsWithPopulatedProperties(actionType, actionDTOS, tenantId);
         } catch (ActionMgtException | ActionPropertyResolverException e) {
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
@@ -103,12 +107,12 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
         try {
             ActionDTO actionDTO = actionManagementDAO.getActionByActionId(actionType, actionId, tenantId);
-            if (actionDTO != null) {
-                // Resolve action properties
-                getProperties(actionDTO, tenantId);
+            if (actionDTO == null) {
+                return null;
             }
 
-            return actionDTO;
+            // Populate action properties
+            return getActionDTOWithPopulatedProperties(actionDTO, tenantId);
         } catch (ActionMgtException | ActionPropertyResolverException e) {
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
@@ -122,12 +126,15 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
+                ActionDTOBuilder updatingActionDTOBuilder = new ActionDTOBuilder(updatingActionDTO);
                 // Encrypt authentication secrets
-                updateAuthenticationSecrets(updatingActionDTO, existingActionDTO);
+                encryptUpdatingAuthSecrets(updatingActionDTOBuilder, existingActionDTO);
                 // Resolve action properties
-                updateProperties(updatingActionDTO, existingActionDTO, tenantId);
+                ActionDTO resolvedUpdatingActionDTO =
+                        getActionDTOWithResolvedUpdatingProperties(updatingActionDTOBuilder.build(), existingActionDTO,
+                                tenantId);
 
-                actionManagementDAO.updateAction(updatingActionDTO, existingActionDTO, tenantId);
+                actionManagementDAO.updateAction(resolvedUpdatingActionDTO, existingActionDTO, tenantId);
                 return null;
             });
         } catch (TransactionException e) {
@@ -187,28 +194,36 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
     @Override
     public Map<String, Integer> getActionsCountPerType(Integer tenantId) throws ActionMgtException {
 
-        return actionManagementDAO.getActionsCountPerType(tenantId);
+        try {
+            return actionManagementDAO.getActionsCountPerType(tenantId);
+        } catch (ActionMgtException e) {
+            throw ActionManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_RETRIEVING_ACTIONS_COUNT_PER_TYPE, e);
+        }
     }
 
-    private void encryptAuthenticationSecrets(ActionDTO actionDTO) throws ActionMgtException {
+    private void encryptAddingAuthSecrets(ActionDTOBuilder actionDTOBuilder) throws ActionMgtException {
 
         try {
             List<AuthProperty> encryptedProperties = actionSecretProcessor.encryptAssociatedSecrets(
-                    actionDTO.getEndpoint().getAuthentication(), actionDTO.getId());
-            actionDTO.setAuthenticationProperties(encryptedProperties);
+                    actionDTOBuilder.getEndpoint().getAuthentication(), actionDTOBuilder.getId());
+
+            addEncryptedAuthSecretsToBuilder(actionDTOBuilder, encryptedProperties);
         } catch (SecretManagementException e) {
             throw new ActionMgtServerException("Error while encrypting Action Endpoint Authentication Secrets.", e);
         }
     }
 
-    private void updateAuthenticationSecrets(ActionDTO updatingActionDTO, ActionDTO existingActionDTO)
+    private void encryptUpdatingAuthSecrets(ActionDTOBuilder updatingActionDTOBuilder,
+                                            ActionDTO existingActionDTO)
             throws ActionMgtException {
 
-        if (updatingActionDTO.getEndpoint() == null || updatingActionDTO.getEndpoint().getAuthentication() == null) {
+        if (updatingActionDTOBuilder.getEndpoint() == null ||
+                updatingActionDTOBuilder.getEndpoint().getAuthentication() == null) {
             return;
         }
 
-        Authentication updatingAuthentication = updatingActionDTO.getEndpoint().getAuthentication();
+        Authentication updatingAuthentication = updatingActionDTOBuilder.getEndpoint().getAuthentication();
         Authentication existingAuthentication = existingActionDTO.getEndpoint().getAuthentication();
 
         try {
@@ -216,8 +231,9 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 actionSecretProcessor.deleteAssociatedSecrets(existingAuthentication, existingActionDTO.getId());
             }
             List<AuthProperty> encryptedProperties = actionSecretProcessor.encryptAssociatedSecrets(
-                    updatingAuthentication, updatingActionDTO.getId());
-            updatingActionDTO.setAuthenticationProperties(encryptedProperties);
+                    updatingAuthentication, updatingActionDTOBuilder.getId());
+
+            addEncryptedAuthSecretsToBuilder(updatingActionDTOBuilder, encryptedProperties);
         } catch (SecretManagementException e) {
             throw new ActionMgtServerException("Error while updating Action Endpoint Authentication Secrets.", e);
         }
@@ -233,61 +249,70 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         }
     }
 
-    private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionPropertyResolverException {
+    private void addEncryptedAuthSecretsToBuilder(ActionDTOBuilder actionDTOBuilder,
+                                                  List<AuthProperty> encryptedProperties) {
 
-        Map<String, String> properties = null;
-        ActionPropertyResolver actionPropertyResolver =
-                ActionPropertyResolverFactory.getActionPropertyResolver(actionDTO.getType());
+        Map<String, String> encryptedPropertyMap = encryptedProperties.stream()
+                .collect(Collectors.toMap(AuthProperty::getName, AuthProperty::getValue));
 
-        if (actionPropertyResolver != null) {
-            properties = actionPropertyResolver.addProperties(actionDTO,
-                    IdentityTenantUtil.getTenantDomain(tenantId));
-        }
-        if (properties != null) {
-            actionDTO.setProperties(properties.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-        }
+        actionDTOBuilder.endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri(actionDTOBuilder.getEndpoint().getUri())
+                        .authentication(new Authentication.AuthenticationBuilder()
+                                .type(actionDTOBuilder.getEndpoint().getAuthentication().getType())
+                                .properties(encryptedPropertyMap)
+                                .build())
+                        .build());
     }
 
-    private void getPropertiesOfActionDTOs(String actionType, List<ActionDTO> actionDTOS, Integer tenantId)
+    private ActionDTO getActionDTOWithResolvedAddingProperties(ActionDTO actionDTO, Integer tenantId)
             throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
-                ActionPropertyResolverFactory.getActionPropertyResolver(
-                        org.wso2.carbon.identity.action.management.model.Action.ActionTypes.valueOf(actionType));
+                ActionPropertyResolverFactory.getActionPropertyResolver(actionDTO.getType());
         if (actionPropertyResolver == null) {
-            return;
+            return actionDTO;
         }
 
-        for (ActionDTO actionDTO : actionDTOS) {
-            actionDTO.setProperties(actionPropertyResolver.getProperties(actionDTO,
-                    IdentityTenantUtil.getTenantDomain(tenantId)));
-        }
+        return actionPropertyResolver.resolveAddingProperties(actionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
-    private void getProperties(ActionDTO actionDTO, Integer tenantId) throws ActionPropertyResolverException {
+    private List<ActionDTO> getActionDTOsWithPopulatedProperties(String actionType, List<ActionDTO> actionDTOS,
+                                                                 Integer tenantId)
+            throws ActionPropertyResolverException {
+
+        ActionPropertyResolver actionPropertyResolver =
+                ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.valueOf(actionType));
+        if (actionPropertyResolver == null) {
+            return actionDTOS;
+        }
+
+        return actionPropertyResolver.populateProperties(actionDTOS, IdentityTenantUtil.getTenantDomain(tenantId));
+    }
+
+    private ActionDTO getActionDTOWithPopulatedProperties(ActionDTO actionDTO, Integer tenantId)
+            throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(actionDTO.getType());
-
-        if (actionPropertyResolver != null) {
-            actionDTO.setProperties(actionPropertyResolver.getProperties(actionDTO,
-                    IdentityTenantUtil.getTenantDomain(tenantId)));
+        if (actionPropertyResolver == null) {
+            return actionDTO;
         }
+
+        return actionPropertyResolver.populateProperties(actionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
-    private void updateProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
+    private ActionDTO getActionDTOWithResolvedUpdatingProperties(ActionDTO updatingActionDTO,
+                                                                 ActionDTO existingActionDTO, Integer tenantId)
             throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(updatingActionDTO.getType());
-
-        if (actionPropertyResolver != null) {
-            Map<String, String> properties = actionPropertyResolver.updateProperties(updatingActionDTO,
-                    existingActionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
-            updatingActionDTO.setProperties(properties.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        if (actionPropertyResolver == null) {
+            return updatingActionDTO;
         }
+
+        return actionPropertyResolver.resolveUpdatingProperties(updatingActionDTO, existingActionDTO,
+                IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
     private void deleteProperties(ActionDTO deletingActionDTO, Integer tenantId)
@@ -295,11 +320,11 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(deletingActionDTO.getType());
-
-        if (actionPropertyResolver != null) {
-            actionPropertyResolver.deleteProperties(deletingActionDTO,
-                    IdentityTenantUtil.getTenantDomain(tenantId));
+        if (actionPropertyResolver == null) {
+            return;
         }
+
+        actionPropertyResolver.deleteProperties(deletingActionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
     private static void handleActionPropertyResolverClientException(Throwable throwable)
