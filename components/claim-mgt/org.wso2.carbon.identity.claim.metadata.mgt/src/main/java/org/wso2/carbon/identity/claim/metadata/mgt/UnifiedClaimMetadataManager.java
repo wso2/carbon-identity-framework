@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -300,11 +301,12 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<ExternalClaim> externalClaimsInDB = this.dbBasedClaimMetadataManager.getExternalClaims(
                 externalClaimDialectURI, tenantId);
 
-        Map<String, ExternalClaim> externalClaimsInDBMap = externalClaimsInDB.stream()
-                .collect(Collectors.toMap(ExternalClaim::getClaimURI, claim -> claim));
-        Map<String, ExternalClaim> localClaimInDBMap = externalClaimsInDB.stream()
-                .collect(Collectors.toMap(ExternalClaim::getMappedLocalClaim, claim -> claim));
-
+        Map<String, ExternalClaim> externalClaimsInDBMap = new HashMap<>();
+        Map<String, ExternalClaim> mappedLocalClaimInDBMap = new HashMap<>();
+        externalClaimsInDB.forEach(claim -> {
+            externalClaimsInDBMap.put(claim.getClaimURI(), claim);
+            mappedLocalClaimInDBMap.put(claim.getMappedLocalClaim(), claim);
+        });
         /*
          * If a system claim is also in the DB, then the claim retrieved from the DB gets the priority.
          * Also, if there is a system claim that is mapped to the same local claim as another external claim in the same
@@ -314,7 +316,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<ExternalClaim> allExternalClaims = new ArrayList<>();
         for (ExternalClaim externalClaimInSystem : externalClaimsInSystem) {
             ExternalClaim matchingClaimInDB = externalClaimsInDBMap.get(externalClaimInSystem.getClaimURI());
-            ExternalClaim externalClaimWithSameLocalClaim = localClaimInDBMap.get(
+            ExternalClaim externalClaimWithSameLocalClaim = mappedLocalClaimInDBMap.get(
                     externalClaimInSystem.getMappedLocalClaim());
             if (matchingClaimInDB != null) {
                 markAsSystemClaim(matchingClaimInDB);
