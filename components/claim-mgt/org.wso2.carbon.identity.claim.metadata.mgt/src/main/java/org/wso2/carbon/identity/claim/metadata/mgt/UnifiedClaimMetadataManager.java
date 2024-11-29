@@ -316,13 +316,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<ExternalClaim> allExternalClaims = new ArrayList<>();
         for (ExternalClaim externalClaimInSystem : externalClaimsInSystem) {
             ExternalClaim matchingClaimInDB = externalClaimsInDBMap.get(externalClaimInSystem.getClaimURI());
-            ExternalClaim externalClaimWithSameLocalClaim = mappedLocalClaimInDBMap.get(
-                    externalClaimInSystem.getMappedLocalClaim());
             if (matchingClaimInDB != null) {
                 markAsSystemClaim(matchingClaimInDB);
                 allExternalClaims.add(matchingClaimInDB);
                 externalClaimsInDBMap.remove(externalClaimInSystem.getClaimURI());
-            } else if (externalClaimWithSameLocalClaim == null) {
+            } else if (!mappedLocalClaimInDBMap.containsKey(externalClaimInSystem.getMappedLocalClaim())) {
                 externalClaimInSystem.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
                 allExternalClaims.add(externalClaimInSystem);
             }
