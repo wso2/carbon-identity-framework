@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
@@ -343,24 +344,28 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
 
         List<ExternalClaim> externalClaimsInDB = this.dbBasedClaimMetadataManager.getExternalClaims(
                 externalClaimDialectURI, tenantId);
-        Optional<ExternalClaim> externalClaim = externalClaimsInDB.stream()
-                .filter(claim -> claim.getClaimURI().equals(claimURI))
-                .findFirst();
+        Optional<ExternalClaim> externalClaim = Optional.empty();
+        Map<String, ExternalClaim> mappedLocalClaimInDBMap = new HashMap<>();
+
+        for (ExternalClaim claim : externalClaimsInDB) {
+            if (claim.getClaimURI().equals(claimURI)) {
+                externalClaim = Optional.of(claim);
+            }
+            mappedLocalClaimInDBMap.put(claim.getMappedLocalClaim(), claim);
+        }
         if (externalClaim.isPresent()) {
             if (isSystemDefaultExternalClaim(externalClaimDialectURI, claimURI, tenantId)) {
                 markAsSystemClaim(externalClaim.get());
             }
             return externalClaim;
         }
+
         Optional<ExternalClaim> externalClaimInSystem = this.systemDefaultClaimMetadataManager.getExternalClaim(
                 externalClaimDialectURI, claimURI, tenantId);
-        if (externalClaimInSystem.isPresent()) {
-            boolean isMappedLocalClaimInDB = externalClaimsInDB.stream().anyMatch(claim ->
-                    claim.getMappedLocalClaim().equals(externalClaimInSystem.get().getMappedLocalClaim()));
-            if (!isMappedLocalClaimInDB) {
-                markAsSystemClaim(externalClaimInSystem.get());
-                return externalClaimInSystem;
-            }
+        if (externalClaimInSystem.isPresent()
+                && !mappedLocalClaimInDBMap.containsKey(externalClaimInSystem.get().getMappedLocalClaim())) {
+            markAsSystemClaim(externalClaimInSystem.get());
+            return externalClaimInSystem;
         }
         return Optional.empty();
     }
