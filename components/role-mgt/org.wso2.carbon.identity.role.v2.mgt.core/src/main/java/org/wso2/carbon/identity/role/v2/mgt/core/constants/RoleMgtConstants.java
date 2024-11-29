@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.role.v2.mgt.core.constants;
 /**
  * Constants for role management.
  */
-public class RoleMgtContants {
+public class RoleMgtConstants {
 
     public static final String USER_ID = "userId";
     public static final String USER_IDS = "userIds";
