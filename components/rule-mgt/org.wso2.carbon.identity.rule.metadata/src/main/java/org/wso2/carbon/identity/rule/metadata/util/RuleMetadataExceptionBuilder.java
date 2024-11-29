@@ -38,7 +38,7 @@ public class RuleMetadataExceptionBuilder {
             description = String.format(description, data);
         }
 
-        return new RuleMetadataClientException(error.getMessage(), description, error.getCode());
+        return new RuleMetadataClientException(error.getCode(), error.getMessage(), description);
     }
 
     public static RuleMetadataServerException buildServerException(RuleMetadataError error, String... data) {
