@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.action.execution.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.regex.Pattern;
 
 /**
  * This class is used to represent the failure response of an action invocation.
@@ -65,6 +68,11 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
         private String failureReason;
         private String failureDescription;
 
+        private static final Pattern FAILURE_REASON_VALIDATION_PATTERN =
+                Pattern.compile("^[a-zA-Z0-9\\s\\-_.!?;:'()\\[\\]]{1,100}$");
+        private static final Pattern FAILURE_DESCRIPTION_VALIDATION_PATTERN =
+                Pattern.compile("^[a-zA-Z0-9\\s\\-_.!?;:'()\\[\\]]{1,300}$");
+
         @JsonProperty("actionStatus")
         public ActionInvocationFailureResponse.Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
 
@@ -96,8 +104,17 @@ public class ActionInvocationFailureResponse implements ActionInvocationResponse
                 throw new IllegalArgumentException("The actionStatus must be FAILED.");
             }
 
-            if (failureReason == null || failureReason.isEmpty()) {
+            if (StringUtils.isEmpty(failureReason)) {
                 throw new IllegalArgumentException("The failureReason cannot be null or empty.");
+            }
+
+            if (!FAILURE_REASON_VALIDATION_PATTERN.matcher(failureReason).matches()) {
+                throw new IllegalArgumentException("Invalid failureReason format.");
+            }
+
+            if (StringUtils.isNotEmpty(failureDescription) && !FAILURE_DESCRIPTION_VALIDATION_PATTERN
+                    .matcher(failureDescription).matches()) {
+                throw new IllegalArgumentException("Invalid failureDescription format.");
             }
 
             return new ActionInvocationFailureResponse(this);

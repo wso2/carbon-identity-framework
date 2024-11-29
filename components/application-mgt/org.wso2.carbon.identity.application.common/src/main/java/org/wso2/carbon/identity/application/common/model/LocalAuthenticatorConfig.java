@@ -67,6 +67,11 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "DefinedBy")
     protected DefinedByType definedByType;
 
+    public LocalAuthenticatorConfig() {
+
+        definedByType = DefinedByType.SYSTEM;
+    }
+
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
      * <Properties></Properties> </LocalAuthenticatorConfig>

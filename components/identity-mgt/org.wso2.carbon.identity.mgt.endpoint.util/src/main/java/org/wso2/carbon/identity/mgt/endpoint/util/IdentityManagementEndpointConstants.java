@@ -59,6 +59,7 @@ public class IdentityManagementEndpointConstants {
         public static final String FIRST_NAME_CLAIM = "http://wso2.org/claims/givenname";
         public static final String LAST_NAME_CLAIM = "http://wso2.org/claims/lastname";
         public static final String EMAIL_CLAIM = "http://wso2.org/claims/emailaddress";
+        public static final String MOBILE_CLAIM = "http://wso2.org/claims/mobile";
         public static final String CHALLENGE_QUESTION_URI_CLAIM = "http://wso2.org/claims/challengeQuestionUris";
         public static final String CHALLENGE_QUESTION_1_CLAIM = "http://wso2.org/claims/challengeQuestion1";
         public static final String CHALLENGE_QUESTION_2_CLAIM = "http://wso2.org/claims/challengeQuestion2";
@@ -74,6 +75,8 @@ public class IdentityManagementEndpointConstants {
         public static final String RECOVERY_API_V2_RELATIVE_PATH = "/api/users/v2/recovery";
         public static final String USER_API_RELATIVE_PATH = "/api/identity/user/v1.0";
         public static final String RECOVERY_CALLBACK_REGEX = "Recovery.CallbackRegex";
+        public static final String MOBILE_CLAIM_REGEX =  "^\\s*(?:\\+?(\\d{1,3}))?[\\-. (]*(\\d{2,3})[\\-. )]*" +
+                "(\\d{3})[\\-. ]*(\\d{4,6})(?: *x(\\d+))?\\s*$";
     }
 
     public static final class UserInfoRecoveryErrorDesc {
