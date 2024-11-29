@@ -108,6 +108,7 @@
         <module>features/trusted-app-mgt</module>
         <module>features/action-mgt</module>
         <module>features/certificate-mgt</module>
+        <module>features/rule-mgt</module>
     </modules>
 
 
@@ -325,6 +326,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
