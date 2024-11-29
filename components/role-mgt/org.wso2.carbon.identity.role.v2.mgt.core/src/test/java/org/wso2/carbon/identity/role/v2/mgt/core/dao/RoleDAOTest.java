@@ -106,8 +106,8 @@ public class RoleDAOTest {
     private static final String SAMPLE_SUB_ORG_TENANT_DOMAIN = "wso2123.com";
     private static final String SAMPLE_APP_ID = "test-app-id";
     private static final String DB_NAME = "ROLE_DB";
-    private static final String ORGANIZATION_AUD  = "organization";
-    private static final String APPLICATION_AUD  = "application";
+    private static final String ORGANIZATION_AUD = "organization";
+    private static final String APPLICATION_AUD = "application";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private List<String> userNamesList = new ArrayList<>();
     private List<String> groupNamesList = new ArrayList<>();
@@ -786,10 +786,10 @@ public class RoleDAOTest {
         userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
                 .thenReturn(false);
         userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
-            addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
-            roleDAO.deleteRolesByApplication(SAMPLE_APP_ID, SAMPLE_TENANT_DOMAIN);
-            assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
-                    SAMPLE_TENANT_DOMAIN));
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.deleteRolesByApplication(SAMPLE_APP_ID, SAMPLE_TENANT_DOMAIN);
+        assertFalse(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
+                SAMPLE_TENANT_DOMAIN));
     }
 
     @Test
@@ -840,6 +840,66 @@ public class RoleDAOTest {
 
         // Test case: permission starts with CONSOLE_SCOPE_PREFIX
         assertFalse((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "console:applications"));
+    }
+
+    @Test
+    public void testGetMainRoleUUIDsForSharedRoles() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Adding main roles and shared roles
+        RoleBasicInfo mainRole = addRole("mainRole", APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole("sharedRole", APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_TENANT_DOMAIN);
+
+        // Test with shared role UUID
+        List<String> sharedRoleUUIDs = new ArrayList<>();
+        sharedRoleUUIDs.add(sharedRole.getId());
+        List<String> mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
+
+        assertEquals(mainRoleUUIDs.size(), 1);
+        assertEquals(mainRoleUUIDs.get(0), mainRole.getId());
+
+        // Test with main role UUID (should return the same UUID)
+        sharedRoleUUIDs.clear();
+        sharedRoleUUIDs.add(mainRole.getId());
+        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
+
+        assertEquals(mainRoleUUIDs.size(), 1);
+        assertEquals(mainRoleUUIDs.get(0), mainRole.getId());
+
+        // Test with non-existent role UUID
+        sharedRoleUUIDs.clear();
+        sharedRoleUUIDs.add("nonExistentUUID");
+        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
+
+        assertEquals(mainRoleUUIDs.size(), 1);
+        assertEquals(mainRoleUUIDs.get(0), "nonExistentUUID");
+
+        // Test with a mix of shared role and main role UUIDs
+        sharedRoleUUIDs.clear();
+        sharedRoleUUIDs.add(sharedRole.getId());
+        sharedRoleUUIDs.add(mainRole.getId());
+        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
+
+        assertEquals(mainRoleUUIDs.size(), 2);
+
+        // Test with empty list
+        sharedRoleUUIDs.clear();
+        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
+        assertTrue(mainRoleUUIDs.isEmpty());
     }
 
     private List<String> getUserNamesList(List<UserBasicInfo> users) {
@@ -969,6 +1029,7 @@ public class RoleDAOTest {
         }
         return ids.stream().sorted().collect(Collectors.toList());
     }
+
     private void initializeDataSource(String scriptPath) throws Exception {
 
         BasicDataSource dataSource = new BasicDataSource();
@@ -984,6 +1045,7 @@ public class RoleDAOTest {
     }
 
     private String getFilePath(String fileName) {
+
         if (StringUtils.isNotBlank(fileName)) {
             return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", fileName)
                     .toString();
@@ -1024,6 +1086,7 @@ public class RoleDAOTest {
     }
 
     private Connection getConnection() throws Exception {
+
         if (dataSourceMap.get(RoleDAOTest.DB_NAME) != null) {
             return dataSourceMap.get(RoleDAOTest.DB_NAME).getConnection();
         }
