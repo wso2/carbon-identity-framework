@@ -1116,6 +1116,9 @@
         <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="POST">
             <Scopes>internal_organization_config_add</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="PUT">
+            <Scopes>internal_organization_config_update</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/organization-configs/discovery" secured="true" http-method="DELETE">
             <Scopes>internal_organization_config_delete</Scopes>
         </Resource>
