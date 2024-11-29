@@ -71,7 +71,7 @@ public class ApplicationAuthenticatorService {
     }
 
     /**
-     * This returns User defined local authenticators.
+     * This returns user defined local authenticators.
      *
      * @return Retrieved LocalAuthenticatorConfig.
      */
@@ -192,13 +192,12 @@ public class ApplicationAuthenticatorService {
      * Create a user defined Local Application Authenticator configuration.
      *
      * @param authenticatorConfig  The Local Application Authenticator configuration.
-     * @param type                 Authentication type of the authenticator.
      * @param tenantDomain         Tenant domain.
      * @return Updated LocalAuthenticatorConfig.
      * @throws AuthenticatorMgtException If an error occurs while creating the authenticator configuration.
      */
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
-            UserDefinedLocalAuthenticatorConfig authenticatorConfig, AuthenticationType type, String tenantDomain)
+            UserDefinedLocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
         LocalAuthenticatorConfig config = getLocalAuthenticatorByName(authenticatorConfig.getName(), tenantDomain);
@@ -212,7 +211,7 @@ public class ApplicationAuthenticatorService {
         authenticatorValidator.validateDefinedByType(authenticatorConfig.getDefinedByType());
 
         return CACHE_BACKED_DAO.addUserDefinedLocalAuthenticator(
-                authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain), type);
+                authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**

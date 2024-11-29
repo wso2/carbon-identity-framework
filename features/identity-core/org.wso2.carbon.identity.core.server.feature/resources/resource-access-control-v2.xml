@@ -1199,7 +1199,7 @@
         <Scopes>internal_action_mgt_view</Scopes>
     </Resource>
 
-    <!-- User Defined local authenticator API -->
+    <!-- User defined local authenticator API -->
     <Resource context="(.*)api/server/v1/authenticators/custom(.*)" secured="true" http-method="POST">
         <Scopes>internal_custom_authenticator_create</Scopes>
     </Resource>

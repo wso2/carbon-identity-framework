@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -559,6 +559,21 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the main application ID.
      */
     public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get the shared ancestor application IDs for the given child application ID of the given child organization.
+     *
+     * @param sharedAppId ID of the shared application.
+     * @param orgId       ID of the organization which the shared app belongs to.
+     * @return Map containing shared ancestor application IDs and their organization IDs.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the ancestor
+     *                                                application IDs.
+     */
+    public Map<String, String> getAncestorAppIds(String sharedAppId, String orgId)
+            throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();
     }

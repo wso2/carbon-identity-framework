@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordPatternPolicyTest"/>
             <class name="org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordWhitespacePolicyTest"/>
             <class name="services.UserInformationRecoveryServiceTest"/>
+            <class name="org.wso2.carbon.identity.mgt.policy.PolicyRegistryTest"/>
 
         </classes>
     </test>

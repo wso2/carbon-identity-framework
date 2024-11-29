@@ -97,13 +97,15 @@ public class APIResourceManagementServiceComponent {
             unbind = "unsetOrganizationManager"
     )
     protected void setOrganizationManager(OrganizationManager organizationManager) {
-        /* reference Organization Management service to guarantee that this component will wait until organization
-        management service is started */
+
+        APIResourceManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+        LOG.debug("OrganizationManager set in API Resource Management bundle.");
     }
 
     protected void unsetOrganizationManager(OrganizationManager organizationManager) {
-        /* reference Organization Management service to guarantee that this component will wait until organization
-        management service is started */
+
+        APIResourceManagementServiceComponentHolder.getInstance().setOrganizationManager(null);
+        LOG.debug("OrganizationManager unset in API Resource Management bundle.");
     }
 
     @Reference(

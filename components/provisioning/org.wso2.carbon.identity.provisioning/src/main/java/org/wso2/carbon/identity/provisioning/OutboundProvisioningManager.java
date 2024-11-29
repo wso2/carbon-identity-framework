@@ -44,7 +44,7 @@ import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
-import org.wso2.carbon.identity.provisioning.rules.XACMLBasedRuleHandler;
+import org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
@@ -592,13 +592,19 @@ public class OutboundProvisioningManager {
                         boolean isAllowed = true;
                         boolean isBlocking = entry.getValue().isBlocking();
                         boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
-                        if (isPolicyEnabled) {
-                            isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(spTenantDomainName,
-                                    provisioningEntity,
-                                    serviceProvider,
-                                    idPName,
-                                    connectorType);
+
+                        if (isPolicyEnabled){
+                            try {
+                                ProvisioningHandler provisioningHandler = ProvisioningServiceDataHolder.getInstance()
+                                        .getProvisioningHandler();
+
+                                isAllowed  = provisioningHandler.isAllowedToProvision(spTenantDomainName,
+                                        provisioningEntity, serviceProvider, idPName, connectorType);
+                            } catch (NullPointerException e) {
+                                log.error("ProvisioningHandler service is not available.");
+                            }
                         }
+
                         if (isAllowed) {
                             executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
                         }

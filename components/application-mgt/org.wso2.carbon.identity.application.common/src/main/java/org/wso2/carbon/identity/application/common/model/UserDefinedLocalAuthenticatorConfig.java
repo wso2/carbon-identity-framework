@@ -44,7 +44,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Get the endpoint configurations of the User defined local authenticator config.
+     * Get the endpoint configurations of the user defined local authenticator config.
      *
      * @return UserDefinedAuthenticatorEndpointConfig
      */
@@ -54,9 +54,9 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Set the endpoint configurations of the User defined local authenticator config.
+     * Set the endpoint configurations of the user defined local authenticator config.
      *
-     * @param endpointConfig    The endpoint config of the User defined local authenticator config.
+     * @param endpointConfig    The endpoint config of the user defined local authenticator config.
      */
     public void setEndpointConfig(UserDefinedAuthenticatorEndpointConfig endpointConfig) {
 
@@ -64,7 +64,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Get the authentication type of the User defined local authenticator config.
+     * Get the authentication type of the user defined local authenticator config.
      *
      * @return AuthenticationType.
      */
@@ -74,9 +74,9 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Set the authentication type of the User defined local authenticator config.
+     * Set the authentication type of the user defined local authenticator config.
      *
-     * @param authenticationType    The authentication type of the User defined local authenticator config.
+     * @param authenticationType    The authentication type of the user defined local authenticator config.
      */
     public void setAuthenticationType(AuthenticationType authenticationType) {
 
