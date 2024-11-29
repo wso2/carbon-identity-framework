@@ -36,7 +36,7 @@ public class ActionExecutionLogConstants {
         public static final String PROCESS_ACTION_REQUEST = "process-action-request";
         public static final String SEND_ACTION_REQUEST = "send-action-request";
         public static final String RECEIVE_ACTION_RESPONSE = "receive-action-response";
-        public static final String VALIDATE_ACTION_OPERATIONS = "validate-action-response";
-        public static final String EXECUTE_ACTION_OPERATIONS = "process-action-response";
+        public static final String VALIDATE_ACTION_RESPONSE = "validate-action-response";
+        public static final String PROCESS_ACTION_RESPONSE = "process-action-response";
     }
 }

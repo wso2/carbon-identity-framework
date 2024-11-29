@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.testng.annotations.BeforeMethod;
@@ -33,11 +31,9 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertTrue;
 
 public class PreferenceRetrievalClientTest {
@@ -50,6 +46,8 @@ public class PreferenceRetrievalClientTest {
     private static final String SELF_REG_CALLBACK_REGEX_PROP = "SelfRegistration.CallbackRegex";
     public static final String SHOW_USERNAME_UNAVAILABILITY = "SelfRegistration.ShowUsernameUnavailability";
     private static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
+    private static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
+    public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
     private static final String QUESTION_PASSWORD_RECOVERY_PROPERTY = "Recovery.Question.Password.Enable";
     public static final String NOTIFICATION_PASSWORD_ENABLE_PROPERTY = "Recovery.Notification.Password.Enable";
     public static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY =
@@ -132,6 +130,28 @@ public class PreferenceRetrievalClientTest {
         assertTrue(result);
         verify(preferenceRetrievalClient, times(1)).checkPreference(tenantDomain, RECOVERY_CONNECTOR,
                 USERNAME_RECOVERY_PROPERTY);
+    }
+
+    @Test
+    public void testCheckEmailBasedUsernameRecovery() throws PreferenceRetrievalClientException {
+
+        doReturn(true).when(preferenceRetrievalClient).
+                checkPreference(tenantDomain, RECOVERY_CONNECTOR, EMAIL_USERNAME_RECOVERY_PROPERTY);
+        boolean result = preferenceRetrievalClient.checkEmailBasedUsernameRecovery(tenantDomain);
+        assertTrue(result);
+        verify(preferenceRetrievalClient, times(1)).
+                checkPreference(tenantDomain, RECOVERY_CONNECTOR, EMAIL_USERNAME_RECOVERY_PROPERTY);
+    }
+
+    @Test
+    public void testCheckSMSBasedUsernameRecovery() throws PreferenceRetrievalClientException {
+
+        doReturn(true).when(preferenceRetrievalClient).
+                checkPreference(tenantDomain, RECOVERY_CONNECTOR, SMS_USERNAME_RECOVERY_PROPERTY);
+        boolean result = preferenceRetrievalClient.checkSMSBasedUsernameRecovery(tenantDomain);
+        assertTrue(result);
+        verify(preferenceRetrievalClient, times(1)).
+                checkPreference(tenantDomain, RECOVERY_CONNECTOR, SMS_USERNAME_RECOVERY_PROPERTY);
     }
 
     @Test

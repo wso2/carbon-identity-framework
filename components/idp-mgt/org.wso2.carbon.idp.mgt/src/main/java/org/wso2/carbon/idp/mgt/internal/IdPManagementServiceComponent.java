@@ -42,7 +42,8 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -383,20 +384,37 @@ public class IdPManagementServiceComponent {
     }
 
     @Reference(
-            name = "org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor",
-            service = SecretsProcessor.class,
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretManager",
+            service = SecretManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdPSecretsProcessorService"
+            unbind = "unsetSecretManager"
     )
-    private void setIdPSecretsProcessorService(SecretsProcessor<IdentityProvider> idPSecretsProcessorService) {
+    private void setSecretManager(SecretManager secretManager) {
 
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idPSecretsProcessorService);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
     }
 
-    private void unsetIdPSecretsProcessorService(SecretsProcessor<IdentityProvider> idPSecretsProcessorService) {
+    private void unsetSecretManager(SecretManager secretManager) {
 
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(null);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(null);
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager",
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretResolveManager"
+    )
+    private void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        IdpMgtServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+    }
+
+    private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        IdpMgtServiceComponentHolder.getInstance().setSecretResolveManager(null);
     }
 
     @Reference(

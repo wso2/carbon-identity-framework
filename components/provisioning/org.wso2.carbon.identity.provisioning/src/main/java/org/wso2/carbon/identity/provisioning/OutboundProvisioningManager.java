@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCache;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCacheEntry;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCacheKey;
@@ -43,7 +44,7 @@ import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
-import org.wso2.carbon.identity.provisioning.rules.XACMLBasedRuleHandler;
+import org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
@@ -75,6 +76,7 @@ import java.util.stream.Collectors;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.ASK_PASSWORD_CLAIM;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.GROUP_CLAIM_URI;
 import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SELF_SIGNUP_ROLE;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isApplicationBasedOutboundProvisioningEnabled;
@@ -590,13 +592,19 @@ public class OutboundProvisioningManager {
                         boolean isAllowed = true;
                         boolean isBlocking = entry.getValue().isBlocking();
                         boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
-                        if (isPolicyEnabled) {
-                            isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(spTenantDomainName,
-                                    provisioningEntity,
-                                    serviceProvider,
-                                    idPName,
-                                    connectorType);
+
+                        if (isPolicyEnabled){
+                            try {
+                                ProvisioningHandler provisioningHandler = ProvisioningServiceDataHolder.getInstance()
+                                        .getProvisioningHandler();
+
+                                isAllowed  = provisioningHandler.isAllowedToProvision(spTenantDomainName,
+                                        provisioningEntity, serviceProvider, idPName, connectorType);
+                            } catch (NullPointerException e) {
+                                log.error("ProvisioningHandler service is not available.");
+                            }
                         }
+
                         if (isAllowed) {
                             executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
                         }
@@ -677,9 +685,23 @@ public class OutboundProvisioningManager {
                     //DO Rollback
                 }
             } catch (Exception e) { //call() of Callable interface throws this exception
+                if (isFailOnBlockingOutBoundProvisionEnabled()) {
+                    throw new IdentityProvisioningException(e.getMessage());
+                }
                 handleException(idPName, connectorType, provisioningEntity, executors, e);
             }
         }
+    }
+
+    /**
+     * When outbound provisioning with blocking mode is enabled for any specific provisioning connector, check whether
+     * the flow should break if the outbound provisioning has failed.
+     *
+     * @return Whether request should be failed if outbound provisioning has failed in blocking outbound provision flow.
+     */
+    private boolean isFailOnBlockingOutBoundProvisionEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE));
     }
 
     private ProvisioningEntity getInboundProvisioningEntity(ProvisioningEntity provisioningEntity,
