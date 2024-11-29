@@ -188,7 +188,7 @@ public class ActionManagementDAOFacadeTest {
     }
 
     @Test(priority = 3)
-    public void testAddAction() throws ActionMgtException, ActionPropertyResolverException {
+    public void testAddAction() throws ActionMgtException {
 
         mockActionPropertyResolver(testActionPropertyResolver);
         try {
@@ -228,7 +228,7 @@ public class ActionManagementDAOFacadeTest {
     }
 
     @Test(priority = 4)
-    public void testGetActionsByType() throws ActionMgtException, ActionPropertyResolverException {
+    public void testGetActionsByType() throws ActionMgtException {
 
         mockActionPropertyResolver(testActionPropertyResolver);
         List<ActionDTO> actionDTOs = daoFacade.getActionsByActionType(PRE_UPDATE_PASSWORD_TYPE, TENANT_ID);
@@ -303,7 +303,7 @@ public class ActionManagementDAOFacadeTest {
     }
 
     @Test(priority = 7, dependsOnMethods = "testAddAction")
-    public void testUpdateCompleteAction() throws ActionMgtException, ActionPropertyResolverException {
+    public void testUpdateCompleteAction() throws ActionMgtException {
 
         mockActionPropertyResolver(testActionPropertyResolver);
         // Update action with certificate property deletion.
@@ -381,7 +381,7 @@ public class ActionManagementDAOFacadeTest {
     }
 
     @Test(priority = 11)
-    public void testDeleteAction() throws ActionMgtException, ActionPropertyResolverException {
+    public void testDeleteAction() throws ActionMgtException {
 
         mockActionPropertyResolver(testActionPropertyResolver);
         try {

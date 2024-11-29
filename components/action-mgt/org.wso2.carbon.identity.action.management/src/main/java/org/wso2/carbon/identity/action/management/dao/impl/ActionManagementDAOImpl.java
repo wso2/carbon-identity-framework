@@ -405,14 +405,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template -> {
-            template.executeBatchInsert(ActionMgtSQLConstants.Query.ADD_ACTION_ENDPOINT_PROPERTIES,
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES,
                     statement -> {
                         for (Map.Entry<String, String> property : actionProperties.entrySet()) {
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
                             statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME,
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
                                     property.getKey());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE,
+                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE,
                                     property.getValue());
                             statement.addBatch();
                         }
@@ -434,15 +434,15 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         Map<String, String> actionEndpointProperties = new HashMap<>();
         try {
-            jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTION_ENDPOINT_INFO_BY_ID,
+            jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID,
                 (resultSet, rowNumber) -> {
                     actionEndpointProperties.put(
-                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME),
-                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE));
+                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
+                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE));
                     return null;
                 },
                 statement -> {
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                    statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
                     statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                 });
 
@@ -465,14 +465,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template ->
-            template.executeBatchInsert(ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTIES,
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY,
                 statement -> {
                     for (Map.Entry<String, String> property : updatingProperties.entrySet()) {
-                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_VALUE,
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE,
                                 property.getValue());
-                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME,
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
                                 property.getKey());
-                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
                         statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                         statement.addBatch();
                     }
@@ -487,9 +487,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             template.executeBatchInsert(ActionMgtSQLConstants.Query.DELETE_ACTION_PROPERTY,
                 statement -> {
                     for (String property : deletingProperties) {
-                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_PROPERTY_NAME,
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
                                 property);
-                        statement.setString(ActionMgtSQLConstants.Column.ACTION_ENDPOINT_UUID, actionId);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
                         statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                         statement.addBatch();
                     }
