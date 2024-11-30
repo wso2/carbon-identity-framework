@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -441,24 +441,27 @@ public interface RoleManagementService {
             throws IdentityRoleManagementException;
 
     /**
-     * Get associated applications by role id.
+     * Get shared role to main role mappings by subOrg.
      *
-     * @param roleId       Role Id.
-     * @param tenantDomain Tenant Domain.
-     * @return List of application ids.
+     * @param roleIds            Shared role IDs.
+     * @param subOrgTenantDomain Sub Organization tenant domain.
+     * @return The map of shared role id to main roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<String> getAssociatedApplicationByRoleId(String roleId, String tenantDomain)
-            throws IdentityRoleManagementException;
+    default Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
+            throws IdentityRoleManagementException {
+        throw new NotImplementedException("getRoles method is not implemented");
+    }
 
-    /**
-     * Retrieve the main role UUIDs corresponding to a list of shared role UUIDs.
-     *
-     * @param sharedRoleIds List of shared (sub-organization) role UUIDs for which main role UUIDs are to be found.
-     * @return List of main role UUIDs corresponding to the given shared role UUIDs.
-     * @throws IdentityRoleManagementException If an error occurs while retrieving the role mappings.
-     */
-    List<String> getMainRoleUUIDsForSharedRoles(List<String> sharedRoleIds)
+        /**
+         * Get associated applications by role id.
+         *
+         * @param roleId       Role Id.
+         * @param tenantDomain Tenant Domain.
+         * @return List of application ids.
+         * @throws IdentityRoleManagementException IdentityRoleManagementException.
+         */
+    List<String> getAssociatedApplicationByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**

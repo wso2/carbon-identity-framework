@@ -114,13 +114,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.POSTGRE_SQ
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.ROLE_NAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.SYSTEM;
-import static org.wso2.carbon.identity.role.v2.mgt.core.constants.RoleMgtConstants.CLOSE_PARENTHESIS;
-import static org.wso2.carbon.identity.role.v2.mgt.core.constants.RoleMgtConstants.COMMA;
-import static org.wso2.carbon.identity.role.v2.mgt.core.constants.RoleMgtConstants.ErrorMessage.ERROR_CODE_NO_MAIN_ROLE_FOUND_FOR_GIVEN_SHARED_ROLE;
-import static org.wso2.carbon.identity.role.v2.mgt.core.constants.RoleMgtConstants.MAIN_ROLE_UUID;
-import static org.wso2.carbon.identity.role.v2.mgt.core.constants.RoleMgtConstants.QUESTION_MARK;
-import static org.wso2.carbon.identity.role.v2.mgt.core.constants.RoleMgtConstants.SHARED_ROLE_UUID;
-import static org.wso2.carbon.identity.role.v2.mgt.core.constants.RoleMgtConstants.WHITE_SPACE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_APP_ROLE_ASSOCIATION_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
@@ -156,7 +149,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMIT
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMITED_USER_LIST_OF_ROLE_MSSQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMITED_USER_LIST_OF_ROLE_ORACLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_LIMITED_USER_LIST_OF_ROLE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_MAIN_ROLE_OF_A_SHARED_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_MAIN_ROLE_TO_SHARED_ROLE_MAPPINGS_BY_SUBORG_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_APP_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLES_BY_TENANT_AND_ROLE_NAME_DB2;
@@ -193,6 +185,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_TO_MAIN_ROLE_MAPPINGS_BY_SUBORG_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL;
@@ -1328,6 +1321,40 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
+    public Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds,
+                                                                       String subOrgTenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, String> rolesMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return rolesMap;
+        }
+        String query = GET_SHARED_ROLE_TO_MAIN_ROLE_MAPPINGS_BY_SUBORG_SQL +
+                String.join(", ", Collections.nCopies(roleIds.size(), "?")) + ")";
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+
+            statement.setInt(1, IdentityTenantUtil.getTenantId(subOrgTenantDomain));
+            for (int i = 0; i < roleIds.size(); i++) {
+                statement.setString(i + 2, roleIds.get(i));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String sharedRoleId = resultSet.getString(1);
+                    String mainRoleId = resultSet.getString(2);
+                    rolesMap.put(sharedRoleId, mainRoleId);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving shared role to main role mappings by sub org tenant : "
+                    + subOrgTenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    errorMessage, e);
+        }
+        return rolesMap;
+    }
+
+    @Override
     public List<String> getAssociatedApplicationIdsByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
@@ -1946,57 +1973,6 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
         return id;
-    }
-
-    @Override
-    public List<String> getMainRoleUUIDsForSharedRoles(List<String> sharedRoleUUIDs)
-            throws IdentityRoleManagementException {
-
-        List<String> mainRoleUUIDs = new ArrayList<>();
-        if (CollectionUtils.isEmpty(sharedRoleUUIDs)) {
-            return mainRoleUUIDs;
-        }
-
-        String query = GET_MAIN_ROLE_OF_A_SHARED_ROLE_SQL +
-                String.join(COMMA + WHITE_SPACE, Collections.nCopies(sharedRoleUUIDs.size(), QUESTION_MARK)) +
-                CLOSE_PARENTHESIS;
-
-        // To keep track of found sharedRoleUUIDs
-        Set<String> foundSharedRoleUUIDs = new HashSet<>();
-
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
-
-            for (int i = 0; i < sharedRoleUUIDs.size(); i++) {
-                statement.setString(i + 1, sharedRoleUUIDs.get(i));
-            }
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    String mainRoleUUID = resultSet.getString(MAIN_ROLE_UUID);
-                    String sharedRoleUUID = resultSet.getString(SHARED_ROLE_UUID);
-
-                    // Add main role UUID to the result list
-                    mainRoleUUIDs.add(mainRoleUUID);
-
-                    // Mark the shared role UUID as found
-                    foundSharedRoleUUIDs.add(sharedRoleUUID);
-                }
-            }
-
-            // Add any sharedRoleUUID that was not found in the result as it represents a main role UUID
-            for (String sharedRoleUUID : sharedRoleUUIDs) {
-                if (!foundSharedRoleUUIDs.contains(sharedRoleUUID)) {
-                    mainRoleUUIDs.add(sharedRoleUUID);
-                }
-            }
-
-        } catch (SQLException e) {
-            String errorMessage = ERROR_CODE_NO_MAIN_ROLE_FOUND_FOR_GIVEN_SHARED_ROLE.getMessage();
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
-        }
-
-        return mainRoleUUIDs;
     }
 
     /**

@@ -108,6 +108,8 @@ public class RoleDAOTest {
     private static final String DB_NAME = "ROLE_DB";
     private static final String ORGANIZATION_AUD = "organization";
     private static final String APPLICATION_AUD = "application";
+    private static final String MAIN_ROLE = "mainRole";
+    private static final String SHARED_ROLE = "sharedRole";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private List<String> userNamesList = new ArrayList<>();
     private List<String> groupNamesList = new ArrayList<>();
@@ -843,7 +845,100 @@ public class RoleDAOTest {
     }
 
     @Test
-    public void testGetMainRoleUUIDsForSharedRoles() throws Exception {
+    public void testGetSharedRoleToMainRoleMappingsBySubOrgWithSharedRoleUUID() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+
+        // Adding main roles and shared roles
+        RoleBasicInfo mainRole = addRole(MAIN_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_TENANT_DOMAIN);
+
+        // Test with shared role UUID
+        List<String> sharedRoleUUIDs = new ArrayList<>();
+        sharedRoleUUIDs.add(sharedRole.getId());
+
+        // Invoking the method
+        Map<String, String> roleMappings =
+                roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+
+        // Assertions
+        assertEquals(roleMappings.size(), 1);
+        assertEquals(roleMappings.get(sharedRole.getId()), mainRole.getId());
+    }
+
+    @Test
+    public void testGetSharedRoleToMainRoleMappingsBySubOrgWithMainRoleUUID() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+
+        // Adding main roles and shared roles
+        RoleBasicInfo mainRole = addRole(MAIN_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_TENANT_DOMAIN);
+
+        // Test with main role UUID (should return the same UUID)
+        List<String> sharedRoleUUIDs = new ArrayList<>();
+        sharedRoleUUIDs.add(mainRole.getId());
+
+        // Invoking the method
+        Map<String, String> roleMappings =
+                roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+
+        // Assertions
+        assertEquals(roleMappings.size(), 0);
+    }
+
+    @Test
+    public void testGetSharedRoleToMainRoleMappingsBySubOrgWithMixedUUIDs() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+
+        // Adding main roles and shared roles
+        RoleBasicInfo mainRole = addRole(MAIN_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_TENANT_DOMAIN);
+
+        // Test with a mix of shared role and main role UUIDs
+        List<String> sharedRoleUUIDs = new ArrayList<>();
+        sharedRoleUUIDs.add(sharedRole.getId());
+        sharedRoleUUIDs.add(mainRole.getId());
+
+        // Invoking the method
+        Map<String, String> roleMappings =
+                roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+
+        // Assertions
+        assertEquals(roleMappings.size(), 1);
+        assertEquals(roleMappings.get(sharedRole.getId()), mainRole.getId());
+    }
+
+    @Test
+    public void testGetSharedRoleToMainRoleMappingsBySubOrgWithEmptyList() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+
+        // Adding main roles and shared roles
+        RoleBasicInfo mainRole = addRole(MAIN_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_TENANT_DOMAIN);
+
+        // Test with empty list
+        List<String> sharedRoleUUIDs = new ArrayList<>();
+
+        // Invoking the method
+        Map<String, String> roleMappings =
+                roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+
+        // Assertions
+        assertTrue(roleMappings.isEmpty());
+    }
+
+    private RoleDAOImpl setupRoleDaoImpl() throws Exception {
 
         RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
         mockCacheClearing(roleDAO);
@@ -857,49 +952,7 @@ public class RoleDAOTest {
         userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
                 .thenReturn(false);
         userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
-
-        // Adding main roles and shared roles
-        RoleBasicInfo mainRole = addRole("mainRole", APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
-        RoleBasicInfo sharedRole = addRole("sharedRole", APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
-        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
-                SAMPLE_TENANT_DOMAIN);
-
-        // Test with shared role UUID
-        List<String> sharedRoleUUIDs = new ArrayList<>();
-        sharedRoleUUIDs.add(sharedRole.getId());
-        List<String> mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
-
-        assertEquals(mainRoleUUIDs.size(), 1);
-        assertEquals(mainRoleUUIDs.get(0), mainRole.getId());
-
-        // Test with main role UUID (should return the same UUID)
-        sharedRoleUUIDs.clear();
-        sharedRoleUUIDs.add(mainRole.getId());
-        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
-
-        assertEquals(mainRoleUUIDs.size(), 1);
-        assertEquals(mainRoleUUIDs.get(0), mainRole.getId());
-
-        // Test with non-existent role UUID
-        sharedRoleUUIDs.clear();
-        sharedRoleUUIDs.add("nonExistentUUID");
-        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
-
-        assertEquals(mainRoleUUIDs.size(), 1);
-        assertEquals(mainRoleUUIDs.get(0), "nonExistentUUID");
-
-        // Test with a mix of shared role and main role UUIDs
-        sharedRoleUUIDs.clear();
-        sharedRoleUUIDs.add(sharedRole.getId());
-        sharedRoleUUIDs.add(mainRole.getId());
-        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
-
-        assertEquals(mainRoleUUIDs.size(), 2);
-
-        // Test with empty list
-        sharedRoleUUIDs.clear();
-        mainRoleUUIDs = roleDAO.getMainRoleUUIDsForSharedRoles(sharedRoleUUIDs);
-        assertTrue(mainRoleUUIDs.isEmpty());
+        return roleDAO;
     }
 
     private List<String> getUserNamesList(List<UserBasicInfo> users) {
