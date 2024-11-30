@@ -114,7 +114,6 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             validateActions(actions, actionType);
             // As of now only one action is allowed.
             Action action = actions.get(0);
-            DIAGNOSTIC_LOGGER.logActionInitiation(action);
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
@@ -138,7 +137,6 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         validateActionIdList(actionType, actionIdList);
         Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
-        DIAGNOSTIC_LOGGER.logActionInitiation(action);
         try {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
@@ -168,6 +166,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
         if (action.getStatus() == Action.Status.ACTIVE) {
+            DIAGNOSTIC_LOGGER.logActionInitiation(action);
             return executeAction(action, actionRequest, eventContext, actionExecutionResponseProcessor);
         } else {
             // If no active actions are detected, it is regarded as the action execution being successful.
