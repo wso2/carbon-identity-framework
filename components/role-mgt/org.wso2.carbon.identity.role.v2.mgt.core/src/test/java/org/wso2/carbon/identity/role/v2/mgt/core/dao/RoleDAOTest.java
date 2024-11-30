@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.role.v2.mgt.core.dao;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
@@ -29,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -45,6 +47,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
@@ -84,8 +87,10 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -110,6 +115,7 @@ public class RoleDAOTest {
     private static final String APPLICATION_AUD = "application";
     private static final String MAIN_ROLE = "mainRole";
     private static final String SHARED_ROLE = "sharedRole";
+    private static final String MOCKED_EXCEPTION = "Mocked Exception";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private List<String> userNamesList = new ArrayList<>();
     private List<String> groupNamesList = new ArrayList<>();
@@ -936,6 +942,36 @@ public class RoleDAOTest {
 
         // Assertions
         assertTrue(roleMappings.isEmpty());
+    }
+
+    @Test(expectedExceptions = IdentityRoleManagementServerException.class)
+    public void testGetSharedRoleToMainRoleMappingsBySubOrgFailure() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+
+        // Adding main roles and shared roles
+        RoleBasicInfo mainRole = addRole(MAIN_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_TENANT_DOMAIN);
+
+        // Mocking the NamedPreparedStatement to throw SQLException
+        NamedPreparedStatement namedPreparedStatement = mock(NamedPreparedStatement.class);
+        doThrow(new SQLException(MOCKED_EXCEPTION)).when(namedPreparedStatement).executeQuery();
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+
+        try (MockedConstruction<NamedPreparedStatement> mocked = mockConstruction(NamedPreparedStatement.class,
+                (mock, context) -> {
+                    doThrow(new SQLException(MOCKED_EXCEPTION)).when(mock).executeQuery();
+                })) {
+            // Test with valid UUIDs but simulated SQLException
+            List<String> sharedRoleUUIDs = new ArrayList<>();
+            sharedRoleUUIDs.add(sharedRole.getId());
+
+            // Invoking the method, expecting IdentityRoleManagementServerException
+            roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+        }
     }
 
     private RoleDAOImpl setupRoleDaoImpl() throws Exception {
