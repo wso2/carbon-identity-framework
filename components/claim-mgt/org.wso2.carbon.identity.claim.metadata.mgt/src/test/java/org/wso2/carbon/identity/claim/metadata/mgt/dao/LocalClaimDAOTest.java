@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -45,7 +46,7 @@ import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
-                files = { "dbScripts/claim_properties.sql" })
+        files = {"dbScripts/claim_properties.sql"})
 @WithCarbonHome
 public class LocalClaimDAOTest {
 
@@ -54,6 +55,7 @@ public class LocalClaimDAOTest {
     LocalClaim localClaim1;
     LocalClaim localClaim2;
     LocalClaim localClaim3;
+    LocalClaim localClaim4;
 
     List<AttributeMapping> mappedAttributes1;
     List<AttributeMapping> mappedAttributes2;
@@ -67,7 +69,7 @@ public class LocalClaimDAOTest {
     Map<String, String> claimProperties2;
     Map<String, String> claimProperties3;
 
-    @BeforeMethod
+    @BeforeClass
     public void initTest() throws Exception {
 
         attributeMapping1 = new AttributeMapping("PRIMARY", "givenname");
@@ -108,6 +110,20 @@ public class LocalClaimDAOTest {
         localClaim3.setClaimProperties(claimProperties3);
     }
 
+    @BeforeMethod
+    public void setUp() {
+
+        localClaim4 = new LocalClaim("http://wso2.org/claims/nic");
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put("Description", "Nation Identity Card");
+        claimProperties.put("FriendlyName", "NIC");
+        localClaim4.setClaimProperties(claimProperties);
+
+        List<AttributeMapping> mappedAttributes = new ArrayList<>();
+        mappedAttributes.add(new AttributeMapping("PRIMARY", "nic"));
+        localClaim4.setMappedAttributes(mappedAttributes);
+    }
+
     @Test(dataProvider = "getLocalClaim")
     public void testGetLocalClaims(Object localClaim, int tenantId) throws ClaimMetadataException {
 
@@ -138,16 +154,17 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "getLocalClaim")
     public Object[][] testGetLocalClaimData() {
-        return new Object[][] {
+
+        return new Object[][]{
                 {
                         localClaim1, TEST_LOCAL_TENANT_ID
                 }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
+                localClaim2, TEST_LOCAL_TENANT_ID
+        }, {
+                localClaim3, TEST_LOCAL_TENANT_ID
+        },
 
-                };
+        };
     }
 
     @Test(dataProvider = "updateLocalClaim")
@@ -191,16 +208,17 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "updateLocalClaim")
     public Object[][] testUpdateLocalClaimData() {
-        return new Object[][] {
+
+        return new Object[][]{
                 {
                         localClaim1, TEST_LOCAL_TENANT_ID
                 }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
+                localClaim2, TEST_LOCAL_TENANT_ID
+        }, {
+                localClaim3, TEST_LOCAL_TENANT_ID
+        },
 
-                };
+        };
     }
 
     @Test(dataProvider = "updateLocalClaimMappings")
@@ -251,7 +269,7 @@ public class LocalClaimDAOTest {
                         createAttributeMappings("TEST_DOMAIN", "firstname")),
                 createLocalClaim("http://wso2.org/claims/test4", null,
                         createAttributeMappings("TEST_DOMAIN", "firstname"))
-        );
+                                                               );
 
         // Local claims in DB.
         List<LocalClaim> localClaimsInDB = Arrays.asList(
@@ -261,7 +279,7 @@ public class LocalClaimDAOTest {
                         createAttributeMappings("PRIMARY", "givenname")),
                 createLocalClaim("http://wso2.org/claims/test4", "TestDescription4",
                         null)
-        );
+                                                        );
 
         // Expected result local claims.
         List<LocalClaim> resultLocalClaims = Arrays.asList(
@@ -281,6 +299,7 @@ public class LocalClaimDAOTest {
     }
 
     private LocalClaim createLocalClaim(String uri, String description, List<AttributeMapping> attributeMappings) {
+
         LocalClaim localClaim = new LocalClaim(uri);
         if (description != null) {
             Map<String, String> claimProperties = new HashMap<>();
@@ -294,6 +313,7 @@ public class LocalClaimDAOTest {
     }
 
     private List<AttributeMapping> createAttributeMappings(String... mappings) {
+
         List<AttributeMapping> attributeMappings = new ArrayList<>();
         for (int i = 0; i < mappings.length; i += 2) {
             attributeMappings.add(new AttributeMapping(mappings[i], mappings[i + 1]));
@@ -340,139 +360,287 @@ public class LocalClaimDAOTest {
         return true;
     }
 
-    @Test
-    public void testAddLocalClaimWithUniqueProperty() throws ClaimMetadataException {
-
-        // Add claim dialect
-        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
-        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
-        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
-
-        // Add claim
-        localClaim3.getClaimProperties().put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
-        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
-        localClaimDAO.addLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
-
-        // Retrieve and verify
-        List<LocalClaim> retrievedClaims = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
-        assertNotNull(retrievedClaims, "Retrieved claims should not be null");
-        assertEquals(retrievedClaims.size(), 1, "Should have retrieved exactly one claim");
-
-        LocalClaim retrievedClaim = retrievedClaims.get(0);
-        Map<String, String> retrievedProperties = retrievedClaim.getClaimProperties();
-
-        // Verify property transformation
-        verifyUniqueClaimProperties(retrievedProperties);
-
-        // Clean up
-        localClaimDAO.removeLocalClaim(localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
-        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
-    }
-
-    @Test(dataProvider = "uniquenessValidationPropertiesData")
-    public void testGetLocalClaimsWithUniquenessValidationProperties(Map<String, String> uniquenessValidationProperties)
-            throws ClaimMetadataException, SQLException {
-
-        // Add claim dialect
-        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
-        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
-        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
-
-        // Add initial claim
-        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
-        localClaimDAO.addLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
-
-        // Get claim ID and add uniqueness validation property/properties directly using ClaimDAO
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-            ClaimDAO claimDAO = new ClaimDAO();
-            int claimId = claimDAO.getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
-                    localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
-
-            claimDAO.addClaimProperties(connection, claimId, uniquenessValidationProperties, TEST_LOCAL_TENANT_ID);
-
-            IdentityDatabaseUtil.commitTransaction(connection);
-        }
-
-        // Retrieve and verify
-        List<LocalClaim> retrievedClaims = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
-        assertNotNull(retrievedClaims, "Retrieved claims should not be null");
-        assertEquals(retrievedClaims.size(), 1, "Should have retrieved exactly one claim");
-
-        LocalClaim retrievedClaim = retrievedClaims.get(0);
-        Map<String, String> retrievedProperties = retrievedClaim.getClaimProperties();
-
-        // Verify property transformation
-        verifyUniqueClaimProperties(retrievedProperties);
-
-        // Clean up
-        localClaimDAO.removeLocalClaim(localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
-        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
-    }
-
-    @DataProvider(name = "uniquenessValidationPropertiesData")
-    public Object[][] getUniquenessValidationPropertiesData() {
-
-        Map<String, String> singleProperty = new HashMap<>();
-        singleProperty.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
-
-        Map<String, String> bothProperties = new HashMap<>();
-        bothProperties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
-        bothProperties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
-                ClaimUniquenessScope.ACROSS_USERSTORES.toString());
+    @DataProvider(name = "addLocalClaimUniquenessValidationData")
+    public Object[][] addLocalClaimUniquenessValidationData() {
 
         return new Object[][]{
-                {singleProperty},
-                {bothProperties}
+                // {newIsUnique, newUniquenessScope, expectedUniquenessScope, expectedIsUnique}.
+
+                // Case 1: Only isUnique property is included.
+                {"true", null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"false", null, ClaimUniquenessScope.NONE.toString(), "false"},
+
+                // Case 2: Only UniquenessScope property is included.
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null},
+                {null, ClaimUniquenessScope.NONE.toString(), ClaimUniquenessScope.NONE.toString(), null},
+                {null, ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), null},
+
+                // Case 3: Both isUnique & UniquenessScope properties are included.
+                {"true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"true", ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true"},
+                {"true", ClaimUniquenessScope.NONE.toString(), ClaimUniquenessScope.NONE.toString(), "false"},
+                {"false", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"false", ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true"},
+                {"false", ClaimUniquenessScope.NONE.toString(), ClaimUniquenessScope.NONE.toString(), "false"}
         };
     }
 
-    @Test
-    public void testUpdateLocalClaimWithUniqueProperty() throws ClaimMetadataException {
+    @Test(dataProvider = "addLocalClaimUniquenessValidationData")
+    public void testAddLocalClaimWithUniquenessProperties(String newIsUnique, String newUniquenessScope,
+                                                          String expectedUniquenessScope, String expectedIsUnique)
+            throws ClaimMetadataException {
 
-        // Setup initial claim without isUnique property
         ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
         ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
         claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
 
+        // Add uniqueness validation properties.
+        Map<String, String> properties = new HashMap<>(localClaim4.getClaimProperties());
+        if (newIsUnique != null) {
+            properties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, newIsUnique);
+        }
+        if (newUniquenessScope != null) {
+            properties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, newUniquenessScope);
+        }
+        localClaim4.setClaimProperties(properties);
+
+        // Add claim.
         LocalClaimDAO localClaimDAO = new LocalClaimDAO();
-        localClaimDAO.addLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
+        localClaimDAO.addLocalClaim(localClaim4, TEST_LOCAL_TENANT_ID);
 
-        // Update claim with isUnique property
-        Map<String, String> updatedProperties = new HashMap<>(localClaim3.getClaimProperties());
-        updatedProperties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
-        localClaim3.setClaimProperties(updatedProperties);
-
-        localClaimDAO.updateLocalClaim(localClaim3, TEST_LOCAL_TENANT_ID);
-
-        // Retrieve and verify
+        // Verify.
         List<LocalClaim> retrievedClaims = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
         assertNotNull(retrievedClaims, "Retrieved claims should not be null");
         assertEquals(retrievedClaims.size(), 1, "Should have retrieved exactly one claim");
 
         LocalClaim retrievedClaim = retrievedClaims.get(0);
-        Map<String, String> retrievedProperties = retrievedClaim.getClaimProperties();
+        verifyUniquenessProperties(retrievedClaim.getClaimProperties(), expectedUniquenessScope, expectedIsUnique);
 
-        // Verify property transformation
-        verifyUniqueClaimProperties(retrievedProperties);
-
-        // Clean up
-        localClaimDAO.removeLocalClaim(localClaim3.getClaimURI(), TEST_LOCAL_TENANT_ID);
+        // Clean up.
+        localClaimDAO.removeLocalClaim(localClaim4.getClaimURI(), TEST_LOCAL_TENANT_ID);
         claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
     }
 
-    /**
-     * Verifies that the claim properties have been correctly transformed for unique claims.
-     *
-     * @param retrievedProperties The map of claim properties to verify
-     */
-    private void verifyUniqueClaimProperties(Map<String, String> retrievedProperties) {
+    @DataProvider(name = "updateLocalClaimUniquenessValidationData")
+    public Object[][] updateLocalClaimUniquenessValidationData() {
 
-        assertFalse(retrievedProperties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY),
-                "isUnique property should have been removed");
+        return new Object[][]{
+                // {existingIsUnique, existingUniquenessScope, newIsUnique, newUniquenessScope,
+                // expectedUniquenessScope, expectedIsUnique}.
+
+                // Case 1: None of the properties exist.
+                {null, null, "true", null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {null, null, "false", null, ClaimUniquenessScope.NONE.toString(), "false"},
+
+                {null, null, null, ClaimUniquenessScope.NONE.toString(), ClaimUniquenessScope.NONE.toString(), null},
+                {null, null, null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null},
+                {null, null, null, ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), null},
+
+                {null, null, "true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {null, null, "true", ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true"},
+                {null, null, "false", ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+
+                {null, null, "false", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {null, null, "false", ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true"},
+                {null, null, "true", ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+
+                // Case 2: Only isUnique property exists.
+                {"true", null, "true", null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"true", null, "false", null, ClaimUniquenessScope.NONE.toString(), "false"},
+                {"false", null, "true", null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"false", null, "false", null, ClaimUniquenessScope.NONE.toString(), "false"},
+
+                {"true", null, null, ClaimUniquenessScope.NONE.toString(), ClaimUniquenessScope.NONE.toString(), null},
+                {"true", null, null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null},
+                {"false", null, null, ClaimUniquenessScope.NONE.toString(), ClaimUniquenessScope.NONE.toString(), null},
+                {"false", null, null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null},
+
+                {"true", null, "true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"true", null, "true", ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+                {"false", null, "false", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"false", null, "false", ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+
+                {"true", null, "false", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"true", null, "false", ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+                {"false", null, "true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {"false", null, "true", ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+
+                // Case 3: Only UniquenessScope property exists.
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true", null,
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "false", null,
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+                {null, ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true", null,
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {null, ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "false", null,
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+                {null, ClaimUniquenessScope.NONE.toString(), "true", null,
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {null, ClaimUniquenessScope.NONE.toString(), "false", null,
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null, ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), null},
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null,
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null},
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null,
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), null},
+                {null, ClaimUniquenessScope.NONE.toString(), null, ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), null},
+                {null, ClaimUniquenessScope.NONE.toString(), null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), null},
+                {null, ClaimUniquenessScope.NONE.toString(), null, ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), null},
+
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true",
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true",
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true"},
+                {null, ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "false", ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+
+                // Case 4: Both properties exist - only isUnique property changes.
+                {"true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "false",
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), ClaimUniquenessScope.NONE.toString(),
+                        "false"},
+                {"false", ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true",
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
+                        ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true"},
+
+                // Case 5: Both properties exist - only UniquenessScope property changes.
+                {"true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true",
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true"},
+                {"true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "true",
+                        ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"},
+
+                // Case 6: Both properties exist - both properties change.
+                {"true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "false",
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(),
+                        ClaimUniquenessScope.WITHIN_USERSTORE.toString(), "true"},
+                {"true", ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "false",
+                        ClaimUniquenessScope.NONE.toString(),
+                        ClaimUniquenessScope.NONE.toString(), "false"}
+        };
+    }
+
+    @Test(dataProvider = "updateLocalClaimUniquenessValidationData")
+    public void testUpdateLocalClaimWithUniquenessProperties(String existingIsUnique, String existingUniquenessScope,
+                                                             String newIsUnique, String newUniquenessScope,
+                                                             String expectedUniquenessScope, String expectedIsUnique)
+            throws ClaimMetadataException {
+
+        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+
+        // Add initial claim.
+        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+        localClaimDAO.addLocalClaim(localClaim4, TEST_LOCAL_TENANT_ID);
+
+        // Update the DB directly to set the initial uniqueness validation related claim properties.
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            ClaimDAO claimDAO = new ClaimDAO();
+            int claimId = claimDAO.getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
+                    localClaim4.getClaimURI(), TEST_LOCAL_TENANT_ID);
+
+            Map<String, String> claimProperties = new HashMap<>();
+            if (existingIsUnique != null) {
+                claimProperties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, existingIsUnique);
+            }
+            if (existingUniquenessScope != null) {
+                claimProperties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, existingUniquenessScope);
+            }
+            claimDAO.addClaimProperties(connection, claimId, claimProperties, TEST_LOCAL_TENANT_ID);
+
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Update uniqueness validation properties.
+        Map<String, String> newProperties =
+                updateUniquenessProperties(localClaim4.getClaimProperties(), newIsUnique, newUniquenessScope);
+        localClaim4.setClaimProperties(newProperties);
+
+        // Update claim.
+        localClaimDAO.updateLocalClaim(localClaim4, TEST_LOCAL_TENANT_ID);
+
+        // Verify.
+        List<LocalClaim> retrievedClaims = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
+        assertNotNull(retrievedClaims, "Retrieved claims should not be null");
+        assertEquals(retrievedClaims.size(), 1, "Should have retrieved exactly one claim");
+
+        LocalClaim retrievedClaim = retrievedClaims.get(0);
+        verifyUniquenessProperties(retrievedClaim.getClaimProperties(), expectedUniquenessScope, expectedIsUnique);
+
+        // Clean up.
+        localClaimDAO.removeLocalClaim(localClaim4.getClaimURI(), TEST_LOCAL_TENANT_ID);
+        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+    }
+
+    private Map<String, String> updateUniquenessProperties(Map<String, String> existingProperties, String newIsUnique,
+                                                           String newUniquenessScope) {
+
+        Map<String, String> newProperties = new HashMap<>(existingProperties);
+        if (newIsUnique != null) {
+            newProperties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, newIsUnique);
+        } else {
+            newProperties.remove(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
+        }
+        if (newUniquenessScope != null) {
+            newProperties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY, newUniquenessScope);
+        } else {
+            newProperties.remove(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
+        }
+        return newProperties;
+    }
+
+    private void verifyUniquenessProperties(Map<String, String> retrievedProperties,
+                                            String expectedUniquenessScope, String expectedIsUnique) {
+
         assertTrue(retrievedProperties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
-                "UniquenessScope property should have been added");
-        assertEquals(ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString(),
-                retrievedProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
-                "UniquenessScope should be set to ACROSS_USERSTORES");
+                "UniquenessScope property should be present");
+        assertEquals(expectedUniquenessScope, retrievedProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
+                "UniquenessScope should match expected value");
+
+        if (expectedIsUnique != null) {
+            assertTrue(retrievedProperties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY),
+                    "isUnique property should be present");
+            assertEquals(expectedIsUnique, retrievedProperties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY),
+                    "isUnique should match expected value");
+        } else {
+            assertFalse(retrievedProperties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY),
+                    "isUnique property should not be present");
+        }
     }
 }

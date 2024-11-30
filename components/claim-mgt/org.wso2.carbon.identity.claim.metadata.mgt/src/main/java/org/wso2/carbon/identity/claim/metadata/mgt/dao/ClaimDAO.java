@@ -31,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI;
 
@@ -264,61 +263,34 @@ public class ClaimDAO {
     }
 
     /**
-     * Updates a single claim property by changing both its name and value.
-     * This method is useful when you want to replace an existing property with a new one.
+     * Retrieves claim properties for a given claim ID from the database.
      *
-     * @param connection       The database connection to be used.
-     * @param claimId          The ID of the claim whose property is being updated.
-     * @param oldPropertyName  The current name of the property to be updated.
-     * @param newPropertyName  The new name to replace the old property name.
-     * @param newPropertyValue The new value to be set for the property.
-     * @param tenantId         The ID of the tenant.
-     * @throws ClaimMetadataException If the property doesn't exist or the update fails.
+     * @param connection Database connection to use for the query.
+     * @param claimId    ID of the claim whose properties are to be retrieved.
+     * @param tenantId   ID of the tenant.
+     * @return Map containing property name-value pairs for the claim.
+     * @throws ClaimMetadataException If an error occurs while retrieving the claim properties.
      */
-    protected void updateClaimProperty(Connection connection, int claimId,
-                                       String oldPropertyName, String newPropertyName, String newPropertyValue,
-                                       int tenantId)
+    public Map<String, String> getClaimPropertiesById(Connection connection, int claimId, int tenantId)
             throws ClaimMetadataException {
 
-        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.UPDATE_CLAIM_PROPERTY)) {
-            prepStmt.setString(1, newPropertyName);
-            prepStmt.setString(2, newPropertyValue);
-            prepStmt.setInt(3, claimId);
-            prepStmt.setString(4, oldPropertyName);
-            prepStmt.setInt(5, tenantId);
+        Map<String, String> claimProperties = new HashMap<>();
 
-            int rowsUpdated = prepStmt.executeUpdate();
-            if (rowsUpdated == 0) {
-                throw new ClaimMetadataException("Property not found: " + oldPropertyName);
-            }
-        } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while updating claim property", e);
-        }
-    }
-
-    /**
-     * Deletes a specific claim property by its name.
-     *
-     * @param connection   The database connection to be used.
-     * @param claimId      The ID of the claim whose property is being deleted.
-     * @param propertyName The name of the property to be deleted.
-     * @param tenantId     The ID of the tenant.
-     * @throws ClaimMetadataException If the property deletion fails.
-     */
-    protected void deleteClaimProperty(Connection connection, int claimId, String propertyName, int tenantId)
-            throws ClaimMetadataException {
-
-        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.DELETE_CLAIM_PROPERTY_BY_NAME)) {
+        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_CLAIM_PROPERTIES_BY_ID)) {
             prepStmt.setInt(1, claimId);
-            prepStmt.setString(2, propertyName);
-            prepStmt.setInt(3, tenantId);
+            prepStmt.setInt(2, tenantId);
 
-            int rowsDeleted = prepStmt.executeUpdate();
-            if (rowsDeleted == 0) {
-                throw new ClaimMetadataException("Property not found: " + propertyName);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                while (rs.next()) {
+                    String propertyName = rs.getString(SQLConstants.PROPERTY_NAME_COLUMN);
+                    String propertyValue = rs.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
+                    claimProperties.put(propertyName, propertyValue);
+                }
             }
         } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while deleting claim property: " + propertyName, e);
+            throw new ClaimMetadataException("Error while retrieving claim properties for claim ID: " + claimId, e);
         }
+
+        return claimProperties;
     }
 }
