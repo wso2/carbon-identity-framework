@@ -20,15 +20,14 @@ package org.wso2.carbon.identity.application.common;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
-import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
 import org.wso2.carbon.identity.application.common.util.UserDefinedLocalAuthenticatorValidator;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -36,7 +35,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages.ERROR_CODE_INVALID_DEFINED_BY_AUTH_PROVIDED;
+import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
+import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildRuntimeServerException;
 
 /**
  * Application authenticator service.
@@ -150,8 +150,8 @@ public class ApplicationAuthenticatorService {
 
         if (authenticator != null) {
             if (authenticator.getDefinedByType() != DefinedByType.SYSTEM) {
-                throw new AuthenticatorMgtServerRuntimeException(
-                        ERROR_CODE_INVALID_DEFINED_BY_AUTH_PROVIDED.getMessage());
+                throw buildRuntimeServerException(
+                        AuthenticatorMgtError.ERROR_CODE_INVALID_DEFINED_BY_AUTH_PROVIDED, null);
             }
             localAuthenticators.add(authenticator);
         }
@@ -201,9 +201,8 @@ public class ApplicationAuthenticatorService {
 
         LocalAuthenticatorConfig config = getLocalAuthenticatorByName(authenticatorConfig.getName(), tenantDomain);
         if (config != null) {
-            ErrorMessages error = ErrorMessages.ERROR_AUTHENTICATOR_ALREADY_EXIST;
-            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
-                    String.format(error.getDescription(), authenticatorConfig.getName()));
+            throw buildClientException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST,
+                    authenticatorConfig.getName());
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
         authenticatorValidator.validateForBlank("Display name", authenticatorConfig.getDisplayName());
@@ -281,9 +280,7 @@ public class ApplicationAuthenticatorService {
                 getUserDefinedLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
 
         if (existingAuthenticatorConfig == null) {
-            ErrorMessages error = ErrorMessages.ERROR_NOT_FOUND_AUTHENTICATOR;
-            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
-                    String.format(error.getDescription(), authenticatorName));
+            throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR, authenticatorName);
         }
 
         return  existingAuthenticatorConfig;

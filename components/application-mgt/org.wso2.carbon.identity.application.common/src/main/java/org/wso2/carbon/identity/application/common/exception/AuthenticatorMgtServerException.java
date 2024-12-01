@@ -23,19 +23,14 @@ package org.wso2.carbon.identity.application.common.exception;
  */
 public class AuthenticatorMgtServerException extends AuthenticatorMgtException {
 
-    public AuthenticatorMgtServerException(String errorCode, String message, Throwable cause) {
+    public AuthenticatorMgtServerException(String errorCode, String message, String description) {
 
-        super(message, errorCode, cause);
+        super(message, errorCode, description);
     }
 
     public AuthenticatorMgtServerException(String errorCode, String message, String description,
                                     Throwable cause) {
 
         super(message, description, errorCode, cause);
-    }
-
-    public AuthenticatorMgtServerException(String message) {
-
-        super(message);
     }
 }

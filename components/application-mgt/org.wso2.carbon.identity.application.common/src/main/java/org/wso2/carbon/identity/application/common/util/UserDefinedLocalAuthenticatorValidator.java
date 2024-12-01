@@ -19,11 +19,13 @@
 package org.wso2.carbon.identity.application.common.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
+import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.util.regex.Pattern;
+
+import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
 
 /**
  * User Defined Local Authenticator Validator class.
@@ -43,9 +45,7 @@ public class UserDefinedLocalAuthenticatorValidator {
     public void validateForBlank(String fieldName, String fieldValue) throws AuthenticatorMgtClientException {
 
         if (StringUtils.isBlank(fieldValue)) {
-            ErrorMessages error = ErrorMessages.ERROR_BLANK_FIELD_VALUE;
-            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
-                    String.format(error.getDescription(), fieldName));
+            throw buildClientException(AuthenticatorMgtError.ERROR_BLANK_FIELD_VALUE, fieldName);
         }
     }
 
@@ -59,9 +59,8 @@ public class UserDefinedLocalAuthenticatorValidator {
 
         boolean isValidName = authenticatorNameRegexPattern.matcher(name).matches();
         if (!isValidName) {
-            ErrorMessages error = ErrorMessages.ERROR_INVALID_AUTHENTICATOR_NAME;
-            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(),
-                    String.format(error.getDescription(), name, AUTHENTICATOR_NAME_REGEX));
+            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AUTHENTICATOR_NAME,
+                    name, AUTHENTICATOR_NAME_REGEX);
         }
     }
 
@@ -75,8 +74,7 @@ public class UserDefinedLocalAuthenticatorValidator {
             throws AuthenticatorMgtClientException {
 
         if (definedByType != DefinedByType.USER) {
-            ErrorMessages error = ErrorMessages.ERROR_OP_ON_SYSTEM_AUTHENTICATOR;
-            throw new AuthenticatorMgtClientException(error.getCode(), error.getMessage(), error.getDescription());
+            throw buildClientException(AuthenticatorMgtError.ERROR_OP_ON_SYSTEM_AUTHENTICATOR);
         }
     }
 }

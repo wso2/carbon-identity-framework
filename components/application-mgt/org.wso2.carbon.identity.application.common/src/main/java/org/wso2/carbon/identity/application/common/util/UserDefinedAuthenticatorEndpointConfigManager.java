@@ -26,14 +26,14 @@ import org.wso2.carbon.identity.application.common.internal.ApplicationCommonSer
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants
-        .ErrorMessages.ERROR_CODE_ENDPOINT_CONFIG_MGT;
+import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
 
 /**
  * This class responsible for managing authenticator endpoint configurations for the user defined Local
@@ -63,8 +63,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             endpointProperty.setValue(action.getId());
             config.setProperties(new Property[]{endpointProperty});
         } catch (ActionMgtException e) {
-            throw new AuthenticatorMgtServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
-                    "Error occurred while adding associated action for the authenticator:" + config.getName(), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_ENDPOINT_CONFIG_MGT, e, config.getName());
         }
     }
 
@@ -89,9 +88,8 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                             IdentityTenantUtil.getTenantDomain(tenantId));
             newConfig.setProperties(oldConfig.getProperties());
         } catch (ActionMgtException e) {
-            throw new AuthenticatorMgtServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
-                    String.format("Error occurred while updating associated action with id %s for the authenticator %s",
-                            actionId, oldConfig.getName()), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_ENDPOINT_CONFIG_MGT, e,
+                            actionId, oldConfig.getName());
         }
     }
 
@@ -106,6 +104,9 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
     public UserDefinedLocalAuthenticatorConfig resolveEndpointConfigurations(UserDefinedLocalAuthenticatorConfig config,
             int tenantId) throws AuthenticatorMgtServerException {
 
+        if (config == null) {
+            return null;
+        }
         String actionId = getActionIdFromProperty(config.getProperties(), config.getName());
         try {
             Action action = ApplicationCommonServiceDataHolder.getInstance().getActionManagementService()
@@ -116,9 +117,8 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             config.setEndpointConfig(buildUserDefinedAuthenticatorEndpointConfig(action.getEndpoint()));
             return config;
         } catch (ActionMgtException e) {
-            throw new AuthenticatorMgtServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
-                    String.format("Error occurred retrieving associated action with id %s for the authenticator %s",
-                            actionId, config.getName()), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_ENDPOINT_CONFIG_MGT, e,
+                            actionId, config.getName());
         }
     }
 
@@ -154,9 +154,8 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                             actionId,
                             IdentityTenantUtil.getTenantDomain(tenantId));
         } catch (ActionMgtException e) {
-            throw new AuthenticatorMgtServerException(ERROR_CODE_ENDPOINT_CONFIG_MGT.getCode(),
-                    String.format("Error occurred while deleting associated action with id %s for the authenticator %s",
-                            actionId, config.getName()), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_ENDPOINT_CONFIG_MGT, e,
+                    actionId, config.getName());
         }
     }
 
@@ -186,8 +185,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                 .filter(property -> ACTION_ID_PROPERTY.equals(property.getName()))
                 .map(Property::getValue)
                 .findFirst()
-                .orElseThrow(() -> new AuthenticatorMgtServerException(
-                        "No action Id was found in the properties of the authenticator configurations for" +
-                                " the authenticator: " + authenticatorName));
+                .orElseThrow(() -> buildServerException(AuthenticatorMgtError.ERROR_CODE_NO_ACTION_ID_FOUND,
+                        authenticatorName));
     }
 }

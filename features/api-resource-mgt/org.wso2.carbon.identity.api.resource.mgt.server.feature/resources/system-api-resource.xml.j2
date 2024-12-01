@@ -125,6 +125,18 @@
                    description="Delete actions"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Custom Local Authenticator Management API" identifier="/api/server/v1/authenticators/custom"
+                     requiresAuthorization="true"
+                     description="API representation of the Custom Local Authenticator Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Create Custom Local Authenticator" name="internal_custom_authenticator_create"
+                   description="Create new custom local authenticator"/>
+            <Scope displayName="Update Custom Local Authenticator" name="internal_custom_authenticator_update"
+                   description="Update custom local authenticator"/>
+            <Scope displayName="Delete Custom Local Authenticator" name="internal_custom_authenticator_delete"
+                   description="Delete custom local authenticator"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Branding Preference Management API"
                  identifier="/api/server/v1/branding-preference" requiresAuthorization="true"
                  description="API representation of the Branding Preference Management API" type="TENANT">

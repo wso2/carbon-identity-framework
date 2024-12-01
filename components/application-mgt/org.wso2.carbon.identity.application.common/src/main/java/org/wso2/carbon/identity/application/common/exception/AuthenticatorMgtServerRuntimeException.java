@@ -26,7 +26,7 @@ public class AuthenticatorMgtServerRuntimeException extends RuntimeException {
     private final String errorCode;
     private final String description;
 
-    public AuthenticatorMgtServerRuntimeException(String message, String description, String errorCode) {
+    public AuthenticatorMgtServerRuntimeException(String errorCode, String message, String description) {
 
         super(message);
         this.errorCode = errorCode;
