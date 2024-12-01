@@ -449,6 +449,8 @@
                     description="View discovery configurations of the organization (root)"/>
             <Scope displayName="Add Organization Configs" name="internal_organization_config_add" 
                     description="Add new discovery configurations of the organization (root)"/>
+            <Scope displayName="Update Organization Configs" name="internal_organization_config_update"
+                   description="Update discovery configurations of the organization (root)"/>
             <Scope displayName="Delete Organization Configs" name="internal_organization_config_delete" 
                     description="Delete discovery configurations of the organization (root)"/>
         </Scopes>

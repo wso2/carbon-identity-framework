@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.7.4-SNAPSHOT</version>
+    <version>7.7.12-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -73,6 +73,7 @@
         <module>components/trusted-app-mgt</module>
         <module>components/action-mgt</module>
         <module>components/certificate-mgt</module>
+        <module>components/rule-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -1814,7 +1815,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.24</carbon.kernel.version>
+        <carbon.kernel.version>4.10.25</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2019,7 +2020,7 @@
         <version.commons.logging>1.1.1</version.commons.logging>
         <commons.logging.version>1.2</commons.logging.version>
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
-        <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
+        <json.wso2.version>3.0.0.wso2v4</json.wso2.version>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
         <com.fasterxml.jackson.version>2.16.1</com.fasterxml.jackson.version>
         <com.fasterxml.jackson.annotation.version>2.16.1</com.fasterxml.jackson.annotation.version>

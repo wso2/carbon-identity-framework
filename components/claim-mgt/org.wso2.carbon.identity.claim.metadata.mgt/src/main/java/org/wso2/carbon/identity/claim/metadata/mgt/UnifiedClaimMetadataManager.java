@@ -30,10 +30,12 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
@@ -163,9 +165,9 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                     .findFirst();
 
             if (matchingClaimInDB.isPresent()) {
-                matchingClaimInDB.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(matchingClaimInDB.get());
             } else {
-                systemClaim.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(systemClaim);
                 allLocalClaims.add(systemClaim);
             }
         });
@@ -186,13 +188,13 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         Optional<LocalClaim> localClaimInDB = this.dbBasedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
         if (localClaimInDB.isPresent()) {
             if (isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
-                localClaimInDB.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(localClaimInDB.get());
             }
             return localClaimInDB;
         }
         Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
         if (localClaimInSystem.isPresent()) {
-            localClaimInSystem.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+            markAsSystemClaim(localClaimInSystem.get());
             return localClaimInSystem;
         }
         return Optional.empty();
@@ -300,17 +302,26 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<ExternalClaim> externalClaimsInDB = this.dbBasedClaimMetadataManager.getExternalClaims(
                 externalClaimDialectURI, tenantId);
 
-        Map<String, ExternalClaim> externalClaimsInDBMap = externalClaimsInDB.stream()
-                .collect(Collectors.toMap(ExternalClaim::getClaimURI, claim -> claim));
-
+        Map<String, ExternalClaim> externalClaimsInDBMap = new HashMap<>();
+        Map<String, ExternalClaim> mappedLocalClaimInDBMap = new HashMap<>();
+        externalClaimsInDB.forEach(claim -> {
+            externalClaimsInDBMap.put(claim.getClaimURI(), claim);
+            mappedLocalClaimInDBMap.put(claim.getMappedLocalClaim(), claim);
+        });
+        /*
+         * If a system claim is also in the DB, then the claim retrieved from the DB gets the priority.
+         * Also, if there is a system claim that is mapped to the same local claim as another external claim in the same
+         * dialect, then we do not enforce the system claim on the tenant because that would violate the constraint of
+         * having a unique claim mapping within the dialect. This is to preserve backward-compatibility.
+         */
         List<ExternalClaim> allExternalClaims = new ArrayList<>();
         for (ExternalClaim externalClaimInSystem : externalClaimsInSystem) {
             ExternalClaim matchingClaimInDB = externalClaimsInDBMap.get(externalClaimInSystem.getClaimURI());
             if (matchingClaimInDB != null) {
-                matchingClaimInDB.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(matchingClaimInDB);
                 allExternalClaims.add(matchingClaimInDB);
                 externalClaimsInDBMap.remove(externalClaimInSystem.getClaimURI());
-            } else {
+            } else if (!mappedLocalClaimInDBMap.containsKey(externalClaimInSystem.getMappedLocalClaim())) {
                 externalClaimInSystem.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
                 allExternalClaims.add(externalClaimInSystem);
             }
@@ -331,18 +342,29 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     public Optional<ExternalClaim> getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
             throws ClaimMetadataException {
 
-        Optional<ExternalClaim> externalClaim = this.dbBasedClaimMetadataManager.getExternalClaim(
-                externalClaimDialectURI, claimURI, tenantId);
+        List<ExternalClaim> externalClaimsInDB = this.dbBasedClaimMetadataManager.getExternalClaims(
+                externalClaimDialectURI, tenantId);
+        Optional<ExternalClaim> externalClaim = Optional.empty();
+        Map<String, ExternalClaim> mappedLocalClaimInDBMap = new HashMap<>();
+
+        for (ExternalClaim claim : externalClaimsInDB) {
+            if (claim.getClaimURI().equals(claimURI)) {
+                externalClaim = Optional.of(claim);
+            }
+            mappedLocalClaimInDBMap.put(claim.getMappedLocalClaim(), claim);
+        }
         if (externalClaim.isPresent()) {
             if (isSystemDefaultExternalClaim(externalClaimDialectURI, claimURI, tenantId)) {
-                externalClaim.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+                markAsSystemClaim(externalClaim.get());
             }
             return externalClaim;
         }
+
         Optional<ExternalClaim> externalClaimInSystem = this.systemDefaultClaimMetadataManager.getExternalClaim(
                 externalClaimDialectURI, claimURI, tenantId);
-        if (externalClaimInSystem.isPresent()) {
-            externalClaimInSystem.get().setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+        if (externalClaimInSystem.isPresent()
+                && !mappedLocalClaimInDBMap.containsKey(externalClaimInSystem.get().getMappedLocalClaim())) {
+            markAsSystemClaim(externalClaimInSystem.get());
             return externalClaimInSystem;
         }
         return Optional.empty();
@@ -572,5 +594,10 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         if (claimInSystem.isPresent()) {
             this.dbBasedClaimMetadataManager.addLocalClaim(claimInSystem.get(), tenantId);
         }
+    }
+
+    private void markAsSystemClaim(Claim claim) {
+
+        claim.setClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
     }
 }
