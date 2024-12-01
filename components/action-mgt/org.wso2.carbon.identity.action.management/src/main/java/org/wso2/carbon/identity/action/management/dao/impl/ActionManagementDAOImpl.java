@@ -176,6 +176,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Add Basic Information of an {@link ActionDTO} to the Database.
+     *
+     * @param actionDTO ActionDTO object with basic information.
+     * @param tenantId  Tenant ID.
+     * @throws ActionMgtException If an error occurs while adding action basic information in the database.
+     */
     private void addBasicInfo(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -207,7 +214,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param updatingActionDTO Information to be updated.
      * @param existingActionDTO Existing Action information.
      * @param tenantId          Tenant ID.
-     * @throws ActionMgtException If an error occurs while updating the Action basic information.
+     * @throws ActionMgtException If an error occurs while updating the Action basic information in the database.
      */
     private void updateBasicInfo(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
             throws ActionMgtException {
@@ -265,6 +272,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Add Action Endpoint Configurations.
+     *
+     * @param actionDTO ActionDTO object with endpoint information.
+     * @param tenantId  Tenant ID.
+     * @throws ActionMgtException If an error occurs while adding action endpoint.
+     */
     private void addEndpoint(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
         EndpointConfig endpoint = actionDTO.getEndpoint();
@@ -281,8 +295,16 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Update Action Endpoint Configurations.
+     *
+     * @param updatingActionDTO Updating ActionDTO object with endpoint information.
+     * @param existingActionDTO Existing ActionDTO object with endpoint information.
+     * @param tenantId          Tenant ID.
+     * @throws ActionMgtException If an error occurs while updating action endpoint.
+     */
     private void updateEndpoint(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
-            throws ActionMgtServerException {
+            throws ActionMgtException {
 
         EndpointConfig updatingEndpoint = updatingActionDTO.getEndpoint();
         if (updatingEndpoint == null) {
@@ -302,6 +324,15 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Update Action Endpoint Authentication.
+     *
+     * @param actionId               UUID of the created Action.
+     * @param updatingAuthentication Authentication object with updated configurations.
+     * @param existingAuthentication Existing Authentication object.
+     * @param tenantId               Tenant ID.
+     * @throws ActionMgtException If an error occurs while updating action endpoint authentication.
+     */
     private void updateEndpointAuthentication(String actionId, Authentication updatingAuthentication,
                                               Authentication existingAuthentication, Integer tenantId)
             throws ActionMgtException {
@@ -324,6 +355,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Add Authentication Configurations of a new Authentication type.
+     *
+     * @param actionId               UUID of the created Action.
+     * @param updatingAuthentication Authentication object with updated configurations.
+     * @param tenantId               Tenant ID.
+     * @throws TransactionException If an error occurs while adding action authentication.
+     */
     private void addAuthentication(String actionId, Authentication updatingAuthentication, Integer tenantId)
             throws TransactionException {
 
@@ -334,6 +373,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         addActionPropertiesToDB(actionId, authenticationProperties, tenantId);
     }
 
+    /**
+     * Delete Authentication Configurations of an existing Authentication type.
+     *
+     * @param actionId               UUID of the created Action.
+     * @param existingAuthentication Existing Authentication object.
+     * @param tenantId               Tenant ID.
+     * @throws TransactionException If an error occurs while deleting action authentication.
+     */
     private void deleteAuthentication(String actionId, Authentication existingAuthentication, Integer tenantId)
             throws TransactionException {
 
@@ -345,6 +392,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         deleteActionPropertiesInDB(actionId, deletingProperties, tenantId);
     }
 
+    /**
+     * Update Authentication Configurations of an existing Authentication type.
+     *
+     * @param actionId               UUID of the created Action.
+     * @param updatingAuthentication Authentication object with updated configurations.
+     * @param tenantId               Tenant ID.
+     * @throws TransactionException If an error occurs while updating action authentication.
+     */
     private void updateAuthentication(String actionId, Authentication updatingAuthentication, Integer tenantId)
             throws TransactionException {
 
@@ -355,6 +410,13 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         updateActionPropertiesInDB(actionId, nonSecretAuthenticationProperties, tenantId);
     }
 
+    /**
+     * Add Action properties.
+     *
+     * @param actionDTO ActionDTO object with properties.
+     * @param tenantId  Tenant ID.
+     * @throws ActionMgtException If an error occurs while adding action properties.
+     */
     private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
         Map<String, Object> propertiesMap = actionDTO.getProperties();
@@ -371,6 +433,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Update Action properties.
+     *
+     * @param updatingActionDTO Updating ActionDTO object with properties.
+     * @param existingActionDTO Existing ActionDTO object with properties.
+     * @param tenantId          Tenant ID.
+     * @throws ActionMgtException If an error occurs while updating action properties.
+     */
     private void updateProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                   Integer tenantId) throws ActionMgtException {
 
@@ -458,7 +528,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @param actionId           UUID of the created Action.
      * @param updatingProperties Action properties to be updated.
      * @param tenantId           Tenant ID.
-     * @throws TransactionException If an error occurs while updating the Action properties.
+     * @throws TransactionException If an error occurs while updating the Action properties in the database.
      */
     private void updateActionPropertiesInDB(String actionId, Map<String, String> updatingProperties,
                                             Integer tenantId) throws TransactionException {
@@ -479,6 +549,14 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 }, null));
     }
 
+    /**
+     * Delete the given properties of an {@link ActionDTO} by given Action ID.
+     *
+     * @param actionId           UUID of the created Action.
+     * @param deletingProperties Action properties to be deleted.
+     * @param tenantId           Tenant ID.
+     * @throws TransactionException If an error occurs while deleting the Action properties in the database.
+     */
     private void deleteActionPropertiesInDB(String actionId, List<String> deletingProperties, Integer tenantId)
             throws TransactionException {
 

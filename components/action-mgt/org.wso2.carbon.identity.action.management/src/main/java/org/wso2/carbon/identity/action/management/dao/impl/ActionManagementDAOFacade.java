@@ -202,6 +202,12 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Encrypt and store the authentication secrets of the Action Endpoint Authentication.
+     *
+     * @param actionDTOBuilder ActionDTOBuilder object.
+     * @throws ActionMgtException If an error occurs while encrypting the authentication secrets.
+     */
     private void encryptAddingAuthSecrets(ActionDTOBuilder actionDTOBuilder) throws ActionMgtException {
 
         try {
@@ -214,6 +220,15 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Encrypt and update the authentication secrets of the Action Endpoint Authentication.
+     * If the authentication type is changed, delete the existing authentication secrets and add new secrets.
+     * If the authentication properties are updated, update the existing authentication secrets.
+     *
+     * @param updatingActionDTOBuilder ActionDTOBuilder object.
+     * @param existingActionDTO        Existing ActionDTO object.
+     * @throws ActionMgtException If an error occurs while encrypting the authentication secrets.
+     */
     private void encryptUpdatingAuthSecrets(ActionDTOBuilder updatingActionDTOBuilder,
                                             ActionDTO existingActionDTO)
             throws ActionMgtException {
@@ -239,7 +254,13 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         }
     }
 
-    private void deleteAuthenticationSecrets(ActionDTO deletingActionDTO) throws ActionMgtServerException {
+    /**
+     * Delete the authentication secrets of the Action Endpoint Authentication.
+     *
+     * @param deletingActionDTO ActionDTO object.
+     * @throws ActionMgtException If an error occurs while deleting the authentication secrets.
+     */
+    private void deleteAuthenticationSecrets(ActionDTO deletingActionDTO) throws ActionMgtException {
 
         try {
             actionSecretProcessor.deleteAssociatedSecrets(deletingActionDTO.getEndpoint().getAuthentication(),
@@ -249,6 +270,13 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         }
     }
 
+    /**
+     * Add the encrypted authentication secrets and replace the input authentication properties in the ActionDTOBuilder
+     * object.
+     *
+     * @param actionDTOBuilder     ActionDTOBuilder object.
+     * @param encryptedProperties  List of encrypted AuthProperty objects.
+     */
     private void addEncryptedAuthSecretsToBuilder(ActionDTOBuilder actionDTOBuilder,
                                                   List<AuthProperty> encryptedProperties) {
 
@@ -264,6 +292,14 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                         .build());
     }
 
+    /**
+     * Get the ActionDTO with resolved adding properties that needs to be added in the Action Management Service.
+     *
+     * @param actionDTO ActionDTO object.
+     * @param tenantId  Tenant ID.
+     * @return ActionDTO object with resolved adding properties.
+     * @throws ActionPropertyResolverException If an error occurs while resolving the adding properties.
+     */
     private ActionDTO getActionDTOWithResolvedAddingProperties(ActionDTO actionDTO, Integer tenantId)
             throws ActionPropertyResolverException {
 
@@ -276,19 +312,37 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         return actionPropertyResolver.resolveAddingProperties(actionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
-    private List<ActionDTO> getActionDTOsWithPopulatedProperties(String actionType, List<ActionDTO> actionDTOS,
+    /**
+     * Get the ActionDTO list with populated properties according to the references stored in the Action Management
+     * Service.
+     *
+     * @param actionType Action type.
+     * @param actionDTOs List of ActionDTO objects.
+     * @param tenantId   Tenant ID.
+     * @return List of ActionDTO objects with populated properties.
+     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     */
+    private List<ActionDTO> getActionDTOsWithPopulatedProperties(String actionType, List<ActionDTO> actionDTOs,
                                                                  Integer tenantId)
             throws ActionPropertyResolverException {
 
         ActionPropertyResolver actionPropertyResolver =
                 ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.valueOf(actionType));
         if (actionPropertyResolver == null) {
-            return actionDTOS;
+            return actionDTOs;
         }
 
-        return actionPropertyResolver.populateProperties(actionDTOS, IdentityTenantUtil.getTenantDomain(tenantId));
+        return actionPropertyResolver.populateProperties(actionDTOs, IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
+    /**
+     * Get the ActionDTO with populated properties according to the references stored in the Action Management Service.
+     *
+     * @param actionDTO ActionDTO object.
+     * @param tenantId  Tenant ID.
+     * @return ActionDTO object with populated properties.
+     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     */
     private ActionDTO getActionDTOWithPopulatedProperties(ActionDTO actionDTO, Integer tenantId)
             throws ActionPropertyResolverException {
 
@@ -301,6 +355,15 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         return actionPropertyResolver.populateProperties(actionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
+    /**
+     * Get the ActionDTO with resolved updating properties that needs to be updated in the Action Management Service.
+     *
+     * @param updatingActionDTO Updating ActionDTO object.
+     * @param existingActionDTO Existing ActionDTO object.
+     * @param tenantId          Tenant ID.
+     * @return ActionDTO object with resolved updating properties.
+     * @throws ActionPropertyResolverException If an error occurs while resolving the updating properties.
+     */
     private ActionDTO getActionDTOWithResolvedUpdatingProperties(ActionDTO updatingActionDTO,
                                                                  ActionDTO existingActionDTO, Integer tenantId)
             throws ActionPropertyResolverException {
@@ -315,6 +378,13 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
+    /**
+     * Delete the properties that are deleted in the Action Management Service.
+     *
+     * @param deletingActionDTO Deleting ActionDTO object.
+     * @param tenantId          Tenant ID.
+     * @throws ActionPropertyResolverException If an error occurs while deleting the properties.
+     */
     private void deleteProperties(ActionDTO deletingActionDTO, Integer tenantId)
             throws ActionPropertyResolverException {
 
@@ -327,6 +397,12 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         actionPropertyResolver.deleteProperties(deletingActionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
     }
 
+    /**
+     * Handle the ActionPropertyResolverClientException and throw the relevant ActionMgtClientException.
+     *
+     * @param throwable Throwable object.
+     * @throws ActionMgtClientException If an error occurs while handling the ActionPropertyResolverClientException.
+     */
     private static void handleActionPropertyResolverClientException(Throwable throwable)
             throws ActionMgtClientException {
 

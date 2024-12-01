@@ -32,30 +32,85 @@ public interface ActionPropertyResolver {
 
     Action.ActionTypes getSupportedActionType();
 
+    /**
+     * Resolve the properties that need to be added in the Action Management Service.
+     * This method is responsible for performing necessary CRUD operations for the properties that need to be added
+     * using other external services.
+     * The Action Management Service ensures that only the properties returned by this method are stored.
+     *
+     * @param actionDTO    ActionDTO object.
+     * @param tenantDomain Tenant domain.
+     * @return ActionDTO object with resolved properties.
+     * @throws ActionPropertyResolverException If an error occurs while resolving the properties.
+     */
     default ActionDTO resolveAddingProperties(ActionDTO actionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
 
         return actionDTO;
     }
 
+    /**
+     * Populate the properties according to the references stored in the Action Management Service.
+     * This method is responsible for populating the properties that need to be retrieved using other external services.
+     * The Action Management Service ensures that only the properties populated by this method are included in the
+     * returned ActionDTO object.
+     *
+     * @param actionDTO    ActionDTO object with properties references.
+     * @param tenantDomain Tenant domain.
+     * @return ActionDTO object with populated properties.
+     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     */
     default ActionDTO populateProperties(ActionDTO actionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
 
         return actionDTO;
     }
 
+    /**
+     * Populate the properties of the given ActionDTO list according to the references stored in the Action Management
+     * Service.
+     * This method is responsible for populating the properties that need to be retrieved using other external services.
+     * The Action Management Service ensures that only the properties populated by this method are included in the
+     * returned ActionDTO object list.
+     *
+     * @param actionDTOList List of ActionDTO objects with properties references.
+     * @param tenantDomain  Tenant domain.
+     * @return List of ActionDTO objects with populated properties.
+     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     */
     default List<ActionDTO> populateProperties(List<ActionDTO> actionDTOList, String tenantDomain)
             throws ActionPropertyResolverException {
 
         return actionDTOList;
     }
 
+    /**
+     * Resolve the properties that need to be updated in the Action Management Service.
+     * This method is responsible for performing necessary CRUD operations for the properties that need to be updated
+     * using other external services.
+     * The Action Management Service ensures that only the properties returned by this method are updated.
+     *
+     * @param updatingActionDTO ActionDTO object with updated properties.
+     * @param existingActionDTO ActionDTO object with existing properties.
+     * @param tenantDomain      Tenant domain.
+     * @return ActionDTO object with resolved properties.
+     * @throws ActionPropertyResolverException If an error occurs while resolving the properties.
+     */
     default ActionDTO resolveUpdatingProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                                 String tenantDomain) throws ActionPropertyResolverException {
 
         return updatingActionDTO;
     }
 
+    /**
+     * Delete the properties that need to be deleted in the Action Management Service.
+     * This method is responsible for performing necessary CRUD operations for the properties that need to be deleted
+     * using other external services.
+     *
+     * @param deletingActionDTO ActionDTO object with properties to be deleted.
+     * @param tenantDomain      Tenant domain.
+     * @throws ActionPropertyResolverException If an error occurs while deleting the properties.
+     */
     default void deleteProperties(ActionDTO deletingActionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
     }
