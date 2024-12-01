@@ -36,4 +36,3 @@ public class InputValue extends Value {
         super(InputType.INPUT, valueType);
     }
 }
-

@@ -34,4 +34,3 @@ public class RuleMetadataServerException extends RuleMetadataException {
         super(errorCode, message, description, cause);
     }
 }
-

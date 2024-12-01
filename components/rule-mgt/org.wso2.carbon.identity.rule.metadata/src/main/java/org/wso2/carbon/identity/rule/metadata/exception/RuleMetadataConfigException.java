@@ -33,4 +33,3 @@ public class RuleMetadataConfigException extends Exception {
         super(message, cause);
     }
 }
-

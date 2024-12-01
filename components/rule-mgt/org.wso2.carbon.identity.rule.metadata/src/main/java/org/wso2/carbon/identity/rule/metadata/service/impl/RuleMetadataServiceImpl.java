@@ -45,4 +45,3 @@ public class RuleMetadataServiceImpl implements RuleMetadataService {
         return ruleMetadataManager.getExpressionMetaForFlow(flowType, tenantDomain);
     }
 }
-

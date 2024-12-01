@@ -1,10 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>rule-mgt</artifactId>
-        <version>7.5.123-SNAPSHOT</version>
+        <version>7.7.4-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -61,15 +80,35 @@
                         <Private-Package>
                             org.wso2.carbon.identity.rule.metadata.internal,
                             org.wso2.carbon.identity.rule.metadata.config,
-                            org.wso2.carbon.identity.rule.metadata.deserializers,
+                            org.wso2.carbon.identity.rule.metadata.deserializer,
                             org.wso2.carbon.identity.rule.metadata.provider.impl,
                             org.wso2.carbon.identity.rule.metadata.service.impl,
+                            org.wso2.carbon.identity.rule.metadata.util,
                         </Private-Package>
                         <Export-Package>
+                            !org.wso2.carbon.identity.rule.metadata.internal,
+                            !org.wso2.carbon.identity.rule.metadata.config,
+                            !org.wso2.carbon.identity.rule.metadata.deserializer,
+                            !org.wso2.carbon.identity.rule.metadata.provider.impl,
+                            !org.wso2.carbon.identity.rule.metadata.service.impl,
+                            !org.wso2.carbon.identity.rule.metadata.util,
                             org.wso2.carbon.identity.rule.metadata.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
+                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils;
+                            version="${carbon.identity.package.import.version.range}",
+                            com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.databind.*;
+                            version="${com.fasterxml.jackson.annotation.version.range}",
+                            com.fasterxml.jackson.annotation.*;
+                            version="${com.fasterxml.jackson.annotation.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
@@ -126,7 +165,7 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.8</minimum>
+                                            <minimum>0.80</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>

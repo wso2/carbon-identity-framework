@@ -68,7 +68,7 @@ public class RuleMetadataExceptionBuilder {
     public enum RuleMetadataError {
 
         // Client Errors.
-        ERROR_INVALID_FLOW_TYPE("60001", "Invalid flow.", "Flow: %s is not valid."),
+        ERROR_INVALID_FLOW_TYPE("60001", "Invalid flow.", "Provided flow type is invalid or not implemented."),
 
         // Server Errors.
         ERROR_WHILE_LOADING_STATIC_RULE_METADATA("65001", "Error while loading static rule metadata.",
@@ -104,4 +104,3 @@ public class RuleMetadataExceptionBuilder {
         }
     }
 }
-

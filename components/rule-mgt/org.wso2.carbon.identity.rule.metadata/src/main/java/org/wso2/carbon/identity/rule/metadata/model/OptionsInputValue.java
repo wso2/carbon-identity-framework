@@ -56,4 +56,3 @@ public class OptionsInputValue extends Value {
         }
     }
 }
-
