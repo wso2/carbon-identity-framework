@@ -37,6 +37,8 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -483,8 +485,8 @@ public class UnifiedClaimMetadataManagerTest {
         ExternalClaim externalClaimsInSystem = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1);
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
                 .thenReturn(Optional.of(externalClaimsInSystem));
-        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(Optional.empty());
+        when(dbBasedClaimMetadataManager.getExternalClaims(EXT_CLAIM_DIALECT_1, 1))
+                .thenReturn(Collections.emptyList());
         Optional<ExternalClaim> result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
         assertTrue(result.isPresent());
         assertEquals(result.get().getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
@@ -492,9 +494,9 @@ public class UnifiedClaimMetadataManagerTest {
 
         ExternalClaim externalClaimsInDB = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_1);
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(null);
-        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(Optional.of(externalClaimsInDB));
+                .thenReturn(Optional.empty());
+        when(dbBasedClaimMetadataManager.getExternalClaims(EXT_CLAIM_DIALECT_1, 1))
+                .thenReturn(Collections.singletonList(externalClaimsInDB));
         result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
         assertTrue(result.isPresent());
         assertEquals(result.get().getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
@@ -504,8 +506,8 @@ public class UnifiedClaimMetadataManagerTest {
         externalClaimsInDB = new ExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, LOCAL_CLAIM_2);
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
                 .thenReturn(Optional.of(externalClaimsInSystem));
-        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(Optional.of(externalClaimsInDB));
+        when(dbBasedClaimMetadataManager.getExternalClaims(EXT_CLAIM_DIALECT_1, 1))
+                .thenReturn(Collections.singletonList(externalClaimsInDB));
         result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
         assertTrue(result.isPresent());
         assertEquals(result.get().getClaimURI(), EXT_CLAIM_DIALECT_1_CLAIM_1);
@@ -513,8 +515,8 @@ public class UnifiedClaimMetadataManagerTest {
 
         when(systemDefaultClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
                 .thenReturn(Optional.empty());
-        when(dbBasedClaimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1))
-                .thenReturn(Optional.empty());
+        when(dbBasedClaimMetadataManager.getExternalClaims(EXT_CLAIM_DIALECT_1, 1))
+                .thenReturn(Collections.emptyList());
         result = claimMetadataManager.getExternalClaim(EXT_CLAIM_DIALECT_1, EXT_CLAIM_DIALECT_1_CLAIM_1, 1);
         assertFalse(result.isPresent());
     }
