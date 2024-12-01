@@ -1202,6 +1202,11 @@
         <Scopes>internal_action_mgt_view</Scopes>
     </Resource>
 
+    <!-- Rule Metadata API -->
+    <Resource context="(.*)/api/server/v1/rules/metadata(.*)" secured="true" http-method="GET">
+        <Scopes>internal_rule_metadata_view</Scopes>
+    </Resource>
+
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>

@@ -1211,4 +1211,12 @@
                     description="Manage offline invitations from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Rule Metadata API" identifier="/api/server/v1/rules/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Rules Metadata API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Metadata" name="internal_rule_metadata_view"
+                   description="View metadata for rule configuration"/>
+        </Scopes>
+    </APIResource>
 </APIResources>
