@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.common.dao.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Query;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
@@ -29,6 +28,7 @@ import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtExc
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -39,6 +39,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
 
 /**
  * This class implements the AuthenticatorManagementDAO interface which perform CRUD operation on database.
@@ -83,9 +85,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                                 IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-
-            ErrorMessages error = ErrorMessages.ERROR_WHILE_ADDING_AUTHENTICATOR;
-            throw new AuthenticatorMgtServerException(error.getMessage(), error.getMessage(), error.getCode(), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
@@ -127,8 +127,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                                 existingAuthenticatorConfig.getName(), IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            ErrorMessages error = ErrorMessages.ERROR_WHILE_UPDATING_AUTHENTICATOR;
-            throw new AuthenticatorMgtServerException(error.getMessage(), error.getMessage(), error.getCode(), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
@@ -175,8 +174,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                 LOG.debug(String.format("Error while retrieving the all user defined local authenticators in tenant " +
                                 "domain: %s.", IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            ErrorMessages error = ErrorMessages.ERROR_WHILE_DELETING_AUTHENTICATOR;
-            throw new AuthenticatorMgtServerException(error.getMessage(), error.getMessage(), error.getCode(), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_DELETING_AUTHENTICATOR, e);
         }
     }
 
@@ -199,8 +197,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                                 IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-            ErrorMessages error = ErrorMessages.ERROR_WHILE_DELETING_AUTHENTICATOR;
-            throw new AuthenticatorMgtServerException(error.getMessage(), error.getMessage(), error.getCode(), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_DELETING_AUTHENTICATOR, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
@@ -251,8 +248,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             IdentityDatabaseUtil.commitTransaction(dbConnection);
             return config;
         } catch (SQLException e) {
-            ErrorMessages error = ErrorMessages.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME;
-            throw new AuthenticatorMgtServerException(error.getMessage(), error.getMessage(), error.getCode(), e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
         }
     }
 
@@ -286,8 +282,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         }
-        throw new AuthenticatorMgtServerException(String.format("Authenticator with name: %s not found in the database."
-                , authenticatorConfigName));
+        throw buildServerException(AuthenticatorMgtError.ERROR_CODE_NO_AUTHENTICATOR_FOUND, authenticatorConfigName);
     }
 
     private void deletedAuthenticatorProperties(Connection dbConnection, int authenticatorConfigID, int tenantId)
