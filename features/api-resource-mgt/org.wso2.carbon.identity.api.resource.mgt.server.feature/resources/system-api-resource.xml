@@ -449,6 +449,8 @@
                     description="View discovery configurations of the organization (root)"/>
             <Scope displayName="Add Organization Configs" name="internal_organization_config_add" 
                     description="Add new discovery configurations of the organization (root)"/>
+            <Scope displayName="Update Organization Configs" name="internal_organization_config_update"
+                   description="Update discovery configurations of the organization (root)"/>
             <Scope displayName="Delete Organization Configs" name="internal_organization_config_delete" 
                     description="Delete discovery configurations of the organization (root)"/>
         </Scopes>
@@ -1207,6 +1209,14 @@
         <Scopes>
             <Scope displayName="Offline invite link" name="internal_offline_invite" 
                     description="Manage offline invitations from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Rule Metadata API" identifier="/api/server/v1/rules/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Rules Metadata API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Metadata" name="internal_rule_metadata_view"
+                   description="View metadata for rule configuration"/>
         </Scopes>
     </APIResource>
 </APIResources>
