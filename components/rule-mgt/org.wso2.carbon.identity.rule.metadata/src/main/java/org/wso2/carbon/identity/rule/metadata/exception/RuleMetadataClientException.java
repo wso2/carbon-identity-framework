@@ -28,9 +28,4 @@ public class RuleMetadataClientException extends RuleMetadataException {
 
         super(errorCode, message, description);
     }
-
-    public RuleMetadataClientException(String errorCode, String message, String description, Throwable cause) {
-
-        super(errorCode, message, description, cause);
-    }
 }

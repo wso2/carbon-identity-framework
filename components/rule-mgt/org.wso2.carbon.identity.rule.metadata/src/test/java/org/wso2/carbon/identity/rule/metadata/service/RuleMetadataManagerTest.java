@@ -53,6 +53,8 @@ import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -79,8 +81,6 @@ public class RuleMetadataManagerTest {
 
         MockitoAnnotations.openMocks(this);
         ruleMetadataManager = RuleMetadataManager.getInstance();
-        ruleMetadataManager.registerMetadataProvider(metadataProvider1);
-        ruleMetadataManager.registerMetadataProvider(metadataProvider2);
     }
 
     @AfterClass
@@ -90,6 +90,18 @@ public class RuleMetadataManagerTest {
     }
 
     @Test
+    public void testRegisterMetadataProvider() throws Exception {
+
+        ruleMetadataManager.registerMetadataProvider(metadataProvider1);
+        ruleMetadataManager.registerMetadataProvider(metadataProvider2);
+
+        List<RuleMetadataProvider> metadataProviders =
+                getMetadataProvidersInInstance(ruleMetadataManager);
+        assertTrue(metadataProviders.contains(metadataProvider1));
+        assertTrue(metadataProviders.contains(metadataProvider2));
+    }
+
+    @Test(dependsOnMethods = {"testRegisterMetadataProvider"})
     public void testGetExpressionMetaForFlowWhenNoDuplicatingFieldDefinitionsFoundAcrossProviders()
             throws RuleMetadataException {
 
@@ -110,12 +122,13 @@ public class RuleMetadataManagerTest {
         assertEquals(result, expectedFieldDefinitions);
     }
 
-    @Test(expectedExceptions = RuleMetadataServerException.class,
+    @Test(dependsOnMethods = {"testRegisterMetadataProvider"}, expectedExceptions = RuleMetadataServerException.class,
             expectedExceptionsMessageRegExp = "Duplicate field found.")
     public void testGetExpressionMetaForFlowWhenDuplicatingFieldDefinitionsFoundAcrossProviders()
             throws RuleMetadataException {
 
-        List<FieldDefinition> fieldDefinitionsForMetadataProvider1 = getMockedFieldDefinitionsForMetadataProvider1();
+        List<FieldDefinition>
+                fieldDefinitionsForMetadataProvider1 = getMockedFieldDefinitionsForMetadataProvider1();
         when(metadataProvider1.getExpressionMeta(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(fieldDefinitionsForMetadataProvider1);
         List<FieldDefinition> fieldDefinitionsForMetadataProvider2 =
@@ -124,6 +137,59 @@ public class RuleMetadataManagerTest {
                 .thenReturn(fieldDefinitionsForMetadataProvider2);
 
         ruleMetadataManager.getExpressionMetaForFlow(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+    }
+
+    @Test(dependsOnMethods = {"testRegisterMetadataProvider"})
+    public void testGetExpressionMetaForFlowWhenProviderReturnsNullFieldDefinitionList()
+            throws RuleMetadataException {
+
+        List<FieldDefinition>
+                fieldDefinitionsForMetadataProvider1 = getMockedFieldDefinitionsForMetadataProvider1();
+        when(metadataProvider1.getExpressionMeta(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(fieldDefinitionsForMetadataProvider1);
+        when(metadataProvider2.getExpressionMeta(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(null);
+
+        List<FieldDefinition> result =
+                ruleMetadataManager.getExpressionMetaForFlow(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        assertNotNull(result);
+        assertEquals(result.size(), fieldDefinitionsForMetadataProvider1.size());
+        assertEquals(result, fieldDefinitionsForMetadataProvider1);
+    }
+
+    @Test(dependsOnMethods = {"testRegisterMetadataProvider"})
+    public void testGetExpressionMetaForFlowWhenProviderReturnsEmptyFieldDefinitionList()
+            throws RuleMetadataException {
+
+        List<FieldDefinition>
+                fieldDefinitionsForMetadataProvider1 = getMockedFieldDefinitionsForMetadataProvider1();
+        when(metadataProvider1.getExpressionMeta(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(fieldDefinitionsForMetadataProvider1);
+        when(metadataProvider2.getExpressionMeta(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(Collections.emptyList());
+
+        List<FieldDefinition> result =
+                ruleMetadataManager.getExpressionMetaForFlow(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        assertNotNull(result);
+        assertEquals(result.size(), fieldDefinitionsForMetadataProvider1.size());
+        assertEquals(result, fieldDefinitionsForMetadataProvider1);
+    }
+
+    @Test(dependsOnMethods = {"testRegisterMetadataProvider",
+            "testGetExpressionMetaForFlowWhenNoDuplicatingFieldDefinitionsFoundAcrossProviders",
+            "testGetExpressionMetaForFlowWhenDuplicatingFieldDefinitionsFoundAcrossProviders",
+            "testGetExpressionMetaForFlowWhenProviderReturnsNullFieldDefinitionList"})
+    public void testUnregisterMetadataProvider() throws Exception {
+
+        ruleMetadataManager.unregisterMetadataProvider(metadataProvider1);
+        ruleMetadataManager.unregisterMetadataProvider(metadataProvider2);
+
+        List<RuleMetadataProvider> metadataProviders =
+                getMetadataProvidersInInstance(ruleMetadataManager);
+        assertFalse(metadataProviders.contains(metadataProvider1));
+        assertFalse(metadataProviders.contains(metadataProvider2));
     }
 
     private List<FieldDefinition> getMockedFieldDefinitionsForMetadataProvider1() {
@@ -169,5 +235,13 @@ public class RuleMetadataManagerTest {
         Value applicationValue = new InputValue(Value.ValueType.STRING);
 
         return Collections.singletonList(new FieldDefinition(applicationField, operators, applicationValue));
+    }
+
+    private static List<RuleMetadataProvider> getMetadataProvidersInInstance(RuleMetadataManager instance)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        java.lang.reflect.Field field = instance.getClass().getDeclaredField("metadataProviders");
+        field.setAccessible(true);
+        return (List<RuleMetadataProvider>) field.get(instance);
     }
 }

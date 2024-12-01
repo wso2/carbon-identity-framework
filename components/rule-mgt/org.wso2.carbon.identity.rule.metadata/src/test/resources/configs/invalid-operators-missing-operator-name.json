@@ -1,6 +1,6 @@
 {
   "equals": {
-    "name": "equals"
+    "displayName": "equals"
   },
   "notEquals": {
     "name": "notEquals",
