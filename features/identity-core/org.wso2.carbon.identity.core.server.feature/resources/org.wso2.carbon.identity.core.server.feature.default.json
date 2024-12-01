@@ -9,6 +9,7 @@
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
+  "identity_data_source.skip_claim_metadata_persistence": true,
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
@@ -216,7 +217,7 @@
   "oauth.token_validator.jwt.class": "org.wso2.carbon.identity.oauth2.validators.OAuth2JWTTokenValidator",
   "oauth.scope_validator.jdbc.enable": true,
   "oauth.scope_validator.jdbc.class": "org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator",
-  "oauth.scope_validator.xacml.enable": true,
+  "oauth.scope_validator.xacml.enable": false,
   "oauth.scope_validator.xacml.class": "org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator",
   "oauth.scope_validator.authz_implicit.enable": true,
   "oauth.scope_validator.preserve_case_sensitivity": false,
@@ -259,7 +260,7 @@
   "oauth.oidc.request_object.signing_algorithms": ["PS256", "ES256", "$ref{oauth.oidc.user_info.jwt_signature_algorithm}"],
   "oauth.oidc.enable_tls_certificate_bound_access_tokens_via_binding_type": true,
   "oauth.oidc.enable_hybrid_flow_app_level_validation": true,
-  "oauth.oidc.enable_claims_separation_for_access_tokens": false,
+  "oauth.oidc.enable_claims_separation_for_access_tokens": true,
 
   "oauth.oidc.fapi.enable_ciba_profile": false,
   "oauth.oidc.fapi.enable_security_profile": false,
@@ -1642,6 +1643,7 @@
   "tenant_mgt.enable_email_domain": false,
 
   "on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled": false,
+  "on_demand_config.on_initial_use.enable_sms_username_recovery_if_connector_enabled": false,
 
   "actions.http_client.connection_timeout": 2000,
   "actions.http_client.read_timeout": 5000,

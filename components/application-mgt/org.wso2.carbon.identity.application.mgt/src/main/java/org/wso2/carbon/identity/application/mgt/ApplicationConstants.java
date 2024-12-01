@@ -74,6 +74,7 @@ public class ApplicationConstants {
     public static final String PURPOSE_GROUP_TYPE_SP = "SP";
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
+    public static final String IS_FRAGMENT_APP = "isFragmentApp";
 
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String MY_SQL = "MySQL";

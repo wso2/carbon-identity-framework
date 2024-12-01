@@ -29,7 +29,9 @@
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.CommonDataRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ConfiguredAuthenticatorsRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityProviderDataRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.RecoveryApiV2Test"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ValidationConfigurationRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.OrganizationDiscoveryConfigDataRetrievalClientTest"/>
         </classes>
     </test>
 </suite>

@@ -71,6 +71,7 @@
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
             <CleanUpPeriod>{{par.cleanup.clean_expired_requests_every}}</CleanUpPeriod>
         </PushedAuthReqCleanUp>
+        <SkipClaimMetadataPersistence>{{identity_data_source.skip_claim_metadata_persistence}}</SkipClaimMetadataPersistence>
     </JDBCPersistenceManager>
 
     <!--
@@ -98,6 +99,7 @@
         <SMSTemplates>
             <Apply>{{notification_templates.sms_templates.apply}}</Apply>
         </SMSTemplates>
+        <EnableUnicodeSupport>{{notification_templates.enable_unicode_support}}</EnableUnicodeSupport>
     </NotificationTemplates>
 
     <!-- Time configurations are in minutes -->
@@ -1604,6 +1606,16 @@
             Supported versions : IS 7.1.0 onwards
         -->
         <ConsiderServerWideUserEndpointMaxLimit>{{scim2.consider_server_wide_user_endpoint_max_limit}}</ConsiderServerWideUserEndpointMaxLimit>
+
+        <!--
+            If you want to get the error code appended to the password policy violation error detail,
+            then enable this property value.
+            Default value : false
+            Supported versions : IS 6.0.0 onwards
+        -->
+        {% if scim2.enable_error_code_for_password_policy_violations is defined %}
+            <EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>
+        {% endif %}
     </SCIM2>
 
       <PasswordPolicy>
@@ -4392,6 +4404,7 @@
     <OnDemandConfig>
         <OnInitialUse>
             <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>{{on_demand_config.on_initial_use.enable_sms_otp_password_recovery_if_connector_enabled}}</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+            <EnableSMSUsernameRecoveryIfConnectorEnabled>{{on_demand_config.on_initial_use.enable_sms_username_recovery_if_connector_enabled}}</EnableSMSUsernameRecoveryIfConnectorEnabled>
         </OnInitialUse>
     </OnDemandConfig>
 

@@ -182,9 +182,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_SCOPE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_TENANT_DOMAIN_BY_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_UM_ID_BY_UUID;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SCOPE_BY_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP;
@@ -531,35 +529,19 @@ public class RoleDAOImpl implements RoleDAO {
     public List<String> getPermissionListOfRoles(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (isOrganization(tenantDomain)) {
-            return getPermissionsOfSharedRoles(roleIds, tenantDomain);
-        } else {
-            return getPermissionListOfRolesByIds(roleIds, tenantDomain);
-        }
-    }
-
-    private List<String> getPermissionListOfRolesByIds(List<String> roleIds, String tenantDomain)
-            throws IdentityRoleManagementException {
-
         List<String> permissions = new ArrayList<>();
-        String query = GET_SCOPE_BY_ROLES_SQL + String.join(", ",
-                Collections.nCopies(roleIds.size(), "?")) + ")";
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+        List<Permission> permissionList = new ArrayList<>();
+        for (String roleId : roleIds) {
+            if (isOrganization(tenantDomain) && isSharedRole(roleId, tenantDomain)) {
+                permissionList.addAll(getPermissionsOfSharedRole(roleId, tenantDomain));
+            } else {
+                permissionList.addAll(getPermissions(roleId, tenantDomain));
+            }
+        }
 
-            for (int i = 0; i < roleIds.size(); i++) {
-                statement.setString(i + 1, roleIds.get(i));
-            }
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    permissions.add(resultSet.getString(1));
-                }
-            }
-        } catch (SQLException e) {
-            String errorMessage =
-                    "Error while retrieving permissions for role ids: " + StringUtils.join(roleIds, ", ")
-                            + " and tenantDomain : " + tenantDomain;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        List<Permission> distinctPermissions = permissionList.stream().distinct().collect(Collectors.toList());
+        for (Permission permission : distinctPermissions) {
+            permissions.add(permission.getName());
         }
         return permissions;
     }
@@ -1653,50 +1635,6 @@ public class RoleDAOImpl implements RoleDAO {
 
         return permission.startsWith(INTERNAL_ORG_SCOPE_PREFIX) || permission.startsWith(CONSOLE_ORG_SCOPE_PREFIX) ||
                 (!permission.startsWith(INTERNAL_SCOPE_PREFIX) && !permission.startsWith(CONSOLE_SCOPE_PREFIX));
-    }
-
-    /**
-     * Get permission of shared roles.
-     *
-     * @param roleIds      Role IDs.
-     * @param tenantDomain Tenant domain.
-     * @throws IdentityRoleManagementException IdentityRoleManagementException.
-     */
-    private List<String> getPermissionsOfSharedRoles(List<String> roleIds, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        List<String> mainRoleIds = new ArrayList<>();
-        int mainTenantId = -1;
-        String query = GET_SHARED_ROLES_MAIN_ROLE_IDS_SQL + String.join(", ",
-                Collections.nCopies(roleIds.size(), "?")) + ")";
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
-
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-            for (int i = 0; i < roleIds.size(); i++) {
-                statement.setString(i + 2, roleIds.get(i));
-            }
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    mainRoleIds.add(resultSet.getString(RoleConstants.RoleTableColumns.UM_UUID));
-                    if (mainTenantId == -1) {
-                        mainTenantId = resultSet.getInt(RoleConstants.RoleTableColumns.UM_TENANT_ID);
-                    }
-                }
-            }
-            if (!mainRoleIds.isEmpty() && mainTenantId != -1) {
-                String mainTenantDomain = IdentityTenantUtil.getTenantDomain(mainTenantId);
-                if (StringUtils.isNotEmpty(mainTenantDomain)) {
-                    return getPermissionListOfRolesByIds(mainRoleIds, mainTenantDomain);
-                }
-            }
-        } catch (SQLException | IdentityRoleManagementException e) {
-            String errorMessage = "Error while retrieving permissions for role ids : "
-                    + StringUtils.join(roleIds, ",") + "in the tenantDomain: " + tenantDomain;
-            throw new IdentityRoleManagementServerException(errorMessage, e);
-        }
-        return null;
     }
 
     /**

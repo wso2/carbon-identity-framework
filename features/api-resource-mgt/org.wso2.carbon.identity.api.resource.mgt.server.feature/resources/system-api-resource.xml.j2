@@ -49,6 +49,14 @@
                    description="Delete API resources"/>
         </Scopes>
     </APIResource>
+    <APIResource name="API Resource Management API" identifier="/o/api/server/v1/api-resources"
+                 requiresAuthorization="true"
+                 description="API representation of the API Resource Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View API Resources" name="internal_org_api_resource_view"
+                   description = "View API resources in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Shared Application Management API" identifier="/api/server/v1/applications/share"
                  requiresAuthorization="true"
                  description="API representation of the Shared Application Management API" type="TENANT">
@@ -450,6 +458,8 @@
                     description="View discovery configurations of the organization (root)"/>
             <Scope displayName="Add Organization Configs" name="internal_organization_config_add" 
                     description="Add new discovery configurations of the organization (root)"/>
+            <Scope displayName="Update Organization Configs" name="internal_organization_config_update"
+                    description="Update discovery configurations of the organization (root)"/>
             <Scope displayName="Delete Organization Configs" name="internal_organization_config_delete" 
                     description="Delete discovery configurations of the organization (root)"/>
         </Scopes>
@@ -1216,6 +1226,14 @@
         <Scopes>
             <Scope displayName="User Impersonation Scope" name="internal_user_impersonate"
                     description = "Allows to impersonate another user"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Rule Metadata API" identifier="/api/server/v1/rules/metadata"
+                     requiresAuthorization="true"
+                     description="API representation of the Rules Metadata API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Metadata" name="internal_rule_metadata_view"
+                   description="View metadata for rule configuration"/>
         </Scopes>
     </APIResource>
 </APIResources>
