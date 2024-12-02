@@ -334,34 +334,34 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
      * Get an external claim by URI.
      *
      * @param externalClaimDialectURI External claim dialect URI.
-     * @param claimURI                Claim URI.
+     * @param externalClaimURI        Claim URI.
      * @param tenantId                Tenant ID.
      * @return External claim.
      * @throws ClaimMetadataException If an error occurs while retrieving external claim.
      */
-    public Optional<ExternalClaim> getExternalClaim(String externalClaimDialectURI, String claimURI, int tenantId)
-            throws ClaimMetadataException {
+    public Optional<ExternalClaim> getExternalClaim(String externalClaimDialectURI, String externalClaimURI,
+                                                    int tenantId) throws ClaimMetadataException {
 
         List<ExternalClaim> externalClaimsInDB = this.dbBasedClaimMetadataManager.getExternalClaims(
                 externalClaimDialectURI, tenantId);
         Optional<ExternalClaim> externalClaim = Optional.empty();
         Map<String, ExternalClaim> mappedLocalClaimInDBMap = new HashMap<>();
 
-        for (ExternalClaim claim : externalClaimsInDB) {
-            if (claim.getClaimURI().equals(claimURI)) {
-                externalClaim = Optional.of(claim);
+        for (ExternalClaim externalClaimInDB : externalClaimsInDB) {
+            if (externalClaimInDB.getClaimURI().equals(externalClaimURI)) {
+                externalClaim = Optional.of(externalClaimInDB);
             }
-            mappedLocalClaimInDBMap.put(claim.getMappedLocalClaim(), claim);
+            mappedLocalClaimInDBMap.put(externalClaimInDB.getMappedLocalClaim(), externalClaimInDB);
         }
         if (externalClaim.isPresent()) {
-            if (isSystemDefaultExternalClaim(externalClaimDialectURI, claimURI, tenantId)) {
+            if (isSystemDefaultExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId)) {
                 markAsSystemClaim(externalClaim.get());
             }
             return externalClaim;
         }
 
         Optional<ExternalClaim> externalClaimInSystem = this.systemDefaultClaimMetadataManager.getExternalClaim(
-                externalClaimDialectURI, claimURI, tenantId);
+                externalClaimDialectURI, externalClaimURI, tenantId);
         if (externalClaimInSystem.isPresent()
                 && !mappedLocalClaimInDBMap.containsKey(externalClaimInSystem.get().getMappedLocalClaim())) {
             markAsSystemClaim(externalClaimInSystem.get());

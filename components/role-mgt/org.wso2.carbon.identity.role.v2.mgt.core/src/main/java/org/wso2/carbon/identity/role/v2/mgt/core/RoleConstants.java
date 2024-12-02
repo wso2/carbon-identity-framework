@@ -73,6 +73,13 @@ public class RoleConstants {
     public static final String CONSOLE_SCOPE_PREFIX = "console:";
     public static final String CONSOLE_ORG_SCOPE_PREFIX = "console:org:";
 
+    // Conflict Audit Data fields
+    public static final String PARENT_ORG_ID = "parentOrganizationId";
+    public static final String SHARED_ORG_ID = "sharedOrganizationId";
+    public static final String EXISTING_ROLE_NAME = "existingRoleName";
+    public static final String NEW_ROLE_NAME = "newRoleName";
+    public static final String FAILURE_REASON = "failureReason";
+
     /**
      * Grouping of constants related to database table names.
      */
