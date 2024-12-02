@@ -488,4 +488,17 @@ public interface RoleDAO {
 
         return null;
     }
+
+    /**
+     * Check whether the given role is a shared role in the given tenant.
+     *
+     * @param roleId The role ID of the tenant.
+     * @param tenantDomain The tenant domain.
+     * @return True if the role is a shared role.
+     * @throws IdentityRoleManagementException If an error occurs while checking the shared role.
+     */
+    default boolean isSharedRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return false;
+    }
 }

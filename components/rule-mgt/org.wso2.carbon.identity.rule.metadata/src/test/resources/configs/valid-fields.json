@@ -1,0 +1,80 @@
+{
+  "application": {
+    "field": {
+      "name": "application",
+      "displayName": "application"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "reference",
+      "valueReferenceAttribute": "id",
+      "valueDisplayAttribute": "name",
+      "links": [
+        {
+          "href": "/applications?offset=0&limit=10",
+          "method": "GET",
+          "rel": "values"
+        },
+        {
+          "href": "/applications?filter=name+eq+*&limit=10",
+          "method": "GET",
+          "rel": "filter"
+        }
+      ]
+    }
+  },
+  "grantType": {
+    "field": {
+      "name": "grantType",
+      "displayName": "grant type"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "authorization_code",
+          "displayName": "authorization code"
+        },
+        {
+          "name": "password",
+          "displayName": "password"
+        },
+        {
+          "name": "refresh_token",
+          "displayName": "refresh token"
+        },
+        {
+          "name": "client_credentials",
+          "displayName": "client credentials"
+        },
+        {
+          "name": "urn:ietf:params:oauth:grant-type:token-exchange",
+          "displayName": "token exchange"
+        }
+      ]
+    }
+  },
+  "email": {
+    "field": {
+      "name": "email",
+      "displayName": "user.email"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "input",
+      "valueType": "string"
+    }
+  }
+}
