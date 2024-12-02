@@ -452,7 +452,7 @@ public interface RoleDAO {
     default Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
             throws IdentityRoleManagementException {
 
-        throw new NotImplementedException("getRoles method is not implemented");
+        throw new NotImplementedException("getSharedRoleToMainRoleMappingsBySubOrg method is not implemented");
     }
 
 

@@ -1321,8 +1321,7 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
-    public Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds,
-                                                                       String subOrgTenantDomain)
+    public Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
             throws IdentityRoleManagementException {
 
         Map<String, String> rolesMap = new HashMap<>();
