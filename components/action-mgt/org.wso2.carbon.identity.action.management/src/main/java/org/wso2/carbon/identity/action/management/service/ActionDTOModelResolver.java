@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.service;
 
-import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
+import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 
@@ -41,10 +41,10 @@ public interface ActionDTOModelResolver {
      * @param actionDTO    ActionDTO object.
      * @param tenantDomain Tenant domain.
      * @return ActionDTO object with resolved properties.
-     * @throws ActionPropertyResolverException If an error occurs while resolving the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while resolving the properties.
      */
     default ActionDTO resolveForAddOperation(ActionDTO actionDTO, String tenantDomain)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         return actionDTO;
     }
@@ -58,10 +58,10 @@ public interface ActionDTOModelResolver {
      * @param actionDTO    ActionDTO object with properties references.
      * @param tenantDomain Tenant domain.
      * @return ActionDTO object with populated properties.
-     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
     default ActionDTO resolveForGetOperation(ActionDTO actionDTO, String tenantDomain)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         return actionDTO;
     }
@@ -76,10 +76,10 @@ public interface ActionDTOModelResolver {
      * @param actionDTOList List of ActionDTO objects with properties references.
      * @param tenantDomain  Tenant domain.
      * @return List of ActionDTO objects with populated properties.
-     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
     default List<ActionDTO> resolveForGetOperation(List<ActionDTO> actionDTOList, String tenantDomain)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         return actionDTOList;
     }
@@ -94,10 +94,10 @@ public interface ActionDTOModelResolver {
      * @param existingActionDTO ActionDTO object with existing properties.
      * @param tenantDomain      Tenant domain.
      * @return ActionDTO object with resolved properties.
-     * @throws ActionPropertyResolverException If an error occurs while resolving the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while resolving the properties.
      */
     default ActionDTO resolveForUpdateOperation(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
-                                                String tenantDomain) throws ActionPropertyResolverException {
+                                                String tenantDomain) throws ActionDTOModelResolverException {
 
         return updatingActionDTO;
     }
@@ -109,9 +109,9 @@ public interface ActionDTOModelResolver {
      *
      * @param deletingActionDTO ActionDTO object with properties to be deleted.
      * @param tenantDomain      Tenant domain.
-     * @throws ActionPropertyResolverException If an error occurs while deleting the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while deleting the properties.
      */
     default void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
     }
 }

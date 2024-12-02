@@ -22,8 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
-import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOFacade;
+import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
@@ -51,15 +51,10 @@ import java.util.stream.Collectors;
 public class ActionManagementServiceImpl implements ActionManagementService {
 
     private static final Log LOG = LogFactory.getLog(ActionManagementServiceImpl.class);
+    private static final ActionManagementDAOFacade DAO_FACADE =
+            new ActionManagementDAOFacade(new ActionManagementDAOImpl());
     private static final ActionValidator ACTION_VALIDATOR = new ActionValidator();
     private static final ActionManagementAuditLogger auditLogger = new ActionManagementAuditLogger();
-
-    private final ActionManagementDAOFacade daoFacade;
-
-    public ActionManagementServiceImpl(ActionManagementDAO actionManagementDAO) {
-
-        this.daoFacade = new ActionManagementDAOFacade(actionManagementDAO);
-    }
 
     /**
      * Create a new action of the specified type in the given tenant.
@@ -83,7 +78,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         String generatedActionId = UUID.randomUUID().toString();
         ActionDTO creatingActionDTO = buildActionDTO(resolvedActionType, generatedActionId, action);
 
-        daoFacade.addAction(creatingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
+        DAO_FACADE.addAction(creatingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         Action createdAction = getActionByActionId(actionType, generatedActionId, tenantDomain);
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ADD, creatingActionDTO);
 
@@ -105,7 +100,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Retrieving Actions for Action Type: %s.", actionType));
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
-        List<ActionDTO> actionDTOS =  daoFacade.getActionsByActionType(resolvedActionType,
+        List<ActionDTO> actionDTOS =  DAO_FACADE.getActionsByActionType(resolvedActionType,
                 IdentityTenantUtil.getTenantId(tenantDomain));
 
         return actionDTOS.stream()
@@ -130,7 +125,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
             LOG.debug(String.format("Retrieving Action of Action ID: %s", actionId));
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
-        ActionDTO actionDTO = daoFacade.getActionByActionId(resolvedActionType, actionId,
+        ActionDTO actionDTO = DAO_FACADE.getActionByActionId(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
 
         return buildAction(resolvedActionType, actionDTO);
@@ -161,7 +156,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
         ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
 
-        daoFacade.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
+        DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, actionId, updatingActionDTO);
         return getActionByActionId(actionType, actionId, tenantDomain);
     }
@@ -182,7 +177,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        daoFacade.deleteAction(existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
+        DAO_FACADE.deleteAction(existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId);
     }
 
@@ -203,7 +198,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        ActionDTO activatedActionDTO = daoFacade.activateAction(resolvedActionType, actionId,
+        ActionDTO activatedActionDTO = DAO_FACADE.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, actionType, actionId);
         return buildAction(resolvedActionType, activatedActionDTO);
@@ -227,7 +222,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         }
         String resolvedActionType = getActionTypeFromPath(actionType);
         checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        ActionDTO deactivatedActionDTO = daoFacade.deactivateAction(resolvedActionType, actionId,
+        ActionDTO deactivatedActionDTO = DAO_FACADE.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, actionType, actionId);
         return buildAction(resolvedActionType, deactivatedActionDTO);
@@ -246,7 +241,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieving Actions count per Type.");
         }
-        return daoFacade.getActionsCountPerType(IdentityTenantUtil.getTenantId(tenantDomain));
+        return DAO_FACADE.getActionsCountPerType(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     /**
@@ -318,7 +313,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
     private ActionDTO checkIfActionExists(String actionType, String actionId, String tenantDomain)
             throws ActionMgtException {
 
-        ActionDTO actionDTO = daoFacade.getActionByActionId(actionType, actionId,
+        ActionDTO actionDTO = DAO_FACADE.getActionByActionId(actionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         if (actionDTO == null || !actionType.equals(actionDTO.getType().name())) {
             throw ActionManagementExceptionHandler.handleClientException(

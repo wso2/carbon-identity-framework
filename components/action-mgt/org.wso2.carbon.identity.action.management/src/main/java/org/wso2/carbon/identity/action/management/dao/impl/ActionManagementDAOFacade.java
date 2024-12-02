@@ -24,11 +24,11 @@ import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
+import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverClientException;
+import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
-import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverClientException;
-import org.wso2.carbon.identity.action.management.exception.ActionPropertyResolverException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
@@ -96,7 +96,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
             List<ActionDTO> actionDTOS = actionManagementDAO.getActionsByActionType(actionType, tenantId);
 
             return getActionDTOsWithPopulatedProperties(actionType, actionDTOS, tenantId);
-        } catch (ActionMgtException | ActionPropertyResolverException e) {
+        } catch (ActionMgtException | ActionDTOModelResolverException e) {
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
         }
@@ -114,7 +114,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
             // Populate action properties
             return getActionDTOWithPopulatedProperties(actionDTO, tenantId);
-        } catch (ActionMgtException | ActionPropertyResolverException e) {
+        } catch (ActionMgtException | ActionDTOModelResolverException e) {
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
         }
@@ -300,10 +300,10 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @param actionDTO ActionDTO object.
      * @param tenantId  Tenant ID.
      * @return ActionDTO object with resolved adding properties.
-     * @throws ActionPropertyResolverException If an error occurs while resolving the adding properties.
+     * @throws ActionDTOModelResolverException If an error occurs while resolving the adding properties.
      */
     private ActionDTO getActionDTOWithResolvedAddingProperties(ActionDTO actionDTO, Integer tenantId)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =
                 ActionDTOModelResolverFactory.getActionDTOModelResolver(actionDTO.getType());
@@ -322,11 +322,11 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @param actionDTOs List of ActionDTO objects.
      * @param tenantId   Tenant ID.
      * @return List of ActionDTO objects with populated properties.
-     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
     private List<ActionDTO> getActionDTOsWithPopulatedProperties(String actionType, List<ActionDTO> actionDTOs,
                                                                  Integer tenantId)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =
                 ActionDTOModelResolverFactory.getActionDTOModelResolver(Action.ActionTypes.valueOf(actionType));
@@ -343,10 +343,10 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @param actionDTO ActionDTO object.
      * @param tenantId  Tenant ID.
      * @return ActionDTO object with populated properties.
-     * @throws ActionPropertyResolverException If an error occurs while populating the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
     private ActionDTO getActionDTOWithPopulatedProperties(ActionDTO actionDTO, Integer tenantId)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =
                 ActionDTOModelResolverFactory.getActionDTOModelResolver(actionDTO.getType());
@@ -364,11 +364,11 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @param existingActionDTO Existing ActionDTO object.
      * @param tenantId          Tenant ID.
      * @return ActionDTO object with resolved updating properties.
-     * @throws ActionPropertyResolverException If an error occurs while resolving the updating properties.
+     * @throws ActionDTOModelResolverException If an error occurs while resolving the updating properties.
      */
     private ActionDTO getActionDTOWithResolvedUpdatingProperties(ActionDTO updatingActionDTO,
                                                                  ActionDTO existingActionDTO, Integer tenantId)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =
                 ActionDTOModelResolverFactory.getActionDTOModelResolver(updatingActionDTO.getType());
@@ -385,10 +385,10 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      *
      * @param deletingActionDTO Deleting ActionDTO object.
      * @param tenantId          Tenant ID.
-     * @throws ActionPropertyResolverException If an error occurs while deleting the properties.
+     * @throws ActionDTOModelResolverException If an error occurs while deleting the properties.
      */
     private void deleteProperties(ActionDTO deletingActionDTO, Integer tenantId)
-            throws ActionPropertyResolverException {
+            throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =
                 ActionDTOModelResolverFactory.getActionDTOModelResolver(deletingActionDTO.getType());
@@ -409,8 +409,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
     private static void handleActionPropertyResolverClientException(Throwable throwable)
             throws ActionMgtClientException {
 
-        if (throwable instanceof ActionPropertyResolverClientException) {
-            ActionPropertyResolverClientException clientException = (ActionPropertyResolverClientException) throwable;
+        if (throwable instanceof ActionDTOModelResolverClientException) {
+            ActionDTOModelResolverClientException clientException = (ActionDTOModelResolverClientException) throwable;
             throw new ActionMgtClientException(clientException.getMessage(), clientException.getDescription(),
                     ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getCode());
         }

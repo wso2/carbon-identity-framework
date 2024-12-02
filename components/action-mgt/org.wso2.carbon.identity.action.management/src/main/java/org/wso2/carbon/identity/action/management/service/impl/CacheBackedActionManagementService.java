@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.cache.ActionCacheByType;
 import org.wso2.carbon.identity.action.management.cache.ActionCacheEntry;
 import org.wso2.carbon.identity.action.management.cache.ActionTypeCacheKey;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
@@ -40,8 +39,7 @@ public class CacheBackedActionManagementService implements ActionManagementServi
 
     private static final CacheBackedActionManagementService INSTANCE = new CacheBackedActionManagementService();
     private static final Log LOG = LogFactory.getLog(CacheBackedActionManagementService.class);
-    private static final ActionManagementServiceImpl ACTION_MGT_SERVICE =
-            new ActionManagementServiceImpl(new ActionManagementDAOImpl());
+    private static final ActionManagementServiceImpl ACTION_MGT_SERVICE = new ActionManagementServiceImpl();
     private final ActionCacheByType actionCacheByType;
 
     private CacheBackedActionManagementService() {

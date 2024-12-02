@@ -19,17 +19,17 @@
 package org.wso2.carbon.identity.action.management.exception;
 
 /**
- * Server Exception class for Action Property Resolver.
+ * Server Exception class for ActionDTO Model Resolver.
  * This exception is thrown when there is an issue in performing action type specific operations in the system.
  */
-public class ActionPropertyResolverServerException extends ActionPropertyResolverException {
+public class ActionDTOModelResolverServerException extends ActionDTOModelResolverException {
 
-    public ActionPropertyResolverServerException(String message) {
+    public ActionDTOModelResolverServerException(String message) {
 
         super(message);
     }
 
-    public ActionPropertyResolverServerException(String message, String description, Throwable cause) {
+    public ActionDTOModelResolverServerException(String message, String description, Throwable cause) {
 
         super(message, description, cause);
     }

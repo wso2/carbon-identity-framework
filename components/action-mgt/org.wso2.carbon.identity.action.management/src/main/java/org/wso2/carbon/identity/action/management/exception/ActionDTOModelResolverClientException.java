@@ -19,13 +19,13 @@
 package org.wso2.carbon.identity.action.management.exception;
 
 /**
- * Client Exception class for Action Property Resolver.
+ * Client Exception class for ActionDTO Model Resolver.
  * This exception is thrown when there is any validation failures or client error in performing action type
  * specific operations.
  */
-public class ActionPropertyResolverClientException extends ActionPropertyResolverException {
+public class ActionDTOModelResolverClientException extends ActionDTOModelResolverException {
 
-    public ActionPropertyResolverClientException(String message, String description) {
+    public ActionDTOModelResolverClientException(String message, String description) {
 
         super(message, description);
     }

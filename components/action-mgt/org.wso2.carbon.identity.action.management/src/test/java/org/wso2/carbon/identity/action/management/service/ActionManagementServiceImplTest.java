@@ -23,7 +23,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
@@ -80,7 +79,7 @@ public class ActionManagementServiceImplTest {
     @BeforeClass
     public void setUpClass() {
 
-        actionManagementService = new ActionManagementServiceImpl(new ActionManagementDAOImpl());
+        actionManagementService = new ActionManagementServiceImpl();
     }
 
     @BeforeMethod
