@@ -22,7 +22,7 @@
         <test name="action-mgt-tests" preserve-order="true" parallel="false">
                 <classes>
                         <class name="org.wso2.carbon.identity.action.management.service.ActionConverterFactoryTest"></class>
-                        <class name="org.wso2.carbon.identity.action.management.dao.ActionPropertyResolverFactoryTest"></class>
+                        <class name="org.wso2.carbon.identity.action.management.dao.ActionDTOModelResolverFactoryTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.model.ActionTypesTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.util.ActionSecretProcessorTest"></class>
                         <class name="org.wso2.carbon.identity.action.management.util.ActionValidatorTest"></class>

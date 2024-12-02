@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.action.management.dao;
 
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
+import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 
@@ -35,9 +35,9 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.PASSWORD_
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE;
 
 /**
- * Test implementation of ActionPropertyResolver.
+ * Test implementation of {@link ActionDTOModelResolver}.
  */
-public class TestActionPropertyResolver implements ActionPropertyResolver {
+public class TestActionDTOModelResolver implements ActionDTOModelResolver {
 
     @Override
     public Action.ActionTypes getSupportedActionType() {
@@ -46,7 +46,7 @@ public class TestActionPropertyResolver implements ActionPropertyResolver {
     }
 
     @Override
-    public ActionDTO resolveAddingProperties(ActionDTO actionDTO, String tenantDomain) {
+    public ActionDTO resolveForAddOperation(ActionDTO actionDTO, String tenantDomain) {
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
@@ -56,7 +56,7 @@ public class TestActionPropertyResolver implements ActionPropertyResolver {
     }
 
     @Override
-    public ActionDTO populateProperties(ActionDTO actionDTO, String tenantDomain) {
+    public ActionDTO resolveForGetOperation(ActionDTO actionDTO, String tenantDomain) {
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
@@ -73,7 +73,7 @@ public class TestActionPropertyResolver implements ActionPropertyResolver {
     }
 
     @Override
-    public List<ActionDTO> populateProperties(List<ActionDTO> actionDTOList, String tenantDomain) {
+    public List<ActionDTO> resolveForGetOperation(List<ActionDTO> actionDTOList, String tenantDomain) {
 
         List<ActionDTO> resolvedActionDTOList = new ArrayList<>();
         for (ActionDTO actionDTO : actionDTOList) {
@@ -93,8 +93,8 @@ public class TestActionPropertyResolver implements ActionPropertyResolver {
     }
 
     @Override
-    public ActionDTO resolveUpdatingProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
-                                                String tenantDomain) {
+    public ActionDTO resolveForUpdateOperation(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
+                                               String tenantDomain) {
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,

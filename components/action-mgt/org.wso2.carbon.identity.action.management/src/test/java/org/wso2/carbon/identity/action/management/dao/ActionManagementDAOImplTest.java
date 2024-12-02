@@ -45,7 +45,7 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_ID
 /**
  * This class is a test suite for the ActionManagementDAOImpl class.
  * It contains unit tests to verify the functionality of the methods in the ActionManagementDAOImpl class.
- * This test class will utilize {@link TestActionPropertyResolver} class as the test implementation for
+ * This test class will utilize {@link TestActionDTOModelResolver} class as the test implementation for
  * ActionPropertyResolver interface.
  */
 @WithH2Database(files = {"dbscripts/h2.sql"})

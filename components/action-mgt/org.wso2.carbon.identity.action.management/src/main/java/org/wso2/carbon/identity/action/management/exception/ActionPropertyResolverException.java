@@ -24,13 +24,27 @@ package org.wso2.carbon.identity.action.management.exception;
  */
 public class ActionPropertyResolverException extends Exception {
 
+    private String description;
+
     public ActionPropertyResolverException(String message) {
 
         super(message);
     }
 
-    public ActionPropertyResolverException(String message, Throwable cause) {
+    public ActionPropertyResolverException(String message, String description) {
+
+        super(message);
+        this.description = description;
+    }
+
+    public ActionPropertyResolverException(String message, String description, Throwable cause) {
 
         super(message, cause);
+        this.description = description;
+    }
+
+    public String getDescription() {
+
+        return this.description;
     }
 }

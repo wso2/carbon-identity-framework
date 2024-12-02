@@ -29,8 +29,8 @@ public class ActionPropertyResolverServerException extends ActionPropertyResolve
         super(message);
     }
 
-    public ActionPropertyResolverServerException(String message, Throwable cause) {
+    public ActionPropertyResolverServerException(String message, String description, Throwable cause) {
 
-        super(message, cause);
+        super(message, description, cause);
     }
 }

@@ -28,9 +28,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
+import org.wso2.carbon.identity.action.management.dao.impl.ActionDTOModelResolverFactory;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOFacade;
 import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionPropertyResolverFactory;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
@@ -42,7 +42,7 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
+import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
@@ -94,9 +94,9 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USER
 public class ActionManagementDAOFacadeTest {
 
     @Mock
-    private ActionPropertyResolver mockedActionPropertyResolver;
-    private TestActionPropertyResolver testActionPropertyResolver;
-    private MockedStatic<ActionPropertyResolverFactory> actionPropertyResolverFactory;
+    private ActionDTOModelResolver mockedActionDTOModelResolver;
+    private TestActionDTOModelResolver testActionPropertyResolver;
+    private MockedStatic<ActionDTOModelResolverFactory> actionPropertyResolverFactory;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     private ActionManagementDAOFacade daoFacade;
@@ -120,7 +120,7 @@ public class ActionManagementDAOFacadeTest {
                 .property(CERTIFICATE_PROPERTY_NAME,
                         new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build())
                 .build();
-        testActionPropertyResolver = new TestActionPropertyResolver();
+        testActionPropertyResolver = new TestActionDTOModelResolver();
     }
 
     @BeforeMethod
@@ -136,13 +136,13 @@ public class ActionManagementDAOFacadeTest {
         identityTenantUtil.when(()-> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
 
         MockitoAnnotations.openMocks(this);
-        actionPropertyResolverFactory = mockStatic(ActionPropertyResolverFactory.class);
+        actionPropertyResolverFactory = mockStatic(ActionDTOModelResolverFactory.class);
     }
 
     @AfterMethod
     public void tearDown() {
 
-        mockedActionPropertyResolver = null;
+        mockedActionDTOModelResolver = null;
         identityTenantUtil.close();
         actionPropertyResolverFactory.close();
     }
@@ -150,9 +150,9 @@ public class ActionManagementDAOFacadeTest {
     @Test(priority = 1)
     public void testAddActionWithActionPropertyResolverClientException() throws ActionPropertyResolverException {
 
-        mockActionPropertyResolver(mockedActionPropertyResolver);
-        doThrow(new ActionPropertyResolverClientException("Invalid Certificate.")).when(mockedActionPropertyResolver)
-                .resolveAddingProperties(any(), any());
+        mockActionPropertyResolver(mockedActionDTOModelResolver);
+        doThrow(new ActionPropertyResolverClientException("Invalid Certificate.", "Invalid PEM format."))
+                .when(mockedActionDTOModelResolver).resolveForAddOperation(any(), any());
 
         try {
             daoFacade.addAction(creatingActionDTO, TENANT_ID);
@@ -160,17 +160,17 @@ public class ActionManagementDAOFacadeTest {
         } catch (ActionMgtException e) {
             Assert.assertEquals(e.getClass(), ActionMgtClientException.class);
             Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getCode());
-            Assert.assertEquals(e.getMessage(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getMessage());
-            Assert.assertEquals(e.getDescription(), "Invalid Certificate.");
+            Assert.assertEquals(e.getMessage(), "Invalid Certificate.");
+            Assert.assertEquals(e.getDescription(), "Invalid PEM format.");
         }
     }
 
     @Test(priority = 2)
     public void testAddActionWithActionPropertyResolverServerException() throws ActionPropertyResolverException {
 
-        mockActionPropertyResolver(mockedActionPropertyResolver);
-        doThrow(new ActionPropertyResolverServerException("Error adding Certificate.", new Throwable()))
-                .when(mockedActionPropertyResolver).resolveAddingProperties(any(), any());
+        mockActionPropertyResolver(mockedActionDTOModelResolver);
+        doThrow(new ActionPropertyResolverServerException("Error adding Certificate.", null, new Throwable()))
+                .when(mockedActionDTOModelResolver).resolveForAddOperation(any(), any());
 
         try {
             daoFacade.addAction(creatingActionDTO, TENANT_ID);
@@ -264,9 +264,9 @@ public class ActionManagementDAOFacadeTest {
     @Test(priority = 5)
     public void testUpdateActionPropertyResolverClientException() throws ActionPropertyResolverException {
 
-        mockActionPropertyResolver(mockedActionPropertyResolver);
-        doThrow(new ActionPropertyResolverClientException("Invalid Certificate.")).when(mockedActionPropertyResolver)
-                .resolveUpdatingProperties(any(), any(), any());
+        mockActionPropertyResolver(mockedActionDTOModelResolver);
+        doThrow(new ActionPropertyResolverClientException("Invalid Certificate.", "Invalid PEM format."))
+                .when(mockedActionDTOModelResolver).resolveForUpdateOperation(any(), any(), any());
 
         try {
             daoFacade.updateAction(creatingActionDTO, createdActionDTO, TENANT_ID);
@@ -274,18 +274,18 @@ public class ActionManagementDAOFacadeTest {
         } catch (ActionMgtException e) {
             Assert.assertEquals(e.getClass(), ActionMgtClientException.class);
             Assert.assertEquals(e.getErrorCode(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getCode());
-            Assert.assertEquals(e.getMessage(), ErrorMessage.ERROR_INVALID_ACTION_PROPERTIES.getMessage());
-            Assert.assertEquals(e.getDescription(), "Invalid Certificate.");
+            Assert.assertEquals(e.getMessage(), "Invalid Certificate.");
+            Assert.assertEquals(e.getDescription(), "Invalid PEM format.");
         }
     }
 
     @Test(priority = 6)
     public void testUpdateActionWithActionPropertyResolverServerException() throws ActionPropertyResolverException {
 
-        mockActionPropertyResolver(mockedActionPropertyResolver);
+        mockActionPropertyResolver(mockedActionDTOModelResolver);
         doThrow(new ActionPropertyResolverServerException("Error updating Certificate.")).when(
-                        mockedActionPropertyResolver)
-                .resolveUpdatingProperties(any(), any(), any());
+                        mockedActionDTOModelResolver)
+                .resolveForUpdateOperation(any(), any(), any());
 
         try {
             daoFacade.updateAction(creatingActionDTO, createdActionDTO, TENANT_ID);
@@ -394,10 +394,10 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(daoFacade.getActionsCountPerType(TENANT_ID), Collections.emptyMap());
     }
 
-    private void mockActionPropertyResolver(ActionPropertyResolver actionPropertyResolver) {
+    private void mockActionPropertyResolver(ActionDTOModelResolver actionDTOModelResolver) {
 
         actionPropertyResolverFactory.when(
-                () -> ActionPropertyResolverFactory.getActionPropertyResolver(Action.ActionTypes.PRE_UPDATE_PASSWORD))
-                .thenReturn(actionPropertyResolver);
+                () -> ActionDTOModelResolverFactory.getActionDTOModelResolver(Action.ActionTypes.PRE_UPDATE_PASSWORD))
+                .thenReturn(actionDTOModelResolver);
     }
 }

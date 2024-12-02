@@ -28,10 +28,10 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionPropertyResolverFactory;
+import org.wso2.carbon.identity.action.management.dao.impl.ActionDTOModelResolverFactory;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
+import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
-import org.wso2.carbon.identity.action.management.service.ActionPropertyResolver;
 import org.wso2.carbon.identity.action.management.service.impl.ActionConverterFactory;
 import org.wso2.carbon.identity.action.management.service.impl.CacheBackedActionManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
@@ -99,27 +99,27 @@ public class ActionMgtServiceComponent {
 
     @Reference(
             name = "action.property.resolver",
-            service = ActionPropertyResolver.class,
+            service = ActionDTOModelResolver.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetActionPropertyResolver"
     )
-    protected void setActionPropertyResolver(ActionPropertyResolver actionPropertyResolver) {
+    protected void setActionPropertyResolver(ActionDTOModelResolver actionDTOModelResolver) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering ActionPropertyResolver: " + actionPropertyResolver.getClass().getName() +
+            LOG.debug("Registering ActionPropertyResolver: " + actionDTOModelResolver.getClass().getName() +
                     " in the ActionMgtServiceComponent.");
         }
-        ActionPropertyResolverFactory.registerActionPropertyResolver(actionPropertyResolver);
+        ActionDTOModelResolverFactory.registerActionDTOModelResolver(actionDTOModelResolver);
     }
 
-    protected void unsetActionPropertyResolver(ActionPropertyResolver actionPropertyResolver) {
+    protected void unsetActionPropertyResolver(ActionDTOModelResolver actionDTOModelResolver) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering ActionPropertyResolver: " + actionPropertyResolver.getClass().getName() +
+            LOG.debug("Unregistering ActionPropertyResolver: " + actionDTOModelResolver.getClass().getName() +
                     " in the ActionMgtServiceComponent.");
         }
-        ActionPropertyResolverFactory.unregisterActionPropertyResolver(actionPropertyResolver);
+        ActionDTOModelResolverFactory.unregisterActionDTOModelResolver(actionDTOModelResolver);
     }
 
     @Reference(

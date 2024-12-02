@@ -28,7 +28,7 @@ import java.util.List;
  * This interface defines the Action Property Resolver.
  * Action Property Resolver is the component that is responsible for handling action type specific operations.
  */
-public interface ActionPropertyResolver {
+public interface ActionDTOModelResolver {
 
     Action.ActionTypes getSupportedActionType();
 
@@ -43,7 +43,7 @@ public interface ActionPropertyResolver {
      * @return ActionDTO object with resolved properties.
      * @throws ActionPropertyResolverException If an error occurs while resolving the properties.
      */
-    default ActionDTO resolveAddingProperties(ActionDTO actionDTO, String tenantDomain)
+    default ActionDTO resolveForAddOperation(ActionDTO actionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
 
         return actionDTO;
@@ -60,7 +60,7 @@ public interface ActionPropertyResolver {
      * @return ActionDTO object with populated properties.
      * @throws ActionPropertyResolverException If an error occurs while populating the properties.
      */
-    default ActionDTO populateProperties(ActionDTO actionDTO, String tenantDomain)
+    default ActionDTO resolveForGetOperation(ActionDTO actionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
 
         return actionDTO;
@@ -78,7 +78,7 @@ public interface ActionPropertyResolver {
      * @return List of ActionDTO objects with populated properties.
      * @throws ActionPropertyResolverException If an error occurs while populating the properties.
      */
-    default List<ActionDTO> populateProperties(List<ActionDTO> actionDTOList, String tenantDomain)
+    default List<ActionDTO> resolveForGetOperation(List<ActionDTO> actionDTOList, String tenantDomain)
             throws ActionPropertyResolverException {
 
         return actionDTOList;
@@ -96,7 +96,7 @@ public interface ActionPropertyResolver {
      * @return ActionDTO object with resolved properties.
      * @throws ActionPropertyResolverException If an error occurs while resolving the properties.
      */
-    default ActionDTO resolveUpdatingProperties(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
+    default ActionDTO resolveForUpdateOperation(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                                 String tenantDomain) throws ActionPropertyResolverException {
 
         return updatingActionDTO;
@@ -111,7 +111,7 @@ public interface ActionPropertyResolver {
      * @param tenantDomain      Tenant domain.
      * @throws ActionPropertyResolverException If an error occurs while deleting the properties.
      */
-    default void deleteProperties(ActionDTO deletingActionDTO, String tenantDomain)
+    default void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
             throws ActionPropertyResolverException {
     }
 }

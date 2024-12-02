@@ -25,8 +25,8 @@ package org.wso2.carbon.identity.action.management.exception;
  */
 public class ActionPropertyResolverClientException extends ActionPropertyResolverException {
 
-    public ActionPropertyResolverClientException(String message) {
+    public ActionPropertyResolverClientException(String message, String description) {
 
-        super(message);
+        super(message, description);
     }
 }
