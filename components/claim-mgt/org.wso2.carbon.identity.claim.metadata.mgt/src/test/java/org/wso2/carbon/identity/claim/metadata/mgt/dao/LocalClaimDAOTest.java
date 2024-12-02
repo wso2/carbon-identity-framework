@@ -269,7 +269,7 @@ public class LocalClaimDAOTest {
                         createAttributeMappings("TEST_DOMAIN", "firstname")),
                 createLocalClaim("http://wso2.org/claims/test4", null,
                         createAttributeMappings("TEST_DOMAIN", "firstname"))
-                                                               );
+        );
 
         // Local claims in DB.
         List<LocalClaim> localClaimsInDB = Arrays.asList(
@@ -279,7 +279,7 @@ public class LocalClaimDAOTest {
                         createAttributeMappings("PRIMARY", "givenname")),
                 createLocalClaim("http://wso2.org/claims/test4", "TestDescription4",
                         null)
-                                                        );
+        );
 
         // Expected result local claims.
         List<LocalClaim> resultLocalClaims = Arrays.asList(
