@@ -77,7 +77,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -992,33 +991,20 @@ public class RoleDAOTest {
         assertFalse((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "console:applications"));
     }
 
-    @DataProvider(name = "sharedRoleUUIDsProvider")
-    public Object[][] sharedRoleUUIDsProvider() {
+    @DataProvider(name = "sharedRoleToMainRoleMappingsProvider")
+    public Object[][] sharedRoleToMainRoleMappingsProvider() {
 
         return new Object[][]{
-                // Test with shared role (should return the mapping for the shared role)
-                {new HashMap<String, String>() {{
-                    put("shared-role", SHARED_ROLE_NAME);
-                }}, 1},
-
-                // Test with main role (should return an empty mapping)
-                {new HashMap<String, String>() {{
-                    put("main-role", SHARED_ROLE_NAME);
-                }}, 0},
-
-                // Test with a mix of shared role and main role (should return the mapping only for the shared role)
-                {new HashMap<String, String>() {{
-                    put("main-role", SHARED_ROLE_NAME);
-                    put("shared-role", SHARED_ROLE_NAME);
-                }}, 1},
-
-                // Test with empty list (should return an empty mapping)
-                {Collections.emptyMap(), 0}
+                {true, false, 1}, // Test with shared role (should return the mapping for the shared role)
+                {false, true, 0}, // Test with main role (should return an empty mapping)
+                {true, true, 1}, // Test with shared and main role (should return the mapping only for the shared role)
+                {false, false, 0} // Test with no shared or main roles (should return an empty mapping)
         };
     }
 
-    @Test(dataProvider = "sharedRoleUUIDsProvider")
-    public void testGetSharedRoleToMainRoleMappingsBySubOrg(Map<String, String> roleUUIDs, int expectedMappingsCount)
+    @Test(dataProvider = "sharedRoleToMainRoleMappingsProvider")
+    public void testGetSharedRoleToMainRoleMappingsBySubOrg(boolean isSharedRolePresent, boolean isMainRolePresent,
+                                                            int expectedMappingsCount)
             throws Exception {
 
         RoleDAOImpl roleDAO = setupRoleDaoImpl();
@@ -1029,18 +1015,18 @@ public class RoleDAOTest {
                 SAMPLE_SUB_ORG_TENANT_DOMAIN);
 
         List<String> sharedRoleUUIDs = new ArrayList<>();
-        if (roleUUIDs.containsKey("main-role")) {
-            sharedRoleUUIDs.add(mainRole.getId());
-        }
-        if (roleUUIDs.containsKey("shared-role")) {
+        if (isSharedRolePresent) {
             sharedRoleUUIDs.add(sharedRole.getId());
+        }
+        if (isMainRolePresent) {
+            sharedRoleUUIDs.add(mainRole.getId());
         }
 
         Map<String, String> roleMappings =
                 roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
 
         assertEquals(roleMappings.size(), expectedMappingsCount);
-        if (roleUUIDs.containsKey("shared-role")) {
+        if (isSharedRolePresent) {
             assertEquals(roleMappings.get(sharedRole.getId()), mainRole.getId());
         }
     }
