@@ -163,7 +163,7 @@ public class IdentityKeyStoreResolver {
      * @return Primary key of Primary or tenant keystore.
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
-    private Key getPrivateKey(String tenantDomain) throws IdentityKeyStoreResolverException {
+    public Key getPrivateKey(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (privateKeys.containsKey(String.valueOf(tenantId))) {
@@ -253,7 +253,7 @@ public class IdentityKeyStoreResolver {
      * @return Public Certificate of Primary or tenant keystore.
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
-    private Certificate getCertificate(String tenantDomain) throws IdentityKeyStoreResolverException {
+    public Certificate getCertificate(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (publicCerts.containsKey(String.valueOf(tenantId))) {
