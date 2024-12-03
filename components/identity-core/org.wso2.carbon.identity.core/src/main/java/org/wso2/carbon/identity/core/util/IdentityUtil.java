@@ -36,10 +36,12 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AdminServicesUtil;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -63,6 +65,7 @@ import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.ByteArrayInputStream;
@@ -71,9 +74,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -104,6 +110,7 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import static org.wso2.carbon.core.util.CryptoUtil.getJCEProvider;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
@@ -118,6 +125,8 @@ public class IdentityUtil {
                     return new HashMap<>();
                 }
             };
+    private static final String signatureAlgorithmSHA1 = "SHA1withRSA";
+    private static final String signatureAlgorithmSHA256 = "SHA256withRSA";
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
     private static final String SHA1_ALGORITHM = "SHA1";
@@ -1961,5 +1970,73 @@ public class IdentityUtil {
             return true;
         }
         return Boolean.parseBoolean(scim2UserMaxItemsPerPageEnabledProperty);
+    }
+
+    public static boolean validateSignature(String data, byte[] signature, String tenantDomain) throws Exception {
+
+        Signature signer;
+        if (Boolean.parseBoolean(ServerConfiguration.getInstance().getFirstProperty(
+                ServerConstants.SIGNATURE_UTIL_ENABLE_SHA256_ALGO))) {
+            signer = Signature.getInstance(signatureAlgorithmSHA256, getJCEProvider());
+        } else {
+            signer = Signature.getInstance(signatureAlgorithmSHA1, getJCEProvider());
+        }
+
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+        } catch (IdentityException e) {
+            throw new IdentityKeyStoreResolverException(
+                    IdentityKeyStoreResolverConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                    "Error while loading the private key", e);
+        }
+
+        signer.initVerify(IdentityKeyStoreResolver.getInstance().getCertificate(tenantDomain, null)
+                .getPublicKey());
+        signer.update(data.getBytes());
+        return signer.verify(signature);
+    }
+
+    public static byte[] doSignature(String data, String tenantDomain) throws Exception {
+
+        Signature signer;
+        if (Boolean.parseBoolean(ServerConfiguration.getInstance().getFirstProperty(
+                ServerConstants.SIGNATURE_UTIL_ENABLE_SHA256_ALGO))) {
+            signer = Signature.getInstance(signatureAlgorithmSHA256, getJCEProvider());
+        } else {
+            signer = Signature.getInstance(signatureAlgorithmSHA1, getJCEProvider());
+        }
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        Key privateKey;
+
+        try {
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                privateKey = keyStoreManager.getDefaultPrivateKey();
+            } else {
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+                try {
+                    IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+                } catch (IdentityException e) {
+                    throw new IdentityKeyStoreResolverException(
+                            IdentityKeyStoreResolverConstants.ErrorMessages
+                                    .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                            "Error while loading the private key", e);
+                }
+                privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
+            }
+        } catch (Exception e) {
+            throw new IdentityKeyStoreResolverException(
+                    IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                    String.format(
+                            IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(),
+                            tenantDomain), e);
+        }
+
+        signer.initSign((PrivateKey) privateKey);
+        signer.update(data.getBytes());
+        return signer.sign();
     }
 }
