@@ -73,7 +73,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 // Encrypt authentication secrets
                 encryptAddingAuthSecrets(actionDTOBuilder);
                 // Resolve action properties
-                ActionDTO resolvedActionDTO = getActionDTOWithResolvedAddingProperties(actionDTOBuilder.build(),
+                ActionDTO resolvedActionDTO = getResolvedActionDTOForAddOperation(actionDTOBuilder.build(),
                         tenantId);
 
                 actionManagementDAO.addAction(resolvedActionDTO, tenantId);
@@ -95,7 +95,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         try {
             List<ActionDTO> actionDTOS = actionManagementDAO.getActionsByActionType(actionType, tenantId);
 
-            return getActionDTOsWithPopulatedProperties(actionType, actionDTOS, tenantId);
+            return getResolvedActionDTOsForGetOperation(actionType, actionDTOS, tenantId);
         } catch (ActionMgtException | ActionDTOModelResolverException e) {
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTIONS_BY_ACTION_TYPE, e);
@@ -113,7 +113,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
             }
 
             // Populate action properties
-            return getActionDTOWithPopulatedProperties(actionDTO, tenantId);
+            return getResolvedActionDTOForGetOperation(actionDTO, tenantId);
         } catch (ActionMgtException | ActionDTOModelResolverException e) {
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
@@ -132,7 +132,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 encryptUpdatingAuthSecrets(updatingActionDTOBuilder, existingActionDTO);
                 // Resolve action properties
                 ActionDTO resolvedUpdatingActionDTO =
-                        getActionDTOWithResolvedUpdatingProperties(updatingActionDTOBuilder.build(), existingActionDTO,
+                        getResolvedActionDTOForUpdateOperation(updatingActionDTOBuilder.build(), existingActionDTO,
                                 tenantId);
 
                 actionManagementDAO.updateAction(resolvedUpdatingActionDTO, existingActionDTO, tenantId);
@@ -302,7 +302,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @return ActionDTO object with resolved adding properties.
      * @throws ActionDTOModelResolverException If an error occurs while resolving the adding properties.
      */
-    private ActionDTO getActionDTOWithResolvedAddingProperties(ActionDTO actionDTO, Integer tenantId)
+    private ActionDTO getResolvedActionDTOForAddOperation(ActionDTO actionDTO, Integer tenantId)
             throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =
@@ -324,7 +324,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @return List of ActionDTO objects with populated properties.
      * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
-    private List<ActionDTO> getActionDTOsWithPopulatedProperties(String actionType, List<ActionDTO> actionDTOs,
+    private List<ActionDTO> getResolvedActionDTOsForGetOperation(String actionType, List<ActionDTO> actionDTOs,
                                                                  Integer tenantId)
             throws ActionDTOModelResolverException {
 
@@ -345,7 +345,7 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @return ActionDTO object with populated properties.
      * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
-    private ActionDTO getActionDTOWithPopulatedProperties(ActionDTO actionDTO, Integer tenantId)
+    private ActionDTO getResolvedActionDTOForGetOperation(ActionDTO actionDTO, Integer tenantId)
             throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =
@@ -366,8 +366,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * @return ActionDTO object with resolved updating properties.
      * @throws ActionDTOModelResolverException If an error occurs while resolving the updating properties.
      */
-    private ActionDTO getActionDTOWithResolvedUpdatingProperties(ActionDTO updatingActionDTO,
-                                                                 ActionDTO existingActionDTO, Integer tenantId)
+    private ActionDTO getResolvedActionDTOForUpdateOperation(ActionDTO updatingActionDTO,
+                                                             ActionDTO existingActionDTO, Integer tenantId)
             throws ActionDTOModelResolverException {
 
         ActionDTOModelResolver actionDTOModelResolver =

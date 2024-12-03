@@ -36,25 +36,13 @@ public interface ActionConverter {
      * @param action Action object.
      * @return ActionDTO object.
      */
-    default ActionDTO buildActionDTO(Action action) {
+    ActionDTO buildActionDTO(Action action);
 
-        return new ActionDTO.Builder(action).build();
-    }
     /**
      * Convert ActionDTO object into Action object.
      *
      * @param actionDTO ActionDTO object.
      * @return Action object.
      */
-    default Action buildAction(ActionDTO actionDTO) {
-
-        return new Action.ActionResponseBuilder()
-                .id(actionDTO.getId())
-                .type(actionDTO.getType())
-                .name(actionDTO.getName())
-                .description(actionDTO.getDescription())
-                .status(actionDTO.getStatus())
-                .endpoint(actionDTO.getEndpoint())
-                .build();
-    }
+    Action buildAction(ActionDTO actionDTO);
 }

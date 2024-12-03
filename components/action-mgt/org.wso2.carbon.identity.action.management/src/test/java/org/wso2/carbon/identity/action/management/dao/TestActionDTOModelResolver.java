@@ -102,4 +102,9 @@ public class TestActionDTOModelResolver implements ActionDTOModelResolver {
 
         return new ActionDTO.Builder(updatingActionDTO).properties(properties).build();
     }
+
+    @Override
+    public void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain) {
+
+    }
 }

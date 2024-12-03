@@ -43,11 +43,7 @@ public interface ActionDTOModelResolver {
      * @return ActionDTO object with resolved properties.
      * @throws ActionDTOModelResolverException If an error occurs while resolving the properties.
      */
-    default ActionDTO resolveForAddOperation(ActionDTO actionDTO, String tenantDomain)
-            throws ActionDTOModelResolverException {
-
-        return actionDTO;
-    }
+    ActionDTO resolveForAddOperation(ActionDTO actionDTO, String tenantDomain) throws ActionDTOModelResolverException;
 
     /**
      * Populate the properties according to the references stored in the Action Management Service.
@@ -60,11 +56,7 @@ public interface ActionDTOModelResolver {
      * @return ActionDTO object with populated properties.
      * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
-    default ActionDTO resolveForGetOperation(ActionDTO actionDTO, String tenantDomain)
-            throws ActionDTOModelResolverException {
-
-        return actionDTO;
-    }
+    ActionDTO resolveForGetOperation(ActionDTO actionDTO, String tenantDomain) throws ActionDTOModelResolverException;
 
     /**
      * Populate the properties of the given ActionDTO list according to the references stored in the Action Management
@@ -78,11 +70,8 @@ public interface ActionDTOModelResolver {
      * @return List of ActionDTO objects with populated properties.
      * @throws ActionDTOModelResolverException If an error occurs while populating the properties.
      */
-    default List<ActionDTO> resolveForGetOperation(List<ActionDTO> actionDTOList, String tenantDomain)
-            throws ActionDTOModelResolverException {
-
-        return actionDTOList;
-    }
+    List<ActionDTO> resolveForGetOperation(List<ActionDTO> actionDTOList, String tenantDomain)
+            throws ActionDTOModelResolverException;
 
     /**
      * Resolve the properties that need to be updated in the Action Management Service.
@@ -96,11 +85,8 @@ public interface ActionDTOModelResolver {
      * @return ActionDTO object with resolved properties.
      * @throws ActionDTOModelResolverException If an error occurs while resolving the properties.
      */
-    default ActionDTO resolveForUpdateOperation(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
-                                                String tenantDomain) throws ActionDTOModelResolverException {
-
-        return updatingActionDTO;
-    }
+    ActionDTO resolveForUpdateOperation(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, String tenantDomain)
+            throws ActionDTOModelResolverException;
 
     /**
      * Delete the properties that need to be deleted in the Action Management Service.
@@ -111,7 +97,6 @@ public interface ActionDTOModelResolver {
      * @param tenantDomain      Tenant domain.
      * @throws ActionDTOModelResolverException If an error occurs while deleting the properties.
      */
-    default void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
-            throws ActionDTOModelResolverException {
-    }
+    void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
+            throws ActionDTOModelResolverException;
 }

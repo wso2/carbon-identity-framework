@@ -283,7 +283,7 @@ public class ActionManagementDAOFacadeTest {
     public void testUpdateActionWithActionPropertyResolverServerException() throws ActionDTOModelResolverException {
 
         mockActionPropertyResolver(mockedActionDTOModelResolver);
-        doThrow(new ActionDTOModelResolverServerException("Error updating Certificate.")).when(
+        doThrow(new ActionDTOModelResolverServerException("Error updating Certificate.", null)).when(
                         mockedActionDTOModelResolver)
                 .resolveForUpdateOperation(any(), any(), any());
 
