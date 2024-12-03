@@ -37,8 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
-
 /**
  * Data access object for org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim.
  */
@@ -67,6 +65,7 @@ public class LocalClaimDAO extends ClaimDAO {
 
                 List<AttributeMapping> attributeMappingsOfClaim = claimAttributeMappingsOfDialect.get(claimId);
                 Map<String, String> propertiesOfClaim = claimPropertiesOfDialect.get(claimId);
+
                 localClaims.add(new LocalClaim(claim.getClaimURI(), attributeMappingsOfClaim, propertiesOfClaim));
             }
         } finally {
@@ -179,9 +178,6 @@ public class LocalClaimDAO extends ClaimDAO {
             }
 
             addClaimAttributeMappings(connection, localClaimId, localClaim.getMappedAttributes(), tenantId);
-            if (shouldUpdateUniquenessValidationProperty(localClaim.getClaimProperties())) {
-                updateUniquenessValidationProperty(localClaim.getClaimProperties(), null, -1, -1);
-            }
             addClaimProperties(connection, localClaimId, localClaim.getClaimProperties(), tenantId);
 
             // End transaction
@@ -210,9 +206,6 @@ public class LocalClaimDAO extends ClaimDAO {
             deleteClaimAttributeMappings(connection, localClaimId, tenantId);
             addClaimAttributeMappings(connection, localClaimId, localClaim.getMappedAttributes(), tenantId);
 
-            if (shouldUpdateUniquenessValidationProperty(localClaim.getClaimProperties())) {
-                updateUniquenessValidationProperty(localClaim.getClaimProperties(), connection, localClaimId, tenantId);
-            }
             deleteClaimProperties(connection, localClaimId, tenantId);
             addClaimProperties(connection, localClaimId, localClaim.getClaimProperties(), tenantId);
 
@@ -421,96 +414,5 @@ public class LocalClaimDAO extends ClaimDAO {
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while obtaining mapped external claims for local claim.", e);
         }
-    }
-
-    /**
-     * Checks if the uniqueness validation property/properties needs to be updated.
-     * This occurs when the properties map contains the legacy isUnique property
-     * that needs to be mapped to the new UniquenessScope property.
-     *
-     * @param properties Map of claim properties to check.
-     * @return true if properties contain isUnique property.
-     */
-    private boolean shouldUpdateUniquenessValidationProperty(Map<String, String> properties) {
-
-        return properties != null &&
-                properties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
-    }
-
-    /**
-     * Updates the uniqueness validation property/properties in the properties map.
-     * Handles the synchronization between legacy isUnique property
-     * and the new UniquenessScope property if isUnique property is defined.
-     *
-     * @param properties   Map of claim properties to update.
-     * @param connection   Database connection to use for retrieving existing properties. Can be null for new claims.
-     * @param localClaimId ID of the local claim. Only required when connection is provided.
-     * @param tenantId     ID of the tenant. Only required when connection is provided.
-     * @throws ClaimMetadataException If an error occurs while updating the properties.
-     */
-    private void updateUniquenessValidationProperty(Map<String, String> properties, Connection connection,
-                                                    int localClaimId, int tenantId) throws ClaimMetadataException {
-
-        String newScopeValue = properties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
-        String newIsUniqueValue = properties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
-
-        boolean hasUniquenessScope = newScopeValue != null;
-
-        // Case 1 : Only isUnique exists.
-        if (!hasUniquenessScope) {
-            updateScopeFromIsUnique(properties, newIsUniqueValue);
-            return;
-        }
-
-        // Case 2 : Both isUnique & UniquenessScope exists.
-        if (connection == null) {
-            // If no database connection is available, use the UniquenessScope property value for uniqueness validation
-            // and update the isUnique property accordingly.
-            updateIsUniqueFromScope(properties, newScopeValue);
-            return;
-        }
-
-        // Retrieve existing property values from the DB to determine what has changed.
-        Map<String, String> existingProperties = getClaimPropertiesById(connection, localClaimId, tenantId);
-        String existingScopeValue = existingProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
-        String existingIsUniqueValue = existingProperties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
-
-        boolean isScopeChanged = !newScopeValue.equals(existingScopeValue);
-        boolean isUniqueChanged = !newIsUniqueValue.equals(existingIsUniqueValue);
-
-        // If UniquenessScope changed (regardless of isUnique changes), prioritize scope.
-        if (isScopeChanged) {
-            updateIsUniqueFromScope(properties, newScopeValue);
-        }
-        // If only isUnique changed.
-        else if (isUniqueChanged) {
-            updateScopeFromIsUnique(properties, newIsUniqueValue);
-        }
-    }
-
-    /**
-     * Updates the uniqueness scope property based on the isUnique value.
-     *
-     * @param properties    Map of claim properties to update.
-     * @param isUniqueValue String value of isUnique property ("true" or "false").
-     */
-    private void updateScopeFromIsUnique(Map<String, String> properties, String isUniqueValue) {
-
-        boolean isUnique = Boolean.parseBoolean(isUniqueValue);
-        properties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
-                isUnique ? getServerLevelClaimUniquenessScope().toString() :
-                        ClaimConstants.ClaimUniquenessScope.NONE.toString());
-    }
-
-    /**
-     * Updates the isUnique property based on the uniqueness scope value.
-     *
-     * @param properties Map of claim properties to update.
-     * @param scopeValue String value of the uniqueness scope.
-     */
-    private void updateIsUniqueFromScope(Map<String, String> properties, String scopeValue) {
-
-        boolean isUnique = !ClaimConstants.ClaimUniquenessScope.NONE.toString().equals(scopeValue);
-        properties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, String.valueOf(isUnique));
     }
 }

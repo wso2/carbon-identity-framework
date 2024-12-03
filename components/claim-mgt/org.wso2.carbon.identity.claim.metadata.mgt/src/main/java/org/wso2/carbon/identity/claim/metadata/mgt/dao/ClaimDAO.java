@@ -261,36 +261,4 @@ public class ClaimDAO {
         }
         return claimId;
     }
-
-    /**
-     * Retrieves claim properties for a given claim ID from the database.
-     *
-     * @param connection Database connection to use for the query.
-     * @param claimId    ID of the claim whose properties are to be retrieved.
-     * @param tenantId   ID of the tenant.
-     * @return Map containing property name-value pairs for the claim.
-     * @throws ClaimMetadataException If an error occurs while retrieving the claim properties.
-     */
-    public Map<String, String> getClaimPropertiesById(Connection connection, int claimId, int tenantId)
-            throws ClaimMetadataException {
-
-        Map<String, String> claimProperties = new HashMap<>();
-
-        try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants.GET_CLAIM_PROPERTIES_BY_ID)) {
-            prepStmt.setInt(1, claimId);
-            prepStmt.setInt(2, tenantId);
-
-            try (ResultSet rs = prepStmt.executeQuery()) {
-                while (rs.next()) {
-                    String propertyName = rs.getString(SQLConstants.PROPERTY_NAME_COLUMN);
-                    String propertyValue = rs.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
-                    claimProperties.put(propertyName, propertyValue);
-                }
-            }
-        } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while retrieving claim properties for claim ID: " + claimId, e);
-        }
-
-        return claimProperties;
-    }
 }
