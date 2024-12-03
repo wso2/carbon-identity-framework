@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.6.20-SNAPSHOT</version>
+    <version>7.7.16-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -43,7 +43,6 @@
         <module>test-utils/org.wso2.carbon.identity.testutil</module>
         <module>service-stubs/identity</module>
         <module>components/authentication-framework</module>
-        <module>components/entitlement</module>
         <module>components/identity-core</module>
         <module>components/application-mgt</module>
         <module>components/user-mgt</module>
@@ -57,7 +56,6 @@
         <module>components/claim-mgt</module>
         <module>components/directory-server-manager</module>
         <module>components/security-mgt</module>
-        <module>components/policy-editor</module>
         <module>components/carbon-authenticators</module>
         <module>components/consent-mgt</module>
         <module>components/functions-library-mgt</module>
@@ -75,6 +73,7 @@
         <module>components/trusted-app-mgt</module>
         <module>components/action-mgt</module>
         <module>components/certificate-mgt</module>
+        <module>components/rule-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -82,7 +81,6 @@
         <module>features/identity-core</module>
         <module>features/identity-event</module>
         <module>features/identity-mgt</module>
-        <module>features/xacml</module>
         <module>features/authentication-framework</module>
         <module>features/application-mgt</module>
         <module>features/provisioning</module>
@@ -111,6 +109,7 @@
         <module>features/trusted-app-mgt</module>
         <module>features/action-mgt</module>
         <module>features/certificate-mgt</module>
+        <module>features/rule-mgt</module>
     </modules>
 
 
@@ -273,11 +272,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.wso2.balana</groupId>
-                <artifactId>org.wso2.balana</artifactId>
-                <version>${balana.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.google.gdata.wso2</groupId>
                 <artifactId>gdata-core</artifactId>
                 <version>${gdata-core.wso2.version}</version>
@@ -333,6 +327,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -849,29 +849,6 @@
                 <type>zip</type>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
-                <version>${project.version}</version>
-                <type>war</type>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.xacml.server.feature</artifactId>
-                <version>${project.version}</version>
-                <type>zip</type>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.xacml.ui.feature</artifactId>
-                <version>${project.version}</version>
-                <type>zip</type>
-            </dependency>
-            <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${javax.servlet-api.version}</version>
@@ -1237,27 +1214,6 @@
                 <artifactId>org.wso2.carbon.identity.user.profile.ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.api.server.entitlement</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.ui</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.stub</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -1450,21 +1406,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.policyeditor</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.policyeditor.ui</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.balana</groupId>
-                <artifactId>org.wso2.balana.utils</artifactId>
-                <version>${balana.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.idp.mgt.ui</artifactId>
@@ -1874,7 +1815,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.24</carbon.kernel.version>
+        <carbon.kernel.version>4.10.25</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2001,10 +1942,6 @@
         <rampart.wso2.version>1.6.1-wso2v43</rampart.wso2.version>
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
 
-        <!-- Balana -->
-        <balana.version>1.2.13</balana.version>
-        <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>
-
         <!-- Equinox -->
         <version.equinox.osgi.services>3.3.100.v20130513-1956</version.equinox.osgi.services>
         <version.equinox.osgi>3.9.1.v20130814-1242</version.equinox.osgi>
@@ -2083,7 +2020,7 @@
         <version.commons.logging>1.1.1</version.commons.logging>
         <commons.logging.version>1.2</commons.logging.version>
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
-        <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
+        <json.wso2.version>3.0.0.wso2v4</json.wso2.version>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
         <com.fasterxml.jackson.version>2.16.1</com.fasterxml.jackson.version>
         <com.fasterxml.jackson.annotation.version>2.16.1</com.fasterxml.jackson.annotation.version>
