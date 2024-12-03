@@ -27,7 +27,6 @@ import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
@@ -77,6 +76,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -991,46 +991,6 @@ public class RoleDAOTest {
         assertFalse((Boolean) isValidSubOrgPermissionMethod.invoke(roleDAO, "console:applications"));
     }
 
-    @DataProvider(name = "sharedRoleToMainRoleMappingsProvider")
-    public Object[][] sharedRoleToMainRoleMappingsProvider() {
-
-        return new Object[][]{
-                {true, false, 1}, // Test with shared role (should return the mapping for the shared role)
-                {false, true, 0}, // Test with main role (should return an empty mapping)
-                {true, true, 1}, // Test with shared and main role (should return the mapping only for the shared role)
-                {false, false, 0} // Test with no shared or main roles (should return an empty mapping)
-        };
-    }
-
-    @Test(dataProvider = "sharedRoleToMainRoleMappingsProvider")
-    public void testGetSharedRoleToMainRoleMappingsBySubOrg(boolean isSharedRolePresent, boolean isMainRolePresent,
-                                                            int expectedMappingsCount)
-            throws Exception {
-
-        RoleDAOImpl roleDAO = setupRoleDaoImpl();
-
-        RoleBasicInfo mainRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
-        RoleBasicInfo sharedRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
-        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
-                SAMPLE_SUB_ORG_TENANT_DOMAIN);
-
-        List<String> sharedRoleUUIDs = new ArrayList<>();
-        if (isSharedRolePresent) {
-            sharedRoleUUIDs.add(sharedRole.getId());
-        }
-        if (isMainRolePresent) {
-            sharedRoleUUIDs.add(mainRole.getId());
-        }
-
-        Map<String, String> roleMappings =
-                roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
-
-        assertEquals(roleMappings.size(), expectedMappingsCount);
-        if (isSharedRolePresent) {
-            assertEquals(roleMappings.get(sharedRole.getId()), mainRole.getId());
-        }
-    }
-
     @Test(expectedExceptions = IdentityRoleManagementServerException.class)
     public void testGetSharedRoleToMainRoleMappingsBySubOrgFailure() throws Exception {
 
@@ -1058,6 +1018,54 @@ public class RoleDAOTest {
 
             // Invoking the method, expecting IdentityRoleManagementServerException
             roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+        }
+    }
+
+    @Test
+    public void testGetSharedRoleToMainRoleMappingsBySubOrg() throws Exception {
+
+        RoleDAOImpl roleDAO = setupRoleDaoImpl();
+        Object[][] testCases = sharedRoleToMainRoleMappingsProvider(roleDAO);
+
+        for (Object[] testCase : testCases) {
+            assertRoleMappings(testCase, roleDAO);
+        }
+    }
+
+    private Object[][] sharedRoleToMainRoleMappingsProvider(RoleDAOImpl roleDAO) throws Exception {
+
+        RoleBasicInfo mainRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        RoleBasicInfo sharedRole = addRole(SHARED_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID_OF_SAMPLE_APP, roleDAO);
+
+        roleDAO.addMainRoleToSharedRoleRelationship(mainRole.getId(), sharedRole.getId(), SAMPLE_TENANT_DOMAIN,
+                SAMPLE_SUB_ORG_TENANT_DOMAIN);
+
+        return new Object[][]{
+                // Test with shared role (should return the mapping for the shared role)
+                {Collections.singletonList(sharedRole.getId()), mainRole.getId(), 1},
+                // Test with main role (should return an empty mapping)
+                {Collections.singletonList(mainRole.getId()), mainRole.getId(), 0},
+                // Test with shared and main roles (should return the mapping only for the shared role)
+                {Arrays.asList(sharedRole.getId(), mainRole.getId()), mainRole.getId(), 1},
+                // Test with no shared or main roles (should return an empty mapping)
+                {Collections.emptyList(), mainRole.getId(), 0}
+        };
+    }
+
+    private void assertRoleMappings(Object[] testCase, RoleDAOImpl roleDAO) throws Exception {
+
+        @SuppressWarnings("unchecked")
+        List<String> sharedRoleUUIDs = (List<String>) testCase[0];
+        String expectedMainRoleId = (String) testCase[1];
+        int expectedMappingsCount = (int) testCase[2];
+
+        Map<String, String> roleMappings =
+                roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(sharedRoleUUIDs, SAMPLE_TENANT_DOMAIN);
+
+        assertEquals(expectedMappingsCount, roleMappings.size(), "Unexpected number of role mappings");
+        if (!sharedRoleUUIDs.isEmpty() && roleMappings.containsKey(sharedRoleUUIDs.get(0))) {
+            assertEquals(expectedMainRoleId, roleMappings.get(sharedRoleUUIDs.get(0)),
+                    "Unexpected main role ID for shared role");
         }
     }
 

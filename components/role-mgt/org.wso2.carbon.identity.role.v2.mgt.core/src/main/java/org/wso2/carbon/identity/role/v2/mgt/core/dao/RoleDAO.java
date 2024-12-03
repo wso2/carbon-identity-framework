@@ -455,7 +455,6 @@ public interface RoleDAO {
         throw new NotImplementedException("getSharedRoleToMainRoleMappingsBySubOrg method is not implemented");
     }
 
-
     /**
      * Get associated applications by role id.
      *
@@ -492,7 +491,7 @@ public interface RoleDAO {
     /**
      * Check whether the given role is a shared role in the given tenant.
      *
-     * @param roleId The role ID of the tenant.
+     * @param roleId       The role ID of the tenant.
      * @param tenantDomain The tenant domain.
      * @return True if the role is a shared role.
      * @throws IdentityRoleManagementException If an error occurs while checking the shared role.
