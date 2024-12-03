@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt.internal;
 
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -57,6 +58,7 @@ public class IdpMgtServiceComponentHolder {
     private ClaimMetadataManagementService claimMetadataManagementService;
     private SecretManager secretManager;
     private SecretResolveManager  secretResolveManager;
+    private ActionManagementService actionManagementService;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -187,5 +189,25 @@ public class IdpMgtServiceComponentHolder {
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * Get the Action Management Service.
+     *
+     * @return ActionManagementService instance.
+     */
+    public ActionManagementService getActionManagementService() {
+
+        return actionManagementService;
+    }
+
+    /**
+     * Set the Action Management Service.
+     *
+     * @param actionManagementService ActionManagementService instance.
+     */
+    public void setActionManagementService(ActionManagementService actionManagementService) {
+
+        this.actionManagementService = actionManagementService;
     }
 }

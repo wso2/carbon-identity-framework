@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-provider-management</artifactId>
-        <version>7.7.16-SNAPSHOT</version>
+        <version>7.7.17-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -113,6 +113,10 @@
             <artifactId>mockito-testng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.management</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -163,7 +167,8 @@
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.json;version="${json.wso2.version.range}",
-                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}"
+                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.action.management.*;version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,
