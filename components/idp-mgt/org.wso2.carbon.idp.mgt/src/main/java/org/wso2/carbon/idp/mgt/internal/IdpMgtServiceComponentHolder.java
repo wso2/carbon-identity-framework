@@ -19,7 +19,7 @@
 package org.wso2.carbon.idp.mgt.internal;
 
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.action.management.ActionManagementService;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;

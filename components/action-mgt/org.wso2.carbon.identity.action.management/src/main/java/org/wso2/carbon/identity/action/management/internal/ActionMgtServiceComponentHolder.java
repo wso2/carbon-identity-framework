@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.action.management.internal;
 
-import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
@@ -29,7 +28,6 @@ public class ActionMgtServiceComponentHolder {
 
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
-    private CertificateManagementService certificateMgtService;
 
     public static final ActionMgtServiceComponentHolder INSTANCE = new ActionMgtServiceComponentHolder();
 
