@@ -106,5 +106,6 @@ public class TestActionDTOModelResolver implements ActionDTOModelResolver {
     @Override
     public void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain) {
 
+        // No need to resolve anything for delete operation since this is a test implementation.
     }
 }
