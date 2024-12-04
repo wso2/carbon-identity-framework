@@ -1114,15 +1114,28 @@ public class IdentityUtilTest {
     public void testSignWithTenantKey() throws Exception {
 
         String data = "testData";
-        String tenantDomain = "carbon.super";
-
+        String superTenantDomain = "carbon.super";
         keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(mockKeyStoreManager);
         when(mockKeyStoreManager.getDefaultPrivateKey()).thenReturn(mockPrivateKey);
+        when(mockKeyStoreManager.getPrivateKey(anyString(), anyString())).thenReturn(mockPrivateKey);
 
         byte[] expectedSignature = new byte[]{1, 2, 3};
         signatureUtil.when(() -> SignatureUtil.doSignature(data, mockPrivateKey)).thenReturn(expectedSignature);
 
-        byte[] result = IdentityUtil.signWithTenantKey(data, tenantDomain);
+        byte[] result = IdentityUtil.signWithTenantKey(data, "wso2.com");
         assertEquals(result, expectedSignature);
+
+        // Test sign with super tenant key.
+        result = IdentityUtil.signWithTenantKey(data, superTenantDomain);
+        assertEquals(result, expectedSignature);
+
+        // Sign with super tenant causing an exception.
+        when(mockKeyStoreManager.getDefaultPrivateKey()).thenThrow(new Exception());
+        try {
+            IdentityUtil.signWithTenantKey(data, superTenantDomain);
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), String.format(IdentityKeyStoreResolverConstants.ErrorMessages
+                    .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), superTenantDomain));
+        }
     }
 }
