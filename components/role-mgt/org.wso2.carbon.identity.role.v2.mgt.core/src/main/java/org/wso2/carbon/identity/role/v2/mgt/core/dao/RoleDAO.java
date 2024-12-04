@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -442,6 +442,20 @@ public interface RoleDAO {
             throws IdentityRoleManagementException;
 
     /**
+     * Get shared role to main role mappings by subOrg.
+     *
+     * @param roleIds            Shared role IDs.
+     * @param subOrgTenantDomain Sub Organization tenant domain.
+     * @return The map of shared role id to main roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getSharedRoleToMainRoleMappingsBySubOrg method is not implemented");
+    }
+
+    /**
      * Get associated applications by role id.
      *
      * @param roleId       Role Id.
@@ -477,7 +491,7 @@ public interface RoleDAO {
     /**
      * Check whether the given role is a shared role in the given tenant.
      *
-     * @param roleId The role ID of the tenant.
+     * @param roleId       The role ID of the tenant.
      * @param tenantDomain The tenant domain.
      * @return True if the role is a shared role.
      * @throws IdentityRoleManagementException If an error occurs while checking the shared role.
