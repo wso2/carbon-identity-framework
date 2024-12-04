@@ -889,6 +889,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getSharedRoleToMainRoleMappingsBySubOrg(roleIds, subOrgTenantDomain);
+    }
+
+    @Override
     public List<String> getAssociatedApplicationByRoleId(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 

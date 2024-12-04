@@ -189,6 +189,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLES_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_MAIN_ROLE_ID_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_SHARED_ROLE_TO_MAIN_ROLE_MAPPINGS_BY_SUBORG_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.INSERT_MAIN_TO_SHARED_ROLE_RELATIONSHIP;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_EXIST_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL;
@@ -1372,6 +1373,39 @@ public class RoleDAOImpl implements RoleDAO {
             }
         } catch (SQLException e) {
             String errorMessage = "Error while retrieving main role to shared role mappings by sub org tenant : "
+                    + subOrgTenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
+                    errorMessage, e);
+        }
+        return rolesMap;
+    }
+
+    @Override
+    public Map<String, String> getSharedRoleToMainRoleMappingsBySubOrg(List<String> roleIds, String subOrgTenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, String> rolesMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return rolesMap;
+        }
+        String query = GET_SHARED_ROLE_TO_MAIN_ROLE_MAPPINGS_BY_SUBORG_SQL +
+                String.join(", ", Collections.nCopies(roleIds.size(), "?")) + ")";
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+
+            statement.setInt(1, IdentityTenantUtil.getTenantId(subOrgTenantDomain));
+            for (int i = 0; i < roleIds.size(); i++) {
+                statement.setString(i + 2, roleIds.get(i));
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String sharedRoleId = resultSet.getString(1);
+                    String mainRoleId = resultSet.getString(2);
+                    rolesMap.put(sharedRoleId, mainRoleId);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving shared role to main role mappings by sub org tenant : "
                     + subOrgTenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     errorMessage, e);

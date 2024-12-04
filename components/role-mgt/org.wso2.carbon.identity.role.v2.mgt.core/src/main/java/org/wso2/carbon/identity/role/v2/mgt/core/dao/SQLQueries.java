@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -88,6 +88,12 @@ public class SQLQueries {
             "m_main ON s.UM_MAIN_ROLE_ID = m_main.UM_ID AND s.UM_MAIN_ROLE_TENANT_ID = m_main.UM_TENANT_ID " +
             "JOIN UM_HYBRID_ROLE m_shared ON s.UM_SHARED_ROLE_ID = m_shared.UM_ID AND s.UM_SHARED_ROLE_TENANT_ID " +
             "= m_shared.UM_TENANT_ID WHERE s.UM_SHARED_ROLE_TENANT_ID = ? AND m_main.UM_UUID IN (";
+
+    public static final String GET_SHARED_ROLE_TO_MAIN_ROLE_MAPPINGS_BY_SUBORG_SQL = "SELECT m_shared.UM_UUID, " +
+            "m_main.UM_UUID FROM UM_SHARED_ROLE s JOIN UM_HYBRID_ROLE " +
+            "m_main ON s.UM_MAIN_ROLE_ID = m_main.UM_ID AND s.UM_MAIN_ROLE_TENANT_ID = m_main.UM_TENANT_ID " +
+            "JOIN UM_HYBRID_ROLE m_shared ON s.UM_SHARED_ROLE_ID = m_shared.UM_ID AND s.UM_SHARED_ROLE_TENANT_ID " +
+            "= m_shared.UM_TENANT_ID WHERE s.UM_SHARED_ROLE_TENANT_ID = ? AND m_shared.UM_UUID IN (";
 
     public static final String GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL = "SELECT s.UM_SHARED_ROLE_ID, " +
             "s.UM_SHARED_ROLE_TENANT_ID FROM UM_SHARED_ROLE s INNER JOIN UM_HYBRID_ROLE h ON s.UM_MAIN_ROLE_ID = " +
