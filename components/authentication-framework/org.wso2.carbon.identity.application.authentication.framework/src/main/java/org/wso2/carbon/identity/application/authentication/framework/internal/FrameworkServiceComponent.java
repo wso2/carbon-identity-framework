@@ -62,6 +62,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationVerificationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler;
@@ -342,7 +343,9 @@ public class FrameworkServiceComponent {
                 .getInstance();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
-
+        PostAuthenticationHandler postAuthenticationAssociationHandler = PostAuthAssociationVerificationHandler
+                .getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class, postAuthenticationAssociationHandler, null);
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
