@@ -1095,7 +1095,7 @@ public class IdentityUtilTest {
     }
 
     @Test
-    public void testValidateTenantSignature() throws Exception {
+    public void testValidateSignatureFromTenant() throws Exception {
 
         String data = "testData";
         byte[] signature = new byte[]{1, 2, 3};
@@ -1106,7 +1106,7 @@ public class IdentityUtilTest {
         when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null)).thenReturn(mockCertificate);
         signatureUtil.when(() -> SignatureUtil.validateSignature(data, signature, mockPublicKey)).thenReturn(true);
 
-        boolean result = IdentityUtil.validateTenantSignature(data, signature, tenantDomain);
+        boolean result = IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain);
         assertTrue(result);
     }
 

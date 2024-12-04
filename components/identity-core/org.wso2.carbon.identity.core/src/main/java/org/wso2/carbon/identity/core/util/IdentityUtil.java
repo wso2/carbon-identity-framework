@@ -1978,7 +1978,7 @@ public class IdentityUtil {
      * @return true if the signature is valid, false otherwise.
      * @throws IdentityKeyStoreResolverException If an error occurs during the signature validation process.
      */
-    public static boolean validateTenantSignature(String data, byte[] signature, String tenantDomain)
+    public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain)
             throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
