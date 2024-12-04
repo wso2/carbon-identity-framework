@@ -1610,7 +1610,7 @@ public class RoleDAOImpl implements RoleDAO {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
-                if (APPLICATION.equals(audience) && !isSharedRole(roleId, tenantDomain)) {
+                if (APPLICATION.equals(audience) && !isOrganization(tenantDomain)) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
