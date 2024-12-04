@@ -1972,8 +1972,8 @@ public class IdentityUtil {
     /**
      * Validates the signature of the given data for the specified tenant domain.
      *
-     * @param data The data to be verified.
-     * @param signature The signature to be verified.
+     * @param data         The data to be verified.
+     * @param signature    The signature to be verified.
      * @param tenantDomain The tenant domain to which the data belongs.
      * @return true if the signature is valid, false otherwise.
      * @throws IdentityKeyStoreResolverException If an error occurs during the signature validation process.
@@ -1998,7 +1998,7 @@ public class IdentityUtil {
     /**
      * Sign the given data for the specified tenant domain.
      *
-     * @param data The data to be signed.
+     * @param data         The data to be signed.
      * @param tenantDomain The tenant domain to which the data belongs.
      * @return The signature of the data.
      * @throws IdentityKeyStoreResolverException If an error occurs during the signature generation process.
