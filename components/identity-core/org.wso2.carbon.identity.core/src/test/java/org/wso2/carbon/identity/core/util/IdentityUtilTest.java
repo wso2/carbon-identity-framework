@@ -34,7 +34,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
@@ -62,6 +65,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -121,6 +126,18 @@ public class IdentityUtilTest {
     private RealmConfiguration mockRealmConfiguration;
     @Mock
     private HttpServletRequest mockRequest;
+    @Mock
+    private IdentityKeyStoreResolver mockIdentityKeyStoreResolver;
+    @Mock
+    private PrivateKey mockPrivateKey;
+    @Mock
+    private PublicKey mockPublicKey;
+    @Mock
+    private KeyStoreManager mockKeyStoreManager;
+    @Mock
+    private Certificate mockCertificate;
+
+
 
     private KeyStore primaryKeyStore;
 
@@ -130,6 +147,10 @@ public class IdentityUtilTest {
     MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponent;
     MockedStatic<IdentityConfigParser> identityConfigParser;
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    MockedStatic<SignatureUtil> signatureUtil;
+    MockedStatic<IdentityKeyStoreResolver> identityKeyStoreResolver;
+    MockedStatic<KeyStoreManager> keyStoreManager;
+
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -140,6 +161,9 @@ public class IdentityUtilTest {
         identityCoreServiceComponent = mockStatic(IdentityCoreServiceComponent.class);
         identityConfigParser = mockStatic(IdentityConfigParser.class);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        signatureUtil = mockStatic(SignatureUtil.class);
+        identityKeyStoreResolver = mockStatic(IdentityKeyStoreResolver.class);
+        keyStoreManager = mockStatic(KeyStoreManager.class);
 
         serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(mockServerConfiguration);
         identityCoreServiceComponent.when(
@@ -176,6 +200,9 @@ public class IdentityUtilTest {
         identityCoreServiceComponent.close();
         identityConfigParser.close();
         identityTenantUtil.close();
+        signatureUtil.close();
+        identityKeyStoreResolver.close();
+        keyStoreManager.close();
     }
 
     @Test(description = "Test converting a certificate to PEM format")
@@ -1067,4 +1094,35 @@ public class IdentityUtilTest {
         return keystore;
     }
 
+    @Test
+    public void testValidateTenantSignature() throws Exception {
+
+        String data = "testData";
+        byte[] signature = new byte[]{1, 2, 3};
+        String tenantDomain = "carbon.super";
+
+        when(mockCertificate.getPublicKey()).thenReturn(mockPublicKey);
+        identityKeyStoreResolver.when(IdentityKeyStoreResolver::getInstance).thenReturn(mockIdentityKeyStoreResolver);
+        when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null)).thenReturn(mockCertificate);
+        signatureUtil.when(() -> SignatureUtil.validateSignature(data, signature, mockPublicKey)).thenReturn(true);
+
+        boolean result = IdentityUtil.validateTenantSignature(data, signature, tenantDomain);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testSignWithTenantKey() throws Exception {
+
+        String data = "testData";
+        String tenantDomain = "carbon.super";
+
+        keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(mockKeyStoreManager);
+        when(mockKeyStoreManager.getDefaultPrivateKey()).thenReturn(mockPrivateKey);
+
+        byte[] expectedSignature = new byte[]{1, 2, 3};
+        signatureUtil.when(() -> SignatureUtil.doSignature(data, mockPrivateKey)).thenReturn(expectedSignature);
+
+        byte[] result = IdentityUtil.signWithTenantKey(data, tenantDomain);
+        assertEquals(result, expectedSignature);
+    }
 }

@@ -1978,11 +1978,11 @@ public class IdentityUtil {
      * @return true if the signature is valid, false otherwise.
      * @throws IdentityKeyStoreResolverException If an error occurs during the signature validation process.
      */
-    public static boolean validateSignature(String data, byte[] signature, String tenantDomain)
+    public static boolean validateTenantSignature(String data, byte[] signature, String tenantDomain)
             throws IdentityKeyStoreResolverException {
 
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             IdentityTenantUtil.initializeRegistry(tenantId);
         } catch (IdentityException e) {
             throw new IdentityKeyStoreResolverException(
@@ -2003,35 +2003,34 @@ public class IdentityUtil {
      * @return The signature of the data.
      * @throws IdentityKeyStoreResolverException If an error occurs during the signature generation process.
      */
-    public static byte[] doSignature(String data, String tenantDomain) throws IdentityKeyStoreResolverException {
+    public static byte[] signWithTenantKey(String data, String tenantDomain) throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
         PrivateKey privateKey;
 
-        try {
-            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            try {
                 privateKey = keyStoreManager.getDefaultPrivateKey();
-            } else {
-                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
-                try {
-                    IdentityTenantUtil.initializeRegistry(tenantId);
-                } catch (IdentityException e) {
-                    throw new IdentityKeyStoreResolverException(
-                            IdentityKeyStoreResolverConstants.ErrorMessages
-                                    .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
-                            "Error while loading the private key", e);
-                }
-                privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
+            } catch (Exception e) {
+                throw new IdentityKeyStoreResolverException(IdentityKeyStoreResolverConstants.ErrorMessages
+                        .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                        String.format(IdentityKeyStoreResolverConstants.ErrorMessages
+                                        .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), tenantDomain),
+                        e);
             }
-        } catch (Exception e) {
-            throw new IdentityKeyStoreResolverException(
-                    IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
-                    String.format(
-                            IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(),
-                            tenantDomain), e);
+        } else {
+            String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+            try {
+                IdentityTenantUtil.initializeRegistry(tenantId);
+            } catch (IdentityException e) {
+                throw new IdentityKeyStoreResolverException(
+                        IdentityKeyStoreResolverConstants.ErrorMessages
+                                .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                        "Error while loading the private key", e);
+            }
+            privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
         }
-
         return SignatureUtil.doSignature(data, privateKey);
     }
 }
