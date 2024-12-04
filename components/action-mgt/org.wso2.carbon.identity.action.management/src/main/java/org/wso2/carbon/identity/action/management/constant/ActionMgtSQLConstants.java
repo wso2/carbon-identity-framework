@@ -27,6 +27,9 @@ public class ActionMgtSQLConstants {
 
     }
 
+    public static final String IDN_ACTION_PROPERTIES_TABLE = "IDN_ACTION_PROPERTIES";
+    public static final String IDN_ACTION_ENDPOINT_TABLE = "IDN_ACTION_ENDPOINT";
+
     /**
      * Column Names.
      */
@@ -77,6 +80,19 @@ public class ActionMgtSQLConstants {
         public static final String UPDATE_ACTION_PROPERTY = "UPDATE IDN_ACTION_PROPERTIES SET " +
                 "PROPERTY_VALUE = :PROPERTY_VALUE; WHERE ACTION_UUID = :ACTION_UUID; AND " +
                 "TENANT_ID = :TENANT_ID; AND PROPERTY_NAME = :PROPERTY_NAME;";
+
+        // TODO: Remove this temporary queries once the IDN_ACTION_PROPERTIES table is created.
+        public static final String ADD_ACTION_ENDPOINT = "INSERT INTO IDN_ACTION_ENDPOINT (ACTION_UUID, " +
+                "PROPERTY_NAME, PROPERTY_VALUE, TENANT_ID) VALUES (:ACTION_UUID;, :PROPERTY_NAME;, :PROPERTY_VALUE;, " +
+                ":TENANT_ID;)";
+        public static final String GET_ACTION_ENDPOINT_INFO_BY_ID = "SELECT PROPERTY_NAME, PROPERTY_VALUE FROM " +
+                "IDN_ACTION_ENDPOINT WHERE ACTION_UUID = :ACTION_UUID; AND TENANT_ID = :TENANT_ID;";
+        public static final String DELETE_ACTION_ENDPOINT_PROPERTY = "DELETE FROM IDN_ACTION_ENDPOINT WHERE " +
+                "PROPERTY_NAME = :PROPERTY_NAME; AND ACTION_UUID = :ACTION_UUID; AND TENANT_ID = :TENANT_ID;";
+        public static final String UPDATE_ACTION_ENDPOINT_PROPERTY = "UPDATE IDN_ACTION_ENDPOINT SET " +
+                "PROPERTY_VALUE = :PROPERTY_VALUE; WHERE ACTION_UUID = :ACTION_UUID; AND " +
+                "TENANT_ID = :TENANT_ID; AND PROPERTY_NAME = :PROPERTY_NAME;";
+
 
         private Query() {
 
