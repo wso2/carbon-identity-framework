@@ -115,7 +115,7 @@ public class Action  {
          */
         public enum Category {
             PRE_POST,
-            IN_FLOW;
+            IN_FLOW
         }
     }
 
@@ -124,29 +124,9 @@ public class Action  {
      */
     public enum Status {
 
-        ACTIVE("ACTIVE"),
-        INACTIVE("INACTIVE");
-
-        private final String value;
-
-        Status(String v) {
-            this.value = v;
-        }
-
-        public String value() {
-            return value;
-        }
-
-        public static Status fromValue(String value) {
-            for (Status b : Status.values()) {
-                if (b.value.equals(value)) {
-                    return b;
-                }
-            }
-            throw new IllegalArgumentException("Unexpected value '" + value + "'");
-        }
+        ACTIVE,
+        INACTIVE
     }
-
 
     private String id;
     private ActionTypes type;
@@ -154,9 +134,6 @@ public class Action  {
     private String description;
     private Status status;
     private EndpointConfig endpointConfig;
-
-    public Action() {
-    }
 
     public Action(ActionResponseBuilder actionResponseBuilder) {
 
@@ -205,11 +182,6 @@ public class Action  {
         return endpointConfig;
     }
 
-    public void setEndpoint(EndpointConfig endpointConfig) {
-
-        this.endpointConfig = endpointConfig;
-    }
-
     /**
      * ActionResponseBuilder.
      */
@@ -221,9 +193,6 @@ public class Action  {
         private String description;
         private Status status;
         private EndpointConfig endpointConfig;
-
-        public ActionResponseBuilder() {
-        }
 
         public ActionResponseBuilder id(String id) {
 
@@ -275,9 +244,6 @@ public class Action  {
         private String name;
         private String description;
         private EndpointConfig endpointConfig;
-
-        public ActionRequestBuilder() {
-        }
 
         public ActionRequestBuilder name(String name) {
 

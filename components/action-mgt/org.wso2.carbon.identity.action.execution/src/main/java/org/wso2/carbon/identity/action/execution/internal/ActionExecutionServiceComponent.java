@@ -34,7 +34,7 @@ import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImpl;
-import org.wso2.carbon.identity.action.management.ActionManagementService;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 
 /**
  * OSGI service component for the Action execution.

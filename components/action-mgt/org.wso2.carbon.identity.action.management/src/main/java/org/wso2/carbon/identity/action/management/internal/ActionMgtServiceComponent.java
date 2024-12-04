@@ -28,8 +28,12 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.action.management.ActionManagementService;
-import org.wso2.carbon.identity.action.management.ActionManagementServiceImpl;
+import org.wso2.carbon.identity.action.management.dao.impl.ActionDTOModelResolverFactory;
+import org.wso2.carbon.identity.action.management.service.ActionConverter;
+import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.service.impl.ActionConverterFactory;
+import org.wso2.carbon.identity.action.management.service.impl.CacheBackedActionManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
@@ -49,7 +53,8 @@ public class ActionMgtServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.registerService(ActionManagementService.class, ActionManagementServiceImpl.getInstance(), null);
+            bundleCtx.registerService(ActionManagementService.class, CacheBackedActionManagementService.getInstance(),
+                    null);
             LOG.debug("Action management bundle is activated");
         } catch (Throwable e) {
             LOG.error("Error while initializing Action management component.", e);
@@ -69,6 +74,55 @@ public class ActionMgtServiceComponent {
     }
 
     @Reference(
+            name = "action.converter",
+            service = ActionConverter.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionConverter"
+    )
+    protected void setActionConverter(ActionConverter actionConverter) {
+
+        LOG.debug("Registering ActionConverter: " + actionConverter.getClass().getName() +
+                " in the ActionMgtServiceComponent.");
+        ActionConverterFactory.registerActionConverter(actionConverter);
+    }
+
+    protected void unsetActionConverter(ActionConverter actionConverter) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unregistering ActionConverter: " + actionConverter.getClass().getName() +
+                    " in the ActionMgtServiceComponent.");
+        }
+
+        ActionConverterFactory.unregisterActionConverter(actionConverter);
+    }
+
+    @Reference(
+            name = "action.property.resolver",
+            service = ActionDTOModelResolver.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionPropertyResolver"
+    )
+    protected void setActionPropertyResolver(ActionDTOModelResolver actionDTOModelResolver) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Registering ActionPropertyResolver: " + actionDTOModelResolver.getClass().getName() +
+                    " in the ActionMgtServiceComponent.");
+        }
+        ActionDTOModelResolverFactory.registerActionDTOModelResolver(actionDTOModelResolver);
+    }
+
+    protected void unsetActionPropertyResolver(ActionDTOModelResolver actionDTOModelResolver) {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unregistering ActionPropertyResolver: " + actionDTOModelResolver.getClass().getName() +
+                    " in the ActionMgtServiceComponent.");
+        }
+        ActionDTOModelResolverFactory.unregisterActionDTOModelResolver(actionDTOModelResolver);
+    }
+
+    @Reference(
             name = "org.wso2.carbon.identity.secret.mgt.core.SecretManager",
             service = SecretManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
@@ -78,11 +132,13 @@ public class ActionMgtServiceComponent {
     private void setSecretManager(SecretManager secretManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        LOG.debug("SecretManager set in ActionMgtServiceComponentHolder bundle.");
     }
 
     private void unsetSecretManager(SecretManager secretManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(null);
+        LOG.debug("SecretManager unset in ActionMgtServiceComponentHolder bundle.");
     }
 
     @Reference(
@@ -95,10 +151,12 @@ public class ActionMgtServiceComponent {
     private void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(secretResolveManager);
+        LOG.debug("SecretResolveManager set in ActionMgtServiceComponentHolder bundle.");
     }
 
     private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(null);
+        LOG.debug("SecretResolveManager unset in ActionMgtServiceComponentHolder bundle.");
     }
 }

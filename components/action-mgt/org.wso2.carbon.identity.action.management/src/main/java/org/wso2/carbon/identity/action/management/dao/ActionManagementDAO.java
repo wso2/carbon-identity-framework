@@ -19,29 +19,24 @@
 package org.wso2.carbon.identity.action.management.dao;
 
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * This interface performs CRUD operations for {@link Action}.
+ * This interface performs CRUD operations for {@link ActionDTO}.
  */
 public interface ActionManagementDAO {
 
     /**
-     * Create a new {@link Action}.
+     * Create a new {@link ActionDTO}.
      *
-     * @param actionType Action Type.
-     * @param actionId   Action Id.
-     * @param action     Action creation model.
-     * @param tenantId   Tenant Id.
-     * @return Created <code>Action</code>.
+     * @param actionDTO Action creation model.
+     * @param tenantId  Tenant Id.
      * @throws ActionMgtException If an error occurs while adding the Action.
      */
-    Action addAction(String actionType, String actionId, Action action, Integer tenantId) throws ActionMgtException;
+    void addAction(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException;
 
     /**
      * Retrieve the Actions configured for the given type.
@@ -51,46 +46,51 @@ public interface ActionManagementDAO {
      * @return List of <code>Action</code>.
      * @throws ActionMgtException If an error occurs while retrieving the Actions of a given Action Type.
      */
-    List<Action> getActionsByActionType(String actionType, Integer tenantId) throws ActionMgtException;
+    List<ActionDTO> getActionsByActionType(String actionType, Integer tenantId) throws ActionMgtException;
 
     /**
-     * Update {@link Action} by given Action type and Action ID.
+     * Get {@link ActionDTO} of a given Action Type and Action ID.
      *
-     * @param actionType     Action Type.
-     * @param actionId       Action ID.
-     * @param updatingAction Action update model.
-     * @param existingAction Existing Action.
-     * @param tenantId       Tenant Id.
-     * @return Updated <code>Action</code>.
+     * @param actionId Action ID.
+     * @param tenantId Tenant Id.
+     * @return <code>Action</code>.
+     * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
+     */
+    ActionDTO getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
+
+    /**
+     * Update {@link ActionDTO} by given Action type and Action ID.
+     *
+     * @param updatingActionDTO Action update model.
+     * @param existingActionDTO Existing Action.
+     * @param tenantId          Tenant Id.
      * @throws ActionMgtException If an error occurs while updating the Action.
      */
-    Action updateAction(String actionType, String actionId, Action updatingAction, Action existingAction,
-                        Integer tenantId) throws ActionMgtException;
+    void updateAction(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
+            throws ActionMgtException;
 
     /**
-     * Delete {@link Action} by given Action Type.
+     * Delete {@link ActionDTO} by given Action Type.
      *
-     * @param actionType Action Type.
-     * @param actionId   Action Id.
-     * @param action     Action to be deleted.
-     * @param tenantId   Tenant Id.
+     * @param deletingActionDTO Action to be deleted.
+     * @param tenantId          Tenant Id.
      * @throws ActionMgtException If an error occurs while deleting Action.
      */
-    void deleteAction(String actionType, String actionId, Action action, Integer tenantId) throws ActionMgtException;
+    void deleteAction(ActionDTO deletingActionDTO, Integer tenantId) throws ActionMgtException;
 
     /**
-     * Activate {@link Action} by given Action Type and Action ID.
+     * Activate {@link org.wso2.carbon.identity.action.management.model.Action} by given Action Type and Action ID.
      *
-     * @param actionType   Action Type.
-     * @param actionId     Action ID.
+     * @param actionType Action Type.
+     * @param actionId   Action ID.
      * @param tenantId   Tenant Id.
      * @return Activated <code>Action</code>.
      * @throws ActionMgtException If an error occurs while activating the Action.
      */
-    Action activateAction(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
+    ActionDTO activateAction(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
 
     /**
-     * Deactivate {@link Action} by given Action Type and Action ID.
+     * Deactivate {@link org.wso2.carbon.identity.action.management.model.Action} by given Action Type and Action ID.
      *
      * @param actionType Action Type.
      * @param actionId   Action ID.
@@ -98,7 +98,7 @@ public interface ActionManagementDAO {
      * @return Deactivated <code>Action</code>.
      * @throws ActionMgtException If an error occurs while deactivating the Action.
      */
-    Action deactivateAction(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
+    ActionDTO deactivateAction(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
 
     /**
      * Get Actions count per Action Type.
@@ -108,40 +108,4 @@ public interface ActionManagementDAO {
      * @throws ActionMgtException If an error occurs while retrieving the Actions count.
      */
     Map<String, Integer> getActionsCountPerType(Integer tenantId) throws ActionMgtException;
-
-    /**
-     * Get {@link Action} of a given Action Type and Action ID.
-     *
-     * @param actionId Action ID.
-     * @param tenantId Tenant Id.
-     * @return <code>Action</code>.
-     * @throws ActionMgtException If an error occurs while retrieving the Action of a given Action ID.
-     */
-    Action getActionByActionId(String actionType, String actionId, Integer tenantId) throws ActionMgtException;
-
-    /**
-     * Update the endpoint authentication properties of an {@link Action} by given Action ID.
-     *
-     * @param actionId       Action ID.
-     * @param authentication Authentication information to be updated.
-     * @param tenantId       Tenant Id.
-     * @return Updated <code>Action</code>.
-     * @throws ActionMgtException If an error occurs while updating the Action endpoint authentication properties.
-     */
-    Action updateActionEndpointAuthProperties(String actionType, String actionId, Authentication authentication,
-                                              int tenantId) throws ActionMgtException;
-
-    /**
-     * Update the endpoint authentication properties of an {@link Action} by given Action ID.
-     *
-     * @param actionType            Action Type.
-     * @param actionId              Action ID.
-     * @param endpoint              Endpoint information to be updated.
-     * @param currentAuthentication Current Action endpoint authentication information.
-     * @param tenantId              Tenant Id.
-     * @return Updated <code>Action</code>.
-     * @throws ActionMgtException If an error occurs while updating the Action endpoint.
-     */
-    Action updateActionEndpoint(String actionType, String actionId, EndpointConfig endpoint,
-                                Authentication currentAuthentication, int tenantId) throws ActionMgtException;
 }

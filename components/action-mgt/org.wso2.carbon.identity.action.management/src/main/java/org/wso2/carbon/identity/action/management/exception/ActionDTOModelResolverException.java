@@ -19,12 +19,27 @@
 package org.wso2.carbon.identity.action.management.exception;
 
 /**
- * Runtime exception class for Action Management.
+ * Exception class for ActionDTO Model Resolver.
+ * This exception is thrown when there is an issue in performing action type specific operations.
  */
-public class ActionMgtRuntimeException extends RuntimeException {
+public class ActionDTOModelResolverException extends Exception {
 
-    public ActionMgtRuntimeException(String message, Throwable e) {
+    private final String description;
 
-        super(message, e);
+    public ActionDTOModelResolverException(String message, String description) {
+
+        super(message);
+        this.description = description;
+    }
+
+    public ActionDTOModelResolverException(String message, String description, Throwable cause) {
+
+        super(message, cause);
+        this.description = description;
+    }
+
+    public String getDescription() {
+
+        return this.description;
     }
 }
