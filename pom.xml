@@ -1127,6 +1127,16 @@
                 <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.core.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.discovery.service</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.config.service</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
+            </dependency>
             <!--Components Dependencies Ends-->
 
             <!--Composite Feature Dependency-->
@@ -1842,8 +1852,12 @@
 
         <org.wso2.carbon.identity.organization.management.core.version>1.0.90
         </org.wso2.carbon.identity.organization.management.core.version>
+        <org.wso2.carbon.identity.organization.management.version>1.4.57
+        </org.wso2.carbon.identity.organization.management.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
+        <org.wso2.carbon.identity.organization.management.version.range>[1.0.0, 2.0.0)
+        </org.wso2.carbon.identity.organization.management.version.range>
 
         <!--Carbon registry version-->
         <org.wso2.carbon.registry.version>4.8.37</org.wso2.carbon.registry.version>

@@ -2215,6 +2215,12 @@
                        orderId="{{event.default_listener.user_session_termination.priority}}"
                        enable="{{event.default_listener.user_session_termination.enable}}"/>
 
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.EmailDomainValidationHandler"
+                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
+                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
 
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener id="jit_provisioning_handler"

@@ -76,6 +76,10 @@ public class FrameworkErrorConstants {
         ERROR_WHILE_TRYING_TO_HANDLE_ROLE_CLAIM_FOR_PROVISIONED_USER("80030", "Error while trying to handle role "
                 + "claim for provisioned user."),
         ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY("80031", "Error while encrypting TOTP secret key for user. %s"),
+        ERROR_WHILE_RETRIEVING_ORG_DISCOVERY_ATTRIBUTES("80032", "Error while retrieving organization discovery "
+                + "attributes for tenantDomain: %s"),
+        INVALID_EMAIL_DOMAIN("80033",
+                "Email domain resolved from the authenticated federated IDP is not mapped to the organization: %s"),
         MISMATCHING_TENANT_DOMAIN("AFW-60001",
                 "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
         SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");
@@ -90,6 +94,7 @@ public class FrameworkErrorConstants {
          * @param message Relevant error message.
          */
         ErrorMessages(String code, String message) {
+
             this.code = code;
             this.message = message;
         }
@@ -100,6 +105,7 @@ public class FrameworkErrorConstants {
          * @return Error code.
          */
         public String getCode() {
+
             return code;
         }
 
@@ -109,11 +115,13 @@ public class FrameworkErrorConstants {
          * @return Error message.
          */
         public String getMessage() {
+
             return message;
         }
 
         @Override
         public String toString() {
+
             return code + " - " + message;
         }
     }
