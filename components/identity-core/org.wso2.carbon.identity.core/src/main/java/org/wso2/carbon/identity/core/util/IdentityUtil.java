@@ -1976,23 +1976,20 @@ public class IdentityUtil {
      * @param signature    The signature to be verified.
      * @param tenantDomain The tenant domain to which the data belongs.
      * @return true if the signature is valid, false otherwise.
-     * @throws IdentityKeyStoreResolverException If an error occurs during the signature validation process.
+     * @throws SignatureException If an error occurs during the signature validation process.
      */
     public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain)
-            throws IdentityKeyStoreResolverException {
+            throws SignatureException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
             IdentityTenantUtil.initializeRegistry(tenantId);
+            PublicKey publicKey = IdentityKeyStoreResolver.getInstance().getCertificate(tenantDomain, null)
+                    .getPublicKey();
+            return SignatureUtil.validateSignature(data, signature, publicKey);
         } catch (IdentityException e) {
-            throw new IdentityKeyStoreResolverException(
-                    IdentityKeyStoreResolverConstants.ErrorMessages
-                            .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
-                    "Error while loading the private key", e);
+            throw new SignatureException("Error while validating the signature from tenant: " + tenantDomain, e);
         }
-        PublicKey publicKey = IdentityKeyStoreResolver.getInstance().getCertificate(tenantDomain, null)
-                .getPublicKey();
-        return SignatureUtil.validateSignature(data, signature, publicKey);
     }
 
     /**
@@ -2001,9 +1998,9 @@ public class IdentityUtil {
      * @param data         The data to be signed.
      * @param tenantDomain The tenant domain to which the data belongs.
      * @return The signature of the data.
-     * @throws IdentityKeyStoreResolverException If an error occurs during the signature generation process.
+     * @throws SignatureException If an error occurs during the signature generation process.
      */
-    public static byte[] signWithTenantKey(String data, String tenantDomain) throws IdentityKeyStoreResolverException {
+    public static byte[] signWithTenantKey(String data, String tenantDomain) throws SignatureException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
@@ -2013,23 +2010,18 @@ public class IdentityUtil {
             try {
                 privateKey = keyStoreManager.getDefaultPrivateKey();
             } catch (Exception e) {
-                throw new IdentityKeyStoreResolverException(IdentityKeyStoreResolverConstants.ErrorMessages
-                        .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
-                        String.format(IdentityKeyStoreResolverConstants.ErrorMessages
+                throw new SignatureException(String.format(IdentityKeyStoreResolverConstants.ErrorMessages
                                         .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), tenantDomain),
                         e);
             }
         } else {
-            String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
             try {
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 IdentityTenantUtil.initializeRegistry(tenantId);
+                privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             } catch (IdentityException e) {
-                throw new IdentityKeyStoreResolverException(
-                        IdentityKeyStoreResolverConstants.ErrorMessages
-                                .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
-                        "Error while loading the private key", e);
+                throw new SignatureException("Error while signing from private key of tenant: " + tenantDomain, e);
             }
-            privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
         }
         return SignatureUtil.doSignature(data, privateKey);
     }
