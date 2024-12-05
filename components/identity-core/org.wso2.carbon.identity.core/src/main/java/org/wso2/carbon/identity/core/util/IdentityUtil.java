@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2005-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,10 +11,11 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.core.util;
 
 import com.ibm.wsdl.util.xml.DOM2Writer;
@@ -36,10 +37,13 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AdminServicesUtil;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -73,6 +77,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
@@ -1961,5 +1967,70 @@ public class IdentityUtil {
             return true;
         }
         return Boolean.parseBoolean(scim2UserMaxItemsPerPageEnabledProperty);
+    }
+
+    /**
+     * Validates the signature of the given data for the specified tenant domain.
+     *
+     * @param data         The data to be verified.
+     * @param signature    The signature to be verified.
+     * @param tenantDomain The tenant domain to which the data belongs.
+     * @return true if the signature is valid, false otherwise.
+     * @throws IdentityKeyStoreResolverException If an error occurs during the signature validation process.
+     */
+    public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain)
+            throws IdentityKeyStoreResolverException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            IdentityTenantUtil.initializeRegistry(tenantId);
+        } catch (IdentityException e) {
+            throw new IdentityKeyStoreResolverException(
+                    IdentityKeyStoreResolverConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                    "Error while loading the private key", e);
+        }
+        PublicKey publicKey = IdentityKeyStoreResolver.getInstance().getCertificate(tenantDomain, null)
+                .getPublicKey();
+        return SignatureUtil.validateSignature(data, signature, publicKey);
+    }
+
+    /**
+     * Sign the given data for the specified tenant domain.
+     *
+     * @param data         The data to be signed.
+     * @param tenantDomain The tenant domain to which the data belongs.
+     * @return The signature of the data.
+     * @throws IdentityKeyStoreResolverException If an error occurs during the signature generation process.
+     */
+    public static byte[] signWithTenantKey(String data, String tenantDomain) throws IdentityKeyStoreResolverException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        PrivateKey privateKey;
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            try {
+                privateKey = keyStoreManager.getDefaultPrivateKey();
+            } catch (Exception e) {
+                throw new IdentityKeyStoreResolverException(IdentityKeyStoreResolverConstants.ErrorMessages
+                        .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                        String.format(IdentityKeyStoreResolverConstants.ErrorMessages
+                                        .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), tenantDomain),
+                        e);
+            }
+        } else {
+            String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+            try {
+                IdentityTenantUtil.initializeRegistry(tenantId);
+            } catch (IdentityException e) {
+                throw new IdentityKeyStoreResolverException(
+                        IdentityKeyStoreResolverConstants.ErrorMessages
+                                .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getCode(),
+                        "Error while loading the private key", e);
+            }
+            privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
+        }
+        return SignatureUtil.doSignature(data, privateKey);
     }
 }
