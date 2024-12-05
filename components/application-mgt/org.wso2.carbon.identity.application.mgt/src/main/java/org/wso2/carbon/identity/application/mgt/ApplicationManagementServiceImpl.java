@@ -2955,6 +2955,43 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
+    public Map<String, String> getChildAppIds(String parentAppId, String parentOrgId, List<String> childOrgIds)
+            throws IdentityApplicationManagementException {
+
+        if (CollectionUtils.isEmpty(childOrgIds)) {
+            return Collections.emptyMap();
+        }
+
+        String parentTenantDomain;
+        try {
+            parentTenantDomain = getOrganizationManager().resolveTenantDomain(parentOrgId);
+        } catch (OrganizationManagementException e) {
+            throw buildServerException("Error while resolving the tenant domain for the organization id: " +
+                    parentOrgId);
+        }
+
+        String mainAppId = parentAppId;
+        String ownerOrgId = parentOrgId;
+        // Check if the parent application is a main application.
+        if (!isMainApp(parentAppId, parentTenantDomain)) {
+            mainAppId = getMainAppId(parentAppId);
+            if (StringUtils.isBlank(mainAppId)) {
+                throw buildServerException("Main application id cannot be blank for the shared app with id: " +
+                        parentAppId + " in organization: " + parentOrgId);
+            }
+
+            ownerOrgId = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getOwnerOrgId(parentAppId);
+            if (StringUtils.isBlank(ownerOrgId)) {
+                throw buildServerException("Owner organization id cannot be blank for the shared app with id: " +
+                        parentAppId + " in organization: " + parentOrgId);
+            }
+        }
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                .getSharedApplicationIds(mainAppId, ownerOrgId, childOrgIds);
+    }
+
+    @Override
     public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
 
         return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getTenantIdByApp(appId);

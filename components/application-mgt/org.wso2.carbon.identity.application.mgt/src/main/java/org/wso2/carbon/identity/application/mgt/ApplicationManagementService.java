@@ -579,6 +579,21 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     }
 
     /**
+     * Get the shared child application IDs for the given parent application of the given parent organization.
+     *
+     * @param parentAppId  ID of the parent application.
+     * @param parentOrgId  ID of the parent organization.
+     * @param childOrgIds  List of child organization IDs.
+     * @return Map containing shared child application IDs and their organization IDs.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the child application IDs.
+     */
+    public Map<String, String> getChildAppIds(String parentAppId, String parentOrgId, List<String> childOrgIds)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException("getChildAppIds method is not implemented in " + this.getClass().getName());
+    }
+
+    /**
      * Get tenant ID of the application.
      *
      * @param appId ID of the application.
