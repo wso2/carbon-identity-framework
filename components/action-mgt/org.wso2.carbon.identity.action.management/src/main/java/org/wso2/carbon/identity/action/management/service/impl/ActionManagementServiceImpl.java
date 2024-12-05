@@ -157,7 +157,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO updatingActionDTO = buildActionDTO(resolvedActionType, actionId, action);
 
         DAO_FACADE.updateAction(updatingActionDTO, existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, actionId, updatingActionDTO);
+        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.UPDATE, updatingActionDTO);
         return getActionByActionId(actionType, actionId, tenantDomain);
     }
 
