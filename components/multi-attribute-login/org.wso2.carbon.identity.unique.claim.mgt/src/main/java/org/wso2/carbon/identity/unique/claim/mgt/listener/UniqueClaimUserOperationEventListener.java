@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -102,8 +103,9 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         }
         try {
             String tenantDomain = getTenantDomain(userStoreManager);
-            if (isUniqueClaim(claimURI, tenantDomain)) {
-                return !isClaimDuplicated(userName, claimURI, claimValue, profile, userStoreManager);
+            ClaimConstants.ClaimUniquenessScope uniquenessScope = getClaimUniquenessScope(claimURI, tenantDomain);
+            if (shouldValidateUniqueness(uniquenessScope)) {
+                return !isClaimDuplicated(userName, claimURI, claimValue, profile, userStoreManager, uniquenessScope);
             }
         } catch (org.wso2.carbon.user.api.UserStoreException | ClaimMetadataException e) {
             log.error("Error while retrieving details. " + e.getMessage(), e);
@@ -132,7 +134,9 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         Claim claimObject = null;
         for (Map.Entry<String, String> claim : claims.entrySet()) {
             try {
-                if (StringUtils.isNotEmpty(claim.getValue()) && isUniqueClaim(claim.getKey(), tenantDomain)) {
+                ClaimConstants.ClaimUniquenessScope uniquenessScope =
+                        getClaimUniquenessScope(claim.getKey(), tenantDomain);
+                if (StringUtils.isNotEmpty(claim.getValue()) && shouldValidateUniqueness(uniquenessScope)) {
                     try {
                         claimObject = userStoreManager.getClaimManager().getClaim(claim.getKey());
                     } catch (org.wso2.carbon.user.api.UserStoreException e) {
@@ -147,7 +151,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
                                 claimObject.getDisplayTag() + "!";
                         throw new UserStoreException(errorMessage, new PolicyViolationException(errorMessage));
                     }
-                    if (isClaimDuplicated(username, claim.getKey(), claim.getValue(), profile, userStoreManager)) {
+                    if (isClaimDuplicated(username, claim.getKey(), claim.getValue(), profile, userStoreManager,
+                            uniquenessScope)) {
                         String displayTag = claimObject.getDisplayTag();
                         if (StringUtils.isBlank(displayTag)) {
                             displayTag = claim.getKey();
@@ -175,14 +180,15 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
     }
 
     private boolean isClaimDuplicated(String username, String claimUri, String claimValue, String profile,
-                                      UserStoreManager userStoreManager) throws UserStoreException {
+                                      UserStoreManager userStoreManager,
+                                      ClaimConstants.ClaimUniquenessScope uniquenessScope) throws UserStoreException {
 
         String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(
                 UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
         String[] userList;
         // Get UserStoreManager from realm since the received one might be for a secondary user store
         UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
-        if (isScopeWithinUserstore()) {
+        if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
             String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValue;
             userList = userStoreMgrFromRealm.getUserList(claimUri, claimValueWithDomain, profile);
         } else {
@@ -200,17 +206,67 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         return true;
     }
 
-    public boolean isUniqueClaim(String claimUrI, String tenantDomain) throws ClaimMetadataException {
+    /**
+     * Determines the uniqueness validation scope for a given claim URI.
+     * This method checks the claim properties to determine how uniqueness should be enforced:
+     * 1. First checks for explicit uniquenessScope property
+     * 2. If not found, checks for legacy isUnique property
+     * 3. If claim is unique, scope is determined by isScopeWithinUserstore server-level configuration
+     * 4. Defaults to NONE if no uniqueness requirements are found
+     *
+     * @param claimUri The URI of the claim to check
+     * @param tenantDomain The tenant domain where the claim exists
+     * @return The ClaimUniquenessScope (NONE, WITHIN_USERSTORE, or ACROSS_USERSTORES)
+     * @throws ClaimMetadataException If there is an error accessing claim metadata
+     */
+    private ClaimConstants.ClaimUniquenessScope getClaimUniquenessScope(String claimUri, String tenantDomain)
+            throws ClaimMetadataException {
 
-        List<LocalClaim> localClaims = UniqueClaimUserOperationDataHolder.getInstance().
-                getClaimMetadataManagementService().getLocalClaims(tenantDomain);
-        for (LocalClaim localClaim : localClaims) {
-            if (localClaim.getClaimURI().equals(claimUrI) &&
-                    Boolean.parseBoolean(localClaim.getClaimProperty(IS_UNIQUE_CLAIM))) {
-                return true;
+        List<LocalClaim> localClaims = UniqueClaimUserOperationDataHolder.getInstance()
+                .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+
+        LocalClaim targetLocalClaim = localClaims.stream()
+                .filter(claim -> claim.getClaimURI().equals(claimUri))
+                .findFirst()
+                .orElse(null);
+
+        if (targetLocalClaim != null) {
+            String uniquenessScope = targetLocalClaim.getClaimProperty(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
+            if (StringUtils.isNotBlank(uniquenessScope)) {
+                try {
+                    return ClaimConstants.ClaimUniquenessScope.valueOf(uniquenessScope);
+                } catch (IllegalArgumentException e) {
+                    if (log.isWarnEnabled()) {
+                        log.warn("Invalid uniqueness validation scope '" + uniquenessScope + "' provided for " +
+                                "claim URI: " + claimUri + ". Defaulting to NONE, where no uniqueness validation " +
+                                "will be performed.");
+                    }
+                    return ClaimConstants.ClaimUniquenessScope.NONE;
+                }
+            }
+
+            boolean isUniqueClaim = Boolean.parseBoolean(targetLocalClaim.getClaimProperty(IS_UNIQUE_CLAIM));
+            if (isUniqueClaim) {
+                return isScopeWithinUserstore()
+                        ? ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE
+                        : ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES;
             }
         }
-        return false;
+
+        return ClaimConstants.ClaimUniquenessScope.NONE;
+    }
+
+    /**
+     * Determines whether uniqueness validation should be performed for a given uniqueness scope.
+     * Returns true for any scope other than NONE.
+     *
+     * @param uniquenessScope The ClaimUniquenessScope to check
+     * @return true if uniqueness validation should be performed, false otherwise
+     * @throws ClaimMetadataException If there is an error processing the metadata
+     */
+    private boolean shouldValidateUniqueness(ClaimConstants.ClaimUniquenessScope uniquenessScope) {
+
+        return !ClaimConstants.ClaimUniquenessScope.NONE.equals(uniquenessScope);
     }
 
     private void checkUsernameUniqueness(String username, UserStoreManager userStoreManager) throws UserStoreException {
@@ -219,8 +275,9 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         String tenantDomain = getTenantDomain(userStoreManager);
 
         try {
-            if (isUniqueClaim(USERNAME_CLAIM, tenantDomain) &&
-                    isClaimDuplicated(username, USERNAME_CLAIM, username, null, userStoreManager)) {
+            ClaimConstants.ClaimUniquenessScope uniquenessScope = getClaimUniquenessScope(USERNAME_CLAIM, tenantDomain);
+            if (shouldValidateUniqueness(uniquenessScope) &&
+                    isClaimDuplicated(username, USERNAME_CLAIM, username, null, userStoreManager, uniquenessScope)) {
 
                 errorMessage = "Username " + username + " is already in use by a different user!";
                 throw new UserStoreException(errorMessage, new PolicyViolationException(errorMessage));

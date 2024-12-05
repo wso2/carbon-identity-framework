@@ -15,8 +15,11 @@
  */
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.AttributeMappingDTO;
@@ -28,6 +31,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
 
@@ -36,6 +40,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.mockito.Mockito.mockStatic;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
 
 /**
  * Covers unit tests for ClaimMetadataUtils class
@@ -60,11 +67,27 @@ public class ClaimMetadataUtilsTest {
 
     ExternalClaimDTO externalClaimDTO;
 
+    private MockedStatic<IdentityUtil> identityUtilMock;
+
     @BeforeClass
     public void setUp() throws Exception {
         setUpClaimDialects();
         setUpLocalClaims();
         setUpExternalClaims();
+    }
+
+    @BeforeMethod
+    public void setUpMocks() {
+
+        identityUtilMock = mockStatic(IdentityUtil.class);
+    }
+
+    @AfterMethod
+    public void tearDownMocks() {
+
+        if (identityUtilMock != null) {
+            identityUtilMock.close();
+        }
     }
 
     private void setUpClaimDialects() {
@@ -504,4 +527,37 @@ public class ClaimMetadataUtilsTest {
 
     }
 
+    @DataProvider(name = "uniquenessScopeData")
+    public Object[][] getUniquenessScopeData() {
+        return new Object[][]{
+            {"true", ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE},
+            {"false", ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES},
+            {null, ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES},
+            {"", ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES}
+        };
+    }
+
+    @Test(dataProvider = "uniquenessScopeData")
+    public void testGetServerLevelClaimUniquenessScope(String configValue,
+                                                       ClaimConstants.ClaimUniquenessScope expectedScope) {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(UNIQUENESS_VALIDATION_SCOPE)).thenReturn(configValue);
+
+        ClaimConstants.ClaimUniquenessScope actualScope = ClaimMetadataUtils.getServerLevelClaimUniquenessScope();
+
+        Assert.assertEquals(actualScope, expectedScope,
+                "Incorrect uniqueness scope for config value: " + configValue);
+    }
+
+    @Test
+    public void testGetServerLevelClaimUniquenessScopeWithInvalidValue() {
+
+        identityUtilMock.when(() -> IdentityUtil.getProperty(UNIQUENESS_VALIDATION_SCOPE))
+                .thenReturn("invalid_value");
+
+        ClaimConstants.ClaimUniquenessScope actualScope = ClaimMetadataUtils.getServerLevelClaimUniquenessScope();
+
+        Assert.assertEquals(actualScope, ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES,
+                "Should default to ACROSS_USERSTORES for invalid config value");
+    }
 }
