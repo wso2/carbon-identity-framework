@@ -23,6 +23,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -243,6 +244,12 @@ public class ApplicationManagementServiceImplTest {
 
         organizationManager = mock(OrganizationManager.class);
         ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        reset(organizationManager);
     }
 
     @DataProvider(name = "addApplicationDataProvider")
@@ -1738,6 +1745,94 @@ public class ApplicationManagementServiceImplTest {
         when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenThrow(OrganizationManagementException.class);
         Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
             applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
+        });
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 18, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetChildAppIdsOfChildApp() throws Exception {
+
+        Map<String, String> retrievedChildAppIds =
+                applicationManagementService.getChildAppIds(l2AppId, L2_ORG_ID, Collections.EMPTY_LIST);
+
+        Assert.assertNotNull(retrievedChildAppIds);
+        Assert.assertEquals(retrievedChildAppIds.size(), 0);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 19, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetChildAppIdsOfParentApp() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil =
+                     Mockito.mockStatic(IdentityTenantUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(ROOT_TENANT_DOMAIN))
+                    .thenReturn(ROOT_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_ID)).thenReturn(L1_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L2_ORG_ID)).thenReturn(L2_TENANT_ID);
+
+            when(organizationManager.resolveTenantDomain(L1_ORG_ID)).thenReturn(L1_ORG_ID);
+
+            Map<String, String> retrievedChildAppIds = applicationManagementService
+                    .getChildAppIds(l1AppId, L1_ORG_ID, Collections.singletonList(L2_ORG_ID));
+
+            Assert.assertNotNull(retrievedChildAppIds);
+            Assert.assertEquals(retrievedChildAppIds.size(), 1);
+            Assert.assertEquals(retrievedChildAppIds.get(L2_ORG_ID), l2AppId);
+        }
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 20, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetChildAppIdsOfRootApp() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil =
+                     Mockito.mockStatic(IdentityTenantUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(ROOT_TENANT_DOMAIN))
+                    .thenReturn(ROOT_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_ID)).thenReturn(L1_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L2_ORG_ID)).thenReturn(L2_TENANT_ID);
+
+            when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenReturn(ROOT_TENANT_DOMAIN);
+
+            Map<String, String> retrievedChildAppIds = applicationManagementService
+                    .getChildAppIds(rootAppId, ROOT_ORG_ID, new ArrayList<>(Arrays.asList(L1_ORG_ID, L2_ORG_ID)));
+
+            Assert.assertNotNull(retrievedChildAppIds);
+            Assert.assertEquals(retrievedChildAppIds.size(), 2);
+            Assert.assertEquals(retrievedChildAppIds.get(L1_ORG_ID), l1AppId);
+            Assert.assertEquals(retrievedChildAppIds.get(L2_ORG_ID), l2AppId);
+        }
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 21, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetChildAppIdsOfInvalidApp() throws Exception {
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil =
+                     Mockito.mockStatic(IdentityTenantUtil.class, Mockito.CALLS_REAL_METHODS)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(ROOT_TENANT_DOMAIN))
+                    .thenReturn(ROOT_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_ID)).thenReturn(L1_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L2_ORG_ID)).thenReturn(L2_TENANT_ID);
+
+            when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenReturn(ROOT_TENANT_DOMAIN);
+
+            Assert.assertThrows(IdentityApplicationManagementException.class, () ->
+                    applicationManagementService.getChildAppIds("invalid-app-id", ROOT_ORG_ID,
+                            new ArrayList<>(Arrays.asList(L1_ORG_ID, L2_ORG_ID))));
+        }
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 22, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testServerExceptionsWhileRetrievingChildAppIds() throws Exception {
+
+        // Server exceptions while resolving tenant domain of level 1 organization.
+        when(organizationManager.resolveTenantDomain(L1_ORG_ID)).thenThrow(OrganizationManagementException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getChildAppIds(l1AppId, L1_ORG_ID, Collections.singletonList(L2_ORG_ID));
+        });
+
+        // Server exceptions while resolving tenant domain of root organization.
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenThrow(OrganizationManagementException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getChildAppIds(rootAppId, ROOT_ORG_ID,
+                    new ArrayList<>(Arrays.asList(L1_ORG_ID, L2_ORG_ID)));
         });
     }
 
