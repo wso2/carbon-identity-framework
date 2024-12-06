@@ -53,6 +53,8 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.organization.config.service.OrganizationConfigManager;
+import org.wso2.carbon.identity.organization.discovery.service.OrganizationDiscoveryManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -123,6 +125,8 @@ public class FrameworkServiceDataHolder {
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
     private OrganizationManager organizationManager;
+    private OrganizationDiscoveryManager organizationDiscoveryManager;
+    private OrganizationConfigManager organizationConfigManager;
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
 
@@ -776,6 +780,48 @@ public class FrameworkServiceDataHolder {
     public void setOrganizationManager(OrganizationManager organizationManager) {
 
         this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Get {@link OrganizationDiscoveryManager}.
+     *
+     * @return organization discovery manager instance {@link OrganizationDiscoveryManager}.
+     */
+    public OrganizationDiscoveryManager getOrganizationDiscoveryManager() {
+
+        return organizationDiscoveryManager;
+    }
+
+    /**
+     * Set {@link OrganizationDiscoveryManager}.
+     *
+     * @param organizationDiscoveryManager Instance of {@link OrganizationDiscoveryManager}.
+     */
+    public void setOrganizationDiscoveryManager(
+            OrganizationDiscoveryManager organizationDiscoveryManager) {
+
+        this.organizationDiscoveryManager = organizationDiscoveryManager;
+    }
+
+    /**
+     * Get {@link OrganizationConfigManager}.
+     *
+     * @return organization config manager instance {@link OrganizationConfigManager}.
+     */
+    public OrganizationConfigManager getOrganizationConfigManager() {
+
+        return organizationConfigManager;
+    }
+
+    /**
+     * Set {@link OrganizationConfigManager}.
+     *
+     * @param organizationConfigManager Instance of {@link OrganizationConfigManager}.
+     */
+    public void setOrganizationConfigManager(
+            OrganizationConfigManager organizationConfigManager) {
+
+        this.organizationConfigManager = organizationConfigManager;
     }
 
     public IdpManager getIdentityProviderManager() {
