@@ -310,9 +310,7 @@
             registerNavigateEvent = registerNavigateParam ;
         }
 
-        var registerGetSelectedItem = <%= functionForGetAllItems %> ;
-
-
+        var registerGetSelectedItem = '<%=Encode.forJavaScript(functionForGetAllItems)%>';
 
         function doSearch(status, data){
             if(registerSearchResult!=null){
