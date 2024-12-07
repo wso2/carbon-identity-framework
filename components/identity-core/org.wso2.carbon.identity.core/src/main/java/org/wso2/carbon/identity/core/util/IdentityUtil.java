@@ -68,6 +68,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -2016,7 +2017,7 @@ public class IdentityUtil {
             }
         } else {
             try {
-                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+                String tenantKeyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
                 IdentityTenantUtil.initializeRegistry(tenantId);
                 privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             } catch (IdentityException e) {
