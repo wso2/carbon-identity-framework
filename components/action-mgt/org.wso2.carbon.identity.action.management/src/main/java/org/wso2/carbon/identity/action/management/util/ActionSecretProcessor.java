@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management;
+package org.wso2.carbon.identity.action.management.util;
 
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
@@ -36,9 +36,6 @@ import static org.wso2.carbon.identity.action.management.constant.ActionMgtConst
  */
 public class ActionSecretProcessor {
 
-    public ActionSecretProcessor() {
-    }
-
     public List<AuthProperty> encryptAssociatedSecrets(Authentication authentication, String actionId)
             throws SecretManagementException {
 
@@ -54,15 +51,15 @@ public class ActionSecretProcessor {
         return encryptedAuthProperties;
     }
 
-    public List<AuthProperty> decryptAssociatedSecrets(List<AuthProperty> authProperties, String authType,
-                                                       String actionId) throws SecretManagementException {
+    public List<AuthProperty> decryptAssociatedSecrets(Authentication authentication, String actionId)
+            throws SecretManagementException {
 
         List<AuthProperty> decryptedAuthProperties = new ArrayList<>();
-        for (AuthProperty authProperty : authProperties) {
+        for (AuthProperty authProperty : authentication.getProperties()) {
             if (!authProperty.getIsConfidential()) {
                 decryptedAuthProperties.add(authProperty);
             } else {
-                decryptedAuthProperties.add(decryptProperty(authProperty, authType, actionId));
+                decryptedAuthProperties.add(decryptProperty(authProperty, authentication.getType().name(), actionId));
             }
         }
 

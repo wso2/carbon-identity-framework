@@ -297,9 +297,7 @@ public class IdentityKeyStoreResolver {
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
         if (inboundProtocol == null) {
-            throw new IdentityKeyStoreResolverException(
-                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
-                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Inbound protocol"));
+            return getCertificate(tenantDomain);
         }
 
         if (keyStoreMappings.containsKey(inboundProtocol)) {

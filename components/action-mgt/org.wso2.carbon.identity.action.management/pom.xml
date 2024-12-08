@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>action-mgt</artifactId>
-        <version>7.7.16-SNAPSHOT</version>
+        <version>7.7.24-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -42,6 +42,10 @@
             <artifactId>org.wso2.carbon.identity.secret.mgt.core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>
@@ -54,6 +58,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -84,19 +89,18 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.action.management.internal,
                             org.wso2.carbon.identity.action.management.cache,
-                            org.wso2.carbon.identity.action.management.dao,
-                            org.wso2.carbon.identity.action.management.dao.impl,
+                            org.wso2.carbon.identity.action.management.constant,
+                            org.wso2.carbon.identity.action.management.dao.*,
+                            org.wso2.carbon.identity.action.management.internal,
+                            org.wso2.carbon.identity.action.management.service.impl,
                             org.wso2.carbon.identity.action.management.util
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.action.management.internal,
-                            !org.wso2.carbon.identity.action.management.cache,
-                            !org.wso2.carbon.identity.action.management.dao,
-                            !org.wso2.carbon.identity.action.management.dao.impl,
-                            !org.wso2.carbon.identity.action.management.util,
-                            org.wso2.carbon.identity.action.management.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.action.management.constant.error,
+                            org.wso2.carbon.identity.action.management.exception,
+                            org.wso2.carbon.identity.action.management.model,
+                            org.wso2.carbon.identity.action.management.service; version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
@@ -175,16 +179,11 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <!-- Temporarily decreasing this.
-                                            Will be improved upon in a follow-up effort.
-                                            Related issue: https://github.com/wso2/product-is/issues/21368 -->
-                                            <minimum>0.70</minimum>
+                                            <minimum>0.80</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
-                                                <!-- Temp decreasing this. There is an ongoing effort to improve
-                                                the code complexity coverage.  -->
                                             <minimum>0.60</minimum>
                                         </limit>
                                     </limits>

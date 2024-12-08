@@ -23,29 +23,18 @@ package org.wso2.carbon.identity.action.management.exception;
  */
 public class ActionMgtServerException extends ActionMgtException {
 
-    public ActionMgtServerException(String message, String errorCode) {
-
-        super(message, errorCode);
-    }
-
-    public ActionMgtServerException(String message, String description, String errorCode) {
-
-        super(message, description, errorCode);
-    }
-
-    public ActionMgtServerException(String message, String errorCode, Throwable cause) {
-
-        super(message, errorCode, cause);
-    }
-
-    public ActionMgtServerException(String message, String description, String errorCode,
-                                         Throwable cause) {
-
-        super(message, description, errorCode, cause);
-    }
-
     public ActionMgtServerException(String message) {
 
         super(message);
+    }
+
+    public ActionMgtServerException(String message, Throwable cause) {
+
+        super(message, cause);
+    }
+
+    public ActionMgtServerException(String message, String description, String errorCode, Throwable cause) {
+
+        super(message, description, errorCode, cause);
     }
 }
