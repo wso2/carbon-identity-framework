@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.common;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
+import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -43,9 +44,10 @@ import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtE
  */
 public class ApplicationAuthenticatorService {
 
+    private static final String DISPLAY_NAME = "Display name";
     private static volatile ApplicationAuthenticatorService instance;
     private static final Log LOG = LogFactory.getLog(ApplicationAuthenticatorService.class);
-    private static final CacheBackedAuthenticatorMgtDAO CACHE_BACKED_DAO =
+    private static final AuthenticatorManagementDAO dao =
             new CacheBackedAuthenticatorMgtDAO(new AuthenticatorManagementDAOImpl());
 
     private List<LocalAuthenticatorConfig> localAuthenticators = new ArrayList<>();
@@ -77,7 +79,7 @@ public class ApplicationAuthenticatorService {
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticators(String tenantDomain)
             throws AuthenticatorMgtException {
 
-        return CACHE_BACKED_DAO.getAllUserDefinedLocalAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+        return dao.getAllUserDefinedLocalAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     public List<FederatedAuthenticatorConfig> getFederatedAuthenticators() {
@@ -146,6 +148,11 @@ public class ApplicationAuthenticatorService {
         return null;
     }
 
+    /**
+     * Add a system defined Local Application Authenticator configuration.
+     *
+     * @param authenticator The Local Application Authenticator configuration.
+     */
     public void addLocalAuthenticator(LocalAuthenticatorConfig authenticator) {
 
         if (authenticator != null) {
@@ -205,10 +212,10 @@ public class ApplicationAuthenticatorService {
                     authenticatorConfig.getName());
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
-        authenticatorValidator.validateForBlank("Display name", authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
         authenticatorValidator.validateDefinedByType(authenticatorConfig.getDefinedByType());
 
-        return CACHE_BACKED_DAO.addUserDefinedLocalAuthenticator(
+        return dao.addUserDefinedLocalAuthenticator(
                 authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -227,9 +234,9 @@ public class ApplicationAuthenticatorService {
         UserDefinedLocalAuthenticatorConfig existingConfig = resolveExistingAuthenticator(
                 authenticatorConfig.getName(), tenantDomain);
         authenticatorValidator.validateDefinedByType(existingConfig.getDefinedByType());
-        authenticatorValidator.validateForBlank("Display name", authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
 
-        return CACHE_BACKED_DAO.updateUserDefinedLocalAuthenticator(
+        return dao.updateUserDefinedLocalAuthenticator(
                 existingConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -247,7 +254,7 @@ public class ApplicationAuthenticatorService {
                 authenticatorName, tenantDomain);
         authenticatorValidator.validateDefinedByType(existingConfig.getDefinedByType());
 
-        CACHE_BACKED_DAO.deleteUserDefinedLocalAuthenticator(authenticatorName, existingConfig,
+        dao.deleteUserDefinedLocalAuthenticator(authenticatorName, existingConfig,
                 IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
@@ -262,14 +269,14 @@ public class ApplicationAuthenticatorService {
     public UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(String authenticatorName,
             String tenantDomain) throws AuthenticatorMgtException {
 
-        return CACHE_BACKED_DAO.getUserDefinedLocalAuthenticator(
+        return dao.getUserDefinedLocalAuthenticator(
                 authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     private UserDefinedLocalAuthenticatorConfig resolveExistingAuthenticator(String authenticatorName,
             String tenantDomain) throws AuthenticatorMgtException {
 
-        UserDefinedLocalAuthenticatorConfig existingAuthenticatorConfig = CACHE_BACKED_DAO.
+        UserDefinedLocalAuthenticatorConfig existingAuthenticatorConfig = dao.
                 getUserDefinedLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
 
         if (existingAuthenticatorConfig == null) {

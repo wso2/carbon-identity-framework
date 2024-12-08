@@ -27,7 +27,7 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
 
     private static final String TAG_CUSTOM = "CUSTOM";
 
-    protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedFederatedAuthenticatorConfig() {
 

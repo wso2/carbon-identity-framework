@@ -29,8 +29,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     private static final String TAG_2FA = "2FA";
     private static final String TAG_CUSTOM = "CUSTOM";
     private AuthenticationType authenticationType;
-
-    protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedLocalAuthenticatorConfig(AuthenticationType type) {
 
