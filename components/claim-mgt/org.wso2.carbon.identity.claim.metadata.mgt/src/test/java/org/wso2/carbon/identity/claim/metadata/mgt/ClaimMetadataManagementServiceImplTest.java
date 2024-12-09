@@ -53,6 +53,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -455,6 +456,99 @@ public class ClaimMetadataManagementServiceImplTest {
         }
     }
 
+    @Test
+    public void testGetLocalClaimsUniquenessProperties() throws Exception {
+
+        // Create test claims with different property combinations
+        List<LocalClaim> mockClaims = new ArrayList<>();
+
+        // Claim with only isUnique=true (e.g., email which should be unique)
+        LocalClaim emailClaim = new LocalClaim("http://wso2.org/claims/emailaddress");
+        Map<String, String> emailProps = new HashMap<>();
+        emailProps.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+        emailClaim.setClaimProperties(emailProps);
+        mockClaims.add(emailClaim);
+
+        // Claim with only isUnique=false (e.g., country which doesn't need to be unique)
+        LocalClaim countryClaim = new LocalClaim("http://wso2.org/claims/country");
+        Map<String, String> countryProps = new HashMap<>();
+        countryProps.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "false");
+        countryClaim.setClaimProperties(countryProps);
+        mockClaims.add(countryClaim);
+
+        // Claim with both properties (e.g., username which is unique across userstores)
+        LocalClaim usernameClaim = new LocalClaim("http://wso2.org/claims/username");
+        Map<String, String> usernameProps = new HashMap<>();
+        usernameProps.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, "true");
+        usernameProps.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
+                ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
+        usernameClaim.setClaimProperties(usernameProps);
+        mockClaims.add(usernameClaim);
+
+        // Claim with only UniquenessScope property (e.g., mobile number which is unique within userstore)
+        LocalClaim mobileNumberClaim = new LocalClaim("http://wso2.org/claims/mobile");
+        Map<String, String> mobileProps = new HashMap<>();
+        mobileProps.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
+                ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.toString());
+        mobileNumberClaim.setClaimProperties(mobileProps);
+        mockClaims.add(mobileNumberClaim);
+
+        // Claim with no uniqueness properties (e.g., description)
+        LocalClaim descriptionClaim = new LocalClaim("http://wso2.org/claims/description");
+        Map<String, String> descriptionProps = new HashMap<>();
+        descriptionProps.put("DisplayName", "Description");
+        descriptionClaim.setClaimProperties(descriptionProps);
+        mockClaims.add(descriptionClaim);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(mockClaims);
+        identityUtilStaticMock.when(IdentityUtil::isGroupsVsRolesSeparationImprovementsEnabled).thenReturn(false);
+
+        List<LocalClaim> resultClaims = service.getLocalClaims(SUPER_TENANT_DOMAIN_NAME);
+
+        // Verify results
+        assertEquals(resultClaims.size(), 5);
+
+        // Verify email claim (only isUnique=true)
+        LocalClaim resultEmailClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/emailaddress");
+        Map<String, String> resultEmailProps = resultEmailClaim.getClaimProperties();
+        assertEquals(resultEmailProps.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY), "true");
+        assertEquals(resultEmailProps.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
+                ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
+
+        // Verify country claim (only isUnique=false)
+        LocalClaim resultCountryClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/country");
+        Map<String, String> resultCountryProps = resultCountryClaim.getClaimProperties();
+        assertEquals(resultCountryProps.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY), "false");
+        assertEquals(resultCountryProps.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
+                ClaimConstants.ClaimUniquenessScope.NONE.toString());
+
+        // Verify username claim (both properties)
+        LocalClaim resultUsernameClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/username");
+        Map<String, String> resultUsernameProps = resultUsernameClaim.getClaimProperties();
+        assertEquals(resultUsernameProps.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY), "true");
+        assertEquals(resultUsernameProps.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
+                ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
+
+        // Verify mobile claim (only UniquenessScope property)
+        LocalClaim resultMobileNumberClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/mobile");
+        Map<String, String> resultMobileProps = resultMobileNumberClaim.getClaimProperties();
+        assertFalse(resultMobileProps.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY));
+        assertEquals(resultMobileProps.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY),
+                ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.toString());
+
+        // Verify description claim (no uniqueness properties)
+        LocalClaim resultDescriptionClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/description");
+        Map<String, String> resultDescriptionProps = resultDescriptionClaim.getClaimProperties();
+        assertFalse(resultDescriptionProps.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY));
+        assertFalse(resultDescriptionProps.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY));
+        assertEquals(resultDescriptionProps.get("DisplayName"), "Description");
+    }
+
     @DataProvider(name = "addLocalClaimUniquenessPropertiesData")
     public Object[][] addLocalClaimUniquenessPropertiesData() {
 
@@ -564,5 +658,13 @@ public class ClaimMetadataManagementServiceImplTest {
         identityUtilStaticMock.close();
         identityTenantUtil.close();
         claimMetadataEventPublisherProxy.close();
+    }
+
+    private LocalClaim findClaimByUri(List<LocalClaim> claims, String uri) {
+
+        return claims.stream()
+                .filter(claim -> claim.getClaimURI().equals(uri))
+                .findFirst()
+                .orElse(null);
     }
 }

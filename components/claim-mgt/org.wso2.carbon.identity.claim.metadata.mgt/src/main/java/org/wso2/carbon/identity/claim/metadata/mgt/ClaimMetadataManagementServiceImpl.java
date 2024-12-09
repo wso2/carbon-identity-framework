@@ -39,6 +39,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -189,9 +190,25 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // Add listener
 
-        return IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ? localClaims.stream().filter(
-                localClaim -> !UserCoreConstants.ROLE_CLAIM.equals(localClaim.getClaimURI())).collect(
-                Collectors.toList()) : localClaims;
+        boolean isGroupRoleSeparationEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
+        List<LocalClaim> filteredLocalClaims = new ArrayList<>(localClaims.size());
+
+        for (LocalClaim claim : localClaims) {
+            if (isGroupRoleSeparationEnabled && UserCoreConstants.ROLE_CLAIM.equals(claim.getClaimURI())) {
+                continue;
+            }
+            // Add `UniquenessScope` property for claims that only have legacy `isUnique` property.
+            // `UniquenessScope` is the current property used to configure claim-wise uniqueness validation scope,
+            // while `isUnique` is maintained for backward compatibility.
+            Map<String, String> properties = claim.getClaimProperties();
+            if (properties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY) &&
+                    !properties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY)) {
+                updateScopeFromIsUnique(properties,
+                        properties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY));
+            }
+            filteredLocalClaims.add(claim);
+        }
+        return filteredLocalClaims;
     }
 
     @Override
