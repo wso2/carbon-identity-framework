@@ -737,8 +737,14 @@
     </Resource>
 
     <!-- [Organization] Application Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_create</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_org_application_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_application_mgt_delete</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_application_mgt_view</Scopes>
