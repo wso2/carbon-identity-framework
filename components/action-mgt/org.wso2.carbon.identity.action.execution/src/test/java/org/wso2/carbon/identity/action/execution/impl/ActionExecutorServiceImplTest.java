@@ -60,11 +60,11 @@ import org.wso2.carbon.identity.action.execution.util.APIClient;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutionDiagnosticLogger;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.action.execution.util.RequestFilter;
-import org.wso2.carbon.identity.action.management.ActionManagementService;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.lang.reflect.Field;
@@ -228,6 +228,16 @@ public class ActionExecutorServiceImplTest {
                 new ActionMgtException("Error occurred while retrieving action by action Id."));
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
+    }
+
+    @Test(expectedExceptions = ActionExecutionException.class,
+            expectedExceptionsMessageRegExp = "Error occurred while retrieving actions.")
+    public void testActionExecuteWithActionFailureWhenInvalidActionGiven() throws Exception {
+
+        when(actionManagementService.getActionsByActionType(any(), any())).thenThrow(
+                new ActionMgtException("Error occurred while retrieving actions."));
+
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,

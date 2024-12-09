@@ -114,13 +114,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             validateActions(actions, actionType);
             // As of now only one action is allowed.
             Action action = actions.get(0);
-            DIAGNOSTIC_LOGGER.logActionInitiation(action);
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            // Skip executing actions when no action available or due to a failure in retrieving actions,
-            // is considered as action execution being successful.
+            // Skip executing actions when no action available is considered as action execution being successful.
             return new SuccessStatus.Builder().setResponseContext(eventContext).build();
         }
     }
@@ -140,14 +137,11 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         validateActionIdList(actionType, actionIdList);
         Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
-        DIAGNOSTIC_LOGGER.logActionInitiation(action);
         try {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            DIAGNOSTIC_LOGGER.logSkippedActionExecution(actionType);
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
-            // Skip executing actions when no action available or due to a failure in retrieving actions,
-            // is considered as action execution being successful.
+            // Skip executing actions when no action available is considered as action execution being successful.
             return new SuccessStatus.Builder().setResponseContext(eventContext).build();
         }
     }
@@ -172,6 +166,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
         if (action.getStatus() == Action.Status.ACTIVE) {
+            DIAGNOSTIC_LOGGER.logActionInitiation(action);
             return executeAction(action, actionRequest, eventContext, actionExecutionResponseProcessor);
         } else {
             // If no active actions are detected, it is regarded as the action execution being successful.
@@ -191,13 +186,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private List<Action> getActionsByActionType(ActionType actionType, String tenantDomain) throws
-            ActionExecutionRuntimeException {
+            ActionExecutionException {
 
         try {
             return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
                     .getActionsByActionType(Action.ActionTypes.valueOf(actionType.name()).getPathParam(), tenantDomain);
         } catch (ActionMgtException e) {
-            throw new ActionExecutionRuntimeException("Error occurred while retrieving actions.", e);
+            throw new ActionExecutionException("Error occurred while retrieving actions.", e);
         }
     }
 

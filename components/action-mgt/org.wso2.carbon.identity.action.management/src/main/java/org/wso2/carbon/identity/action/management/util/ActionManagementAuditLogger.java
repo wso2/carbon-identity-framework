@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+
+import java.util.Map;
 
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.jsonObjectToMap;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
@@ -43,30 +45,14 @@ public class ActionManagementAuditLogger {
      * Print action audit log related to the operation.
      *
      * @param operation Operation associated with the state change.
-     * @param action    Action object to be logged.
+     * @param actionDTO Action object to be logged.
      */
-    public void printAuditLog(Operation operation, Action action) {
+    public void printAuditLog(Operation operation, ActionDTO actionDTO) {
 
         if (!LoggerUtils.isEnableV2AuditLogs()) {
             return;
         }
-        JSONObject data = createAuditLogEntry(action);
-        buildAuditLog(operation, data);
-    }
-
-    /**
-     * Print action audit log related to the operation by action ID.
-     *
-     * @param operation Operation associated with the state change.
-     * @param actionId  ID of the action to be logged.
-     * @param action    Action object to be logged.
-     */
-    public void printAuditLog(Operation operation, String actionId, Action action) {
-
-        if (!LoggerUtils.isEnableV2AuditLogs()) {
-            return;
-        }
-        JSONObject data = createAuditLogEntry(actionId, action);
+        JSONObject data = createAuditLogEntry(actionDTO);
         buildAuditLog(operation, data);
     }
 
@@ -104,43 +90,27 @@ public class ActionManagementAuditLogger {
     }
 
     /**
-     * Create audit log data with action.
-     * This method expects all the action fields to be non-null/non-empty.
-     *
-     * @param action Action to be logged.
-     * @return audit log data.
-     */
-    private JSONObject createAuditLogEntry(Action action) {
-
-        JSONObject data = new JSONObject();
-        data.put(LogConstants.ACTION_TYPE_FIELD, action.getType());
-        data.put(LogConstants.ACTION_ID_FIELD, action.getId());
-        data.put(LogConstants.ACTION_NAME_FIELD, action.getName());
-        data.put(LogConstants.ACTION_DESCRIPTION_FIELD, action.getDescription());
-        data.put(LogConstants.ACTION_STATUS_FIELD, action.getStatus());
-        data.put(LogConstants.ENDPOINT_CONFIG_FIELD, getAllEndpointData(action.getEndpoint()));
-        return data;
-    }
-
-    /**
      * Create audit log data with action and ID.
      * This method expects null/empty action fields.
      *
-     * @param actionId ID of the action to be logged.
-     * @param action   Action to be logged.
+     * @param actionDTO Action to be logged.
      * @return audit log data.
      */
-    private JSONObject createAuditLogEntry(String actionId, Action action) {
+    private JSONObject createAuditLogEntry(ActionDTO actionDTO) {
 
         JSONObject data = new JSONObject();
-        data.put(LogConstants.ACTION_TYPE_FIELD, action.getType() != null ? action.getType() : JSONObject.NULL);
-        data.put(LogConstants.ACTION_ID_FIELD, actionId);
-        data.put(LogConstants.ACTION_NAME_FIELD, action.getName() != null ? action.getName() : JSONObject.NULL);
+        data.put(LogConstants.ACTION_TYPE_FIELD, actionDTO.getType() != null ? actionDTO.getType() : JSONObject.NULL);
+        data.put(LogConstants.ACTION_ID_FIELD, actionDTO.getId() != null ? actionDTO.getId() : JSONObject.NULL);
+        data.put(LogConstants.ACTION_NAME_FIELD, actionDTO.getName() != null ? actionDTO.getName() : JSONObject.NULL);
         data.put(LogConstants.ACTION_DESCRIPTION_FIELD,
-                action.getDescription() != null ? action.getDescription() : JSONObject.NULL);
-        data.put(LogConstants.ACTION_STATUS_FIELD, action.getStatus() != null ? action.getStatus() : JSONObject.NULL);
-        if (action.getEndpoint() != null) {
-            data.put(LogConstants.ENDPOINT_CONFIG_FIELD, getEndpointData(action.getEndpoint()));
+                actionDTO.getDescription() != null ? actionDTO.getDescription() : JSONObject.NULL);
+        data.put(LogConstants.ACTION_STATUS_FIELD, actionDTO.getStatus() != null ? actionDTO.getStatus()
+                : JSONObject.NULL);
+        if (actionDTO.getEndpoint() != null) {
+            data.put(LogConstants.ENDPOINT_CONFIG_FIELD, getEndpointData(actionDTO.getEndpoint()));
+        }
+        if (actionDTO.getProperties() != null && !actionDTO.getProperties().isEmpty()) {
+            data.put(LogConstants.ACTION_PROPERTIES, getPropertiesData(actionDTO.getProperties()));
         }
         return data;
     }
@@ -161,36 +131,17 @@ public class ActionManagementAuditLogger {
     }
 
     /**
-     * Retrieve complete endpoint configuration data to be logged.
+     * Retrieve properties data to be logged.
+     * All the properties will be masked.
      *
-     * @param endpointConfig Endpoint data to be logged.
-     * @return endpoint config data.
+     * @param properties Properties to be logged.
+     * @return properties data.
      */
-    private JSONObject getAllEndpointData(EndpointConfig endpointConfig) {
+    private JSONObject getPropertiesData(Map<String, Object> properties) {
 
-        JSONObject endpointData = new JSONObject();
-        endpointData.put(LogConstants.ENDPOINT_URI_FIELD, endpointConfig.getUri());
-        Authentication authentication = endpointConfig.getAuthentication();
-        endpointData.put(LogConstants.AUTHENTICATION_SCHEME_FIELD, authentication.getType().getName());
-        switch (authentication.getType()) {
-            case BASIC:
-                endpointData.put(LogConstants.USERNAME_FIELD, LoggerUtils.getMaskedContent(authentication.
-                        getProperty(Authentication.Property.USERNAME).getValue()));
-                endpointData.put(LogConstants.PASSWORD_FIELD, LoggerUtils.getMaskedContent(authentication.
-                        getProperty(Authentication.Property.PASSWORD).getValue()));
-                break;
-            case BEARER:
-                endpointData.put(LogConstants.ACCESS_TOKEN_FIELD, LoggerUtils.getMaskedContent(authentication.
-                        getProperty(Authentication.Property.ACCESS_TOKEN).getValue()));
-                break;
-            case API_KEY:
-                endpointData.put(LogConstants.API_KEY_HEADER_FIELD, LoggerUtils.getMaskedContent(authentication.
-                        getProperty(Authentication.Property.HEADER).getValue()));
-                endpointData.put(LogConstants.API_KEY_VALUE_FIELD, LoggerUtils.getMaskedContent(authentication.
-                        getProperty(Authentication.Property.VALUE).getValue()));
-                break;
-        }
-        return endpointData;
+        JSONObject propertiesData = new JSONObject();
+        properties.forEach((key, value) -> propertiesData.put(key, LoggerUtils.getMaskedContent(value.toString())));
+        return propertiesData;
     }
 
     /**
@@ -210,26 +161,20 @@ public class ActionManagementAuditLogger {
             endpointData.put(LogConstants.AUTHENTICATION_SCHEME_FIELD, authentication.getType());
             switch (authentication.getType()) {
                 case BASIC:
-                    endpointData.put(LogConstants.USERNAME_FIELD, LoggerUtils.getMaskedContent(
-                            authentication.getProperty(Authentication.Property.USERNAME) != null
-                                    ? authentication.getProperty(Authentication.Property.USERNAME).getValue() : ""));
-                    endpointData.put(LogConstants.PASSWORD_FIELD, LoggerUtils.getMaskedContent(
-                            authentication.getProperty(Authentication.Property.PASSWORD) != null
-                                    ? authentication.getProperty(Authentication.Property.PASSWORD).getValue() : ""));
+                    endpointData.put(LogConstants.USERNAME_FIELD, LoggerUtils.getMaskedContent(authentication.
+                            getProperty(Authentication.Property.USERNAME).getValue()));
+                    endpointData.put(LogConstants.PASSWORD_FIELD, LoggerUtils.getMaskedContent(authentication.
+                            getProperty(Authentication.Property.PASSWORD).getValue()));
                     break;
                 case BEARER:
-                    endpointData.put(LogConstants.ACCESS_TOKEN_FIELD, LoggerUtils.getMaskedContent(
-                            authentication.getProperty(Authentication.Property.ACCESS_TOKEN) != null
-                                    ? authentication.getProperty(Authentication.Property.ACCESS_TOKEN).
-                                    getValue() : ""));
+                    endpointData.put(LogConstants.ACCESS_TOKEN_FIELD, LoggerUtils.getMaskedContent(authentication.
+                            getProperty(Authentication.Property.ACCESS_TOKEN).getValue()));
                     break;
                 case API_KEY:
-                    endpointData.put(LogConstants.API_KEY_HEADER_FIELD, LoggerUtils.getMaskedContent(
-                            authentication.getProperty(Authentication.Property.HEADER) != null
-                                    ? authentication.getProperty(Authentication.Property.HEADER).getValue() : ""));
-                    endpointData.put(LogConstants.API_KEY_VALUE_FIELD, LoggerUtils.getMaskedContent(
-                            authentication.getProperty(Authentication.Property.VALUE) != null
-                                    ? authentication.getProperty(Authentication.Property.VALUE).getValue() : ""));
+                    endpointData.put(LogConstants.API_KEY_HEADER_FIELD, LoggerUtils.getMaskedContent(authentication.
+                            getProperty(Authentication.Property.HEADER).getValue()));
+                    endpointData.put(LogConstants.API_KEY_VALUE_FIELD, LoggerUtils.getMaskedContent(authentication.
+                            getProperty(Authentication.Property.VALUE).getValue()));
                     break;
             }
         }
@@ -310,6 +255,7 @@ public class ActionManagementAuditLogger {
         public static final String ACTION_DESCRIPTION_FIELD = "ActionDescription";
         public static final String ACTION_STATUS_FIELD = "ActionStatus";
         public static final String ENDPOINT_CONFIG_FIELD = "EndpointConfiguration";
+        public static final String ACTION_PROPERTIES = "Properties";
         public static final String ENDPOINT_URI_FIELD = "EndpointUri";
         public static final String AUTHENTICATION_SCHEME_FIELD = "AuthenticationScheme";
         public static final String USERNAME_FIELD = "Username";

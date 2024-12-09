@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -155,19 +155,28 @@ public class APIResourceManagementConstants {
                 "properties.", "Error while adding API resource properties to the database."),
         ERROR_CODE_ERROR_WHILE_UPDATING_SCOPE_METADATA("65015", "Error while updating scope metadata.",
                 "Error while updating scope metadata in the database."),
-        ERROR_CODE_ERROR_WHILE_ADDING_AUTHORIZATION_DETAILS_TYPES("650016",
+        ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT("65016", "Error while resolving organization",
+                "Error while resolving organization for tenant domain : %s"),
+        ERROR_CODE_ADDING_API_RESOURCE_NOT_SUPPORTED_FOR_ORGANIZATIONS("65017", "Unable to add API resources",
+                "Adding API resource is not supported for organizations."),
+        ERROR_CODE_DELETING_API_RESOURCE_NOT_SUPPORTED_FOR_ORGANIZATIONS("65018", "Unable to delete API resources",
+                "Deleting API resource is not supported for organizations."),
+        ERROR_CODE_ADDING_SCOPES_NOT_SUPPORTED_FOR_ORGANIZATIONS("65019", "Unable to add scopes",
+                "Adding scope is not supported for organizations."),
+        ERROR_CODE_DELETING_SCOPES_NOT_SUPPORTED_FOR_ORGANIZATIONS("65020", "Unable to add scopes",
+                "Deleting scope is not supported for organizations."),
+        ERROR_CODE_ERROR_WHILE_ADDING_AUTHORIZATION_DETAILS_TYPES("65021",
                 "Error while adding authorization details types.",
                 "Error while adding authorization details types to the database."),
-        ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES("65017",
+        ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES("65022",
                 "Error while getting authorization details types.",
                 "Error while getting authorization details types from the database."),
-        ERROR_CODE_ERROR_WHILE_DELETING_AUTHORIZATION_DETAILS_TYPES("65018",
+        ERROR_CODE_ERROR_WHILE_DELETING_AUTHORIZATION_DETAILS_TYPES("65023",
                 "Error while deleting authorization details types.",
                 "Error while deleting authorization details types from the database."),
-        ERROR_CODE_ERROR_WHILE_UPDATING_AUTHORIZATION_DETAILS_TYPES("65019",
+        ERROR_CODE_ERROR_WHILE_UPDATING_AUTHORIZATION_DETAILS_TYPES("65024",
                 "Error while updating authorization details types.",
-                "Error while updating authorization details types in the database."),
-        ;
+                "Error while updating authorization details types in the database.");
 
         private final String code;
         private final String message;

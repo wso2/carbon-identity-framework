@@ -278,6 +278,8 @@ public class IdentityConstants {
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
+        public static final String SKIP_CLAIM_METADATA_PERSISTENCE = "JDBCPersistenceManager." +
+                "SkipClaimMetadataPersistence";
 
         //Timeout Configurations
         public static final String SESSION_IDLE_TIMEOUT = "TimeConfig.SessionIdleTimeout";

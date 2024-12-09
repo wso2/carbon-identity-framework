@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 
 /**
  * FilterQueriesUtil.
@@ -45,31 +45,45 @@ public class FilterQueriesUtil {
     public static FilterQueryBuilder getScopeFilterQueryBuilder(List<ExpressionNode> expressionNodes)
             throws APIResourceMgtClientException {
 
-        return getFilterQueryBuilder(expressionNodes, APIResourceManagementConstants.SCOPE_ATTRIBUTE_COLUMN_MAP);
+        return getFilterQueryBuilder(expressionNodes, APIResourceManagementConstants.SCOPE_ATTRIBUTE_COLUMN_MAP::get);
+    }
+
+    public static FilterQueryBuilder getScopeFilterQueryBuilderForOrganizations(List<ExpressionNode> expressionNodes)
+            throws APIResourceMgtClientException {
+
+        return getFilterQueryBuilder(expressionNodes,
+                attributeVal -> "SC." + APIResourceManagementConstants.SCOPE_ATTRIBUTE_COLUMN_MAP.get(attributeVal));
     }
 
     public static FilterQueryBuilder getApiResourceFilterQueryBuilder(List<ExpressionNode> expressionNodes)
             throws APIResourceMgtClientException {
 
-        return getFilterQueryBuilder(expressionNodes, APIResourceManagementConstants.ATTRIBUTE_COLUMN_MAP);
+        return getFilterQueryBuilder(expressionNodes, APIResourceManagementConstants.ATTRIBUTE_COLUMN_MAP::get);
+    }
+
+    public static FilterQueryBuilder getApiResourceFilterQueryBuilderForOrganizations(
+            List<ExpressionNode> expressionNodes) throws APIResourceMgtClientException {
+
+        return getFilterQueryBuilder(expressionNodes,
+                attributeVal -> "AR." + APIResourceManagementConstants.SCOPE_ATTRIBUTE_COLUMN_MAP.get(attributeVal));
     }
 
     public static FilterQueryBuilder getAuthorizationDetailsTypesFilterQueryBuilder(
             List<ExpressionNode> expressionNodes) throws APIResourceMgtClientException {
 
         return getFilterQueryBuilder(expressionNodes,
-                APIResourceManagementConstants.AUTHORIZATION_DETAILS_TYPES_ATTRIBUTE_COLUMN_MAP);
+                APIResourceManagementConstants.AUTHORIZATION_DETAILS_TYPES_ATTRIBUTE_COLUMN_MAP::get);
     }
 
     /**
      * Append the filter query to the query builder.
      *
-     * @param expressionNodes           List of expression nodes.
-     * @param supportedAttributeColumns supported attribute columns map.
+     * @param expressionNodes       List of expression nodes.
+     * @param attributeNameResolver A function that maps attribute values to their corresponding column names.
      * @throws APIResourceMgtClientException If an error occurs while appending the filter query.
      */
     public static FilterQueryBuilder getFilterQueryBuilder(List<ExpressionNode> expressionNodes,
-                                                           Map<String, String> supportedAttributeColumns)
+                                                           Function<String, String> attributeNameResolver)
             throws APIResourceMgtClientException {
 
         int count = 1;
@@ -82,64 +96,9 @@ public class FilterQueriesUtil {
                 String operation = expressionNode.getOperation();
                 String value = expressionNode.getValue();
                 String attributeValue = expressionNode.getAttributeValue();
-                String attributeName = supportedAttributeColumns.get(attributeValue);
+                String attributeName = attributeNameResolver.apply(attributeValue);
 
-                if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
-                        .isNotBlank(operation)) {
-                    switch (operation) {
-                        case APIResourceManagementConstants.EQ: {
-                            equalFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.NE: {
-                            notEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.SW: {
-                            startWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.EW: {
-                            endWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.CO: {
-                            containsFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.GE: {
-                            greaterThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.LE: {
-                            lessThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.GT: {
-                            greaterThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        case APIResourceManagementConstants.LT: {
-                            lessThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
-                            ++count;
-                            break;
-                        }
-                        default: {
-                            break;
-                        }
-                    }
-                } else {
-                    throw APIResourceManagementUtil.handleClientException(
-                            APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_VALUE);
-                }
+                count = buildFilterBasedOnOperation(filterQueryBuilder, attributeName, value, operation, count, filter);
             }
             if (StringUtils.isBlank(filter.toString())) {
                 filterQueryBuilder.setFilterQuery(StringUtils.EMPTY);
@@ -150,6 +109,68 @@ public class FilterQueriesUtil {
         return filterQueryBuilder;
     }
 
+    private static int buildFilterBasedOnOperation(FilterQueryBuilder filterQueryBuilder, String attributeName,
+                                                   String value, String operation, int count, StringBuilder filter)
+            throws APIResourceMgtClientException {
+
+        if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
+                .isNotBlank(operation)) {
+            switch (operation) {
+                case APIResourceManagementConstants.EQ: {
+                    equalFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.NE: {
+                    notEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.SW: {
+                    startWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.EW: {
+                    endWithFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.CO: {
+                    containsFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.GE: {
+                    greaterThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.LE: {
+                    lessThanOrEqualFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.GT: {
+                    greaterThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                case APIResourceManagementConstants.LT: {
+                    lessThanFilterBuilder(count, value, attributeName, filter, filterQueryBuilder);
+                    ++count;
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        } else {
+            throw APIResourceManagementUtil.handleClientException(
+                    APIResourceManagementConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_VALUE);
+        }
+        return count;
+    }
 
     private static void equalFilterBuilder(int count, String value, String attributeName, StringBuilder filter,
                                            FilterQueryBuilder filterQueryBuilder) {

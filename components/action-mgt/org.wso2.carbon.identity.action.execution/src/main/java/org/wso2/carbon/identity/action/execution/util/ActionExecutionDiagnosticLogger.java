@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.action.execution.util;
 import org.apache.http.client.methods.HttpPost;
 import org.wso2.carbon.identity.action.execution.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.utils.DiagnosticLog;
@@ -45,19 +44,6 @@ public class ActionExecutionDiagnosticLogger {
                         ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION,
                         action.getType().getDisplayName() + " action execution is initiated.",
                         DiagnosticLog.ResultStatus.SUCCESS));
-    }
-
-    public void logSkippedActionExecution(ActionType actionType) {
-
-        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
-            return;
-        }
-
-        triggerLogEvent(
-                initializeDiagnosticLogBuilder(
-                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION,
-                        "Skip executing action for " + actionType + " type.",
-                        DiagnosticLog.ResultStatus.FAILED));
     }
 
     public void logActionRequest(Action action) {

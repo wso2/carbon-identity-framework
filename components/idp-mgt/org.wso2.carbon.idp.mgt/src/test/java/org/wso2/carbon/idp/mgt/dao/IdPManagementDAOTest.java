@@ -30,6 +30,8 @@ import org.testng.annotations.Test;
 
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -43,12 +45,13 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
@@ -56,6 +59,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.ActionMgtTestUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 
@@ -68,8 +72,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -100,6 +106,13 @@ public class IdPManagementDAOTest {
     private static final String IDP_GROUP2 = "idpGroup2";
     private static final String IDP_GROUP2_ID = "idpGroup2Id";
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
+
+    private static final String ASSOCIATED_ACTION_ID = "Dummy_Action_ID";
+    private static final String CUSTOM_IDP_NAME = "customIdP";
+    private static EndpointConfig endpointConfig;
+    private static EndpointConfig endpointConfigToBeUpdated;
+    private IdentityProvider idpForErrorScenarios;
+    private IdentityProvider userDefinedIdP;
 
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
     MockedStatic<CryptoUtil> cryptoUtil;
@@ -161,6 +174,12 @@ public class IdPManagementDAOTest {
         cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
         when(mockCryptoUtil.encryptAndBase64Encode(any())).thenReturn("ENCRYPTED_VALUE2");
         when(mockCryptoUtil.base64DecodeAndDecrypt(anyString())).thenReturn("ENCRYPTED_VALUE2".getBytes());
+
+        endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
+        endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig("http://localhost1", "admin1", "admin1");
+        userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME, endpointConfig);
+        idpForErrorScenarios = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME + "Error", endpointConfig);
     }
 
     @AfterClass
@@ -199,7 +218,7 @@ public class IdPManagementDAOTest {
 
         return new Object[][]{
                 {SAMPLE_TENANT_ID, TENANT_DOMAIN, 2},
-                {SAMPLE_TENANT_ID2, TENANT_DOMAIN, 1},
+                {SAMPLE_TENANT_ID2, TENANT_DOMAIN, 2},
                 {4, TENANT_DOMAIN, 0},
         };
     }
@@ -364,7 +383,7 @@ public class IdPManagementDAOTest {
         return new Object[][]{
                 {SAMPLE_TENANT_ID, expressionNodesList1, 2, 0, "ASC", "NAME", 2, "testIdP1"},
                 {SAMPLE_TENANT_ID, expressionNodesList1, 2, 0, "DESC", "NAME", 2, "testIdP2"},
-                {SAMPLE_TENANT_ID2, expressionNodesList1, 1, 1, "ASC", "NAME", 0, ""},
+                {SAMPLE_TENANT_ID2, expressionNodesList1, 1, 1, "ASC", "NAME", 1, "testIdP3"},
                 {SAMPLE_TENANT_ID, expressionNodesList2, 1, 0, "ASC", "NAME", 1, "testIdP1"},
                 {SAMPLE_TENANT_ID, expressionNodesList3, 1, 0, "ASC", "NAME", 1, "testIdP2"},
         };
@@ -524,7 +543,7 @@ public class IdPManagementDAOTest {
         return new Object[][]{
                 {SAMPLE_TENANT_ID, expressionNodesList1, 2},
                 {SAMPLE_TENANT_ID, expressionNodesList2, 2},
-                {SAMPLE_TENANT_ID2, expressionNodesList1, 1},
+                {SAMPLE_TENANT_ID2, expressionNodesList1, 2},
         };
     }
 
@@ -680,11 +699,13 @@ public class IdPManagementDAOTest {
                 {idp2, SAMPLE_TENANT_ID},
                 // IDP with Only name.
                 {idp3, SAMPLE_TENANT_ID2},
+                // IDP with User Defined Federated Authenticator.
+                {userDefinedIdP, SAMPLE_TENANT_ID2},
         };
     }
 
     @Test(dataProvider = "addIdPData")
-    public void testAddIdP(Object identityProvider, int tenantId) throws Exception {
+    public void testAddIdP(IdentityProvider identityProvider, int tenantId) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -692,6 +713,8 @@ public class IdPManagementDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             idPManagementDAO.addIdP(((IdentityProvider) identityProvider), tenantId);
 
+            int idpId = -1;
+            int authnId = -1;
             String query = IdPManagementConstants.SQLQueries.GET_IDP_BY_NAME_SQL;
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setInt(1, tenantId);
@@ -701,9 +724,41 @@ public class IdPManagementDAOTest {
             String resultName = "";
             if (resultSet.next()) {
                 resultName = resultSet.getString("NAME");
+                idpId = resultSet.getInt("ID");
             }
             statement.close();
             assertEquals(resultName, ((IdentityProvider) identityProvider).getIdentityProviderName());
+
+            // check whether there is a actionId property in the database for user defined fed authenticators.
+            if (identityProvider.getDefaultAuthenticatorConfig() instanceof UserDefinedFederatedAuthenticatorConfig) {
+
+                String sqlStmt = IdPManagementConstants.SQLQueries.GET_ALL_IDP_AUTH_SQL;
+                PreparedStatement prepStmt1 = connection.prepareStatement(sqlStmt);
+                prepStmt1.setInt(1, idpId);
+                ResultSet rs = prepStmt1.executeQuery();
+
+                while (rs.next()) {
+                    authnId = rs.getInt("ID");
+                }
+                String sqlStmt1 = IdPManagementConstants.SQLQueries.GET_IDP_AUTH_PROPS_SQL;
+                PreparedStatement prepStmt2 = connection.prepareStatement(sqlStmt1);
+                prepStmt2.setInt(1, authnId);
+                ResultSet proprs = prepStmt2.executeQuery();
+                Set<Property> properties = new HashSet<Property>();
+                while (proprs.next()) {
+                    Property property = new Property();
+                    property.setName(proprs.getString("PROPERTY_KEY"));
+                    property.setValue(proprs.getString("PROPERTY_VALUE"));
+                    if ((IdPManagementConstants.IS_TRUE_VALUE).equals(proprs.getString("IS_SECRET"))) {
+                        property.setConfidential(true);
+                    }
+                    properties.add(property);
+                }
+                statement.close();
+                assertEquals(properties.size(), 1);
+                assertEquals(properties.iterator().next().getName(), "actionId");
+                assertEquals(properties.iterator().next().getValue(), ASSOCIATED_ACTION_ID);
+            }
         }
     }
 
@@ -718,6 +773,32 @@ public class IdPManagementDAOTest {
 
             assertThrows(IdentityProviderManagementException.class, () ->
                     idPManagementDAO.addIdP(((IdentityProvider) identityProvider), tenantId));
+        }
+    }
+
+    @DataProvider
+    public Object[][] getAllFederatedData() {
+
+        return new Object[][]{
+                {1, 1},
+                {2, 0}
+        };
+    }
+
+    @Test(dataProvider = "getAllFederatedData")
+    public void testGetAllUserDefinedFederatedAuthenticators(int tenantId, int numberOfFederatedAuthenticators)
+            throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+            List<FederatedAuthenticatorConfig> actualAuthenticators = idPManagementDAO
+                    .getAllUserDefinedFederatedAuthenticators(tenantId);
+
+            assertEquals(actualAuthenticators.size(), numberOfFederatedAuthenticators);
         }
     }
 
@@ -839,6 +920,7 @@ public class IdPManagementDAOTest {
         return new Object[][]{
                 {"testIdP1", SAMPLE_TENANT_ID, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
+                {"testIdP4", SAMPLE_TENANT_ID, false},
                 {"notExist", SAMPLE_TENANT_ID, false},
         };
     }
@@ -854,14 +936,7 @@ public class IdPManagementDAOTest {
             addTestIdps();
 
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, TENANT_DOMAIN);
-            if (isExist) {
-                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIdPByName' method fails");
-                for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
-                    assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
-                }
-            } else {
-                assertNull(idpResult, "'getIdPByName' method fails");
-            }
+            assertIdPResult(idpResult, idpName, isExist);
         }
     }
 
@@ -872,6 +947,7 @@ public class IdPManagementDAOTest {
                 {"testIdP1", 1, SAMPLE_TENANT_ID, true},
                 {"testIdP3", 3, SAMPLE_TENANT_ID2, true},
                 {"notExist", 4, SAMPLE_TENANT_ID, false},
+                {userDefinedIdP.getIdentityProviderName(), 4, SAMPLE_TENANT_ID2, true},
         };
     }
 
@@ -886,14 +962,7 @@ public class IdPManagementDAOTest {
             addTestIdps();
 
             IdentityProvider idpResult = idPManagementDAO.getIDPbyId(connection, idpId, tenantId, TENANT_DOMAIN);
-            if (isExist) {
-                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyId' method fails");
-                for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
-                    assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
-                }
-            } else {
-                assertNull(idpResult, "'getIDPbyId' method fails");
-            }
+            assertIdPResult(idpResult, idpName, isExist);
         }
     }
 
@@ -904,6 +973,7 @@ public class IdPManagementDAOTest {
                 {"testIdP1", SAMPLE_TENANT_ID, true},
                 {"testIdP3", SAMPLE_TENANT_ID2, true},
                 {"notExist", SAMPLE_TENANT_ID, false},
+                {userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID2, true}
         };
     }
 
@@ -924,14 +994,7 @@ public class IdPManagementDAOTest {
             }
 
             IdentityProvider idpResult = idPManagementDAO.getIDPbyResourceId(connection, uuid, tenantId, TENANT_DOMAIN);
-            if (isExist) {
-                assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyResourceId' method fails");
-                for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
-                    assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
-                }
-            } else {
-                assertNull(idpResult, "'getIDPbyResourceId' method fails");
-            }
+            assertIdPResult(idpResult, idpName, isExist);
         }
     }
 
@@ -956,6 +1019,7 @@ public class IdPManagementDAOTest {
             addTestIdps();
 
             IdentityProvider idpResult = idPManagementDAO.getIdPByRealmId(realmId, tenantId, TENANT_DOMAIN);
+
             if (isExist) {
                 assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIDPbyRealmId' method fails");
             } else {
@@ -1248,6 +1312,9 @@ public class IdPManagementDAOTest {
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("testIdP3New");
 
+        IdentityProvider userDefinedIdPToBeUpdated = ActionMgtTestUtil
+                .createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME + "new", ActionMgtTestUtil.createEndpointConfig("http://localhostnew1", "adminnew1", "adminnew1"));
+
         return new Object[][]{
                 // Update PermissionsAndRoleConfig,FederatedAuthenticatorConfig,ProvisioningConnectorConfig,ClaimConfig.
                 {idp1, idp1New, SAMPLE_TENANT_ID},
@@ -1255,12 +1322,13 @@ public class IdPManagementDAOTest {
                 {idp2, idp2New, SAMPLE_TENANT_ID},
                 // Update name.
                 {idp3, idp3New, SAMPLE_TENANT_ID2},
+                // IDP with User Defined Federated Authenticator.
+                {userDefinedIdP, userDefinedIdPToBeUpdated, SAMPLE_TENANT_ID2},
         };
     }
 
     @Test(dataProvider = "updateIdPData")
     public void testUpdateIdP(Object oldIdp, Object newIdp, int tenantId) throws Exception {
-
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
@@ -1276,9 +1344,7 @@ public class IdPManagementDAOTest {
 
             String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, newIdpName, tenantId, TENANT_DOMAIN);
-            for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
-                assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
-            }
+            assertIdPResult(idpResult, newIdpName, true);
             assertEquals(idpResult.getIdentityProviderName(), newIdpName);
         }
     }
@@ -1305,6 +1371,7 @@ public class IdPManagementDAOTest {
         return new Object[][]{
                 {"testIdP1", SAMPLE_TENANT_ID},
                 {"testIdP3", SAMPLE_TENANT_ID2},
+                {userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID2},
         };
     }
 
@@ -1859,6 +1926,8 @@ public class IdPManagementDAOTest {
         idPManagementDAO.addIdP(idp2, SAMPLE_TENANT_ID);
         // IDP with Only name.
         idPManagementDAO.addIdP(idp3, SAMPLE_TENANT_ID2);
+        // IDP with a User defined authenticator.
+        idPManagementDAO.addIdP(userDefinedIdP, SAMPLE_TENANT_ID2);
     }
 
     // Add enabled and disabled IdPs used for tests.
@@ -2011,6 +2080,26 @@ public class IdPManagementDAOTest {
         statement.clearParameters();
         statement.close();
         return resultSize;
+    }
+
+    private void assertIdPResult(IdentityProvider idpResult, String idpName, boolean isExist) {
+
+        if (isExist) {
+            assertEquals(idpResult.getIdentityProviderName(), idpName, "'getIdPByName' method fails");
+            for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
+                if (config instanceof UserDefinedFederatedAuthenticatorConfig) {
+                    assertEquals(config.getDefinedByType(), DefinedByType.USER);
+                    Property[] prop = idpResult.getDefaultAuthenticatorConfig().getProperties();
+                    assertEquals(prop.length, 1);
+                    assertEquals(prop[0].getName(), "actionId");
+                    assertEquals(prop[0].getValue(), ASSOCIATED_ACTION_ID);
+                } else {
+                    assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+                }
+            }
+        } else {
+            assertNull(idpResult, "'getIdPByName' method fails");
+        }
     }
 }
 
