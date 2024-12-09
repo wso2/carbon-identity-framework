@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsTypeMgtDAO {
 
-    private static final Log log = LogFactory.getLog(CacheBackedAuthorizationDetailsTypeMgtDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(CacheBackedAuthorizationDetailsTypeMgtDAOImpl.class);
     private final AuthorizationDetailsTypeMgtDAO authorizationDetailsTypeMgtDAO;
     private final APIResourceCacheById apiResourceCacheById;
 
@@ -137,13 +137,13 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         APIResourceCacheEntry entry =
                 apiResourceCacheById.getValueFromCache(new APIResourceIdCacheKey(apiId), tenantId);
         if (entry != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cache entry found for API Resource " + apiId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for API Resource " + apiId);
             }
             return entry.getAPIResource().getAuthorizationDetailsTypes();
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Cache entry not found for API Resource " + apiId + ". Fetching entry from DB");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for API Resource " + apiId + ". Fetching entry from DB");
         }
         return this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(apiId, tenantId);
     }
@@ -157,13 +157,13 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         APIResourceCacheEntry entry =
                 apiResourceCacheById.getValueFromCache(new APIResourceIdCacheKey(apiId), tenantId);
         if (entry != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cache entry found for API Resource " + apiId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry found for API Resource " + apiId);
             }
             return entry.getAPIResource().getAuthorizationDetailsTypes();
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Cache entry not found for API Resource " + apiId + ". Fetching entry from DB");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry not found for API Resource " + apiId + ". Fetching entry from DB");
         }
         return this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(connection, apiId, tenantId);
     }
@@ -197,8 +197,8 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
 
     private void clearAPIResourceCache(String apiId, int tenantId) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Removing entry for API Id: " + apiId + " of tenantId:" + tenantId + " from cache.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Removing entry for API Id: " + apiId + " of tenantId:" + tenantId + " from cache.");
         }
 
         APIResourceIdCacheKey apiResourceIdCacheKey = new APIResourceIdCacheKey(apiId);

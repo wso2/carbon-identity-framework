@@ -58,7 +58,7 @@ import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.g
  */
 public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsTypeMgtDAO {
 
-    private static final Log log = LogFactory.getLog(AuthorizationDetailsTypeMgtDAOImpl.class);
+    private static final Log LOG = LogFactory.getLog(AuthorizationDetailsTypeMgtDAOImpl.class);
 
     /**
      * {@inheritDoc}
@@ -481,8 +481,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
 
         if (this.isAuthorizationDetailsTypeExists(dbConnection, type, tenantId)) {
 
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Authorization details type '%s' already exists for tenant.", type));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Authorization details type '%s' already exists for tenant.", type));
             }
 
             throw APIResourceManagementUtil.handleClientException(APIResourceManagementConstants
@@ -498,8 +498,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
         final String typeId = authorizationDetailsType.getId();
 
         if (isBlank(typeId)) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Authorization details type ID is missing for type: %s", newType));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Authorization details type ID is missing for type: %s", newType));
             }
             return false;
         }
@@ -508,8 +508,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 this.getAuthorizationDetailsTypeByApiIdAndTypeId(dbConnection, apiId, typeId, tenantId);
 
         if (existingAuthorizationDetailsType == null) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Unable to find an authorization details type for ID: %s", typeId));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Unable to find an authorization details type for ID: %s", typeId));
             }
             return false;
         }
