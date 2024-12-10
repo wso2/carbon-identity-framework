@@ -108,8 +108,8 @@ public abstract class AbstractRulesValidator implements Validator {
                             MAX_LENGTH, maxPasswordValue, context.getTenantDomain()));
                 }
                 throw new InputValidationMgtClientException(ERROR_VALIDATION_MAX_LENGTH_MISMATCH.getCode(),
-                        String.format(ERROR_VALIDATION_MAX_LENGTH_MISMATCH.getDescription(),
-                                MAX_LENGTH, maxPasswordValue, context.getTenantDomain()));
+                        String.format(ERROR_VALIDATION_MAX_LENGTH_MISMATCH.getDescription(), PASSWORD, maxPasswordValue,
+                                context.getTenantDomain()));
             }
         }
         return true;
