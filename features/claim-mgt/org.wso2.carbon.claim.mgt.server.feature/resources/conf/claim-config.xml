@@ -844,6 +844,14 @@
 				<SupportedByDefault />
 				<multiValued>true</multiValued>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/passwordExpiryTime</ClaimURI>
+				<DisplayName>Password Expiry Time</DisplayName>
+				<AttributeID>passwordExpiryTime</AttributeID>
+				<Description>Claim to dynamically calculate password expiry time of user</Description>
+				<ReadOnly>true</ReadOnly>
+				<Returned>request</Returned>
+			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -2726,6 +2734,13 @@
 				<SupportedByDefault />
 				<DisplayOrder>14</DisplayOrder>
 				<MappedLocalClaim>http://wso2.org/claims/verifiedMobileNumbers</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:scim:wso2:schema:passwordExpiryTime</ClaimURI>
+				<DisplayName>Password Expiry Time</DisplayName>
+				<AttributeID>passwordExpiryTime</AttributeID>
+				<Description>Password Expiry Time</Description>
+				<MappedLocalClaim>http://wso2.org/claims/identity/passwordExpiryTime</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 	</Dialects>
