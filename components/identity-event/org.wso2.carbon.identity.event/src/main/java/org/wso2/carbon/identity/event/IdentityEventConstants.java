@@ -234,6 +234,8 @@ public class IdentityEventConstants {
         public static final String POST_GET_ROLES_V2_EVENT = "POST_GET_ROLES_V2_EVENT";
         public static final String PRE_GET_ROLES_V2_COUNT_EVENT = "PRE_GET_ROLES_V2_COUNT_EVENT";
         public static final String POST_GET_ROLES_V2_COUNT_EVENT = "POST_GET_ROLES_V2_COUNT_EVENT";
+        public static final String PRE_GET_ROLES_V2_FILTERED_COUNT_EVENT = "PRE_GET_ROLES_V2_COUNT_EVENT";
+        public static final String POST_GET_ROLES_V2_FILTERED_COUNT_EVENT = "POST_GET_ROLES_V2_COUNT_EVENT";
         public static final String PRE_GET_ROLE_V2_EVENT = "PRE_GET_ROLE_V2_EVENT";
         public static final String POST_GET_ROLE_V2_EVENT = "POST_GET_ROLE_V2_EVENT";
         public static final String PRE_UPDATE_ROLE_V2_NAME_EVENT = "PRE_UPDATE_ROLE_V2_NAME_EVENT";
@@ -393,6 +395,7 @@ public class IdentityEventConstants {
         public static final String SORT_ORDER = "SORT_ORDER";
         public static final String USER = "USER";
         public static final String FILTER = "FILTER";
+        public static final String SEARCH_FILTER = "SEARCH_FILTER";
         public static final String USER_CLAIM_SEARCH_ENTRIES = "USER_CLAIM_SEARCH_ENTRIES";
         public static final String LOGIN_IDENTIFIERS = "LOGIN_IDENTIFIERS";
         public static final String CONTEXT = "context";

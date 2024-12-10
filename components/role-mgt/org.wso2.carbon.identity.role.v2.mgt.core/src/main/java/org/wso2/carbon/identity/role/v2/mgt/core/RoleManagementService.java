@@ -311,6 +311,15 @@ public interface RoleManagementService {
     int getRolesCount(String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Retrieve available total roles count in a tenant for a given specific search filter.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return The list count of roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    int getRolesCount(String searchFilter, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
      * Get role without users.
      *
      * @param roleId       Role ID.
