@@ -398,7 +398,7 @@
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.notification_channel_recovery.recovery_code_validity": "1m",
-  "identity_mgt.resend_notification.resend_code_validity": "1m",
+  "identity_mgt.resend_notification.resend_code_validity": "2m",
   "identity_mgt.password_reset_email.notify_on_reset": false,
 
   "identity_mgt.lite_user_registration.enable": false,
