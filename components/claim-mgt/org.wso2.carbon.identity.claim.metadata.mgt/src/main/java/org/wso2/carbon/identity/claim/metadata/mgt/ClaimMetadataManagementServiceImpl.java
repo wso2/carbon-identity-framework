@@ -39,9 +39,11 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -67,6 +69,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
@@ -187,9 +190,25 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // Add listener
 
-        return IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ? localClaims.stream().filter(
-                localClaim -> !UserCoreConstants.ROLE_CLAIM.equals(localClaim.getClaimURI())).collect(
-                Collectors.toList()) : localClaims;
+        boolean isGroupRoleSeparationEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
+        List<LocalClaim> filteredLocalClaims = new ArrayList<>(localClaims.size());
+
+        for (LocalClaim claim : localClaims) {
+            if (isGroupRoleSeparationEnabled && UserCoreConstants.ROLE_CLAIM.equals(claim.getClaimURI())) {
+                continue;
+            }
+            // Add `UniquenessScope` property for claims that only have legacy `isUnique` property.
+            // `UniquenessScope` is the current property used to configure claim-wise uniqueness validation scope,
+            // while `isUnique` is maintained for backward compatibility.
+            Map<String, String> properties = claim.getClaimProperties();
+            if (properties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY) &&
+                    !properties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY)) {
+                updateScopeFromIsUnique(properties,
+                        properties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY));
+            }
+            filteredLocalClaims.add(claim);
+        }
+        return filteredLocalClaims;
     }
 
     @Override
@@ -211,6 +230,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getCode(),
                     String.format(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
         }
+
+        validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(), null);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
@@ -236,10 +257,14 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        if (!isExistingLocalClaim(localClaim.getClaimURI(), tenantId)) {
+        Optional<LocalClaim> existingLocalClaim = getLocalClaim(localClaim.getClaimURI(), tenantId);
+        if (!existingLocalClaim.isPresent()) {
             throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getCode(),
                     String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getMessage(), localClaim.getClaimURI()));
         }
+
+        validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(),
+                existingLocalClaim.get().getClaimProperties());
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
 
@@ -595,12 +620,93 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI));
     }
 
+    private Optional<LocalClaim> getLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
+
+        return this.unifiedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
+    }
+
     @Override
     public List<Claim> getMappedExternalClaimsForLocalClaim(String localClaimURI, String tenantDomain) throws
             ClaimMetadataException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return this.unifiedClaimMetadataManager.getMappedExternalClaims(localClaimURI, tenantId);
+    }
+
+    /**
+     * Updates and synchronizes the claim uniqueness properties in the properties map.
+     * Manages the relationship between the legacy 'isUnique' property and the newer 'UniquenessScope' property,
+     * ensuring consistency between both properties based on their values.
+     *
+     * @param claimProperties         Map of claim properties to be updated.
+     * @param existingClaimProperties Map of existing claim properties (null for new claims).
+     */
+    private void validateAndSyncUniquenessClaimProperties(Map<String, String> claimProperties,
+                                                          Map<String, String> existingClaimProperties) {
+
+        // Case 1: If the 'isUnique' property is not provided,
+        // no property synchronization is needed.
+        if (!claimProperties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY)) {
+            return;
+        }
+
+        String newUniquenessScopeValue = claimProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
+        String newIsUniqueValue = claimProperties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
+
+        // Case 2: If only the 'isUnique' property is provided,
+        // set the 'UniquenessScope' property based on the 'isUnique' value.
+        if (!claimProperties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY)) {
+            updateScopeFromIsUnique(claimProperties, newIsUniqueValue);
+            return;
+        }
+
+        // Case 3: If both 'isUnique' and 'UniquenessScope' properties are provided.
+        if (existingClaimProperties == null) {
+            // If there are no existing claim properties (i.e., this is a new claim),
+            // prioritize 'UniquenessScope' & update the 'isUnique' property accordingly.
+            updateIsUniqueFromScope(claimProperties, newUniquenessScopeValue);
+            return;
+        }
+
+        String existingScopeValue = existingClaimProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
+        String existingIsUniqueValue = existingClaimProperties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
+
+        boolean isScopeChanged = !StringUtils.equals(newUniquenessScopeValue, existingScopeValue);
+        boolean isUniqueChanged = !StringUtils.equalsIgnoreCase(newIsUniqueValue, existingIsUniqueValue);
+
+        if (isScopeChanged) {
+            // If 'UniquenessScope' has changed (regardless of 'isUnique' changes), prioritize 'UniquenessScope'.
+            updateIsUniqueFromScope(claimProperties, newUniquenessScopeValue);
+        } else if (isUniqueChanged) {
+            // If only 'isUnique' has changed, update 'UniquenessScope' based on the new 'isUnique' value.
+            updateScopeFromIsUnique(claimProperties, newIsUniqueValue);
+        }
+    }
+
+    /**
+     * Updates the uniqueness scope property based on the isUnique value.
+     *
+     * @param properties    Map of claim properties to update.
+     * @param isUniqueValue String value of isUnique property ("true" or "false").
+     */
+    private void updateScopeFromIsUnique(Map<String, String> properties, String isUniqueValue) {
+
+        boolean isUnique = Boolean.parseBoolean(isUniqueValue);
+        properties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
+                isUnique ? getServerLevelClaimUniquenessScope().toString() :
+                        ClaimConstants.ClaimUniquenessScope.NONE.toString());
+    }
+
+    /**
+     * Updates the isUnique property based on the uniqueness scope value.
+     *
+     * @param properties Map of claim properties to update.
+     * @param scopeValue String value of the uniqueness scope.
+     */
+    private void updateIsUniqueFromScope(Map<String, String> properties, String scopeValue) {
+
+        boolean isUnique = !ClaimConstants.ClaimUniquenessScope.NONE.toString().equals(scopeValue);
+        properties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, String.valueOf(isUnique));
     }
 
 }
