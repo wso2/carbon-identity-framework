@@ -717,8 +717,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             }
         }
         if (log.isDebugEnabled()) {
-            log.debug(String.format("%s for the filter %s get roles count successfully.", getUser(tenantDomain),
-                    searchFilter));
+            log.debug(String.format("Get roles count for the filter %s & tenant domain %s is successful.",
+                    searchFilter, tenantDomain));
         }
         return count;
     }

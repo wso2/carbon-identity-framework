@@ -636,7 +636,7 @@ public class RoleDAOTest {
         addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
         addRole(roleNamesList.get(2), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
 
-        List<ExpressionNode> expressionNodes = getExpressionNodes("audience ne undefined");
+        List<ExpressionNode> expressionNodes = getExpressionNodes("audience.value ne undefined");
         int rolesCount = roleDAO.getRolesCount(expressionNodes, SAMPLE_TENANT_DOMAIN);
         assertEquals(rolesCount, 3);
     }
