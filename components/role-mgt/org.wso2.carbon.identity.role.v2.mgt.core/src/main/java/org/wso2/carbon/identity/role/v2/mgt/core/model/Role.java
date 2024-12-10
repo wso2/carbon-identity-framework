@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.v2.mgt.core.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,6 +38,7 @@ public class Role {
     private String audienceId;
     private String audienceName;
     private List<AssociatedApplication> associatedApplications;
+    private List<RoleProperty> roleProperties = new ArrayList<>();
 
     public Role() {
 
@@ -280,5 +282,35 @@ public class Role {
     public void setAssociatedApplications(List<AssociatedApplication> associatedApplications) {
 
         this.associatedApplications = associatedApplications;
+    }
+
+    /**
+     * Get the role properties.
+     *
+     * @return properties list of a role.
+     */
+    public List<RoleProperty> getRoleProperties() {
+
+        return roleProperties;
+    }
+
+    /**
+     * Set the role properties.
+     *
+     * @param roleProperties properties list of a role.
+     */
+    public void setRoleProperties(List<RoleProperty> roleProperties) {
+
+        this.roleProperties = roleProperties;
+    }
+
+    /**
+     * Set a role property to the role properties list.
+     *
+     * @param roleProperty a property of a role.
+     */
+    public void setRoleProperty(RoleProperty roleProperty) {
+
+        this.roleProperties.add(roleProperty);
     }
 }

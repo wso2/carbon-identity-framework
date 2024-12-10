@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleAudience;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleProperty;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
@@ -400,6 +401,9 @@ public class RoleDAOImpl implements RoleDAO {
             role.setAudienceId(roleBasicInfo.getAudienceId());
             role.setAudienceName(roleBasicInfo.getAudienceName());
             role.setAudience(roleBasicInfo.getAudience());
+            role.setRoleProperty(buildRoleProperty(RoleConstants.IS_SHARED_ROLE_PROP_NAME,
+                    String.valueOf(isSharedRole(roleBasicInfo.getId(), tenantDomain))));
+
             if (requiredAttributes != null && !requiredAttributes.isEmpty()) {
                 if (requiredAttributes.contains(USERS)) {
                     role.setUsers(getUserListOfRole(roleBasicInfo.getId(), tenantDomain));
@@ -460,11 +464,23 @@ public class RoleDAOImpl implements RoleDAO {
         role.setGroups(getGroupListOfRole(roleId, tenantDomain));
         role.setIdpGroups(getIdpGroupListOfRole(roleId, tenantDomain));
         if (isSharedRole(roleId, tenantDomain)) {
+            role.setRoleProperty(buildRoleProperty(RoleConstants.IS_SHARED_ROLE_PROP_NAME,
+                    String.valueOf(Boolean.TRUE)));
             role.setPermissions(getPermissionsOfSharedRole(roleId, tenantDomain));
         } else {
+            role.setRoleProperty(buildRoleProperty(RoleConstants.IS_SHARED_ROLE_PROP_NAME,
+                    String.valueOf(Boolean.FALSE)));
             role.setPermissions(getPermissions(roleId, tenantDomain));
         }
         return role;
+    }
+
+    private RoleProperty buildRoleProperty(String propertyName, String propertyValue) {
+
+        RoleProperty roleProperty = new RoleProperty();
+        roleProperty.setName(propertyName);
+        roleProperty.setValue(propertyValue);
+        return roleProperty;
     }
 
     @Override
@@ -937,8 +953,12 @@ public class RoleDAOImpl implements RoleDAO {
         role.setGroups(getGroupListOfRole(roleId, tenantDomain));
         role.setIdpGroups(getIdpGroupListOfRole(roleId, tenantDomain));
         if (isSharedRole(roleId, tenantDomain)) {
+            role.setRoleProperty(buildRoleProperty(RoleConstants.IS_SHARED_ROLE_PROP_NAME,
+                    String.valueOf(Boolean.TRUE)));
             role.setPermissions(getPermissionsOfSharedRole(roleId, tenantDomain));
         } else {
+            role.setRoleProperty(buildRoleProperty(RoleConstants.IS_SHARED_ROLE_PROP_NAME,
+                    String.valueOf(Boolean.FALSE)));
             role.setPermissions(getPermissions(roleId, tenantDomain));
         }
         return role;

@@ -81,64 +81,72 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                  List<Permission> permissions, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (StringUtils.startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
-            String errorMessage = String.format("Invalid role name: %s. Role names with the prefix: %s, is not allowed"
-                            + " to be created from externally in the system.", roleName,
-                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
-            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
-        }
-        if (isDomainSeparatorPresent(roleName)) {
-            // SCIM2 API only adds roles to the internal domain.
-            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
-                    + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
-        }
-        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
-                .getRoleManagementListenerList();
-        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
-            if (roleManagementListener.isEnable()) {
-                roleManagementListener.preAddRole(roleName, userList, groupList,
-                        permissions, audience, audienceId, tenantDomain);
+        try {
+            if (StringUtils.startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
+                String errorMessage = String.format("Invalid role name: %s. Role names with the prefix: %s, is not " +
+                                "allowed to be created from externally in the system.", roleName,
+                        UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
+                throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
             }
-        }
-
-        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
-                .getInstance();
-        roleManagementEventPublisherProxy.publishPreAddRoleWithException(roleName, userList, groupList, permissions,
-                audience, audienceId, tenantDomain);
-
-        // Validate audience.
-        if (StringUtils.isNotEmpty(audience)) {
-            if (!(ORGANIZATION.equalsIgnoreCase(audience) || APPLICATION.equalsIgnoreCase(audience))) {
-                throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(), "Invalid role audience");
+            if (isDomainSeparatorPresent(roleName)) {
+                // SCIM2 API only adds roles to the internal domain.
+                throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
+                        + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
             }
-            if (ORGANIZATION.equalsIgnoreCase(audience)) {
-                validateOrganizationRoleAudience(audienceId, tenantDomain);
+            List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.
+                    getInstance()
+                    .getRoleManagementListenerList();
+            for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+                if (roleManagementListener.isEnable()) {
+                    roleManagementListener.preAddRole(roleName, userList, groupList,
+                            permissions, audience, audienceId, tenantDomain);
+                }
+            }
+
+            RoleManagementEventPublisherProxy roleManagementEventPublisherProxy = RoleManagementEventPublisherProxy
+                    .getInstance();
+            roleManagementEventPublisherProxy.publishPreAddRoleWithException(roleName, userList, groupList, permissions,
+                    audience, audienceId, tenantDomain);
+
+            // Validate audience.
+            if (StringUtils.isNotEmpty(audience)) {
+                if (!(ORGANIZATION.equalsIgnoreCase(audience) || APPLICATION.equalsIgnoreCase(audience))) {
+                    throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
+                            "Invalid role audience");
+                }
+                if (ORGANIZATION.equalsIgnoreCase(audience)) {
+                    validateOrganizationRoleAudience(audienceId, tenantDomain);
+                    audience = ORGANIZATION;
+                }
+                if (APPLICATION.equalsIgnoreCase(audience)) {
+                    // audience validation done using listener.
+                    audience = APPLICATION;
+                }
+            } else {
                 audience = ORGANIZATION;
+                audienceId = getOrganizationIdByTenantDomain(tenantDomain);
             }
-            if (APPLICATION.equalsIgnoreCase(audience)) {
-                // audience validation done using listener.
-                audience = APPLICATION;
+            validatePermissions(permissions, audience, audienceId, tenantDomain);
+            RoleBasicInfo roleBasicInfo = roleDAO.addRole(roleName, userList, groupList, permissions, audience,
+                    audienceId, tenantDomain);
+            roleManagementEventPublisherProxy.publishPostAddRole(roleBasicInfo.getId(), roleName, userList, groupList,
+                    permissions, audience, audienceId, tenantDomain);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("%s added role of name : %s successfully.", getUser(tenantDomain), roleName));
             }
-        } else {
-            audience = ORGANIZATION;
-            audienceId = getOrganizationIdByTenantDomain(tenantDomain);
-        }
-        validatePermissions(permissions, audience, audienceId, tenantDomain);
-        RoleBasicInfo roleBasicInfo = roleDAO.addRole(roleName, userList, groupList, permissions, audience, audienceId,
-                tenantDomain);
-        roleManagementEventPublisherProxy.publishPostAddRole(roleBasicInfo.getId(), roleName, userList, groupList,
-                permissions, audience, audienceId, tenantDomain);
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("%s added role of name : %s successfully.", getUser(tenantDomain), roleName));
-        }
-        RoleBasicInfo role = roleDAO.getRoleBasicInfoById(roleBasicInfo.getId(), tenantDomain);
-        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
-            if (roleManagementListener.isEnable()) {
-                roleManagementListener.postAddRole(role, roleName, userList,
-                        groupList, permissions, audience, audienceId, tenantDomain);
+            RoleBasicInfo role = roleDAO.getRoleBasicInfoById(roleBasicInfo.getId(), tenantDomain);
+            for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+                if (roleManagementListener.isEnable()) {
+                    roleManagementListener.postAddRole(role, roleName, userList,
+                            groupList, permissions, audience, audienceId, tenantDomain);
+                }
+            }
+            return role;
+        } finally {
+            if (IdentityUtil.threadLocalProperties.get().get("isFragmentApp") != null) {
+                IdentityUtil.threadLocalProperties.get().remove("isFragmentApp");
             }
         }
-        return role;
     }
 
     @Override
