@@ -41,6 +41,7 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Erro
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATOR_PROPERTY_VALUE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_TYPE_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_LENGTH_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
@@ -103,12 +104,12 @@ public abstract class AbstractRulesValidator implements Validator {
             if (properties.get(MAX_LENGTH) != null &&
                     Integer.parseInt(properties.get(MAX_LENGTH)) > maxPasswordValue) {
                 if (log.isDebugEnabled()) {
-                    log.error(String.format("The property %s should be less than or equal to %s for the tenant %s.",
+                    log.debug(String.format("The property %s should be less than or equal to %s for the tenant %s.",
                             MAX_LENGTH, maxPasswordValue, context.getTenantDomain()));
                 }
-                throw new InputValidationMgtClientException(ERROR_PROPERTY_TYPE_MISMATCH.getCode(),
-                        String.format(ERROR_PROPERTY_TYPE_MISMATCH.getDescription(), MAX_LENGTH, maxPasswordValue,
-                                context.getTenantDomain()));
+                throw new InputValidationMgtClientException(ERROR_VALIDATION_MAX_LENGTH_MISMATCH.getCode(),
+                        String.format(ERROR_VALIDATION_MAX_LENGTH_MISMATCH.getDescription(),
+                                MAX_LENGTH, maxPasswordValue, context.getTenantDomain()));
             }
         }
         return true;

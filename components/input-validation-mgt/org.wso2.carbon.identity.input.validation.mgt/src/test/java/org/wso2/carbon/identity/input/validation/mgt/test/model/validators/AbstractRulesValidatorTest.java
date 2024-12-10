@@ -42,29 +42,33 @@ import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Conf
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 
+/**
+ * Testing the AbstractRulesValidator class
+ */
 public class AbstractRulesValidatorTest {
-
-    @Mock
-    private ValidationContext mockContext;
-
-    private MockedStatic<IdentityUtil> identityUtil;
 
     // Test constants.
     private static final String TENANT_DOMAIN = "carbon.super";
+    @Mock
+    private ValidationContext mockContext;
+    private MockedStatic<IdentityUtil> identityUtil;
 
     @BeforeMethod
     public void setup() {
+
         MockitoAnnotations.openMocks(this);
         identityUtil = mockStatic(IdentityUtil.class);
     }
 
     @AfterMethod
     public void tearDown() {
+
         identityUtil.close();
     }
 
     @DataProvider(name = "validationScenarios")
     public Object[][] validationScenarios() {
+
         Map<String, String> validProperties = new HashMap<>();
         validProperties.put(MIN_LENGTH, "5");
         validProperties.put(MAX_LENGTH, "10");
@@ -109,8 +113,7 @@ public class AbstractRulesValidatorTest {
                 {validPasswordProperties, PASSWORD, TENANT_DOMAIN, true, null},
 
                 // Password properties without MAX_LENGTH.
-                {passwordPropertiesWithoutMax, PASSWORD, TENANT_DOMAIN, true, null}
-        };
+                {passwordPropertiesWithoutMax, PASSWORD, TENANT_DOMAIN, true, null}};
     }
 
     @Test(dataProvider = "validationScenarios")
