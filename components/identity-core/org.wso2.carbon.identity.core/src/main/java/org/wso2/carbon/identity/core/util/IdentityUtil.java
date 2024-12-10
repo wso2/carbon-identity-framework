@@ -1970,6 +1970,50 @@ public class IdentityUtil {
     }
 
     /**
+     * Validates the provided signature for the given data using the public key of a specified tenant.
+     *
+     * The method retrieves the public key for the tenant from the certificate stored in the tenant's keystore.
+     * If a context is provided, the method attempts to retrieve the certificate within that context.
+     *
+     * @param data        The data to validate the signature against.
+     * @param signature   The signature to be validated.
+     * @param tenantDomain The domain name of the tenant whose public key should be used for validation.
+     * @param context     The optional context for retrieving the tenant's certificate (can be null or blank).
+     * @return True if the signature is valid; false otherwise.
+     * @throws SignatureException If an error occurs while validating the signature or accessing tenant data.
+     */
+    public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain,
+                                                      String context) throws SignatureException {
+
+        // Retrieve tenant ID based on the tenant domain
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            // Initialize the tenant's registry
+            IdentityTenantUtil.initializeRegistry(tenantId);
+
+            // Retrieve the tenant's public key
+            PublicKey publicKey;
+            if (StringUtils.isBlank(context)) {
+                // Fetch certificate without context if context is null or blank
+                publicKey = IdentityKeyStoreResolver.getInstance()
+                        .getCertificate(tenantDomain, null)
+                        .getPublicKey();
+            } else {
+                // Fetch certificate within the provided context
+                publicKey = IdentityKeyStoreResolver.getInstance()
+                        .getCertificate(tenantDomain, null, context)
+                        .getPublicKey();
+            }
+
+            // Validate the signature using the retrieved public key
+            return SignatureUtil.validateSignature(data, signature, publicKey);
+        } catch (IdentityException e) {
+            // Log and throw an exception if an error occurs
+            throw new SignatureException("Error while validating the signature for tenant: " + tenantDomain, e);
+        }
+    }
+
+    /**
      * Validates the signature of the given data for the specified tenant domain.
      *
      * @param data         The data to be verified.
@@ -1981,15 +2025,69 @@ public class IdentityUtil {
     public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain)
             throws SignatureException {
 
+        return validateSignatureFromTenant(data, signature, tenantDomain, null);
+    }
+
+    /**
+     * Signs the given data using the private key of the specified tenant.
+     *
+     * For super tenant domains, the default private key is used. For other tenants, the method retrieves the private
+     * key from the tenant's keystore. If a context is provided, it will attempt to retrieve the private key associated
+     * with that context.
+     *
+     * @param data         The data to be signed.
+     * @param tenantDomain The domain name of the tenant whose private key will be used for signing.
+     * @param context      The optional context for retrieving the tenant's private key (can be null or blank).
+     * @return A byte array containing the signature for the provided data.
+     * @throws SignatureException If an error occurs while retrieving the private key or signing the data.
+     */
+    public static byte[] signWithTenantKey(String data, String tenantDomain, String context) throws SignatureException {
+
+        // Get tenant ID from tenant domain
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        try {
-            IdentityTenantUtil.initializeRegistry(tenantId);
-            PublicKey publicKey = IdentityKeyStoreResolver.getInstance().getCertificate(tenantDomain, null)
-                    .getPublicKey();
-            return SignatureUtil.validateSignature(data, signature, publicKey);
-        } catch (IdentityException e) {
-            throw new SignatureException("Error while validating the signature from tenant: " + tenantDomain, e);
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        PrivateKey privateKey;
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            try {
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+                // Retrieve private key from the tenant's keystore
+                if (StringUtils.isBlank(context)) {
+                    // Retrieve default private key for the super tenant
+                    privateKey = keyStoreManager.getDefaultPrivateKey();
+                } else {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
+                            tenantDomain + "_" + context);
+                }
+
+            } catch (Exception e) {
+                throw new SignatureException(String.format(
+                        IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY
+                                .getDescription(),
+                        tenantDomain), e);
+            }
+        } else {
+            try {
+                // Build tenant keystore name
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+
+                // Initialize the tenant's registry
+                IdentityTenantUtil.initializeRegistry(tenantId);
+
+                // Retrieve private key from the tenant's keystore
+                if (StringUtils.isBlank(context)) {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
+                } else {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
+                            tenantDomain + "_" + context);
+                }
+            } catch (IdentityException e) {
+                throw new SignatureException("Error while retrieving the private key for tenant: " + tenantDomain, e);
+            }
         }
+
+        // Sign the data with the retrieved private key
+        return SignatureUtil.doSignature(data, privateKey);
     }
 
     /**
@@ -2002,27 +2100,6 @@ public class IdentityUtil {
      */
     public static byte[] signWithTenantKey(String data, String tenantDomain) throws SignatureException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-        PrivateKey privateKey;
-
-        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-            try {
-                privateKey = keyStoreManager.getDefaultPrivateKey();
-            } catch (Exception e) {
-                throw new SignatureException(String.format(IdentityKeyStoreResolverConstants.ErrorMessages
-                                        .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), tenantDomain),
-                        e);
-            }
-        } else {
-            try {
-                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
-                IdentityTenantUtil.initializeRegistry(tenantId);
-                privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
-            } catch (IdentityException e) {
-                throw new SignatureException("Error while signing from private key of tenant: " + tenantDomain, e);
-            }
-        }
-        return SignatureUtil.doSignature(data, privateKey);
+        return signWithTenantKey(data, tenantDomain, null);
     }
 }

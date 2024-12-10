@@ -253,6 +253,40 @@ public class IdentityKeyStoreResolver {
      * @return Public Certificate of Primary or tenant keystore.
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
+    private Certificate getCertificate(String tenantDomain, String context) throws IdentityKeyStoreResolverException {
+
+        if (StringUtils.isBlank(context)) {
+            getCertificate(tenantDomain);
+        }
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (publicCerts.containsKey(String.valueOf(tenantId + "_" + context))) {
+            return publicCerts.get(String.valueOf(tenantId + "_" + context));
+        }
+
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        Certificate publicCert;
+        try {
+            String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+            publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain + "_"+ context);
+
+        } catch (Exception e) {
+            throw new IdentityKeyStoreResolverException(
+                    ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
+                    String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getDescription(),
+                            tenantDomain), e);
+        }
+
+        publicCerts.put(String.valueOf(tenantId + "_" + context), publicCert);
+        return publicCert;
+    }
+
+    /**
+     * Return Public Certificate of the Primary or tenant keystore according to given tenant domain.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @return Public Certificate of Primary or tenant keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
+     */
     private Certificate getCertificate(String tenantDomain) throws IdentityKeyStoreResolverException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -288,13 +322,17 @@ public class IdentityKeyStoreResolver {
      * @return Public Certificate of the Primary, tenant or custom keystore.
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
-    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol)
+    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol, String suffix)
             throws IdentityKeyStoreResolverException {
+
 
         if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
+        }
+        if (suffix != null) {
+            return getCertificate(tenantDomain, suffix);
         }
         if (inboundProtocol == null) {
             return getCertificate(tenantDomain);
@@ -326,11 +364,25 @@ public class IdentityKeyStoreResolver {
                     throw new IdentityKeyStoreResolverException(
                             ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE.getCode(),
                             String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_CUSTOM_PUBLIC_CERTIFICATE
-                                            .getDescription(), keyStoreName), e);
+                                    .getDescription(), keyStoreName), e);
                 }
             }
         }
         return getCertificate(tenantDomain);
+    }
+
+    /**
+     * Return Public Certificate of the Primary, tenant or custom keystore.
+     *
+     * @param tenantDomain      Tenant domain.
+     * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @return Public Certificate of the Primary, tenant or custom keystore.
+     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
+     */
+    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol)
+            throws IdentityKeyStoreResolverException {
+
+        return getCertificate(tenantDomain, inboundProtocol, null);
     }
 
     /**
