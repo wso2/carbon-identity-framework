@@ -158,6 +158,7 @@ public class IdentityUtil {
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
     private static Boolean groupsVsRolesSeparationImprovementsEnabled;
+    private static Boolean showRoleClaimOnGroupRoleSeparationEnabled;
     private static String JAVAX_TRANSFORMER_PROP_VAL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 
     // System Property for trust managers.
@@ -1625,6 +1626,30 @@ public class IdentityUtil {
 
         } catch (UserStoreException | CarbonException e) {
             log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
+            return Boolean.FALSE;
+        }
+    }
+
+    /**
+     * Check with authorization manager whether show role claim on group role separation config is set to true.
+     *
+     * @return Where show role claim on group role separation enabled or not.
+     */
+    public static boolean isShowRoleClaimOnGroupRoleSeparationEnabled() {
+
+        try {
+            UserRealm userRealm = AdminServicesUtil.getUserRealm();
+            if(userRealm == null) {
+                log.warn("Unable to find the user realm, thus ShowRoleClaimOnGroupRoleSeparationEnabled is set as FALSE.");
+                return Boolean.FALSE;
+            }
+            if (showRoleClaimOnGroupRoleSeparationEnabled == null) {
+                showRoleClaimOnGroupRoleSeparationEnabled = UserCoreUtil.isShowRoleClaimOnGroupRoleSeparationEnabled(
+                        userRealm.getRealmConfiguration());
+            }
+            return showRoleClaimOnGroupRoleSeparationEnabled;
+        } catch (UserStoreException | CarbonException e) {
+            log.warn("Property value parsing error: ShowRoleClaimOnGroupRoleSeparationEnabled, thus considered as FALSE");
             return Boolean.FALSE;
         }
     }
