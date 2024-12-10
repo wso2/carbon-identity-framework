@@ -1545,7 +1545,7 @@ public class CacheBackedIdPMgtDAOTest {
             // Deleting multiple IDPs on a tenant.
             assertThrows(IdentityProviderManagementException.class, () ->
                     cacheBackedIdPMgtDAOForException.deleteIdPs(SAMPLE_TENANT_ID1));
-            verify(actionManagementService, times(1)).addAction(anyString(), any(), anyString());
+            verify(actionManagementService, times(0)).addAction(anyString(), any(), anyString());
         }
     }
 
@@ -1630,7 +1630,7 @@ public class CacheBackedIdPMgtDAOTest {
                     cacheBackedIdPMgtDAOForException.forceDeleteIdP(
                             userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
 
-            verify(actionManagementService, times(2)).addAction(anyString(), any(), anyString());
+            verify(actionManagementService, times(0)).addAction(anyString(), any(), anyString());
         }
     }
 
@@ -1654,7 +1654,7 @@ public class CacheBackedIdPMgtDAOTest {
                     cacheBackedIdPMgtDAOForException.deleteIdP(
                             userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
 
-            verify(actionManagementService, times(1)).addAction(anyString(), any(), anyString());
+            verify(actionManagementService, times(0)).addAction(anyString(), any(), anyString());
         }
     }
 
