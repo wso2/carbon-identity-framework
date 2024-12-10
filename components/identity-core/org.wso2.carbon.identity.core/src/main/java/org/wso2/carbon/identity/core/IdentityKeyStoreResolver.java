@@ -247,27 +247,39 @@ public class IdentityKeyStoreResolver {
     }
 
     /**
-     * Return Public Certificate of the Primary or tenant keystore according to given tenant domain.
+     * Retrieves the public certificate for a given tenant domain and context.
+     * <p>
+     * This method fetches the public certificate associated with a specific tenant domain and context.
+     * If the context is blank, it delegates the call to the overloaded
+     * {@code getCertificate(String tenantDomain)} method.
+     * The method first checks if the certificate is cached; if not, it retrieves the certificate from
+     * the KeyStoreManager, caches it, and then returns it.
+     * </p>
      *
-     * @param tenantDomain  Tenant domain.
-     * @return Public Certificate of Primary or tenant keystore.
-     * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
+     * @param tenantDomain the tenant domain for which the certificate is requested.
+     * @param context      the specific context for the tenant's certificate. If blank, the default certificate for the tenant is fetched.
+     * @return the public certificate for the specified tenant domain and context.
+     * @throws IdentityKeyStoreResolverException if there is an error while retrieving the certificate.
      */
+
     private Certificate getCertificate(String tenantDomain, String context) throws IdentityKeyStoreResolverException {
 
         if (StringUtils.isBlank(context)) {
             getCertificate(tenantDomain);
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (publicCerts.containsKey(String.valueOf(tenantId + "_" + context))) {
-            return publicCerts.get(String.valueOf(tenantId + "_" + context));
+        if (publicCerts.containsKey(String.valueOf(tenantId +
+                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context))) {
+            return publicCerts.get(String.valueOf(tenantId +
+                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context));
         }
 
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
         Certificate publicCert;
         try {
             String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
-            publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain + "_"+ context);
+            publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain +
+                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR+ context);
 
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
@@ -276,7 +288,8 @@ public class IdentityKeyStoreResolver {
                             tenantDomain), e);
         }
 
-        publicCerts.put(String.valueOf(tenantId + "_" + context), publicCert);
+        publicCerts.put(String.valueOf(tenantId +
+                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context), publicCert);
         return publicCert;
     }
 
@@ -319,10 +332,11 @@ public class IdentityKeyStoreResolver {
      *
      * @param tenantDomain      Tenant domain.
      * @param inboundProtocol   Inbound authentication protocol of the application.
+     * @param context           Context of the keystore.
      * @return Public Certificate of the Primary, tenant or custom keystore.
      * @throws IdentityKeyStoreResolverException the exception in the IdentityKeyStoreResolver class.
      */
-    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol, String suffix)
+    public Certificate getCertificate(String tenantDomain, InboundProtocol inboundProtocol, String context)
             throws IdentityKeyStoreResolverException {
 
 
@@ -331,8 +345,8 @@ public class IdentityKeyStoreResolver {
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
-        if (suffix != null) {
-            return getCertificate(tenantDomain, suffix);
+        if (context != null) {
+            return getCertificate(tenantDomain, context);
         }
         if (inboundProtocol == null) {
             return getCertificate(tenantDomain);

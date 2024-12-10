@@ -36,11 +36,17 @@ import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.KEY_STORE_CONTEXT_SEPARATOR;
 
 /**
  * Implementation of the {@link IdentityKeyStoreGenerator} interface for generating and managing
@@ -94,11 +100,18 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator{
     private static final ConcurrentHashMap<Integer, ReentrantLock> tenantLocks = new ConcurrentHashMap<>();
 
     /**
-     * This method first generates the keystore, then persist it in the gov.registry of that tenant
+     * Generates a context-specific KeyStore for a given tenant domain.
+     * <p>
+     * This method creates a new KeyStore for the specified tenant domain and context if it does not already exist.
+     * It ensures thread safety by using a lock mechanism to avoid concurrent modifications when creating the KeyStore.
+     * If the KeyStore for the given context already exists, the method exits without performing any operations.
+     * </p>
      *
-     * @throws KeyStoreManagementException Error when generating or storing the keystore
+     * @param tenantDomain the tenant domain for which the KeyStore is to be created.
+     * @param context      the context for which the KeyStore is to be generated.
+     * @throws KeyStoreManagementException if an error occurs during KeyStore creation or initialization.
      */
-    public void generateContextKeyStore(String tenantDomain, String suffix) throws KeyStoreManagementException {
+    public void generateContextKeyStore(String tenantDomain, String context) throws KeyStoreManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         this.keyStoreManager = KeyStoreManager.getInstance(tenantId);
@@ -108,21 +121,21 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator{
 
         try {
             IdentityTenantUtil.initializeRegistry(tenantId);
-            if (isSecondaryKeyStoreExists(suffix)) {
+            if (isContextKeyStoreExists(context)) {
                 return; // KeyStore already exists, no need to create again
             }
 
             lock.lock(); // Acquire the lock
             lockAcquired = true; // Mark the lock as acquired
 
-            if (!isSecondaryKeyStoreExists(suffix)) {
+            if (!isContextKeyStoreExists(context)) {
                 // Create the KeyStore
                 password = generatePassword();
                 KeyStore keyStore = KeystoreUtils.getKeystoreInstance(
                         KeystoreUtils.getKeyStoreFileType(tenantDomain));
                 keyStore.load(null, password.toCharArray());
-                generateSecondaryKeyPair(keyStore, suffix);
-                persistSecondaryKeyStore(keyStore, suffix);
+                generateContextKeyPair(keyStore, context);
+                persistContextKeyStore(keyStore, context);
             }
 
         } catch (Exception e) {
@@ -137,16 +150,16 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator{
         }
     }
 
+    private boolean isContextKeyStoreExists(String context) {
 
-    private boolean isSecondaryKeyStoreExists(String suffix) {
-
-        String keyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain + "_" + suffix);
+        String keyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain +
+                KEY_STORE_CONTEXT_SEPARATOR + context);
         boolean isKeyStoreExists = false;
         try {
             keyStoreManager.getKeyStore(keyStoreName);
             isKeyStoreExists = true;
         } catch (Exception e) {
-            String msg = "Error while checking the existance of keystore.  ";
+            String msg = "Error while checking the existence of keystore.  ";
             LOG.error(msg + e.getMessage());
         }
         return isKeyStoreExists;
@@ -165,12 +178,49 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator{
     }
 
     /**
+     * Persist the keystore in the gov.registry
+     *
+     * @param keyStore created Keystore of the tenant
+     * @throws KeyStoreManagementException Exception when storing the keystore in the registry
+     */
+    private void persistContextKeyStore(KeyStore keyStore, String context)
+            throws KeyStoreManagementException {
+
+        String keyStoreName = generateContextKSNameFromDomainName(context);
+        try {
+            char[] passwordChar = password.toCharArray();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            keyStore.store(outputStream, passwordChar);
+            outputStream.flush();
+            outputStream.close();
+
+            keyStoreManager.addKeyStore(outputStream.toByteArray(), keyStoreName,
+                    passwordChar, " ", KeystoreUtils.getKeyStoreFileType(tenantDomain), passwordChar);
+        } catch (SecurityException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Key store " + keyStoreName + " already available")) {
+
+                LOG.warn("Key store " + keyStoreName + " is already available, ignoring.");
+            } else {
+
+                String msg = "Error when adding a keyStore";
+                LOG.error(msg, e);
+                throw new KeyStoreManagementException(msg, e);
+            }
+        } catch (Exception e) {
+
+            String msg = "Error when processing keystore/pub. cert to be stored in registry";
+            LOG.error(msg, e);
+            throw new KeyStoreManagementException(msg, e);
+        }
+    }
+
+    /**
      * This method generates the keypair and stores it in the keystore
      *
      * @param keyStore A keystore instance
      * @throws KeyStoreManagementException Error when generating key pair
      */
-    private void generateSecondaryKeyPair(KeyStore keyStore, String suffix)
+    private void generateContextKeyPair(KeyStore keyStore, String context)
             throws KeyStoreManagementException {
         try {
             CryptoUtil.getDefaultCryptoUtil();
@@ -184,7 +234,8 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator{
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
             // Common Name and alias for the generated certificate
-            String commonName = "CN=" + tenantDomain +"_" + suffix + ", OU=None, O=None, L=None, C=None";
+            String commonName = "CN=" + tenantDomain +
+                    KEY_STORE_CONTEXT_SEPARATOR + context + ", OU=None, O=None, L=None, C=None";
 
             //generate certificates
             X500Name distinguishedName = new X500Name(commonName);
@@ -212,10 +263,11 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator{
                     .getCertificate(certificateBuilder.build(signerBuilder.build(privateKey)));
 
             //add private key to KS
-            keyStore.setKeyEntry(tenantDomain +"_" + suffix, keyPair.getPrivate(), password.toCharArray(),
+            keyStore.setKeyEntry(tenantDomain +KEY_STORE_CONTEXT_SEPARATOR + context,
+                    keyPair.getPrivate(), password.toCharArray(),
                     new java.security.cert.Certificate[]{x509Cert});
         } catch (Exception ex) {
-            String msg = "Error while generating the secondary certificate for tenant :" +
+            String msg = "Error while generating the Context certificate for tenant :" +
                     tenantDomain + ".";
             LOG.error(msg, ex);
             throw new KeyStoreManagementException(msg, ex);
@@ -270,50 +322,13 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator{
     }
 
     /**
-     * Persist the keystore in the gov.registry
-     *
-     * @param keyStore created Keystore of the tenant
-     * @throws KeyStoreManagementException Exception when storing the keystore in the registry
-     */
-    private void persistSecondaryKeyStore(KeyStore keyStore, String suffix)
-            throws KeyStoreManagementException {
-
-        String keyStoreName = generateSecondaryKSNameFromDomainName(suffix);
-        try {
-            char[] passwordChar = password.toCharArray();
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            keyStore.store(outputStream, passwordChar);
-            outputStream.flush();
-            outputStream.close();
-
-            keyStoreManager.addKeyStore(outputStream.toByteArray(), keyStoreName,
-                    passwordChar, " ", KeystoreUtils.getKeyStoreFileType(tenantDomain), passwordChar);
-        } catch (SecurityException e) {
-            if (e.getMessage() != null && e.getMessage().contains("Key store " + keyStoreName + " already available")) {
-
-                LOG.warn("Key store " + keyStoreName + " is already available, ignoring.");
-            } else {
-
-                String msg = "Error when adding a keyStore";
-                LOG.error(msg, e);
-                throw new KeyStoreManagementException(msg, e);
-            }
-        } catch (Exception e) {
-
-            String msg = "Error when processing keystore/pub. cert to be stored in registry";
-            LOG.error(msg, e);
-            throw new KeyStoreManagementException(msg, e);
-        }
-    }
-
-    /**
      * This method generates the key store file name from the Domain Name
      *  @return keystore name.
      */
-    private String generateSecondaryKSNameFromDomainName(String suffix){
+    private String generateContextKSNameFromDomainName(String context){
 
         String ksName = tenantDomain.trim().replace(".", "-");
-        ksName = ksName + "_" + suffix;
+        ksName = ksName + KEY_STORE_CONTEXT_SEPARATOR + context;
         return (ksName + KeystoreUtils.getExtensionByFileType(KeystoreUtils.StoreFileType.defaultFileType()));
     }
 }

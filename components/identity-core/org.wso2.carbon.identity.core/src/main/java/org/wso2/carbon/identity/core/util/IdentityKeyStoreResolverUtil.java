@@ -43,7 +43,6 @@ public class IdentityKeyStoreResolverUtil {
 
     /**
      * Builds the keystore name for a given tenant domain and context.
-     *
      * The tenant domain is sanitized by replacing dots (.) with hyphens (-) to ensure compatibility
      * with keystore naming conventions. If a context is provided, it is appended to the sanitized
      * tenant domain with an underscore (_). The method also appends the standard keystore file
@@ -69,7 +68,7 @@ public class IdentityKeyStoreResolverUtil {
 
         // Append context if provided
         if (!StringUtils.isEmpty(context)) {
-            ksName = ksName + "_" + context.trim();
+            ksName = ksName + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context.trim();
         }
 
         // Add the keystore extension

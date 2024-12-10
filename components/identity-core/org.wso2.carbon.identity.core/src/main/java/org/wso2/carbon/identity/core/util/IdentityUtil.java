@@ -2057,7 +2057,8 @@ public class IdentityUtil {
                     privateKey = keyStoreManager.getDefaultPrivateKey();
                 } else {
                     privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
-                            tenantDomain + "_" + context);
+                            tenantDomain +
+                                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
                 }
 
             } catch (Exception e) {
@@ -2079,7 +2080,8 @@ public class IdentityUtil {
                     privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
                 } else {
                     privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
-                            tenantDomain + "_" + context);
+                            tenantDomain +
+                                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
                 }
             } catch (IdentityException e) {
                 throw new SignatureException("Error while retrieving the private key for tenant: " + tenantDomain, e);
