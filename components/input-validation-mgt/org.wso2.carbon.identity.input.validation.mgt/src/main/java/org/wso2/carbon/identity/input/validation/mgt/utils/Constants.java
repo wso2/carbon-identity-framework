@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -69,6 +69,7 @@ public class Constants {
         public static final String MAX_CONSECUTIVE_CHR = "max.consecutive.character";
         public static final String ENABLE_VALIDATOR = "enable.validator";
         public static final String ENABLE_SPECIAL_CHARACTERS = "enable.special.characters";
+        public static final String MAX_PASSWORD_ALLOWED_LENGTH = "PasswordPolicy.MaxPasswordAllowedLength";
 
         // Keys for password regEx validation.
         public static final String JS_REGEX = "regex";
