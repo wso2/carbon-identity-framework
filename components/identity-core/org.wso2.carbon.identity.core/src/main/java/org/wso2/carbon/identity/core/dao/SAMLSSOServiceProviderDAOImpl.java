@@ -231,8 +231,30 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
 
-        addServiceProvider(serviceProviderDO);
-        return serviceProviderDO;
+        validateServiceProvider(serviceProviderDO);
+        if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
+            throw new IdentityException("No default assertion consumer URL provided for service provider :" +
+                    serviceProviderDO.getIssuer());
+        }
+
+        try {
+            if (processIsServiceProviderExists(serviceProviderDO.getIssuer())) {
+                debugLog(serviceProviderInfo(serviceProviderDO) + " already exists.");
+                throw new IdentityException(serviceProviderInfo(serviceProviderDO) + " already exists.");
+            }
+            NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+            namedJdbcTemplate.withTransaction(template -> {
+                processAddServiceProvider(serviceProviderDO);
+                processAddSPProperties(serviceProviderDO);
+                return null;
+            });
+            debugLog(serviceProviderInfo(serviceProviderDO) + " is added successfully.");
+            return serviceProviderDO;
+        } catch (TransactionException | DataAccessException e) {
+            String msg = "Error while adding " + serviceProviderInfo(serviceProviderDO);
+            log.error(msg, e);
+            throw new IdentityException(msg, e);
+        }
     }
 
     private void debugLog(String message) {
@@ -261,7 +283,8 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
 
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) &&
+                !serviceProviderDO.getIssuer().contains(IdentityRegistryResources.QUALIFIER_ID)) {
             serviceProviderDO.setIssuer(
                     getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier()));
         }
