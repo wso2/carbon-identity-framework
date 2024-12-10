@@ -848,7 +848,36 @@ public class FrameworkUtils {
         return userIdClaimURI;
     }
 
+    /**
+     * Get the external subject from the step config.
+     *
+     * @param stepConfig    Step config.
+     * @param tenantDomain  Tenant domain.
+     * @return External subject.
+     * @throws PostAuthenticationFailedException PostAuthenticationFailedException.
+     */
+    public static String getExternalSubject(StepConfig stepConfig, String tenantDomain)
+            throws PostAuthenticationFailedException {
 
+        String externalSubject = null;
+        String userIdClaimURI = getUserIdClaimURI(stepConfig.getAuthenticatedIdP(), tenantDomain);
+        if (StringUtils.isNotEmpty(userIdClaimURI)) {
+            externalSubject = stepConfig.getAuthenticatedUser().getUserAttributes().entrySet().stream()
+                    .filter(userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
+                            .equals(userIdClaimURI))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return externalSubject;
+    }
+
+    /**
+     * Get the configuration whether the external subject attribute based on IdP configurations..
+     *
+     * @return true if the IdP configurations has to be honoured.
+     * @throws PostAuthenticationFailedException PostAuthenticationFailedException.
+     */
     public static boolean isConfiguredIdpSubForFederatedUserAssociationEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION));

@@ -319,18 +319,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
                     String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
                     if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
-                        String userIdClaimURI = FrameworkUtils.getUserIdClaimURI(stepConfig.getAuthenticatedIdP(),
-                                context.getTenantDomain());
-                        if (StringUtils.isNotEmpty(userIdClaimURI)) {
-                            externalSubject = stepConfig.getAuthenticatedUser().getUserAttributes().entrySet().stream()
-                                    .filter(userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
-                                            .equals(userIdClaimURI))
-                                    .map(Map.Entry::getValue)
-                                    .findFirst()
-                                    .orElse(null);
-                        }
+                        externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
                     }
-
                     String associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                                     externalSubject,
@@ -845,18 +835,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
         if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
-            String userIdClaimURI = FrameworkUtils.getUserIdClaimURI(stepConfig.getAuthenticatedIdP(),
-                    context.getTenantDomain());
-            if (StringUtils.isNotEmpty(userIdClaimURI)) {
-                externalSubject = stepConfig.getAuthenticatedUser().getUserAttributes().entrySet().stream()
-                        .filter(userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
-                                .equals(userIdClaimURI))
-                        .map(Map.Entry::getValue)
-                        .findFirst()
-                        .orElse(null);
-            }
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
         }
-
         localClaimValues.put(FrameworkConstants.ASSOCIATED_ID, externalSubject);
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
 
@@ -987,15 +967,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
         if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
-            String userIdClaimURI = FrameworkUtils.getUserIdClaimURI(stepConfig.getAuthenticatedIdP(), tenantDomain);
-            if (StringUtils.isNotEmpty(userIdClaimURI)) {
-                externalSubject = stepConfig.getAuthenticatedUser().getUserAttributes().entrySet().stream()
-                        .filter(userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
-                                .equals(userIdClaimURI))
-                        .map(Map.Entry::getValue)
-                        .findFirst()
-                        .orElse(null);
-            }
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, tenantDomain);
         }
         String userName = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
                 externalSubject, tenantDomain);
