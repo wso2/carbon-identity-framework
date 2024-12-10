@@ -47,6 +47,7 @@ public class ServiceProvider implements Serializable {
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
+    private static final String APPLICATION_VERSION = "ApplicationVersion";
     private static final String ACCESS_URL = "AccessUrl";
     private static final String IMAGE_URL = "ImageUrl";
     private static final String TEMPLATE_ID = "TemplateId";
@@ -65,6 +66,9 @@ public class ServiceProvider implements Serializable {
 
     @XmlElement(name = "ApplicationName")
     private String applicationName;
+
+    @XmlElement(name = APPLICATION_VERSION)
+    private String applicationVersion;
 
     @XmlElement(name = "Description")
     private String description;
@@ -201,6 +205,8 @@ public class ServiceProvider implements Serializable {
                     log.error("Service provider not loaded from the file. Application Name is null.");
                     return null;
                 }
+            } else if (APPLICATION_VERSION.equals(elementName)) {
+                serviceProvider.setApplicationVersion(element.getText());
             } else if ("Description".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
             } else if (IMAGE_URL.equals(elementName)) {
@@ -452,6 +458,22 @@ public class ServiceProvider implements Serializable {
      */
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
+    }
+
+    /**
+     * @return Application version.
+     */
+    public String getApplicationVersion() {
+
+        return applicationVersion;
+    }
+
+    /**
+     * @param applicationVersion Application version.
+     */
+    public void setApplicationVersion(String applicationVersion) {
+
+        this.applicationVersion = applicationVersion;
     }
 
     /**

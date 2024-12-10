@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -44,6 +44,8 @@ public class AuthServiceConstants {
     public static final String INTERNAL_ERROR_MSG_SEPARATOR = "-";
     public static final String AUTH_FAILURE_PARAM = "authFailure";
     public static final String AUTH_FAILURE_MSG_PARAM = "authFailureMsg";
+    public static final String PASSWORD_EXPIRED_PARAM = "passwordExpired";
+    public static final String PASSWORD_EXPIRED_MSG_PARAM = "passwordExpiredMsg";
     public static final String ERROR_CODE_PARAM = "errorCode";
     public static final String ERROR_CODE_PREFIX = "ABA-";
     public static final String REQ_ATTR_IS_INITIAL_API_BASED_AUTH_REQUEST = "isInitialAPIBasedAuthRequest";

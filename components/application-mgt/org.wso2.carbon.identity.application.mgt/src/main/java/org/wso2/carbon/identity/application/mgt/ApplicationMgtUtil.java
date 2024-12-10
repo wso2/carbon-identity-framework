@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
@@ -1224,5 +1225,45 @@ public class ApplicationMgtUtil {
     public static boolean isTrustedAppConsentRequired() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(TRUSTED_APP_CONSENT_REQUIRED_PROPERTY));
+    }
+
+    /**
+     * Get the latest applicable version of the application.
+     *
+     * @param serviceProvider Service provider object.
+     * @return The latest applicable version.
+     */
+    public static String getApplicationUpdatedVersion(ServiceProvider serviceProvider) {
+
+        String currentVersion = serviceProvider.getApplicationVersion();
+        String inboundConfigType = getInboundConfigType(serviceProvider);
+
+        switch (currentVersion) {
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V0:
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V1:
+                if (!IdentityApplicationConstants.OAuth2.NAME.equals(inboundConfigType)) {
+                    currentVersion = ApplicationConstants.ApplicationVersion.APP_VERSION_V2;
+                }
+                break;
+            case ApplicationConstants.ApplicationVersion.APP_VERSION_V2:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + currentVersion);
+        }
+        return currentVersion;
+    }
+
+    private static String getInboundConfigType(ServiceProvider serviceProvider) {
+
+        String inboundConfigType = null;
+        if (serviceProvider.getInboundAuthenticationConfig() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs().length != 0) {
+            inboundConfigType = serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
+        }
+        return inboundConfigType;
     }
 }

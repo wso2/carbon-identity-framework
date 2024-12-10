@@ -911,7 +911,7 @@ public class JsOpenJdkNashornGraphBuilder extends JsGraphBuilder {
                 if (jsFunction != null) {
                     decisionNode.addFunction(key, jsFunction);
                 } else {
-                    log.error("Event handler : " + key + " is not a function : " + value);
+                    log.warn("Event handler : " + key + " is not a function : " + value);
                 }
             } else if (value instanceof OpenJdkNashornSerializableJsFunction) {
                 decisionNode.addFunction(key, (OpenJdkNashornSerializableJsFunction) value);

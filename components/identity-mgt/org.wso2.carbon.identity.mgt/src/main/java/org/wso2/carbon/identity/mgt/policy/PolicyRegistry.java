@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,8 @@
  */
 
 package org.wso2.carbon.identity.mgt.policy;
+
+import org.wso2.carbon.identity.mgt.constants.PasswordPolicyStatusCodes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +38,8 @@ public class PolicyRegistry {
             for (PolicyEnforcer policy : policyCollection) {
 
                 if (policy instanceof AbstractPasswordPolicyEnforcer && !policy.enforce(args)) {
-                    throw new PolicyViolationException(policy.getErrorMessage());
+                    throw new PolicyViolationException(PasswordPolicyStatusCodes.ERROR_CODE_PASSWORD_POLICY_VIOLATION,
+                            policy.getErrorMessage());
                 }
 
             }

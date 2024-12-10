@@ -1,0 +1,6 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/identity); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/identity/rulemeta); \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.rule.management.server_${feature.version}/identity/rulemeta/,target:${installFolder}/../../../repository/resources/identity/rulemeta,overwrite:true);\

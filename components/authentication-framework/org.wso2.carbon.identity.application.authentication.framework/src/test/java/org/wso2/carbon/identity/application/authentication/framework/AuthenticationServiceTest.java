@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -45,6 +45,8 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -73,6 +75,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
     private static final String FINAL_SESSION_DATA_KEY = "bcf793dc-4ea9-4324-a485-7d20999a063e";
     private static final String LOCATION_HEADER = "location";
     private static final String ERROR_MSG_LOGIN_FAIL = "login.fail.message";
+    private static final String PASSWORD_EXPIRED_MSG = "Password has expired";
 
     @Mock
     HttpServletRequest request;
@@ -168,6 +171,27 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
             List<AuthenticatorData> actual = authServiceResponseData.get().getAuthenticatorOptions();
             validateReturnedAuthenticators(actual, expected, isMultiOpsResponse);
         }
+    }
+
+    @Test
+    public void testHandleAuthenticationForPasswordExpiry() throws Exception {
+
+        AuthenticationService authenticationService = new AuthenticationService();
+        AuthServiceRequest authServiceRequest = new AuthServiceRequest(request, response);
+
+        when(request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS))
+                .thenReturn(AuthenticatorFlowStatus.INCOMPLETE);
+        when(response.getHeader(LOCATION_HEADER)).thenReturn(getPasswordExpiryUrl(SESSION_DATA_KEY,
+                URLEncoder.encode(PASSWORD_EXPIRED_MSG, StandardCharsets.UTF_8)));
+        AuthServiceResponse authServiceResponse = authenticationService.handleAuthentication(authServiceRequest);
+
+        Assert.assertEquals(authServiceResponse.getFlowStatus(), AuthServiceConstants.FlowStatus.FAIL_INCOMPLETE);
+        Optional<AuthServiceErrorInfo> authServiceErrorInfo = authServiceResponse.getErrorInfo();
+
+        if (!authServiceErrorInfo.isPresent()) {
+            Assert.fail("Expected authServiceErrorInfo to be present as the flow is fail incomplete.");
+        }
+        Assert.assertEquals(authServiceErrorInfo.get().getErrorMessage(), PASSWORD_EXPIRED_MSG);
     }
 
     @Test
@@ -327,6 +351,12 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
                 "=code&scope=openid+openid+SYSTEM&state=request_0&tenantDomain=carbon.super&sessionDataKey=" +
                 sessionDataKey + "&relyingParty=MY_ACCOUNT&type=oidc&sp=My+Account&isSaaSApp=true&inputType=idf" +
                 "&authenticators=" + authenticators + "&authFailure=true&authFailureMsg=" + errorMsg;
+    }
+
+    private String getPasswordExpiryUrl(String sessionDataKey, String errorMsg) {
+
+        return "/oauth2/authorize?sessionDataKey=" + sessionDataKey + "&" + AuthServiceConstants.PASSWORD_EXPIRED_PARAM
+                + "=true&" + AuthServiceConstants.PASSWORD_EXPIRED_MSG_PARAM + "=" + errorMsg;
     }
 
     private List<AuthenticatorData> getMultiOpsAuthenticatorData(String authenticatorList) {

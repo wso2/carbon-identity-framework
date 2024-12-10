@@ -289,13 +289,22 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit)
             throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo(offset, limit, false);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
         if (appDAO instanceof PaginatableFilterableApplicationDAO) {
             // No need to cache the returned list.
-            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(offset, limit);
+            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(offset, limit,
+                    excludeSystemPortals);
         } else {
             throw new UnsupportedOperationException("This operation only supported in" +
                     " PaginatableFilterableApplicationDAO only.");
@@ -328,13 +337,23 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
             throws IdentityApplicationManagementException {
 
+        return getApplicationBasicInfo(filter, offset, limit, false);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit,
+                                                          Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
         if (appDAO instanceof PaginatableFilterableApplicationDAO) {
             // No need to cache the returned list.
-            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(filter, offset, limit);
+            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(filter, offset, limit,
+                    excludeSystemPortals);
         } else {
             throw new UnsupportedOperationException("This operation only supported in" +
                     " PaginatableFilterableApplicationDAO only.");
@@ -351,10 +370,17 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
+    @Deprecated
     public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
 
+        return getCountOfApplications(filter, false);
+    }
+
+    public int getCountOfApplications(String filter, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
         if (appDAO instanceof PaginatableFilterableApplicationDAO) {
-            return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfApplications(filter);
+            return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfApplications(filter, excludeSystemPortals);
         } else {
             throw new UnsupportedOperationException("This operation only supported in" +
                     " PaginatableFilterableApplicationDAO only.");

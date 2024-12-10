@@ -569,6 +569,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     .handleWithV2Roles(assignedRoleIdList, subjectIdentifier, extAttributesValueMap, userStoreDomain,
                             context.getTenantDomain());
         } catch (FrameworkException e) {
+            if (FrameworkUtils.isAuthenticationFailOnJitFail()) {
+                throw e;
+            }
             log.error("User provisioning failed!", e);
         } finally {
             IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();

@@ -48,6 +48,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Enumeration;
@@ -309,12 +310,12 @@ public class MutualSSLManager {
         try {
             String fileExtension = keyStorePath.substring(keyStorePath.lastIndexOf("."));
             MutualSSLManager.keyStorePassword = keyStorePassword.toCharArray();
-            keyStore = KeyStore.getInstance(KeystoreUtils.getFileTypeByExtension(fileExtension));
+            keyStore = KeystoreUtils.getKeystoreInstance(KeystoreUtils.getFileTypeByExtension(fileExtension));
             try (InputStream fis = new FileInputStream(keyStorePath)) {
                 keyStore.load(fis, MutualSSLManager.keyStorePassword);
             }
-        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException |
-                 CarbonException e) {
+        } catch (KeyStoreException | NoSuchProviderException | CertificateException | NoSuchAlgorithmException |
+                 IOException | CarbonException e) {
             throw new AuthenticationException("Error while trying to load Key Store.", e);
         }
     }
@@ -330,11 +331,12 @@ public class MutualSSLManager {
             throws AuthenticationException {
 
         try {
-            trustStore = KeyStore.getInstance(trustStoreType);
+            trustStore = KeystoreUtils.getKeystoreInstance(trustStoreType);
             try (InputStream is = new FileInputStream(trustStorePath)) {
                 trustStore.load(is, trustStorePassword.toCharArray());
             }
-        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
+        } catch (KeyStoreException | NoSuchProviderException | CertificateException | IOException |
+                 NoSuchAlgorithmException e) {
             throw new AuthenticationException("Error while trying to load Trust Store.", e);
         }
     }

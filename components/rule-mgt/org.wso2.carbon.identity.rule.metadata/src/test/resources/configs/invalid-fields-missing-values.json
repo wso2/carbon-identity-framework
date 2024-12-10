@@ -1,0 +1,17 @@
+{
+  "grantType": {
+    "field": {
+      "name": "grantType",
+      "displayName": "grant type"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": []
+    }
+  }
+}

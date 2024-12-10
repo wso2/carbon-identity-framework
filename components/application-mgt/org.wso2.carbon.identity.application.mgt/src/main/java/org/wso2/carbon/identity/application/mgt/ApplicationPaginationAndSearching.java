@@ -94,9 +94,32 @@ public interface ApplicationPaginationAndSearching {
      * @param limit        Counting value.
      * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response.
+     * use {@link ApplicationPaginationAndSearching#getApplicationBasicInfo(String, String, String, int, int, Boolean)}.
      */
+    @Deprecated
     ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter, int offset,
                                                    int limit) throws IdentityApplicationManagementException;
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain         Tenant Domain.
+     * @param username             User name.
+     * @param filter               Application name filter.
+     * @param offset               Starting index of the count.
+     * @param limit                Counting value.
+     * @param excludeSystemPortals Exclude system portals.
+     * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    default ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                           int offset,
+                                                           int limit, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
+        return new ApplicationBasicInfo[0];
+    }
 
     /**
      * Get count of all Application Basic Information.
@@ -117,8 +140,28 @@ public interface ApplicationPaginationAndSearching {
      * @param filter       Application name filter
      * @return int
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     * @Deprecated This is being deprecated as introducing excludeSystemPortals to exclude system portals in response.
+     * use {@link ApplicationPaginationAndSearching#getCountOfApplications(String, String, String, Boolean)}.
      */
+    @Deprecated
     int getCountOfApplications(String tenantDomain, String username, String filter)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @param tenantDomain         Tenant Domain.
+     * @param username             User Name.
+     * @param filter               Application name filter.
+     * @param excludeSystemPortals Exclude system portals.
+     * @return int Count of applications.
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    default int getCountOfApplications(String tenantDomain, String username, String filter,
+                                       Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
+
+        return 0;
+    }
 
 }

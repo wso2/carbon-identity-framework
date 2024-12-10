@@ -26,9 +26,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -39,6 +42,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -56,16 +60,21 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_STATUS_APP_DISABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ORGANIZATION_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -279,6 +288,166 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
 
         } catch (IdentityApplicationManagementException | IOException | URISyntaxException e) {
             Assert.fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNonNullContext() {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class)) {
+
+            String relyingParty = "console";
+            String tenantDomain = "carbon.super";
+            String restartLoginFlow = "true";
+
+            HttpServletRequest requestMock = spy(HttpServletRequest.class);
+            HttpServletResponse responseMock = spy(HttpServletResponse.class);
+            CommonAuthRequestWrapper request = new CommonAuthRequestWrapper(requestMock);
+            CommonAuthResponseWrapper response = new CommonAuthResponseWrapper(responseMock);
+            DefaultAuthenticationRequestHandler authenticationRequestHandler =
+                    mock(DefaultAuthenticationRequestHandler.class);
+
+            DefaultRequestCoordinator defaultRequestCoordinator = new DefaultRequestCoordinator();
+
+            // Mocking request parameters
+            when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(relyingParty);
+            when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomain);
+            when(request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW)).thenReturn(restartLoginFlow);
+            when(request.getParameter(AUTHENTICATOR)).thenReturn(ORGANIZATION_AUTHENTICATOR);
+
+            // Creating a new AuthenticationContext
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(tenantDomain);
+            context.setServiceProviderName("consoleApplication");
+            context.setRequestType("oauth2");
+            context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
+
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
+                    .thenThrow(new NullPointerException("Error occurred"));
+
+            when(FrameworkUtils.getContextData(request)).thenAnswer(invocation -> context);
+            when(FrameworkUtils.getAuthenticationRequestHandler()).thenReturn(authenticationRequestHandler);
+            doNothing().when(authenticationRequestHandler).handle(request, response, context);
+
+            // Mocking ApplicationManagementService behavior
+            ApplicationManagementServiceImpl mockApplicationManagementService =
+                    mock(ApplicationManagementServiceImpl.class);
+            applicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(mockApplicationManagementService);
+
+            // Mocking ServiceProvider and its properties
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isApplicationEnabled()).thenReturn(true);
+            when(mockApplicationManagementService.getServiceProviderByClientId(anyString(), anyString(), anyString()))
+                    .thenReturn(serviceProvider);
+
+            // Invoke handle method
+            defaultRequestCoordinator.handle(request, response);
+            // Return the context to the initial state
+            when(FrameworkUtils.getContextData(request)).thenAnswer(
+                    invocation -> context.getProperty(FrameworkConstants.INITIAL_CONTEXT));
+            // Invoke handle method again
+            defaultRequestCoordinator.handle(request, response);
+
+        } catch (NullPointerException e) {
+            Assert.fail("NullPointerException occurred: " + e.getMessage());
+        } catch (Exception e) {
+            Assert.fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testFindPreviousAuthenticatedSession() throws FrameworkException {
+
+        // Define constants for test values.
+        final String testSessionId = "testId";
+        final String testIssuer = "testIssuer";
+        final String testTenantDomain = "carbon.super";
+        final String testRequestType = "testRequestType";
+        final String testAppName = "testApp";
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getParameter(FrameworkConstants.RequestParams.SESSION_ID)).thenReturn(testSessionId);
+        when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(testIssuer);
+
+        AuthenticationContext authenticationContext = spy(AuthenticationContext.class);
+        when(authenticationContext.getTenantDomain()).thenReturn(testTenantDomain);
+        when(authenticationContext.getRequestType()).thenReturn(testRequestType);
+
+        try (MockedStatic<LoggerUtils> loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
+             MockedStatic<ConfigurationFacade> configurationFacadeMockedStatic = mockStatic(ConfigurationFacade.class);
+             MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementServiceMockedStatic = mockStatic(
+                     ApplicationManagementService.class)) {
+
+            // Mock LoggerUtils.
+            loggerUtilsMockedStatic.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+            // Mock ConfigurationFacade.
+            ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
+            SequenceConfig sequenceConfig = mock(SequenceConfig.class);
+            when(configurationFacade.getSequenceConfig(null, testRequestType, testTenantDomain)).thenReturn(
+                    sequenceConfig);
+            configurationFacadeMockedStatic.when(ConfigurationFacade::getInstance).thenReturn(configurationFacade);
+
+            // Mock FrameworkUtils.
+            frameworkUtilsMockedStatic.when(() -> FrameworkUtils.isAPIBasedAuthenticationFlow(request))
+                    .thenReturn(true);
+            SessionContext sessionContext = mock(SessionContext.class);
+            frameworkUtilsMockedStatic.
+                    when(() -> FrameworkUtils.getSessionContextFromCache(request, authenticationContext, testSessionId))
+                    .thenReturn(sessionContext);
+
+            // Mock ApplicationManagementService.
+            ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+            applicationManagementServiceMockedStatic.when(ApplicationManagementService::getInstance)
+                    .thenReturn(applicationManagementService);
+
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(applicationManagementService.getServiceProviderByClientId(anyString(), anyString(),
+                    anyString())).thenReturn(serviceProvider);
+
+            // Mock ApplicationConfig.
+            ApplicationConfig applicationConfig = mock(ApplicationConfig.class);
+            when(sequenceConfig.getApplicationConfig()).thenReturn(applicationConfig);
+            when(applicationConfig.getApplicationName()).thenReturn(testAppName);
+
+            // Mock authenticated sequences.
+            Map<String, SequenceConfig> mockedMap = mock(Map.class);
+            when(mockedMap.get(any())).thenReturn(sequenceConfig);
+            when(sessionContext.getAuthenticatedSequences()).thenReturn(mockedMap);
+
+            // Mock AuthenticatedUser.
+            AuthenticatedUser authenticatedUser = mock(AuthenticatedUser.class);
+            when(sequenceConfig.getAuthenticatedUser()).thenReturn(authenticatedUser);
+            when(authenticatedUser.getTenantDomain()).thenReturn(testTenantDomain);
+
+            // Case 1: Authenticated user has a tenant domain.
+            requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+
+            assertEquals(authenticationContext.getSubject(), authenticatedUser);
+            assertEquals(authenticationContext.getProperty(USER_TENANT_DOMAIN), testTenantDomain);
+
+            // clear the previous tenant domain.
+            authenticationContext.setProperty(USER_TENANT_DOMAIN, null);
+
+            // Case2: Authenticated user return null tenant domain.
+            when(authenticatedUser.getTenantDomain()).thenReturn(null);
+            requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+            assertNull(authenticationContext.getProperty(USER_TENANT_DOMAIN));
+
+            // Case 3: Authenticated user is null.
+            // clear the previous subject.
+            authenticationContext.setSubject(null);
+
+            when(sequenceConfig.getAuthenticatedUser()).thenReturn(null);
+            requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
+            assertNull(authenticationContext.getSubject());
+
+        } catch (IdentityApplicationManagementException e) {
+            throw new RuntimeException(e);
         }
     }
 

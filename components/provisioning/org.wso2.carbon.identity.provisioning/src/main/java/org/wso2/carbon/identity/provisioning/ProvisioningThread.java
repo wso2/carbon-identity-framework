@@ -80,6 +80,12 @@ public class ProvisioningThread implements Callable<Boolean> {
             } else {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName, true);
             }
+
+            /* Skip outbound provisioning triggered for JIT provisioning flow, where the JIT outbound is disabled for
+               the configured connector. */
+            if (provisioningEntity.isJitProvisioning() && !connector.isJitProvisioningEnabled()) {
+                return true;
+            }
             ProvisionedIdentifier provisionedIdentifier = null;
             // real provisioning happens now.
             provisionedIdentifier = connector.provision(provisioningEntity);

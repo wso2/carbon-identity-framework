@@ -1,12 +1,12 @@
 /*
- *  Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -19,21 +19,15 @@ package org.wso2.carbon.identity.user.store.configuration.deployer.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.user.store.configuration.deployer.internal.UserStoreConfigComponent;
 import org.wso2.carbon.user.core.UserStoreException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
@@ -44,7 +38,11 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 
-import static org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreConfigurationConstants.ENCRYPTION_KEYSTORE;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 import static org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreConfigurationConstants.INTERNAL_KEYSTORE;
 
 /**
@@ -68,16 +66,13 @@ public class UserStoreUtil {
         try {
             String cipherTransformation = System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
             if (cipherTransformation != null) {
-                cipher = Cipher.getInstance(cipherTransformation, "BC");
+                cipher = Cipher.getInstance(cipherTransformation, CryptoUtil.getJCEProvider());
             } else {
-                cipher = Cipher.getInstance("RSA", "BC");
+                cipher = Cipher.getInstance("RSA", CryptoUtil.getJCEProvider());
             }
             cipher.init(Cipher.ENCRYPT_MODE, getCertificate().getPublicKey());
         } catch (InvalidKeyException e) {
             String errorMsg = "Invalid key is used to access keystore";
-            throw new UserStoreException(errorMsg, e);
-        } catch (KeyStoreException e) {
-            String errorMsg = "Faulty keystore";
             throw new UserStoreException(errorMsg, e);
         } catch (GeneralSecurityException e) {
             String errorMsg = "Some parameters assigned to access the " +
@@ -157,7 +152,7 @@ public class UserStoreUtil {
         String cipherTransformation = System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
         try {
             certificate = getCertificate();
-        } catch (UserStoreException | KeyStoreException | CertificateException | NoSuchAlgorithmException e) {
+        } catch (UserStoreException e) {
             throw new CryptoException("Error occurred while retrieving the certificate.", e);
         }
 
@@ -187,51 +182,28 @@ public class UserStoreUtil {
     }
 
     /**
-     * Function to retrieve certificate
+     * Function to retrieve certificate.
      *
-     * @return certificate
-     * @throws UserStoreException
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
+     * @return Default certificate.
+     * @throws UserStoreException If loading keystore fails.
      */
-    private static Certificate getCertificate()
-            throws UserStoreException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
-        ServerConfigurationService config = UserStoreConfigComponent.getServerConfigurationService();
+    private static Certificate getCertificate() throws UserStoreException {
 
+        ServerConfigurationService config = UserStoreConfigComponent.getServerConfigurationService();
         if (config == null) {
             String errMsg = "ServerConfigurationService is null - this situation can't occur";
             throw new UserStoreException(errMsg);
         }
 
         // Get the encryption keystore.
-
-        String filePath = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_FILE);
-        String keyStoreType = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_TYPE);
-        String password = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_PASSWORD);
         String keyAlias = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_KEY_ALIAS);
 
-        KeyStore store;
-        InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream(new File(filePath).getAbsolutePath());
-            store = KeyStore.getInstance(keyStoreType);
-            store.load(inputStream, password.toCharArray());
+            KeyStore store = KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID).getPrimaryKeyStore();
             return store.getCertificateChain(keyAlias)[0];
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             String errorMsg = "Keystore File Not Found in configured location";
             throw new UserStoreException(errorMsg, e);
-        } catch (IOException e) {
-            String errorMsg = "Keystore File IO operation failed";
-            throw new UserStoreException(errorMsg, e);
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    log.error("Key store file closing failed");
-                }
-            }
         }
     }
 }

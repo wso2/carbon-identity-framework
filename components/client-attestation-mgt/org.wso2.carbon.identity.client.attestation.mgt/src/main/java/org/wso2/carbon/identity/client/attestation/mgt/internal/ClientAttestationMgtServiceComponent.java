@@ -72,7 +72,7 @@ public class ClientAttestationMgtServiceComponent {
             }
 
         } catch (Throwable throwable) {
-            LOG.error("Error while activating Input Validation Service Component.", throwable);
+            LOG.error("Error while activating Client Attestation Service Component.", throwable);
         }
     }
 

@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.secret.mgt.core;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.codec.Charsets;
 import org.mockito.MockedStatic;
 import org.testng.Assert;
@@ -30,12 +28,8 @@ import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.secret.mgt.core.constant.SecretConstants;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementClientException;
@@ -56,8 +50,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.secret.mgt.core.util.TestUtils.closeH2Base;
@@ -77,7 +69,6 @@ public class SecretManagerTest {
     private Connection connection;
     private CryptoUtil mockCryptoUtil;
     private SecretResolveManager secretResolveManager;
-    private SecretsProcessor<IdentityProvider> identityProviderSecretsProcessor;
 
     private static final String SAMPLE_SECRET_NAME1 = "sample-secret1";
     private static final String SAMPLE_SECRET_NAME2 = "sample-secret2";
@@ -452,86 +443,6 @@ public class SecretManagerTest {
                 "Existing id should be equal to the replaced id");
     }
 
-    @Test(priority = 28)
-    public void testAddIdpSecrets() throws Exception {
-
-        secretManager.addSecretType(getSampleSecretTypeAdd(
-                SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, "Secret type of IDP related secret properties"
-        ));
-        IdentityProvider identityProvider = buildIDPObject();
-        encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
-        
-        for (String secretName : buildSecretNamesList(identityProvider)) {
-            assertTrue(
-                    secretManager.isSecretExist(SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, secretName),
-                    "Expected secret is not found in the data source.");
-        }
-    }
-
-    @Test(priority = 29)
-    public void testGetIdpSecrets() throws Exception {
-
-        secretManager.addSecretType(getSampleSecretTypeAdd(
-                SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, "Secret type of IDP related secret properties"
-        ));
-        IdentityProvider identityProvider = buildIDPObject();
-        encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
-
-        decryptSecret(ENCRYPTED_VALUE1);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.decryptAssociatedSecrets(addedIdp);
-
-        for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
-            if (property.isConfidential()) {
-                assertEquals(SAMPLE_SECRET_VALUE1, property.getValue());
-            }
-        }
-    }
-
-    @Test(priority = 30)
-    public void testDeleteIdpSecrets() throws Exception {
-
-        secretManager.addSecretType(getSampleSecretTypeAdd(
-                SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, "Secret type of IDP related secret properties"
-        ));
-        IdentityProvider identityProvider = buildIDPObject();
-        encryptSecret(SAMPLE_SECRET_VALUE1);
-        IdentityProvider addedIdp = identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
-
-        identityProviderSecretsProcessor.deleteAssociatedSecrets(addedIdp);
-        for (String secretName : buildSecretNamesList(identityProvider)) {
-            assertFalse(
-                    secretManager.isSecretExist(SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, secretName),
-                    "Expected secret is still available after delete idp secret functionality is executed.");
-        }
-    }
-
-    @Test(priority = 31)
-    public void testUpdateIdpSecrets() throws Exception {
-
-        secretManager.addSecretType(getSampleSecretTypeAdd(
-                SecretConstants.IDN_SECRET_TYPE_IDP_SECRETS, "Secret type of IDP related secret properties"
-        ));
-        IdentityProvider identityProvider = buildIDPObject();
-        encryptSecret(SAMPLE_SECRET_VALUE1);
-        identityProviderSecretsProcessor.encryptAssociatedSecrets(identityProvider);
-
-        IdentityProvider updatedIdpObject = buildUpdatedIdpObject(identityProvider);
-        decryptSecret(ENCRYPTED_VALUE1);
-        encryptSecret(SAMPLE_SECRET_VALUE2);
-        identityProviderSecretsProcessor.encryptAssociatedSecrets(updatedIdpObject);
-
-        decryptSecret(ENCRYPTED_VALUE2);
-        IdentityProvider updatedIdp = identityProviderSecretsProcessor.decryptAssociatedSecrets(updatedIdpObject);
-
-        for (Property property : updatedIdp.getFederatedAuthenticatorConfigs()[0].getProperties()) {
-            if (property.isConfidential()) {
-                assertEquals(SAMPLE_SECRET_VALUE2, property.getValue());
-            }
-        }
-    }
-
     private void prepareConfigs() {
 
         SecretDAO secretDAO = new SecretDAOImpl();
@@ -540,7 +451,6 @@ public class SecretManagerTest {
         mockIdentityTenantUtility();
         secretManager = new SecretManagerImpl();
         secretResolveManager = new SecretResolveManagerImpl();
-        identityProviderSecretsProcessor = new IdPSecretsProcessor();
     }
 
     private void mockCarbonContextForTenant(int tenantId, String tenantDomain) {
@@ -577,66 +487,5 @@ public class SecretManagerTest {
         } else {
             when(mockCryptoUtil.base64DecodeAndDecrypt(cipherText)).thenReturn(SAMPLE_SECRET_VALUE1.getBytes());
         }
-    }
-
-    private IdentityProvider buildIDPObject() {
-
-        IdentityProvider idp = new IdentityProvider();
-        idp.setId("5");
-        idp.setIdentityProviderName("testIdP1");
-        idp.setEnable(true);
-        idp.setPrimary(true);
-        idp.setFederationHub(true);
-        idp.setCertificate("");
-
-        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
-        federatedAuthenticatorConfig.setDisplayName("OIDCAuthenticator");
-        federatedAuthenticatorConfig.setName("SampleOIDCAuthenticator");
-        federatedAuthenticatorConfig.setEnabled(true);
-        Property property1 = new Property();
-        property1.setName(SAMPLE_SECRET_NAME1);
-        property1.setValue(SAMPLE_SECRET_VALUE1);
-        property1.setConfidential(true);
-        Property property2 = new Property();
-        property2.setName("NonSecretProperty");
-        property2.setValue("PropertyValue");
-        property2.setConfidential(false);
-        federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
-        idp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{federatedAuthenticatorConfig});
-
-        return idp;
-    }
-
-    private IdentityProvider buildUpdatedIdpObject(IdentityProvider identityProvider) {
-
-        for (Property property : identityProvider.getFederatedAuthenticatorConfigs()[0].getProperties()) {
-            if (property.isConfidential()) {
-                property.setValue(SAMPLE_SECRET_VALUE2);
-            }
-        }
-
-        return identityProvider;
-    }
-
-    private List<String> buildSecretNamesList(IdentityProvider identityProvider) {
-
-        List<String> secretNames = new ArrayList<>();
-        identityProvider.getFederatedAuthenticatorConfigs();
-        for (FederatedAuthenticatorConfig fedAuthConfig : identityProvider.getFederatedAuthenticatorConfigs()) {
-            for (Property prop : fedAuthConfig.getProperties()) {
-                if (prop.isConfidential()) {
-                    String secretName =
-                            buildSecretNameWithIdpObj(identityProvider.getId(), fedAuthConfig.getName(), prop.getName());
-                    secretNames.add(secretName);
-                }
-            }
-        }
-
-        return secretNames;
-    }
-
-    private String buildSecretNameWithIdpObj(String idpId, String fedAuthName, String propName) {
-
-        return idpId + ":" + fedAuthName + ":" + propName;
     }
 }

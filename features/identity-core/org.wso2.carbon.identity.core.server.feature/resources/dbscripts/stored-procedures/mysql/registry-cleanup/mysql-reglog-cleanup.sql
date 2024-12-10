@@ -104,7 +104,7 @@ CREATE TABLE REG_LOG_CHUNK_TMP SELECT REG_LOG_ID FROM (
   (SELECT REG_LOG_ID FROM REG_LOG WHERE REG_ACTION = 7)
     ) A LIMIT chunkSize ;
 
-SELECT row_count() INTO @chunkCount;
+SELECT count(1) INTO @chunkCount FROM REG_LOG_CHUNK_TMP;
 
 IF (@chunkCount<checkCount OR @chunkCount=0)
 THEN
@@ -128,10 +128,10 @@ COMMIT;
         RL_BATCH_LOOP: REPEAT
 
 		DROP TABLE IF EXISTS REG_LOG_BATCH_TMP;
-        
+
         CREATE TABLE REG_LOG_BATCH_TMP SELECT REG_LOG_ID FROM REG_LOG_CHUNK_TMP LIMIT batchSize;
 
-        SELECT row_count() INTO @batchCount;
+        SELECT count(1) INTO @batchCount FROM REG_LOG_BATCH_TMP;
         
 		IF (@batchCount=0 )
         THEN

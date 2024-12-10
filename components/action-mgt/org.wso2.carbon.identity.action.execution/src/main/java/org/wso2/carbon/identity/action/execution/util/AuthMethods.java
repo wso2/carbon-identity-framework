@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.util;
 
 import org.apache.http.client.methods.HttpPost;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
+import org.wso2.carbon.identity.action.management.model.Authentication;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -55,7 +56,8 @@ public final class AuthMethods {
         public BearerAuth(List<AuthProperty> authPropertyList) {
 
             authPropertyList.stream()
-                    .filter(authProperty -> "ACCESS_TOKEN".equals(authProperty.getName()))
+                    .filter(authProperty -> Authentication.Property.ACCESS_TOKEN.getName().
+                            equals(authProperty.getName()))
                     .findFirst()
                     .ifPresent(authProperty -> this.token = authProperty.getValue());
         }
@@ -69,7 +71,7 @@ public final class AuthMethods {
         @Override
         public String getAuthType() {
 
-            return "BEARER";
+            return Authentication.Type.BEARER.getName();
         }
     }
 
@@ -84,15 +86,10 @@ public final class AuthMethods {
         public BasicAuth(List<AuthProperty> authPropertyList) {
 
             authPropertyList.forEach(authProperty -> {
-                switch (authProperty.getName()) {
-                    case "USERNAME":
-                        this.username = authProperty.getValue();
-                        break;
-                    case "PASSWORD":
-                        this.password = authProperty.getValue();
-                        break;
-                    default:
-                        break;
+                if (Authentication.Property.USERNAME.getName().equals(authProperty.getName())) {
+                    this.username = authProperty.getValue();
+                } else if (Authentication.Property.PASSWORD.getName().equals(authProperty.getName())) {
+                    this.password = authProperty.getValue();
                 }
             });
         }
@@ -109,7 +106,7 @@ public final class AuthMethods {
         @Override
         public String getAuthType() {
 
-            return "BASIC";
+            return Authentication.Type.BASIC.getName();
         }
     }
 
@@ -124,15 +121,10 @@ public final class AuthMethods {
         public APIKeyAuth(List<AuthProperty> authPropertyList) {
 
             authPropertyList.forEach(authProperty -> {
-                switch (authProperty.getName()) {
-                    case "HEADER":
-                        this.apiHeader = authProperty.getValue();
-                        break;
-                    case "VALUE":
-                        this.apiKey = authProperty.getValue();
-                        break;
-                    default:
-                        break;
+                if (Authentication.Property.HEADER.getName().equals(authProperty.getName())) {
+                    this.apiHeader = authProperty.getValue();
+                } else if (Authentication.Property.VALUE.getName().equals(authProperty.getName())) {
+                    this.apiKey = authProperty.getValue();
                 }
             });
         }
@@ -146,7 +138,7 @@ public final class AuthMethods {
         @Override
         public String getAuthType() {
 
-            return "API-KEY";
+            return Authentication.Type.API_KEY.getName();
         }
     }
 }

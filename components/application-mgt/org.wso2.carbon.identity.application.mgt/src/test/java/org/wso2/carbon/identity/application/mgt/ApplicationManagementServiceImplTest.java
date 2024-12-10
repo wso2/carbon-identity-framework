@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,8 +18,10 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -34,6 +36,7 @@ import org.wso2.carbon.core.internal.CarbonCoreDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -54,8 +57,10 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
 import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
@@ -63,18 +68,26 @@ import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInbo
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.application.mgt.provider.RegistryBasedApplicationPermissionProvider;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
+import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtServerException;
+import org.wso2.carbon.identity.certificate.management.model.Certificate;
+import org.wso2.carbon.identity.certificate.management.service.ApplicationCertificateManagementService;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.common.testng.realm.MockUserStoreManager;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManagerImpl;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.dao.SecretDAO;
 import org.wso2.carbon.identity.secret.mgt.core.dao.impl.SecretDAOImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
@@ -83,7 +96,6 @@ import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
-import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.internal.RegistryDataHolder;
@@ -95,22 +107,34 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.CarbonConstants.REGISTRY_SYSTEM_USERNAME;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_VERSION_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_CONSENT_REQUIRED_PROPERTY;
+import static org.wso2.carbon.identity.certificate.management.constant.CertificateMgtErrors.ERROR_INVALID_CERTIFICATE_CONTENT;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -124,6 +148,7 @@ public class ApplicationManagementServiceImplTest {
     private static final String SAMPLE_TENANT_DOMAIN = "tenant domain";
     private static final String APPLICATION_NAME_1 = "Test application1";
     private static final String APPLICATION_NAME_2 = "Test application2";
+    private static final String APPLICATION_NAME_3 = "Test application3";
     private static final String APPLICATION_TEMPLATE_ID_1 = "Test_template_1";
     private static final String APPLICATION_TEMPLATE_ID_2 = "Test_template_2";
     private static final String APPLICATION_TEMPLATE_VERSION_1 = "v1.0.0";
@@ -132,6 +157,7 @@ public class ApplicationManagementServiceImplTest {
     private static final String APPLICATION_INBOUND_AUTH_KEY_2 = "Test_auth_key2";
     private static final String APPLICATION_NAME_FILTER_1 = "name ew application1";
     private static final String APPLICATION_NAME_FILTER_2 = "name co 2";
+    private static final String APPLICATION_NAME_FILTER_3 = "name ew application3";
     private static final String APPLICATION_CLIENT_ID_FILTER = "clientId co %s";
     private static final String APPLICATION_ISSUER_FILTER = "issuer co %s";
     private static final String APPLICATION_NAME_OR_CLIENT_ID_FILTER = "name co sampleAppName or clientId eq %s";
@@ -149,23 +175,39 @@ public class ApplicationManagementServiceImplTest {
     private static final String ANDROID_PACKAGE_NAME_1 = "com.wso2.sample.mobile.application";
     private static final String ANDROID_PACKAGE_NAME_2 = "com.wso2.sample.mobile.application2";
     private static final String APPLE_APP_ID = "APPLETEAMID.com.wso2.mobile.sample";
+    private static final String CERTIFICATE = "dummy_application_certificate";
+    private static final String UPDATED_CERTIFICATE = "updated_dummy_application_certificate";
+    private static final int CERTIFICATE_ID = 1;
+
+    // B2B organization and application related constants.
+    private static final String B2B_APPLICATION_NAME = "B2B Test application";
+    private static final String ROOT_ORG_ID = "10084a8d-113f-4211-a0d5-efe36b082211";
+    private static final String ROOT_TENANT_DOMAIN = "carbon.super";
+    private static final int ROOT_TENANT_ID = -1234;
+    private static final String L1_ORG_ID = "93d996f9-a5ba-4275-a52b-adaad9eba869";
+    private static final int L1_TENANT_ID = 1;
+    private static final String L2_ORG_ID = "30b701c6-e309-4241-b047-0c299c45d1a0";
+    private static final int L2_TENANT_ID = 2;
 
     private IdPManagementDAO idPManagementDAO;
     private ApplicationManagementServiceImpl applicationManagementService;
+    private ApplicationCertificateManagementService applicationCertificateManagementService;
+
+    private String appIdWithCert;
+    private ServiceProvider appWithCert;
+    private Certificate certificate;
+    private CertificateMgtServerException serverException;
+    private CertificateMgtClientException clientException;
+    private OrganizationManager organizationManager;
+    private String rootAppId;
+    private String l1AppId;
+    private String l2AppId;
 
     @BeforeClass
     public void setup() throws RegistryException, UserStoreException, SecretManagementException {
 
         setupConfiguration();
         applicationManagementService = ApplicationManagementServiceImpl.getInstance();
-
-        SecretsProcessor<IdentityProvider> idpSecretsProcessor = mock(
-                IdPSecretsProcessor.class);
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(idpSecretsProcessor);
-        when(idpSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
-                invocation -> invocation.getArguments()[0]);
-        when(idpSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(invocation ->
-                invocation.getArguments()[0]);
 
         SecretManager secretManager = mock(SecretManagerImpl.class);
         Secret secret = mock(Secret.class);
@@ -183,6 +225,24 @@ public class ApplicationManagementServiceImplTest {
         SecretDAO secretDAO = new SecretDAOImpl();
         SecretManagerComponentDataHolder.getInstance().setSecretDAOS(Collections.singletonList(secretDAO));
         CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME = false;
+        MockedStatic<DefinedByType> definedByType = mockStatic(DefinedByType.class);
+        definedByType.when(() -> DefinedByType.valueOf(anyString())).thenReturn(DefinedByType.SYSTEM);
+
+        applicationCertificateManagementService = mock(ApplicationCertificateManagementService.class);
+        ApplicationManagementServiceComponentHolder.getInstance()
+                .setApplicationCertificateMgtService(applicationCertificateManagementService);
+        certificate = new Certificate.Builder()
+                .id(String.valueOf(CERTIFICATE_ID))
+                .name(APPLICATION_NAME_1)
+                .certificateContent(CERTIFICATE)
+                .build();
+        serverException = new CertificateMgtServerException("server_error_message", "server_error_description", "65010",
+                new Throwable());
+        clientException = new CertificateMgtClientException(ERROR_INVALID_CERTIFICATE_CONTENT.getMessage(),
+                ERROR_INVALID_CERTIFICATE_CONTENT.getDescription(), ERROR_INVALID_CERTIFICATE_CONTENT.getCode());
+
+        organizationManager = mock(OrganizationManager.class);
+        ApplicationManagementServiceComponentHolder.getInstance().setOrganizationManager(organizationManager);
     }
 
     @DataProvider(name = "addApplicationDataProvider")
@@ -220,6 +280,8 @@ public class ApplicationManagementServiceImplTest {
 
         Assert.assertEquals(retrievedSP.getApplicationID(), inputSP.getApplicationID());
         Assert.assertEquals(retrievedSP.getOwner().getUserName(), inputSP.getOwner().getUserName());
+        Assert.assertEquals(retrievedSP.getApplicationVersion(),
+                ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
         Assert.assertFalse(retrievedSP.isManagementApp());
 
         // Deleting added application.
@@ -333,6 +395,8 @@ public class ApplicationManagementServiceImplTest {
                 (tenantDomain, username, "name eq " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationVersion(),
+                ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
@@ -352,6 +416,8 @@ public class ApplicationManagementServiceImplTest {
                 (tenantDomain, username, 1, "name co " + inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), addedSP.getApplicationName());
+        Assert.assertEquals(applicationBasicInfo[0].getApplicationVersion(),
+                ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         // Deleting added application.
         applicationManagementService.deleteApplication(inputSP.getApplicationName(), tenantDomain, username);
@@ -455,6 +521,99 @@ public class ApplicationManagementServiceImplTest {
                 (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 5);
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), expectedResult);
 
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @DataProvider(name = "getAppsExcludingSystemPortalsDataProvider")
+    public Object[][] getAppsExcludingSystemPortals() {
+
+        return new Object[][]{
+                {APPLICATION_NAME_FILTER_1, 1},
+                {APPLICATION_NAME_FILTER_3, 0}
+        };
+    }
+
+    private void setupExcludeSystemPortalsEnv()
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName(APPLICATION_NAME_1);
+
+        ServiceProvider serviceProvider2 = new ServiceProvider();
+        serviceProvider2.setApplicationName(APPLICATION_NAME_2);
+
+        ServiceProvider serviceProvider3 = new ServiceProvider();
+        serviceProvider3.setApplicationName(APPLICATION_NAME_3);
+
+        applicationManagementService.addApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.addApplication(serviceProvider2, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+        applicationManagementService.addApplication(serviceProvider3, SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+    }
+
+    @Test
+    public void testGetApplicationBasicInfoExcludingSystemPortals() throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                    (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, "", 0, 10, true);
+            Assert.assertEquals(applicationBasicInfo.length, 2);
+        }
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
+    public void testGetApplicationBasicInfoWithFilterExcludingSystemPortals(String filter, int expectedResult)
+            throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            ApplicationBasicInfo[] applicationBasicInfo = applicationManagementService.getApplicationBasicInfo
+                    (SUPER_TENANT_DOMAIN_NAME, USERNAME_1, filter, 0, 10, true);
+            Assert.assertEquals(applicationBasicInfo.length, expectedResult);
+        }
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test
+    public void testGetCountOfApplicationsExcludingSystemPortals()
+            throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            Assert.assertEquals(
+                    applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                            "", true), 2);
+        }
+        // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test(dataProvider = "getAppsExcludingSystemPortalsDataProvider")
+    public void testGetCountOfApplicationsWithFilterExcludingSystemPortals(String filter, int expectedResult)
+            throws IdentityApplicationManagementException {
+
+        setupExcludeSystemPortalsEnv();
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+            List<String> systemApp = Arrays.asList(APPLICATION_NAME_3);
+            identityUtil.when(() -> IdentityUtil.getPropertyAsList(PORTAL_NAMES_CONFIG_ELEMENT))
+                    .thenReturn(systemApp);
+            Assert.assertEquals(
+                    applicationManagementService.getCountOfApplications(SUPER_TENANT_DOMAIN_NAME, USERNAME_1,
+                            filter, true), expectedResult);
+        }
         // Deleting all added applications.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
@@ -598,6 +757,25 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertEquals(applicationBasicInfo[0].getApplicationName(), expectedResult);
 
         // Deleting all added applications.
+        applicationManagementService.deleteApplications(SUPER_TENANT_ID);
+    }
+
+    @Test()
+    public void testGetApplicationUUIDFromName()
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(APPLICATION_NAME_1);
+        // Adding new application.
+        String resourceId = applicationManagementService.createApplication(serviceProvider,
+                SUPER_TENANT_DOMAIN_NAME, USERNAME_1);
+
+        // Retrieving added application info.
+        String applicationUUID = applicationManagementService.getApplicationUUIDByName(
+                serviceProvider.getApplicationName(), SUPER_TENANT_DOMAIN_NAME);
+        Assert.assertEquals(applicationUUID, resourceId);
+
+        // Deleting added application.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
     }
 
@@ -853,6 +1031,7 @@ public class ApplicationManagementServiceImplTest {
         Assert.assertEquals(actual.getApplicationName(), inputSP.getApplicationName());
         Assert.assertEquals(actual.getOwner().getUserName(), USERNAME_1);
         Assert.assertEquals(actual.getDescription(), inputSP.getDescription());
+        Assert.assertEquals(actual.getApplicationVersion(), ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         // Deleting all added application.
         applicationManagementService.deleteApplications(SUPER_TENANT_ID);
@@ -1202,6 +1381,366 @@ public class ApplicationManagementServiceImplTest {
                 REGISTRY_SYSTEM_USERNAME);
     }
 
+    @Test(groups = "certificate", priority = 1)
+    public void testAddApplicationWithCertificate() throws CertificateMgtException {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        inputSP.setCertificateContent(certificate.getCertificateContent());
+        addApplicationConfigurations(inputSP);
+
+        doReturn(0).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+        doReturn(certificate).when(applicationCertificateManagementService).getCertificateByName(any(), anyString());
+        try {
+            appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+        } catch (Exception e) {
+            Assert.fail("Application addition with certificate addition should be successful without any exceptions");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 2, dependsOnMethods = "testAddApplicationWithCertificate")
+    public void testGetApplicationWithServerErrorWhenRetrievingCert() throws CertificateMgtException {
+
+        doThrow(serverException).when(applicationCertificateManagementService).getCertificate(anyInt(), anyString());
+        try {
+            applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
+            Assert.fail("Successful retrieval of the application without an exception is considered as a failure");
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
+            Assert.assertTrue(e.getMessage().contains("Error while retrieving application with resourceId: "
+                    + appIdWithCert + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof CertificateMgtServerException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 3, dependsOnMethods = "testAddApplicationWithCertificate")
+    public void testGetApplicationWithCertificate() throws IdentityApplicationManagementException,
+            CertificateMgtException {
+
+        reset(applicationCertificateManagementService);
+        when(applicationCertificateManagementService.getCertificate(anyInt(), anyString())).thenReturn(certificate);
+        appWithCert = applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
+
+        Optional<String> certificateValue = Arrays.stream(appWithCert.getSpProperties())
+                .filter(prop -> "CERTIFICATE".equals(prop.getName()))
+                .map(ServiceProviderProperty::getValue)
+                .findFirst();
+        Assert.assertTrue(certificateValue.isPresent(), "Certificate property not found");
+        Assert.assertEquals(Integer.parseInt(certificateValue.get()), CERTIFICATE_ID);
+        Assert.assertEquals(appWithCert.getCertificateContent(), certificate.getCertificateContent());
+    }
+
+    @Test(groups = "certificate", priority = 4, dependsOnMethods = {"testAddApplicationWithCertificate",
+            "testGetApplicationWithCertificate"})
+    public void testUpdateApplicationWithCertificate() throws CertificateMgtException {
+
+        doNothing().when(applicationCertificateManagementService).updateCertificateContent(anyInt(), anyString(),
+                anyString());
+        try {
+            appWithCert.setCertificateContent(UPDATED_CERTIFICATE);
+            applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        } catch (Exception e) {
+            Assert.fail("Application update with certificate update should be successful without any exceptions");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 5, dependsOnMethods = {"testAddApplicationWithCertificate",
+            "testGetApplicationWithCertificate"})
+    public void testUpdateApplicationWithServerErrorWhenUpdatingCert() throws CertificateMgtException {
+
+        reset(applicationCertificateManagementService);
+        doThrow(serverException).when(applicationCertificateManagementService).updateCertificateContent(anyInt(),
+                anyString(), anyString());
+        try {
+            appWithCert.setCertificateContent(UPDATED_CERTIFICATE);
+            applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            Assert.fail("Successful update of the application without an exception is considered as a failure");
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
+            Assert.assertTrue(e.getMessage().contains("Error while updating application with resourceId: "
+                    + appIdWithCert + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof CertificateMgtServerException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 6, dependsOnMethods = {"testAddApplicationWithCertificate",
+            "testGetApplicationWithCertificate"})
+    public void testUpdateApplicationWithClientErrorWhenUpdatingCert() throws CertificateMgtException {
+
+        reset(applicationCertificateManagementService);
+        doThrow(clientException).when(applicationCertificateManagementService).updateCertificateContent(anyInt(),
+                anyString(), anyString());
+        try {
+            appWithCert.setCertificateContent(UPDATED_CERTIFICATE);
+            applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            Assert.fail("Successful update of the application without an exception is considered as a failure");
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
+            Assert.assertEquals(e.getMessage(), clientException.getDescription());
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof CertificateMgtClientException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected cause of type CertificateMgtClientException was not found in the exception chain");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 7, dependsOnMethods = {"testAddApplicationWithCertificate",
+            "testGetApplicationWithCertificate"})
+    public void testUpdateApplicationWithServerErrorWhenDeletingCert() throws CertificateMgtException {
+
+        doThrow(serverException).when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        try {
+            appWithCert.setCertificateContent(StringUtils.EMPTY);
+            applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+            Assert.fail("Successful update of the application without an exception is considered as a failure");
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementServerException.class);
+            Assert.assertTrue(e.getMessage().contains("Error while updating application with resourceId: "
+                    + appIdWithCert + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof CertificateMgtServerException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 8, dependsOnMethods = {"testAddApplicationWithCertificate",
+            "testGetApplicationWithCertificate"})
+    public void testDeleteApplicationWithCertificate() throws IdentityApplicationManagementException,
+            CertificateMgtException {
+
+        reset(applicationCertificateManagementService);
+        doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        try {
+            appWithCert.setCertificateContent(StringUtils.EMPTY);
+            applicationManagementService.updateApplicationByResourceId(appIdWithCert, appWithCert,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        } catch (Exception e) {
+            Assert.fail("Application update with certificate deletion should be successful without any exceptions");
+        }
+
+        appWithCert = applicationManagementService.getApplicationByResourceId(appIdWithCert, SUPER_TENANT_DOMAIN_NAME);
+        Optional<String> certificateValue = Arrays.stream(appWithCert.getSpProperties())
+                .filter(prop -> "CERTIFICATE".equals(prop.getName()))
+                .map(ServiceProviderProperty::getValue)
+                .findFirst();
+        Assert.assertFalse(certificateValue.isPresent(), "Certificate property should be removed");
+        Assert.assertNull(appWithCert.getCertificateContent());
+
+        // Deleting added application.
+        doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        applicationManagementService.deleteApplication(appWithCert.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @Test(groups = "certificate", priority = 9)
+    public void testAddApplicationWithServerErrorWhenAddingCert() throws CertificateMgtException {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        inputSP.setCertificateContent(certificate.getCertificateContent());
+        addApplicationConfigurations(inputSP);
+
+        reset(applicationCertificateManagementService);
+        doThrow(serverException).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+        try {
+            appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+            Assert.fail("Successful creation of the application without an exception is considered as a failure");
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertTrue(e.getMessage().contains("Error while creating an application: "
+                    + inputSP.getApplicationName() + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof CertificateMgtServerException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 10)
+    public void testAddApplicationWithClientErrorWhenAddingCert() throws CertificateMgtException {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        inputSP.setCertificateContent(certificate.getCertificateContent());
+        addApplicationConfigurations(inputSP);
+
+        reset(applicationCertificateManagementService);
+        doThrow(clientException).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+        try {
+            appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+            Assert.fail("Successful creation of the application without an exception is considered as a failure");
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertEquals(e.getClass(), IdentityApplicationManagementClientException.class);
+            Assert.assertEquals(e.getMessage(), clientException.getDescription());
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof CertificateMgtClientException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected cause of type CertificateMgtClientException was not found in the exception chain");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 11)
+    public void testAddApplicationWithServerErrorWhenRetrievingCertByName() throws CertificateMgtException {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_1);
+        inputSP.setCertificateContent(certificate.getCertificateContent());
+        addApplicationConfigurations(inputSP);
+
+        reset(applicationCertificateManagementService);
+        doReturn(0).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+        doThrow(serverException).when(applicationCertificateManagementService).getCertificateByName(any(),
+                anyString());
+        try {
+            appIdWithCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                    REGISTRY_SYSTEM_USERNAME);
+            Assert.fail("Successful creation of the application without an exception is considered as a failure");
+        } catch (IdentityApplicationManagementException e) {
+            Assert.assertTrue(e.getMessage().contains("Error while creating an application: "
+                    + inputSP.getApplicationName() + " in tenantDomain: " + SUPER_TENANT_DOMAIN_NAME));
+            for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof CertificateMgtServerException) {
+                    return;
+                }
+            }
+            Assert.fail("Expected cause of type CertificateMgtServerException was not found in the exception chain");
+        }
+    }
+
+    @Test(groups = "certificate", priority = 12)
+    public void testAddCertificateToExistingApplication() throws IdentityApplicationManagementException,
+            CertificateMgtException {
+
+        ServiceProvider inputSP = new ServiceProvider();
+        inputSP.setApplicationName(APPLICATION_NAME_2);
+        addApplicationConfigurations(inputSP);
+
+        String appIdWithoutCert = applicationManagementService.createApplication(inputSP, SUPER_TENANT_DOMAIN_NAME,
+                REGISTRY_SYSTEM_USERNAME);
+        ServiceProvider appWithoutCert = applicationManagementService.getApplicationByResourceId(appIdWithoutCert,
+                SUPER_TENANT_DOMAIN_NAME);
+
+        reset(applicationCertificateManagementService);
+        doReturn(2).when(applicationCertificateManagementService).addCertificate(any(), anyString());
+
+        try {
+            appWithoutCert.setCertificateContent(certificate.getCertificateContent());
+            applicationManagementService.updateApplicationByResourceId(appIdWithoutCert, appWithoutCert,
+                    SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+        } catch (Exception e) {
+            Assert.fail("Application update with certificate addition should be successful without any exceptions");
+        }
+
+        // Deleting added application.
+        doNothing().when(applicationCertificateManagementService).deleteCertificate(anyInt(), anyString());
+        applicationManagementService.deleteApplication(appWithoutCert.getApplicationName(),
+                SUPER_TENANT_DOMAIN_NAME, REGISTRY_SYSTEM_USERNAME);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 13)
+    public void testGetAncestorAppIdsOfChildApp() throws Exception {
+
+        createB2BTestApp();
+        mockAncestorOrganizationRetrieval(L2_ORG_ID, L1_ORG_ID, ROOT_ORG_ID);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds(l2AppId, L2_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 3);
+        Assert.assertEquals(resolvedAncestorAppIds.get(L2_ORG_ID), l2AppId);
+        Assert.assertEquals(resolvedAncestorAppIds.get(L1_ORG_ID), l1AppId);
+        Assert.assertEquals(resolvedAncestorAppIds.get(ROOT_ORG_ID), rootAppId);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 14, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetAncestorAppIdsOfParentApp() throws Exception {
+
+        mockAncestorOrganizationRetrieval(L1_ORG_ID, ROOT_ORG_ID);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds(l1AppId, L1_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 2);
+        Assert.assertEquals(resolvedAncestorAppIds.get(L1_ORG_ID), l1AppId);
+        Assert.assertEquals(resolvedAncestorAppIds.get(ROOT_ORG_ID), rootAppId);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 15, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetAncestorAppIdsOfRootApp() throws Exception {
+
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenReturn(ROOT_TENANT_DOMAIN);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 1);
+        Assert.assertEquals(resolvedAncestorAppIds.get(ROOT_ORG_ID), rootAppId);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 16, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testGetAncestorAppIdsOfInvalidApp() throws Exception {
+
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenReturn(ROOT_TENANT_DOMAIN);
+
+        Map<String, String> resolvedAncestorAppIds =
+                applicationManagementService.getAncestorAppIds("invalid-app-id", ROOT_ORG_ID);
+
+        Assert.assertNotNull(resolvedAncestorAppIds);
+        Assert.assertEquals(resolvedAncestorAppIds.size(), 0);
+    }
+
+    @Test(groups = "b2b-shared-apps", priority = 17, dependsOnMethods = "testGetAncestorAppIdsOfChildApp")
+    public void testServerExceptionsWhileRetrievingAncestorAppIds() throws Exception {
+
+        // Server exceptions while retrieving ancestor organization ids of level 2 organization.
+        when(organizationManager.getAncestorOrganizationIds(L2_ORG_ID))
+                .thenThrow(OrganizationManagementServerException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(l2AppId, L2_ORG_ID);
+        });
+
+        // Server exceptions while retrieving ancestor organization ids of level 1 organization.
+        when(organizationManager.getAncestorOrganizationIds(L1_ORG_ID))
+                .thenThrow(OrganizationManagementServerException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(l1AppId, L1_ORG_ID);
+        });
+
+        // Server exceptions while resolving tenant domain of root organization.
+        when(organizationManager.resolveTenantDomain(ROOT_ORG_ID)).thenThrow(OrganizationManagementException.class);
+        Assert.assertThrows(IdentityApplicationManagementException.class, () -> {
+            applicationManagementService.getAncestorAppIds(rootAppId, ROOT_ORG_ID);
+        });
+    }
+
     private void addApplicationConfigurations(ServiceProvider serviceProvider) {
 
         serviceProvider.setDescription("Created for testing");
@@ -1232,10 +1771,12 @@ public class ApplicationManagementServiceImplTest {
         identityProvider.setIdentityProviderName(IDP_NAME_1);
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig.setName("Federated authenticator");
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         identityProvider.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
                 {federatedAuthenticatorConfig});
         authenticationStep.setFederatedIdentityProviders(new IdentityProvider[]{identityProvider});
         LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
+        localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         localAuthenticatorConfig.setName("Local authenticator");
         authenticationStep.setLocalAuthenticatorConfigs(new LocalAuthenticatorConfig[]{localAuthenticatorConfig});
         authenticationConfig.setAuthenticationSteps(new AuthenticationStep[]{authenticationStep});
@@ -1244,6 +1785,7 @@ public class ApplicationManagementServiceImplTest {
         // Request Path Authenticator Configuration.
         RequestPathAuthenticatorConfig requestPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
         requestPathAuthenticatorConfig.setName("Request path authenticator");
+        requestPathAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         serviceProvider.setRequestPathAuthenticatorConfigs(new RequestPathAuthenticatorConfig[]{
                 requestPathAuthenticatorConfig});
 
@@ -1375,5 +1917,75 @@ public class ApplicationManagementServiceImplTest {
         } catch (Exception e) {
             throw new RuntimeException("Unable to set internal state on a private field.", e);
         }
+    }
+
+    private void mockAncestorOrganizationRetrieval(String orgId, String ...ancestorOrgIds)
+            throws OrganizationManagementException {
+
+        List<String> ancestorOrganizationIds = new ArrayList<>();
+        ancestorOrganizationIds.add(orgId);
+        if (ancestorOrgIds != null && ancestorOrgIds.length > 0) {
+            ancestorOrganizationIds.addAll(Arrays.asList(ancestorOrgIds));
+        }
+
+        when(organizationManager.getAncestorOrganizationIds(orgId)).thenReturn(ancestorOrganizationIds);
+    }
+
+    private void createB2BTestApp() throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(B2B_APPLICATION_NAME);
+        addApplicationConfigurations(serviceProvider);
+
+        // Since the app is the main app, it is not a fragment app.
+        ServiceProviderProperty isFragmentAppProperty = new ServiceProviderProperty();
+        isFragmentAppProperty.setName(IS_FRAGMENT_APP);
+        isFragmentAppProperty.setValue("false");
+        serviceProvider.setSpProperties(new ServiceProviderProperty[]{isFragmentAppProperty});
+
+        try (MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil = Mockito.mockStatic(IdentityTenantUtil.class)) {
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(ROOT_TENANT_DOMAIN))
+                    .thenReturn(ROOT_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_ID)).thenReturn(L1_TENANT_ID);
+            mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L2_ORG_ID)).thenReturn(L2_TENANT_ID);
+            mockedIdentityTenantUtil.when(IdentityTenantUtil::getRealmService)
+                    .thenAnswer(InvocationOnMock::callRealMethod);
+
+            rootAppId = applicationManagementService.createApplication(serviceProvider, ROOT_TENANT_DOMAIN,
+                    REGISTRY_SYSTEM_USERNAME);
+            l1AppId = shareApplication(rootAppId, ROOT_ORG_ID, L1_ORG_ID);
+            l2AppId = shareApplication(rootAppId, ROOT_ORG_ID, L2_ORG_ID);
+        }
+    }
+
+    private String shareApplication(String mainAppId, String ownerOrgId, String sharedOrgId)
+            throws Exception {
+
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(B2B_APPLICATION_NAME);
+        addApplicationConfigurations(serviceProvider);
+
+        // Since the app is shared, it is a fragment app.
+        ServiceProviderProperty isFragmentAppProperty = new ServiceProviderProperty();
+        isFragmentAppProperty.setName(IS_FRAGMENT_APP);
+        isFragmentAppProperty.setValue("true");
+        serviceProvider.setSpProperties(new ServiceProviderProperty[]{isFragmentAppProperty});
+
+        String sharedAppId = applicationManagementService.createApplication(serviceProvider, sharedOrgId,
+                REGISTRY_SYSTEM_USERNAME);
+
+        String query = "INSERT INTO SP_SHARED_APP (MAIN_APP_ID, OWNER_ORG_ID, SHARED_APP_ID, SHARED_ORG_ID) " +
+                "VALUES (?, ?, ?, ?)";
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, mainAppId);
+                preparedStatement.setString(2, ownerOrgId);
+                preparedStatement.setString(3, sharedAppId);
+                preparedStatement.setString(4, sharedOrgId);
+                preparedStatement.executeUpdate();
+            }
+        }
+
+        return sharedAppId;
     }
 }

@@ -664,6 +664,27 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     }
 
     @Test
+    public void testSetCookieExistCookieConfigWithMaxAgeAndPath() {
+
+        IdentityCookieConfig cookieConfig = new IdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
+        cookieConfig.setPath("Dummy-Path");
+        cookieConfig.setMaxAge(3600);
+        IdentityUtil.getIdentityCookiesConfigurationHolder().put(FrameworkConstants.COMMONAUTH_COOKIE, cookieConfig);
+        int age = 7200;
+
+        FrameworkUtils.setCookie(request, response, FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue", age);
+
+        verify(response, times(1)).addCookie(cookieCaptor.capture());
+        List<Cookie> capturedCookies = cookieCaptor.getAllValues();
+        Cookie storedCookie = capturedCookies.get(0);
+        assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
+        assertEquals(storedCookie.getPath(), "Dummy-Path");
+        assertEquals(storedCookie.getMaxAge(), age);
+
+        IdentityUtil.getIdentityCookiesConfigurationHolder().put(FrameworkConstants.COMMONAUTH_COOKIE, null);
+    }
+
+    @Test
     public void testGetCookieExistingCookie() {
 
         Cookie[] cookies = getAuthenticationCookies();

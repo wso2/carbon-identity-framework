@@ -28,6 +28,7 @@ public class ApplicationBasicInfo implements Serializable {
 
     private int applicationId;
     private String applicationName;
+    private String applicationVersion;
     private String description;
 
     private String applicationResourceId;
@@ -78,6 +79,26 @@ public class ApplicationBasicInfo implements Serializable {
     public void setApplicationName(String applicationName) {
 
         this.applicationName = applicationName;
+    }
+
+    /**
+     * Get application version.
+     *
+     * @return Application version.
+     */
+    public String getApplicationVersion() {
+
+        return applicationVersion;
+    }
+
+    /**
+     * Set application version.
+     *
+     * @param applicationVersion Application version.
+     */
+    public void setApplicationVersion(String applicationVersion) {
+
+        this.applicationVersion = applicationVersion;
     }
 
     /**

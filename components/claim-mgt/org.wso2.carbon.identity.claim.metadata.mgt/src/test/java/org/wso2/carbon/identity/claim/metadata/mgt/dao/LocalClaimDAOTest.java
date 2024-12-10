@@ -27,16 +27,20 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
-                files = { "dbScripts/claim_properties.sql" })
+        files = {"dbScripts/claim_properties.sql"})
 @WithCarbonHome
 public class LocalClaimDAOTest {
 
@@ -129,16 +133,17 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "getLocalClaim")
     public Object[][] testGetLocalClaimData() {
-        return new Object[][] {
+
+        return new Object[][]{
                 {
                         localClaim1, TEST_LOCAL_TENANT_ID
                 }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
+                localClaim2, TEST_LOCAL_TENANT_ID
+        }, {
+                localClaim3, TEST_LOCAL_TENANT_ID
+        },
 
-                };
+        };
     }
 
     @Test(dataProvider = "updateLocalClaim")
@@ -182,15 +187,155 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "updateLocalClaim")
     public Object[][] testUpdateLocalClaimData() {
-        return new Object[][] {
+
+        return new Object[][]{
                 {
                         localClaim1, TEST_LOCAL_TENANT_ID
                 }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
+                localClaim2, TEST_LOCAL_TENANT_ID
+        }, {
+                localClaim3, TEST_LOCAL_TENANT_ID
+        },
 
-                };
+        };
+    }
+
+    @Test(dataProvider = "updateLocalClaimMappings")
+    public void testUpdateLocalClaimMappings(List<LocalClaim> claimsToBeUpdated, List<LocalClaim> claimsInDB,
+                                             List<LocalClaim> resultClaims, String userStoreDomain)
+            throws ClaimMetadataException {
+
+        ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
+        ClaimDialect claimDialect = new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
+        claimDialectDAO.addClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+
+        LocalClaimDAO localClaimDAO = new LocalClaimDAO();
+        for (LocalClaim localClaim : claimsInDB) {
+            localClaimDAO.addLocalClaim(localClaim, TEST_LOCAL_TENANT_ID);
+        }
+
+        localClaimDAO.updateLocalClaimMappings(claimsToBeUpdated, TEST_LOCAL_TENANT_ID, userStoreDomain);
+
+        List<LocalClaim> localClaimsFromDB = localClaimDAO.getLocalClaims(TEST_LOCAL_TENANT_ID);
+        assertEquals(localClaimsFromDB.size(), resultClaims.size(), "Failed to update local claim mappings");
+
+        for (LocalClaim localClaimInResultSet : resultClaims) {
+            LocalClaim localClaimFromDB = localClaimsFromDB.stream()
+                    .filter(claim -> claim.getClaimURI().equals(localClaimInResultSet.getClaimURI()))
+                    .findFirst()
+                    .orElse(null);
+            assert localClaimFromDB != null;
+            assertTrue(areLocalClaimsEqual(localClaimInResultSet, localClaimFromDB));
+        }
+
+        claimDialectDAO.removeClaimDialect(claimDialect, TEST_LOCAL_TENANT_ID);
+        assertThrows(ClaimMetadataException.class, () -> localClaimDAO.updateLocalClaimMappings(claimsToBeUpdated,
+                TEST_LOCAL_TENANT_ID, userStoreDomain));
+    }
+
+    @DataProvider(name = "updateLocalClaimMappings")
+    public Object[][] testUpdateLocalClaimMappingsData() {
+
+        String testUserStoreDomain = "TEST_DOMAIN";
+
+        // Local claims to be updated.
+        List<LocalClaim> localClaimsToBeUpdated = Arrays.asList(
+                createLocalClaim("http://wso2.org/claims/test1", "TestDescription1",
+                        createAttributeMappings("PRIMARY", "givenname", "TEST_DOMAIN", "firstname")),
+                createLocalClaim("http://wso2.org/claims/test2", "TestDescription2",
+                        createAttributeMappings("PRIMARY", "givenname", "TEST_DOMAIN", "firstname")),
+                createLocalClaim("http://wso2.org/claims/test3", "TestDescription3",
+                        createAttributeMappings("TEST_DOMAIN", "firstname")),
+                createLocalClaim("http://wso2.org/claims/test4", null,
+                        createAttributeMappings("TEST_DOMAIN", "firstname"))
+        );
+
+        // Local claims in DB.
+        List<LocalClaim> localClaimsInDB = Arrays.asList(
+                createLocalClaim("http://wso2.org/claims/test2", "TestDescription2",
+                        createAttributeMappings("PRIMARY", "firstname", "TEST_DOMAIN", "givenname")),
+                createLocalClaim("http://wso2.org/claims/test3", "TestDescription3",
+                        createAttributeMappings("PRIMARY", "givenname")),
+                createLocalClaim("http://wso2.org/claims/test4", "TestDescription4",
+                        null)
+        );
+
+        // Expected result local claims.
+        List<LocalClaim> resultLocalClaims = Arrays.asList(
+                createLocalClaim("http://wso2.org/claims/test1", "TestDescription1",
+                        createAttributeMappings("PRIMARY", "givenname", "TEST_DOMAIN", "firstname")),
+                createLocalClaim("http://wso2.org/claims/test2", "TestDescription2",
+                        createAttributeMappings("PRIMARY", "firstname", "TEST_DOMAIN", "firstname")),
+                createLocalClaim("http://wso2.org/claims/test3", "TestDescription3",
+                        createAttributeMappings("PRIMARY", "givenname", "TEST_DOMAIN", "firstname")),
+                createLocalClaim("http://wso2.org/claims/test4", "TestDescription4",
+                        createAttributeMappings("TEST_DOMAIN", "firstname"))
+        );
+
+        return new Object[][] {
+                { localClaimsToBeUpdated, localClaimsInDB, resultLocalClaims, testUserStoreDomain }
+        };
+    }
+
+    private LocalClaim createLocalClaim(String uri, String description, List<AttributeMapping> attributeMappings) {
+
+        LocalClaim localClaim = new LocalClaim(uri);
+        if (description != null) {
+            Map<String, String> claimProperties = new HashMap<>();
+            claimProperties.put("Description", description);
+            localClaim.setClaimProperties(claimProperties);
+        }
+        if (attributeMappings != null) {
+            localClaim.setMappedAttributes(attributeMappings);
+        }
+        return localClaim;
+    }
+
+    private List<AttributeMapping> createAttributeMappings(String... mappings) {
+
+        List<AttributeMapping> attributeMappings = new ArrayList<>();
+        for (int i = 0; i < mappings.length; i += 2) {
+            attributeMappings.add(new AttributeMapping(mappings[i], mappings[i + 1]));
+        }
+        return attributeMappings;
+    }
+
+    private boolean areLocalClaimsEqual(LocalClaim localClaim1, LocalClaim localClaim2) {
+
+        if (localClaim1 == localClaim2) {
+            return true;
+        }
+        return localClaim1 != null && localClaim2 != null
+                && Objects.equals(localClaim1.getClaimURI(), localClaim2.getClaimURI())
+                && Objects.equals(localClaim1.getClaimProperties(), localClaim2.getClaimProperties())
+                && areAttributeMappingsEqual(localClaim1.getMappedAttributes(), localClaim2.getMappedAttributes());
+    }
+
+    private boolean areAttributeMappingsEqual(List<AttributeMapping> attributeMappings1,
+                                              List<AttributeMapping> attributeMappings2) {
+
+        if (attributeMappings1 == attributeMappings2) {
+            return true;
+        }
+        if (attributeMappings1 == null || attributeMappings2 == null) {
+            return false;
+        }
+        if (attributeMappings1.size() != attributeMappings2.size()) {
+            return false;
+        }
+        for (AttributeMapping attributeMapping1 : attributeMappings1) {
+            boolean found = false;
+            for (AttributeMapping attributeMapping2 : attributeMappings2) {
+                if (Objects.equals(attributeMapping1.getUserStoreDomain(), attributeMapping2.getUserStoreDomain())
+                        && Objects.equals(attributeMapping1.getAttributeName(), attributeMapping2.getAttributeName())) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
     }
 }

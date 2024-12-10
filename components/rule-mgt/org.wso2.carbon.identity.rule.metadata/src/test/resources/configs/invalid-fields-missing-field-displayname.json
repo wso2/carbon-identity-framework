@@ -1,0 +1,29 @@
+{
+  "application": {
+    "field": {
+      "name": "application"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "reference",
+      "valueReferenceAttribute": "id",
+      "valueDisplayAttribute": "name",
+      "links": [
+        {
+          "href": "/applications?offset=0&limit=10",
+          "method": "GET",
+          "rel": "values"
+        },
+        {
+          "href": "/applications?filter=name+eq+*&limit=10",
+          "method": "GET",
+          "rel": "filter"
+        }
+      ]
+    }
+  }
+}

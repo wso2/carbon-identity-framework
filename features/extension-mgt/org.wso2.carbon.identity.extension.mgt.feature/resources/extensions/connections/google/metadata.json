@@ -61,7 +61,7 @@
                             "value": "redirect_uri"
                         }
                     ],
-                    "header": "Prerequites",
+                    "header": "Prerequisites",
                     "paragraphs": [
                         "Before you begin, create an <strong>OAuth credential</strong> on the <a href=\"https://console.developers.google.com\" target=\"_blank\" rel=\"noopener noreferrer\">Google developer console</a>, and obtain a <strong>Client ID & secret</strong>."                    ],
                     "link": {

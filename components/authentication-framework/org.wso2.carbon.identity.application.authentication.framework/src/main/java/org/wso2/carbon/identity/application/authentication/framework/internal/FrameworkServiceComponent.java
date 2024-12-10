@@ -99,6 +99,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
@@ -508,6 +509,7 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setTags(getTags(authenticator));
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
+            localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
@@ -515,6 +517,7 @@ public class FrameworkServiceComponent {
             federatedAuthenticatorConfig.setProperties(configProperties);
             federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             federatedAuthenticatorConfig.setTags(getTags(authenticator));
+            federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
             ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
@@ -524,6 +527,7 @@ public class FrameworkServiceComponent {
             reqPathAuthenticatorConfig.setTags(getTags(authenticator));
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
+            reqPathAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
         }
 

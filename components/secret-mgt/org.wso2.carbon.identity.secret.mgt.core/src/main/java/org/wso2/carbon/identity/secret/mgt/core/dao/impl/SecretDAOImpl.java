@@ -212,12 +212,15 @@ public class SecretDAOImpl implements SecretDAO {
 
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(SQLConstants.DELETE_SECRET, preparedStatement -> {
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, name);
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretTypeId);
-                preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(SQLConstants.DELETE_SECRET, preparedStatement -> {
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_NAME, name);
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_TYPE, secretTypeId);
+                    preparedStatement.setInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID, tenantId);
+                });
+                return null;
             });
-        } catch (DataAccessException e) {
+        } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_SECRET, e);
         }
     }
@@ -282,14 +285,17 @@ public class SecretDAOImpl implements SecretDAO {
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
         NamedJdbcTemplate jdbcTemplate = getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(UPDATE_SECRET_VALUE, preparedStatement -> {
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
-                preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, value);
-                preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(UPDATE_SECRET_VALUE, preparedStatement -> {
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_ID, secret.getSecretId());
+                    preparedStatement.setString(DB_SCHEMA_COLUMN_NAME_SECRET_VALUE, value);
+                    preparedStatement.setTimeStamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED, currentTime, calendar);
+                });
+                return null;
             });
             secret.setLastModified(currentTime.toInstant().toString());
             secret.setSecretValue(value);
-        } catch (DataAccessException e) {
+        } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_UPDATE_SECRET, "value", e);
         }
         return secret;

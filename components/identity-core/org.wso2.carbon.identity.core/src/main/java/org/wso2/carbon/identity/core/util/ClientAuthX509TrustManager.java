@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -107,7 +108,7 @@ public class ClientAuthX509TrustManager implements X509TrustManager {
         KeyStore clientTrustStore;
         try (InputStream trustStoreInputStream =new FileInputStream(TRUST_STORE_LOCATION)){
 
-            clientTrustStore = KeyStore.getInstance(TRUST_STORE_TYPE);
+            clientTrustStore = KeystoreUtils.getKeystoreInstance(TRUST_STORE_TYPE);
             clientTrustStore.load(trustStoreInputStream, null);
 
             trustManagerFactory.init(clientTrustStore);

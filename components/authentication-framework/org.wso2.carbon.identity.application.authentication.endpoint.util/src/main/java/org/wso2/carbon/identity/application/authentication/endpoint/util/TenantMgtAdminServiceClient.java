@@ -46,6 +46,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Map;
@@ -104,24 +105,15 @@ public class TenantMgtAdminServiceClient {
      */
     public static void loadKeyStore(String keyStorePath, String keyStorePassword)
             throws AuthenticationException {
-        InputStream fis = null;
-        try {
+
+        try (InputStream fis = new FileInputStream(keyStorePath)) {
             String fileExtension = keyStorePath.substring(keyStorePath.lastIndexOf("."));
             TenantMgtAdminServiceClient.keyStorePassword = keyStorePassword.toCharArray();
-            keyStore = KeyStore.getInstance(KeystoreUtils.getFileTypeByExtension(fileExtension));
-            fis = new FileInputStream(keyStorePath);
+            keyStore = KeystoreUtils.getKeystoreInstance(KeystoreUtils.getFileTypeByExtension(fileExtension));
             keyStore.load(fis, TenantMgtAdminServiceClient.keyStorePassword);
-        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException |
-                 CarbonException e) {
+        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException | CarbonException |
+                 NoSuchProviderException e) {
             throw new AuthenticationException("Error while trying to load Key Store.", e);
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    log.error("Failed to close file. ", e);
-                }
-            }
         }
     }
 
@@ -135,21 +127,12 @@ public class TenantMgtAdminServiceClient {
     public static void loadTrustStore(String trustStorePath, String trustStorePassword)
             throws AuthenticationException {
 
-        InputStream is = null;
-        try {
-            trustStore = KeyStore.getInstance(trustStoreType);
-            is = new FileInputStream(trustStorePath);
+        try (InputStream is = new FileInputStream(trustStorePath)) {
+            trustStore = KeystoreUtils.getKeystoreInstance(trustStoreType);
             trustStore.load(is, trustStorePassword.toCharArray());
-        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
+        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException |
+                 NoSuchProviderException e) {
             throw new AuthenticationException("Error while trying to load Trust Store.", e);
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    log.error("Failed to close file. ", e);
-                }
-            }
         }
     }
 

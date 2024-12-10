@@ -43,6 +43,7 @@ import org.wso2.carbon.security.mgt.stub.keystore.KeyStoreAdminServiceStub;
 import org.wso2.carbon.security.mgt.stub.keystore.RemoveCertFromStore;
 import org.wso2.carbon.security.mgt.stub.keystore.xsd.KeyStoreData;
 import org.wso2.carbon.security.mgt.stub.keystore.xsd.PaginatedKeyStoreData;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -204,10 +205,9 @@ public class KeyStoreAdminClient {
     public boolean isPrivateKeyStore(byte[] content, String password, String type)
             throws java.lang.Exception {
 
-        try {
-            boolean isPrivateStore = false;
-            ByteArrayInputStream stream = new ByteArrayInputStream(content);
-            KeyStore store = KeyStore.getInstance(type);
+        boolean isPrivateStore = false;
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(content)) {
+            KeyStore store = KeystoreUtils.getKeystoreInstance(type);
             store.load(stream, password.toCharArray());
             Enumeration<String> aliases = store.aliases();
             while (aliases.hasMoreElements()) {

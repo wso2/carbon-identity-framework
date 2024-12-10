@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.action.execution.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.regex.Pattern;
 
 /**
  * This class is used to represent the error response of an action invocation.
@@ -29,13 +32,13 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 public class ActionInvocationErrorResponse implements ActionInvocationResponse.APIResponse {
 
     private final ActionInvocationResponse.Status actionStatus;
-    private final String error;
+    private final String errorMessage;
     private final String errorDescription;
 
     private ActionInvocationErrorResponse(Builder builder) {
 
         this.actionStatus = builder.actionStatus;
-        this.error = builder.error;
+        this.errorMessage = builder.errorMessage;
         this.errorDescription = builder.errorDescription;
     }
 
@@ -44,9 +47,9 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
         return actionStatus;
     }
 
-    public String getError() {
+    public String getErrorMessage() {
 
-        return error;
+        return errorMessage;
     }
 
     public String getErrorDescription() {
@@ -61,8 +64,13 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
     public static class Builder {
 
         private ActionInvocationResponse.Status actionStatus;
-        private String error;
+        private String errorMessage;
         private String errorDescription;
+
+        private static final Pattern ERROR_VALIDATION_PATTERN =
+                Pattern.compile("^[a-zA-Z0-9\\s\\-_.!?;:'()\\[\\]]{1,100}$");
+        private static final Pattern ERROR_DESCRIPTION_VALIDATION_PATTERN =
+                Pattern.compile("^[a-zA-Z0-9\\s\\-_.!?;:'()\\[\\]]{1,300}$");
 
         @JsonProperty("actionStatus")
         public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
@@ -71,10 +79,10 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
             return this;
         }
 
-        @JsonProperty("error")
-        public Builder error(String error) {
+        @JsonProperty("errorMessage")
+        public Builder errorMessage(String error) {
 
-            this.error = error;
+            this.errorMessage = error;
             return this;
         }
 
@@ -95,8 +103,17 @@ public class ActionInvocationErrorResponse implements ActionInvocationResponse.A
                 throw new IllegalArgumentException("actionStatus must be ERROR.");
             }
 
-            if (error == null || error.isEmpty()) {
-                throw new IllegalArgumentException("error cannot be null or empty.");
+            if (StringUtils.isEmpty(errorMessage)) {
+                throw new IllegalArgumentException("errorMessage cannot be null or empty.");
+            }
+
+            if (!ERROR_VALIDATION_PATTERN.matcher(errorMessage).matches()) {
+                throw new IllegalArgumentException("Invalid errorMessage format.");
+            }
+
+            if (StringUtils.isNotEmpty(errorDescription) && !ERROR_DESCRIPTION_VALIDATION_PATTERN
+                    .matcher(errorDescription).matches()) {
+                throw new IllegalArgumentException("Invalid errorDescription format.");
             }
 
             return new ActionInvocationErrorResponse(this);

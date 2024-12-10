@@ -24,6 +24,8 @@
         <classes>
             <class name="org.wso2.carbon.identity.provisioning.ProvisioningThreadTest" />
             <class name="org.wso2.carbon.identity.provisioning.AbstractOutboundProvisioningConnectorTest" />
+            <class name="org.wso2.carbon.identity.provisioning.OutboundProvisioningTest" />
+            <class name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListenerTest" />
         </classes>
     </test>
 </suite>

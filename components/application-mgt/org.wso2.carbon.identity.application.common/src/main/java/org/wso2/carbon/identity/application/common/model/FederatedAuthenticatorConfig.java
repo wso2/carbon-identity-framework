@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -63,6 +64,14 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @XmlElement(name = "Tags")
     protected String[] tags;
 
+    @XmlElement(name = "DefinedBy")
+    protected DefinedByType definedByType;
+
+    public FederatedAuthenticatorConfig() {
+
+        definedByType = DefinedByType.SYSTEM;
+    }
+
     public static FederatedAuthenticatorConfig build(OMElement federatedAuthenticatorConfigOM) {
 
         if (federatedAuthenticatorConfigOM == null) {
@@ -101,7 +110,13 @@ public class FederatedAuthenticatorConfig implements Serializable {
                     Property[] propertiesArr = propertiesArrList.toArray(new Property[propertiesArrList.size()]);
                     federatedAuthenticatorConfig.setProperties(propertiesArr);
                 }
+            } else if ("DefinedBy".equals(elementName)) {
+                federatedAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(element.getText()));
             }
+        }
+
+        if (federatedAuthenticatorConfig.getDefinedByType() == null) {
+            federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
 
         return federatedAuthenticatorConfig;
@@ -229,5 +244,25 @@ public class FederatedAuthenticatorConfig implements Serializable {
     public void setTags(String[] tagList) {
 
         tags = tagList;
+    }
+
+    /**
+     * Get the defined by type of the federated authenticator config.
+     *
+     * @return DefinedByType
+     */
+    public DefinedByType getDefinedByType() {
+
+        return definedByType;
+    }
+
+    /**
+     * Set the defined by type of the federated authenticator config.
+     *
+     * @param type The defined by type of the federated authenticator config.
+     */
+    public void setDefinedByType(DefinedByType type) {
+
+        definedByType = type;
     }
 }

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.action.execution.internal;
 
-import org.wso2.carbon.identity.action.management.ActionManagementService;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 
 /**
  * This class holds references for dependent services required for Action Execution Service to function.

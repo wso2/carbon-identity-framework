@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.action.management.model;
 
+import java.util.Arrays;
+
 /**
  * Action.
  */
@@ -31,36 +33,48 @@ public class Action  {
         PRE_ISSUE_ACCESS_TOKEN(
                 "preIssueAccessToken",
                 "PRE_ISSUE_ACCESS_TOKEN",
-                "Pre Issue Access Token.",
-                "Configure an extension point for modifying access token via a custom service."),
+                "Pre Issue Access Token",
+                "Configure an extension point for modifying access token via a custom service.",
+                Category.PRE_POST),
         PRE_UPDATE_PASSWORD(
                 "preUpdatePassword",
                 "PRE_UPDATE_PASSWORD",
-                "Pre Update Password.",
-                "Configure an extension point for modifying user " +
-                        "password via a custom service."),
+                "Pre Update Password",
+                "Configure an extension point for modifying user password via a custom service.",
+                Category.PRE_POST),
         PRE_UPDATE_PROFILE(
                 "preUpdateProfile",
                 "PRE_UPDATE_PROFILE",
-                "Pre Update Profile.",
-                "Configure an extension point for modifying user profile via a custom service."),
+                "Pre Update Profile",
+                "Configure an extension point for modifying user profile via a custom service.",
+                Category.PRE_POST),
         PRE_REGISTRATION(
                 "preRegistration",
                 "PRE_REGISTRATION",
-                "Pre Registration.",
-                "Configure an extension point for modifying user registration via a custom service.");
+                "Pre Registration",
+                "Configure an extension point for modifying user registration via a custom service.",
+                Category.PRE_POST),
+        AUTHENTICATION(
+                "authentication",
+                "AUTHENTICATION",
+                "Authentication",
+                "Configure an extension point for user authentication via a custom service.",
+                Category.IN_FLOW);
 
         private final String pathParam;
         private final String actionType;
         private final String displayName;
         private final String description;
 
-        ActionTypes(String pathParam, String actionType, String displayName, String description) {
+        private final Category category;
+
+        ActionTypes(String pathParam, String actionType, String displayName, String description, Category category) {
 
             this.pathParam = pathParam;
             this.actionType = actionType;
             this.displayName = displayName;
             this.description = description;
+            this.category = category;
         }
 
         public String getPathParam() {
@@ -82,6 +96,27 @@ public class Action  {
 
             return description;
         }
+
+        public Category getCategory() {
+
+            return category;
+        }
+
+        public static ActionTypes[] filterByCategory(Category category) {
+
+            return Arrays.stream(ActionTypes.values())
+                    .filter(actionType -> actionType.category.equals(category))
+                    .toArray(ActionTypes[]::new);
+        }
+
+        /**
+         * Category Enum.
+         * Defines the category of the action types.
+         */
+        public enum Category {
+            PRE_POST,
+            IN_FLOW
+        }
     }
 
     /**
@@ -89,29 +124,9 @@ public class Action  {
      */
     public enum Status {
 
-        ACTIVE("ACTIVE"),
-        INACTIVE("INACTIVE");
-
-        private final String value;
-
-        Status(String v) {
-            this.value = v;
-        }
-
-        public String value() {
-            return value;
-        }
-
-        public static Status fromValue(String value) {
-            for (Status b : Status.values()) {
-                if (b.value.equals(value)) {
-                    return b;
-                }
-            }
-            throw new IllegalArgumentException("Unexpected value '" + value + "'");
-        }
+        ACTIVE,
+        INACTIVE
     }
-
 
     private String id;
     private ActionTypes type;
@@ -119,9 +134,6 @@ public class Action  {
     private String description;
     private Status status;
     private EndpointConfig endpointConfig;
-
-    public Action() {
-    }
 
     public Action(ActionResponseBuilder actionResponseBuilder) {
 
@@ -170,11 +182,6 @@ public class Action  {
         return endpointConfig;
     }
 
-    public void setEndpoint(EndpointConfig endpointConfig) {
-
-        this.endpointConfig = endpointConfig;
-    }
-
     /**
      * ActionResponseBuilder.
      */
@@ -186,9 +193,6 @@ public class Action  {
         private String description;
         private Status status;
         private EndpointConfig endpointConfig;
-
-        public ActionResponseBuilder() {
-        }
 
         public ActionResponseBuilder id(String id) {
 
@@ -240,9 +244,6 @@ public class Action  {
         private String name;
         private String description;
         private EndpointConfig endpointConfig;
-
-        public ActionRequestBuilder() {
-        }
 
         public ActionRequestBuilder name(String name) {
 

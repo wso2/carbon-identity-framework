@@ -19,12 +19,15 @@
 package org.wso2.carbon.idp.mgt.internal;
 
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -53,7 +56,9 @@ public class IdpMgtServiceComponentHolder {
     private volatile List<ConnectorConfig> identityConnectorConfigList = new ArrayList<>();
     private RoleManagementService roleManagementService;
     private ClaimMetadataManagementService claimMetadataManagementService;
-    private SecretsProcessor<IdentityProvider> idpSecretsProcessorService;
+    private SecretManager secretManager;
+    private SecretResolveManager  secretResolveManager;
+    private ActionManagementService actionManagementService;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -136,14 +141,44 @@ public class IdpMgtServiceComponentHolder {
         this.roleManagementService = roleManagementService;
     }
 
-    public SecretsProcessor<IdentityProvider> getIdPSecretsProcessorService() {
+    /**
+     * Get the SecretManager.
+     *
+     * @return SecretManager instance.
+     */
+    public SecretManager getSecretManager() {
 
-        return idpSecretsProcessorService;
+        return secretManager;
     }
 
-    public void setIdPSecretsProcessorService(SecretsProcessor<IdentityProvider> idpSecretsProcessorService) {
+    /**
+     * Set the SecretManager.
+     *
+     * @param secretManager SecretManager instance.
+     */
+    public void setSecretManager(SecretManager secretManager) {
 
-        this.idpSecretsProcessorService = idpSecretsProcessorService;
+        this.secretManager = secretManager;
+    }
+
+    /**
+     * Get the SecretResolveManager.
+     *
+     * @return SecretResolveManager instance.
+     */
+    public SecretResolveManager getSecretResolveManager() {
+
+        return secretResolveManager;
+    }
+
+    /**
+     * Set the SecretResolveManager.
+     *
+     * @param secretResolveManager SecretResolveManager instance.
+     */
+    public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        this.secretResolveManager = secretResolveManager;
     }
 
     public ClaimMetadataManagementService getClaimMetadataManagementService() {
@@ -154,5 +189,25 @@ public class IdpMgtServiceComponentHolder {
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * Get the Action Management Service.
+     *
+     * @return ActionManagementService instance.
+     */
+    public ActionManagementService getActionManagementService() {
+
+        return actionManagementService;
+    }
+
+    /**
+     * Set the Action Management Service.
+     *
+     * @param actionManagementService ActionManagementService instance.
+     */
+    public void setActionManagementService(ActionManagementService actionManagementService) {
+
+        this.actionManagementService = actionManagementService;
     }
 }

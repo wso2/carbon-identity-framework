@@ -142,7 +142,16 @@ public class APIResourceManagementConstants {
                 "properties.", "Error while adding API resource properties to the database."),
         ERROR_CODE_ERROR_WHILE_UPDATING_SCOPE_METADATA("65015", "Error while updating scope metadata.",
                 "Error while updating scope metadata in the database."),
-        ;
+        ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT("65016", "Error while resolving organization",
+                "Error while resolving organization for tenant domain : %s"),
+        ERROR_CODE_ADDING_API_RESOURCE_NOT_SUPPORTED_FOR_ORGANIZATIONS("65017", "Unable to add API resources",
+                "Adding API resource is not supported for organizations."),
+        ERROR_CODE_DELETING_API_RESOURCE_NOT_SUPPORTED_FOR_ORGANIZATIONS("65018", "Unable to delete API resources",
+                "Deleting API resource is not supported for organizations."),
+        ERROR_CODE_ADDING_SCOPES_NOT_SUPPORTED_FOR_ORGANIZATIONS("65019", "Unable to add scopes",
+                "Adding scope is not supported for organizations."),
+        ERROR_CODE_DELETING_SCOPES_NOT_SUPPORTED_FOR_ORGANIZATIONS("65020", "Unable to add scopes",
+                "Deleting scope is not supported for organizations.");
 
         private final String code;
         private final String message;
