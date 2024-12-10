@@ -41,6 +41,7 @@ public class IdentityKeyStoreResolverConstants {
 
     // KeyStore Constants.
     public static final String KEY_STORE_EXTENSION = ".jks";
+    public static final String KEY_STORE_CONTEXT_SEPARATOR = "--";
 
     // Inbound Protocols.
     public static final String INBOUND_PROTOCOL_OAUTH = "oauth";
