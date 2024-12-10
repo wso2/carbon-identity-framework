@@ -220,6 +220,11 @@ public class ApplicationConstants {
         public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String MAIN_APP_ID = "MAIN_APP_ID";
 
+        public static final String AUTHORIZATION_DETAILS_ID = "AUTHORIZATION_DETAILS_ID";
+        public static final String AUTHORIZATION_DETAILS_TYPE = "AUTHORIZATION_DETAILS_TYPE";
+        public static final String AUTHORIZATION_DETAILS_NAME = "AUTHORIZATION_DETAILS_NAME";
+        public static final String AUTHORIZATION_DETAILS_SCHEMA = "AUTHORIZATION_DETAILS_SCHEMA";
+
         private ApplicationTableColumns() {
 
         }

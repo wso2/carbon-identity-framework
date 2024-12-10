@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.Scope;
@@ -67,8 +68,7 @@ public class CacheBackedAuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes, List<String> removedScopes,
                                    int tenantId) throws IdentityApplicationManagementException {
 
-        clearAuthorizedAPIFromCache(appId, apiId, tenantId);
-        authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantId);
+        this.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, null, null, tenantId);
     }
 
     @Override
@@ -152,5 +152,29 @@ public class CacheBackedAuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         } else {
             LOG.debug("Application id is empty. Cannot clear authorized APIs from cache.");
         }
+    }
+
+    @Override
+    public void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        this.authorizedAPIDAO.addAuthorizedAPI(applicationId, authorizedAPI, tenantId);
+    }
+
+    @Override
+    public void patchAuthorizedAPI(String appId, String apiId, List<String> scopesToAdd, List<String> scopesToRemove,
+            List<String> authorizationDetailsTypesToAdd, List<String> authorizationDetailsTypesToRemove, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        clearAuthorizedAPIFromCache(appId, apiId, tenantId);
+        this.authorizedAPIDAO.patchAuthorizedAPI(appId, apiId, scopesToAdd, scopesToRemove,
+                authorizationDetailsTypesToAdd, authorizationDetailsTypesToRemove, tenantId);
+    }
+
+    @Override
+    public List<AuthorizationDetailsType> getAuthorizedAuthorizationDetailsTypes(String applicationId, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        return this.authorizedAPIDAO.getAuthorizedAuthorizationDetailsTypes(applicationId, tenantId);
     }
 }
