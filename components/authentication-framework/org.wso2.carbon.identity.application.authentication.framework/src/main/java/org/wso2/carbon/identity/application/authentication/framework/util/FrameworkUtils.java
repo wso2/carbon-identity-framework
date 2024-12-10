@@ -812,6 +812,7 @@ public class FrameworkUtils {
      */
     public static String getUserIdClaimURI(String federatedIdpName, String tenantDomain)
             throws PostAuthenticationFailedException {
+
         String userIdClaimURI;
         IdentityProvider idp;
         try {
@@ -876,7 +877,6 @@ public class FrameworkUtils {
      * Get the configuration whether the external subject attribute based on IdP configurations..
      *
      * @return true if the IdP configurations has to be honoured.
-     * @throws PostAuthenticationFailedException PostAuthenticationFailedException.
      */
     public static boolean isConfiguredIdpSubForFederatedUserAssociationEnabled() {
 
