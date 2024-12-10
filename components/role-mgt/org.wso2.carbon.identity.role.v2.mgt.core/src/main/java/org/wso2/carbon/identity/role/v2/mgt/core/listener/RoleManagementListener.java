@@ -493,6 +493,15 @@ public interface RoleManagementListener {
     void preGetRolesCount(String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Invoked before retrieving available total roles count in a tenant for a given specific search filter.
+     *
+     * @param searchFilter The search filter.
+     * @param tenantDomain The domain in which the operation is being performed.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    void preGetRolesCount(String searchFilter, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
      * Invoked after retrieving the count of roles within a specified tenant domain.
      *
      * @param count        The number of roles retrieved from the specified tenant domain.
@@ -500,6 +509,16 @@ public interface RoleManagementListener {
      * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
      */
     void postGetRolesCount(int count, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Invoked after retrieving available total roles count in a tenant for a given specific search filter.
+     *
+     * @param count        The number of roles retrieved from the specified tenant domain.
+     * @param searchFilter The search filter.
+     * @param tenantDomain The domain in which the operation was performed.
+     * @throws IdentityRoleManagementException If an error occurs during the post-retrieval phase.
+     */
+    void postGetRolesCount(int count, String searchFilter, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
      * Invoked before retrieving the list of roles associated with a specific user in the given tenant domain.

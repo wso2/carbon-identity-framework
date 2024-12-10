@@ -382,7 +382,18 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     @Override
+    public void preGetRolesCount(String searchFilter, String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
     public void postGetRolesCount(int count, String tenantDomain) throws IdentityRoleManagementException {
+
+    }
+
+    @Override
+    public void postGetRolesCount(int count, String searchFilter, String tenantDomain)
+            throws IdentityRoleManagementException {
 
     }
 
