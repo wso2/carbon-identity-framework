@@ -225,6 +225,15 @@ public class SAMLSSOServiceProviderManagerTest {
         assertEquals(serviceProviderFromStorage, sampleServiceProvider1);
     }
 
+    @Test
+    public void testUploadDuplicateServiceProvider() throws Exception {
+
+
+        samlSSOServiceProviderManager.uploadServiceProvider(sampleServiceProvider1, TENANT_ID);
+        assertThrows(IdentityException.class,
+                () -> samlSSOServiceProviderManager.uploadServiceProvider(sampleServiceProvider1, TENANT_ID));
+    }
+
     private SAMLSSOServiceProviderDO createServiceProviderDO(String issuer) {
 
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
