@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.core.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.xml.namespace.QName;
 
@@ -34,17 +35,13 @@ public class IdentityKeyStoreResolverUtil {
      *
      * @param tenantDomain Tenant domain name.
      * @return tenant key store name as String.
-     * @throws IdentityKeyStoreResolverException if tenant domain is null or empty.
+     *
+     * @deprecated Use {@link KeystoreUtils#getKeyStoreFileLocation(String)}
      */
-    public static String buildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
+    @Deprecated
+    public static String buildTenantKeyStoreName(String tenantDomain) {
 
-        if (StringUtils.isEmpty(tenantDomain)) {
-            throw new IdentityKeyStoreResolverException(
-                    ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
-                    String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
-        }
-        String ksName = tenantDomain.trim().replace(".", "-");
-        return ksName + IdentityKeyStoreResolverConstants.KEY_STORE_EXTENSION;
+        return KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
     }
 
     /**

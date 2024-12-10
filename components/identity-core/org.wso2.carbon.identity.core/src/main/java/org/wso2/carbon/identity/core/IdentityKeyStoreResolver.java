@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.CarbonUtils;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.File;
 import java.security.Key;
@@ -96,7 +97,7 @@ public class IdentityKeyStoreResolver {
             }
 
             // Get tenant keystore from keyStoreManager
-            String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+            String tenantKeyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
             return keyStoreManager.getKeyStore(tenantKeyStoreName);
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
@@ -177,7 +178,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 privateKey = keyStoreManager.getDefaultPrivateKey();
             } else {
-                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+                String tenantKeyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
                 privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             }
         } catch (Exception e) {
@@ -266,7 +267,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 publicCert = keyStoreManager.getDefaultPrimaryCertificate();
             } else {
-                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+                String tenantKeyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
                 publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain);
             }
         } catch (Exception e) {
@@ -403,7 +404,7 @@ public class IdentityKeyStoreResolver {
             }
         }
 
-        return IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+        return KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
     }
 
     /**
@@ -480,7 +481,7 @@ public class IdentityKeyStoreResolver {
 
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-            String keyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
+            String keyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
             switch (configName) {
                 case (RegistryResources.SecurityManagement.CustomKeyStore.PROP_LOCATION):
                     // Returning only key store name because tenant key stores reside within the registry.

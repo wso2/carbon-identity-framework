@@ -24,7 +24,6 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertEquals;
 
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildCustomKeyStoreName;
-import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildTenantKeyStoreName;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.getQNameWithIdentityNameSpace;
 
 import javax.xml.namespace.QName;
@@ -43,12 +42,6 @@ public class IdentityKeyStoreResolverUtilTest {
         };
     }
 
-    @Test(dataProvider = "CorrectTenantKeyStoreNameDataProvider")
-    public void testCorrectBuildTenantKeyStoreName(String tenantDomain, String expectedResult) throws IdentityKeyStoreResolverException {
-
-        assertEquals(expectedResult, buildTenantKeyStoreName(tenantDomain));
-    }
-
     @DataProvider(name = "IncorrectTenantKeyStoreNameDataProvider")
     public Object[] incorrectTenantKeyStoreNameDataProvider() {
 
@@ -56,12 +49,6 @@ public class IdentityKeyStoreResolverUtilTest {
                 "",
                 null
         };
-    }
-
-    @Test(dataProvider = "IncorrectTenantKeyStoreNameDataProvider", expectedExceptions = IdentityKeyStoreResolverException.class)
-    public void testIncorrectBuildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
-
-        buildTenantKeyStoreName(tenantDomain);
     }
 
     @DataProvider(name = "CorrectCustomKeyStoreNameDataProvider")
