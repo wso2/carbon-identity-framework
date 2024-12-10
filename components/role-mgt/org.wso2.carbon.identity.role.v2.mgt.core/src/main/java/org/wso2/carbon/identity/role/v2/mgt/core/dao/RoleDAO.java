@@ -335,6 +335,16 @@ public interface RoleDAO {
     int getRolesCount(String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Retrieve available total roles count in a tenant for a given specific search filter.
+     *
+     * @param expressionNodes List of expressionNodes.
+     * @param tenantDomain    Tenant domain.
+     * @return The list count of roles.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    int getRolesCount(List<ExpressionNode> expressionNodes, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
      * Get role without users.
      *
      * @param roleId       Role ID.
