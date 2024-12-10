@@ -42,8 +42,12 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.ConnectorException;
@@ -63,6 +67,7 @@ import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.idp.mgt.util.IdPSecretsProcessor;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.security.KeystoreUtils;
@@ -110,6 +115,7 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.IS_TRUSTED_TOK
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.MySQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SCOPE_LIST_PLACEHOLDER;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLConstants.DEFINED_BY_COLUMN;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
@@ -120,10 +126,13 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_ID
 public class IdPManagementDAO {
 
     private static final Log log = LogFactory.getLog(IdPManagementDAO.class);
+    private final IdPSecretsProcessor idpSecretsProcessorService = new IdPSecretsProcessor();
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static final String ENABLE_SMS_OTP_IF_RECOVERY_NOTIFICATION_ENABLED
             = "OnDemandConfig.OnInitialUse.EnableSMSOTPPasswordRecoveryIfConnectorEnabled";
+    private static final String ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED
+            = "OnDemandConfig.OnInitialUse.EnableSMSUsernameRecoveryIfConnectorEnabled";
 
     /**
      * @param dbConnection
@@ -998,6 +1007,10 @@ public class IdPManagementDAO {
         boolean isEmailLinkNotificationPasswordRecoveryEnabled = false;
         boolean isSmsOtpNotificationPasswordRecoveryEnabled = false;
 
+        boolean isUsernameRecoveryEnabled = false;
+        boolean isEmailUsernameRecoveryEnabled = false;
+        boolean isSmsUsernameRecoveryEnabled = false;
+
         try {
             String sqlStmt = isH2DB() ? IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID_H2 :
                     IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
@@ -1019,6 +1032,15 @@ public class IdPManagementDAO {
                     isSmsOtpNotificationPasswordRecoveryEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
+                if (IdPManagementConstants.USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isEmailUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
+                if (IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isSmsUsernameRecoveryEnabled = Boolean.parseBoolean(rs.getString("VALUE"));
+                }
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
                 idpProperties.add(property);
@@ -1027,6 +1049,10 @@ public class IdPManagementDAO {
             if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled
                     && !isSmsOtpNotificationPasswordRecoveryEnabled) {
                 performConfigCorrectionForPasswordRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
+            }
+            // If username recovery configs are inconsistent, correct the configurations.
+            if (isUsernameRecoveryEnabled && !isEmailUsernameRecoveryEnabled && !isSmsUsernameRecoveryEnabled) {
+                performConfigCorrectionForUsernameRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
             }
         } catch (DataAccessException e) {
             throw new SQLException("Error while retrieving IDP properties for IDP ID: " + idpId, e);
@@ -1137,7 +1163,8 @@ public class IdPManagementDAO {
             rs = prepStmt1.executeQuery();
 
             while (rs.next()) {
-                FederatedAuthenticatorConfig authnConfig = new FederatedAuthenticatorConfig();
+                FederatedAuthenticatorConfig authnConfig = createFederatedAuthenticatorConfig(DefinedByType.valueOf(
+                                rs.getString(DEFINED_BY_COLUMN)));
                 int authnId = rs.getInt("ID");
                 authnConfig.setName(rs.getString("NAME"));
 
@@ -1424,6 +1451,10 @@ public class IdPManagementDAO {
             }
             prepStmt1.setString(4, authnConfig.getName());
             prepStmt1.setString(5, authnConfig.getDisplayName());
+            prepStmt1.setString(6, authnConfig.getDefinedByType().toString());
+            /* Federated authenticators are always intended to authenticate externally managed users and share user
+            identity and attributes. Therefore, always will be the 'IDENTIFICATION' type. */
+            prepStmt1.setString(7, AuthenticationType.IDENTIFICATION.toString());
             prepStmt1.execute();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId, authnConfig.getName());
@@ -2330,6 +2361,7 @@ public class IdPManagementDAO {
         if (samlFederatedAuthConfig == null) {
             samlFederatedAuthConfig = new FederatedAuthenticatorConfig();
             samlFederatedAuthConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+            samlFederatedAuthConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
 
         List<Property> propertiesList = new ArrayList<>();
@@ -2713,6 +2745,7 @@ public class IdPManagementDAO {
         if (openIdFedAuthn == null) {
             openIdFedAuthn = new FederatedAuthenticatorConfig();
             openIdFedAuthn.setName(IdentityApplicationConstants.Authenticator.OpenID.NAME);
+            openIdFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(openIdFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(openIdFedAuthn.getProperties(),
@@ -2735,6 +2768,7 @@ public class IdPManagementDAO {
         if (oauth1FedAuthn == null) {
             oauth1FedAuthn = new FederatedAuthenticatorConfig();
             oauth1FedAuthn.setName(IdentityApplicationConstants.OAuth10A.NAME);
+            oauth1FedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(oauth1FedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
@@ -2770,6 +2804,7 @@ public class IdPManagementDAO {
         if (oidcFedAuthn == null) {
             oidcFedAuthn = new FederatedAuthenticatorConfig();
             oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+            oidcFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>();
 
@@ -2841,6 +2876,7 @@ public class IdPManagementDAO {
         if (passiveSTSFedAuthn == null) {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+            passiveSTSFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
 
         propertiesList = new ArrayList<>();
@@ -2880,6 +2916,7 @@ public class IdPManagementDAO {
         if (stsFedAuthn == null) {
             stsFedAuthn = new FederatedAuthenticatorConfig();
             stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
+            stsFedAuthn.setDefinedByType(DefinedByType.SYSTEM);
         }
         propertiesList = new ArrayList<>(Arrays.asList(stsFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
@@ -2894,6 +2931,7 @@ public class IdPManagementDAO {
 
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
         sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
+        sessionTimeoutConfig.setDefinedByType(DefinedByType.SYSTEM);
 
         propertiesList = new ArrayList<>(Arrays.asList(sessionTimeoutConfig.getProperties()));
 
@@ -3162,15 +3200,10 @@ public class IdPManagementDAO {
                 federatedIdp.setFederatedAuthenticatorConfigs(getFederatedAuthenticatorConfigs(
                         dbConnection, idPName, federatedIdp, tenantId));
 
-                // Retrieve encrypted secrets from DB, decrypt and set to the federated authenticator configs.
-                if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() == null) {
-                    throw new IdentityProviderManagementException(
-                            "Error while retrieving secrets of identity provider: " + idPName + " in tenant: " +
-                                    tenantDomain + ". IdPSecretsProcessorService is not available.");
-                }
-                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0) {
-                    federatedIdp = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
-                            decryptAssociatedSecrets(federatedIdp);
+                // Retrieve encrypted secrets from DB, decrypt and set to the system federated authenticator configs.
+                if (federatedIdp.getFederatedAuthenticatorConfigs().length > 0 &&
+                        federatedIdp.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                    federatedIdp = idpSecretsProcessorService.decryptAssociatedSecrets(federatedIdp);
                 }
 
                 if (defaultAuthenticatorName != null && federatedIdp.getFederatedAuthenticatorConfigs() != null) {
@@ -3409,6 +3442,7 @@ public class IdPManagementDAO {
                 String roleClaimUri = rs.getString("ROLE_CLAIM_URI");
 
                 String defaultAuthenticatorName = rs.getString("DEFAULT_AUTHENTICATOR_NAME");
+                String defaultAuthenticatorDefinedByType = rs.getString(DEFINED_BY_COLUMN);
                 String defaultProvisioningConnectorConfigName = rs.getString("DEFAULT_PRO_CONNECTOR_NAME");
                 federatedIdp.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
 
@@ -3443,6 +3477,8 @@ public class IdPManagementDAO {
                 if (defaultAuthenticatorName != null) {
                     FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
                     defaultAuthenticator.setName(defaultAuthenticatorName);
+                    defaultAuthenticator.setDefinedByType(DefinedByType.valueOf(
+                            defaultAuthenticatorDefinedByType));
                     federatedIdp.setDefaultAuthenticatorConfig(defaultAuthenticator);
                 }
 
@@ -3886,15 +3922,11 @@ public class IdPManagementDAO {
                         dbConnection, idPId, tenantId);
             }
 
-            // Add federated authenticator secret properties to IDN_SECRET table.
             identityProvider.setId(createdIDP.getId());
-            if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
-                identityProvider = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
-                        encryptAssociatedSecrets(identityProvider);
-            } else {
-                throw new IdentityProviderManagementException("An error occurred while storing encrypted IDP secrets of " +
-                        "Identity provider : " + identityProvider.getIdentityProviderName() + " in tenant : "
-                        + IdentityTenantUtil.getTenantDomain(tenantId) + ". IdPSecretsProcessorService is not available.");
+            // Add system federated authenticator secret properties to IDN_SECRET table.
+            if (identityProvider.getFederatedAuthenticatorConfigs().length > 0 &&
+                    identityProvider.getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                identityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(identityProvider);
             }
 
             // add federated authenticators.
@@ -4229,15 +4261,11 @@ public class IdPManagementDAO {
                 boolean isResidentIdP = IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                         .equals(newIdentityProvider.getIdentityProviderName());
 
-                // Update secrets in IDN_SECRET table.
                 newIdentityProvider.setId(Integer.toString(idpId));
-                if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
-                    newIdentityProvider = IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().
-                            encryptAssociatedSecrets(newIdentityProvider);
-                } else {
-                    throw new IdentityProviderManagementException("An error occurred while updating the secrets of the " +
-                            "identity provider : " + currentIdentityProvider.getIdentityProviderName() + " in tenant : " +
-                            IdentityTenantUtil.getTenantDomain(tenantId) + ". The IdPSecretsProcessorService is not available.");
+                // Update secrets of system federated authenticator config in IDN_SECRET table.
+                if (newIdentityProvider.getFederatedAuthenticatorConfigs().length > 0 && newIdentityProvider
+                        .getFederatedAuthenticatorConfigs()[0].getDefinedByType() == DefinedByType.SYSTEM) {
+                    newIdentityProvider = idpSecretsProcessorService.encryptAssociatedSecrets(newIdentityProvider);
                 }
 
                 // update federated authenticators.
@@ -4419,12 +4447,7 @@ public class IdPManagementDAO {
             idPName = identityProvider.getIdentityProviderName();
             deleteIdP(dbConnection, tenantId, null, resourceId);
             // Delete IdP related secrets from the IDN_SECRET table.
-            if (IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService() != null) {
-                IdpMgtServiceComponentHolder.getInstance().getIdPSecretsProcessorService().deleteAssociatedSecrets(identityProvider);
-            } else {
-                throw new IdentityProviderManagementException("Error while deleting IDP secrets of Identity provider : " +
-                        idPName + " in tenant : " + tenantDomain + ". IdPSecretsProcessorService is not available.");
-            }
+            idpSecretsProcessorService.deleteAssociatedSecrets(identityProvider);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(dbConnection);
@@ -5939,6 +5962,63 @@ public class IdPManagementDAO {
         }
     }
 
+    /**
+     * Get all user defined federated authenticators.
+     *
+     * @param tenantId Tenant ID.
+     * @return User defined FederatedAuthenticatorConfig list
+     * @throws IdentityProviderManagementException If an error occurred while retrieving user defined
+     *                                             federated authenticator list.
+     */
+    public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(int tenantId)
+            throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = connection.prepareStatement(
+                    IdPManagementConstants.SQLQueries.GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS)) {
+            prepStmt.setInt(1, tenantId);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                while (resultSet.next()) {
+                    UserDefinedFederatedAuthenticatorConfig federatedAuthenticatorConfig =
+                            new UserDefinedFederatedAuthenticatorConfig();
+                    federatedAuthenticatorConfig.setName(resultSet.getString("NAME"));
+                    federatedAuthenticatorConfig.setDisplayName(resultSet.getString("DISPLAY_NAME"));
+                    federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
+                    federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
+                    federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
+                    int authnId = resultSet.getInt("ID");
+
+                    getFederatedProperties(connection, authnId, federatedAuthenticatorConfig);
+                }
+            }
+            IdentityDatabaseUtil.commitTransaction(connection);
+            return federatedAuthenticatorConfigs;
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving all user defined federated " +
+                    "authenticators for tenant: " + tenantId, e);
+        }
+    }
+
+    private void getFederatedProperties(Connection connection, int authnId,
+            FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws SQLException{
+
+        try (PreparedStatement prepStmtProp = connection.prepareStatement(
+                IdPManagementConstants.SQLQueries.GET_IDP_AUTH_PROPS_SQL)) {
+            prepStmtProp.setInt(1, authnId);
+            Set<Property> properties = new HashSet<Property>();
+            try (ResultSet resultSetProp = prepStmtProp.executeQuery()) {
+                while (resultSetProp.next()) {
+                    Property property = new Property();
+                    property.setName(resultSetProp.getString(IdPManagementConstants.SQLConstants.PROPERTY_KEY));
+                    property.setValue(resultSetProp.getString(IdPManagementConstants.SQLConstants.PROPERTY_VALUE));
+                    properties.add(property);
+                }
+                federatedAuthenticatorConfig.setProperties(properties.toArray(new Property[properties.size()]));
+            }
+        }
+    }
+
     private void resolveOtpConnectorProperties(
             Map<String, IdentityProviderProperty> propertiesFromConnectors) throws ConnectorException{
 
@@ -6037,6 +6117,50 @@ public class IdPManagementDAO {
                                 IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                                 identityProviderProperty.setName(
                                         IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
+                                identityProviderProperty.setValue("true");
+                                idpProperties.add(identityProviderProperty);
+                            });
+        }
+        updateIdentityProviderProperties(dbConnection, idpId, idpProperties, tenantId);
+    }
+
+    private FederatedAuthenticatorConfig createFederatedAuthenticatorConfig(AuthenticatorPropertyConstants.DefinedByType
+                                                                                   definedByType) {
+
+        if (definedByType == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
+            return new FederatedAuthenticatorConfig();
+        }
+        return new UserDefinedFederatedAuthenticatorConfig();
+    }
+
+    private void performConfigCorrectionForUsernameRecoveryConfigs(Connection dbConnection, int tenantId, int idpId,
+                                                                   List<IdentityProviderProperty> idpProperties)
+            throws SQLException {
+
+        // Enable all recovery options when Recovery.Notification.Username.Enable value is set as enabled.
+        // This keeps functionality consistent with previous API versions for migrating customers.
+        idpProperties.stream().filter(
+                        idp -> IdPManagementConstants.
+                                EMAIL_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                .ifPresentOrElse(
+                        emailProperty -> emailProperty.setValue(String.valueOf(true)),
+                        () -> {
+                            IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                            identityProviderProperty.setName(
+                                    IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY);
+                            identityProviderProperty.setValue("true");
+                            idpProperties.add(identityProviderProperty);
+                        });
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED))) {
+            idpProperties.stream().filter(
+                            idp -> IdPManagementConstants.
+                                    SMS_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
+                    .ifPresentOrElse(
+                            smsProperty -> smsProperty.setValue(String.valueOf(true)),
+                            () -> {
+                                IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
+                                identityProviderProperty.setName(
+                                        IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY);
                                 identityProviderProperty.setValue("true");
                                 idpProperties.add(identityProviderProperty);
                             });

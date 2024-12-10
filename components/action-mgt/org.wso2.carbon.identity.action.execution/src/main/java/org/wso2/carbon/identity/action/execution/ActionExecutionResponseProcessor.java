@@ -21,9 +21,15 @@ package org.wso2.carbon.identity.action.execution;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.Error;
+import org.wso2.carbon.identity.action.execution.model.ErrorStatus;
 import org.wso2.carbon.identity.action.execution.model.Event;
+import org.wso2.carbon.identity.action.execution.model.FailedStatus;
+import org.wso2.carbon.identity.action.execution.model.Failure;
+import org.wso2.carbon.identity.action.execution.model.Success;
 
 import java.util.Map;
 
@@ -36,13 +42,26 @@ public interface ActionExecutionResponseProcessor {
 
     ActionType getSupportedActionType();
 
-    ActionExecutionStatus processSuccessResponse(Map<String, Object> eventContext,
-                                                 Event actionEvent,
-                                                 ActionInvocationSuccessResponse successResponse) throws
+    ActionExecutionStatus<Success> processSuccessResponse(Map<String, Object> eventContext,
+                                                          Event actionEvent,
+                                                          ActionInvocationSuccessResponse successResponse) throws
             ActionExecutionResponseProcessorException;
 
-    ActionExecutionStatus processErrorResponse(Map<String, Object> eventContext,
-                                               Event actionEvent,
-                                               ActionInvocationErrorResponse errorResponse) throws
-            ActionExecutionResponseProcessorException;
+    default ActionExecutionStatus<Error> processErrorResponse(Map<String, Object> eventContext,
+                                                              Event actionEvent,
+                                                              ActionInvocationErrorResponse errorResponse) throws
+            ActionExecutionResponseProcessorException {
+
+        return new ErrorStatus(new Error(errorResponse.getErrorMessage(), errorResponse.getErrorDescription()));
+    }
+
+    default ActionExecutionStatus<Failure> processFailureResponse(Map<String, Object> eventContext,
+                                                                  Event actionEvent,
+                                                                  ActionInvocationFailureResponse failureResponse)
+            throws
+            ActionExecutionResponseProcessorException {
+
+        return new FailedStatus(new Failure(failureResponse.getFailureReason(),
+                failureResponse.getFailureDescription()));
+    }
 }

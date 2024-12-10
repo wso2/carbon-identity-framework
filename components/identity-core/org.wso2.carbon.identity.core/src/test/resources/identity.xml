@@ -48,6 +48,21 @@
         <KeyStoresDir>${carbon.home}/conf/keystores</KeyStoresDir>
         <KeyManagerType>SunX509</KeyManagerType>
         <TrustManagerType>SunX509</TrustManagerType>
+
+        <KeyStoreMapping>
+            <OAuth>
+                <KeyStoreName>custom.jks</KeyStoreName>
+                <UseInAllTenants>true</UseInAllTenants>
+            </OAuth>
+            <WS-Trust>
+                <KeyStoreName>custom.jks</KeyStoreName>
+                <UseInAllTenants></UseInAllTenants> <!-- Test if default value taken as false. -->
+            </WS-Trust>
+            <WS-Federation>
+                <KeyStoreName></KeyStoreName> <!-- Test if invalid configs are skipped. -->
+                <UseInAllTenants>true</UseInAllTenants>
+            </WS-Federation>
+        </KeyStoreMapping>
     </Security>
 
     <Identity>
@@ -155,7 +170,6 @@
 
         <ScopeValidators>
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator" />
-            <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator"/>
         </ScopeValidators>
 
         <ScopeHandlers>

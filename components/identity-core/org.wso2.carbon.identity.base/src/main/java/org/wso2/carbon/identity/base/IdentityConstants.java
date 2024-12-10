@@ -278,6 +278,8 @@ public class IdentityConstants {
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
+        public static final String SKIP_CLAIM_METADATA_PERSISTENCE = "JDBCPersistenceManager." +
+                "SkipClaimMetadataPersistence";
 
         //Timeout Configurations
         public static final String SESSION_IDLE_TIMEOUT = "TimeConfig.SessionIdleTimeout";
@@ -610,6 +612,9 @@ public class IdentityConstants {
         public static final String ROLE_NAME_CONFIG_ELEMENT = "Name";
         public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
         public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
+        public static final String API_RESOURCE_CONFIG_ELEMENT = "APIResource";
+        public static final String ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT = "MandatoryAPIResources";
+
     }
 
     /**

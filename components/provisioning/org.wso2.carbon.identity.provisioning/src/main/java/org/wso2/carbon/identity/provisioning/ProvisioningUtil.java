@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -560,12 +561,25 @@ public class ProvisioningUtil {
     public static boolean isOutboundProvisioningEnabled(String serviceProviderIdentifier,
                                                         String tenantDomainName) throws IdentityApplicationManagementException {
 
+        /*
+            Outbound provisioning is enabled for organization by default. If application bound provisioning enabled,
+            each application should configure outbound provisioning.
+        */
+        if (!isApplicationBasedOutboundProvisioningEnabled()) {
+            return true;
+        }
+
         ServiceProvider serviceProvider = ApplicationManagementService.getInstance()
                 .getServiceProvider(serviceProviderIdentifier, tenantDomainName);
 
         if (serviceProvider == null) {
             throw new IdentityApplicationManagementException("Cannot find the service provider " +
                     serviceProviderIdentifier);
+        }
+
+        // The console app not required to enable outbound provisioning.
+        if (ApplicationConstants.CONSOLE_APPLICATION_NAME.equals(serviceProvider.getApplicationName())) {
+            return true;
         }
 
         OutboundProvisioningConfig outboundProvisioningConfiguration = serviceProvider

@@ -2222,20 +2222,20 @@ public class FrameworkUtils {
             cookieBuilder.setDomain(cookieConfig.getDomain());
         }
 
-        if (cookieConfig.getPath() != null) {
-            cookieBuilder.setPath(cookieConfig.getPath());
-        } else if (StringUtils.isNotBlank(path)) {
+        if (StringUtils.isNotBlank(path)) {
             cookieBuilder.setPath(path);
+        } else if (cookieConfig.getPath() != null) {
+            cookieBuilder.setPath(cookieConfig.getPath());
         }
 
         if (cookieConfig.getComment() != null) {
             cookieBuilder.setComment(cookieConfig.getComment());
         }
 
-        if (cookieConfig.getMaxAge() > 0) {
-            cookieBuilder.setMaxAge(cookieConfig.getMaxAge());
-        } else if (age != null) {
+        if (age != null) {
             cookieBuilder.setMaxAge(age);
+        } else if (cookieConfig.getMaxAge() > 0) {
+            cookieBuilder.setMaxAge(cookieConfig.getMaxAge());
         }
 
         if (cookieConfig.getVersion() > 0) {
@@ -2940,6 +2940,16 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(
                 IdentityUtil.getProperty("JITProvisioning.SkipUsernamePatternValidation"));
+    }
+
+    /**
+     * This method determines whether authentication flow should be break if JIT provisioning has failed.
+     *
+     * @return boolean Whether to fail the authentication flow.
+     */
+    public static boolean isAuthenticationFailOnJitFail() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("JITProvisioning.FailAuthnOnProvisionFailure"));
     }
 
 

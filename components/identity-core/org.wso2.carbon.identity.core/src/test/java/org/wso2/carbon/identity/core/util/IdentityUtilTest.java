@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.apache.axiom.om.OMElement;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -33,7 +34,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
@@ -53,16 +57,29 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -70,6 +87,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -81,6 +99,10 @@ import static org.testng.Assert.assertTrue;
 
 @Listeners(MockitoTestNGListener.class)
 public class IdentityUtilTest {
+
+    private static final String PRIMARY_KEY_STORE = "wso2carbon.jks";
+    private static final String PRIMARY_KEY_STORE_PASSWORD = "wso2carbon";
+    private static final String PRIMARY_KEY_STORE_ALIAS = "wso2carbon";
 
     @Mock
     private IdentityConfigParser mockConfigParser;
@@ -104,6 +126,20 @@ public class IdentityUtilTest {
     private RealmConfiguration mockRealmConfiguration;
     @Mock
     private HttpServletRequest mockRequest;
+    @Mock
+    private IdentityKeyStoreResolver mockIdentityKeyStoreResolver;
+    @Mock
+    private PrivateKey mockPrivateKey;
+    @Mock
+    private PublicKey mockPublicKey;
+    @Mock
+    private KeyStoreManager mockKeyStoreManager;
+    @Mock
+    private Certificate mockCertificate;
+
+
+
+    private KeyStore primaryKeyStore;
 
     MockedStatic<CarbonUtils> carbonUtils;
     MockedStatic<ServerConfiguration> serverConfiguration;
@@ -111,6 +147,10 @@ public class IdentityUtilTest {
     MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponent;
     MockedStatic<IdentityConfigParser> identityConfigParser;
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    MockedStatic<SignatureUtil> signatureUtil;
+    MockedStatic<IdentityKeyStoreResolver> identityKeyStoreResolver;
+    MockedStatic<KeyStoreManager> keyStoreManager;
+
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -121,6 +161,9 @@ public class IdentityUtilTest {
         identityCoreServiceComponent = mockStatic(IdentityCoreServiceComponent.class);
         identityConfigParser = mockStatic(IdentityConfigParser.class);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        signatureUtil = mockStatic(SignatureUtil.class);
+        identityKeyStoreResolver = mockStatic(IdentityKeyStoreResolver.class);
+        keyStoreManager = mockStatic(KeyStoreManager.class);
 
         serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(mockServerConfiguration);
         identityCoreServiceComponent.when(
@@ -139,6 +182,8 @@ public class IdentityUtilTest {
 
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY, "9763");
         System.setProperty(IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY, "9443");
+
+        primaryKeyStore = getKeyStoreFromFile(PRIMARY_KEY_STORE, PRIMARY_KEY_STORE_PASSWORD);
     }
 
     @AfterMethod
@@ -155,6 +200,20 @@ public class IdentityUtilTest {
         identityCoreServiceComponent.close();
         identityConfigParser.close();
         identityTenantUtil.close();
+        signatureUtil.close();
+        identityKeyStoreResolver.close();
+        keyStoreManager.close();
+    }
+
+    @Test(description = "Test converting a certificate to PEM format")
+    public void convertCertificateToPEM() throws CertificateException, KeyStoreException, IOException {
+
+        Certificate validCertificate = primaryKeyStore.getCertificate(PRIMARY_KEY_STORE_ALIAS);
+        Path pemPath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources",
+                "repository", "resources", "security", "certificate.pem");
+        String expectedPEM = String.join("\n", Files.readAllLines(pemPath));
+
+        assertEquals(IdentityUtil.convertCertificateToPEM(validCertificate), expectedPEM);
     }
 
     @DataProvider
@@ -824,6 +883,32 @@ public class IdentityUtilTest {
         };
     }
 
+    @DataProvider
+    public Object[][] getSubdomainData() {
+        return new Object[][] {
+                {"wso2.io", "dev.wso2.io", true},       // valid subdomain
+                {"wso2.io", "wso2.io", true},           // exact match
+                {"wso2.io", "dev.api.wso2.io", true},   // deeper subdomain
+                {"wso2.io", "niyo.io", false},          // different domain
+                {"wso2.io", "test.wso2.com", false},    // completely different domain
+                {null, "wso2.io", false},               // domainName null
+                {"wso2.io", null, false},               // hostName null
+                {null, null, false}                     // both null
+        };
+    }
+
+    @DataProvider(name = "rootDomainDataProvider")
+    public Object[][] getRootDomainData() {
+        return new Object[][] {
+                {"dev.api.wso2.io", "wso2.io"},             // Deeper subdomain
+                {"api.test.com", "test.com"},               // Typical subdomain
+                {"abc.com", "abc.com"},                     // Root domain itself
+                {"localhost", "localhost"},                 // Localhost
+                {null, null},                               // Null case
+                {"", ""}                                    // Empty string
+        };
+    }
+
     @Test(dataProvider = "getClockSkewData")
     public void testGetClockSkewInSeconds(String value, int expected) throws Exception {
         Map<String, Object> mockConfiguration = new HashMap<>();
@@ -843,6 +928,20 @@ public class IdentityUtilTest {
         assertTrue(IdentityUtil.isSupportedByUserStore(null, "op4"), "Expected true for op4 in null userstore");
     }
 
+    @Test(dataProvider = "getSubdomainData")
+    public void testCheckSubdomain(String domainName, String subdomainName, boolean expectedResult) throws Exception {
+
+        boolean result = IdentityUtil.isSubdomain(domainName, subdomainName);
+        assertEquals(result, expectedResult, "Subdomain check failed for: " + domainName + " and " + subdomainName);
+    }
+
+    @Test(dataProvider = "rootDomainDataProvider")
+    public void testGetRootDomain(String domain, String expectedRootDomain) {
+
+        String actualRootDomain = IdentityUtil.getRootDomain(domain);
+        assertEquals(actualRootDomain, expectedRootDomain, "Root domain extraction failed for: " + domain);
+    }
+
     private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
             throws NoSuchFieldException, IllegalAccessException {
 
@@ -857,5 +956,186 @@ public class IdentityUtilTest {
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
         return field.get(null);
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where the SystemRole config " +
+            "is empty.")
+    public void testSystemRolesConfigWithAPIResourcesWithEmptyConfig() throws Exception {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+        OMElement mockOAuthConfigElement = mock(OMElement.class);
+        lenient().when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles
+                .SYSTEM_ROLES_CONFIG_ELEMENT)).thenReturn(null);
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
+
+        // Verify that the result is an empty map
+        assertEquals(result.size(), 0, "Expected empty map");
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where there is no roles " +
+            "configured.")
+    public void testGetSystemRolesWithAPIResourcesWithNoRoleConfigElement() {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+
+        OMElement mockSystemRolesConfig = mock(OMElement.class);
+        // Mock the config parser to return a valid systemRolesConfig but no roles
+        when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT)).thenReturn(mockSystemRolesConfig);
+        when(mockSystemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT)).thenReturn(null);
+
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
+
+        // Verify that the result is an empty map
+        assertTrue(result.isEmpty());
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where there is api resources " +
+            "config is not added.")
+    public void testGetSystemRolesWithAPIResourcesWithNoAPIResourceConfigElement() {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+
+        OMElement mockSystemRolesConfig = mock(OMElement.class);
+        OMElement mockRoleIdentifierConfig = mock(OMElement.class);
+        OMElement mockRoleNameConfig = mock(OMElement.class);
+
+        // Mock systemRolesConfig and role elements
+        when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT))
+                .thenReturn(mockSystemRolesConfig);
+        Iterator<OMElement> roleIterator = mock(Iterator.class);
+        when(mockSystemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT))
+                .thenReturn(roleIterator);
+        when(roleIterator.hasNext()).thenReturn(true, false);
+        when(roleIterator.next()).thenReturn(mockRoleIdentifierConfig);
+
+        // Mock the role name element
+        String roleName = "admin";
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)))
+                .thenReturn(mockRoleNameConfig);
+        when(mockRoleNameConfig.getText()).thenReturn(roleName);
+
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT)))
+                .thenReturn(null);
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
+
+        // Verify that the result is an empty map
+        assertTrue(result.isEmpty());
+    }
+
+    @Test(description = "Test getting system roles with APIResource collection config where proper roles and " +
+            "corresponding api resources are configured.")
+    public void testGetSystemRolesWithAPIResources() {
+
+        IdentityConfigParser mockConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockConfigParser);
+
+        OMElement mockSystemRolesConfig = mock(OMElement.class);
+        OMElement mockRoleIdentifierConfig = mock(OMElement.class);
+        OMElement mockRoleNameConfig = mock(OMElement.class);
+        OMElement mockMandatoryAPIResources = mock(OMElement.class);
+        OMElement mockAPIResourceIdentifier = mock(OMElement.class);
+
+        // Mock systemRolesConfig and role elements
+        when(mockConfigParser.getConfigElement(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT))
+                .thenReturn(mockSystemRolesConfig);
+        Iterator<OMElement> roleIterator = mock(Iterator.class);
+        when(mockSystemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles.ROLE_CONFIG_ELEMENT))
+                .thenReturn(roleIterator);
+        when(roleIterator.hasNext()).thenReturn(true, false);
+        when(roleIterator.next()).thenReturn(mockRoleIdentifierConfig);
+
+        // Mock the role name element
+        String roleName = "admin";
+        String apiResource1 = "applications.write";
+        String apiResource2 = "applications.read";
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)))
+                .thenReturn(mockRoleNameConfig);
+        when(mockRoleNameConfig.getText()).thenReturn(roleName);
+
+        // Mock the scopes
+        when(mockRoleIdentifierConfig.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT)))
+                .thenReturn(mockMandatoryAPIResources);
+        Iterator<OMElement> apiResourcesIterator = mock(Iterator.class);
+        when(mockMandatoryAPIResources.getChildrenWithLocalName(IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT))
+                .thenReturn(apiResourcesIterator);
+        when(apiResourcesIterator.hasNext()).thenReturn(true, true, false);
+        when(apiResourcesIterator.next()).thenReturn(mockAPIResourceIdentifier);
+        when(mockAPIResourceIdentifier.getText()).thenReturn(apiResource1, apiResource2);
+
+        // Call the method under test
+        Map<String, Set<String>> result = IdentityUtil.getSystemRolesWithAPIResources();
+
+        // Verify the result
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey(roleName));
+        Set<String> scopes = result.get(roleName);
+        assertEquals(2, scopes.size());
+        assertTrue(scopes.contains(apiResource1));
+        assertTrue(scopes.contains(apiResource2));
+    }
+
+    private KeyStore getKeyStoreFromFile(String keystoreName, String password) throws Exception {
+
+        Path tenantKeystorePath = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "repository", "resources", "security", keystoreName);
+        FileInputStream file = new FileInputStream(tenantKeystorePath.toString());
+        KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keystore.load(file, password.toCharArray());
+        return keystore;
+    }
+
+    @Test
+    public void testValidateSignatureFromTenant() throws Exception {
+
+        String data = "testData";
+        byte[] signature = new byte[]{1, 2, 3};
+        String tenantDomain = "carbon.super";
+
+        when(mockCertificate.getPublicKey()).thenReturn(mockPublicKey);
+        identityKeyStoreResolver.when(IdentityKeyStoreResolver::getInstance).thenReturn(mockIdentityKeyStoreResolver);
+        when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null)).thenReturn(mockCertificate);
+        signatureUtil.when(() -> SignatureUtil.validateSignature(data, signature, mockPublicKey)).thenReturn(true);
+
+        boolean result = IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testSignWithTenantKey() throws Exception {
+
+        String data = "testData";
+        String superTenantDomain = "carbon.super";
+        keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(mockKeyStoreManager);
+        when(mockKeyStoreManager.getDefaultPrivateKey()).thenReturn(mockPrivateKey);
+        when(mockKeyStoreManager.getPrivateKey(anyString(), anyString())).thenReturn(mockPrivateKey);
+
+        byte[] expectedSignature = new byte[]{1, 2, 3};
+        signatureUtil.when(() -> SignatureUtil.doSignature(data, mockPrivateKey)).thenReturn(expectedSignature);
+
+        byte[] result = IdentityUtil.signWithTenantKey(data, "wso2.com");
+        assertEquals(result, expectedSignature);
+
+        // Test sign with super tenant key.
+        result = IdentityUtil.signWithTenantKey(data, superTenantDomain);
+        assertEquals(result, expectedSignature);
+
+        // Sign with super tenant causing an exception.
+        when(mockKeyStoreManager.getDefaultPrivateKey()).thenThrow(new Exception());
+        try {
+            IdentityUtil.signWithTenantKey(data, superTenantDomain);
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), String.format(IdentityKeyStoreResolverConstants.ErrorMessages
+                    .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), superTenantDomain));
+        }
     }
 }

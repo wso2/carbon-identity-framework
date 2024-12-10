@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+  ~ Copyright (c) 2015-2024, WSO2 LLC. (http://www.wso2.com).
   ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~ http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -20,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.4.8-SNAPSHOT</version>
+    <version>7.7.25-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -41,7 +43,6 @@
         <module>test-utils/org.wso2.carbon.identity.testutil</module>
         <module>service-stubs/identity</module>
         <module>components/authentication-framework</module>
-        <module>components/entitlement</module>
         <module>components/identity-core</module>
         <module>components/application-mgt</module>
         <module>components/user-mgt</module>
@@ -55,7 +56,6 @@
         <module>components/claim-mgt</module>
         <module>components/directory-server-manager</module>
         <module>components/security-mgt</module>
-        <module>components/policy-editor</module>
         <module>components/carbon-authenticators</module>
         <module>components/consent-mgt</module>
         <module>components/functions-library-mgt</module>
@@ -72,6 +72,8 @@
         <module>components/client-attestation-mgt</module>
         <module>components/trusted-app-mgt</module>
         <module>components/action-mgt</module>
+        <module>components/certificate-mgt</module>
+        <module>components/rule-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -79,7 +81,6 @@
         <module>features/identity-core</module>
         <module>features/identity-event</module>
         <module>features/identity-mgt</module>
-        <module>features/xacml</module>
         <module>features/authentication-framework</module>
         <module>features/application-mgt</module>
         <module>features/provisioning</module>
@@ -107,6 +108,8 @@
         <module>features/client-attestation-mgt</module>
         <module>features/trusted-app-mgt</module>
         <module>features/action-mgt</module>
+        <module>features/certificate-mgt</module>
+        <module>features/rule-mgt</module>
     </modules>
 
 
@@ -269,11 +272,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.wso2.balana</groupId>
-                <artifactId>org.wso2.balana</artifactId>
-                <version>${balana.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.google.gdata.wso2</groupId>
                 <artifactId>gdata-core</artifactId>
                 <version>${gdata-core.wso2.version}</version>
@@ -323,6 +321,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -839,29 +849,6 @@
                 <type>zip</type>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
-                <version>${project.version}</version>
-                <type>war</type>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.xacml.server.feature</artifactId>
-                <version>${project.version}</version>
-                <type>zip</type>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.xacml.ui.feature</artifactId>
-                <version>${project.version}</version>
-                <type>zip</type>
-            </dependency>
-            <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${javax.servlet-api.version}</version>
@@ -1227,27 +1214,6 @@
                 <artifactId>org.wso2.carbon.identity.user.profile.ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.api.server.entitlement</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.ui</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.entitlement.stub</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -1440,21 +1406,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.policyeditor</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.policyeditor.ui</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.balana</groupId>
-                <artifactId>org.wso2.balana.utils</artifactId>
-                <version>${balana.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.idp.mgt.ui</artifactId>
@@ -1737,6 +1688,11 @@
                 <version>${codehaus.jettison.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${apache.httpcomponents.httpclient.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
                 <version>${springframework.spring-web.version}</version>
@@ -1854,11 +1810,12 @@
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
+        <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.10</carbon.kernel.version>
+        <carbon.kernel.version>4.10.27</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1876,7 +1833,7 @@
         <carbon.commons.imp.pkg.version>[4.7.2, 5.0.0)</carbon.commons.imp.pkg.version>
 
         <org.wso2.carbon.database.utils.version>2.1.7</org.wso2.carbon.database.utils.version>
-        <org.wso2.carbon.database.utils.version.range>[2.0.0,2.2.0)</org.wso2.carbon.database.utils.version.range>
+        <org.wso2.carbon.database.utils.version.range>[2.0.0,3.0.0)</org.wso2.carbon.database.utils.version.range>
 
         <!--Carbon identity version-->
         <identity.framework.version>${project.version}</identity.framework.version>
@@ -1889,7 +1846,7 @@
         </org.wso2.carbon.identity.organization.management.core.version.range>
 
         <!--Carbon registry version-->
-        <org.wso2.carbon.registry.version>4.8.12</org.wso2.carbon.registry.version>
+        <org.wso2.carbon.registry.version>4.8.37</org.wso2.carbon.registry.version>
         <carbon.registry.common.imp.pkg.version.range>[0.0.0,1.0.0)</carbon.registry.common.imp.pkg.version.range>
         <carbon.registry.indexing.imp.pkg.version.range>[4.7.3,5.0.0)</carbon.registry.indexing.imp.pkg.version.range>
 
@@ -1954,7 +1911,7 @@
         <oltu.package.import.version.range>[1.0.0, 2.0.0)</oltu.package.import.version.range>
         <bcprov.version>1.49.0.wso2v2</bcprov.version>
         <swagger.jaxrs.version>1.5.2</swagger.jaxrs.version>
-        <org.json.version>20230227</org.json.version>
+        <org.json.version>20231013</org.json.version>
         <json.wso2.osgi.version.range>[20160810, 20300101)</json.wso2.osgi.version.range>
         <!-- Orbits -->
         <orbit.version.xmlschema>1.4.7.wso2v3</orbit.version.xmlschema>
@@ -1985,16 +1942,12 @@
         <rampart.wso2.version>1.6.1-wso2v43</rampart.wso2.version>
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
 
-        <!-- Balana -->
-        <balana.version>1.2.13</balana.version>
-        <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>
-
         <!-- Equinox -->
         <version.equinox.osgi.services>3.3.100.v20130513-1956</version.equinox.osgi.services>
         <version.equinox.osgi>3.9.1.v20130814-1242</version.equinox.osgi>
         <equinox.osgi.stax-api.imp.pkg.version.range>[1.0.1,2.0.0)</equinox.osgi.stax-api.imp.pkg.version.range>
 
-        <saml.common.util.version>1.4.0</saml.common.util.version>
+        <saml.common.util.version>1.4.1</saml.common.util.version>
         <saml.common.util.version.range>[1.4.0,1.5.0)</saml.common.util.version.range>
 
         <!-- Commons -->
@@ -2025,7 +1978,7 @@
         <orbit.version.commons.fileuploader>1.2.0.wso2v1</orbit.version.commons.fileuploader>
         <opensaml.version>3.3.1</opensaml.version>
         <shibboleth.version>7.3.0</shibboleth.version>
-        <opensaml2.wso2.version>3.3.1.wso2v11</opensaml2.wso2.version>
+        <opensaml2.wso2.version>3.3.1.wso2v13</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[3.3.1,3.4.0)</opensaml2.wso2.osgi.version.range>
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
@@ -2053,7 +2006,7 @@
         <httpcomponents-httpclient.wso2.version>4.3.6.wso2v2</httpcomponents-httpclient.wso2.version>
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)</httpcomponents-httpclient.imp.pkg.version.range>
         <orbit.version.commons.lang>2.6.0.wso2v1</orbit.version.commons.lang>
-        <org.wso2.securevault.version>1.1.3</org.wso2.securevault.version>
+        <org.wso2.securevault.version>1.1.10</org.wso2.securevault.version>
         <org.wso2.securevault.import.version.range>[1.1.0, 2.0.0)</org.wso2.securevault.import.version.range>
         <hector-core.wso2.version>1.1.4.wso2v1</hector-core.wso2.version>
         <hector-core.imp.pkg.version.range>[1.1.4.wso2v1,2.0.0)</hector-core.imp.pkg.version.range>
@@ -2067,7 +2020,7 @@
         <version.commons.logging>1.1.1</version.commons.logging>
         <commons.logging.version>1.2</commons.logging.version>
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
-        <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
+        <json.wso2.version>3.0.0.wso2v4</json.wso2.version>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
         <com.fasterxml.jackson.version>2.16.1</com.fasterxml.jackson.version>
         <com.fasterxml.jackson.annotation.version>2.16.1</com.fasterxml.jackson.annotation.version>
@@ -2083,9 +2036,9 @@
         <jsr311-api.version>1.1.1</jsr311-api.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <tomcat-util.version>3.3.2</tomcat-util.version>
-        <json-smart.version>2.4.7</json-smart.version>
+        <json-smart.version>2.4.11</json-smart.version>
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
-        <org.apache.cxf.version>3.4.5</org.apache.cxf.version>
+        <org.apache.cxf.version>3.5.9</org.apache.cxf.version>
         <opencsv.wso2.version>1.8.wso2v1</opencsv.wso2.version>
         <orbit.version.poi>5.2.3.wso2v1</orbit.version.poi>
         <orbit.version.poi.range>[5.0.0,6.0.0)</orbit.version.poi.range>
@@ -2128,7 +2081,7 @@
 
         <!-- Unit test versions -->
         <testng.version>7.10.1</testng.version>
-        <jacoco.version>0.8.4</jacoco.version>
+        <jacoco.version>0.8.12</jacoco.version>
         <jmockit.version>1.44</jmockit.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <mockito.version>5.3.1</mockito.version>
@@ -2263,6 +2216,25 @@
                             <phase>compile</phase>
                             <goals>
                                 <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
                             </goals>
                         </execution>
                     </executions>

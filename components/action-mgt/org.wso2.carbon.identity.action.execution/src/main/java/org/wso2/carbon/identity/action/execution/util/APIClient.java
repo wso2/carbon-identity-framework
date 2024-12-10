@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.execution.util;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,7 +35,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.action.execution.exception.ActionInvocationException;
+import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 
@@ -48,15 +51,16 @@ import java.nio.charset.StandardCharsets;
 public class APIClient {
 
     private static final Log LOG = LogFactory.getLog(APIClient.class);
+    private static final ActionExecutionDiagnosticLogger DIAGNOSTIC_LOGGER = new ActionExecutionDiagnosticLogger();
+    private static final String ACTION_STATUS = "actionStatus";
     private final CloseableHttpClient httpClient;
 
     public APIClient() {
 
-        // todo: read connection configurations related to the http client of actions from the server configuration.
         // Initialize the http client. Set connection time out to 2s and read time out to 5s.
-        int readTimeout = 5000;
-        int connectionRequestTimeout = 2000;
-        int connectionTimeout = 2000;
+        int readTimeout = ActionExecutorConfig.getInstance().getHttpReadTimeoutInMillis();
+        int connectionRequestTimeout = ActionExecutorConfig.getInstance().getHttpConnectionRequestTimeoutInMillis();
+        int connectionTimeout = ActionExecutorConfig.getInstance().getHttpConnectionTimeoutInMillis();
 
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(connectionTimeout)
@@ -66,7 +70,7 @@ public class APIClient {
                 .setRelativeRedirectsAllowed(false)
                 .build();
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(20);
+        connectionManager.setMaxTotal(ActionExecutorConfig.getInstance().getHttpConnectionPoolSize());
         httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setConnectionManager(connectionManager)
                 .build();
     }
@@ -94,7 +98,7 @@ public class APIClient {
     private ActionInvocationResponse executeRequest(HttpPost request) {
 
         int attempts = 0;
-        int retryCount = 2; // todo: read from server configurations
+        int retryCount = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
         ActionInvocationResponse actionInvocationResponse = null;
 
         while (attempts < retryCount) {
@@ -103,15 +107,15 @@ public class APIClient {
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
-                //todo: add to diagnostic logs
-                LOG.warn("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
+                DIAGNOSTIC_LOGGER.logAPICallRetry(request, attempts + 1, retryCount);
+                LOG.debug("API: " + request.getURI() + " seems to be unavailable. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (ConnectTimeoutException | SocketTimeoutException e) {
-                //todo: add to diagnostic logs
-                LOG.warn("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
+                DIAGNOSTIC_LOGGER.logAPICallTimeout(request, attempts + 1, retryCount);
+                LOG.debug("Request for API: " + request.getURI() + " timed out. Retrying the request. Attempt " +
                         (attempts + 1) + " of " + retryCount);
             } catch (Exception e) {
-                //todo: add to diagnostic logs
+                DIAGNOSTIC_LOGGER.logAPICallError(request);
                 LOG.error("Request for API: " + request.getURI() + " failed due to an error.", e);
                 break;
             } finally {
@@ -134,7 +138,7 @@ public class APIClient {
 
         switch (statusCode) {
             case HttpStatus.SC_OK:
-                handleSuccess(actionInvocationResponseBuilder, responseEntity, statusCode);
+                handleSuccessOrFailure(actionInvocationResponseBuilder, responseEntity, statusCode);
                 break;
             case HttpStatus.SC_BAD_REQUEST:
             case HttpStatus.SC_UNAUTHORIZED:
@@ -146,22 +150,22 @@ public class APIClient {
             case HttpStatus.SC_BAD_GATEWAY:
             case HttpStatus.SC_SERVICE_UNAVAILABLE:
             case HttpStatus.SC_GATEWAY_TIMEOUT:
-                actionInvocationResponseBuilder.errorLog(
-                        "Failed to execute the action request. Received: " + statusCode);
+                handleServerError(actionInvocationResponseBuilder, responseEntity, statusCode);
                 actionInvocationResponseBuilder.retry(true);
                 break;
             default:
-                actionInvocationResponseBuilder.errorLog("Unexpected response status code: " + statusCode);
+                actionInvocationResponseBuilder.errorLog("Unexpected response received with status code: " + statusCode
+                        + ".");
                 break;
         }
 
         return actionInvocationResponseBuilder.build();
     }
 
-    private void handleSuccess(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
+    private void handleSuccessOrFailure(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
 
         try {
-            builder.response(handleSuccessResponse(entity));
+            builder.response(handleSuccessOrFailureResponse(entity));
         } catch (ActionInvocationException e) {
             builder.errorLog("Unexpected response for status code: " + statusCode + ". " + e.getMessage());
         }
@@ -170,46 +174,46 @@ public class APIClient {
     private void handleClientError(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
 
         try {
-            ActionInvocationErrorResponse errorResponse = handleErrorResponse(entity);
+            ActionInvocationResponse.APIResponse errorResponse = handleErrorResponse(entity);
             if (errorResponse != null) {
                 builder.response(errorResponse);
             } else {
-                builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+                builder.errorLog("Failed to execute the action request. Received status code: " + statusCode + ".");
             }
         } catch (ActionInvocationException e) {
-            //todo: add to diagnostic logs
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+            builder.errorLog("Unexpected error response received for the status code: " + statusCode + ". "
+                    + e.getMessage());
         }
     }
 
     private void handleServerError(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
 
         try {
-            ActionInvocationErrorResponse errorResponse = handleErrorResponse(entity);
+            ActionInvocationResponse.APIResponse errorResponse = handleErrorResponse(entity);
             if (errorResponse != null) {
                 builder.response(errorResponse);
             } else {
-                builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+                builder.errorLog("Failed to execute the action request. Received status code: " + statusCode + ".");
                 builder.retry(true);
             }
         } catch (ActionInvocationException e) {
-            //todo: add to diagnostic logs
             LOG.debug("JSON payload received for status code: " + statusCode +
                     " is not of the expected error response format. ", e);
-            builder.errorLog("Failed to execute the action request. Received: " + statusCode);
+            builder.errorLog("Unexpected error response received for the status code: " + statusCode + ". "
+                    + e.getMessage());
             builder.retry(true);
         }
     }
 
-    private ActionInvocationSuccessResponse handleSuccessResponse(HttpEntity responseEntity)
+    private ActionInvocationResponse.APIResponse handleSuccessOrFailureResponse(HttpEntity responseEntity)
             throws ActionInvocationException {
 
-        return deserialize(responseEntity, ActionInvocationSuccessResponse.class);
+        return deserializeSuccessOrFailureResponse(responseEntity);
     }
 
-    private ActionInvocationErrorResponse handleErrorResponse(HttpEntity responseEntity)
+    private ActionInvocationResponse.APIResponse handleErrorResponse(HttpEntity responseEntity)
             throws ActionInvocationException {
 
         // If an error response is received, return the error response in order to communicate back to the client.
@@ -219,20 +223,47 @@ public class APIClient {
         return null;
     }
 
-    private <T> T deserialize(HttpEntity responseEntity, Class<T> returnType) throws ActionInvocationException {
+    private String validateJsonResponse(HttpEntity responseEntity) throws ActionInvocationException {
 
         if (!isAcceptablePayload(responseEntity)) {
             throw new ActionInvocationException("The response content type is not application/json.");
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String jsonResponse = EntityUtils.toString(responseEntity);
+            return EntityUtils.toString(responseEntity);
+        } catch (IOException e) {
+            throw new ActionInvocationException("Reading JSON response failed.", e);
+        }
+    }
+
+    private ActionInvocationResponse.APIResponse deserializeSuccessOrFailureResponse(HttpEntity responseEntity)
+            throws ActionInvocationException {
+
+        try {
+            String jsonResponse = validateJsonResponse(responseEntity);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(jsonResponse);
+            String actionStatus = rootNode.path(ACTION_STATUS).asText();
+            if (actionStatus.isEmpty()) {
+                throw new ActionInvocationException("Reading JSON response failed.");
+            }
+            if (actionStatus.equals(ActionExecutionStatus.Status.SUCCESS.name())) {
+                return objectMapper.readValue(jsonResponse, ActionInvocationSuccessResponse.class);
+            } else {
+                return objectMapper.readValue(jsonResponse, ActionInvocationFailureResponse.class);
+            }
+        } catch (IOException e) {
+            throw new ActionInvocationException("Reading JSON response failed.", e);
+        }
+    }
+
+    private <T> T deserialize(HttpEntity responseEntity, Class<T> returnType) throws ActionInvocationException {
+
+        try {
+            String jsonResponse = validateJsonResponse(responseEntity);
+            ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(jsonResponse, returnType);
         } catch (IOException e) {
-            //todo: It is good to log the parsing error for detailed troubleshooting for the extension developer.
-            // It's not a good idea to expose the error as that disclose internal details,
-            // so better log against a trace id.
             throw new ActionInvocationException("Parsing JSON response failed.", e);
         }
     }
