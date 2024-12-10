@@ -35,5 +35,5 @@ public interface IdentityKeyStoreGenerator {
      * @param context      the context for which the KeyStore is to be generated.
      * @throws KeyStoreManagementException if an error occurs during KeyStore creation or initialization.
      */
-    void generateContextKeyStore(String tenantDomain, String context) throws KeyStoreManagementException;
+    void generateKeyStore(String tenantDomain, String context) throws KeyStoreManagementException;
 }

@@ -2001,7 +2001,7 @@ public class IdentityUtil {
             } else {
                 // Fetch certificate within the provided context
                 publicKey = IdentityKeyStoreResolver.getInstance()
-                        .getCertificate(tenantDomain, null, context)
+                        .getCertificate(tenantDomain,  null, context)
                         .getPublicKey();
             }
 

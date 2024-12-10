@@ -268,10 +268,10 @@ public class IdentityKeyStoreResolver {
             getCertificate(tenantDomain);
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (publicCerts.containsKey(String.valueOf(tenantId +
-                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context))) {
-            return publicCerts.get(String.valueOf(tenantId +
-                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context));
+        if (publicCerts.containsKey(tenantId +
+                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context)) {
+            return publicCerts.get(tenantId +
+                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
         }
 
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
@@ -288,8 +288,8 @@ public class IdentityKeyStoreResolver {
                             tenantDomain), e);
         }
 
-        publicCerts.put(String.valueOf(tenantId +
-                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context), publicCert);
+        publicCerts.put(tenantId +
+                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context, publicCert);
         return publicCert;
     }
 

@@ -56,6 +56,7 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -150,6 +151,7 @@ public class IdentityUtilTest {
     MockedStatic<SignatureUtil> signatureUtil;
     MockedStatic<IdentityKeyStoreResolver> identityKeyStoreResolver;
     MockedStatic<KeyStoreManager> keyStoreManager;
+    private MockedStatic<KeystoreUtils> keystoreUtils;
 
 
     @BeforeMethod
@@ -164,6 +166,7 @@ public class IdentityUtilTest {
         signatureUtil = mockStatic(SignatureUtil.class);
         identityKeyStoreResolver = mockStatic(IdentityKeyStoreResolver.class);
         keyStoreManager = mockStatic(KeyStoreManager.class);
+        keystoreUtils = mockStatic(KeystoreUtils.class);
 
         serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(mockServerConfiguration);
         identityCoreServiceComponent.when(
@@ -203,6 +206,7 @@ public class IdentityUtilTest {
         signatureUtil.close();
         identityKeyStoreResolver.close();
         keyStoreManager.close();
+        keystoreUtils.close();
     }
 
     @Test(description = "Test converting a certificate to PEM format")
@@ -1116,6 +1120,7 @@ public class IdentityUtilTest {
         String data = "testData";
         String superTenantDomain = "carbon.super";
         keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(mockKeyStoreManager);
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(superTenantDomain)).thenReturn(".jks");
         when(mockKeyStoreManager.getDefaultPrivateKey()).thenReturn(mockPrivateKey);
         when(mockKeyStoreManager.getPrivateKey(anyString(), anyString())).thenReturn(mockPrivateKey);
 

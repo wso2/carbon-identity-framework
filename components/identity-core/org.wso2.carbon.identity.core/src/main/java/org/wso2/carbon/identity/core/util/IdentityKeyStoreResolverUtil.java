@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.core.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.xml.namespace.QName;
 
@@ -67,12 +68,12 @@ public class IdentityKeyStoreResolverUtil {
         String ksName = tenantDomain.trim().replace(".", "-");
 
         // Append context if provided
-        if (!StringUtils.isEmpty(context)) {
+        if (StringUtils.isNotBlank(context)) {
             ksName = ksName + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context.trim();
         }
 
         // Add the keystore extension
-        return ksName + IdentityKeyStoreResolverConstants.KEY_STORE_EXTENSION;
+        return ksName + KeystoreUtils.getKeyStoreFileExtension(tenantDomain);
     }
 
     /**

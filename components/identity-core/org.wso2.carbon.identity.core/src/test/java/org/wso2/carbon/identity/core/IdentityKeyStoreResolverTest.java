@@ -30,6 +30,7 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
 import java.lang.reflect.Field;
@@ -84,6 +85,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
     private MockedStatic<IdentityConfigParser> identityConfigParser;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private MockedStatic<KeystoreUtils> keystoreUtils;
 
     private IdentityKeyStoreResolver identityKeyStoreResolver;
 
@@ -143,6 +145,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
         when(keyStoreManager.getCertificate("CUSTOM/" + CUSTOM_KEY_STORE, null)).thenReturn(customCertificate);
 
         identityKeyStoreResolver = IdentityKeyStoreResolver.getInstance();
+        keystoreUtils = mockStatic(KeystoreUtils.class);
     }
 
     @AfterClass
@@ -150,6 +153,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
 
         identityConfigParser.close();
         identityTenantUtil.close();
+        keystoreUtils.close();
     }
 
     @Test
@@ -210,6 +214,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "KeyStoreDataProvider")
     public void testGetKeyStore(String tenantDomain, InboundProtocol inboundProtocol, KeyStore expectedKeyStore) throws Exception {
 
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
         assertEquals(expectedKeyStore, identityKeyStoreResolver.getKeyStore(tenantDomain, inboundProtocol));
     }
 
@@ -229,6 +234,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "PrivateKeyDataProvider")
     public void testGetPrivateKey(String tenantDomain, InboundProtocol inboundProtocol, PrivateKey expectedKey)  throws Exception {
 
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
         assertEquals(expectedKey, identityKeyStoreResolver.getPrivateKey(tenantDomain, inboundProtocol));
     }
 
@@ -248,6 +254,7 @@ public class IdentityKeyStoreResolverTest extends TestCase {
     @Test(dataProvider = "PublicCertificateDataProvider")
     public void testGetCertificate(String tenantDomain, InboundProtocol inboundProtocol, X509Certificate expectedCert) throws Exception {
 
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
         assertEquals(expectedCert, identityKeyStoreResolver.getCertificate(tenantDomain, inboundProtocol));
     }
 
