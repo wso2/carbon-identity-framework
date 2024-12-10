@@ -458,7 +458,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
         // Filter the local claim `role` when groups vs roles separation is enabled. This claim is
         // considered as a legacy claim going forward, thus `roles` and `groups` claims should be used
         // instead.
-        if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() && UserCoreConstants.ROLE_CLAIM.
+        if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() &&
+                !IdentityUtil.isShowRoleClaimOnGroupRoleSeparationEnabled() && UserCoreConstants.ROLE_CLAIM.
                 equals(localClaim.getClaimURI())) {
             if (log.isDebugEnabled()) {
                 log.debug("Skipping the legacy role claim: " + localClaim.getClaimURI() + ", when getting " +
