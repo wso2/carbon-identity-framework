@@ -158,7 +158,7 @@ public class IdentityUtil {
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
     private static Boolean groupsVsRolesSeparationImprovementsEnabled;
-    private static Boolean showRoleClaimOnGroupRoleSeparationEnabled;
+    private static Boolean showLegacyRoleClaimOnGroupRoleSeparationEnabled;
     private static String JAVAX_TRANSFORMER_PROP_VAL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 
     // System Property for trust managers.
@@ -1635,19 +1635,20 @@ public class IdentityUtil {
      *
      * @return Where show role claim on group role separation enabled or not.
      */
-    public static boolean isShowRoleClaimOnGroupRoleSeparationEnabled() {
+    public static boolean isShowLegacyRoleClaimOnGroupRoleSeparationEnabled() {
 
         try {
             UserRealm userRealm = AdminServicesUtil.getUserRealm();
-            if(userRealm == null) {
+            if (userRealm == null) {
                 log.warn("Unable to find the user realm, thus ShowRoleClaimOnGroupRoleSeparationEnabled is set as FALSE.");
                 return Boolean.FALSE;
             }
-            if (showRoleClaimOnGroupRoleSeparationEnabled == null) {
-                showRoleClaimOnGroupRoleSeparationEnabled = UserCoreUtil.isShowRoleClaimOnGroupRoleSeparationEnabled(
+            if (showLegacyRoleClaimOnGroupRoleSeparationEnabled == null) {
+                showLegacyRoleClaimOnGroupRoleSeparationEnabled =
+                        UserCoreUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled(
                         userRealm.getRealmConfiguration());
             }
-            return showRoleClaimOnGroupRoleSeparationEnabled;
+            return showLegacyRoleClaimOnGroupRoleSeparationEnabled;
         } catch (UserStoreException | CarbonException e) {
             log.warn("Property value parsing error: ShowRoleClaimOnGroupRoleSeparationEnabled, thus considered as FALSE");
             return Boolean.FALSE;
