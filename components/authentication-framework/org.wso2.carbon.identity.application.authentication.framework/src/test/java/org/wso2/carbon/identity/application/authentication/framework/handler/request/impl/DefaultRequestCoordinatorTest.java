@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthRequestWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -446,7 +447,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
             assertNull(authenticationContext.getSubject());
 
-        } catch (IdentityApplicationManagementException e) {
+        } catch (IdentityApplicationManagementException | UserIdNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

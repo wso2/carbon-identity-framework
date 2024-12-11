@@ -663,7 +663,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @throws
      */
     protected AuthenticationContext initializeFlow(HttpServletRequest request, HttpServletResponse response)
-            throws FrameworkException {
+            throws FrameworkException, UserIdNotFoundException {
 
         if (log.isDebugEnabled()) {
             log.debug("Initializing the flow");
@@ -878,7 +878,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     protected void findPreviousAuthenticatedSession(HttpServletRequest request, AuthenticationContext context)
-            throws FrameworkException {
+            throws FrameworkException, UserIdNotFoundException {
 
         List<String> acrRequested = getAcrRequested(request);
         if (acrRequested != null) {
@@ -983,8 +983,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         context.setSubject(authenticatedUser);
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Already authenticated by username: " +
-                                    authenticatedUser.getAuthenticatedSubjectIdentifier());
+                            log.debug("Already authenticated by userId: " + authenticatedUser.getUserId());
                         }
 
                         if (authenticatedUserTenantDomain != null) {
