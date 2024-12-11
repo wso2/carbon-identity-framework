@@ -344,6 +344,46 @@ public class RoleDAOImpl implements RoleDAO {
         return getFilteredRolesBasicInfo(expressionNodes, limit, offset, sortBy, sortOrder, tenantDomain);
     }
 
+    @Override
+    public int getRolesCount(List<ExpressionNode> expressionNodes, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return getFilteredRolesCount(expressionNodes, tenantDomain);
+    }
+
+    private int getFilteredRolesCount(List<ExpressionNode> expressionNodes, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        appendFilterQuery(expressionNodes, filterQueryBuilder);
+        Map<String, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
+            String query = String.format(SQLQueries.GET_ROLES_COUNT_BY_TENANT_AND_FILTER,
+                    filterQueryBuilder.getFilterQuery());
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query,
+                    RoleConstants.RoleTableColumns.UM_ID)) {
+                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                if (filterAttributeValue != null) {
+                    for (Map.Entry<String, String> entry : filterAttributeValue.entrySet()) {
+                        statement.setString(entry.getKey(), entry.getValue());
+                    }
+                }
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityRoleManagementServerException(RoleConstants.Error.UNEXPECTED_SERVER_ERROR.getCode(),
+                    String.format("Error while getting the role list count in tenantDomain: %s with filter %s.",
+                            tenantDomain, filterQueryBuilder.getFilterQuery()), e);
+        }
+        return 0;
+    }
+
     private List<RoleBasicInfo> getFilteredRolesBasicInfo(List<ExpressionNode> expressionNodes, Integer limit,
                                                           Integer offset, String sortBy, String sortOrder,
                                                           String tenantDomain) throws IdentityRoleManagementException {

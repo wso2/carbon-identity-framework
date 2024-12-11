@@ -696,6 +696,34 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public int getRolesCount(String searchFilter, String tenantDomain) throws IdentityRoleManagementException {
+
+        List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
+                .getRoleManagementListenerList();
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.preGetRolesCount(searchFilter, tenantDomain);
+            }
+        }
+        RoleManagementEventPublisherProxy roleManagementEventPublisherProxy =
+                RoleManagementEventPublisherProxy.getInstance();
+        roleManagementEventPublisherProxy.publishPreGetRolesCountWithException(searchFilter, tenantDomain);
+        List<ExpressionNode> expressionNodes = getExpressionNodes(searchFilter);
+        int count = roleDAO.getRolesCount(expressionNodes, tenantDomain);
+        roleManagementEventPublisherProxy.publishPostGetRolesCount(searchFilter, tenantDomain);
+        for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
+            if (roleManagementListener.isEnable()) {
+                roleManagementListener.postGetRolesCount(count, searchFilter, tenantDomain);
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Get roles count for the filter %s & tenant domain %s is successful.",
+                    searchFilter, tenantDomain));
+        }
+        return count;
+    }
+
+    @Override
     public Role getRoleWithoutUsers(String roleId, String tenantDomain)
             throws IdentityRoleManagementException {
 
