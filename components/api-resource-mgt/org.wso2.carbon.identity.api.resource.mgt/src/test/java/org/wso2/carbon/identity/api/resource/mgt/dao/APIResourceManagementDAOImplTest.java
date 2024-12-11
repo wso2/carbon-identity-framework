@@ -78,6 +78,8 @@ public class APIResourceManagementDAOImplTest {
         daoImpl = new APIResourceManagementDAOImpl();
         initiateH2Database(getFilePath());
 
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
+
         // Add initial API resources.
         addAPIResourceToDB("Setup-1", getConnection(), TENANT_ID);
         addAPIResourceToDB("Setup-2", getConnection(), TENANT_ID);
