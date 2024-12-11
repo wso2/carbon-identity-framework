@@ -80,6 +80,9 @@ public class RoleConstants {
     public static final String NEW_ROLE_NAME = "newRoleName";
     public static final String FAILURE_REASON = "failureReason";
 
+    // Role management service configurations.
+    public static final String ALLOW_SYSTEM_PREFIX_FOR_ROLES = "RoleMgt.AllowSystemPrefixForRoles";
+
     /**
      * Grouping of constants related to database table names.
      */
