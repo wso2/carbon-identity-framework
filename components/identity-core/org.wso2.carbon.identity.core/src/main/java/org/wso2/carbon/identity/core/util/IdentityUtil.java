@@ -114,6 +114,7 @@ import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
 public class IdentityUtil {
 
@@ -1999,10 +2000,21 @@ public class IdentityUtil {
                         .getCertificate(tenantDomain, null)
                         .getPublicKey();
             } else {
-                // Fetch certificate within the provided context
-                publicKey = IdentityKeyStoreResolver.getInstance()
-                        .getCertificate(tenantDomain,  null, context)
-                        .getPublicKey();
+                try {
+                    // Fetch certificate within the provided context
+                    Certificate certificate = IdentityKeyStoreResolver.getInstance()
+                            .getCertificate(tenantDomain, null, context);
+                    publicKey = certificate.getPublicKey();
+                } catch (IdentityKeyStoreResolverException e) {
+                    if (ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST.getCode()
+                            .equals(e.getErrorCode())) {
+                        // Context keystore not exits, hence return validation as false.
+                        return false;
+                    } else {
+                        throw new SignatureException("Error while validating the signature for tenant: "
+                                + tenantDomain, e);
+                    }
+                }
             }
 
             // Validate the signature using the retrieved public key

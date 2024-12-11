@@ -69,7 +69,7 @@ public class IdentityKeyStoreResolverUtil {
 
         // Append context if provided
         if (StringUtils.isNotBlank(context)) {
-            ksName = ksName + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context.trim();
+            ksName = buildDomainWithContext(ksName, context);
         }
 
         // Add the keystore extension
@@ -102,5 +102,17 @@ public class IdentityKeyStoreResolverUtil {
     public static QName getQNameWithIdentityNameSpace(String localPart) {
         
         return new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, localPart);
+    }
+
+    /**
+     * Concatenates tenantDomain and context with the separator.
+     *
+     * @param tenantDomain the key store name
+     * @param context the context
+     * @return a concatenated string in the format tenantDomain:context
+     */
+    public static String buildDomainWithContext(String tenantDomain, String context) {
+
+        return tenantDomain + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context;
     }
 }

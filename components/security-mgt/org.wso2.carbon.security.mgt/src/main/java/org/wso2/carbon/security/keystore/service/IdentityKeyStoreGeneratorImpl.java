@@ -119,10 +119,10 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
         }
     }
 
-    private boolean isContextKeyStoreExists(String context, String tenantDomain, KeyStoreManager keyStoreManager) {
+    private boolean isContextKeyStoreExists(String context, String tenantDomain, KeyStoreManager keyStoreManager)
+            throws KeyStoreManagementException {
 
-        String keyStoreName = KeystoreUtils.getKeyStoreFileLocation(tenantDomain +
-                KEY_STORE_CONTEXT_SEPARATOR + context);
+        String keyStoreName = KeystoreUtils.getKeyStoreFileLocation(buildDomainWithContext(tenantDomain, context));
         boolean isKeyStoreExists = false;
         try {
             keyStoreManager.getKeyStore(keyStoreName);
@@ -204,16 +204,16 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
 
         try {
             CryptoUtil.getDefaultCryptoUtil();
-            //generate key pair
+            // Generate key pair
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
             // Common Name and alias for the generated certificate
-            String commonName = "CN=" + tenantDomain +
-                    KEY_STORE_CONTEXT_SEPARATOR + context + ", OU=None, O=None, L=None, C=None";
+            String commonName = "CN=" + buildDomainWithContext(tenantDomain, context)
+                    + ", OU=None, O=None, L=None, C=None";
 
-            //generate certificates
+            // Generate certificates
             X500Name distinguishedName = new X500Name(commonName);
 
             Date notBefore = new Date(System.currentTimeMillis() - CERT_NOT_BEFORE_TIME);
@@ -238,8 +238,8 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
             X509Certificate x509Cert = new JcaX509CertificateConverter().setProvider(getJCEProvider())
                     .getCertificate(certificateBuilder.build(signerBuilder.build(privateKey)));
 
-            //add private key to KS
-            keyStore.setKeyEntry(tenantDomain + KEY_STORE_CONTEXT_SEPARATOR + context,
+            // Add private key to KS
+            keyStore.setKeyEntry(buildDomainWithContext(tenantDomain, context),
                     keyPair.getPrivate(), password.toCharArray(),
                     new java.security.cert.Certificate[]{x509Cert});
         } catch (Exception ex) {
@@ -274,10 +274,26 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
      * This method generates the key store file name from the Domain Name
      *  @return keystore name.
      */
-    private String generateContextKSNameFromDomainName(String context, String tenantDomain){
+    private String generateContextKSNameFromDomainName(String context, String tenantDomain)
+            throws KeyStoreManagementException {
 
         String ksName = tenantDomain.trim().replace(".", "-");
-        ksName = ksName + KEY_STORE_CONTEXT_SEPARATOR + context;
+        ksName = buildDomainWithContext(ksName, context);
         return (ksName + KeystoreUtils.getKeyStoreFileExtension(tenantDomain));
+    }
+
+    /**
+     * Concatenates ksName and context with the separator.
+     *
+     * @param ksName the key store name
+     * @param context the context
+     * @return a concatenated string in the format ksName:context
+     */
+    private String buildDomainWithContext(String ksName, String context) throws KeyStoreManagementException {
+
+        if (ksName == null || context == null) {
+            throw new KeyStoreManagementException("ksName and context must not be null");
+        }
+        return ksName + KEY_STORE_CONTEXT_SEPARATOR + context;
     }
 }

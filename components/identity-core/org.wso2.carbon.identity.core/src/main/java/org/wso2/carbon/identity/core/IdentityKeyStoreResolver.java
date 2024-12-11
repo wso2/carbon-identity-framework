@@ -268,19 +268,33 @@ public class IdentityKeyStoreResolver {
             getCertificate(tenantDomain);
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        if (publicCerts.containsKey(tenantId +
-                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context)) {
-            return publicCerts.get(tenantId +
-                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
+
+        if (publicCerts.containsKey(buildDomainWithContext(tenantId, context))) {
+            return publicCerts.get(buildDomainWithContext(tenantId, context));
         }
 
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
         Certificate publicCert;
+        String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
         try {
-            String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
             publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain +
-                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR+ context);
+                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
 
+        } catch (SecurityException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Key Store with a name: " + tenantKeyStoreName
+                    + " does not exist.")) {
+
+                throw new IdentityKeyStoreResolverException(
+                        ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST.getCode(),
+                        String.format(
+                                ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST
+                                        .getDescription(), tenantDomain), e);
+            } else {
+                throw new IdentityKeyStoreResolverException(
+                        ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
+                        String.format(ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getDescription(),
+                                tenantDomain), e);
+            }
         } catch (Exception e) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
@@ -288,9 +302,20 @@ public class IdentityKeyStoreResolver {
                             tenantDomain), e);
         }
 
-        publicCerts.put(tenantId +
-                IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context, publicCert);
+        publicCerts.put(buildDomainWithContext(tenantId, context), publicCert);
         return publicCert;
+    }
+
+    /**
+     * Concatenates tenantId and context with the separator.
+     *
+     * @param tenantId the key store name
+     * @param context the context
+     * @return a concatenated string in the format tenantDomain:context
+     */
+    private String buildDomainWithContext(int tenantId, String context) {
+
+        return tenantId + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context;
     }
 
     /**
