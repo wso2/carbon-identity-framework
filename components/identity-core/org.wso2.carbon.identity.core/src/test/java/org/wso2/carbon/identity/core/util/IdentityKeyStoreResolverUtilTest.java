@@ -18,9 +18,14 @@
 
 package org.wso2.carbon.identity.core.util;
 
+import org.mockito.MockedStatic;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
+import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtil.buildCustomKeyStoreName;
@@ -34,6 +39,14 @@ import javax.xml.namespace.QName;
  */
 public class IdentityKeyStoreResolverUtilTest {
 
+    private MockedStatic<KeystoreUtils> keystoreUtils;
+
+    @BeforeClass
+    public void setUp() throws Exception {
+
+        keystoreUtils = mockStatic(KeystoreUtils.class);
+    }
+
     @DataProvider(name = "CorrectTenantKeyStoreNameDataProvider")
     public Object[][] correctTenantKeyStoreNameDataProvider() {
 
@@ -43,10 +56,17 @@ public class IdentityKeyStoreResolverUtilTest {
         };
     }
 
+    @AfterClass
+    public void close() {
+
+        keystoreUtils.close();
+    }
+
     @Test(dataProvider = "CorrectTenantKeyStoreNameDataProvider")
     public void testCorrectBuildTenantKeyStoreName(String tenantDomain, String expectedResult) throws IdentityKeyStoreResolverException {
 
-        assertEquals(expectedResult, buildTenantKeyStoreName(tenantDomain));
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(tenantDomain)).thenReturn(".jks");
+        assertEquals(buildTenantKeyStoreName(tenantDomain), expectedResult);
     }
 
     @DataProvider(name = "IncorrectTenantKeyStoreNameDataProvider")

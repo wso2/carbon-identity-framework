@@ -42,6 +42,8 @@ import org.wso2.carbon.security.SecurityConstants;
 import org.wso2.carbon.security.SecurityServiceHolder;
 import org.wso2.carbon.security.keystore.KeyStoreManagementService;
 import org.wso2.carbon.security.keystore.KeyStoreManagementServiceImpl;
+import org.wso2.carbon.security.keystore.service.IdentityKeyStoreGenerator;
+import org.wso2.carbon.security.keystore.service.IdentityKeyStoreGeneratorImpl;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -65,6 +67,8 @@ public class SecurityMgtServiceComponent {
         try {
             BundleContext bundleCtx = ctxt.getBundleContext();
             bundleCtx.registerService(KeyStoreManagementService.class.getName(), new KeyStoreManagementServiceImpl(),
+                    null);
+            bundleCtx.registerService(IdentityKeyStoreGenerator.class.getName(), new IdentityKeyStoreGeneratorImpl(),
                     null);
             try {
                 addKeystores();

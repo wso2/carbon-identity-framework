@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.core.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import javax.xml.namespace.QName;
 
@@ -38,13 +39,41 @@ public class IdentityKeyStoreResolverUtil {
      */
     public static String buildTenantKeyStoreName(String tenantDomain) throws IdentityKeyStoreResolverException {
 
+        return buildTenantKeyStoreName(tenantDomain, null);
+    }
+
+    /**
+     * Builds the keystore name for a given tenant domain and context.
+     * The tenant domain is sanitized by replacing dots (.) with hyphens (-) to ensure compatibility
+     * with keystore naming conventions. If a context is provided, it is appended to the sanitized
+     * tenant domain with an underscore (_). The method also appends the standard keystore file
+     * extension as defined in {@link IdentityKeyStoreResolverConstants}.
+     *
+     * @param tenantDomain The domain name of the tenant (e.g., "example.com").
+     * @param context       The optional context to append to the tenant keystore name.
+     * @return A sanitized and formatted keystore name for the tenant.
+     * @throws IdentityKeyStoreResolverException If the tenant domain is null, empty, or invalid.
+     */
+    public static String buildTenantKeyStoreName(String tenantDomain, String context)
+            throws IdentityKeyStoreResolverException {
+
+        // Validate tenantDomain argument
         if (StringUtils.isEmpty(tenantDomain)) {
             throw new IdentityKeyStoreResolverException(
                     ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getCode(),
                     String.format(ErrorMessages.ERROR_CODE_INVALID_ARGUMENT.getDescription(), "Tenant domain"));
         }
+
+        // Sanitize tenant domain: replace '.' with '-'
         String ksName = tenantDomain.trim().replace(".", "-");
-        return ksName + IdentityKeyStoreResolverConstants.KEY_STORE_EXTENSION;
+
+        // Append context if provided
+        if (StringUtils.isNotBlank(context)) {
+            ksName = buildDomainWithContext(ksName, context);
+        }
+
+        // Add the keystore extension
+        return ksName + KeystoreUtils.getKeyStoreFileExtension(tenantDomain);
     }
 
     /**
@@ -73,5 +102,17 @@ public class IdentityKeyStoreResolverUtil {
     public static QName getQNameWithIdentityNameSpace(String localPart) {
         
         return new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, localPart);
+    }
+
+    /**
+     * Concatenates tenantDomain and context with the separator.
+     *
+     * @param tenantDomain the key store name
+     * @param context the context
+     * @return a concatenated string in the format tenantDomain:context
+     */
+    public static String buildDomainWithContext(String tenantDomain, String context) {
+
+        return tenantDomain + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context;
     }
 }

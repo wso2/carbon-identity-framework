@@ -131,7 +131,7 @@ public class SecurityConstants {
         public static final String FILTER_OPERATION_CONTAINS = "co";
 
         public static final String SERVER_TRUSTSTORE_FILE = "Security.TrustStore.Location";
-
+        public static final String KEY_STORE_CONTEXT_SEPARATOR = "--";
         /**
          * Enum for Keystore management service related errors.
          */
