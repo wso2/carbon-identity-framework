@@ -191,7 +191,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         boolean isGroupRoleSeparationEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
-        boolean isShowRoleClaimOnGroupRoleSeparation = IdentityUtil.isShowRoleClaimOnGroupRoleSeparationEnabled();
+        boolean isShowRoleClaimOnGroupRoleSeparation = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
         List<LocalClaim> filteredLocalClaims = new ArrayList<>(localClaims.size());
 
         for (LocalClaim claim : localClaims) {
