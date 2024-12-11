@@ -45,9 +45,4 @@ public class AuthenticatorMgtServerRuntimeException extends RuntimeException {
 
         return this.description;
     }
-
-    public Throwable getCause() {
-
-        return this.cause;
-    }
 }

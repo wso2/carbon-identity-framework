@@ -281,9 +281,6 @@ public class ApplicationAuthenticatorService {
     private UserDefinedLocalAuthenticatorConfig resolveExistingAuthenticator(String authenticatorName,
             String tenantDomain) throws AuthenticatorMgtException {
 
-        UserDefinedLocalAuthenticatorConfig existingAuthenticatorConfig = dao.
-                getUserDefinedLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
-
-        return  existingAuthenticatorConfig;
+        return dao.getUserDefinedLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 }

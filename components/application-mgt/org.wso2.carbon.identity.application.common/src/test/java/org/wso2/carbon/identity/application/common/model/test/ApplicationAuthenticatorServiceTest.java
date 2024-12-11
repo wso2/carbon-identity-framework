@@ -18,15 +18,14 @@
 
 package org.wso2.carbon.identity.application.common.model.test;
 
-import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -34,8 +33,6 @@ import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtExc
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerRuntimeException;
 import org.wso2.carbon.identity.application.common.internal.ApplicationCommonServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.test.util.ActionMgtTestUtil;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
@@ -46,19 +43,20 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.application.common.model.test.util.ActionMgtTestUtil.mockActionService;
+import static org.wso2.carbon.identity.application.common.model.test.util.UserDefinedLocalAuthenticatorDataUtil.createSystemDefinedAuthenticatorConfig;
+import static org.wso2.carbon.identity.application.common.model.test.util.UserDefinedLocalAuthenticatorDataUtil.createUserDefinedAuthenticatorConfig;
+import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError.ERROR_CODE_INVALID_DEFINED_BY_AUTH_PROVIDED;
 
 /**
  * This class is a test suite for the ApplicationAuthenticatorServiceTest class.
@@ -72,7 +70,6 @@ import static org.mockito.Mockito.when;
 @WithRealmService(injectToSingletons = {IdentityCoreServiceDataHolder.class})
 public class ApplicationAuthenticatorServiceTest {
 
-    private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
     private String tenantDomain;
 
     private UserDefinedLocalAuthenticatorConfig authenticatorConfig1;
@@ -110,16 +107,20 @@ public class ApplicationAuthenticatorServiceTest {
         endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig(
                 "http://localhost1", "admin1", "admin1");
         action = ActionMgtTestUtil.createAction(endpointConfig);
-        actionManagementService = mock(ActionManagementService.class);
-
-        when(actionManagementService.addAction(anyString(), any(), any())).thenReturn(action);
-        when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
-        when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
-        doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
+        actionManagementService = mockActionService(action);
 
         ApplicationCommonServiceDataHolder.getInstance().setApplicationAuthenticatorService(
                 ApplicationAuthenticatorService.getInstance());
         ApplicationCommonServiceDataHolder.getInstance().setActionManagementService(actionManagementService);
+    }
+
+    @AfterClass
+    public void tearDownClass() throws AuthenticatorMgtException {
+
+        ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
+                .deleteUserDefinedLocalAuthenticator(AUTHENTICATOR1_NAME, tenantDomain);
+        ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
+                .deleteUserDefinedLocalAuthenticator(AUTHENTICATOR2_NAME, tenantDomain);
     }
 
     @AfterMethod
@@ -210,9 +211,11 @@ public class ApplicationAuthenticatorServiceTest {
     @Test(priority = 6)
     public void testAddLocalAuthenticatorWithRuntimeError() {
 
-        assertThrows(AuthenticatorMgtServerRuntimeException.class, () ->
-                ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
+        AuthenticatorMgtServerRuntimeException exception = assertThrows(AuthenticatorMgtServerRuntimeException.class,
+                () -> ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                         .addLocalAuthenticator(authenticatorConfig1));
+        Assert.assertEquals(exception.getErrorCode(), ERROR_CODE_INVALID_DEFINED_BY_AUTH_PROVIDED.getCode());
+
     }
 
     @Test(priority = 10)
@@ -358,54 +361,5 @@ public class ApplicationAuthenticatorServiceTest {
 
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                 .deleteUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig.getName(), tenantDomain);
-    }
-
-    private UserDefinedLocalAuthenticatorConfig createUserDefinedAuthenticatorConfig(String uniqueIdentifier,
-                                                                                     AuthenticationType type) {
-
-        UserDefinedLocalAuthenticatorConfig authenticatorConfig = new
-                UserDefinedLocalAuthenticatorConfig(AuthenticationType.IDENTIFICATION);
-        authenticatorConfig.setName(uniqueIdentifier);
-        authenticatorConfig.setDisplayName("Custom " + uniqueIdentifier);
-        authenticatorConfig.setEnabled(true);
-        authenticatorConfig.setDefinedByType(DefinedByType.USER);
-        authenticatorConfig.setAuthenticationType(type);
-        UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder = buildAuthenticatorEndpointConfig();
-        authenticatorConfig.setEndpointConfig(endpointConfigBuilder.build());
-
-        return authenticatorConfig;
-    }
-
-    private LocalAuthenticatorConfig createSystemDefinedAuthenticatorConfig(String uniqueIdentifier) {
-
-        LocalAuthenticatorConfig authenticatorConfig = new LocalAuthenticatorConfig();
-        authenticatorConfig.setName(uniqueIdentifier);
-        authenticatorConfig.setDisplayName("Custom " + uniqueIdentifier);
-        authenticatorConfig.setEnabled(true);
-        authenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
-        Property prop1 = new Property();
-        prop1.setName("PropertyName1_" + uniqueIdentifier);
-        prop1.setValue("PropertyValue1_" + uniqueIdentifier);
-        prop1.setConfidential(false);
-        Property prop2 = new Property();
-        prop2.setName("PropertyName2_" + uniqueIdentifier);
-        prop2.setValue("PropertyValue2_" + uniqueIdentifier);
-        prop2.setConfidential(true);
-        authenticatorConfig.setProperties(new Property[]{prop1, prop2});
-
-        return authenticatorConfig;
-    }
-
-    private static UserDefinedAuthenticatorEndpointConfigBuilder buildAuthenticatorEndpointConfig() {
-
-        UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder =
-                new UserDefinedAuthenticatorEndpointConfigBuilder();
-        endpointConfigBuilder.uri("https://localhost:8080/test");
-        endpointConfigBuilder.authenticationType(Authentication.Type.BASIC.getName());
-        HashMap<String, String> authProperties = new HashMap<>();
-        authProperties.put("username", "admin");
-        authProperties.put("password", "admin");
-        endpointConfigBuilder.authenticationProperties(authProperties);
-        return endpointConfigBuilder;
     }
 }

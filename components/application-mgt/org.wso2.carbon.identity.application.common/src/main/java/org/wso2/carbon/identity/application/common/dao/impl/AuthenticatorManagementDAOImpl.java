@@ -124,7 +124,11 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         try {
             return getUserDefinedLocalAuthenticatorByName(authenticatorConfigName, tenantId);
         } catch (DataAccessException e) {
-            throw new RuntimeException(e);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Error while retrieving the user defined local authenticator:%s in tenant " +
+                        "domain: %s.", authenticatorConfigName, IdentityTenantUtil.getTenantDomain(tenantId)));
+            }
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
@@ -171,17 +175,14 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
                     allUserDefinedLocalConfigs.add(config);
                 }
-            } catch (DataAccessException e) {
-                throw new RuntimeException(e);
             }
-
             return allUserDefinedLocalConfigs;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while retrieving the all user defined local authenticators in tenant " +
                                 "domain: %s.", IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_DELETING_AUTHENTICATOR, e);
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
         }
     }
 
@@ -277,13 +278,12 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     authenticatorConfigName);
     }
 
-    private void addAuthenticatorProperties(String authenticatorName,
-                                            int authenticatorConfigID, Property[] properties, int tenantId)
-            throws DataAccessException, AuthenticatorMgtServerException {
+    private void addAuthenticatorProperties(String authenticatorName, int authenticatorConfigID, Property[] properties,
+                                            int tenantId) throws DataAccessException, AuthenticatorMgtServerException {
 
         if (!(properties.length == 1 && ACTION_ID_PROPERTY.equals(properties[0].getName()))) {
             throw buildServerException(AuthenticatorMgtError.ERROR_CODE_HAVING_MULTIPLE_PROP,
-                    properties[0].getName());
+                    authenticatorName);
         }
 
         Property prop = properties[0];
