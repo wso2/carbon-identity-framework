@@ -29,6 +29,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants;
+import org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.security.keystore.KeyStoreManagementException;
 import org.wso2.carbon.utils.ServerConstants;
@@ -127,9 +129,19 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
         try {
             keyStoreManager.getKeyStore(keyStoreName);
             isKeyStoreExists = true;
+        } catch (SecurityException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Key Store with a name: " + keyStoreName
+                    + " does not exist.")) {
+
+                String msg = "Key store not exits. Proceeding to create keystore : " + keyStoreName;
+                LOG.debug(msg + e.getMessage());
+            } else {
+                String msg = "Error while checking the existence of keystore.";
+                throw new KeyStoreManagementException(msg, e);
+            }
         } catch (Exception e) {
             String msg = "Error while checking the existence of keystore.";
-            LOG.debug(msg + e.getMessage());
+            throw new KeyStoreManagementException(msg, e);
         }
         return isKeyStoreExists;
     }
@@ -165,12 +177,19 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
                                         KeyStoreManager keyStoreManager) throws KeyStoreManagementException {
 
         String keyStoreName = generateContextKSNameFromDomainName(context, tenantDomain);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        char[] passwordChar = password.toCharArray();
         try {
-            char[] passwordChar = password.toCharArray();
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             keyStore.store(outputStream, passwordChar);
             outputStream.flush();
             outputStream.close();
+        } catch (Exception e) {
+            String msg = "Error occurred while storing the keystore or processing the public certificate for tenant: "
+                    + tenantDomain + " and context: " + context + ". Ensure the keystore is valid and writable.";
+            throw new KeyStoreManagementException(msg, e);
+        }
+
+        try {
 
             keyStoreManager.addKeyStore(outputStream.toByteArray(), keyStoreName,
                     passwordChar, " ", KeystoreUtils.getKeyStoreFileType(tenantDomain), passwordChar);
@@ -183,10 +202,6 @@ public class IdentityKeyStoreGeneratorImpl implements IdentityKeyStoreGenerator 
                 String msg = "Error when adding a keyStore";
                 throw new KeyStoreManagementException(msg, e);
             }
-        } catch (Exception e) {
-
-            String msg = "Error when processing keystore/pub. cert to be stored in registry";
-            throw new KeyStoreManagementException(msg, e);
         }
     }
 

@@ -97,6 +97,7 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE;
 import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
 @Listeners(MockitoTestNGListener.class)
@@ -1132,7 +1133,8 @@ public class IdentityUtilTest {
         assertTrue(result);
     }
 
-    @Test
+    @Test(description = "Validate signature when the context keystore does not exist. "
+            + "Expect the method to return false without throwing an exception.")
     public void testValidateSignatureFromContextKeystoreIfNotExists() throws Exception {
 
         String data = "testData";
@@ -1149,6 +1151,25 @@ public class IdentityUtilTest {
 
         boolean result = IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain, context);
         assertFalse(result);
+    }
+
+    @Test(description = "Validate signature when an unexpected exception occurs while retrieving the "
+            + "tenant's public certificate. Expect a SignatureException to be thrown.",
+            expectedExceptions = SignatureException.class)
+    public void testValidateSignatureFromContextKeystoreNegative() throws Exception {
+
+        String data = "testData";
+        byte[] signature = new byte[]{1, 2, 3};
+        String tenantDomain = "carbon.super";
+        String context = "cookie";
+
+        identityKeyStoreResolver.when(IdentityKeyStoreResolver::getInstance).thenReturn(mockIdentityKeyStoreResolver);
+        when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null, context))
+                .thenThrow(new IdentityKeyStoreResolverException
+                        (ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
+                                ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getDescription()));
+
+        IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain, context);
     }
 
     @Test
