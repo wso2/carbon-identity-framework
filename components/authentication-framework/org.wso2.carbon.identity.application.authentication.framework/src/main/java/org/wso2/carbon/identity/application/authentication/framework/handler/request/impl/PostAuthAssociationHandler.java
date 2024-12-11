@@ -200,6 +200,10 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         String associatesUserName;
         String originalExternalIdpSubjectValueForThisStep = stepConfig.getAuthenticatedUser()
                 .getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            originalExternalIdpSubjectValueForThisStep = FrameworkUtils.getExternalSubject(stepConfig,
+                    context.getTenantDomain());
+        }
         try {
             FrameworkUtils.startTenantFlow(context.getTenantDomain());
             FederatedAssociationManager federatedAssociationManager = FrameworkUtils.getFederatedAssociationManager();
