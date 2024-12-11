@@ -113,7 +113,9 @@ public class AuthenticatorMgtExceptionBuilder {
         ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG("65010", "Error while resolving endpoint configurations.",
                 "Error while retrieving endpoint configurations for the user defined local authenticator %s."),
         ERROR_CODE_DELETING_ENDPOINT_CONFIG("65011", "Error while managing endpoint configurations.",
-                "Error while managing endpoint configurations for the user defined local authenticator %s.");
+                "Error while managing endpoint configurations for the user defined local authenticator %s."),
+        ERROR_CODE_HAVING_MULTIPLE_PROP("65012", "Multiple properties found", "Only actionId " +
+                "property is allowed for authenticator: %s.");
 
         private final String code;
         private final String message;

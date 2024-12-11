@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.application.common;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
+import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;

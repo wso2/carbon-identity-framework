@@ -34,14 +34,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.ACTION_ID_PROPERTY;
 
 /**
  * This class responsible for managing authenticator endpoint configurations for the user defined Local
  * authenticators.
  */
 public class UserDefinedAuthenticatorEndpointConfigManager {
-
-    private static final String ACTION_ID_PROPERTY = "actionId";
 
     /**
      * Create a new action for given endpoint configurations of the user defined authenticator.

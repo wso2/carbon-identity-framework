@@ -20,7 +20,10 @@ package org.wso2.carbon.identity.application.common.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Query;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
@@ -41,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.ACTION_ID_PROPERTY;
 
 /**
  * This class implements the AuthenticatorManagementDAO interface which perform CRUD operation on database.
@@ -56,38 +60,32 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.executeInsert(Query.ADD_AUTHENTICATOR_SQL,
+                (statement -> {
+                    statement.setString(Column.NAME, authenticatorConfig.getName());
+                    statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
+                    statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
+                    statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType()
+                            .toString());
+                    statement.setInt(Column.IS_ENABLED, authenticatorConfig.isEnabled() ? 1 : 0);
+                    statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
+                    statement.setInt(Column.TENANT_ID, tenantId);
+                }), null, false);
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection, Query.ADD_AUTHENTICATOR_SQL)) {
-            statement.setString(Column.NAME, authenticatorConfig.getName());
-            statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
-            statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
-            statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType().toString());
-            statement.setInt(Column.IS_ENABLED, authenticatorConfig.isEnabled() ? 1 : 0);
-            statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
-            statement.setInt(Column.TENANT_ID, tenantId);
-            statement.executeUpdate();
+            int authenticatorConfigID = getAuthenticatorIdentifier(authenticatorConfig.getName(), tenantId);
+            addAuthenticatorProperties(authenticatorConfig.getName(), authenticatorConfigID,
+                    authenticatorConfig.getProperties(), tenantId);
 
-            if (authenticatorConfig.getProperties() != null) {
-
-                int authenticatorConfigID = getAuthenticatorIdentifier(dbConnection, authenticatorConfig.getName(),
-                        tenantId);
-                addAuthenticatorProperties(dbConnection, authenticatorConfigID, authenticatorConfig.getProperties(),
-                        tenantId);
-            }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-
-            return getUserDefinedLocalAuthenticatorByName(dbConnection, authenticatorConfig.getName(), tenantId);
-        } catch (SQLException e) {
+            return getUserDefinedLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);
+        } catch (DataAccessException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while adding the authenticator: %s in tenant domain: %s. " +
                                 "Rolling back added Authenticator information.", authenticatorConfig.getName(),
                                 IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
@@ -97,39 +95,25 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             UserDefinedLocalAuthenticatorConfig updatedAuthenticatorConfig, int tenantId)
             throws AuthenticatorMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            if (isBasicInfoUpdated(existingAuthenticatorConfig, updatedAuthenticatorConfig)) {
-                try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                        Query.UPDATE_AUTHENTICATOR_SQL)) {
+            jdbcTemplate.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL,
+                statement -> {
                     statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
                     statement.setInt(Column.IS_ENABLED, updatedAuthenticatorConfig.isEnabled() ? 1 : 0);
                     statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
                     statement.setInt(Column.TENANT_ID, tenantId);
                     statement.executeUpdate();
-                }
-            }
+                });
 
-            // Will delete all the properties of given authenticator and add the updated properties.
-            int authenticatorConfigID = getAuthenticatorIdentifier(dbConnection,
-                    existingAuthenticatorConfig.getName(), tenantId);
-            deletedAuthenticatorProperties(dbConnection, authenticatorConfigID, tenantId);
-            addAuthenticatorProperties(dbConnection, authenticatorConfigID, updatedAuthenticatorConfig.getProperties(),
-                    tenantId);
-
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-
-            return getUserDefinedLocalAuthenticatorByName(dbConnection, updatedAuthenticatorConfig.getName(), tenantId);
-        } catch (SQLException e) {
+            return getUserDefinedLocalAuthenticatorByName(updatedAuthenticatorConfig.getName(), tenantId);
+        } catch (DataAccessException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while updating the authenticator: %s in tenant domain: %s. " +
                                 "Rolling back updated Authenticator information.",
                                 existingAuthenticatorConfig.getName(), IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
@@ -139,7 +123,9 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         try {
-            return getUserDefinedLocalAuthenticatorByName(dbConnection, authenticatorConfigName, tenantId);
+            return getUserDefinedLocalAuthenticatorByName(authenticatorConfigName, tenantId);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
         } finally {
             IdentityDatabaseUtil.closeConnection(dbConnection);
         }
@@ -165,7 +151,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     config.setEnabled(rs.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                     config.setDefinedByType(DefinedByType.valueOf(rs.getString(Column.DEFINED_BY)));
 
-                    int authenticatorConfigID = getAuthenticatorIdentifier(dbConnection, config.getName(), tenantId);
+                    int authenticatorConfigID = getAuthenticatorIdentifier(config.getName(), tenantId);
                     try (NamedPreparedStatement statementProp = new NamedPreparedStatement(dbConnection,
                             Query.GET_AUTHENTICATOR_PROP_SQL)) {
                         statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
@@ -186,6 +172,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
                     allUserDefinedLocalConfigs.add(config);
                 }
+            } catch (DataAccessException e) {
+                throw new RuntimeException(e);
             }
 
             return allUserDefinedLocalConfigs;
@@ -202,75 +190,68 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     public void deleteUserDefinedLocalAuthenticator(String authenticatorConfigName, 
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                Query.DELETE_AUTHENTICATOR_SQL)) {
-            statement.setString(Column.NAME, authenticatorConfigName);
-            statement.setInt(Column.TENANT_ID, tenantId);
-            statement.executeUpdate();
-
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-        } catch (SQLException e) {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                return template.executeQuery(Query.DELETE_AUTHENTICATOR_SQL,
+                        (resultSet, rowNumber) -> null,
+                        statement -> {
+                            statement.setString(Column.NAME, authenticatorConfigName);
+                            statement.setInt(Column.TENANT_ID, tenantId);
+                            statement.executeUpdate();
+                        });
+            });
+        } catch (TransactionException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while deleting the authenticator: %s in tenant domain: %s. " +
                                 "Rolling back deleted Authenticator information.", authenticatorConfigName,
                                 IdentityTenantUtil.getTenantDomain(tenantId)));
             }
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_DELETING_AUTHENTICATOR, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
-    private UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticatorByName(
-            Connection dbConnection, String authenticatorConfigName, int tenantId)
-            throws AuthenticatorMgtServerException {
+    private UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticatorByName(String authenticatorConfigName,
+            int tenantId) throws AuthenticatorMgtServerException, DataAccessException {
 
-        UserDefinedLocalAuthenticatorConfig config = null;
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection, Query.GET_AUTHENTICATOR_SQL)) {
-            statement.setString(Column.NAME, authenticatorConfigName);
-            statement.setInt(Column.TENANT_ID, tenantId);
-            statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
-
-            try (ResultSet rs = statement.executeQuery()) {
-                if (rs.next()) {
-                    config = getLocalAuthenticatorConfigBasedOnType(rs.getString(Column.AUTHENTICATION_TYPE));
-                    config.setName(rs.getString(Column.NAME));
-                    config.setDisplayName(rs.getString(Column.DISPLAY_NAME));
-                    config.setEnabled(rs.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        UserDefinedLocalAuthenticatorConfig authConfig = jdbcTemplate.fetchSingleRecord(Query.GET_AUTHENTICATOR_SQL,
+                (resultSet, rowNumber) -> {
+                    UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
+                            resultSet.getString(Column.AUTHENTICATION_TYPE));
+                    config.setName(resultSet.getString(Column.NAME));
+                    config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                    config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                     config.setDefinedByType(DefinedByType.USER);
-                }
-            }
+                    return config;
+                },
+                statement -> {
+                    statement.setString(Column.NAME, authenticatorConfigName);
+                    statement.setInt(Column.TENANT_ID, tenantId);
+                    statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
+                });
 
-            if (config == null) {
-                return null;
-            }
-
-            int authenticatorConfigID = getAuthenticatorIdentifier(dbConnection, config.getName(), tenantId);
-            try (NamedPreparedStatement statementProp = new NamedPreparedStatement(dbConnection,
-                    Query.GET_AUTHENTICATOR_PROP_SQL)) {
-                statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
-                statementProp.setInt(Column.TENANT_ID, tenantId);
-
-                try (ResultSet rs = statementProp.executeQuery()) {
-                    List<Property> properties = new ArrayList<>();
-                    while (rs.next()) {
-                        Property property = new Property();
-                        property.setName(rs.getString(Column.PROPERTY_KEY));
-                        property.setValue(rs.getString(Column.PROPERTY_VALUE));
-                        property.setConfidential(false);
-                        properties.add(property);
-                    }
-                    config.setProperties(properties.toArray(new Property[0]));
-                }
-            }
-
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
-            return config;
-        } catch (SQLException e) {
-            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
+        if (authConfig == null) {
+            return null;
         }
+
+        int authenticatorConfigID = getAuthenticatorIdentifier(authenticatorConfigName, tenantId);
+        List<Property> properties = new ArrayList<>();
+        jdbcTemplate.fetchSingleRecord(Query.GET_AUTHENTICATOR_PROP_SQL,
+                (resultSet, rowNumber) -> {
+                    Property property = new Property();
+                    property.setName(resultSet.getString(Column.PROPERTY_KEY));
+                    property.setValue(resultSet.getString(Column.PROPERTY_VALUE));
+                    property.setConfidential(false);
+                    properties.add(property);
+                    return null;
+                },
+                statementProp -> {
+                    statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
+                    statementProp.setInt(Column.TENANT_ID, tenantId);
+                });
+        authConfig.setProperties(properties.toArray(new Property[0]));
+        return authConfig;
     }
 
     private UserDefinedLocalAuthenticatorConfig getLocalAuthenticatorConfigBasedOnType(String authenticationType) {
@@ -281,48 +262,37 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         return new UserDefinedLocalAuthenticatorConfig(AuthenticationType.IDENTIFICATION);
     }
 
-    private boolean isBasicInfoUpdated(UserDefinedLocalAuthenticatorConfig existingAuthenticatorConfig,
-                                       UserDefinedLocalAuthenticatorConfig updatedAuthenticatorConfig) {
+    private int getAuthenticatorIdentifier(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtServerException, DataAccessException {
 
-        return !existingAuthenticatorConfig.getDisplayName().equals(updatedAuthenticatorConfig.getDisplayName()) ||
-                existingAuthenticatorConfig.isEnabled() != updatedAuthenticatorConfig.isEnabled();
-    }
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        String id = jdbcTemplate.fetchSingleRecord(Query.GET_AUTHENTICATOR_ID_SQL,
+            (resultSet, rowNumber) -> resultSet.getString(Column.ID),
+            statement -> {
+                statement.setString(Column.NAME, authenticatorConfigName);
+                statement.setInt(Column.TENANT_ID, tenantId);
+            });
 
-    private int getAuthenticatorIdentifier(Connection dbConnection, String authenticatorConfigName,
-                                               int tenantId) throws AuthenticatorMgtServerException, SQLException {
-
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                Query.GET_AUTHENTICATOR_ID_SQL)) {
-            statement.setString(Column.NAME, authenticatorConfigName);
-            statement.setInt(Column.TENANT_ID, tenantId);
-
-            try (ResultSet rs = statement.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(Column.ID);
-                }
-            }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
+        if (id != null) {
+            return Integer.parseInt(id);
         }
-        throw buildServerException(AuthenticatorMgtError.ERROR_CODE_NO_AUTHENTICATOR_FOUND, authenticatorConfigName);
+        throw buildServerException(AuthenticatorMgtError.ERROR_CODE_NO_AUTHENTICATOR_FOUND,
+                    authenticatorConfigName);
     }
 
-    private void deletedAuthenticatorProperties(Connection dbConnection, int authenticatorConfigID, int tenantId)
-            throws SQLException {
+    private void addAuthenticatorProperties(String authenticatorName,
+                                            int authenticatorConfigID, Property[] properties, int tenantId)
+            throws DataAccessException, AuthenticatorMgtServerException {
 
-        try (NamedPreparedStatement statementDeleteProp = new NamedPreparedStatement(dbConnection,
-                Query.DELETE_AUTHENTICATOR_PROP_SQL)) {
-            statementDeleteProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
-            statementDeleteProp.setInt(Column.TENANT_ID, tenantId);
-            statementDeleteProp.executeUpdate();
+        if (!(properties.length == 1 && ACTION_ID_PROPERTY.equals(properties[0].getName()))) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_HAVING_MULTIPLE_PROP,
+                    properties[0].getName());
         }
-    }
 
-    private void addAuthenticatorProperties(Connection dbConnection, int authenticatorConfigID, Property[] properties,
-                                            int tenantId) throws SQLException {
-
-        try (NamedPreparedStatement statementProp = new NamedPreparedStatement(dbConnection,
-                Query.ADD_AUTHENTICATOR_PROP_SQL)) {
-            for (Property prop : properties) {
+        Property prop = properties[0];
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.executeInsert(Query.ADD_AUTHENTICATOR_PROP_SQL,
+            (statementProp -> {
                 statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
                 statementProp.setInt(Column.TENANT_ID, tenantId);
                 statementProp.setString(Column.PROPERTY_KEY, prop.getName());
@@ -332,8 +302,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                 } else {
                     statementProp.setString(Column.IS_SECRET, IS_FALSE_VALUE);
                 }
-                statementProp.executeUpdate();
-            }
-        }
+            }), null, false);
     }
 }

@@ -166,6 +166,8 @@ public class IdentityApplicationConstants {
      */
     public static class Authenticator {
 
+        public static final String ACTION_ID_PROPERTY = "actionId";
+
         /**
          * OpenId authenticator constants.
          */
