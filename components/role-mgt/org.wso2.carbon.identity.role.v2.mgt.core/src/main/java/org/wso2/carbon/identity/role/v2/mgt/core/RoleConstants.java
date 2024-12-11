@@ -80,6 +80,9 @@ public class RoleConstants {
     public static final String NEW_ROLE_NAME = "newRoleName";
     public static final String FAILURE_REASON = "failureReason";
 
+    // Role properties
+    public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
+
     /**
      * Grouping of constants related to database table names.
      */
