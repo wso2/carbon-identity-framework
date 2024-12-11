@@ -28,11 +28,12 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
 
     private static final String TAG_2FA = "2FA";
     private static final String TAG_CUSTOM = "CUSTOM";
-
-    protected UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private AuthenticationType authenticationType;
+    private UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedLocalAuthenticatorConfig(AuthenticationType type) {
 
+        authenticationType = type;
         definedByType = DefinedByType.USER;
         if (AuthenticationType.VERIFICATION == type) {
             setTags(new String[]{TAG_CUSTOM, TAG_2FA});
@@ -42,7 +43,7 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Get the endpoint configurations of the User defined local authenticator config.
+     * Get the endpoint configurations of the user defined local authenticator config.
      *
      * @return UserDefinedAuthenticatorEndpointConfig
      */
@@ -52,12 +53,32 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     }
 
     /**
-     * Set the endpoint configurations of the User defined local authenticator config.
+     * Set the endpoint configurations of the user defined local authenticator config.
      *
-     * @param endpointConfig    The endpoint config of the User defined local authenticator config.
+     * @param endpointConfig    The endpoint config of the user defined local authenticator config.
      */
     public void setEndpointConfig(UserDefinedAuthenticatorEndpointConfig endpointConfig) {
 
         this.endpointConfig = endpointConfig;
+    }
+
+    /**
+     * Get the authentication type of the user defined local authenticator config.
+     *
+     * @return AuthenticationType.
+     */
+    public AuthenticationType getAuthenticationType() {
+
+        return authenticationType;
+    }
+
+    /**
+     * Set the authentication type of the user defined local authenticator config.
+     *
+     * @param authenticationType    The authentication type of the user defined local authenticator config.
+     */
+    public void setAuthenticationType(AuthenticationType authenticationType) {
+
+        this.authenticationType = authenticationType;
     }
 }
