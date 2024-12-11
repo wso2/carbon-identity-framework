@@ -213,7 +213,6 @@ public class ApplicationAuthenticatorService {
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
         authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
-        authenticatorValidator.validateDefinedByType(authenticatorConfig.getDefinedByType());
 
         return dao.addUserDefinedLocalAuthenticator(
                 authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -233,7 +232,11 @@ public class ApplicationAuthenticatorService {
 
         UserDefinedLocalAuthenticatorConfig existingConfig = resolveExistingAuthenticator(
                 authenticatorConfig.getName(), tenantDomain);
-        authenticatorValidator.validateDefinedByType(existingConfig.getDefinedByType());
+        if (existingConfig == null) {
+            throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR,
+                    authenticatorConfig.getName());
+        }
+
         authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
 
         return dao.updateUserDefinedLocalAuthenticator(
@@ -252,7 +255,9 @@ public class ApplicationAuthenticatorService {
 
         UserDefinedLocalAuthenticatorConfig existingConfig = resolveExistingAuthenticator(
                 authenticatorName, tenantDomain);
-        authenticatorValidator.validateDefinedByType(existingConfig.getDefinedByType());
+        if (existingConfig == null) {
+            return;
+        }
 
         dao.deleteUserDefinedLocalAuthenticator(authenticatorName, existingConfig,
                 IdentityTenantUtil.getTenantId(tenantDomain));
@@ -278,10 +283,6 @@ public class ApplicationAuthenticatorService {
 
         UserDefinedLocalAuthenticatorConfig existingAuthenticatorConfig = dao.
                 getUserDefinedLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
-
-        if (existingAuthenticatorConfig == null) {
-            throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR, authenticatorName);
-        }
 
         return  existingAuthenticatorConfig;
     }

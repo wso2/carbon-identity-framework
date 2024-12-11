@@ -67,7 +67,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             LOG.debug("Error while creating the user defined local authenticator: " + authenticatorConfig.getName() +
                     " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
                     ". Rolling back created authenticator information, and associated action.");
-            throw handleAuthenticatorMgtException(e);
+            throw handleAuthenticatorMgtException(e.getCause());
         }
     }
 
@@ -91,7 +91,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
                     newAuthenticatorConfig.getName() + " in Tenant Domain: " +
                     IdentityTenantUtil.getTenantDomain(tenantId) +
                     ". Rolling back updated authenticator information, and associated action.");
-            throw handleAuthenticatorMgtException(e);
+            throw handleAuthenticatorMgtException(e.getCause());
         }
     }
 
@@ -131,7 +131,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             LOG.debug("Error while deleting the user defined local authenticator: " + authenticatorConfigName +
                     " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
                     ". Rolling back deleted authenticator information, and associated action.");
-            throw handleAuthenticatorMgtException(e);
+            throw handleAuthenticatorMgtException(e.getCause());
         }
     }
 

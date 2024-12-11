@@ -353,8 +353,7 @@ public class ApplicationAuthenticatorServiceTest {
                 .getLocalAuthenticatorByName(config.getName()));
     }
 
-    @Test(priority = 51, expectedExceptions = AuthenticatorMgtException.class,
-            expectedExceptionsMessageRegExp = "No Authenticator found.")
+    @Test(priority = 51)
     public void testDeleteUserDefinedLocalAuthenticatorWithNonExistingAuthenticator() throws AuthenticatorMgtException {
 
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()

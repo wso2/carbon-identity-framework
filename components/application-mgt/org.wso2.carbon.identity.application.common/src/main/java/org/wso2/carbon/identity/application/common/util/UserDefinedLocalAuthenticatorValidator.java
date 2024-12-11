@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.common.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
-import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.util.regex.Pattern;
 
@@ -61,20 +60,6 @@ public class UserDefinedLocalAuthenticatorValidator {
         if (!isValidName) {
             throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AUTHENTICATOR_NAME,
                     name, AUTHENTICATOR_NAME_REGEX);
-        }
-    }
-
-    /**
-     * Validate the authenticator is a user defined by authenticator.
-     *
-     * @param definedByType  The defined by type of the authenticator config.
-     * @throws AuthenticatorMgtClientException   if the authenticator is not a user defined authenticator.
-     */
-    public void validateDefinedByType(DefinedByType definedByType)
-            throws AuthenticatorMgtClientException {
-
-        if (definedByType != DefinedByType.USER) {
-            throw buildClientException(AuthenticatorMgtError.ERROR_OP_ON_SYSTEM_AUTHENTICATOR);
         }
     }
 }

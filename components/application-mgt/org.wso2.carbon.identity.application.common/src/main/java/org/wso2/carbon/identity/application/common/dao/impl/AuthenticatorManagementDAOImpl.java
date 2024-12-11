@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Query;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
@@ -192,16 +191,14 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            jdbcTemplate.withTransaction(template -> {
-                return template.executeQuery(Query.DELETE_AUTHENTICATOR_SQL,
-                        (resultSet, rowNumber) -> null,
-                        statement -> {
-                            statement.setString(Column.NAME, authenticatorConfigName);
-                            statement.setInt(Column.TENANT_ID, tenantId);
-                            statement.executeUpdate();
-                        });
-            });
-        } catch (TransactionException e) {
+
+            jdbcTemplate.executeUpdate(Query.DELETE_AUTHENTICATOR_SQL,
+                    statement -> {
+                        statement.setString(Column.NAME, authenticatorConfigName);
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                        statement.executeUpdate();
+                    });
+        } catch (DataAccessException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while deleting the authenticator: %s in tenant domain: %s. " +
                                 "Rolling back deleted Authenticator information.", authenticatorConfigName,
