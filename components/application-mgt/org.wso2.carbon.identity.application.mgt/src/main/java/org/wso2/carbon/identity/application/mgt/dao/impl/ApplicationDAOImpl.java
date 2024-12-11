@@ -3631,31 +3631,32 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             loadAppConfigs.setInt(2, tenantID);
 
             try (ResultSet appConfigResultSet = loadAppConfigs.executeQuery()) {
-                if (appConfigResultSet.isBeforeFirst()) {
-                    spTrustedAppMetadata = new SpTrustedAppMetadata();
-
-                    // There should be maximum two entries for each service provider. One for Android and one for iOS.
-                    while (appConfigResultSet.next()) {
-                        PlatformType platformType = PlatformType.valueOf(appConfigResultSet.getString(1));
-                        if (PlatformType.ANDROID.equals(platformType)) {
-                            spTrustedAppMetadata.setAndroidPackageName(appConfigResultSet.getString(2));
-                            if (appConfigResultSet.getString(3) != null) {
-                                spTrustedAppMetadata.setAndroidThumbprints(
-                                        appConfigResultSet.getString(3).split(ATTRIBUTE_SEPARATOR));
-                            } else {
-                                spTrustedAppMetadata.setAndroidThumbprints(new String[0]);
-                            }
-                        } else if (PlatformType.IOS.equals(platformType)) {
-                            spTrustedAppMetadata.setAppleAppId(appConfigResultSet.getString(2));
-                        }
-                        spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
+                while (appConfigResultSet.next()) {
+                    if (spTrustedAppMetadata == null) {
+                        spTrustedAppMetadata = new SpTrustedAppMetadata();
                     }
-
+                    // There should be maximum two entries for each service provider. One for Android and one for iOS.
+                    PlatformType platformType = PlatformType.valueOf(appConfigResultSet.getString(1));
+                    if (PlatformType.ANDROID.equals(platformType)) {
+                        spTrustedAppMetadata.setAndroidPackageName(appConfigResultSet.getString(2));
+                        if (appConfigResultSet.getString(3) != null) {
+                            spTrustedAppMetadata.setAndroidThumbprints(
+                                    appConfigResultSet.getString(3).split(ATTRIBUTE_SEPARATOR));
+                        } else {
+                            spTrustedAppMetadata.setAndroidThumbprints(new String[0]);
+                        }
+                    } else if (PlatformType.IOS.equals(platformType)) {
+                        spTrustedAppMetadata.setAppleAppId(appConfigResultSet.getString(2));
+                    }
+                    spTrustedAppMetadata.setIsFidoTrusted(appConfigResultSet.getBoolean(4));
+                }
+                if (spTrustedAppMetadata != null) {
                     // If consent required property is disabled, consent is always considered as granted.
                     spTrustedAppMetadata.setIsConsentGranted(!ApplicationMgtUtil.isTrustedAppConsentRequired() ||
                             getTrustedAppConsent(spPropertyList));
                 }
             }
+
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while retrieving trusted app configurations.", e);
         }
