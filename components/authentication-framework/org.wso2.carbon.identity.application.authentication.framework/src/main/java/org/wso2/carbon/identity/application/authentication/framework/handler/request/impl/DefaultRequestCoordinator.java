@@ -987,8 +987,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                 String userId = authenticatedUser.getUserId();
                                 log.debug("Already authenticated by userId: " + userId);
                             } catch (UserIdNotFoundException e) {
-                                throw new FrameworkException("Error while getting the user ID from the authenticated " +
-                                        "user.", e);
+                                log.error("Error while getting the user ID from the authenticated user.");
                             }
                         }
 
