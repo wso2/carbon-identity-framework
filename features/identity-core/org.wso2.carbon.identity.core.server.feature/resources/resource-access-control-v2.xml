@@ -1207,6 +1207,17 @@
         <Scopes>internal_rule_metadata_view</Scopes>
     </Resource>
 
+    <!-- User defined local authenticator API -->
+    <Resource context="(.*)api/server/v1/authenticators/custom(.*)" secured="true" http-method="POST">
+        <Scopes>internal_custom_authenticator_create</Scopes>
+    </Resource>
+    <Resource context="(.*)api/server/v1/authenticators/custom(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_custom_authenticator_update</Scopes>
+    </Resource>
+    <Resource context="(.*)api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_custom_authenticator_delete</Scopes>
+    </Resource>
+
     <Resource context="/carbon(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
