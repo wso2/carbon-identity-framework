@@ -447,7 +447,7 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             requestCoordinator.findPreviousAuthenticatedSession(request, authenticationContext);
             assertNull(authenticationContext.getSubject());
 
-        } catch (IdentityApplicationManagementException | UserIdNotFoundException e) {
+        } catch (IdentityApplicationManagementException e) {
             throw new RuntimeException(e);
         }
     }
