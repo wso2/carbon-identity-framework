@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.common.dao.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Query;
@@ -36,9 +35,6 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByTyp
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,7 +116,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     public UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         try {
             return getUserDefinedLocalAuthenticatorByName(authenticatorConfigName, tenantId);
         } catch (DataAccessException e) {
@@ -129,8 +124,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         "domain: %s.", authenticatorConfigName, IdentityTenantUtil.getTenantDomain(tenantId)));
             }
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(dbConnection);
         }
     }
 
@@ -138,46 +131,31 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticators(int tenantId)
             throws AuthenticatorMgtException {
 
-        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
-             NamedPreparedStatement statement = new NamedPreparedStatement(dbConnection,
-                Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL)) {
-            statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
-            statement.setInt(Column.TENANT_ID, tenantId);
+        List<UserDefinedLocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
+        try {
+            NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+            jdbcTemplate.executeQuery(Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL,
+                    (resultSet, rowNumber) -> {
+                        UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
+                                resultSet.getString(Column.AUTHENTICATION_TYPE));
+                        config.setName(resultSet.getString(Column.NAME));
+                        config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                        config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
+                        config.setDefinedByType(DefinedByType.valueOf(resultSet.getString(Column.DEFINED_BY)));
+                        allUserDefinedLocalConfigs.add(config);
+                        return null;
+                    },
+                    statement -> {
+                        statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                    });
 
-            List<UserDefinedLocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
-                            rs.getString(Column.AUTHENTICATION_TYPE));
-                    config.setName(rs.getString(Column.NAME));
-                    config.setDisplayName(rs.getString(Column.DISPLAY_NAME));
-                    config.setEnabled(rs.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
-                    config.setDefinedByType(DefinedByType.valueOf(rs.getString(Column.DEFINED_BY)));
-
-                    int authenticatorConfigID = getAuthenticatorIdentifier(config.getName(), tenantId);
-                    try (NamedPreparedStatement statementProp = new NamedPreparedStatement(dbConnection,
-                            Query.GET_AUTHENTICATOR_PROP_SQL)) {
-                        statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
-                        statementProp.setInt(Column.TENANT_ID, tenantId);
-
-                        try (ResultSet rsProp = statementProp.executeQuery()) {
-                            List<Property> properties = new ArrayList<>();
-                            while (rsProp.next()) {
-                                Property property = new Property();
-                                property.setName(rsProp.getString(Column.PROPERTY_KEY));
-                                property.setValue(rsProp.getString(Column.PROPERTY_VALUE));
-                                property.setConfidential(false);
-                                properties.add(property);
-                            }
-                            config.setProperties(properties.toArray(new Property[0]));
-                        }
-                    }
-
-                    allUserDefinedLocalConfigs.add(config);
-                }
+            for (UserDefinedLocalAuthenticatorConfig retrievedConfigs: allUserDefinedLocalConfigs) {
+                int authenticatorConfigID = getAuthenticatorIdentifier(retrievedConfigs.getName(), tenantId);
+                retrievedConfigs.setProperties(getAuthenticatorProperties(authenticatorConfigID, tenantId));
             }
             return allUserDefinedLocalConfigs;
-        } catch (SQLException | DataAccessException e) {
+        } catch (DataAccessException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Error while retrieving the all user defined local authenticators in tenant " +
                                 "domain: %s.", IdentityTenantUtil.getTenantDomain(tenantId)));
@@ -300,5 +278,26 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statementProp.setString(Column.IS_SECRET, IS_FALSE_VALUE);
                 }
             }), null, false);
+    }
+
+    private Property[] getAuthenticatorProperties(int authenticatorConfigID,
+                                            int tenantId) throws DataAccessException {
+
+        List<Property> properties = new ArrayList<>();
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.executeQuery(Query.GET_AUTHENTICATOR_PROP_SQL,
+                (resultSet, rowNumber) -> {
+                    Property property = new Property();
+                    property.setName(resultSet.getString(Column.PROPERTY_KEY));
+                    property.setValue(resultSet.getString(Column.PROPERTY_VALUE));
+                    property.setConfidential(false);
+                    properties.add(property);
+                    return null;
+                },
+                statementProp -> {
+                    statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
+                    statementProp.setInt(Column.TENANT_ID, tenantId);
+                });
+        return properties.toArray(new Property[0]);
     }
 }

@@ -87,9 +87,8 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             });
         } catch (TransactionException e) {
             // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
-            LOG.debug("Error while updating the user defined local authenticator: " +
-                    newAuthenticatorConfig.getName() + " in Tenant Domain: " +
-                    IdentityTenantUtil.getTenantDomain(tenantId) +
+            LOG.debug("Error while updating the user defined local authenticator: " + newAuthenticatorConfig
+                    .getName() + " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
                     ". Rolling back updated authenticator information, and associated action.");
             throw handleAuthenticatorMgtException(e.getCause());
         }
@@ -99,20 +98,39 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     public UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException {
 
-        UserDefinedLocalAuthenticatorConfig config = dao.getUserDefinedLocalAuthenticator(authenticatorConfigName,
-                    tenantId);
-        return endpointConfigManager.resolveEndpointConfigurations(config, tenantId);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template ->
+                    endpointConfigManager.resolveEndpointConfigurations(dao.getUserDefinedLocalAuthenticator(
+                            authenticatorConfigName, tenantId), tenantId));
+        } catch (TransactionException e) {
+            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
+            LOG.debug("Error while retrieving the user defined local authenticator: " + authenticatorConfigName +
+                    " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId));
+            throw handleAuthenticatorMgtException(e.getCause());
+        }
     }
 
     @Override
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticators(int tenantId)
             throws AuthenticatorMgtException {
 
-        List<UserDefinedLocalAuthenticatorConfig> configList = dao.getAllUserDefinedLocalAuthenticators(tenantId);
-        for (UserDefinedLocalAuthenticatorConfig config : configList) {
-            endpointConfigManager.resolveEndpointConfigurations(config, tenantId);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template -> {
+                List<UserDefinedLocalAuthenticatorConfig> configList =
+                        dao.getAllUserDefinedLocalAuthenticators(tenantId);
+                for (UserDefinedLocalAuthenticatorConfig config : configList) {
+                    endpointConfigManager.resolveEndpointConfigurations(config, tenantId);
+                }
+                return configList;
+            });
+        } catch (TransactionException e) {
+            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
+            LOG.debug("Error while retrieving all user defined local authenticators in Tenant Domain: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+            throw handleAuthenticatorMgtException(e.getCause());
         }
-        return configList;
     }
 
     @Override
