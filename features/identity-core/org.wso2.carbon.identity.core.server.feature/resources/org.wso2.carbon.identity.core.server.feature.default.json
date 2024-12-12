@@ -503,6 +503,7 @@
   "event.default_listener.system_api_authorization_management_listener.enable": true,
 
   "identity_mgt_account_suspension.use_identity_claims": true,
+  "identity_mgt_account_suspension.run_task_in_cluster_mode": false,
 
   "identity_mgt.enable_user_claim_input_regex_validation": true,
 

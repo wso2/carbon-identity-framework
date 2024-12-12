@@ -1174,6 +1174,7 @@
 
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
+        <RunTaskInClusterMode>false</RunTaskInClusterMode>
     </AccountSuspension>
 
     <SCIM2MultiAttributeFiltering>
