@@ -1,0 +1,282 @@
+/*
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.rule.management.dao.impl;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.rule.management.constant.RuleSQLConstants;
+import org.wso2.carbon.identity.rule.management.dao.RuleManagementDAO;
+import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.exception.RuleManagementServerException;
+import org.wso2.carbon.identity.rule.management.model.Expression;
+import org.wso2.carbon.identity.rule.management.model.Rule;
+import org.wso2.carbon.identity.rule.management.model.Value;
+import org.wso2.carbon.identity.rule.management.model.internal.ANDCombinedRule;
+import org.wso2.carbon.identity.rule.management.model.internal.ORCombinedRule;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * Rule Management DAO Implementation.
+ * This class is used to perform CRUD operations on Rule in the database.
+ */
+public class RuleManagementDAOImpl implements RuleManagementDAO {
+
+    /**
+     * This method will add the Rule to the database and add the Rule Value References to the database.
+     *
+     * @param rule     Rule object
+     * @param tenantId Tenant ID
+     * @throws RuleManagementException If an error occurs while adding the rule to the database.
+     */
+    @Override
+    public void addRule(Rule rule, int tenantId) throws RuleManagementException {
+
+        try {
+            addRuleToDB(rule, tenantId);
+            addRuleValueReferencesToDB(rule, tenantId);
+        } catch (TransactionException e) {
+            throw new RuleManagementServerException("Error while creating the rule in the system.", e);
+        }
+    }
+
+    /**
+     * This method will update the Rule in the database and update the Rule Value References in the database,
+     * by deleting all and adding back reference values for the updated rule.
+     *
+     * @param rule     Rule object
+     * @param tenantId Tenant ID
+     * @throws RuleManagementException If an error occurs while updating the rule in the database.
+     */
+    @Override
+    public void updateRule(Rule rule, int tenantId) throws RuleManagementException {
+
+        try {
+            updateRuleInDB(rule, tenantId);
+            deleteRuleReferencesInDB(rule, tenantId);
+            addRuleValueReferencesToDB(rule, tenantId);
+        } catch (DataAccessException | TransactionException e) {
+            throw new RuleManagementServerException("Error while updating the rule in the system.", e);
+        }
+    }
+
+    /**
+     * This method will delete the Rule from the database.
+     *
+     * @param ruleId   Rule ID
+     * @param tenantId Tenant ID
+     * @throws RuleManagementException If an error occurs while deleting the rule from the database.
+     */
+    @Override
+    public void deleteRule(String ruleId, int tenantId) throws RuleManagementException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(RuleSQLConstants.Query.DELETE_RULE,
+                        statement -> {
+                            statement.setString(RuleSQLConstants.Column.UUID, ruleId);
+                            statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                        });
+
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new RuleManagementServerException("Error while deleting the rule in the system.", e);
+        }
+    }
+
+    /**
+     * This method will retrieve the Rule from the database.
+     *
+     * @param ruleId   Rule ID
+     * @param tenantId Tenant ID
+     * @return Rule object
+     * @throws RuleManagementException If an error occurs while retrieving the rule from the database.
+     */
+    @Override
+    public Rule getRuleByRuleId(String ruleId, int tenantId) throws RuleManagementException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            String[] ruleJson = new String[1];
+            boolean[] isActive = new boolean[1];
+            jdbcTemplate.fetchSingleRecord(RuleSQLConstants.Query.GET_RULE_BY_ID,
+                    (resultSet, rowNumber) -> {
+                        ruleJson[0] = resultSet.getString(RuleSQLConstants.Column.RULE);
+                        isActive[0] = resultSet.getBoolean(RuleSQLConstants.Column.IS_ACTIVE);
+                        return null;
+                    },
+                    statement -> {
+                        statement.setString(RuleSQLConstants.Column.UUID, ruleId);
+                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+
+            if (ruleJson[0] == null) {
+                return null;
+            }
+
+            return new ORCombinedRule.Builder(convertJsonToRule(ruleJson[0]))
+                    .setId(ruleId)
+                    .setActive(isActive[0])
+                    .build();
+        } catch (DataAccessException e) {
+            throw new RuleManagementServerException("Error while retrieving the rule from the system.", e);
+        }
+    }
+
+    /**
+     * This method will activate the Rule in the database.
+     *
+     * @param ruleId   Rule ID
+     * @param tenantId Tenant ID
+     * @throws RuleManagementException If an error occurs while activating the rule in the database.
+     */
+    @Override
+    public void activateRule(String ruleId, int tenantId) throws RuleManagementException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.executeUpdate(RuleSQLConstants.Query.CHANGE_RULE_STATUS,
+                    statement -> {
+                        statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, true);
+                        statement.setString(RuleSQLConstants.Column.UUID, ruleId);
+                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+        } catch (DataAccessException e) {
+            throw new RuleManagementServerException("Error while deactivating the rule in the system.", e);
+        }
+    }
+
+    /**
+     * This method will deactivate the Rule in the database.
+     *
+     * @param ruleId   Rule ID
+     * @param tenantId Tenant ID
+     * @throws RuleManagementException If an error occurs while deactivating the rule in the database.
+     */
+    @Override
+    public void deactivateRule(String ruleId, int tenantId) throws RuleManagementException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.executeUpdate(RuleSQLConstants.Query.CHANGE_RULE_STATUS,
+                    statement -> {
+                        statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, false);
+                        statement.setString(RuleSQLConstants.Column.UUID, ruleId);
+                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+        } catch (DataAccessException e) {
+            throw new RuleManagementServerException("Error while deactivating the rule in the system.", e);
+        }
+    }
+
+    private void addRuleToDB(Rule rule, int tenantId) throws TransactionException, RuleManagementServerException {
+
+        InputStream ruleJson = convertRuleToJson(rule);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            template.executeInsert(RuleSQLConstants.Query.ADD_RULE,
+                    statement -> {
+                        statement.setString(RuleSQLConstants.Column.UUID, rule.getId());
+                        statement.setBlob(RuleSQLConstants.Column.RULE_INDEX, ruleJson);
+                        statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, rule.isActive());
+                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                    }, rule, false);
+            return null;
+        });
+    }
+
+    private void addRuleValueReferencesToDB(Rule rule, int tenantId) throws TransactionException {
+
+        ORCombinedRule orCombinedRule = (ORCombinedRule) rule;
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            template.executeBatchInsert(RuleSQLConstants.Query.ADD_RULE_REFERENCES,
+                    statement -> {
+                        for (ANDCombinedRule rule1 : orCombinedRule.getRules()) {
+                            for (Expression expression : rule1.getExpressions()) {
+                                if (expression.getValue().getType() == Value.Type.REFERENCE) {
+                                    statement.setString(RuleSQLConstants.Column.RULE_REFERENCE_UUID, rule.getId());
+                                    statement.setString(RuleSQLConstants.Column.FIELD_NAME, expression.getField());
+                                    statement.setString(RuleSQLConstants.Column.FIELD_REFERENCE,
+                                            expression.getValue().getFieldValue());
+                                    statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                                    statement.addBatch();
+                                }
+                            }
+                        }
+                    }, null);
+            return null;
+        });
+    }
+
+    private void updateRuleInDB(Rule rule, int tenantId) throws DataAccessException, RuleManagementServerException {
+
+        InputStream ruleJson = convertRuleToJson(rule);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.executeUpdate(RuleSQLConstants.Query.UPDATE_RULE,
+                statement -> {
+                    statement.setBlob(1, ruleJson);
+                    statement.setString(RuleSQLConstants.Column.UUID, rule.getId());
+                    statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                });
+    }
+
+    private void deleteRuleReferencesInDB(Rule rule, int tenantId)
+            throws TransactionException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        jdbcTemplate.withTransaction(template -> {
+            template.executeUpdate(RuleSQLConstants.Query.DELETE_RULE_REFERENCES,
+                    statement -> {
+                        statement.setString(RuleSQLConstants.Column.RULE_REFERENCE_UUID, rule.getId());
+                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+
+            return null;
+        });
+    }
+
+    private InputStream convertRuleToJson(Rule rule) throws RuleManagementServerException {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return new ByteArrayInputStream(objectMapper.writeValueAsString(rule).getBytes(StandardCharsets.UTF_8));
+        } catch (JsonProcessingException e) {
+            throw new RuleManagementServerException("Failed to convert rule to JSON.", e);
+        }
+    }
+
+    private ORCombinedRule convertJsonToRule(String ruleJson) throws RuleManagementServerException {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(ruleJson, ORCombinedRule.class);
+        } catch (JsonProcessingException e) {
+            throw new RuleManagementServerException("Failed to convert JSON to rule.", e);
+        }
+    }
+}
