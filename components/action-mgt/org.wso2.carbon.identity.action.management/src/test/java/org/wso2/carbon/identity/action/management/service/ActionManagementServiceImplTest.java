@@ -310,6 +310,16 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(actions.get(PRE_ISSUE_ACCESS_TOKEN_PATH));
     }
 
+    @Test(priority = 14)
+    public void testDeleteNonExistingAction() {
+
+        try {
+            actionManagementService.deleteAction(PRE_ISSUE_ACCESS_TOKEN_PATH, "invalid_id", TENANT_DOMAIN);
+        } catch (Exception e) {
+            Assert.fail();
+        }
+    }
+
     private Map<String, String> resolveAuthPropertiesMap(Authentication authentication, String actionId)
             throws SecretManagementException {
 
