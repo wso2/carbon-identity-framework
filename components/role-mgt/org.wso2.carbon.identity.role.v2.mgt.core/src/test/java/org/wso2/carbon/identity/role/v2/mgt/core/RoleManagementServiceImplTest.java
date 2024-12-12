@@ -36,6 +36,9 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
+
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.lenient;
@@ -48,9 +51,6 @@ import static org.testng.Assert.fail;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ALLOW_SYSTEM_PREFIX_FOR_ROLES;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-
-import java.nio.file.Paths;
-import java.util.ArrayList;
 
 public class RoleManagementServiceImplTest extends IdentityBaseTest {
 
