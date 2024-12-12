@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
  */
 public class AuthenticatorCacheEntry extends CacheEntry {
 
+    private static final long serialVersionUID = -6234723984328871924L;
+
     private UserDefinedLocalAuthenticatorConfig authenticatorConfig;
 
     public AuthenticatorCacheEntry(UserDefinedLocalAuthenticatorConfig authenticatorConfig) {

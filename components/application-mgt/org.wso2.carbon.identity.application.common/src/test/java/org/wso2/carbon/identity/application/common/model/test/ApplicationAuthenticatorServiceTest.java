@@ -24,12 +24,15 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerRuntimeException;
 import org.wso2.carbon.identity.application.common.internal.ApplicationCommonServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -176,7 +179,7 @@ public class ApplicationAuthenticatorServiceTest {
                 .addUserDefinedLocalAuthenticator(config, tenantDomain);
     }
 
-    @Test(priority = 3, expectedExceptions = AuthenticatorMgtException.class,
+    @Test(priority = 4, expectedExceptions = AuthenticatorMgtException.class,
             expectedExceptionsMessageRegExp = "Authenticator name is invalid.")
     public void testCreateUserDefinedLocalAuthenticatorWithInvalidName() throws AuthenticatorMgtException {
 
@@ -185,21 +188,35 @@ public class ApplicationAuthenticatorServiceTest {
                                 AuthenticationType.IDENTIFICATION), tenantDomain);
     }
 
-    @Test(priority = 4)
-    public void testAddIdPActionException() throws Exception {
+    @Test(priority = 5)
+    public void testAddIdPActionServerException() throws Exception {
 
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
         when(actionManagementServiceForException.addAction(anyString(), any(), any()))
-                .thenThrow(ActionMgtException.class);
+                .thenThrow(ActionMgtServerException.class);
         ApplicationCommonServiceDataHolder.getInstance().setActionManagementService(
                 actionManagementServiceForException);
 
-        assertThrows(AuthenticatorMgtException.class, () ->
+        assertThrows(AuthenticatorMgtServerException.class, () ->
                 ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                         .addUserDefinedLocalAuthenticator(authenticatorConfigForException, tenantDomain));
     }
 
-    @Test(priority = 5)
+    @Test(priority = 6)
+    public void testAddIdPActionClientException() throws Exception {
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.addAction(anyString(), any(), any()))
+                .thenThrow(ActionMgtClientException.class);
+        ApplicationCommonServiceDataHolder.getInstance().setActionManagementService(
+                actionManagementServiceForException);
+
+        assertThrows(AuthenticatorMgtClientException.class, () ->
+                ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
+                        .addUserDefinedLocalAuthenticator(authenticatorConfigForException, tenantDomain));
+    }
+
+    @Test(priority = 7)
     public void testAddLocalAuthenticator() {
 
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
@@ -208,7 +225,7 @@ public class ApplicationAuthenticatorServiceTest {
                 .getLocalAuthenticatorByName(SYSTEM_AUTHENTICATOR_NAME));
     }
 
-    @Test(priority = 6)
+    @Test(priority = 8)
     public void testAddLocalAuthenticatorWithRuntimeError() {
 
         AuthenticatorMgtServerRuntimeException exception = assertThrows(AuthenticatorMgtServerRuntimeException.class,
@@ -218,7 +235,7 @@ public class ApplicationAuthenticatorServiceTest {
 
     }
 
-    @Test(priority = 10)
+    @Test(priority = 9)
     public void testGetAllUserDefinedLocalAuthenticators() throws Exception {
 
         List<UserDefinedLocalAuthenticatorConfig> authenticatorsList = ApplicationCommonServiceDataHolder.getInstance()
@@ -257,12 +274,12 @@ public class ApplicationAuthenticatorServiceTest {
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
         when(actionManagementServiceForException.addAction(anyString(), any(), any())).thenReturn(action);
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any()))
-                .thenThrow(ActionMgtException.class);
+                .thenThrow(ActionMgtServerException.class);
         ApplicationCommonServiceDataHolder.getInstance().setActionManagementService(
                 actionManagementServiceForException);
     }
 
-    @Test(priority = 20, dataProvider = "authenticatorConfigToModify")
+    @Test(priority = 12, dataProvider = "authenticatorConfigToModify")
     public void testUpdateUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -276,7 +293,7 @@ public class ApplicationAuthenticatorServiceTest {
         Assert.assertEquals(updatedAuthenticator.getProperties().length, config.getProperties().length);
     }
 
-    @Test(priority = 21, expectedExceptions = AuthenticatorMgtException.class,
+    @Test(priority = 13, expectedExceptions = AuthenticatorMgtException.class,
             expectedExceptionsMessageRegExp = "No Authenticator found.")
     public void testUpdateUserDefinedLocalAuthenticatorWithNonExistingAuthenticator() throws AuthenticatorMgtException {
 
@@ -284,17 +301,17 @@ public class ApplicationAuthenticatorServiceTest {
                 .updateUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig, tenantDomain);
     }
 
-    @Test(priority = 22)
+    @Test(priority = 14)
     public void testUpdateIdPActionException() throws Exception {
 
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
         when(actionManagementServiceForException.updateAction(any(), any(), any(), any()))
-                .thenThrow(ActionMgtException.class);
+                .thenThrow(ActionMgtServerException.class);
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         ApplicationCommonServiceDataHolder.getInstance().setActionManagementService(
                 actionManagementServiceForException);
 
-        assertThrows(AuthenticatorMgtException.class, () -> ApplicationCommonServiceDataHolder.getInstance()
+        assertThrows(AuthenticatorMgtServerException.class, () -> ApplicationCommonServiceDataHolder.getInstance()
                         .getApplicationAuthenticatorService().updateUserDefinedLocalAuthenticator(
                         authenticatorConfigForException, tenantDomain));
     }
@@ -309,7 +326,7 @@ public class ApplicationAuthenticatorServiceTest {
         };
     }
 
-    @Test(priority = 27, dataProvider = "authenticatorConfigToRetrieve")
+    @Test(priority = 15, dataProvider = "authenticatorConfigToRetrieve")
     public void testGetUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig configToBeRetrieved,
                  UserDefinedLocalAuthenticatorConfig expectedConfig, String type) throws AuthenticatorMgtException {
 
@@ -329,16 +346,17 @@ public class ApplicationAuthenticatorServiceTest {
         }
     }
 
-    @Test(priority = 40)
+    @Test(priority = 16)
     public void testDeleteUserDefinedLocalAuthenticatorWithActionException() throws Exception {
 
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
-        doThrow(ActionMgtException.class).when(actionManagementServiceForException).deleteAction(any(), any(), any());
+        doThrow(ActionMgtServerException.class)
+                .when(actionManagementServiceForException).deleteAction(any(), any(), any());
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         ApplicationCommonServiceDataHolder.getInstance()
                 .setActionManagementService(actionManagementServiceForException);
 
-        assertThrows(AuthenticatorMgtException.class, () -> ApplicationCommonServiceDataHolder.getInstance().
+        assertThrows(AuthenticatorMgtServerException.class, () -> ApplicationCommonServiceDataHolder.getInstance().
                 getApplicationAuthenticatorService().deleteUserDefinedLocalAuthenticator(
                         authenticatorConfigForException.getName(), tenantDomain));
         Assert.assertNotNull(ApplicationCommonServiceDataHolder.getInstance().
@@ -346,7 +364,7 @@ public class ApplicationAuthenticatorServiceTest {
                         authenticatorConfigForException.getName(), tenantDomain));
     }
 
-    @Test(priority = 50, dataProvider = "authenticatorConfigToModify")
+    @Test(priority = 17, dataProvider = "authenticatorConfigToModify")
     public void testDeleteUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -356,9 +374,10 @@ public class ApplicationAuthenticatorServiceTest {
                 .getLocalAuthenticatorByName(config.getName()));
     }
 
-    @Test(priority = 51)
+    @Test(priority = 18)
     public void testDeleteUserDefinedLocalAuthenticatorWithNonExistingAuthenticator() throws AuthenticatorMgtException {
 
+        // Assert that no exception is thrown when trying to delete a non-existing authenticator.
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                 .deleteUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig.getName(), tenantDomain);
     }

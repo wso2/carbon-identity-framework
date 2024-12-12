@@ -18,28 +18,30 @@
 
 package org.wso2.carbon.identity.application.common.dao.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder;
+import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
 import org.wso2.carbon.identity.application.common.util.UserDefinedAuthenticatorEndpointConfigManager;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
+
+import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.ACTION_ID_PROPERTY;
 
 /**
  * This class responsible for managing authenticator endpoint configurations for the user defined local
  * authenticators.
  */
 public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO {
-
-    private static final Log LOG = LogFactory.getLog(AuthenticatorManagementFacade.class);
 
     private final AuthenticatorManagementDAO dao;
     private UserDefinedAuthenticatorEndpointConfigManager endpointConfigManager =
@@ -50,6 +52,15 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
         this.dao = dao;
     }
 
+    /**
+     * Invoke external service to store associated data (endpoint configuration) and create the user defined local
+     * authenticator to the DB.
+     *
+     * @param authenticatorConfig User defined local authenticator configuration.
+     * @param tenantId            Tenant ID.
+     * @return User defined local authenticator configuration.
+     * @throws AuthenticatorMgtException If an error occurs while adding the user defined local authenticator.
+     */
     @Override
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
@@ -59,18 +70,26 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
         try {
             return jdbcTemplate.withTransaction(template -> {
                 endpointConfigManager.addEndpointConfigurations(authenticatorConfig, tenantId);
+                validateAuthenticatorProperties(authenticatorConfig);
                 return endpointConfigManager.resolveEndpointConfigurations(
                         dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId), tenantId);
             });
         } catch (TransactionException e) {
-            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
-            LOG.debug("Error while creating the user defined local authenticator: " + authenticatorConfig.getName() +
-                    " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
-                    ". Rolling back created authenticator information, and associated action.");
-            throw handleAuthenticatorMgtException(e.getCause());
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e,
+                    authenticatorConfig.getName());
         }
     }
 
+    /**
+     * Invoke external service to update associated data (endpoint configuration) and update the user defined local
+     * authenticator in DB.
+     *
+     * @param existingAuthenticatorConfig Existing user defined local authenticator configuration.
+     * @param newAuthenticatorConfig      New user defined local authenticator configuration.
+     * @param tenantId                    Tenant ID.
+     * @return Updated user defined local authenticator configuration.
+     * @throws AuthenticatorMgtException If an error occurs while updating the user defined local authenticator.
+     */
     @Override
     public UserDefinedLocalAuthenticatorConfig updateUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig
             existingAuthenticatorConfig, UserDefinedLocalAuthenticatorConfig newAuthenticatorConfig,
@@ -81,19 +100,26 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             return jdbcTemplate.withTransaction(template -> {
                 endpointConfigManager.updateEndpointConfigurations(newAuthenticatorConfig, existingAuthenticatorConfig,
                         tenantId);
+                validateAuthenticatorProperties(newAuthenticatorConfig);
                 return endpointConfigManager.resolveEndpointConfigurations(
                             dao.updateUserDefinedLocalAuthenticator(existingAuthenticatorConfig, newAuthenticatorConfig,
                                     tenantId), tenantId);
             });
         } catch (TransactionException e) {
-            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
-            LOG.debug("Error while updating the user defined local authenticator: " + newAuthenticatorConfig
-                    .getName() + " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
-                    ". Rolling back updated authenticator information, and associated action.");
-            throw handleAuthenticatorMgtException(e.getCause());
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e,
+                    newAuthenticatorConfig.getName());
         }
     }
 
+    /**
+     * Get user defined local authenticator by name and resolving associated data (endpoint configurations)
+     * by invoking external service.
+     *
+     * @param authenticatorConfigName Name of the user defined local authenticator.
+     * @param tenantId                Tenant ID.
+     * @return User defined local authenticator.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the user defined local authenticator.
+     */
     @Override
     public UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException {
@@ -104,13 +130,19 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
                     endpointConfigManager.resolveEndpointConfigurations(dao.getUserDefinedLocalAuthenticator(
                             authenticatorConfigName, tenantId), tenantId));
         } catch (TransactionException e) {
-            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
-            LOG.debug("Error while retrieving the user defined local authenticator: " + authenticatorConfigName +
-                    " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId));
-            throw handleAuthenticatorMgtException(e.getCause());
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e,
+                    authenticatorConfigName);
         }
     }
 
+    /**
+     * Get all user defined local authenticators and resolving associated data (endpoint configurations)
+     * by invoking external service.
+     *
+     * @param tenantId Tenant ID.
+     * @return List of user defined local authenticators.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving all user defined local authenticators.
+     */
     @Override
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticators(int tenantId)
             throws AuthenticatorMgtException {
@@ -126,13 +158,20 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
                 return configList;
             });
         } catch (TransactionException e) {
-            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
-            LOG.debug("Error while retrieving all user defined local authenticators in Tenant Domain: " +
-                    IdentityTenantUtil.getTenantDomain(tenantId));
-            throw handleAuthenticatorMgtException(e.getCause());
+            throw handleAuthenticatorMgtException(
+                    AuthenticatorMgtError.ERROR_WHILE_ALL_RETRIEVING_AUTHENTICATOR, e, StringUtils.EMPTY);
         }
     }
 
+    /**
+     * Invoke external service to delete associated data (endpoint configuration) and delete the user defined local
+     * authenticator in DB.
+     *
+     * @param authenticatorConfigName Name of the user defined local authenticator.
+     * @param authenticatorConfig     User defined local authenticator configuration.
+     * @param tenantId                Tenant ID.
+     * @throws AuthenticatorMgtException If an error occurs while deleting the user defined local authenticator.
+     */
     @Override
     public void deleteUserDefinedLocalAuthenticator(String authenticatorConfigName, UserDefinedLocalAuthenticatorConfig
             authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
@@ -145,11 +184,8 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
                 return null;
             });
         } catch (TransactionException e) {
-            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
-            LOG.debug("Error while deleting the user defined local authenticator: " + authenticatorConfigName +
-                    " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
-                    ". Rolling back deleted authenticator information, and associated action.");
-            throw handleAuthenticatorMgtException(e.getCause());
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_DELETING_AUTHENTICATOR, e,
+                    StringUtils.EMPTY);
         }
     }
 
@@ -159,15 +195,25 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
      * @param throwable Throwable object.
      * @throws AuthenticatorMgtClientException If an authenticator management client exception.
      */
-    private static AuthenticatorMgtException handleAuthenticatorMgtException(Throwable throwable)
-            throws AuthenticatorMgtException {
+    private static AuthenticatorMgtException handleAuthenticatorMgtException(AuthenticatorMgtError
+            authenticatorMgtError, Throwable throwable, String... data) throws AuthenticatorMgtException {
 
-        if (throwable instanceof AuthenticatorMgtClientException) {
-            AuthenticatorMgtClientException error = (AuthenticatorMgtClientException) throwable;
+        if (throwable.getCause() instanceof AuthenticatorMgtClientException) {
+            AuthenticatorMgtClientException error = (AuthenticatorMgtClientException) throwable.getCause();
             throw new AuthenticatorMgtClientException(error.getErrorCode(), error.getMessage(), error.getDescription());
         }
 
-        AuthenticatorMgtServerException error = (AuthenticatorMgtServerException) throwable;
-        throw new AuthenticatorMgtServerException(error.getErrorCode(), error.getMessage(), error.getDescription());
+        throw buildServerException(authenticatorMgtError, throwable, data);
+    }
+    
+    private void validateAuthenticatorProperties(UserDefinedLocalAuthenticatorConfig authenticatorConfig) 
+            throws AuthenticatorMgtServerException {
+
+        // User defined local authenticator should have only one property which is the action id.
+        Property[] properties = authenticatorConfig.getProperties();
+        if (!(properties.length == 1 && ACTION_ID_PROPERTY.equals(properties[0].getName()))) {
+            throw buildServerException(AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError
+                            .ERROR_CODE_HAVING_MULTIPLE_PROP, authenticatorConfig.getName());
+        }
     }
 }

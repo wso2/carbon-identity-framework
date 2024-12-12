@@ -3574,15 +3574,15 @@
             <Scopes>internal_action_mgt_view</Scopes>
         </Resource>
 
-        <Resource context="(.*)api/server/v1/authenticators/custom(.*)" secured="true" http-method="POST">
+        <Resource context="(.*)/api/server/v1/authenticators/custom" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/custom_authenticator/create</Permissions>
             <Scopes>internal_custom_authenticator_create</Scopes>
         </Resource>
-        <Resource context="(.*)api/server/v1/authenticators/custom(.*)" secured="true" http-method="PUT">
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/custom_authenticator/update</Permissions>
             <Scopes>internal_custom_authenticator_update</Scopes>
         </Resource>
-        <Resource context="(.*)api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/custom_authenticator/delete</Permissions>
             <Scopes>internal_custom_authenticator_delete</Scopes>
         </Resource>

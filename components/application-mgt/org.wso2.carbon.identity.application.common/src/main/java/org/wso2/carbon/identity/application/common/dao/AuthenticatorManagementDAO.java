@@ -33,7 +33,6 @@ public interface AuthenticatorManagementDAO {
      *
      * @param authenticatorConfig   Local application authenticator configuration.
      * @param tenantId              Tenant Id.
-     *
      * @return Created UserDefinedLocalAuthenticatorConfig.
      * @throws AuthenticatorMgtException If an error occurs while adding the authenticator configuration.
      */
@@ -46,7 +45,6 @@ public interface AuthenticatorManagementDAO {
      * @param existingAuthenticatorConfig   Existing Local application authenticator configuration.
      * @param updatedAuthenticatorConfig    New local application authenticator configuration.
      * @param tenantId                      Tenant Id.
-     *
      * @return Updated UserDefinedLocalAuthenticatorConfig.
      * @throws AuthenticatorMgtException If an error occurs while updating the authenticator configuration.
      */
@@ -56,11 +54,10 @@ public interface AuthenticatorManagementDAO {
             throws AuthenticatorMgtException;
 
     /**
-     * Retrieve a Local user defined Application Authenticator configuration by name.
+     * Retrieve a local user defined application authenticator configuration by name.
      *
      * @param authenticatorConfigName   Name of the local application authenticator configuration.
      * @param tenantId                  Tenant Id.
-     *
      * @return Retrieved UserDefinedLocalAuthenticatorConfig
      * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration.
      */
@@ -70,8 +67,7 @@ public interface AuthenticatorManagementDAO {
     /**
      * Retrieve all user defined local application authenticator configurations.
      *
-     * @param tenantId                  Tenant Id.
-     *
+     * @param tenantId  Tenant Id.
      * @return Retrieved UserDefinedLocalAuthenticatorConfig
      * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configurations.
      */
@@ -83,7 +79,6 @@ public interface AuthenticatorManagementDAO {
      *
      * @param authenticatorConfigName   Name of the local application authenticator configuration.
      * @param tenantId                  Tenant Id.
-     *
      * @throws AuthenticatorMgtException If an error occurs while deleting the authenticator configuration.
      */
     void deleteUserDefinedLocalAuthenticator(String authenticatorConfigName, UserDefinedLocalAuthenticatorConfig

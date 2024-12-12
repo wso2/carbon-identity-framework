@@ -38,13 +38,13 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildRuntimeServerException;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.DISPLAY_NAME;
 
 /**
  * Application authenticator service.
  */
 public class ApplicationAuthenticatorService {
 
-    private static final String DISPLAY_NAME = "Display name";
     private static volatile ApplicationAuthenticatorService instance;
     private static final Log LOG = LogFactory.getLog(ApplicationAuthenticatorService.class);
     private static final AuthenticatorManagementDAO dao =
@@ -74,6 +74,7 @@ public class ApplicationAuthenticatorService {
     /**
      * This returns user defined local authenticators.
      *
+     * @param tenantDomain  Tenant domain.
      * @return Retrieved LocalAuthenticatorConfig.
      */
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticators(String tenantDomain)

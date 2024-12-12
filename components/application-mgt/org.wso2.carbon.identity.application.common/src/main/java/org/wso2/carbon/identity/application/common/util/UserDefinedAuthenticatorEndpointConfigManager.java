@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.identity.application.common.util;
 
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
 import org.wso2.carbon.identity.application.common.internal.ApplicationCommonServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -47,10 +50,10 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      *
      * @param config        The Local application authenticator configuration.
      * @param tenantId      The id of Tenant domain.
-     * @throws AuthenticatorMgtServerException If an error occurs while adding the action.
+     * @throws AuthenticatorMgtException If an error occurs while adding the action.
      */
     public void addEndpointConfigurations(UserDefinedLocalAuthenticatorConfig config, int tenantId)
-            throws AuthenticatorMgtServerException {
+            throws AuthenticatorMgtException {
 
         try {
             Action action = ApplicationCommonServiceDataHolder.getInstance().getActionManagementService()
@@ -62,7 +65,8 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             endpointProperty.setValue(action.getId());
             config.setProperties(new Property[]{endpointProperty});
         } catch (ActionMgtException e) {
-            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_ADDING_ENDPOINT_CONFIG, e, config.getName());
+            throw handleActionMgtException(AuthenticatorMgtError.ERROR_CODE_ADDING_ENDPOINT_CONFIG,
+                    e, config.getName());
         }
     }
 
@@ -72,11 +76,11 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @param newConfig        The Local application authenticator configuration to be updated.
      * @param oldConfig        The current Local application authenticator configuration.
      * @param tenantId         The id of Tenant domain.
-     * @throws AuthenticatorMgtServerException If an error occurs while updating associated action.
+     * @throws AuthenticatorMgtException If an error occurs while updating associated action.
      */
     public void updateEndpointConfigurations(UserDefinedLocalAuthenticatorConfig newConfig,
             UserDefinedLocalAuthenticatorConfig oldConfig, int tenantId)
-            throws AuthenticatorMgtServerException {
+            throws AuthenticatorMgtException {
 
         String actionId = getActionIdFromProperty(oldConfig.getProperties(), oldConfig.getName());
         try {
@@ -87,7 +91,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                             IdentityTenantUtil.getTenantDomain(tenantId));
             newConfig.setProperties(oldConfig.getProperties());
         } catch (ActionMgtException e) {
-            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_UPDATING_ENDPOINT_CONFIG, e,
+            throw handleActionMgtException(AuthenticatorMgtError.ERROR_CODE_UPDATING_ENDPOINT_CONFIG, e,
                             actionId, oldConfig.getName());
         }
     }
@@ -98,10 +102,10 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @param config        The Local application authenticator configuration.
      * @param tenantId      The id of Tenant domain.
      * @return Local authenticator with endpoint configurations resolved.
-     * @throws AuthenticatorMgtServerException If an error occurs retrieving updating associated action.
+     * @throws AuthenticatorMgtException If an error occurs retrieving updating associated action.
      */
     public UserDefinedLocalAuthenticatorConfig resolveEndpointConfigurations(UserDefinedLocalAuthenticatorConfig config,
-            int tenantId) throws AuthenticatorMgtServerException {
+            int tenantId) throws AuthenticatorMgtException {
 
         if (config == null) {
             return null;
@@ -116,7 +120,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             config.setEndpointConfig(buildUserDefinedAuthenticatorEndpointConfig(action.getEndpoint()));
             return config;
         } catch (ActionMgtException e) {
-            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG, e,
+            throw handleActionMgtException(AuthenticatorMgtError.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG, e,
                             actionId, config.getName());
         }
     }
@@ -140,11 +144,10 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      *
      * @param config                The Local application authenticator configuration.
      * @param tenantId              The id of Tenant domain.
-     *
-     * @throws AuthenticatorMgtServerException If an error occurs while deleting associated action.
+     * @throws AuthenticatorMgtException If an error occurs while deleting associated action.
      */
     public void deleteEndpointConfigurations(UserDefinedLocalAuthenticatorConfig config, int tenantId) throws
-            AuthenticatorMgtServerException {
+            AuthenticatorMgtException {
 
         String actionId = getActionIdFromProperty(config.getProperties(), config.getName());
         try {
@@ -153,7 +156,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                             actionId,
                             IdentityTenantUtil.getTenantDomain(tenantId));
         } catch (ActionMgtException e) {
-            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_DELETING_ENDPOINT_CONFIG, e,
+            throw handleActionMgtException(AuthenticatorMgtError.ERROR_CODE_DELETING_ENDPOINT_CONFIG, e,
                     actionId, config.getName());
         }
     }
@@ -186,5 +189,18 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                 .findFirst()
                 .orElseThrow(() -> buildServerException(AuthenticatorMgtError.ERROR_CODE_NO_ACTION_ID_FOUND,
                         authenticatorName));
+    }
+
+    private static AuthenticatorMgtException handleActionMgtException(AuthenticatorMgtError authenticatorMgtError,
+            Throwable actionException, String... data)
+            throws AuthenticatorMgtException {
+
+        if (actionException instanceof ActionMgtClientException) {
+            ActionMgtClientException error = (ActionMgtClientException) actionException;
+            throw new AuthenticatorMgtClientException(
+                    authenticatorMgtError.getCode(), error.getMessage(), error.getDescription());
+        }
+
+        throw buildServerException(authenticatorMgtError, data);
     }
 }

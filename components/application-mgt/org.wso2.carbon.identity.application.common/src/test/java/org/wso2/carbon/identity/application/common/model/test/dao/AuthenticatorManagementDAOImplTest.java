@@ -105,7 +105,7 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertEquals(exception.getErrorCode(), ERROR_WHILE_ADDING_AUTHENTICATOR.getCode());
     }
 
-    @Test(priority = 15)
+    @Test(priority = 3)
     public void testAddUserDefinedLocalAuthenticatorWithOutActionProperty() {
 
         authenticatorConfigForException.setProperties(new Property[0]);
@@ -114,7 +114,7 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertEquals(exception.getErrorCode(), ERROR_WHILE_ADDING_AUTHENTICATOR.getCode());
     }
 
-    @Test(priority = 19)
+    @Test(priority = 4)
     public void testUpdateUserDefinedLocalAuthenticator() throws AuthenticatorMgtException {
 
         UserDefinedLocalAuthenticatorConfig updatedConfig = authenticatorManagementDAO
@@ -128,7 +128,7 @@ public class AuthenticatorManagementDAOImplTest {
         authenticatorConfig1 = authenticatorForUpdate;
     }
 
-    @Test(priority = 21)
+    @Test(priority = 5)
     public void testUpdateUserDefinedLocalAuthenticatorForException() {
 
         AuthenticatorMgtException exception = assertThrows(AuthenticatorMgtException.class, () ->
@@ -137,7 +137,7 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertEquals(exception.getErrorCode(), ERROR_WHILE_UPDATING_AUTHENTICATOR.getCode());
     }
 
-    @Test(dataProvider = "authenticatorConfig", priority = 31)
+    @Test(dataProvider = "authenticatorConfig", priority = 6)
     public void testGetUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -150,7 +150,7 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertEquals(retrievedConfig.getDefinedByType(), config.getDefinedByType());
     }
 
-    @Test(priority = 41)
+    @Test(priority = 7)
     public void testGetNonExistingUserDefinedLocalAuthenticator() throws AuthenticatorMgtException {
 
         UserDefinedLocalAuthenticatorConfig config = authenticatorManagementDAO.getUserDefinedLocalAuthenticator(
@@ -159,14 +159,14 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertNull(config);
     }
 
-    @Test(priority = 51)
+    @Test(priority = 8)
     public void testGetUserDefinedLocalAuthenticatorForNonExist() throws AuthenticatorMgtException {
 
         Assert.assertNull(authenticatorManagementDAO.getUserDefinedLocalAuthenticator(
                 NON_EXIST_AUTHENTICATOR_NAME, tenantId));
     }
 
-    @Test(dataProvider = "authenticatorConfig", priority = 134)
+    @Test(dataProvider = "authenticatorConfig", priority = 9)
     public void testDeleteUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 

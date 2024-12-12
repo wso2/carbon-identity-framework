@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.common.dao.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column;
@@ -33,20 +31,17 @@ import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptio
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.ACTION_ID_PROPERTY;
 
 /**
  * This class implements the AuthenticatorManagementDAO interface which perform CRUD operation on database.
  */
 public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDAO {
 
-    private static final Log LOG = LogFactory.getLog(AuthenticatorManagementDAOImpl.class);
     public static final String IS_TRUE_VALUE = "1";
     public static final String IS_FALSE_VALUE = "0";
     public static final String LOCAL_IDP_NAME = "LOCAL";
@@ -69,17 +64,11 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement.setInt(Column.TENANT_ID, tenantId);
                 }), null, false);
 
-            int authenticatorConfigID = getAuthenticatorIdentifier(authenticatorConfig.getName(), tenantId);
-            addAuthenticatorProperties(authenticatorConfig.getName(), authenticatorConfigID,
-                    authenticatorConfig.getProperties(), tenantId);
+            int authenticatorConfigID = getAuthenticatorEntryId(authenticatorConfig.getName(), tenantId);
+            addAuthenticatorProperty(authenticatorConfigID, authenticatorConfig.getProperties(), tenantId);
 
             return getUserDefinedLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);
         } catch (DataAccessException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Error while adding the authenticator: %s in tenant domain: %s. " +
-                                "Rolling back added Authenticator information.", authenticatorConfig.getName(),
-                                IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e);
         }
     }
@@ -103,11 +92,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
             return getUserDefinedLocalAuthenticatorByName(updatedAuthenticatorConfig.getName(), tenantId);
         } catch (DataAccessException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Error while updating the authenticator: %s in tenant domain: %s. " +
-                                "Rolling back updated Authenticator information.",
-                                existingAuthenticatorConfig.getName(), IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e);
         }
     }
@@ -119,10 +103,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         try {
             return getUserDefinedLocalAuthenticatorByName(authenticatorConfigName, tenantId);
         } catch (DataAccessException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Error while retrieving the user defined local authenticator:%s in tenant " +
-                        "domain: %s.", authenticatorConfigName, IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
         }
     }
@@ -151,15 +131,11 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     });
 
             for (UserDefinedLocalAuthenticatorConfig retrievedConfigs: allUserDefinedLocalConfigs) {
-                int authenticatorConfigID = getAuthenticatorIdentifier(retrievedConfigs.getName(), tenantId);
+                int authenticatorConfigID = getAuthenticatorEntryId(retrievedConfigs.getName(), tenantId);
                 retrievedConfigs.setProperties(getAuthenticatorProperties(authenticatorConfigID, tenantId));
             }
             return allUserDefinedLocalConfigs;
         } catch (DataAccessException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Error while retrieving the all user defined local authenticators in tenant " +
-                                "domain: %s.", IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
         }
     }
@@ -170,7 +146,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-
             jdbcTemplate.executeUpdate(Query.DELETE_AUTHENTICATOR_SQL,
                     statement -> {
                         statement.setString(Column.NAME, authenticatorConfigName);
@@ -178,11 +153,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.executeUpdate();
                     });
         } catch (DataAccessException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Error while deleting the authenticator: %s in tenant domain: %s. " +
-                                "Rolling back deleted Authenticator information.", authenticatorConfigName,
-                                IdentityTenantUtil.getTenantDomain(tenantId)));
-            }
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_DELETING_AUTHENTICATOR, e);
         }
     }
@@ -211,7 +181,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             return null;
         }
 
-        int authenticatorConfigID = getAuthenticatorIdentifier(authenticatorConfigName, tenantId);
+        int authenticatorConfigID = getAuthenticatorEntryId(authenticatorConfigName, tenantId);
         List<Property> properties = new ArrayList<>();
         jdbcTemplate.fetchSingleRecord(Query.GET_AUTHENTICATOR_PROP_SQL,
                 (resultSet, rowNumber) -> {
@@ -238,31 +208,26 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         return new UserDefinedLocalAuthenticatorConfig(AuthenticationType.IDENTIFICATION);
     }
 
-    private int getAuthenticatorIdentifier(String authenticatorConfigName, int tenantId)
+    private int getAuthenticatorEntryId(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtServerException, DataAccessException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        String id = jdbcTemplate.fetchSingleRecord(Query.GET_AUTHENTICATOR_ID_SQL,
-            (resultSet, rowNumber) -> resultSet.getString(Column.ID),
+        int id = jdbcTemplate.fetchSingleRecord(Query.GET_AUTHENTICATOR_ID_SQL,
+            (resultSet, rowNumber) -> resultSet.getInt(Column.ID),
             statement -> {
                 statement.setString(Column.NAME, authenticatorConfigName);
                 statement.setInt(Column.TENANT_ID, tenantId);
             });
 
-        if (id != null) {
-            return Integer.parseInt(id);
+        if (id != 0) {
+            return id;
         }
         throw buildServerException(AuthenticatorMgtError.ERROR_CODE_NO_AUTHENTICATOR_FOUND,
                     authenticatorConfigName);
     }
 
-    private void addAuthenticatorProperties(String authenticatorName, int authenticatorConfigID, Property[] properties,
-                                            int tenantId) throws DataAccessException, AuthenticatorMgtServerException {
-
-        if (!(properties.length == 1 && ACTION_ID_PROPERTY.equals(properties[0].getName()))) {
-            throw buildServerException(AuthenticatorMgtError.ERROR_CODE_HAVING_MULTIPLE_PROP,
-                    authenticatorName);
-        }
+    private void addAuthenticatorProperty(int authenticatorConfigID, Property[] properties, int tenantId)
+            throws DataAccessException {
 
         Property prop = properties[0];
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -272,16 +237,11 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                 statementProp.setInt(Column.TENANT_ID, tenantId);
                 statementProp.setString(Column.PROPERTY_KEY, prop.getName());
                 statementProp.setString(Column.PROPERTY_VALUE, prop.getValue());
-                if (prop.isConfidential()) {
-                    statementProp.setString(Column.IS_SECRET, IS_TRUE_VALUE);
-                } else {
-                    statementProp.setString(Column.IS_SECRET, IS_FALSE_VALUE);
-                }
+                statementProp.setString(Column.IS_SECRET, IS_FALSE_VALUE);
             }), null, false);
     }
 
-    private Property[] getAuthenticatorProperties(int authenticatorConfigID,
-                                            int tenantId) throws DataAccessException {
+    private Property[] getAuthenticatorProperties(int authenticatorConfigID, int tenantId) throws DataAccessException {
 
         List<Property> properties = new ArrayList<>();
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
