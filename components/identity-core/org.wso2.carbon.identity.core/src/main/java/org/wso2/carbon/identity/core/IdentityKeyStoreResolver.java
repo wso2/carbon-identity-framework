@@ -269,8 +269,8 @@ public class IdentityKeyStoreResolver {
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        if (publicCerts.containsKey(buildDomainWithContext(tenantId, context))) {
-            return publicCerts.get(buildDomainWithContext(tenantId, context));
+        if (publicCerts.containsKey(buildTenantIdWithContext(tenantId, context))) {
+            return publicCerts.get(buildTenantIdWithContext(tenantId, context));
         }
 
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
@@ -302,7 +302,7 @@ public class IdentityKeyStoreResolver {
                             tenantDomain), e);
         }
 
-        publicCerts.put(buildDomainWithContext(tenantId, context), publicCert);
+        publicCerts.put(buildTenantIdWithContext(tenantId, context), publicCert);
         return publicCert;
     }
 
@@ -313,7 +313,7 @@ public class IdentityKeyStoreResolver {
      * @param context the context
      * @return a concatenated string in the format tenantDomain:context
      */
-    private String buildDomainWithContext(int tenantId, String context) {
+    private String buildTenantIdWithContext(int tenantId, String context) {
 
         return tenantId + IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context;
     }
