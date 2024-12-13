@@ -550,6 +550,8 @@
   "event.default_listener.governance_identity_store.enable": true,
   "event.default_listener.governance_identity_store.data_store": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
   "event.default_listener.governance_identity_store.enable_hybrid_data_store": false,
+  "event.default_listener.password_expiry.priority": "102",
+  "event.default_listener.password_expiry.enable": true,
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
   "event.default_listener.mutual_tls_authenticator.priority": "919",
