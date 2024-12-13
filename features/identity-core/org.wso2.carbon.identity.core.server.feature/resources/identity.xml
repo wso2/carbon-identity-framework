@@ -1275,6 +1275,9 @@
             identity data store value is empty for corresponding claim. -->
             <Property name="EnableHybridDataStore">false</Property>
         </EventListener>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.password.expiry.listener.PasswordExpiryEventListener"
+                       orderId="102" enable="true"/>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
                        orderId="11" enable="true"/>
