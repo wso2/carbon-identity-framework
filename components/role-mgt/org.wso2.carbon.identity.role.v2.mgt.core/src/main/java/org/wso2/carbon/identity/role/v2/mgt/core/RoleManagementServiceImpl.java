@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleDTO;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
+import org.wso2.carbon.identity.role.v2.mgt.core.util.RoleManagementUtils;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.UserIDResolver;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -81,7 +82,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                                  List<Permission> permissions, String audience, String audienceId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (StringUtils.startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
+        if (!RoleManagementUtils.isAllowSystemPrefixForRole() &&
+                StringUtils.startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
             String errorMessage = String.format("Invalid role name: %s. Role names with the prefix: %s, is not allowed"
                             + " to be created from externally in the system.", roleName,
                     UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
