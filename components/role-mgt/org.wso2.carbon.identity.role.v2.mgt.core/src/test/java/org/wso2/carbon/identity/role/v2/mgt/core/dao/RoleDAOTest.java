@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagemen
 import org.wso2.carbon.identity.role.v2.mgt.core.internal.RoleManagementServiceComponentHolder;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 import org.wso2.carbon.identity.role.v2.mgt.core.util.GroupIDResolver;
@@ -127,6 +128,8 @@ public class RoleDAOTest {
     private static final String UPDATED_SHARED_ORG_ROLE_NAME = "new-sharing-org-role-001";
     private static final String SUB_ORG_ROLE_NAME = "sub-org-role-200";
     private static final String MOCKED_EXCEPTION = "Mocked Exception";
+    private static final String ROLE_PROPERTIES = "properties";
+    private static final String IS_SHARED_ROLE = "isSharedRole";
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private List<String> userNamesList = new ArrayList<>();
@@ -313,6 +316,95 @@ public class RoleDAOTest {
         List<RoleBasicInfo> roles = roleDAO.getRoles(2, 1, null, null,
                 SAMPLE_TENANT_DOMAIN);
         Assert.assertEquals(getRoleNamesList(roles), expectedRoles);
+    }
+
+    @Test
+    public void testGetRolesWithRequiredAttributes() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+
+        addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(1), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+        addRole(roleNamesList.get(2), ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+
+        identityUtil.when(IdentityUtil::getDefaultItemsPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE);
+        identityUtil.when(IdentityUtil::getMaximumItemPerPage)
+                .thenReturn(IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+
+        List<String> requiredAttributes = new ArrayList<>();
+        requiredAttributes.add(ROLE_PROPERTIES);
+        List<Role> roles = roleDAO.getRoles(10, 1, null, null, SAMPLE_TENANT_DOMAIN, requiredAttributes);
+        assertEquals(roles.size(), 3);
+        for (Role role : roles) {
+            assertNotNull(role.getRoleProperties());
+            assertEquals(role.getRoleProperties().get(0).getName(), IS_SHARED_ROLE);
+            assertEquals(role.getRoleProperties().get(0).getValue(), Boolean.FALSE.toString());
+        }
+    }
+
+    @Test
+    public void testGetRoleById() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+
+        RoleBasicInfo roleBasicInfo = addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
+
+        mockRealmConfiguration();
+        Role role = roleDAO.getRole(roleBasicInfo.getId(), SAMPLE_TENANT_DOMAIN);
+        assertEquals(roleBasicInfo.getId(), role.getId());
+        assertEquals(role.getRoleProperties().get(0).getName(), IS_SHARED_ROLE);
+        assertEquals(role.getRoleProperties().get(0).getValue(), Boolean.FALSE.toString());
+    }
+
+    @Test
+    public void testGetRoleByIdWithSharedRole() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        userCoreUtil.when(() -> UserCoreUtil.isEveryoneRole(anyString(), any(RealmConfiguration.class)))
+                .thenReturn(false);
+        userCoreUtil.when(() -> UserCoreUtil.removeDomainFromName(anyString())).thenCallRealMethod();
+
+        // Constructing a shared role scenario
+        RoleBasicInfo roleBasicInfo = addRole(SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD, SAMPLE_ORG_ID, roleDAO);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(L1_ORG_TENANT_DOMAIN)).thenReturn(2);
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(2)).thenReturn(L1_ORG_TENANT_DOMAIN);
+        OrganizationManager organizationManager = mock(OrganizationManager.class);
+        lenient().when(organizationManager.resolveOrganizationId(anyString())).thenReturn(SAMPLE_ORG_ID);
+        RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_ORG_ROLE_NAME, ORGANIZATION_AUD,
+                L1_ORG_TENANT_ORG_ID, roleDAO);
+        roleDAO.addMainRoleToSharedRoleRelationship(roleBasicInfo.getId(), sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN, L1_ORG_TENANT_DOMAIN);
+
+        mockRealmConfiguration();
+        Role role = roleDAO.getRole(sharedRoleBasicInfo.getId(), L1_ORG_TENANT_DOMAIN);
+        assertEquals(sharedRoleBasicInfo.getId(), role.getId());
+        assertEquals(role.getRoleProperties().get(0).getName(), IS_SHARED_ROLE);
+        assertEquals(role.getRoleProperties().get(0).getValue(), Boolean.TRUE.toString());
     }
 
     @Test
