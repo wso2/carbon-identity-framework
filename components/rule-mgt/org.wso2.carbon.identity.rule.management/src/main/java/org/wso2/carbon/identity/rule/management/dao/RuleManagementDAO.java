@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.rule.management.dao;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.model.Rule;
 
-import java.sql.SQLException;
-
 /**
  * Rule Management DAO.
  * This class is used to perform CRUD operations on Rule in the datastore.
