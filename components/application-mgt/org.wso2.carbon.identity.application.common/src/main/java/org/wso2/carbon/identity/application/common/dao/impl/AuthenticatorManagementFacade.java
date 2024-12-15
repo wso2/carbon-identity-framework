@@ -44,7 +44,7 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO {
 
     private final AuthenticatorManagementDAO dao;
-    private UserDefinedAuthenticatorEndpointConfigManager endpointConfigManager =
+    private final UserDefinedAuthenticatorEndpointConfigManager endpointConfigManager =
             new UserDefinedAuthenticatorEndpointConfigManager();
 
     public AuthenticatorManagementFacade(AuthenticatorManagementDAO dao) {
@@ -65,18 +65,15 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        //TODO: Refer https://github.com/wso2-enterprise/asgardeo-product/issues/27910
+        endpointConfigManager.addEndpointConfigurations(authenticatorConfig, tenantId);
         try {
-            return jdbcTemplate.withTransaction(template -> {
-                endpointConfigManager.addEndpointConfigurations(authenticatorConfig, tenantId);
-                validateAuthenticatorProperties(authenticatorConfig);
-                return endpointConfigManager.resolveEndpointConfigurations(
-                        dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId), tenantId);
-            });
-        } catch (TransactionException e) {
-            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e,
-                    authenticatorConfig.getName());
+            validateAuthenticatorProperties(authenticatorConfig);
+            return endpointConfigManager.resolveEndpointConfigurations(
+                    dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId), tenantId);
+        } catch (AuthenticatorMgtException e) {
+            endpointConfigManager.deleteEndpointConfigurations(authenticatorConfig, tenantId);
+            throw e;
         }
     }
 
