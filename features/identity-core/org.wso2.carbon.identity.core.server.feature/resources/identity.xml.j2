@@ -2053,6 +2053,13 @@
         <TrustedAppMaxThumbprintCount>{{application_mgt.trusted_app_max_thumbprint_count}}</TrustedAppMaxThumbprintCount>
     </ApplicationMgt>
 
+    <!--Role management service configurations-->
+    <RoleMgt>
+        {% if role_mgt.allow_system_prefix_for_role is defined %}
+        <AllowSystemPrefixForRoles>{{role_mgt.allow_system_prefix_for_role}}</AllowSystemPrefixForRoles>
+        {% endif %}
+    </RoleMgt>
+
     <OutboundProvisioning>
         {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
             <!--
@@ -2177,6 +2184,11 @@
             store value is empty for corresponding claim. -->
             <Property name="EnableHybridDataStore">{{event.default_listener.governance_identity_store.enable_hybrid_data_store}}</Property>
         </EventListener>
+        <EventListener id="password_expiry"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.password.expiry.listener.PasswordExpiryEventListener"
+                       orderId="{{event.default_listener.password_expiry.priority}}"
+                       enable="{{event.default_listener.password_expiry.enable}}"/>
         <EventListener id="application_authentication"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
