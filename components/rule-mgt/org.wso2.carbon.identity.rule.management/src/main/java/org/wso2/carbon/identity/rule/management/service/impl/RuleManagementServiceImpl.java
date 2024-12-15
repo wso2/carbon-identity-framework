@@ -51,6 +51,7 @@ public class RuleManagementServiceImpl implements RuleManagementService {
      * @param rule         Rule to be added.
      * @param tenantDomain Tenant domain.
      * @return Added rule.
+     * @throws RuleManagementException If an error occurs while adding the rule.
      */
     @Override
     public Rule addRule(Rule rule, String tenantDomain) throws RuleManagementException {
@@ -66,6 +67,7 @@ public class RuleManagementServiceImpl implements RuleManagementService {
      * @param rule         Rule to be updated.
      * @param tenantDomain Tenant domain.
      * @return Updated rule.
+     * @throws RuleManagementException If an error occurs while updating the rule.
      */
     @Override
     public Rule updateRule(Rule rule, String tenantDomain) throws RuleManagementException {
@@ -81,6 +83,7 @@ public class RuleManagementServiceImpl implements RuleManagementService {
      *
      * @param ruleId       Rule ID.
      * @param tenantDomain Tenant domain.
+     * @throws RuleManagementException If an error occurs while deleting the rule.
      */
     @Override
     public void deleteRule(String ruleId, String tenantDomain) throws RuleManagementException {
@@ -96,6 +99,7 @@ public class RuleManagementServiceImpl implements RuleManagementService {
      * @param ruleId       Rule ID.
      * @param tenantDomain Tenant domain.
      * @return Rule.
+     * @throws RuleManagementException If an error occurs while retrieving the rule.
      */
     @Override
     public Rule getRuleByRuleId(String ruleId, String tenantDomain) throws RuleManagementException {
@@ -109,6 +113,7 @@ public class RuleManagementServiceImpl implements RuleManagementService {
      * @param ruleId       Rule ID.
      * @param tenantDomain Tenant domain.
      * @return Deactivated rule.
+     * @throws RuleManagementException If an error occurs while deactivating the rule.
      */
     @Override
     public Rule deactivateRule(String ruleId, String tenantDomain) throws RuleManagementException {

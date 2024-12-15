@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.rule.management.dao;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.model.Rule;
 
+import java.sql.SQLException;
+
 /**
  * Rule Management DAO.
  * This class is used to perform CRUD operations on Rule in the datastore.
@@ -29,7 +31,8 @@ public interface RuleManagementDAO {
 
     /**
      * Add a new Rule.
-     * @param rule Rule object
+     *
+     * @param rule     Rule object
      * @param tenantId Tenant ID
      * @throws RuleManagementException Rule Management Exception
      */
@@ -37,7 +40,8 @@ public interface RuleManagementDAO {
 
     /**
      * Update an existing Rule.
-     * @param rule Rule object
+     *
+     * @param rule     Rule object
      * @param tenantId Tenant ID
      * @throws RuleManagementException Rule Management Exception
      */
@@ -45,7 +49,8 @@ public interface RuleManagementDAO {
 
     /**
      * Delete a Rule.
-     * @param ruleId Rule ID
+     *
+     * @param ruleId   Rule ID
      * @param tenantId Tenant ID
      * @throws RuleManagementException Rule Management Exception
      */
@@ -53,7 +58,8 @@ public interface RuleManagementDAO {
 
     /**
      * Get a Rule by Rule ID.
-     * @param ruleId Rule ID
+     *
+     * @param ruleId   Rule ID
      * @param tenantId Tenant ID
      * @return Rule object
      * @throws RuleManagementException Rule Management Exception
@@ -62,7 +68,8 @@ public interface RuleManagementDAO {
 
     /**
      * Activate a Rule.
-     * @param ruleId Rule ID
+     *
+     * @param ruleId   Rule ID
      * @param tenantId Tenant ID
      * @throws RuleManagementException Rule Management Exception
      */
@@ -70,7 +77,8 @@ public interface RuleManagementDAO {
 
     /**
      * Deactivate a Rule.
-     * @param ruleId Rule ID
+     *
+     * @param ruleId   Rule ID
      * @param tenantId Tenant ID
      * @throws RuleManagementException Rule Management Exception
      */
