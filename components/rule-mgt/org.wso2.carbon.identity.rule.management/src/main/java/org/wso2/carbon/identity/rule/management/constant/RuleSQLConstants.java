@@ -38,6 +38,7 @@ public class RuleSQLConstants {
         public static final String RULE = "RULE";
         public static final String IS_ACTIVE = "IS_ACTIVE";
         public static final String TENANT_ID = "TENANT_ID";
+        public static final String VERSION = "VERSION";
         public static final String RULE_REFERENCE_ID = "RULE_ID";
         public static final String FIELD_NAME = "FIELD_NAME";
         public static final String FIELD_REFERENCE = "FIELD_REFERENCE";
@@ -53,7 +54,7 @@ public class RuleSQLConstants {
     public static class Query {
 
         public static final String ADD_RULE = "INSERT INTO IDN_RULE (UUID, RULE, IS_ACTIVE, TENANT_ID) " +
-                "VALUES (:UUID;, :RULE;, :IS_ACTIVE;, :TENANT_ID;)";
+                "VALUES (:UUID;, :RULE;, :IS_ACTIVE;, :TENANT_ID; :VERSION;)";
         public static final String ADD_RULE_REFERENCES = "INSERT INTO IDN_RULE_REFERENCES (RULE_ID, " +
                 "FIELD_NAME, FIELD_REFERENCE, TENANT_ID) VALUES (:RULE_ID;, :FIELD_NAME;, :FIELD_REFERENCE;, " +
                 ":TENANT_ID;)";

@@ -47,6 +47,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RuleManagementDAOImpl implements RuleManagementDAO {
 
+    private static final String V1 = "1.0.0";
+
     /**
      * This method will add the Rule to the database and add the Rule Value References to the database.
      *
@@ -221,6 +223,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
                                 ruleJsonStreamLength);
                         statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, rule.isActive());
                         statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                        statement.setString(RuleSQLConstants.Column.VERSION, V1);
                     }, rule, true));
             return null;
         });
