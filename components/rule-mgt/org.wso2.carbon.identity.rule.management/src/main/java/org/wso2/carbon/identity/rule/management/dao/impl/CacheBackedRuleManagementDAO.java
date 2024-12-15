@@ -51,6 +51,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
      *
      * @param rule     Rule object
      * @param tenantId Tenant ID
+     * @throws RuleManagementException Rule Management Exception
      */
     @Override
     public void addRule(Rule rule, int tenantId) throws RuleManagementException {
@@ -64,6 +65,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
      *
      * @param rule     Rule object
      * @param tenantId Tenant ID
+     * @throws RuleManagementException Rule Management Exception
      */
     @Override
     public void updateRule(Rule rule, int tenantId) throws RuleManagementException {
@@ -79,6 +81,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
      *
      * @param ruleId   Rule ID
      * @param tenantId Tenant ID
+     * @throws RuleManagementException Rule Management Exception
      */
     @Override
     public void deleteRule(String ruleId, int tenantId) throws RuleManagementException {
@@ -96,6 +99,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
      * @param ruleId   Rule ID
      * @param tenantId Tenant ID
      * @return Rule object
+     * @throws RuleManagementException Rule Management Exception
      */
     @Override
     public Rule getRuleByRuleId(String ruleId, int tenantId) throws RuleManagementException {
@@ -120,6 +124,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
      *
      * @param ruleId   Rule ID
      * @param tenantId Tenant ID
+     * @throws RuleManagementException Rule Management Exception
      */
     @Override
     public void activateRule(String ruleId, int tenantId) throws RuleManagementException {
@@ -135,6 +140,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
      *
      * @param ruleId   Rule ID
      * @param tenantId Tenant ID
+     * @throws RuleManagementException Rule Management Exception
      */
     @Override
     public void deactivateRule(String ruleId, int tenantId) throws RuleManagementException {
