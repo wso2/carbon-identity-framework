@@ -66,7 +66,6 @@ public class RuleSQLConstants {
                 ":UUID; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_RULE_BY_ID =
                 "SELECT RULE, IS_ACTIVE FROM IDN_RULE WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
-
         public static final String GET_RULE_INTERNAL_ID_BY_ID =
                 "SELECT ID FROM IDN_RULE WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
 
