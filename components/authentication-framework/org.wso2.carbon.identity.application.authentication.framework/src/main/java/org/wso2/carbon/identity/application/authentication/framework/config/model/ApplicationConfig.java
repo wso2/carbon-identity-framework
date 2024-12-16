@@ -192,12 +192,13 @@ public class ApplicationConfig implements Serializable, Cloneable {
      *
      * @param application Application details.
      * @param tenantDomain Tenant domain of the application.
+     * @param inboundType Inbound type of the application.
      */
     public ApplicationConfig(ServiceProvider application, String tenantDomain, String inboundType) {
 
         this(application, tenantDomain);
         AuthenticationAppConfigListener authenticationAppConfigListener = FrameworkServiceDataHolder.getInstance()
-                .getSPClaimMappingListener(inboundType);
+                .getAuthenticationAppConfigListener(inboundType);
         if (authenticationAppConfigListener != null) {
             try {
                 authenticationAppConfigListener

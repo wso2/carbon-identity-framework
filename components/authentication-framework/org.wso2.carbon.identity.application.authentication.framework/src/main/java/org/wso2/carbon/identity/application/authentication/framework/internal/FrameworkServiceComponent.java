@@ -1124,7 +1124,8 @@ public class FrameworkServiceComponent {
                         .getInboundType(), authenticationAppConfigListener);
     }
 
-    protected void unsetAuthenticationAppConfigListener(AuthenticationAppConfigListener authenticationAppConfigListener) {
+    protected void unsetAuthenticationAppConfigListener(AuthenticationAppConfigListener
+                                                                authenticationAppConfigListener) {
 
         FrameworkServiceDataHolder.getInstance().removeAuthenticationAppConfigListener(authenticationAppConfigListener
                 .getInboundType());
