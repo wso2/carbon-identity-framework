@@ -38,7 +38,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Rule Management DAO Implementation.
@@ -218,21 +217,16 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
         InputStream ruleJsonAsInputStream = convertRuleToJson(rule);
         int ruleJsonStreamLength = ruleJsonAsInputStream.available();
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        AtomicInteger internalId = new AtomicInteger();
-        jdbcTemplate.withTransaction(template -> {
-            internalId.set(template.executeInsert(RuleSQLConstants.Query.ADD_RULE,
-                    statement -> {
-                        statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, rule.getId());
-                        statement.setBinaryStream(RuleSQLConstants.Column.RULE, ruleJsonAsInputStream,
-                                ruleJsonStreamLength);
-                        statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, rule.isActive());
-                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
-                        statement.setString(RuleSQLConstants.Column.VERSION, V1);
-                    }, rule, true));
-            return null;
-        });
-
-        int internalRuleId = internalId.get();
+        int internalRuleId =
+                jdbcTemplate.withTransaction(template -> template.executeInsert(RuleSQLConstants.Query.ADD_RULE,
+                        statement -> {
+                            statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, rule.getId());
+                            statement.setBinaryStream(RuleSQLConstants.Column.RULE, ruleJsonAsInputStream,
+                                    ruleJsonStreamLength);
+                            statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, rule.isActive());
+                            statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                            statement.setString(RuleSQLConstants.Column.VERSION, V1);
+                        }, rule, true));
         // Not all JDBC drivers support getting the auto generated database ID.
         // So if the ID is not returned, get the ID by querying the database.
         if (internalRuleId == 0) {
