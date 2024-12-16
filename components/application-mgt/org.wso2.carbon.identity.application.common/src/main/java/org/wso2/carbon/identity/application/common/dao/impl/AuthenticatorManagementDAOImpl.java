@@ -42,9 +42,9 @@ import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtE
  */
 public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDAO {
 
-    public static final String IS_TRUE_VALUE = "1";
-    public static final String IS_FALSE_VALUE = "0";
-    public static final String LOCAL_IDP_NAME = "LOCAL";
+    private static final String IS_TRUE_VALUE = "1";
+    private static final String IS_FALSE_VALUE = "0";
+    private static final String LOCAL_IDP_NAME = "LOCAL";
 
     @Override
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
@@ -281,5 +281,4 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             return config;
         }
     }
-
 }
