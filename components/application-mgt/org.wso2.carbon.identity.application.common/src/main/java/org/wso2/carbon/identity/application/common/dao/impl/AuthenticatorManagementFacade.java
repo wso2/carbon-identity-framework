@@ -65,15 +65,17 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     public UserDefinedLocalAuthenticatorConfig addUserDefinedLocalAuthenticator(
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
-        //TODO: Refer https://github.com/wso2-enterprise/asgardeo-product/issues/27910
-        endpointConfigManager.addEndpointConfigurations(authenticatorConfig, tenantId);
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            validateAuthenticatorProperties(authenticatorConfig);
-            return endpointConfigManager.resolveEndpointConfigurations(
-                    dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId), tenantId);
-        } catch (AuthenticatorMgtException e) {
-            endpointConfigManager.deleteEndpointConfigurations(authenticatorConfig, tenantId);
-            throw e;
+            return jdbcTemplate.withTransaction(template -> {
+                endpointConfigManager.addEndpointConfigurations(authenticatorConfig, tenantId);
+                validateAuthenticatorProperties(authenticatorConfig);
+                return endpointConfigManager.resolveEndpointConfigurations(
+                        dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId), tenantId);
+            });
+        } catch (TransactionException e) {
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e,
+                    authenticatorConfig.getName());
         }
     }
 
