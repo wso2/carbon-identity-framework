@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.rule.management.dao.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.rule.management.constant.RuleSQLConstants;
@@ -59,10 +58,14 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     @Override
     public void addRule(Rule rule, int tenantId) throws RuleManagementException {
 
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            int internalId = addRuleToDB(rule, tenantId);
-            addRuleValueReferencesToDB(internalId, rule, tenantId);
-        } catch (TransactionException | IOException | DataAccessException e) {
+            jdbcTemplate.withTransaction(template -> {
+                int internalId = addRuleToDB(rule, tenantId);
+                addRuleValueReferencesToDB(internalId, rule, tenantId);
+                return null;
+            });
+        } catch (TransactionException e) {
             throw new RuleManagementServerException("Error while creating the rule in the system.", e);
         }
     }
@@ -130,18 +133,19 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     public Rule getRuleByRuleId(String ruleId, int tenantId) throws RuleManagementException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        RuleData ruleData = new RuleData();
         try {
-            RuleData ruleData = new RuleData();
-            jdbcTemplate.fetchSingleRecord(RuleSQLConstants.Query.GET_RULE_BY_ID,
-                    (resultSet, rowNumber) -> {
-                        ruleData.setRuleJson(resultSet.getString(RuleSQLConstants.Column.RULE));
-                        ruleData.setActive(resultSet.getBoolean(RuleSQLConstants.Column.IS_ACTIVE));
-                        return null;
-                    },
-                    statement -> {
-                        statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, ruleId);
-                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
-                    });
+            jdbcTemplate.withTransaction(
+                    template -> template.fetchSingleRecord(RuleSQLConstants.Query.GET_RULE_BY_ID,
+                            (resultSet, rowNumber) -> {
+                                ruleData.setRuleJson(resultSet.getString(RuleSQLConstants.Column.RULE));
+                                ruleData.setActive(resultSet.getBoolean(RuleSQLConstants.Column.IS_ACTIVE));
+                                return null;
+                            },
+                            statement -> {
+                                statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, ruleId);
+                                statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                            }));
 
             if (ruleData.getRuleJson() == null) {
                 return null;
@@ -151,7 +155,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
                     .setId(ruleId)
                     .setActive(ruleData.isActive())
                     .build();
-        } catch (DataAccessException e) {
+        } catch (TransactionException e) {
             throw new RuleManagementServerException("Error while retrieving the rule from the system.", e);
         }
     }
@@ -169,7 +173,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                jdbcTemplate.executeUpdate(RuleSQLConstants.Query.CHANGE_RULE_STATUS,
+                template.executeUpdate(RuleSQLConstants.Query.CHANGE_RULE_STATUS,
                         statement -> {
                             statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, true);
                             statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, ruleId);
@@ -195,7 +199,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                jdbcTemplate.executeUpdate(RuleSQLConstants.Query.CHANGE_RULE_STATUS,
+                template.executeUpdate(RuleSQLConstants.Query.CHANGE_RULE_STATUS,
                         statement -> {
                             statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, false);
                             statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, ruleId);
@@ -235,63 +239,71 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            return jdbcTemplate.fetchSingleRecord(RuleSQLConstants.Query.GET_RULE_INTERNAL_ID_BY_ID,
-                    (resultSet, rowNumber) -> {
-                        return resultSet.getInt(RuleSQLConstants.Column.RULE_INTERNAL_ID);
-                    },
-                    statement -> {
-                        statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, ruleId);
-                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
-                    });
-        } catch (DataAccessException e) {
+            return jdbcTemplate.withTransaction(
+                    template -> template.fetchSingleRecord(RuleSQLConstants.Query.GET_RULE_INTERNAL_ID_BY_ID,
+                            (resultSet, rowNumber) -> resultSet.getInt(RuleSQLConstants.Column.RULE_INTERNAL_ID),
+                            statement -> {
+                                statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, ruleId);
+                                statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                            }));
+        } catch (TransactionException e) {
             throw new RuleManagementServerException("Error while retrieving the rule from the system.", e);
         }
     }
 
-    private void addRuleValueReferencesToDB(int internalRuleId, Rule rule, int tenantId) throws DataAccessException {
+    private void addRuleValueReferencesToDB(int internalRuleId, Rule rule, int tenantId) throws TransactionException {
 
         ORCombinedRule orCombinedRule = (ORCombinedRule) rule;
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.executeBatchInsert(RuleSQLConstants.Query.ADD_RULE_REFERENCES,
-                statement -> {
-                    for (ANDCombinedRule rule1 : orCombinedRule.getRules()) {
-                        for (Expression expression : rule1.getExpressions()) {
-                            if (expression.getValue().getType() == Value.Type.REFERENCE) {
-                                statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
-                                statement.setString(RuleSQLConstants.Column.FIELD_NAME, expression.getField());
-                                statement.setString(RuleSQLConstants.Column.FIELD_REFERENCE,
-                                        expression.getValue().getFieldValue());
-                                statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
-                                statement.addBatch();
+        jdbcTemplate.withTransaction(template -> {
+            template.executeBatchInsert(RuleSQLConstants.Query.ADD_RULE_REFERENCES,
+                    statement -> {
+                        for (ANDCombinedRule rule1 : orCombinedRule.getRules()) {
+                            for (Expression expression : rule1.getExpressions()) {
+                                if (expression.getValue().getType() == Value.Type.REFERENCE) {
+                                    statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
+                                    statement.setString(RuleSQLConstants.Column.FIELD_NAME, expression.getField());
+                                    statement.setString(RuleSQLConstants.Column.FIELD_REFERENCE,
+                                            expression.getValue().getFieldValue());
+                                    statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                                    statement.addBatch();
+                                }
                             }
                         }
-                    }
-                }, null);
+                    }, null);
+            return null;
+        });
     }
 
     private void updateRuleInDB(Rule rule, int tenantId)
-            throws DataAccessException, IOException, RuleManagementServerException {
+            throws IOException, TransactionException, RuleManagementServerException {
 
         InputStream ruleJsonAsInputStream = convertRuleToJson(rule);
         int ruleJsonStreamLength = ruleJsonAsInputStream.available();
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.executeUpdate(RuleSQLConstants.Query.UPDATE_RULE,
-                statement -> {
-                    statement.setBinaryStream(RuleSQLConstants.Column.RULE, ruleJsonAsInputStream,
-                            ruleJsonStreamLength);
-                    statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, rule.getId());
-                    statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
-                });
+        jdbcTemplate.withTransaction(template -> {
+            template.executeUpdate(RuleSQLConstants.Query.UPDATE_RULE,
+                    statement -> {
+                        statement.setBinaryStream(RuleSQLConstants.Column.RULE, ruleJsonAsInputStream,
+                                ruleJsonStreamLength);
+                        statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, rule.getId());
+                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+            return null;
+        });
     }
 
-    private void deleteRuleReferencesInDB(int internalRuleId, int tenantId) throws DataAccessException {
+    private void deleteRuleReferencesInDB(int internalRuleId, int tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.executeUpdate(RuleSQLConstants.Query.DELETE_RULE_REFERENCES,
-                statement -> {
-                    statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
-                    statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
-                });
+        jdbcTemplate.withTransaction(template -> {
+            template.executeUpdate(RuleSQLConstants.Query.DELETE_RULE_REFERENCES,
+                    statement -> {
+                        statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
+                        statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+            return null;
+        });
     }
 
     private InputStream convertRuleToJson(Rule rule) throws RuleManagementServerException {
