@@ -33,9 +33,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByTyp
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
 
@@ -62,13 +60,14 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
                         statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType()
                                 .toString());
-                        statement.setString(Column.IS_ENABLED, String.valueOf(authenticatorConfig.isEnabled() ? 1 : 0));
+                        statement.setString(Column.IS_ENABLED,
+                                authenticatorConfig.isEnabled() ? IS_TRUE_VALUE : IS_FALSE_VALUE);
                         statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                         statement.setInt(Column.TENANT_ID, tenantId);
                     }, null, true));
 
             if (authenticatorConfigID == 0) {
-                getAuthenticatorEntryId(authenticatorConfig.getName(), tenantId);
+                authenticatorConfigID = getAuthenticatorEntryId(authenticatorConfig.getName(), tenantId);
             }
             addAuthenticatorProperty(authenticatorConfigID, authenticatorConfig.getProperties(), tenantId);
 
@@ -91,7 +90,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement -> {
                         statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
                         statement.setString(Column.IS_ENABLED,
-                                String.valueOf(updatedAuthenticatorConfig.isEnabled() ? 1 : 0));
+                                updatedAuthenticatorConfig.isEnabled() ? IS_TRUE_VALUE : IS_FALSE_VALUE);
                         statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
                         statement.setInt(Column.TENANT_ID, tenantId);
                     });
@@ -121,9 +120,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         try {
             NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-            HashMap<Integer, UserDefinedLocalAuthenticatorConfig> authenticatorConfigMap = new HashMap<>();
             List<UserDefinedLocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
-            jdbcTemplate.withTransaction(
+            List<AuthenticatorConfigDaoModel> configDaoModels = jdbcTemplate.withTransaction(
                 template -> template.executeQuery(Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL,
                     (resultSet, rowNumber) -> {
                         UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
@@ -132,16 +130,16 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                         config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                         config.setDefinedByType(DefinedByType.valueOf(resultSet.getString(Column.DEFINED_BY)));
-                        return authenticatorConfigMap.put(resultSet.getInt(Column.ID), config);
+                        return new AuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), config);
                     },
                     statement -> {
                         statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
                         statement.setInt(Column.TENANT_ID, tenantId);
                     }));
 
-            for (Map.Entry<Integer, UserDefinedLocalAuthenticatorConfig> entry: authenticatorConfigMap.entrySet()) {
-                UserDefinedLocalAuthenticatorConfig retrievedConfigs = entry.getValue();
-                retrievedConfigs.setProperties(getAuthenticatorProperties(entry.getKey(), tenantId));
+            for (AuthenticatorConfigDaoModel config: configDaoModels) {
+                UserDefinedLocalAuthenticatorConfig retrievedConfigs = config.getConfig();
+                retrievedConfigs.setProperties(getAuthenticatorProperties(config.getEntryId(), tenantId));
                 allUserDefinedLocalConfigs.add(retrievedConfigs);
             }
             return allUserDefinedLocalConfigs;
@@ -171,12 +169,10 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     private UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticatorByName(String authenticatorConfigName,
-            int tenantId) throws AuthenticatorMgtServerException, TransactionException {
+            int tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        UserDefinedLocalAuthenticatorConfig retrievedConfigs = null;
-        HashMap<Integer, UserDefinedLocalAuthenticatorConfig> authenticatorConfigMap = new HashMap<>();
-        jdbcTemplate.withTransaction(template ->
+        AuthenticatorConfigDaoModel configDaoModel = jdbcTemplate.withTransaction(template ->
             template.fetchSingleRecord(Query.GET_AUTHENTICATOR_SQL,
                 (resultSet, rowNumber) -> {
                     UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
@@ -185,7 +181,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                     config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                     config.setDefinedByType(DefinedByType.USER);
-                    return authenticatorConfigMap.put(resultSet.getInt(Column.ID), config);
+                    return new AuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), config);
                 },
                 statement -> {
                     statement.setString(Column.NAME, authenticatorConfigName);
@@ -193,13 +189,13 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
                 }));
 
-        for (Map.Entry<Integer, UserDefinedLocalAuthenticatorConfig> entry: authenticatorConfigMap.entrySet()) {
-            retrievedConfigs = entry.getValue();
-            retrievedConfigs.setProperties(getAuthenticatorProperties(entry.getKey(), tenantId));
-            break;
+        if (configDaoModel == null) {
+            return null;
         }
 
-        return retrievedConfigs;
+        UserDefinedLocalAuthenticatorConfig config = configDaoModel.getConfig();
+        config.setProperties(getAuthenticatorProperties(configDaoModel.getEntryId(), tenantId));
+        return config;
     }
 
     private UserDefinedLocalAuthenticatorConfig getLocalAuthenticatorConfigBasedOnType(String authenticationType) {
@@ -263,4 +259,27 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                 }));
         return properties.toArray(new Property[0]);
     }
+
+    /**
+     * This class represents the user defined local authenticator configuration with entry id from DAO.
+     */
+    private static class AuthenticatorConfigDaoModel {
+
+        private final int entryId;
+        private final UserDefinedLocalAuthenticatorConfig config;
+
+        private AuthenticatorConfigDaoModel(int entryId, UserDefinedLocalAuthenticatorConfig config) {
+            this.entryId = entryId;
+            this.config = config;
+        }
+
+        public int getEntryId() {
+            return entryId;
+        }
+
+        public UserDefinedLocalAuthenticatorConfig getConfig() {
+            return config;
+        }
+    }
+
 }

@@ -82,8 +82,8 @@ public class AuthenticatorMgtExceptionBuilder {
         // Client errors.
         ERROR_NOT_FOUND_AUTHENTICATOR("60001", "No Authenticator found.",
                 "No Authenticator found by given authenticator name: %s."),
-        ERROR_OP_ON_SYSTEM_AUTHENTICATOR("60002", "No operations allowed on system authenticators.",
-                "Do not allow to perform any operation on system defined authenticator: %s."),
+        ERROR_OPERATION_ALLOWED_FOR_SYSTEM_AUTHENTICATOR("60002", "No operations allowed on system " +
+                "authenticators.", "Do not allow to perform any operation on system defined authenticator: %s."),
         ERROR_AUTHENTICATOR_ALREADY_EXIST("60003", "The authenticator already exists.",
                 "The authenticator already exists for the given name: %s."),
         ERROR_INVALID_AUTHENTICATOR_NAME("60004", "Authenticator name is invalid.",

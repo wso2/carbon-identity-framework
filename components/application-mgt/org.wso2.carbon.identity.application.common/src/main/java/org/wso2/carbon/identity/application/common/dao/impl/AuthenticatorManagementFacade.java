@@ -151,6 +151,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             return jdbcTemplate.withTransaction(template -> {
                 List<UserDefinedLocalAuthenticatorConfig> configList =
                         dao.getAllUserDefinedLocalAuthenticators(tenantId);
+                // TODO: Utilize a batch operation once issue:https://github.com/wso2/product-is/issues/21783 is done.
                 for (UserDefinedLocalAuthenticatorConfig config : configList) {
                     endpointConfigManager.resolveEndpointConfigurations(config, tenantId);
                 }
