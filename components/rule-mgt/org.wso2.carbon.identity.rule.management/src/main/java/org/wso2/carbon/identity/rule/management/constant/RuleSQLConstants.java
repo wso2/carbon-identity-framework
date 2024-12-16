@@ -35,7 +35,7 @@ public class RuleSQLConstants {
 
         public static final String RULE_INTERNAL_ID = "ID";
         public static final String RULE_EXTERNAL_ID = "UUID";
-        public static final String RULE = "RULE";
+        public static final String RULE_CONTENT = "CONTENT";
         public static final String IS_ACTIVE = "IS_ACTIVE";
         public static final String TENANT_ID = "TENANT_ID";
         public static final String VERSION = "VERSION";
@@ -53,20 +53,20 @@ public class RuleSQLConstants {
      */
     public static class Query {
 
-        public static final String ADD_RULE = "INSERT INTO IDN_RULE (UUID, RULE, IS_ACTIVE, TENANT_ID, VERSION) " +
-                "VALUES (:UUID;, :RULE;, :IS_ACTIVE;, :TENANT_ID;, :VERSION;)";
+        public static final String ADD_RULE = "INSERT INTO IDN_RULE (UUID, CONTENT, IS_ACTIVE, TENANT_ID, VERSION) " +
+                "VALUES (:UUID;, :CONTENT;, :IS_ACTIVE;, :TENANT_ID;, :VERSION;)";
         public static final String ADD_RULE_REFERENCES = "INSERT INTO IDN_RULE_REFERENCES (RULE_ID, " +
                 "FIELD_NAME, FIELD_REFERENCE, TENANT_ID) VALUES (:RULE_ID;, :FIELD_NAME;, :FIELD_REFERENCE;, " +
                 ":TENANT_ID;)";
         public static final String UPDATE_RULE =
-                "UPDATE IDN_RULE SET RULE = :RULE; WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
+                "UPDATE IDN_RULE SET CONTENT = :CONTENT; WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
         public static final String DELETE_RULE_REFERENCES =
                 "DELETE FROM IDN_RULE_REFERENCES WHERE RULE_ID = :RULE_ID; AND TENANT_ID = :TENANT_ID;";
         public static final String DELETE_RULE = "DELETE FROM IDN_RULE WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
         public static final String CHANGE_RULE_STATUS = "UPDATE IDN_RULE SET IS_ACTIVE = :IS_ACTIVE; WHERE UUID = " +
                 ":UUID; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_RULE_BY_ID =
-                "SELECT RULE, IS_ACTIVE FROM IDN_RULE WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
+                "SELECT CONTENT, IS_ACTIVE FROM IDN_RULE WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_RULE_INTERNAL_ID_BY_ID =
                 "SELECT ID FROM IDN_RULE WHERE UUID = :UUID; AND TENANT_ID = :TENANT_ID;";
 

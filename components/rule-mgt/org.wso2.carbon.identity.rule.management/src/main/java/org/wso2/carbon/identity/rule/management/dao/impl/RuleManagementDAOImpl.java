@@ -137,7 +137,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
             jdbcTemplate.withTransaction(
                     template -> template.fetchSingleRecord(RuleSQLConstants.Query.GET_RULE_BY_ID,
                             (resultSet, rowNumber) -> {
-                                ruleData.setRuleJson(resultSet.getString(RuleSQLConstants.Column.RULE));
+                                ruleData.setRuleJson(resultSet.getString(RuleSQLConstants.Column.RULE_CONTENT));
                                 ruleData.setActive(resultSet.getBoolean(RuleSQLConstants.Column.IS_ACTIVE));
                                 return null;
                             },
@@ -221,7 +221,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
                 jdbcTemplate.withTransaction(template -> template.executeInsert(RuleSQLConstants.Query.ADD_RULE,
                         statement -> {
                             statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, rule.getId());
-                            statement.setBinaryStream(RuleSQLConstants.Column.RULE, ruleJsonAsInputStream,
+                            statement.setBinaryStream(RuleSQLConstants.Column.RULE_CONTENT, ruleJsonAsInputStream,
                                     ruleJsonStreamLength);
                             statement.setBoolean(RuleSQLConstants.Column.IS_ACTIVE, rule.isActive());
                             statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
@@ -282,7 +282,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
         jdbcTemplate.withTransaction(template -> {
             template.executeUpdate(RuleSQLConstants.Query.UPDATE_RULE,
                     statement -> {
-                        statement.setBinaryStream(RuleSQLConstants.Column.RULE, ruleJsonAsInputStream,
+                        statement.setBinaryStream(RuleSQLConstants.Column.RULE_CONTENT, ruleJsonAsInputStream,
                                 ruleJsonStreamLength);
                         statement.setString(RuleSQLConstants.Column.RULE_EXTERNAL_ID, rule.getId());
                         statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
