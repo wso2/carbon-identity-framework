@@ -79,7 +79,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             authenticationSteps = localAndOutboundAuthenticationConfig.getAuthenticationSteps();
         }
 
-        SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
+        SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps,
+                context.getRequestType());
 
         //Use script based evaluation if script is present.
         if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig)) {
@@ -154,6 +155,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
      * @return
      * @throws FrameworkException
      */
+    @Deprecated
     public SequenceConfig getSequence(ServiceProvider serviceProvider, String tenantDomain,
                                       AuthenticationStep[] authenticationSteps) throws FrameworkException {
 
@@ -163,6 +165,60 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         SequenceConfig sequenceConfig = new SequenceConfig();
         sequenceConfig.setApplicationId(serviceProvider.getApplicationName());
         sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider, tenantDomain));
+
+        // setting request path authenticators
+        loadRequestPathAuthenticators(sequenceConfig, serviceProvider);
+
+        int stepOrder = 0;
+
+        if (authenticationSteps == null) {
+            return sequenceConfig;
+        }
+
+        // for each configured step
+        for (AuthenticationStep authenticationStep : authenticationSteps) {
+
+            try {
+                stepOrder = authenticationStep.getStepOrder();
+            } catch (NumberFormatException e) {
+                stepOrder++;
+            }
+
+            // create a step configuration object
+            StepConfig stepConfig = createStepConfigurationObject(stepOrder, authenticationStep);
+
+            // loading Federated Authenticators
+            loadFederatedAuthenticators(authenticationStep, stepConfig, tenantDomain);
+
+            // loading local authenticators
+            loadLocalAuthenticators(authenticationStep, stepConfig);
+
+            sequenceConfig.getStepMap().put(stepOrder, stepConfig);
+        }
+
+        return sequenceConfig;
+    }
+
+    /**
+     * Loads the sequence in the way previous loading mechanism used to work.
+     * Please do not use this for any new development.
+     *
+     * @param serviceProvider
+     * @param tenantDomain
+     * @param authenticationSteps
+     * @return
+     * @throws FrameworkException
+     */
+    public SequenceConfig getSequence(ServiceProvider serviceProvider, String tenantDomain,
+                                      AuthenticationStep[] authenticationSteps, String reqType)
+            throws FrameworkException {
+
+        if (serviceProvider == null) {
+            throw new FrameworkException("ServiceProvider cannot be null");
+        }
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setApplicationId(serviceProvider.getApplicationName());
+        sequenceConfig.setApplicationConfig(new ApplicationConfig(serviceProvider, tenantDomain, reqType));
 
         // setting request path authenticators
         loadRequestPathAuthenticators(sequenceConfig, serviceProvider);

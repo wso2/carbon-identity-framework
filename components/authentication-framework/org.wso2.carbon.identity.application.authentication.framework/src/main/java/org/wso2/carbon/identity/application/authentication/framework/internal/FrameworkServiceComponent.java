@@ -77,6 +77,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
+import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationAppConfigListener;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
@@ -1108,5 +1109,23 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setRoleManagementServiceV2(null);
         log.debug("RoleManagementServiceV2 unset in FrameworkServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "sp,claim.mapping.listener",
+            service = AuthenticationAppConfigListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSPClaimMappingListener"
+    )
+    protected void setSPClaimMappingListener(AuthenticationAppConfigListener spClaimMappingListener) {
+
+        FrameworkServiceDataHolder.getInstance().setSPClaimMappingListener(spClaimMappingListener.getInboundType(),
+                spClaimMappingListener);
+    }
+
+    protected void unsetSPClaimMappingListener(AuthenticationAppConfigListener spClaimMappingListener) {
+
+        FrameworkServiceDataHolder.getInstance().removeSPClaimMappingListener(spClaimMappingListener.getInboundType());
     }
 }

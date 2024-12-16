@@ -22,7 +22,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationAppConfigListener;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -181,6 +183,29 @@ public class ApplicationConfig implements Serializable, Cloneable {
                     useUserIdForDefaultSubject = Boolean.parseBoolean(prop.getValue());
                     break;
                 }
+            }
+        }
+    }
+
+    /**
+     * Initialize application (service provider) configurations.
+     *
+     * @param application Application details.
+     * @param tenantDomain Tenant domain of the application.
+     */
+    public ApplicationConfig(ServiceProvider application, String tenantDomain, String inboundType) {
+
+        this(application, tenantDomain);
+        AuthenticationAppConfigListener spClaimMappingListener = FrameworkServiceDataHolder.getInstance()
+                .getSPClaimMappingListener(inboundType);
+        if (spClaimMappingListener != null) {
+            try {
+                spClaimMappingListener
+                        .onPostLoadAppConfig(this, tenantDomain);
+            } catch (FrameworkException e) {
+                String message  = "Error occurred while handling SP claim mapping for application: " +
+                        applicationName + " inboundType  : " + inboundType;
+                log.warn(message, e);
             }
         }
     }
@@ -381,6 +406,20 @@ public class ApplicationConfig implements Serializable, Cloneable {
                 }
             });
         }
+    }
+
+    private static String getInboundConfigType(ServiceProvider serviceProvider) {
+
+        String inboundConfigType = null;
+        if (serviceProvider.getInboundAuthenticationConfig() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs() != null &&
+                serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs().length != 0) {
+            inboundConfigType = serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
+        }
+        return inboundConfigType;
     }
 
     public boolean isUseUserIdForDefaultSubject() {

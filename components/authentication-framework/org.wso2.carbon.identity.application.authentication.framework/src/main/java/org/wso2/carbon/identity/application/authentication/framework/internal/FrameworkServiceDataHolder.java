@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationAppConfigListener;
 import org.wso2.carbon.identity.application.authentication.framework.listener.SessionContextMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
@@ -112,6 +113,7 @@ public class FrameworkServiceDataHolder {
     private ServerSessionManagementService serverSessionManagementService;
     private MultiAttributeLoginService multiAttributeLoginService;
     private Map<String, SessionContextMgtListener> sessionContextMgtListeners = new HashMap<>();
+    private Map<String, AuthenticationAppConfigListener> spClaimMappingListeners = new HashMap<>();
     private SessionSerializer sessionSerializer;
 
     private JSExecutionSupervisor jsExecutionSupervisor;
@@ -826,5 +828,20 @@ public class FrameworkServiceDataHolder {
     public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
 
         this.roleManagementServiceV2 = roleManagementServiceV2;
+    }
+
+    public AuthenticationAppConfigListener getSPClaimMappingListener(String inboundType) {
+
+        return spClaimMappingListeners.get(inboundType);
+    }
+
+    public void setSPClaimMappingListener(String inboundType, AuthenticationAppConfigListener spClaimMappingListener) {
+
+        spClaimMappingListeners.put(inboundType, spClaimMappingListener);
+    }
+
+    public void removeSPClaimMappingListener(String inboundType) {
+
+        spClaimMappingListeners.remove(inboundType);
     }
 }
