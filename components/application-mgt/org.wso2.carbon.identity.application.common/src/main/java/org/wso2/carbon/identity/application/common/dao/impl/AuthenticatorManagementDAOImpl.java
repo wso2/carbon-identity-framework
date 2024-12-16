@@ -33,7 +33,9 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByTyp
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildServerException;
 
@@ -52,20 +54,22 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            jdbcTemplate.withTransaction(template ->
-                jdbcTemplate.executeInsert(Query.ADD_AUTHENTICATOR_SQL,
-                    (statement -> {
+            int authenticatorConfigID = jdbcTemplate.withTransaction(template ->
+                template.executeInsert(Query.ADD_AUTHENTICATOR_SQL,
+                    statement -> {
                         statement.setString(Column.NAME, authenticatorConfig.getName());
                         statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
                         statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
                         statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType()
                                 .toString());
-                        statement.setInt(Column.IS_ENABLED, authenticatorConfig.isEnabled() ? 1 : 0);
+                        statement.setString(Column.IS_ENABLED, String.valueOf(authenticatorConfig.isEnabled() ? 1 : 0));
                         statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                         statement.setInt(Column.TENANT_ID, tenantId);
-                    }), null, false));
+                    }, null, true));
 
-            int authenticatorConfigID = getAuthenticatorEntryId(authenticatorConfig.getName(), tenantId);
+            if (authenticatorConfigID == 0) {
+                getAuthenticatorEntryId(authenticatorConfig.getName(), tenantId);
+            }
             addAuthenticatorProperty(authenticatorConfigID, authenticatorConfig.getProperties(), tenantId);
 
             return getUserDefinedLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);
@@ -83,14 +87,14 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                jdbcTemplate.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL,
-                statement -> {
-                    statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
-                    statement.setInt(Column.IS_ENABLED, updatedAuthenticatorConfig.isEnabled() ? 1 : 0);
-                    statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
-                    statement.setInt(Column.TENANT_ID, tenantId);
-                    statement.executeUpdate();
-                });
+                template.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL,
+                    statement -> {
+                        statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
+                        statement.setString(Column.IS_ENABLED,
+                                String.valueOf(updatedAuthenticatorConfig.isEnabled() ? 1 : 0));
+                        statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                    });
                 return null;
             });
 
@@ -115,11 +119,12 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     public List<UserDefinedLocalAuthenticatorConfig> getAllUserDefinedLocalAuthenticators(int tenantId)
             throws AuthenticatorMgtException {
 
-        List<UserDefinedLocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
         try {
             NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-            jdbcTemplate.withTransaction(template ->
-                jdbcTemplate.executeQuery(Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL,
+            HashMap<Integer, UserDefinedLocalAuthenticatorConfig> authenticatorConfigMap = new HashMap<>();
+            List<UserDefinedLocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
+            jdbcTemplate.withTransaction(
+                template -> template.executeQuery(Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL,
                     (resultSet, rowNumber) -> {
                         UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
                                 resultSet.getString(Column.AUTHENTICATION_TYPE));
@@ -127,17 +132,17 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                         config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                         config.setDefinedByType(DefinedByType.valueOf(resultSet.getString(Column.DEFINED_BY)));
-                        allUserDefinedLocalConfigs.add(config);
-                        return null;
+                        return authenticatorConfigMap.put(resultSet.getInt(Column.ID), config);
                     },
                     statement -> {
                         statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
                         statement.setInt(Column.TENANT_ID, tenantId);
                     }));
 
-            for (UserDefinedLocalAuthenticatorConfig retrievedConfigs: allUserDefinedLocalConfigs) {
-                int authenticatorConfigID = getAuthenticatorEntryId(retrievedConfigs.getName(), tenantId);
-                retrievedConfigs.setProperties(getAuthenticatorProperties(authenticatorConfigID, tenantId));
+            for (Map.Entry<Integer, UserDefinedLocalAuthenticatorConfig> entry: authenticatorConfigMap.entrySet()) {
+                UserDefinedLocalAuthenticatorConfig retrievedConfigs = entry.getValue();
+                retrievedConfigs.setProperties(getAuthenticatorProperties(entry.getKey(), tenantId));
+                allUserDefinedLocalConfigs.add(retrievedConfigs);
             }
             return allUserDefinedLocalConfigs;
         } catch (TransactionException e) {
@@ -152,12 +157,12 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                jdbcTemplate.executeUpdate(Query.DELETE_AUTHENTICATOR_SQL,
-                        statement -> {
-                            statement.setString(Column.NAME, authenticatorConfigName);
-                            statement.setInt(Column.TENANT_ID, tenantId);
-                            statement.executeUpdate();
-                        });
+                template.executeUpdate(Query.DELETE_AUTHENTICATOR_SQL,
+                    statement -> {
+                        statement.setString(Column.NAME, authenticatorConfigName);
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                        statement.executeUpdate();
+                    });
                 return null;
             });
         } catch (TransactionException e) {
@@ -169,7 +174,9 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             int tenantId) throws AuthenticatorMgtServerException, TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        UserDefinedLocalAuthenticatorConfig authConfig = jdbcTemplate.withTransaction(template ->
+        UserDefinedLocalAuthenticatorConfig retrievedConfigs = null;
+        HashMap<Integer, UserDefinedLocalAuthenticatorConfig> authenticatorConfigMap = new HashMap<>();
+        jdbcTemplate.withTransaction(template ->
             template.fetchSingleRecord(Query.GET_AUTHENTICATOR_SQL,
                 (resultSet, rowNumber) -> {
                     UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
@@ -178,7 +185,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                     config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                     config.setDefinedByType(DefinedByType.USER);
-                    return config;
+                    return authenticatorConfigMap.put(resultSet.getInt(Column.ID), config);
                 },
                 statement -> {
                     statement.setString(Column.NAME, authenticatorConfigName);
@@ -186,28 +193,13 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
                 }));
 
-        if (authConfig == null) {
-            return null;
+        for (Map.Entry<Integer, UserDefinedLocalAuthenticatorConfig> entry: authenticatorConfigMap.entrySet()) {
+            retrievedConfigs = entry.getValue();
+            retrievedConfigs.setProperties(getAuthenticatorProperties(entry.getKey(), tenantId));
+            break;
         }
 
-        int authenticatorConfigID = getAuthenticatorEntryId(authenticatorConfigName, tenantId);
-        List<Property> properties = new ArrayList<>();
-        jdbcTemplate.withTransaction(template ->
-            template.fetchSingleRecord(Query.GET_AUTHENTICATOR_PROP_SQL,
-                (resultSet, rowNumber) -> {
-                    Property property = new Property();
-                    property.setName(resultSet.getString(Column.PROPERTY_KEY));
-                    property.setValue(resultSet.getString(Column.PROPERTY_VALUE));
-                    property.setConfidential(false);
-                    properties.add(property);
-                    return null;
-                },
-                statementProp -> {
-                    statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
-                    statementProp.setInt(Column.TENANT_ID, tenantId);
-                }));
-        authConfig.setProperties(properties.toArray(new Property[0]));
-        return authConfig;
+        return retrievedConfigs;
     }
 
     private UserDefinedLocalAuthenticatorConfig getLocalAuthenticatorConfigBasedOnType(String authenticationType) {
@@ -223,12 +215,12 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         int id = jdbcTemplate.withTransaction(template ->
-                jdbcTemplate.fetchSingleRecord(Query.GET_AUTHENTICATOR_ID_SQL,
-           (resultSet, rowNumber) -> resultSet.getInt(Column.ID),
-           statement -> {
-               statement.setString(Column.NAME, authenticatorConfigName);
-               statement.setInt(Column.TENANT_ID, tenantId);
-           }));
+            template.fetchSingleRecord(Query.GET_AUTHENTICATOR_ID_SQL,
+               (resultSet, rowNumber) -> resultSet.getInt(Column.ID),
+               statement -> {
+                   statement.setString(Column.NAME, authenticatorConfigName);
+                   statement.setInt(Column.TENANT_ID, tenantId);
+               }));
 
         if (id != 0) {
             return id;
@@ -243,29 +235,27 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         Property prop = properties[0];
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template ->
-                template.executeInsert(Query.ADD_AUTHENTICATOR_PROP_SQL,
-                (statementProp -> {
+            template.executeInsert(Query.ADD_AUTHENTICATOR_PROP_SQL,
+                statementProp -> {
                     statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
                     statementProp.setInt(Column.TENANT_ID, tenantId);
                     statementProp.setString(Column.PROPERTY_KEY, prop.getName());
                     statementProp.setString(Column.PROPERTY_VALUE, prop.getValue());
                     statementProp.setString(Column.IS_SECRET, IS_FALSE_VALUE);
-                }), null, false));
+                }, null, false));
     }
 
     private Property[] getAuthenticatorProperties(int authenticatorConfigID, int tenantId) throws TransactionException {
 
-        List<Property> properties = new ArrayList<>();
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template ->
-            jdbcTemplate.executeQuery(Query.GET_AUTHENTICATOR_PROP_SQL,
+        List<Property> properties = jdbcTemplate.withTransaction(template ->
+            template.executeQuery(Query.GET_AUTHENTICATOR_PROP_SQL,
                 (resultSet, rowNumber) -> {
                     Property property = new Property();
                     property.setName(resultSet.getString(Column.PROPERTY_KEY));
                     property.setValue(resultSet.getString(Column.PROPERTY_VALUE));
                     property.setConfidential(false);
-                    properties.add(property);
-                    return null;
+                    return property;
                 },
                 statementProp -> {
                     statementProp.setInt(Column.AUTHENTICATOR_ID, authenticatorConfigID);
