@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderBy
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
@@ -65,9 +67,6 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATI
  */
 public class DefaultRoleManagementListener extends AbstractApplicationMgtListener implements RoleManagementListener {
 
-    private static final AuthorizedAPIManagementService authorizedAPIManagementService =
-            new AuthorizedAPIManagementServiceImpl();
-
     @Override
     public int getExecutionOrderId() {
 
@@ -92,7 +91,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             throws IdentityRoleManagementException {
 
         if (APPLICATION.equalsIgnoreCase(audience)) {
-            validateApplicationRoleAudience(audienceId, tenantDomain);
+            validateApplicationTypeAndRoleAudience(audienceId, tenantDomain);
             validatePermissionsForApplication(permissions, audienceId, tenantDomain);
         }
     }
@@ -513,13 +512,14 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     }
 
     /**
-     * Validate application role audience.
+     * Validate application type and the role audience of the application. The application type will be set to the
+     * thread local properties.
      *
      * @param applicationId Application ID.
      * @param tenantDomain  Tenant domain.
      * @throws IdentityRoleManagementException Error occurred while validating application role audience.
      */
-    private void validateApplicationRoleAudience(String applicationId, String tenantDomain)
+    private void validateApplicationTypeAndRoleAudience(String applicationId, String tenantDomain)
             throws IdentityRoleManagementException {
 
         try {
@@ -535,6 +535,17 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
             if (!APPLICATION.equalsIgnoreCase(allowedAudienceForRoleAssociation.toLowerCase())) {
                 throw new IdentityRoleManagementClientException(INVALID_AUDIENCE.getCode(),
                         "Application: " + applicationId + " does not have Application role audience type");
+            }
+
+            // Set thread local property to identify that the application is a fragment application. This property
+            // will be used in the role management component to identify the application type.
+            if (IdentityUtil.threadLocalProperties.get().get(ApplicationConstants.IS_FRAGMENT_APP) != null) {
+                IdentityUtil.threadLocalProperties.get().remove(ApplicationConstants.IS_FRAGMENT_APP);
+            }
+            if (app.getSpProperties() != null && Arrays.stream(app.getSpProperties())
+                    .anyMatch(property -> ApplicationConstants.IS_FRAGMENT_APP.equals(property.getName())
+                            && Boolean.parseBoolean(property.getValue()))) {
+                IdentityUtil.threadLocalProperties.get().put(ApplicationConstants.IS_FRAGMENT_APP, Boolean.TRUE);
             }
         } catch (IdentityApplicationManagementException e) {
             String errorMessage = "Error while retrieving the application for the given id: " + applicationId;
@@ -579,6 +590,7 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
 
         List<AuthorizedScopes> authorizedScopesList;
         try {
+            AuthorizedAPIManagementService authorizedAPIManagementService = new AuthorizedAPIManagementServiceImpl();
             authorizedScopesList = authorizedAPIManagementService.getAuthorizedScopes(appId, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
             throw new IdentityRoleManagementException("Error while retrieving authorized scopes.",
