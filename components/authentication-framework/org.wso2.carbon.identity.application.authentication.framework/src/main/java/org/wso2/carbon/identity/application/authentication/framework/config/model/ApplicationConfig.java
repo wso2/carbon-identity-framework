@@ -196,11 +196,11 @@ public class ApplicationConfig implements Serializable, Cloneable {
     public ApplicationConfig(ServiceProvider application, String tenantDomain, String inboundType) {
 
         this(application, tenantDomain);
-        AuthenticationAppConfigListener spClaimMappingListener = FrameworkServiceDataHolder.getInstance()
+        AuthenticationAppConfigListener authenticationAppConfigListener = FrameworkServiceDataHolder.getInstance()
                 .getSPClaimMappingListener(inboundType);
-        if (spClaimMappingListener != null) {
+        if (authenticationAppConfigListener != null) {
             try {
-                spClaimMappingListener
+                authenticationAppConfigListener
                         .onPostLoadAppConfig(this, tenantDomain);
             } catch (FrameworkException e) {
                 String message  = "Error occurred while handling SP claim mapping for application: " +
