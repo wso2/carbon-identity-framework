@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.action.management.dao.impl;
 
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
@@ -162,15 +161,16 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         Map<String, Integer> actionTypesCountMap = new HashMap<>();
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            jdbcTemplate.executeQuery(ActionMgtSQLConstants.Query.GET_ACTIONS_COUNT_PER_ACTION_TYPE,
-                (resultSet, rowNumber) -> {
-                    actionTypesCountMap.put(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE),
-                            resultSet.getInt(ActionMgtSQLConstants.Column.ACTION_COUNT));
-                    return null;
-                }, statement -> statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId));
+            jdbcTemplate.withTransaction(template ->
+                template.executeQuery(ActionMgtSQLConstants.Query.GET_ACTIONS_COUNT_PER_ACTION_TYPE,
+                    (resultSet, rowNumber) -> {
+                        actionTypesCountMap.put(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE),
+                                resultSet.getInt(ActionMgtSQLConstants.Column.ACTION_COUNT));
+                        return null;
+                    }, statement -> statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId)));
 
             return actionTypesCountMap;
-        } catch (DataAccessException e) {
+        } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while retrieving Actions count per Action Type from the system.",
                     e);
         }
@@ -187,22 +187,19 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            jdbcTemplate.withTransaction(template -> {
+            jdbcTemplate.withTransaction(template ->
                 template.executeInsert(ActionMgtSQLConstants.Query.ADD_ACTION_TO_ACTION_TYPE,
-                        statement -> {
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionDTO.getId());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE,
-                                    actionDTO.getType().getActionType());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, actionDTO.getName());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
-                                    actionDTO.getDescription());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS,
-                                    String.valueOf(
-                                            org.wso2.carbon.identity.action.management.model.Action.Status.ACTIVE));
-                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                        }, actionDTO, false);
-                return null;
-            });
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionDTO.getId());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE,
+                                actionDTO.getType().getActionType());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, actionDTO.getName());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
+                                actionDTO.getDescription());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS,
+                                String.valueOf(Action.Status.ACTIVE));
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                    }, actionDTO, false));
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Basic information in the system.", e);
         }
@@ -225,19 +222,24 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            jdbcTemplate.executeUpdate(ActionMgtSQLConstants.Query.UPDATE_ACTION_BASIC_INFO,
-                statement -> {
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, updatingActionDTO.getName() == null ?
-                            existingActionDTO.getName() : updatingActionDTO.getName());
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
-                            updatingActionDTO.getDescription() == null ? existingActionDTO.getDescription()
-                                    : updatingActionDTO.getDescription());
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, updatingActionDTO.getId());
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE,
-                            updatingActionDTO.getType().getActionType());
-                    statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(ActionMgtSQLConstants.Query.UPDATE_ACTION_BASIC_INFO,
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME,
+                                updatingActionDTO.getName() == null ? existingActionDTO.getName()
+                                        : updatingActionDTO.getName());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
+                                updatingActionDTO.getDescription() == null ? existingActionDTO.getDescription()
+                                        : updatingActionDTO.getDescription());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, updatingActionDTO.getId());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE,
+                                updatingActionDTO.getType().getActionType());
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                 });
-        } catch (DataAccessException e) {
+
+                return null;
+            });
+        } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Basic information in the system.", e);
         }
     }
@@ -255,19 +257,22 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            return jdbcTemplate.fetchSingleRecord(ActionMgtSQLConstants.Query.GET_ACTION_BASIC_INFO_BY_ID,
-                (resultSet, rowNumber) -> new ActionDTOBuilder()
-                        .id(actionId)
-                        .type(Action.ActionTypes.valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
-                        .name(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
-                        .description(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
-                        .status(Action.Status.valueOf(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_STATUS))),
-                statement -> {
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
-                    statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                });
-        } catch (DataAccessException e) {
+            return jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(ActionMgtSQLConstants.Query.GET_ACTION_BASIC_INFO_BY_ID,
+                    (resultSet, rowNumber) -> new ActionDTOBuilder()
+                            .id(actionId)
+                            .type(Action.ActionTypes.valueOf(
+                                    resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE)))
+                            .name(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_NAME))
+                            .description(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
+                            .status(Action.Status.valueOf(
+                                    resultSet.getString(ActionMgtSQLConstants.Column.ACTION_STATUS))),
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                }));
+        } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while retrieving Action Basic information from the system.", e);
         }
     }
@@ -508,20 +513,21 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         try {
             String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID
                     : ActionMgtSQLConstants.Query.GET_ACTION_ENDPOINT_INFO_BY_ID;
-            jdbcTemplate.executeQuery(query,
-                (resultSet, rowNumber) -> {
-                    actionEndpointProperties.put(
-                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
-                            resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE));
-                    return null;
-                },
-                statement -> {
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
-                    statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                });
+            jdbcTemplate.withTransaction(template ->
+                template.executeQuery(query,
+                    (resultSet, rowNumber) -> {
+                        actionEndpointProperties.put(
+                                resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
+                                resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE));
+                        return null;
+                    },
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                }));
 
             return actionEndpointProperties;
-        } catch (DataAccessException | SQLException e) {
+        } catch (SQLException | TransactionException e) {
             throw new ActionMgtServerException("Error while retrieving Action Properties from the system.", e);
         }
     }
@@ -599,16 +605,20 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            jdbcTemplate.executeUpdate(ActionMgtSQLConstants.Query.CHANGE_ACTION_STATUS,
-                statement -> {
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS, status);
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
-                    statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
-                    statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                });
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(ActionMgtSQLConstants.Query.CHANGE_ACTION_STATUS,
+                    statement -> {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS, status);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_UUID, actionId);
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_TYPE, actionType);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                    });
+
+                return null;
+            });
 
             return getBasicInfo(actionType, actionId, tenantId).build();
-        } catch (DataAccessException e) {
+        } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Status to " + status, e);
         }
     }
