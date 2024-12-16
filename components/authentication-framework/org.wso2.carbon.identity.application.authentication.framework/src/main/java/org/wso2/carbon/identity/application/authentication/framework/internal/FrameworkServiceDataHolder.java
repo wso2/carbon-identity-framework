@@ -830,17 +830,18 @@ public class FrameworkServiceDataHolder {
         this.roleManagementServiceV2 = roleManagementServiceV2;
     }
 
-    public AuthenticationAppConfigListener getSPClaimMappingListener(String inboundType) {
+    public AuthenticationAppConfigListener getAuthenticationAppConfigListener(String inboundType) {
 
         return spClaimMappingListeners.get(inboundType);
     }
 
-    public void setSPClaimMappingListener(String inboundType, AuthenticationAppConfigListener spClaimMappingListener) {
+    public void setAuthenticationAppConfigListener(String inboundType, AuthenticationAppConfigListener
+            authenticationAppConfigListener) {
 
-        spClaimMappingListeners.put(inboundType, spClaimMappingListener);
+        spClaimMappingListeners.put(inboundType, authenticationAppConfigListener);
     }
 
-    public void removeSPClaimMappingListener(String inboundType) {
+    public void removeAuthenticationAppConfigListener(String inboundType) {
 
         spClaimMappingListeners.remove(inboundType);
     }

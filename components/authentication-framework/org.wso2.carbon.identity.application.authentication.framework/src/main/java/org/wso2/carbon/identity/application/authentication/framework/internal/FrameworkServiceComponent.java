@@ -1112,20 +1112,21 @@ public class FrameworkServiceComponent {
     }
 
     @Reference(
-            name = "sp,claim.mapping.listener",
+            name = "authentication.app.config.listener",
             service = AuthenticationAppConfigListener.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetSPClaimMappingListener"
     )
-    protected void setSPClaimMappingListener(AuthenticationAppConfigListener spClaimMappingListener) {
+    protected void setAuthenticationAppConfigListener(AuthenticationAppConfigListener authenticationAppConfigListener) {
 
-        FrameworkServiceDataHolder.getInstance().setSPClaimMappingListener(spClaimMappingListener.getInboundType(),
-                spClaimMappingListener);
+        FrameworkServiceDataHolder.getInstance().setAuthenticationAppConfigListener(authenticationAppConfigListener
+                        .getInboundType(), authenticationAppConfigListener);
     }
 
-    protected void unsetSPClaimMappingListener(AuthenticationAppConfigListener spClaimMappingListener) {
+    protected void unsetAuthenticationAppConfigListener(AuthenticationAppConfigListener authenticationAppConfigListener) {
 
-        FrameworkServiceDataHolder.getInstance().removeSPClaimMappingListener(spClaimMappingListener.getInboundType());
+        FrameworkServiceDataHolder.getInstance().removeAuthenticationAppConfigListener(authenticationAppConfigListener
+                .getInboundType());
     }
 }
