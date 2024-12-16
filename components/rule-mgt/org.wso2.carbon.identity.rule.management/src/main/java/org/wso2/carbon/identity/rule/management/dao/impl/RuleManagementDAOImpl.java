@@ -213,7 +213,7 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
     }
 
     private int addRuleToDB(Rule rule, int tenantId)
-            throws TransactionException, IOException, RuleManagementServerException {
+            throws TransactionException, IOException, RuleManagementException {
 
         InputStream ruleJsonAsInputStream = convertRuleToJson(rule);
         int ruleJsonStreamLength = ruleJsonAsInputStream.available();
@@ -232,7 +232,14 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
             return null;
         });
 
-        return internalId.get();
+        int internalRuleId = internalId.get();
+        // Not all JDBC drivers support getting the auto generated database ID.
+        // So if the ID is not returned, get the ID by querying the database.
+        if (internalRuleId == 0) {
+            internalRuleId = getInternalRuleIdByRuleId(rule.getId(), tenantId);
+        }
+
+        return internalRuleId;
     }
 
     private int getInternalRuleIdByRuleId(String ruleId, int tenantId) throws RuleManagementException {
@@ -255,24 +262,21 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
 
         ORCombinedRule orCombinedRule = (ORCombinedRule) rule;
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template -> {
-            template.executeBatchInsert(RuleSQLConstants.Query.ADD_RULE_REFERENCES,
-                    statement -> {
-                        for (ANDCombinedRule rule1 : orCombinedRule.getRules()) {
-                            for (Expression expression : rule1.getExpressions()) {
-                                if (expression.getValue().getType() == Value.Type.REFERENCE) {
-                                    statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
-                                    statement.setString(RuleSQLConstants.Column.FIELD_NAME, expression.getField());
-                                    statement.setString(RuleSQLConstants.Column.FIELD_REFERENCE,
-                                            expression.getValue().getFieldValue());
-                                    statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
-                                    statement.addBatch();
-                                }
+        jdbcTemplate.withTransaction(template -> template.executeBatchInsert(RuleSQLConstants.Query.ADD_RULE_REFERENCES,
+                statement -> {
+                    for (ANDCombinedRule rule1 : orCombinedRule.getRules()) {
+                        for (Expression expression : rule1.getExpressions()) {
+                            if (expression.getValue().getType() == Value.Type.REFERENCE) {
+                                statement.setInt(RuleSQLConstants.Column.RULE_REFERENCE_ID, internalRuleId);
+                                statement.setString(RuleSQLConstants.Column.FIELD_NAME, expression.getField());
+                                statement.setString(RuleSQLConstants.Column.FIELD_REFERENCE,
+                                        expression.getValue().getFieldValue());
+                                statement.setInt(RuleSQLConstants.Column.TENANT_ID, tenantId);
+                                statement.addBatch();
                             }
                         }
-                    }, null);
-            return null;
-        });
+                    }
+                }, null));
     }
 
     private void updateRuleInDB(Rule rule, int tenantId)
