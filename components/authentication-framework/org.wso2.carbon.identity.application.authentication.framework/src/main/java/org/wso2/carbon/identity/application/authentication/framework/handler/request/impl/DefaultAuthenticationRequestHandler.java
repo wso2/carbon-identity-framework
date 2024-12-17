@@ -703,6 +703,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
         }
 
+        if (context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES) instanceof Map) {
+            authenticationResult.addProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES,
+                    context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES));
+        }
+
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
         // authenticator in multi steps scenario. Ex. Fido
         if (FrameworkUtils.getCacheDisabledAuthenticators().contains(context.getRequestType())
