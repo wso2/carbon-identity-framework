@@ -83,6 +83,9 @@ public class RoleConstants {
     // Role management service configurations.
     public static final String ALLOW_SYSTEM_PREFIX_FOR_ROLES = "RoleMgt.AllowSystemPrefixForRoles";
 
+    // Role properties
+    public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
+
     /**
      * Grouping of constants related to database table names.
      */
