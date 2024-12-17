@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.core.CertificateRetrievingException;
 import org.wso2.carbon.identity.core.DatabaseCertificateRetriever;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
-import org.wso2.carbon.identity.core.model.SPProperty;
+import org.wso2.carbon.identity.core.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
@@ -77,9 +77,9 @@ import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.PROPERTY_VALUE;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SP_ID;
 
-public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
+public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
 
-    private static final Log log = LogFactory.getLog(SAMLSSOServiceProviderDAOImpl.class);
+    private static final Log log = LogFactory.getLog(JDBCSAMLSSOServiceProviderDAOImpl.class);
     private final int tenantId;
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
@@ -89,7 +89,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
-    public SAMLSSOServiceProviderDAOImpl(int tenantId) {
+    public JDBCSAMLSSOServiceProviderDAOImpl(int tenantId) {
 
         this.tenantId = tenantId;
     }
@@ -366,9 +366,9 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
             throws DataAccessException {
 
         NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
-        List<SPProperty> properties =
+        List<ServiceProviderProperty> properties =
                 namedJdbcTemplate.executeQuery(SAMLSSOServiceProviderConstants.SQLQueries.GET_SAML_SSO_ATTR_BY_ID,
-                        (resultSet, rowNumber) -> new SPProperty(resultSet.getString(PROPERTY_NAME),
+                        (resultSet, rowNumber) -> new ServiceProviderProperty(resultSet.getString(PROPERTY_NAME),
                                 resultSet.getString(PROPERTY_VALUE)),
                         namedPreparedStatement -> namedPreparedStatement.setInt(SP_ID, serviceProviderId));
         serviceProviderDO.addMultiValuedProperties(properties);
@@ -434,14 +434,14 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
     private void processAddSPProperties(SAMLSSOServiceProviderDO serviceProviderDO) throws DataAccessException {
 
-        List<SPProperty> properties = serviceProviderDO.getMultiValuedProperties();
+        List<ServiceProviderProperty> properties = serviceProviderDO.getMultiValuedProperties();
         int serviceProviderId = processGetServiceProviderId(serviceProviderDO.getIssuer());
 
         NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
 
         namedJdbcTemplate.executeBatchInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR,
                 (namedPreparedStatement -> {
-                    for (SPProperty property : properties) {
+                    for (ServiceProviderProperty property : properties) {
                         namedPreparedStatement.setInt(SP_ID, serviceProviderId);
                         namedPreparedStatement.setString(PROPERTY_NAME, property.getKey());
                         namedPreparedStatement.setString(PROPERTY_VALUE, property.getValue());
@@ -464,7 +464,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
     private void processUpdateSPProperties(SAMLSSOServiceProviderDO serviceProviderDO, int serviceProviderId)
             throws DataAccessException {
 
-        List<SPProperty> properties = serviceProviderDO.getMultiValuedProperties();
+        List<ServiceProviderProperty> properties = serviceProviderDO.getMultiValuedProperties();
         NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
 
         namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.DELETE_SAML_SSO_ATTR_BY_ID,
@@ -472,7 +472,7 @@ public class SAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO 
 
         namedJdbcTemplate.executeBatchInsert(SAMLSSOServiceProviderConstants.SQLQueries.ADD_SAML_SSO_ATTR,
                 (namedPreparedStatement -> {
-                    for (SPProperty property : properties) {
+                    for (ServiceProviderProperty property : properties) {
                         namedPreparedStatement.setInt(SP_ID, serviceProviderId);
                         namedPreparedStatement.setString(PROPERTY_NAME, property.getKey());
                         namedPreparedStatement.setString(PROPERTY_VALUE, property.getValue());

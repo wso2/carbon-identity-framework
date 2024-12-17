@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.core.dao.OpenIDAdminDAO;
 import org.wso2.carbon.identity.core.dao.OpenIDUserDAO;
 import org.wso2.carbon.identity.core.dao.ParameterDAO;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
-import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderRegistryDAOImpl;
+import org.wso2.carbon.identity.core.dao.RegistrySAMLSSOServiceProviderDAOImpl;
 import org.wso2.carbon.identity.core.dao.XMPPSettingsDAO;
 import org.wso2.carbon.identity.core.model.OpenIDAdminDO;
 import org.wso2.carbon.identity.core.model.OpenIDUserDO;
@@ -236,7 +236,7 @@ public class IdentityPersistenceManager {
      */
     public boolean addServiceProvider(Registry registry, SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
         return serviceProviderDAO.addServiceProvider(serviceProviderDO);
     }
     /**
@@ -247,7 +247,7 @@ public class IdentityPersistenceManager {
      * @throws IdentityException
      */
     public SAMLSSOServiceProviderDO uploadServiceProvider(Registry registry, SAMLSSOServiceProviderDO samlssoServiceProviderDO) throws IdentityException {
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
         return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO);
     }
 
@@ -259,23 +259,23 @@ public class IdentityPersistenceManager {
      */
     public SAMLSSOServiceProviderDO[] getServiceProviders(Registry registry)
             throws IdentityException {
-        SAMLSSOServiceProviderDAO serviceProviderDOA = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDOA = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
         return serviceProviderDOA.getServiceProviders();
     }
 
     public boolean removeServiceProvider(Registry registry, String issuer) throws IdentityException {
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
         return serviceProviderDAO.removeServiceProvider(issuer);
     }
 
     public SAMLSSOServiceProviderDO getServiceProvider(Registry registry, String issuer)
             throws IdentityException {
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
         return serviceProviderDAO.getServiceProvider(issuer);
     }
 
     public boolean isServiceProviderExists(Registry registry, String issuer) throws IdentityException {
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
         return serviceProviderDAO.isServiceProviderExists(issuer);
     }
 

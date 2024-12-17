@@ -52,7 +52,7 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
-public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOServiceProviderDO>
+public class RegistrySAMLSSOServiceProviderDAOImpl extends AbstractDAO<SAMLSSOServiceProviderDO>
         implements SAMLSSOServiceProviderDAO {
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
@@ -65,7 +65,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
 
     private static Log log = LogFactory.getLog(SAMLSSOServiceProviderDAO.class);
 
-    public SAMLSSOServiceProviderRegistryDAOImpl(Registry registry) {
+    public RegistrySAMLSSOServiceProviderDAOImpl(Registry registry) {
         this.registry = registry;
     }
 

@@ -23,8 +23,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
-import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAOImpl;
-import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderRegistryDAOImpl;
+import org.wso2.carbon.identity.core.dao.JDBCSAMLSSOServiceProviderDAOImpl;
+import org.wso2.carbon.identity.core.dao.RegistrySAMLSSOServiceProviderDAOImpl;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -52,7 +52,7 @@ public class SAMLSSOServiceProviderManager {
      */
     private SAMLSSOServiceProviderDAO buildSAMLSSOProvider(int tenantId) throws IdentityException {
 
-        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = new SAMLSSOServiceProviderDAOImpl(tenantId);
+        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = new JDBCSAMLSSOServiceProviderDAOImpl(tenantId);
         if (StringUtils.isNotBlank(SAML_STORAGE_TYPE)) {
             switch (SAML_STORAGE_TYPE) {
                 case HYBRID:
@@ -61,7 +61,7 @@ public class SAMLSSOServiceProviderManager {
                 case REGISTRY:
                     try {
                         Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry(tenantId);
-                        samlSSOServiceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+                        samlSSOServiceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
                     } catch (RegistryException e) {
                         LOG.error("Error while retrieving registry", e);
                         throw new IdentityException("Error while retrieving registry", e);
@@ -119,8 +119,8 @@ public class SAMLSSOServiceProviderManager {
     public SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDOA = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDOA.getServiceProviders();
+        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
+        return serviceProviderDAO.getServiceProviders();
     }
 
     /**

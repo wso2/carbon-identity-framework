@@ -22,6 +22,24 @@ public class SAMLSSOServiceProviderConstants {
 
     public static final String SAML_STORAGE_CONFIG = "DataStorageType.SAML";
 
+    public enum MultiValuedPropertyKey {
+        ASSERTION_CONSUMER_URLS("ASSERTION_CONSUMER_URLS"),
+        AUDIENCES("AUDIENCES"),
+        RECIPIENTS("RECIPIENTS"),
+        SLO_RETURN_TO_URLS("SLO_RETURN_TO_URLS");
+
+        private final String value;
+
+        MultiValuedPropertyKey(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
+
     private SAMLSSOServiceProviderConstants() {
 
     }
@@ -111,8 +129,7 @@ public class SAMLSSOServiceProviderConstants {
                         "ECP_ENABLED = :ECP_ENABLED;, ARTIFACT_BINDING_ENABLED = :ARTIFACT_BINDING_ENABLED;, " +
                         "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION = :ARTIFACT_RESOLVE_REQ_SIG_VALIDATION;, " +
                         "IDP_ENTITY_ID_ALIAS = :IDP_ENTITY_ID_ALIAS;, ISSUER_QUALIFIER = :ISSUER_QUALIFIER;, " +
-                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = :SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;, " +
-                        "TENANT_ID = :TENANT_ID; " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = :SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES; " +
                         "WHERE ID = :ID; AND TENANT_ID = :TENANT_ID;";
 
         public static final String DELETE_SAML2_SSO_CONFIG_BY_ISSUER =
