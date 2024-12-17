@@ -69,7 +69,7 @@ import static org.testng.Assert.fail;
  */
 public class SAMLSSOServiceProviderDAOTest {
 
-    private SAMLSSOServiceProviderRegistryDAOImpl objUnderTest;
+    private RegistrySAMLSSOServiceProviderDAOImpl objUnderTest;
     private boolean transactionStarted = false;
 
     private Registry mockRegistry;
@@ -103,7 +103,7 @@ public class SAMLSSOServiceProviderDAOTest {
             }
         }).when(mockRegistry).beginTransaction();
 
-        objUnderTest = new SAMLSSOServiceProviderRegistryDAOImpl(mockRegistry);
+        objUnderTest = new RegistrySAMLSSOServiceProviderDAOImpl(mockRegistry);
         when(mockRegistry.newResource()).thenReturn(new ResourceImpl());
     }
 
