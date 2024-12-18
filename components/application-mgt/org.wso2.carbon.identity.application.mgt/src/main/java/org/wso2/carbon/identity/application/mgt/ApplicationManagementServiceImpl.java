@@ -94,6 +94,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -2667,7 +2668,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             ServiceProvider application = applicationModel.getServiceProvider();
              addedInbounds = addInboundAuthenticationProtocolsToApplication(
-                    application, applicationModel.getInboundProtocolConfigurationDto());
+                    application, applicationModel.getInboundProtocolConfigurationDto(), tenantDomain);
             
             return createApplication(application, tenantDomain, username);
         } catch (IdentityApplicationManagementException identityApplicationManagementException) {
@@ -2683,7 +2684,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private List<InboundAuthenticationRequestConfig> addInboundAuthenticationProtocolsToApplication(
-            ServiceProvider application, InboundProtocolsDTO inboundProtocolsModel)
+            ServiceProvider application, InboundProtocolsDTO inboundProtocolsModel, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         if (inboundProtocolsModel == null) {
@@ -2718,10 +2719,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         InboundAuthenticationConfig alreadyAddedInboundConfigs = application.getInboundAuthenticationConfig();
         InboundAuthenticationConfig inboundAuthConfig = new InboundAuthenticationConfig();
-        if (alreadyAddedInboundConfigs != null) {
-            List<InboundAuthenticationRequestConfig> alreadyAddedInbounds =
-                    Arrays.asList(alreadyAddedInboundConfigs.getInboundAuthenticationRequestConfigs());
-            addedInbounds.addAll(alreadyAddedInbounds);
+        try {
+            if (alreadyAddedInboundConfigs != null && !OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                List<InboundAuthenticationRequestConfig> alreadyAddedInbounds =
+                        Arrays.asList(alreadyAddedInboundConfigs.getInboundAuthenticationRequestConfigs());
+                addedInbounds.addAll(alreadyAddedInbounds);
+            }
+        } catch (OrganizationManagementException e) {
+            throw new IdentityApplicationManagementException("Error while checking the organization status of the " +
+                    "application: " + application.getApplicationName(), e);
         }
         inboundAuthConfig.setInboundAuthenticationRequestConfigs(
                 addedInbounds.toArray(new InboundAuthenticationRequestConfig[0])
