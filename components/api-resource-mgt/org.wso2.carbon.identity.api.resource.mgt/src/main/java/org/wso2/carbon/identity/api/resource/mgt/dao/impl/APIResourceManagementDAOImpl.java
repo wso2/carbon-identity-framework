@@ -30,6 +30,8 @@ import org.wso2.carbon.identity.api.resource.mgt.dao.AuthorizationDetailsTypeMgt
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
+import org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil;
+import org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.APIResourceProperty;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -56,9 +58,6 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.AFTER;
 import static org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants.BEFORE;
-import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getApiResourceFilterQueryBuilder;
-import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getScopeFilterQueryBuilder;
-import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getScopeFilterQueryBuilderForOrganizations;
 
 /**
  * This class implements the {@link APIResourceManagementDAO} interface.
@@ -109,7 +108,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             expressionNodesCopy.removeIf(expressionNode -> AFTER.equals(expressionNode.getAttributeValue()) ||
                     BEFORE.equals(expressionNode.getAttributeValue()));
         }
-        FilterQueryBuilder filterQueryBuilder = getApiResourceFilterQueryBuilder(expressionNodesCopy);
+        FilterQueryBuilder filterQueryBuilder = FilterQueriesUtil.getApiResourceFilterQueryBuilder(expressionNodesCopy);
 
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         String getAPIResourcesCountSqlStmtTail = SQLConstants.GET_API_RESOURCES_COUNT_TAIL;
@@ -187,7 +186,8 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                     // Add properties.
                     addAPIResourceProperties(dbConnection, generatedAPIId, apiResource.getProperties());
                 }
-                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes())) {
+                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes()) &&
+                        AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsEnabled()) {
                     // Add authorization details types.
                     this.authorizationDetailsTypeMgtDAO.addAuthorizationDetailsTypes(dbConnection,
                             generatedAPIId, apiResource.getAuthorizationDetailsTypes(), tenantId);
@@ -353,7 +353,9 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                     addScopes(dbConnection, apiResource.getId(), addedScopes, tenantId);
                 }
 
-                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes())) {
+                if (CollectionUtils.isNotEmpty(apiResource.getAuthorizationDetailsTypes()) &&
+                        AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsEnabled()) {
+                    // Update authorization details types
                     this.authorizationDetailsTypeMgtDAO.updateAuthorizationDetailsTypes(dbConnection,
                             apiResource.getId(), apiResource.getAuthorizationDetailsTypes(), tenantId);
                 }
@@ -408,7 +410,12 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         }
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
-                authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(dbConnection, apiId, tenantId);
+
+                if (AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsEnabled()) {
+                    // Remove authorization details types
+                    this.authorizationDetailsTypeMgtDAO
+                            .deleteAuthorizationDetailsTypesByApiId(dbConnection, apiId, tenantId);
+                }
 
                 PreparedStatement prepStmt = dbConnection.prepareStatement(SQLConstants.DELETE_SCOPES_BY_API);
                 prepStmt.setString(1, apiId);
@@ -528,13 +535,13 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
             throws APIResourceMgtException {
 
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            FilterQueryBuilder filterQueryBuilder = getScopeFilterQueryBuilder(expressionNodes);
+            FilterQueryBuilder filterQueryBuilder = FilterQueriesUtil.getScopeFilterQueryBuilder(expressionNodes);
             String query = SQLConstants.GET_SCOPES_BY_TENANT_ID + filterQueryBuilder.getFilterQuery() +
                     SQLConstants.GET_SCOPES_BY_TENANT_ID_TAIL;
             try {
                 if (OrganizationManagementUtil.isOrganization(tenantId)) {
                     FilterQueryBuilder filterQueryBuilderForOrg =
-                            getScopeFilterQueryBuilderForOrganizations(expressionNodes);
+                            FilterQueriesUtil.getScopeFilterQueryBuilderForOrganizations(expressionNodes);
                     tenantId = getRootOrganizationTenantId(tenantId);
                     query = SQLConstants.GET_SCOPES_BY_TENANT_ID_FOR_ORGANIZATIONS + filterQueryBuilderForOrg
                             .getFilterQuery() + SQLConstants.GET_SCOPES_BY_TENANT_ID_FOR_ORGANIZATIONS_TAIL;
@@ -736,7 +743,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                                                   List<ExpressionNode> expressionNodes)
             throws APIResourceMgtException {
 
-        FilterQueryBuilder filterQueryBuilder = getApiResourceFilterQueryBuilder(expressionNodes);
+        FilterQueryBuilder filterQueryBuilder = FilterQueriesUtil.getApiResourceFilterQueryBuilder(expressionNodes);
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
 
         List<APIResource> apiResources = new ArrayList<>();
@@ -806,7 +813,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
                                                                 List<ExpressionNode> expressionNodes)
             throws APIResourceMgtException {
 
-        FilterQueryBuilder filterQueryBuilder = getApiResourceFilterQueryBuilder(expressionNodes);
+        FilterQueryBuilder filterQueryBuilder = FilterQueriesUtil.getApiResourceFilterQueryBuilder(expressionNodes);
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
 
         Map<String, APIResource> apiResourceMap = new LinkedHashMap<>();
@@ -1192,7 +1199,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     }
 
     /**
-     * Populates the authorization detail types for the specified API resource if available.
+     * Populates the authorization details types for the specified API resource if available.
      *
      * @param apiResource The API resource to update with authorization detail types.
      * @param tenantId    The tenant ID associated with the API resource.
@@ -1201,7 +1208,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     private void assignAuthorizationDetailsTypesToApiResource(final APIResource apiResource, final Integer tenantId)
             throws APIResourceMgtException {
 
-        if (apiResource == null) {
+        if (apiResource == null || AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()) {
             return;
         }
 

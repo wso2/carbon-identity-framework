@@ -33,6 +33,8 @@ import java.util.List;
 public interface AuthorizedAPIDAO {
 
     /**
+     * Adds an authorized API to an application using a policy ID and list of scopes.
+     *
      * @param applicationId The application ID.
      * @param apiId         The API ID.
      * @param policyId      The policy ID.
@@ -40,18 +42,25 @@ public interface AuthorizedAPIDAO {
      * @param tenantId      The tenant ID.
      * @throws IdentityApplicationManagementException If an error occurs while adding the authorized API.
      * @deprecated Use the {@link #addAuthorizedAPI(String, AuthorizedAPI, int)} instead.
-     * <p>
-     * Adds an authorized API to an application using a policy ID and list of scopes.
      */
     @Deprecated
     void addAuthorizedAPI(String applicationId, String apiId, String policyId, List<Scope> scopes,
                           int tenantId)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Retrieves a list of authorized APIs for a provided application ID and tenant.
+     *
+     * @param applicationId The application ID.
+     * @param tenantId      The tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving authorized APIs.
+     */
     List<AuthorizedAPI> getAuthorizedAPIs(String applicationId, int tenantId)
             throws IdentityApplicationManagementException;
 
     /**
+     * Updates the authorized API by adding or removing scopes for the specified tenant.
+     *
      * @param appId         The application ID.
      * @param apiId         The API ID.
      * @param addedScopes   The list of scopes to add.
@@ -59,20 +68,41 @@ public interface AuthorizedAPIDAO {
      * @param tenantId      The tenant ID.
      * @throws IdentityApplicationManagementException If an error occurs while patching the authorized API.
      * @deprecated Use the {@link #patchAuthorizedAPI(String, String, List, List, List, List, int)} instead.
-     * <p>
-     * Updates the authorized API by adding or removing scopes for the specified tenant.
      */
     @Deprecated
     void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
                             List<String> removedScopes, int tenantId)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Deletes an authorized APIs from provided application ID and API ID for the given tenant.
+     *
+     * @param appId    The application ID.
+     * @param apiId    The API ID.
+     * @param tenantId The tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while deleting authorized APIs.
+     */
     void deleteAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Retrieves a list of authorized scopes for a provided application ID and tenant.
+     *
+     * @param applicationId The application ID.
+     * @param tenantId      The tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving authorized scopes.
+     */
     List<AuthorizedScopes> getAuthorizedScopes(String applicationId, int tenantId)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Retrieves an authorized APIs from provided application ID and API ID for the given tenant.
+     *
+     * @param appId    The application ID.
+     * @param apiId    The API ID.
+     * @param tenantId The tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the authorized API.
+     */
     AuthorizedAPI getAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException;
 

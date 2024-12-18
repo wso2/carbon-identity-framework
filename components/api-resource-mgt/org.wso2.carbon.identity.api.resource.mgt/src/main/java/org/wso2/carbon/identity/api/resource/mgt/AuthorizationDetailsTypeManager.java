@@ -130,7 +130,7 @@ public interface AuthorizationDetailsTypeManager {
      * @param tenantDomain                     The tenant domain where the API belongs.
      * @throws APIResourceMgtException If an error occurs during the replace operation.
      */
-    void replaceAuthorizationDetailsTypes(String apiId, List<String> removedAuthorizationDetailsTypes,
+    void updateAuthorizationDetailsTypes(String apiId, List<String> removedAuthorizationDetailsTypes,
                                           List<AuthorizationDetailsType> addedAuthorizationDetailsTypes,
                                           String tenantDomain) throws APIResourceMgtException;
 

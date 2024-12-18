@@ -50,10 +50,6 @@ import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TYPE_1
 import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TYPE_2;
 import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TYPE_3;
 import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TYPE_INVALID;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.createAPIResource;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.getAuthorizationDetailsTypes;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.getByType;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.isTypeExists;
 
 /**
  * Test class for {@link AuthorizationDetailsTypeManager}.
@@ -75,7 +71,7 @@ public class AuthorizationDetailsTypeManagerTest {
     public void setUp() throws APIResourceMgtException, IdentityEventException {
 
         uut = new AuthorizationDetailsTypeManagerImpl();
-        authorizationDetailsTypes = getAuthorizationDetailsTypes();
+        authorizationDetailsTypes = TestDAOUtils.getAuthorizationDetailsTypes();
 
         identityEventService = mock(IdentityEventService.class);
         doNothing().when(identityEventService).handleEvent(any());
@@ -84,7 +80,7 @@ public class AuthorizationDetailsTypeManagerTest {
 
         tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         apiResource = APIResourceManagerImpl.getInstance()
-                .addAPIResource(createAPIResource("testApiResource1"), tenantDomain);
+                .addAPIResource(TestDAOUtils.createAPIResource("testApiResource1"), tenantDomain);
     }
 
     @Test
@@ -97,7 +93,7 @@ public class AuthorizationDetailsTypeManagerTest {
 
         assertNotNull(fetchedTypes);
         assertEquals(fetchedTypes.size(), 2);
-        assertTrue(isTypeExists(TEST_TYPE_1, fetchedTypes));
+        assertTrue(TestDAOUtils.isTypeExists(TEST_TYPE_1, fetchedTypes));
 
         assertNotNull(addedTypes);
         assertTrue(toTypesList(addedTypes).containsAll(toTypesList(fetchedTypes)));
@@ -122,7 +118,7 @@ public class AuthorizationDetailsTypeManagerTest {
         List<AuthorizationDetailsType> fetchedTypes =
                 uut.getAuthorizationDetailsTypes("type sw " + TEST_TYPE_1, tenantDomain);
 
-        AuthorizationDetailsType type = getByType(TEST_TYPE_1, fetchedTypes);
+        AuthorizationDetailsType type = TestDAOUtils.getByType(TEST_TYPE_1, fetchedTypes);
         assertNotNull(type);
 
         AuthorizationDetailsType fetchedTypesById =
@@ -157,7 +153,7 @@ public class AuthorizationDetailsTypeManagerTest {
         List<AuthorizationDetailsType> types =
                 uut.getAuthorizationDetailsTypes("type EQ " + TEST_TYPE_2, tenantDomain);
 
-        AuthorizationDetailsType type2 = getByType(TEST_TYPE_2, types);
+        AuthorizationDetailsType type2 = TestDAOUtils.getByType(TEST_TYPE_2, types);
         assertNotNull(type2);
 
         uut.deleteAuthorizationDetailsTypeByApiIdAndTypeId(apiResource.getId(), type2.getId(), tenantDomain);
@@ -171,45 +167,45 @@ public class AuthorizationDetailsTypeManagerTest {
         final AuthorizationDetailsType type3 = new AuthorizationDetailsType();
         type3.setType(TEST_TYPE_3);
 
-        uut.replaceAuthorizationDetailsTypes(apiResource.getId(), Collections.emptyList(),
+        uut.updateAuthorizationDetailsTypes(apiResource.getId(), Collections.emptyList(),
                 Collections.singletonList(type3), tenantDomain);
         List<AuthorizationDetailsType> fetchedTypes =
                 uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
 
         assertNotNull(fetchedTypes);
         assertEquals(fetchedTypes.size(), 2);
-        assertTrue(isTypeExists(TEST_TYPE_3, fetchedTypes));
+        assertTrue(TestDAOUtils.isTypeExists(TEST_TYPE_3, fetchedTypes));
 
         // should only remove authorization details type 2 and 3
-        uut.replaceAuthorizationDetailsTypes(apiResource.getId(), Arrays.asList(TEST_TYPE_2, TEST_TYPE_3),
+        uut.updateAuthorizationDetailsTypes(apiResource.getId(), Arrays.asList(TEST_TYPE_2, TEST_TYPE_3),
                 Collections.emptyList(), tenantDomain);
         fetchedTypes = uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
 
         assertNotNull(fetchedTypes);
         assertEquals(fetchedTypes.size(), 1);
-        assertTrue(isTypeExists(TEST_TYPE_1, fetchedTypes));
-        assertFalse(isTypeExists(TEST_TYPE_3, fetchedTypes));
+        assertTrue(TestDAOUtils.isTypeExists(TEST_TYPE_1, fetchedTypes));
+        assertFalse(TestDAOUtils.isTypeExists(TEST_TYPE_3, fetchedTypes));
 
         // should remove authorization details type 1
-        uut.replaceAuthorizationDetailsTypes(apiResource.getId(), Collections.singletonList(TEST_TYPE_1),
+        uut.updateAuthorizationDetailsTypes(apiResource.getId(), Collections.singletonList(TEST_TYPE_1),
                 Collections.emptyList(), tenantDomain);
         fetchedTypes = uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
 
         assertNotNull(fetchedTypes);
         assertEquals(fetchedTypes.size(), 0);
-        assertFalse(isTypeExists(TEST_TYPE_1, fetchedTypes));
-        assertFalse(isTypeExists(TEST_TYPE_2, fetchedTypes));
-        assertFalse(isTypeExists(TEST_TYPE_3, fetchedTypes));
+        assertFalse(TestDAOUtils.isTypeExists(TEST_TYPE_1, fetchedTypes));
+        assertFalse(TestDAOUtils.isTypeExists(TEST_TYPE_2, fetchedTypes));
+        assertFalse(TestDAOUtils.isTypeExists(TEST_TYPE_3, fetchedTypes));
 
         // should only add authorization details type 1 and 2
-        uut.replaceAuthorizationDetailsTypes(apiResource.getId(), Collections.emptyList(), authorizationDetailsTypes,
+        uut.updateAuthorizationDetailsTypes(apiResource.getId(), Collections.emptyList(), authorizationDetailsTypes,
                 tenantDomain);
         fetchedTypes = uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
 
         assertNotNull(fetchedTypes);
         assertEquals(fetchedTypes.size(), 2);
-        assertTrue(isTypeExists(TEST_TYPE_1, authorizationDetailsTypes));
-        assertTrue(isTypeExists(TEST_TYPE_2, authorizationDetailsTypes));
+        assertTrue(TestDAOUtils.isTypeExists(TEST_TYPE_1, authorizationDetailsTypes));
+        assertTrue(TestDAOUtils.isTypeExists(TEST_TYPE_2, authorizationDetailsTypes));
     }
 
     @Test(dependsOnMethods = {"shouldAddAuthorizationDetailsTypesSuccessfully"})
@@ -218,13 +214,13 @@ public class AuthorizationDetailsTypeManagerTest {
         final String testValue = "test value";
         List<AuthorizationDetailsType> fetchedTypes
                 = uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
-        AuthorizationDetailsType typeToUpdate = getByType(TEST_TYPE_1, fetchedTypes);
+        AuthorizationDetailsType typeToUpdate = TestDAOUtils.getByType(TEST_TYPE_1, fetchedTypes);
         typeToUpdate.setName(testValue);
         typeToUpdate.setDescription(testValue);
 
         uut.updateAuthorizationDetailsType(apiResource.getId(), typeToUpdate, tenantDomain);
         fetchedTypes = uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
-        AuthorizationDetailsType updatedType = getByType(TEST_TYPE_1, fetchedTypes);
+        AuthorizationDetailsType updatedType = TestDAOUtils.getByType(TEST_TYPE_1, fetchedTypes);
 
         assertEquals(updatedType.getName(), testValue);
         assertEquals(updatedType.getDescription(), testValue);
@@ -236,15 +232,15 @@ public class AuthorizationDetailsTypeManagerTest {
 
         List<AuthorizationDetailsType> fetchedTypes =
                 uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
-        AuthorizationDetailsType type1 = getByType(TEST_TYPE_1, fetchedTypes);
+        AuthorizationDetailsType type1 = TestDAOUtils.getByType(TEST_TYPE_1, fetchedTypes);
         uut.deleteAuthorizationDetailsTypeByApiIdAndTypeId(apiResource.getId(), type1.getId(), tenantDomain);
 
         fetchedTypes = uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
 
         assertNotNull(fetchedTypes);
         assertEquals(fetchedTypes.size(), 1);
-        assertFalse(isTypeExists(TEST_TYPE_1, fetchedTypes));
-        assertTrue(isTypeExists(TEST_TYPE_2, fetchedTypes));
+        assertFalse(TestDAOUtils.isTypeExists(TEST_TYPE_1, fetchedTypes));
+        assertTrue(TestDAOUtils.isTypeExists(TEST_TYPE_2, fetchedTypes));
 
         uut.deleteAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);
         fetchedTypes = uut.getAuthorizationDetailsTypesByApiId(apiResource.getId(), tenantDomain);

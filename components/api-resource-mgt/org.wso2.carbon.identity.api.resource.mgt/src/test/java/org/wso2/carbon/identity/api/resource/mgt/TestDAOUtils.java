@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.api.resource.mgt;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.mockito.ArgumentMatchers;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.APIResourceManagementDAOImpl;
@@ -37,9 +38,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 
 /**
  * Test DB Utils.
@@ -137,12 +135,13 @@ public class TestDAOUtils {
                                                  MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil)
             throws APIResourceMgtException {
 
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.commitTransaction(any(Connection.class)))
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.commitTransaction(ArgumentMatchers.any(Connection.class)))
                 .thenAnswer((Answer<Void>) invocation -> {
                     connection.commit();
                     return null;
                 });
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(ArgumentMatchers.anyBoolean()))
+                .thenReturn(connection);
 
         return new APIResourceManagementDAOImpl().addAPIResource(createAPIResource(namePostFix), tenantId);
     }

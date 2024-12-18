@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAPIResource
 import org.wso2.carbon.identity.api.resource.mgt.model.APIResourceSearchResult;
 import org.wso2.carbon.identity.api.resource.mgt.publisher.APIResourceManagerEventPublisherProxy;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
+import org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -33,8 +34,6 @@ import org.wso2.carbon.identity.organization.management.service.exception.Organi
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.util.List;
-
-import static org.wso2.carbon.identity.api.resource.mgt.util.FilterQueriesUtil.getExpressionNodes;
 
 /**
  * API resource management service.
@@ -61,7 +60,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
             throws APIResourceMgtException {
 
         APIResourceSearchResult result = new APIResourceSearchResult();
-        List<ExpressionNode> expressionNodes = getExpressionNodes(filter, after, before);
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filter, after, before);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalCount(CACHE_BACKED_DAO.getAPIResourcesCount(tenantId, expressionNodes));
         result.setAPIResources(CACHE_BACKED_DAO.getAPIResources(limit, tenantId, sortOrder, expressionNodes));
@@ -76,7 +75,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
             throws APIResourceMgtException {
 
         APIResourceSearchResult result = new APIResourceSearchResult();
-        List<ExpressionNode> expressionNodes = getExpressionNodes(filter, after, before);
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filter, after, before);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalCount(CACHE_BACKED_DAO.getAPIResourcesCount(tenantId, expressionNodes));
         result.setAPIResources(CACHE_BACKED_DAO.getAPIResourcesWithRequiredAttributes(limit, tenantId, sortOrder,
@@ -212,7 +211,7 @@ public class APIResourceManagerImpl implements APIResourceManager {
     @Override
     public List<Scope> getScopesByTenantDomain(String tenantDomain, String filter) throws APIResourceMgtException {
 
-        List<ExpressionNode> expressionNodes = getExpressionNodes(filter, null, null);
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filter, null, null);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return CACHE_BACKED_DAO.getScopesByTenantId(tenantId, expressionNodes);
     }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -170,7 +172,8 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
                                    List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        this.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, null, null, tenantDomain);
+        this.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, Collections.emptyList(),
+                Collections.emptyList(), tenantDomain);
     }
 
     @Override
@@ -320,7 +323,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
         ApplicationAuthorizedAPIManagementEventPublisherProxy publisherProxy =
                 ApplicationAuthorizedAPIManagementEventPublisherProxy.getInstance();
         publisherProxy.publishPreUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
-                tenantDomain);
+                addedAuthorizationDetailsTypes, removedAuthorizationDetailsTypes, tenantDomain);
         Collection<AuthorizedAPIManagementListener> listeners = ApplicationMgtListenerServiceComponent
                 .getAuthorizedAPIManagementListeners();
         for (AuthorizedAPIManagementListener listener : listeners) {
@@ -333,7 +336,7 @@ public class AuthorizedAPIManagementServiceImpl implements AuthorizedAPIManageme
             listener.postPatchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, tenantDomain);
         }
         publisherProxy.publishPostUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
-                tenantDomain);
+                addedAuthorizationDetailsTypes, removedAuthorizationDetailsTypes, tenantDomain);
     }
 
     @Override

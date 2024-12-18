@@ -451,6 +451,8 @@ public class IdentityEventConstants {
         public static final String OLD_SCOPES = "OLD_SCOPES";
         public static final String NEW_SCOPES = "NEW_SCOPES";
         public static final String AUTHORIZED_API = "AUTHORIZED_API";
+        public static final String ADDED_AUTHORIZATION_DETAILS_TYPES = "ADDED_AUTHORIZATION_DETAILS_TYPES";
+        public static final String DELETED_AUTHORIZATION_DETAILS_TYPES = "DELETED_AUTHORIZATION_DETAILS_TYPES";
 
         public static final String SCENARIO = "SCENARIO";
 

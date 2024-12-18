@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsTyp
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -56,11 +57,12 @@ public interface AuthorizationDetailsTypeMgtDAO {
      * @param authorizationDetailsTypes The list of {@link AuthorizationDetailsType} objects to add.
      * @param tenantId                  The tenant identifier.
      * @return A list of persisted {@link AuthorizationDetailsType} instances.
-     * @throws APIResourceMgtException If an error occurs while adding the authorization detail types.
+     * @throws SQLException            If an error occurs while adding the authorization detail types.
+     * @throws APIResourceMgtException If provided authorization details type already exists in the database.
      */
     List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
             Connection connection, String apiId, List<AuthorizationDetailsType> authorizationDetailsTypes,
-            Integer tenantId) throws APIResourceMgtException;
+            Integer tenantId) throws SQLException, APIResourceMgtException;
 
     /**
      * Deletes a specific authorization detail type for a given API and type.
@@ -99,10 +101,10 @@ public interface AuthorizationDetailsTypeMgtDAO {
      * @param connection The existing database connection.
      * @param apiId      The API identifier.
      * @param tenantId   The tenant identifier.
-     * @throws APIResourceMgtException If an error occurs while deleting the authorization detail types.
+     * @throws SQLException If an error occurs while deleting the authorization detail types.
      */
     void deleteAuthorizationDetailsTypesByApiId(Connection connection, String apiId, Integer tenantId)
-            throws APIResourceMgtException;
+            throws SQLException;
 
     /**
      * Retrieves a specific authorization detail type for an API by its type ID.
@@ -157,10 +159,10 @@ public interface AuthorizationDetailsTypeMgtDAO {
      * @param apiId      The API identifier.
      * @param tenantId   The tenant identifier.
      * @return A list of {@link AuthorizationDetailsType} objects associated with the specified API.
-     * @throws APIResourceMgtException If an error occurs while retrieving authorization detail types by API ID.
+     * @throws SQLException If an error occurs while retrieving authorization detail types by API ID.
      */
     List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(Connection connection, String apiId,
-                                                                       Integer tenantId) throws APIResourceMgtException;
+                                                                       Integer tenantId) throws SQLException;
 
     /**
      * Checks if an authorization detail type exists for a given API and type.
@@ -192,9 +194,24 @@ public interface AuthorizationDetailsTypeMgtDAO {
      * @param apiId                     The API identifier.
      * @param authorizationDetailsTypes The list of {@link AuthorizationDetailsType} objects to update.
      * @param tenantId                  The tenant identifier.
-     * @throws APIResourceMgtException If an error occurs while updating the authorization detail types.
+     * @throws SQLException            If an error occurs while updating the authorization detail types.
+     * @throws APIResourceMgtException If provided authorization details type already exists in the database.
      */
     void updateAuthorizationDetailsTypes(Connection connection, String apiId,
                                          List<AuthorizationDetailsType> authorizationDetailsTypes, Integer tenantId)
-            throws APIResourceMgtException;
+            throws SQLException, APIResourceMgtException;
+
+    /**
+     * Replaces a list of authorization detail types by removing the specified types and adding new ones
+     * for a specific API in the tenant.
+     *
+     * @param apiId                            The API identifier.
+     * @param removedAuthorizationDetailsTypes The list of authorization detail types to be removed.
+     * @param addedAuthorizationDetailsTypes   The list of new authorization detail types to be added.
+     * @param tenantId                         The tenant identifier.
+     * @throws APIResourceMgtException If an error occurs during the replace operation.
+     */
+    void updateAuthorizationDetailsTypes(String apiId, List<String> removedAuthorizationDetailsTypes,
+                                         List<AuthorizationDetailsType> addedAuthorizationDetailsTypes,
+                                         Integer tenantId) throws APIResourceMgtException;
 }

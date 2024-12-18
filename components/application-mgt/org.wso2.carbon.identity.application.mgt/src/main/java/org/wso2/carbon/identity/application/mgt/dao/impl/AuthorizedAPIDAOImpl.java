@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
+import org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsType;
 import org.wso2.carbon.identity.application.common.model.AuthorizedAPI;
@@ -42,21 +43,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled;
-import static org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil.parseSchema;
-
 /**
  * Authorized API DAO implementation class.
  */
 public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addAuthorizedAPI(String applicationId, String apiId, String policyId,
                                  List<Scope> scopes, int tenantId) throws IdentityApplicationManagementException {
 
-        this.addAuthorizedAPI(applicationId, apiId, policyId, scopes, null, tenantId);
+        this.addAuthorizedAPI(applicationId, apiId, policyId, scopes, Collections.emptyList(), tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizedAPI> getAuthorizedAPIs(String applicationId, int tenantId)
             throws IdentityApplicationManagementException {
@@ -99,14 +103,21 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void patchAuthorizedAPI(String appId, String apiId, List<String> addedScopes,
                                    List<String> removedScopes, int tenantId)
             throws IdentityApplicationManagementException {
 
-        this.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, null, null, tenantId);
+        this.patchAuthorizedAPI(appId, apiId, addedScopes, removedScopes, Collections.emptyList(),
+                Collections.emptyList(), tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizedAPI(String appId, String apiId, int tenantId)
             throws IdentityApplicationManagementException {
@@ -122,6 +133,9 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizedScopes> getAuthorizedScopes(String applicationId, int tenantId)
             throws IdentityApplicationManagementException {
@@ -156,6 +170,9 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AuthorizedAPI getAuthorizedAPI(String applicationId, String apiId, int tenantId)
             throws IdentityApplicationManagementException {
@@ -193,6 +210,9 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addAuthorizedAPI(String applicationId, AuthorizedAPI authorizedAPI, int tenantId)
             throws IdentityApplicationManagementException {
@@ -201,6 +221,9 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                 authorizedAPI.getScopes(), authorizedAPI.getAuthorizationDetailsTypes(), tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void patchAuthorizedAPI(String appId, String apiId, List<String> scopesToAdd, List<String> scopesToRemove,
                                    List<String> authorizationDetailsTypesToAdd,
@@ -220,22 +243,25 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                         authorizationDetailsTypesToRemove, tenantId);
 
                 IdentityDatabaseUtil.commitTransaction(dbConnection);
-            } catch (SQLException | APIResourceMgtException e) {
+            } catch (SQLException e) {
                 IdentityDatabaseUtil.rollbackTransaction(dbConnection);
                 throw e;
             }
-        } catch (SQLException | APIResourceMgtException e) {
+        } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while updating the authorized API. Caused by, ", e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizedAuthorizationDetailsTypes(String applicationId, int tenantId)
             throws IdentityApplicationManagementException {
 
         List<AuthorizationDetailsType> authorizationDetailsTypes = new ArrayList<>();
 
-        if (isRichAuthorizationRequestsDisabled()) {
+        if (AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()) {
             return authorizationDetailsTypes;
         }
 
@@ -332,11 +358,22 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
+    /**
+     * Adds a list of authorized authorization details types for a given application and API.
+     *
+     * @param dbConnection                   The database connection.
+     * @param appId                          The ID of the application.
+     * @param apiId                          The ID of the API.
+     * @param authorizationDetailsTypesToAdd The list of authorization details types to be added.
+     * @param tenantId                       The tenant ID.
+     * @throws SQLException If an error occurs while executing the database operations.
+     */
     private void addAuthorizedAuthorizationDetailsTypes(Connection dbConnection, String appId, String apiId,
                                                         List<String> authorizationDetailsTypesToAdd, int tenantId)
-            throws SQLException, APIResourceMgtException {
+            throws SQLException {
 
-        if (CollectionUtils.isEmpty(authorizationDetailsTypesToAdd) || isRichAuthorizationRequestsDisabled()) {
+        if (CollectionUtils.isEmpty(authorizationDetailsTypesToAdd) ||
+                AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()) {
             return;
         }
 
@@ -354,11 +391,22 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
+    /**
+     * Deletes a list of authorized authorization details types for a given application and API.
+     *
+     * @param dbConnection                      The database connection.
+     * @param appId                             The ID of the application.
+     * @param apiId                             The ID of the API.
+     * @param authorizationDetailsTypesToRemove The list of authorization details types to be removed.
+     * @param tenantId                          The tenant ID.
+     * @throws SQLException If an error occurs while executing the database operations.
+     */
     private void deleteAuthorizedAuthorizationDetailsTypes(Connection dbConnection, String appId, String apiId,
                                                            List<String> authorizationDetailsTypesToRemove, int tenantId)
-            throws SQLException, APIResourceMgtException {
+            throws SQLException {
 
-        if (CollectionUtils.isEmpty(authorizationDetailsTypesToRemove) || isRichAuthorizationRequestsDisabled()) {
+        if (CollectionUtils.isEmpty(authorizationDetailsTypesToRemove) ||
+                AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()) {
             return;
         }
 
@@ -376,21 +424,39 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         }
     }
 
+    /**
+     * Builds an {@link AuthorizationDetailsType} object by populating its fields using the provided {@link ResultSet}.
+     * Additionally, sets the schema for the {@link AuthorizationDetailsType} object by parsing the
+     * schema information from the result set.
+     *
+     * @param resultSet The result set containing search data.
+     * @return An {@link AuthorizationDetailsType} object with schema set, or {@code null} if no valid
+     * authorization details type can be built.
+     * @throws SQLException If an error occurs while retrieving data from the result set.
+     */
     private AuthorizationDetailsType buildAuthorizationDetailsTypeWithSchema(ResultSet resultSet) throws SQLException {
 
         final AuthorizationDetailsType authorizationDetailsType = this.buildAuthorizationDetailsType(resultSet);
 
         if (authorizationDetailsType != null) {
-            authorizationDetailsType.setSchema(parseSchema(
-                    resultSet.getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA)));
+            authorizationDetailsType.setSchema(AuthorizationDetailsTypesUtil.parseSchema(resultSet
+                    .getString(ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA)));
         }
 
         return authorizationDetailsType;
     }
 
+    /**
+     * Builds an {@link AuthorizationDetailsType} object using the provided {@link ResultSet}.
+     *
+     * @param resultSet The result set containing search data.
+     * @return An {@link AuthorizationDetailsType} object if the required fields are present and
+     * rich authorization requests are enabled, otherwise {@code null}.
+     * @throws SQLException If an error occurs while retrieving data from the result set.
+     */
     private AuthorizationDetailsType buildAuthorizationDetailsType(final ResultSet resultSet) throws SQLException {
 
-        if (isRichAuthorizationRequestsDisabled()) {
+        if (AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()) {
             return null;
         }
 
@@ -443,13 +509,15 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
 
     private static String buildGetAuthorizedAPISqlStatement() {
 
-        return isRichAuthorizationRequestsDisabled() ? ApplicationMgtDBQueries.GET_AUTHORIZED_API
+        return AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()
+                ? ApplicationMgtDBQueries.GET_AUTHORIZED_API
                 : ApplicationMgtDBQueries.GET_AUTHORIZED_API_WITH_AUTHORIZATION_DETAILS;
     }
 
     private static String buildGetAuthorizedAPIsSqlStatement() {
 
-        return isRichAuthorizationRequestsDisabled() ? ApplicationMgtDBQueries.GET_AUTHORIZED_APIS
+        return AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()
+                ? ApplicationMgtDBQueries.GET_AUTHORIZED_APIS
                 : ApplicationMgtDBQueries.GET_AUTHORIZED_APIS_WITH_AUTHORIZATION_DETAILS;
     }
 }

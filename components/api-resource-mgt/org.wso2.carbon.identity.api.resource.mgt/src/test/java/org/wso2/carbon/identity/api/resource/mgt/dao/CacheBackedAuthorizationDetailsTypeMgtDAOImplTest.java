@@ -25,6 +25,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceMgtException;
+import org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.AuthorizationDetailsTypeMgtDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.dao.impl.CacheBackedAuthorizationDetailsTypeMgtDAOImpl;
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
@@ -50,13 +51,6 @@ import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TENANT
 import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TENANT_ID;
 import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TYPE_1;
 import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.TEST_TYPE_2;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.addAPIResourceToDB;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.closeDataSource;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.closeMockedStatic;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.getAuthorizationDetailsTypes;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.getConnection;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.getFilePath;
-import static org.wso2.carbon.identity.api.resource.mgt.TestDAOUtils.initializeDataSource;
 
 /**
  * Test class for {@link AuthorizationDetailsTypeMgtDAO}.
@@ -73,12 +67,13 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
     @BeforeClass
     public void setUp() throws Exception {
 
-        initializeDataSource(getFilePath("h2.sql"));
+        TestDAOUtils.initializeDataSource(TestDAOUtils.getFilePath("h2.sql"));
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
 
-        apiResource = addAPIResourceToDB("testApiResource2", getConnection(), TEST_TENANT_ID, identityDatabaseUtil);
+        apiResource = TestDAOUtils.addAPIResourceToDB("testApiResource2", TestDAOUtils.getConnection(),
+                TEST_TENANT_ID, identityDatabaseUtil);
         uut = new CacheBackedAuthorizationDetailsTypeMgtDAOImpl(new AuthorizationDetailsTypeMgtDAOImpl());
 
         APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
@@ -87,10 +82,11 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
     @BeforeMethod
     public void setUpBeforeMethod() throws SQLException {
 
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenReturn(TestDAOUtils.getConnection());
         identityDatabaseUtil.when(() -> IdentityDatabaseUtil.commitTransaction(any(Connection.class)))
                 .thenAnswer((Answer<Void>) invocation -> {
-                    getConnection().commit();
+                    TestDAOUtils.getConnection().commit();
                     return null;
                 });
         identityTenantUtil
@@ -101,16 +97,16 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
     @AfterClass
     public void tearDown() throws Exception {
 
-        closeDataSource();
-        closeMockedStatic(identityTenantUtil);
-        closeMockedStatic(identityDatabaseUtil);
+        TestDAOUtils.closeDataSource();
+        TestDAOUtils.closeMockedStatic(identityTenantUtil);
+        TestDAOUtils.closeMockedStatic(identityDatabaseUtil);
     }
 
     @Test
     public void shouldAddAuthorizationDetailsTypesSuccessfully() throws APIResourceMgtException, SQLException {
 
-        uut.addAuthorizationDetailsTypes(getConnection(), apiResource.getId(),
-                getAuthorizationDetailsTypes(), TEST_TENANT_ID);
+        uut.addAuthorizationDetailsTypes(TestDAOUtils.getConnection(), apiResource.getId(),
+                TestDAOUtils.getAuthorizationDetailsTypes(), TEST_TENANT_ID);
 
         AuthorizationDetailsType type1 =
                 uut.getAuthorizationDetailsTypeByApiIdAndType(apiResource.getId(), TEST_TYPE_1, TEST_TENANT_ID);
@@ -124,15 +120,17 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
     @Test(dependsOnMethods = {"shouldAddAuthorizationDetailsTypesSuccessfully"})
     public void shouldUpdateAuthorizationDetailsTypeSuccessfully() throws APIResourceMgtException, SQLException {
 
-        List<AuthorizationDetailsType> fetchedTypes =
-                uut.getAuthorizationDetailsTypesByApiId(getConnection(), apiResource.getId(), TEST_TENANT_ID);
+        List<AuthorizationDetailsType> fetchedTypes = uut.getAuthorizationDetailsTypesByApiId(TestDAOUtils
+                .getConnection(), apiResource.getId(), TEST_TENANT_ID);
 
         fetchedTypes.stream()
                 .filter(type -> TEST_TYPE_1.equals(type.getType()))
                 .forEach(type -> type.setName(TEST_TYPE_NAME));
 
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
-        uut.updateAuthorizationDetailsTypes(getConnection(), apiResource.getId(), fetchedTypes, TEST_TENANT_ID);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenReturn(TestDAOUtils.getConnection());
+        uut.updateAuthorizationDetailsTypes(TestDAOUtils.getConnection(), apiResource.getId(), fetchedTypes,
+                TEST_TENANT_ID);
 
         AuthorizationDetailsType type1 =
                 uut.getAuthorizationDetailsTypeByApiIdAndType(apiResource.getId(), TEST_TYPE_1, TEST_TENANT_ID);
@@ -141,7 +139,8 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
         assertNull(type1.getDescription());
         assertEquals(type1.getName(), TEST_TYPE_NAME);
 
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenReturn(TestDAOUtils.getConnection());
         AuthorizationDetailsType type2 =
                 uut.getAuthorizationDetailsTypeByApiIdAndType(apiResource.getId(), TEST_TYPE_2, TEST_TENANT_ID);
         assertNotNull(type2);
@@ -154,10 +153,12 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImplTest {
 
         uut.deleteAuthorizationDetailsTypeByApiIdAndType(apiResource.getId(), TEST_TYPE_1, TEST_TENANT_ID);
 
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenReturn(TestDAOUtils.getConnection());
         assertFalse(uut.isAuthorizationDetailsTypeExists(apiResource.getId(), TEST_TYPE_1, TEST_TENANT_ID));
 
-        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenReturn(TestDAOUtils.getConnection());
         assertTrue(uut.isAuthorizationDetailsTypeExists(apiResource.getId(), TEST_TYPE_2, TEST_TENANT_ID));
     }
 }

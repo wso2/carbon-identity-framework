@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.common.model.AuthorizationDetailsTyp
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -52,6 +53,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         apiResourceCacheById = APIResourceCacheById.getInstance();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
             final String apiId, final List<AuthorizationDetailsType> authorizationDetailsTypes, final Integer tenantId)
@@ -62,17 +66,23 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
                 .addAuthorizationDetailsTypes(apiId, authorizationDetailsTypes, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> addAuthorizationDetailsTypes(
             final Connection connection, final String apiId,
             final List<AuthorizationDetailsType> authorizationDetailsTypes,
-            final Integer tenantId) throws APIResourceMgtException {
+            final Integer tenantId) throws SQLException, APIResourceMgtException {
 
         this.clearAPIResourceCache(apiId, tenantId);
         return this.authorizationDetailsTypeMgtDAO
                 .addAuthorizationDetailsTypes(connection, apiId, authorizationDetailsTypes, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypeByApiIdAndType(final String apiId, final String type,
                                                              final Integer tenantId) throws APIResourceMgtException {
@@ -81,6 +91,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypeByApiIdAndTypeId(final String apiId, final String typeId,
                                                                final Integer tenantId) throws APIResourceMgtException {
@@ -89,6 +102,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypesByApiId(final String apiId, final Integer tenantId)
             throws APIResourceMgtException {
@@ -97,14 +113,20 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         this.authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(apiId, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteAuthorizationDetailsTypesByApiId(final Connection connection, final String apiId,
-                                                       final Integer tenantId) throws APIResourceMgtException {
+                                                       final Integer tenantId) throws SQLException {
 
         this.clearAPIResourceCache(apiId, tenantId);
         this.authorizationDetailsTypeMgtDAO.deleteAuthorizationDetailsTypesByApiId(connection, apiId, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndType(final String apiId, final String type,
                                                                               final Integer tenantId)
@@ -113,6 +135,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         return this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypeByApiIdAndType(apiId, type, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AuthorizationDetailsType getAuthorizationDetailsTypeByApiIdAndTypeId(final String apiId, final String typeId,
                                                                                 final Integer tenantId)
@@ -121,6 +146,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         return this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypeByApiIdAndTypeId(apiId, typeId, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypes(final List<ExpressionNode> expressionNodes,
                                                                        final Integer tenantId)
@@ -129,6 +157,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         return this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypes(expressionNodes, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(final String apiId,
                                                                               final Integer tenantId)
@@ -148,11 +179,14 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         return this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(apiId, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AuthorizationDetailsType> getAuthorizationDetailsTypesByApiId(final Connection connection,
                                                                               final String apiId,
                                                                               final Integer tenantId)
-            throws APIResourceMgtException {
+            throws SQLException {
 
         APIResourceCacheEntry entry =
                 apiResourceCacheById.getValueFromCache(new APIResourceIdCacheKey(apiId), tenantId);
@@ -168,6 +202,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         return this.authorizationDetailsTypeMgtDAO.getAuthorizationDetailsTypesByApiId(connection, apiId, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAuthorizationDetailsTypeExists(final String apiId, final String type, final Integer tenantId)
             throws APIResourceMgtException {
@@ -175,6 +212,9 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
         return this.authorizationDetailsTypeMgtDAO.isAuthorizationDetailsTypeExists(apiId, type, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAuthorizationDetailsTypes(final String apiId,
                                                 final List<AuthorizationDetailsType> authorizationDetailsTypes,
@@ -185,14 +225,30 @@ public class CacheBackedAuthorizationDetailsTypeMgtDAOImpl implements Authorizat
                 .updateAuthorizationDetailsTypes(apiId, authorizationDetailsTypes, tenantId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAuthorizationDetailsTypes(final Connection connection, final String apiId,
                                                 final List<AuthorizationDetailsType> authorizationDetailsTypes,
-                                                final Integer tenantId) throws APIResourceMgtException {
+                                                final Integer tenantId) throws SQLException, APIResourceMgtException {
 
         this.clearAPIResourceCache(apiId, tenantId);
         this.authorizationDetailsTypeMgtDAO
                 .updateAuthorizationDetailsTypes(connection, apiId, authorizationDetailsTypes, tenantId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void updateAuthorizationDetailsTypes(String apiId, List<String> removedAuthorizationDetailsTypes,
+                                                List<AuthorizationDetailsType> addedAuthorizationDetailsTypes,
+                                                Integer tenantId) throws APIResourceMgtException {
+
+        this.clearAPIResourceCache(apiId, tenantId);
+        this.authorizationDetailsTypeMgtDAO.updateAuthorizationDetailsTypes(apiId, removedAuthorizationDetailsTypes,
+                addedAuthorizationDetailsTypes, tenantId);
     }
 
     private void clearAPIResourceCache(String apiId, int tenantId) {
