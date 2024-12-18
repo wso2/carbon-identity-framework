@@ -1032,6 +1032,10 @@
         <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
     </SCIM2>
 
+    <PasswordPolicy>
+        <MaxPasswordAllowedLength>64</MaxPasswordAllowedLength>
+    </PasswordPolicy>
+
     <!--Recovery>
         <EnableV1API>false</EnableV1API>
         <ReCaptcha>
