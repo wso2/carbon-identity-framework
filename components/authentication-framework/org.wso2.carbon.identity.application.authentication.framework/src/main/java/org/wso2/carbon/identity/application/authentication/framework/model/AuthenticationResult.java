@@ -118,10 +118,12 @@ public class AuthenticationResult implements Serializable {
     }
 
     public Optional<Map<String, String>> getMappedRemoteClaims() {
+
         return Optional.ofNullable(mappedRemoteClaims);
     }
 
     public void setMappedRemoteClaims(Map<String, String> mappedRemoteClaims) {
+
         this.mappedRemoteClaims = mappedRemoteClaims;
     }
 }
