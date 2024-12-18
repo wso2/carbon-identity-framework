@@ -27,64 +27,71 @@ public interface SAMLSSOServiceProviderDAO {
      * Add the service provider information to the registry.
      *
      * @param serviceProviderDO Service provider information object.
+     * @param tenantId Tenant ID.
      * @return True if addition successful.
      * @throws IdentityException Error while persisting to the registry.
      */
-    boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException;
+    boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId) throws IdentityException;
 
     /**
      * Update the service provider if it exists.
      *
      * @param serviceProviderDO     Service provider to be updated.
      * @param currentIssuer         Issuer of the service provider before the update.
+     * @param tenantId              Tenant ID.
      * @return True if the update is successful.
      * @throws IdentityException If an error occurs while updating the service provider.
      */
-    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer)
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException;
 
     /**
      * Get all the service providers.
      *
+     * @param  tenantId Tenant ID.
      * @return Array of service providers.
      * @throws IdentityException Error occurred while retrieving the service providers from registry.
      */
-    SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException;
+    SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId) throws IdentityException;
 
     /**
      * Remove the service provider with the given name.
      *
      * @return True if deletion success.
      * @param issuer Name of the SAML issuer.
+     * @param tenantId Tenant ID.
      * @throws IdentityException Error occurred while removing the SAML service provider from registry.
      */
-    boolean removeServiceProvider(String issuer) throws IdentityException;
+    boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException;
 
     /**
      * Get the service provider.
      *
      * @param issuer Name of the SAML issuer.
+     * @param tenantId Tenant ID.
      * @return Service provider information object.
      * @throws IdentityException Error occurred while retrieving the SAML service provider from registry.
      */
-    SAMLSSOServiceProviderDO getServiceProvider(String issuer) throws IdentityException;
+    SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException;
 
     /**
      * Check whether the service provider exists.
      *
      * @param issuer Name of the SAML issuer.
+     * @param tenantId Tenant ID.
      * @return True if service provider exists.
      * @throws IdentityException Error occurred while checking the existence of the SAML service provider.
      */
-    boolean isServiceProviderExists(String issuer) throws IdentityException;
+    boolean isServiceProviderExists(String issuer, int tenantId) throws IdentityException;
 
     /**
      * Upload service Provider using metadata file.
      *
      * @param serviceProviderDO Service provider information object.
+     * @param tenantId Tenant ID.
      * @return True if upload success.
      * @throws IdentityException Error occurred while adding the information to registry.
      */
-    SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws
+    SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId) throws
             IdentityException;
 }

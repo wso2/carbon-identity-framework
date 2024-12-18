@@ -59,9 +59,6 @@ public class SAMLSSOServiceProviderManagerTest {
     private MockedStatic<IdentityUtil> identityUtil;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
     private MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil;
-    private DataSource dataSource;
-    private Connection connection;
-    private Connection spyConnection;
 
     public SAMLSSOServiceProviderManager samlSSOServiceProviderManager;
 
@@ -78,7 +75,7 @@ public class SAMLSSOServiceProviderManagerTest {
         invalidServiceProviderDO = createServiceProviderDO(null);
 
         TestUtils.initiateH2Base();
-        dataSource = mock(DataSource.class);
+        DataSource dataSource = mock(DataSource.class);
         identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
         identityUtil = mockStatic(IdentityUtil.class);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
@@ -86,8 +83,8 @@ public class SAMLSSOServiceProviderManagerTest {
         identityUtil.when(() -> IdentityUtil.getProperty("SAMLStorage.Type")).thenReturn("database");
         identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        connection = TestUtils.getConnection();
-        spyConnection = TestUtils.spyConnection(connection);
+        Connection connection = TestUtils.getConnection();
+        Connection spyConnection = TestUtils.spyConnection(connection);
 
         lenient().when(dataSource.getConnection()).thenReturn(spyConnection);
         lenient().doNothing().when(spyConnection).close();

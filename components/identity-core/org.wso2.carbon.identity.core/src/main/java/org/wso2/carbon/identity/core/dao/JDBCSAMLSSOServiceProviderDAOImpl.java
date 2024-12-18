@@ -80,7 +80,7 @@ import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.
 public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
 
     private static final Log log = LogFactory.getLog(JDBCSAMLSSOServiceProviderDAOImpl.class);
-    private final int tenantId;
+    private int tenantId;
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
             "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
@@ -89,14 +89,13 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
             "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
-    public JDBCSAMLSSOServiceProviderDAOImpl(int tenantId) {
+    public JDBCSAMLSSOServiceProviderDAOImpl() {
 
-        this.tenantId = tenantId;
     }
 
     @Override
-    public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
-
+    public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId) throws IdentityException {
+        this.tenantId = tenantId;
         validateServiceProvider(serviceProviderDO);
         try {
             if (processIsServiceProviderExists(serviceProviderDO.getIssuer())) {
@@ -119,9 +118,10 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
     }
 
     @Override
-    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer)
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException {
 
+        this.tenantId = tenantId;
         validateServiceProvider(serviceProviderDO);
         String newIssuer = serviceProviderDO.getIssuer();
         boolean isIssuerUpdated = !StringUtils.equals(currentIssuer, newIssuer);
@@ -148,8 +148,9 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
     }
 
     @Override
-    public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
+    public SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId) throws IdentityException {
 
+        this.tenantId = tenantId;
         List<SAMLSSOServiceProviderDO> serviceProvidersList;
         try {
             serviceProvidersList = processGetServiceProviders();
@@ -161,8 +162,9 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
     }
 
     @Override
-    public boolean removeServiceProvider(String issuer) throws IdentityException {
+    public boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException {
 
+        this.tenantId = tenantId;
         if (issuer == null || StringUtils.isEmpty(issuer.trim())) {
             throw new IllegalArgumentException("Trying to delete issuer \'" + issuer + "\'");
         }
@@ -181,12 +183,13 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
     }
 
     @Override
-    public SAMLSSOServiceProviderDO getServiceProvider(String issuer) throws IdentityException {
+    public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
+        this.tenantId = tenantId;
         SAMLSSOServiceProviderDO serviceProviderDO = null;
 
         try {
-            if (isServiceProviderExists(issuer)) {
+            if (isServiceProviderExists(issuer, tenantId)) {
                 serviceProviderDO = processGetServiceProvider(issuer);
             }
         } catch (DataAccessException e) {
@@ -216,8 +219,9 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
     }
 
     @Override
-    public boolean isServiceProviderExists(String issuer) throws IdentityException {
+    public boolean isServiceProviderExists(String issuer, int tenantId) throws IdentityException {
 
+        this.tenantId = tenantId;
         try {
             return processIsServiceProviderExists(issuer);
         } catch (DataAccessException e) {
@@ -228,9 +232,10 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
     }
 
     @Override
-    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
+    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
             throws IdentityException {
 
+        this.tenantId = tenantId;
         validateServiceProvider(serviceProviderDO);
         if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
             throw new IdentityException("No default assertion consumer URL provided for service provider :" +

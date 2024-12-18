@@ -18,20 +18,10 @@
 
 package org.wso2.carbon.identity.core;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.dao.SAMLSSOPersistenceManagerFactory;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
-import org.wso2.carbon.identity.core.dao.JDBCSAMLSSOServiceProviderDAOImpl;
-import org.wso2.carbon.identity.core.dao.RegistrySAMLSSOServiceProviderDAOImpl;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.registry.api.RegistryException;
-import org.wso2.carbon.registry.core.Registry;
-
-import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML_STORAGE_CONFIG;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -39,44 +29,8 @@ import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.
  */
 public class SAMLSSOServiceProviderManager {
 
-    private static final Log LOG = LogFactory.getLog(SAMLSSOServiceProviderManager.class);
-    private static final String SAML_STORAGE_TYPE = IdentityUtil.getProperty(SAML_STORAGE_CONFIG);
-    private static final String HYBRID = "hybrid";
-    private static final String REGISTRY = "registry";
-
-    /**
-     * Build the SAML service provider.
-     *
-     * @param tenantId Tenant ID.
-     * @return SAML service provider.
-     */
-    private SAMLSSOServiceProviderDAO buildSAMLSSOProvider(int tenantId) throws IdentityException {
-
-        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = new JDBCSAMLSSOServiceProviderDAOImpl(tenantId);
-        if (StringUtils.isNotBlank(SAML_STORAGE_TYPE)) {
-            switch (SAML_STORAGE_TYPE) {
-                case HYBRID:
-                    LOG.info("Hybrid SAML storage initialized.");
-                    break;
-                case REGISTRY:
-                    try {
-                        Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry(tenantId);
-                        samlSSOServiceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl(registry);
-                    } catch (RegistryException e) {
-                        LOG.error("Error while retrieving registry", e);
-                        throw new IdentityException("Error while retrieving registry", e);
-                    }
-                    LOG.warn("Registry based SAML storage initialized.");
-                    break;
-            }
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "SAML SSO Service Provider DAO initialized with the type: " + samlSSOServiceProviderDAO.getClass());
-        }
-        return samlSSOServiceProviderDAO;
-    }
+    SAMLSSOPersistenceManagerFactory samlSSOPersistenceManagerFactory = new SAMLSSOPersistenceManagerFactory();
+    SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.buildSSOServiceProviderManager();
 
     /**
      * Add a saml service provider.
@@ -89,8 +43,7 @@ public class SAMLSSOServiceProviderManager {
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDAO.addServiceProvider(serviceProviderDO);
+        return serviceProviderDAO.addServiceProvider(serviceProviderDO, tenantId);
     }
 
     /**
@@ -105,8 +58,7 @@ public class SAMLSSOServiceProviderManager {
     public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDAO.updateServiceProvider(serviceProviderDO, currentIssuer);
+        return serviceProviderDAO.updateServiceProvider(serviceProviderDO, currentIssuer, tenantId);
     }
 
     /**
@@ -119,8 +71,7 @@ public class SAMLSSOServiceProviderManager {
     public SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDAO.getServiceProviders();
+        return serviceProviderDAO.getServiceProviders(tenantId);
     }
 
     /**
@@ -134,8 +85,7 @@ public class SAMLSSOServiceProviderManager {
     public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDAO.getServiceProvider(issuer);
+        return serviceProviderDAO.getServiceProvider(issuer, tenantId);
 
     }
 
@@ -150,8 +100,7 @@ public class SAMLSSOServiceProviderManager {
     public boolean isServiceProviderExists(String issuer, int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDAO.isServiceProviderExists(issuer);
+        return serviceProviderDAO.isServiceProviderExists(issuer, tenantId);
     }
 
     /**
@@ -164,8 +113,7 @@ public class SAMLSSOServiceProviderManager {
     public boolean removeServiceProvider(String issuer, int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDAO.removeServiceProvider(issuer);
+        return serviceProviderDAO.removeServiceProvider(issuer, tenantId);
     }
 
     /**
@@ -180,7 +128,6 @@ public class SAMLSSOServiceProviderManager {
                                                           int tenantId)
             throws IdentityException {
 
-        SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-        return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO);
+        return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO, tenantId);
     }
 }
