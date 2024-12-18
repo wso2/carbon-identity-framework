@@ -703,9 +703,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
         }
 
+        // Adding locally mapped remote claims to authentication results.
         if (context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES) instanceof Map) {
-            authenticationResult.addProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES,
-                    context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES));
+            Map<String, String> mappedRemoteClaims =
+                    (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+            authenticationResult.setMappedRemoteClaims(mappedRemoteClaims);
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
