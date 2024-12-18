@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_CUSTOM;
+
 /**
  * The user defined federated authenticator configuration model.
  */
 public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
-
-    private static final String TAG_CUSTOM = "CUSTOM";
 
     private UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
