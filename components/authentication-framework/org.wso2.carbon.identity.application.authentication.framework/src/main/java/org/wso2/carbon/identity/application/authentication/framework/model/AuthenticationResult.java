@@ -37,6 +37,9 @@ public class AuthenticationResult implements Serializable {
     private boolean isSaaSApp;
     private boolean loggedOut;
     private Map<String, String> claimMapping;
+    /**
+     * Unfiltered remote claims that mapped to local claims.
+     */
     private Map<String, String> mappedRemoteClaims;
     private Map<String, Object> properties = new HashMap<>();
 
