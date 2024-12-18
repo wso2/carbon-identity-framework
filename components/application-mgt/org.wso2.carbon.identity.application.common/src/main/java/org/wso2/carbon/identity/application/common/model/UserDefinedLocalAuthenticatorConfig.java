@@ -21,13 +21,14 @@ package org.wso2.carbon.identity.application.common.model;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_2FA;
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_CUSTOM;
+
 /**
  * The user defined local authenticator configuration model.
  */
 public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfig {
 
-    private static final String TAG_2FA = "2FA";
-    private static final String TAG_CUSTOM = "CUSTOM";
     private AuthenticationType authenticationType;
     private UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
