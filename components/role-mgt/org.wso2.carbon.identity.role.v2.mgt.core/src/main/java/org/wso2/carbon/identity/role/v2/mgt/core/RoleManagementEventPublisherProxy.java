@@ -789,6 +789,23 @@ public class RoleManagementEventPublisherProxy {
     }
 
     /**
+     * Publish event before retrieving the count of roles within a specified tenant domain for a filter.
+     *
+     * @param searchFilter The filter value.
+     * @param tenantDomain The domain in which the operation is being performed.
+     * @throws IdentityRoleManagementException If an error occurs during the pre-retrieval phase.
+     */
+    public void publishPreGetRolesCountWithException(String searchFilter, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.SEARCH_FILTER, searchFilter);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.PRE_GET_ROLES_V2_FILTERED_COUNT_EVENT);
+        doPublishEvent(event);
+    }
+
+    /**
      * Publish event after retrieving the count of roles within a specified tenant domain.
      *
      * @param tenantDomain The domain in which the operation is being performed.
@@ -848,6 +865,25 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.SHARED_ROLE_TENANT_DOMAIN, sharedRoleTenantDomain);
         Event event = createEvent(eventProperties,
                 IdentityEventConstants.Event.POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Publish event after retrieving the count of roles within a specified tenant domain for a filter.
+     *
+     * @param searchFilter The filter value.
+     * @param tenantDomain The domain in which the operation is being performed.
+     */
+    public void publishPostGetRolesCount(String searchFilter, String tenantDomain) {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        eventProperties.put(IdentityEventConstants.EventProperty.SEARCH_FILTER, searchFilter);
+        Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_V2_FILTERED_COUNT_EVENT);
         try {
             doPublishEvent(event);
         } catch (IdentityRoleManagementException e) {

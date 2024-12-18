@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.7.24-SNAPSHOT</version>
+    <version>7.7.48-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -920,6 +920,17 @@
                 <groupId>org.eclipse.equinox</groupId>
                 <artifactId>javax.servlet</artifactId>
                 <version>${version.javax.servlet}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.orbit.org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bcprov-jdk18.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.orbit.org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bcpkix-jdk18.version}</version>
             </dependency>
 
             <!--OpenSAML3 dependencies-->
@@ -1840,6 +1851,7 @@
         <carbon.identity.package.export.version>${project.version}</carbon.identity.package.export.version>
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
 
+        <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
         <org.wso2.carbon.identity.organization.management.core.version>1.0.90
         </org.wso2.carbon.identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
@@ -1949,6 +1961,9 @@
 
         <saml.common.util.version>1.4.1</saml.common.util.version>
         <saml.common.util.version.range>[1.4.0,1.5.0)</saml.common.util.version.range>
+
+        <bcprov-jdk18.version>1.78.1.wso2v1</bcprov-jdk18.version>
+        <bcpkix-jdk18.version>1.78.1.wso2v1</bcpkix-jdk18.version>
 
         <!-- Commons -->
         <commons-beanutils.version>1.8.0</commons-beanutils.version>

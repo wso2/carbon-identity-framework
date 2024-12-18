@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>certificate-mgt</artifactId>
-        <version>7.7.24-SNAPSHOT</version>
+        <version>7.7.48-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -75,7 +75,6 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.certificate.management.cache,
                             org.wso2.carbon.identity.certificate.management.constant,
                             org.wso2.carbon.identity.certificate.management.dao.*,
                             org.wso2.carbon.identity.certificate.management.internal,
@@ -83,6 +82,7 @@
                             org.wso2.carbon.identity.certificate.management.util;
                         </Private-Package>
                         <Export-Package>
+                            org.wso2.carbon.identity.certificate.management.cache,
                             org.wso2.carbon.identity.certificate.management.exception,
                             org.wso2.carbon.identity.certificate.management.model,
                             org.wso2.carbon.identity.certificate.management.service;

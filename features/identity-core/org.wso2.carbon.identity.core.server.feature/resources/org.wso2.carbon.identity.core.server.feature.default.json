@@ -250,6 +250,7 @@
   "oauth.oidc.extensions.user_info_claim_retriever": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoUserStoreClaimRetriever",
   "oauth.oidc.extensions.user_info_request_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator",
   "oauth.oidc.extensions.user_info_access_token_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator",
+  "oauth.oidc.user_info.enable_multi_value_support": true,
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
@@ -398,7 +399,7 @@
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.notification_channel_recovery.recovery_code_validity": "1m",
-  "identity_mgt.resend_notification.resend_code_validity": "1m",
+  "identity_mgt.resend_notification.resend_code_validity": "2m",
   "identity_mgt.password_reset_email.notify_on_reset": false,
 
   "identity_mgt.lite_user_registration.enable": false,
@@ -494,7 +495,7 @@
   "identity_mgt.user_claim_update.uniqueness.enable": false,
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
-  "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": false,
+  "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
 
   "event.default_listener.system_api_resource_management_listener.priority": "211",
   "event.default_listener.system_api_resource_management_listener.enable": true,
@@ -503,6 +504,7 @@
   "event.default_listener.system_api_authorization_management_listener.enable": true,
 
   "identity_mgt_account_suspension.use_identity_claims": true,
+  "identity_mgt_account_suspension.execute_task_on_master_node": false,
 
   "identity_mgt.enable_user_claim_input_regex_validation": true,
 
@@ -550,6 +552,8 @@
   "event.default_listener.governance_identity_store.enable": true,
   "event.default_listener.governance_identity_store.data_store": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
   "event.default_listener.governance_identity_store.enable_hybrid_data_store": false,
+  "event.default_listener.password_expiry.priority": "102",
+  "event.default_listener.password_expiry.enable": true,
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
   "event.default_listener.mutual_tls_authenticator.priority": "919",

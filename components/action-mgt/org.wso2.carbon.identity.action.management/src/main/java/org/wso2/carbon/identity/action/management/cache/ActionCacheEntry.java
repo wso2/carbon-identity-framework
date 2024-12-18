@@ -28,6 +28,7 @@ import java.util.List;
  */
 public class ActionCacheEntry extends CacheEntry {
 
+    private static final long serialVersionUID = 2789265346825849739L;
     private List<Action> actionsOfActionType;
 
     public ActionCacheEntry(List<Action> actionsOfActionType) {
