@@ -104,7 +104,7 @@ public class CacheBackedRuleManagementDAO implements RuleManagementDAO {
     @Override
     public Rule getRuleByRuleId(String ruleId, int tenantId) throws RuleManagementException {
 
-        RuleCacheEntry ruleCacheEntry = RuleCache.getInstance().getValueFromCache(new RuleCacheKey(ruleId), tenantId);
+        RuleCacheEntry ruleCacheEntry = ruleCache.getValueFromCache(new RuleCacheKey(ruleId), tenantId);
         if (ruleCacheEntry != null && ruleCacheEntry.getRule() != null) {
             LOG.debug("Rule cache hit for rule id: " + ruleId + ". Returning from cache.");
             return ruleCacheEntry.getRule();
