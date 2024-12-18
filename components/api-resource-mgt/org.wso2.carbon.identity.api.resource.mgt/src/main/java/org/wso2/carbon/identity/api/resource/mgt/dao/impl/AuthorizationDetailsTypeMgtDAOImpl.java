@@ -572,7 +572,8 @@ public class AuthorizationDetailsTypeMgtDAOImpl implements AuthorizationDetailsT
                 .type(resultSet.getString(SQLConstants.AUTHORIZATION_DETAILS_TYPE_COLUMN_NAME))
                 .name(resultSet.getString(SQLConstants.NAME_COLUMN_NAME))
                 .description(resultSet.getString(SQLConstants.DESCRIPTION_COLUMN_NAME))
-                .schema(AuthorizationDetailsTypesUtil.parseSchema(resultSet.getString(SQLConstants.AUTHORIZATION_DETAILS_SCHEMA_COLUMN_NAME)))
+                .schema(AuthorizationDetailsTypesUtil
+                        .parseSchema(resultSet.getString(SQLConstants.AUTHORIZATION_DETAILS_SCHEMA_COLUMN_NAME)))
                 .build();
     }
 }
