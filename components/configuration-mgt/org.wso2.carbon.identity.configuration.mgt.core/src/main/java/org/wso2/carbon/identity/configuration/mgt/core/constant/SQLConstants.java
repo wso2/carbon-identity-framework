@@ -287,6 +287,34 @@ public class SQLConstants {
             "  R.NAME = ?\n" +
             "  AND R.TENANT_ID = ?\n" +
             "  AND R.TYPE_ID = ?";
+    public static final String GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE_WITHOUT_CREATED_TIME = "SELECT" +
+            "  R.ID," +
+            "  R.TENANT_ID," +
+            "  R.NAME," +
+            "  R.LAST_MODIFIED," +
+            "  R.HAS_FILE," +
+            "  R.HAS_ATTRIBUTE," +
+            "  T.NAME RESOURCE_TYPE," +
+            "  T.DESCRIPTION DESCRIPTION," +
+            "  F.ID FILE_ID," +
+            "  A.ID ATTR_ID," +
+            "  A.ATTR_KEY ATTR_KEY," +
+            "  A.ATTR_VALUE ATTR_VALUE " +
+            "FROM" +
+            "  IDN_CONFIG_RESOURCE R" +
+            "  INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
+            "  LEFT JOIN IDN_CONFIG_ATTRIBUTE A ON (" +
+            "    R.HAS_ATTRIBUTE = 1" +
+            "    AND A.RESOURCE_ID = R.ID" +
+            "  )" +
+            "  LEFT JOIN IDN_CONFIG_FILE F ON (" +
+            "    R.HAS_FILE = 1" +
+            "    AND F.RESOURCE_ID = R.ID" +
+            "  ) " +
+            "WHERE" +
+            "  R.NAME = ?" +
+            "  AND R.TENANT_ID = ?" +
+            "  AND R.TYPE_ID = ?";
     public static final String GET_RESOURCE_BY_ID_MYSQL = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +

@@ -158,6 +158,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MSSQL_OR_ORACLE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_ID_TENANT_ID_BY_TYPE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_TYPE_ID_BY_NAME_SQL;
@@ -324,6 +325,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             String queryWithOutCreatedTime = GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME;
             if (isOracleDB() || isMSSqlDB()) {
                 queryWithCreatedTime = GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE;
+                queryWithOutCreatedTime = GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE_WITHOUT_CREATED_TIME;
             }
             configurationRawDataCollectors = jdbcTemplate.executeQuery(
                     useCreatedTimeField() ? queryWithCreatedTime : queryWithOutCreatedTime,
