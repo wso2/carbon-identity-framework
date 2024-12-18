@@ -130,6 +130,9 @@ public class RoleDAOTest {
     private static final String MOCKED_EXCEPTION = "Mocked Exception";
     private static final String ROLE_PROPERTIES = "properties";
     private static final String IS_SHARED_ROLE = "isSharedRole";
+    private static final String IS_FRAGMENT_APP = "isFragmentApp";
+    private static final String SHARED_APP_ROLE_NAME = "shared-app-role-name-01";
+    private static final String SHARED_APP_ID = "shared-app-id";
 
     private static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     private List<String> userNamesList = new ArrayList<>();
@@ -243,6 +246,33 @@ public class RoleDAOTest {
         addRole(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID, roleDAO);
         assertTrue(roleDAO.isExistingRoleName(roleNamesList.get(0), APPLICATION_AUD, SAMPLE_APP_ID,
                 SAMPLE_TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testAddAppRoleToFragmentApp() throws Exception {
+
+        RoleDAOImpl roleDAO = spy(new RoleDAOImpl());
+        mockCacheClearing(roleDAO);
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getUserDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean()))
+                .thenAnswer(invocation -> getConnection());
+        identityUtil.when(IdentityUtil::getPrimaryDomainName).thenReturn(USER_DOMAIN_PRIMARY);
+        identityUtil.when(() -> IdentityUtil.extractDomainFromName(anyString())).thenCallRealMethod();
+        identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(SAMPLE_TENANT_ID);
+        // Mock the threadLocalProperties static variable.
+        Map<String, Object> mockThreadLocalProperties = new HashMap<>();
+        mockThreadLocalProperties.put(IS_FRAGMENT_APP, Boolean.TRUE.toString());
+        IdentityUtil.threadLocalProperties.set(mockThreadLocalProperties);
+        // Add role to a fragment application. WHen doing this we need to stop adding the role to the
+        // application mapping.
+        RoleBasicInfo sharedRoleBasicInfo = addRole(SHARED_APP_ROLE_NAME, APPLICATION_AUD, SHARED_APP_ID, roleDAO);
+        List<String> appIDs = roleDAO.getAssociatedApplicationIdsByRoleId(sharedRoleBasicInfo.getId(),
+                SAMPLE_TENANT_DOMAIN);
+        // The role should not be associated with any application.
+        assertTrue(appIDs.isEmpty());
+        // Assert the thread local properties to check whether the IS_FRAGMENT_APP is removed.
+        assertFalse(IdentityUtil.threadLocalProperties.get().containsKey(IS_FRAGMENT_APP));
     }
 
     @Test

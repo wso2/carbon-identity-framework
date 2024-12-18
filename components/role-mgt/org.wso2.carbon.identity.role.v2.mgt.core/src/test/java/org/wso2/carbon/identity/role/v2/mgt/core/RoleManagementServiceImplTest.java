@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -38,6 +39,8 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
@@ -48,6 +51,7 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ALLOW_SYSTEM_PREFIX_FOR_ROLES;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.APPLICATION;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -65,6 +69,14 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
     private static final String USERNAME = "user";
     private static final String audienceId = "testId";
     private static final String roleId = "testRoleId";
+
+    private static MockedStatic<RoleManagementEventPublisherProxy> roleManagementEventPublisherProxy;
+
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+
+        roleManagementEventPublisherProxy = mockStatic(RoleManagementEventPublisherProxy.class);
+    }
 
     @BeforeMethod
     public void setUp() {
@@ -103,9 +115,7 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
     public void testAddRoleWithSystemPrefix(boolean allowSystemPrefix, String roleName, boolean errorScenario)
             throws IdentityRoleManagementException {
 
-        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
-             MockedStatic<RoleManagementEventPublisherProxy> roleManagementEventPublisherProxy
-                     = mockStatic(RoleManagementEventPublisherProxy.class)) {
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
             identityUtil.when(() -> IdentityUtil.getProperty(ALLOW_SYSTEM_PREFIX_FOR_ROLES))
                     .thenReturn(String.valueOf(allowSystemPrefix));
 
@@ -139,6 +149,39 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
                 fail("An exception should not have been thrown.");
             }
         }
+    }
+
+    @Test
+    public void testAddRoleWithIsFragmentAppProperty() throws Exception {
+
+        String roleName = "validRole";
+        String audience = "APPLICATION";
+        String audienceId = "application_id_01";
+        String tenantDomain = "tenantDomain";
+
+        Map<String, Object> mockThreadLocalProperties = new HashMap<>();
+        mockThreadLocalProperties.put("isFragmentApp", Boolean.TRUE.toString());
+        IdentityUtil.threadLocalProperties.set(mockThreadLocalProperties);
+
+        RoleBasicInfo expectedRole = new RoleBasicInfo("roleId", roleName);
+        when(roleDAO.addRole(anyString(), anyList(), anyList(), anyList(), anyString(), anyString(), anyString()))
+                .thenReturn(expectedRole);
+
+        when(roleDAO.getRoleBasicInfoById(anyString(), anyString())).thenReturn(expectedRole);
+
+        RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy = mock(
+                RoleManagementEventPublisherProxy.class);
+        roleManagementEventPublisherProxy.when(RoleManagementEventPublisherProxy::getInstance)
+                .thenReturn(mockRoleMgtEventPublisherProxy);
+        lenient().doNothing().when(mockRoleMgtEventPublisherProxy).publishPreAddRoleWithException(anyString(),
+                anyList(), anyList(), anyList(), anyString(), anyString(), anyString());
+        lenient().doNothing().when(mockRoleMgtEventPublisherProxy).publishPostAddRole(anyString(), anyString(),
+                anyList(), anyList(), anyList(), anyString(), anyString(), anyString());
+
+        RoleBasicInfo result = roleManagementService.addRole(roleName, new ArrayList<>(), new ArrayList<>(),
+                new ArrayList<>(), audience, audienceId, tenantDomain);
+
+        assertEquals(expectedRole, result);
     }
 
     private void mockCarbonContextForTenant() {

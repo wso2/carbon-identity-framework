@@ -480,9 +480,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template -> {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES
-                    : ActionMgtSQLConstants.Query.ADD_ACTION_ENDPOINT;
-            template.executeBatchInsert(query,
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES,
                     statement -> {
                         for (Map.Entry<String, String> property : actionProperties.entrySet()) {
                             statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
@@ -511,10 +509,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         Map<String, String> actionEndpointProperties = new HashMap<>();
         try {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID
-                    : ActionMgtSQLConstants.Query.GET_ACTION_ENDPOINT_INFO_BY_ID;
             jdbcTemplate.withTransaction(template ->
-                template.executeQuery(query,
+                template.executeQuery(ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID,
                     (resultSet, rowNumber) -> {
                         actionEndpointProperties.put(
                                 resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
@@ -527,7 +523,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 }));
 
             return actionEndpointProperties;
-        } catch (SQLException | TransactionException e) {
+        } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while retrieving Action Properties from the system.", e);
         }
     }
@@ -544,22 +540,19 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                             Integer tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template -> {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY
-                    : ActionMgtSQLConstants.Query.UPDATE_ACTION_ENDPOINT_PROPERTY;
-            return template.executeBatchInsert(query,
-                    statement -> {
-                        for (Map.Entry<String, String> property : updatingProperties.entrySet()) {
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE,
-                                    property.getValue());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
-                                    property.getKey());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
-                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                            statement.addBatch();
-                        }
-                    }, null);
-        });
+        jdbcTemplate.withTransaction(template ->
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY,
+                statement -> {
+                    for (Map.Entry<String, String> property : updatingProperties.entrySet()) {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE,
+                                property.getValue());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
+                                property.getKey());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                        statement.addBatch();
+                    }
+                }, null));
     }
 
     /**
@@ -574,10 +567,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template -> {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.DELETE_ACTION_PROPERTY
-                    : ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTY;
-            return template.executeBatchInsert(query,
+        jdbcTemplate.withTransaction(template ->
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.DELETE_ACTION_PROPERTY,
                 statement -> {
                     for (String property : deletingProperties) {
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
@@ -586,8 +577,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                         statement.addBatch();
                     }
-                }, null);
-        });
+                }, null));
     }
 
     /**
@@ -620,22 +610,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return getBasicInfo(actionType, actionId, tenantId).build();
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Status to " + status, e);
-        }
-    }
-
-    /**
-     * Check whether the IDN_ACTION_PROPERTIES table exists in the database.
-     * TODO: Remove this temporary method once the table is created.
-     *
-     * @return True if the table exists, False otherwise.
-     * @throws SQLException If an error occurs while checking the table existence.
-     */
-    private boolean isPropertiesTableExists() throws SQLException {
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             ResultSet resultSet = connection.getMetaData().getTables(null, null,
-                     ActionMgtSQLConstants.IDN_ACTION_PROPERTIES_TABLE, null)) {
-            return resultSet.next();
         }
     }
 }
