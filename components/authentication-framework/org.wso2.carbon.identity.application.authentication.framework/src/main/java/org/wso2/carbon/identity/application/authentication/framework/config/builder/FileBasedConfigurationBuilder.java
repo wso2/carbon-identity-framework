@@ -627,6 +627,10 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint v2 URL
+     * @param documentElement
+     */
     private void readAuthenticationEndpointURLV2(OMElement documentElement) {
 
         OMElement authEndpointURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
@@ -645,6 +649,10 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint retry v2 URL
+     * @param documentElement
+     */
     private void readAuthenticationEndpointRetryURLV2(OMElement documentElement) {
 
         OMElement authEndpointRetryURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
@@ -665,6 +673,10 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint error v2 URL
+     * @param documentElement
+     */
     private void readAuthenticationEndpointErrorURLV2(OMElement documentElement) {
 
         OMElement authEndpointErrorURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
@@ -685,6 +697,10 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint wait v2 URL
+     * @param documentElement
+     */
     private void readAuthenticationEndpointWaitURLV2(OMElement documentElement) {
 
         OMElement authEndpointWaitURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
@@ -705,6 +721,10 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the identifier first confirmation v2 URL
+     * @param documentElement
+     */
     private void readIdentifierFirstConfirmationURLV2(OMElement documentElement) {
 
         OMElement readIDFConfirmationElement = documentElement.getFirstChildWithName(
@@ -725,6 +745,10 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint prompt v2 URL
+     * @param documentElement
+     */
     private void readAuthenticationEndpointPromptURLV2(OMElement documentElement) {
 
         OMElement authEndpointPromptURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
@@ -748,6 +772,10 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint missing claims v2 URL
+     * @param documentElement
+     */
     private void readAuthenticationEndpointMissingClaimsURLV2(OMElement documentElement) {
 
         OMElement authEndpointMissingClaimsURLElem = documentElement.getFirstChildWithName
@@ -768,11 +796,17 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointMissingClaimsURL = authenticationEndpointMissingClaimsURL;
     }
 
+    /*
+     * Get the authentication endpoint missing claims v2 URL
+     */
     public String getAuthenticationEndpointMissingClaimsURLV2() {
 
         return authenticationEndpointMissingClaimsURLV2;
     }
 
+    /*
+     * Set the authentication endpoint missing claims v2 URL
+     */
     public void setAuthenticationEndpointMissingClaimsURLV2(String authenticationEndpointMissingClaimsURLV2) {
 
         this.authenticationEndpointMissingClaimsURLV2 = authenticationEndpointMissingClaimsURLV2;
@@ -1113,11 +1147,18 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointURL = authenticationEndpointURL;
     }
 
+    /*
+    * Get the authentication endpoint URL v2
+     */
     public String getAuthenticationEndpointURLV2() {
 
         return authenticationEndpointURLV2;
     }
 
+    /*
+     * Set the authentication endpoint URL v2
+     * @param authenticationEndpointURLV2
+     */
     public void setAuthenticationEndpointURLV2(String authenticationEndpointURLV2) {
 
         this.authenticationEndpointURLV2 = authenticationEndpointURLV2;
@@ -1131,11 +1172,18 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointRetryURL = authenticationEndpointRetryURL;
     }
 
+    /*
+     * Get the authentication endpoint retry URL v2
+     */
     public String getAuthenticationEndpointRetryURLV2() {
 
         return authenticationEndpointRetryURLV2;
     }
 
+    /*
+     * Set the authentication endpoint retry URL v2
+     * @param authenticationEndpointRetryURLV2
+     */
     public void setAuthenticationEndpointRetryURLV2(String authenticationEndpointRetryURLV2) {
 
         this.authenticationEndpointRetryURLV2 = authenticationEndpointRetryURLV2;
@@ -1149,11 +1197,18 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointErrorURL = authenticationEndpointErrorURL;
     }
 
+    /*
+     * Get the authentication endpoint error URL v2
+     */
     public String getAuthenticationEndpointErrorURLV2() {
 
         return authenticationEndpointErrorURLV2;
     }
 
+    /*
+     * Set the authentication endpoint error URL v2
+     * @param authenticationEndpointErrorURLV2
+     */
     public void setAuthenticationEndpointErrorURLV2(String authenticationEndpointErrorURLV2) {
 
         this.authenticationEndpointErrorURLV2 = authenticationEndpointErrorURLV2;
@@ -1167,11 +1222,18 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointWaitURL = authenticationEndpointWaitURL;
     }
 
+    /*
+     * Get the authentication endpoint wait URL v2
+     */
     public String getAuthenticationEndpointWaitURLV2() {
 
         return authenticationEndpointWaitURLV2;
     }
 
+    /*
+     * Set the authentication endpoint wait URL v2
+     * @param authenticationEndpointWaitURLV2
+     */
     public void setAuthenticationEndpointWaitURLV2(String authenticationEndpointWaitURLV2) {
 
         this.authenticationEndpointWaitURLV2 = authenticationEndpointWaitURLV2;
@@ -1185,11 +1247,18 @@ public class FileBasedConfigurationBuilder {
         this.identifierFirstConfirmationURL = identifierFirstConfirmationURL;
     }
 
+    /*
+     * Get the identifier first confirmation URL v2
+     */
     public String getIdentifierFirstConfirmationURLV2() {
 
         return identifierFirstConfirmationURLV2;
     }
 
+    /*
+     * Set the identifier first confirmation URL v2
+     * @param identifierFirstConfirmationURLV2
+     */
     public void setIdentifierFirstConfirmationURLV2(String identifierFirstConfirmationURLV2) {
 
         this.identifierFirstConfirmationURLV2 = identifierFirstConfirmationURLV2;
@@ -1203,11 +1272,18 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointPromptURL = authenticationEndpointPromptURL;
     }
 
+    /*
+     * Get the authentication endpoint prompt URL v2
+     */
     public String getAuthenticationEndpointPromptURLV2() {
 
         return authenticationEndpointPromptURLV2;
     }
 
+    /*
+     * Set the authentication endpoint prompt URL v2
+     * @param authenticationEndpointPromptURLV2
+     */
     public void setAuthenticationEndpointPromptURLV2(String authenticationEndpointPromptURLV2) {
 
         this.authenticationEndpointPromptURLV2 = authenticationEndpointPromptURLV2;
