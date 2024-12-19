@@ -1575,7 +1575,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         for (LocalAuthenticatorConfig lclAuthenticator : authStep
                                 .getLocalAuthenticatorConfigs()) {
                             // set the identity provider name to LOCAL.
-                            int authenticatorId = getAuthentictorID(connection, tenantID,
+                            int authenticatorId = getAuthenticatorID(connection, tenantID,
                                     ApplicationConstants.LOCAL_IDP_NAME, lclAuthenticator.getName());
                             if (authenticatorId < 0) {
                                 authenticatorId = addAuthenticator(connection, tenantID,
@@ -1623,7 +1623,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                 for (FederatedAuthenticatorConfig authenticator : authenticators) {
                                     // ID, TENANT_ID, AUTHENTICATOR_ID
                                     if (authenticator != null) {
-                                        int authenticatorId = getAuthentictorID(connection, tenantID,
+                                        int authenticatorId = getAuthenticatorID(connection, tenantID,
                                                 idpName, authenticator.getName());
                                         if (authenticatorId > 0) {
                                             storeStepIDPAuthnPrepStmt.setInt(1, stepId);
@@ -5015,8 +5015,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws SQLException
      */
-    private int getAuthentictorID(Connection conn, int tenantId, String idpName,
-                                  String authenticatorName) throws SQLException {
+    private int getAuthenticatorID(Connection conn, int tenantId, String idpName,
+                                   String authenticatorName) throws SQLException {
 
         if (idpName == null || idpName.isEmpty()) {
             return -1;
@@ -6687,7 +6687,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try {
             int defaultAuthenticatorId =
-                    getAuthentictorID(dbConnection, tenantId, idpName, defaultAuthenticatorName);
+                    getAuthenticatorID(dbConnection, tenantId, idpName, defaultAuthenticatorName);
 
             prepStmt = dbConnection.prepareStatement(
                     ApplicationMgtDBQueries.GET_SP_UUIDS_ASSOCIATED_AUTH_FLOW_AUTHENTICATOR);

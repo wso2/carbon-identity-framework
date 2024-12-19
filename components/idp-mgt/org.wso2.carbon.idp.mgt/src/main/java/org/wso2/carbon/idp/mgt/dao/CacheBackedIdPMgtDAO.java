@@ -994,7 +994,7 @@ public class CacheBackedIdPMgtDAO {
      */
     public boolean isIdpReferredBySP(String idpName, int tenantId) throws IdentityProviderManagementException {
 
-        return idPMgtDAO.isIdpReferredBySP(idpName, tenantId);
+        return idPManagementFacade.isIdpReferredBySP(idpName, tenantId);
     }
 
     /**
@@ -1009,7 +1009,7 @@ public class CacheBackedIdPMgtDAO {
     public boolean isAuthenticatorReferredBySP(String idpName, String authenticatorName, int tenantId)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.isAuthenticatorReferredBySP(idpName, authenticatorName, tenantId);
+        return idPManagementFacade.isAuthenticatorReferredBySP(idpName, authenticatorName, tenantId);
     }
 
     /**
@@ -1024,7 +1024,7 @@ public class CacheBackedIdPMgtDAO {
     public boolean isOutboundConnectorReferredBySP(String idpName, String connectorName, int tenantId)
             throws IdentityProviderManagementException {
 
-        return idPMgtDAO.isOutboundConnectorReferredBySP(idpName, connectorName, tenantId);
+        return idPManagementFacade.isOutboundConnectorReferredBySP(idpName, connectorName, tenantId);
     }
 
     public ConnectedAppsResult getConnectedAppsOfLocalAuthenticator(String authenticatorId, int tenantId,
