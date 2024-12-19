@@ -22,7 +22,11 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.CustomHostNameVerifier;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 import org.wso2.securevault.commons.MiscellaneousUtil;
@@ -44,13 +48,17 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+
+import static org.wso2.carbon.CarbonConstants.ALLOW_ALL;
+import static org.wso2.carbon.CarbonConstants.DEFAULT_AND_LOCALHOST;
+import static org.wso2.carbon.CarbonConstants.HOST_NAME_VERIFIER;
 
 public class MutualSSLManager {
 
@@ -61,16 +69,11 @@ public class MutualSSLManager {
     private static Properties prop;
     private static String carbonLogin = "";
     private static String usernameHeaderName = "";
-    private final static String[] LOCALHOSTS = { "::1", "127.0.0.1", "localhost", "localhost.localdomain" };
 
-    /**
-     * Default keystore type of the client
-     */
-    private static final String keyStoreType = "JKS";
     /**
      * Default truststore type of the client
      */
-    private static final String trustStoreType = "JKS";
+    private static final String trustStoreType = KeystoreUtils.getTrustStoreFileType();
     /**
      * Default keymanager type of the client
      */
@@ -88,9 +91,6 @@ public class MutualSSLManager {
     private static char[] keyStorePassword;
     private static SSLSocketFactory sslSocketFactory;
     private static boolean initialized = false;
-
-    public static final String DEFAULT_AND_LOCALHOST = "DefaultAndLocalhost";
-    public static final String HOST_NAME_VERIFIER = "httpclient.hostnameVerifier";
 
     private MutualSSLManager() {
 
@@ -185,7 +185,7 @@ public class MutualSSLManager {
      *
      * @return availability of mutualSSLManagerEnabled feature.
      */
-    private static boolean isMutualSSLManagerEnabled(String mutualSSLManagerEnabled) {
+    protected static boolean isMutualSSLManagerEnabled(String mutualSSLManagerEnabled) {
 
         boolean isMutualSSLManagerEnabled = true;
         if (StringUtils.isNotEmpty(mutualSSLManagerEnabled)) {
@@ -201,7 +201,7 @@ public class MutualSSLManager {
      * @return Absolute file path
      * @throws IOException
      */
-    private static String buildFilePath(String path) throws IOException {
+    protected static String buildFilePath(String path) throws IOException {
 
         if (StringUtils.isNotEmpty(path) && path.startsWith(Constants.TenantConstants.RELATIVE_PATH_START_CHAR)) {
             // Relative file path is given
@@ -298,7 +298,7 @@ public class MutualSSLManager {
     }
 
     /**
-     * Load key store with given keystore.jks
+     * Load key store with given keystore file.
      *
      * @param keyStorePath     Path to keystore
      * @param keyStorePassword Password of keystore
@@ -308,18 +308,20 @@ public class MutualSSLManager {
             throws AuthenticationException {
 
         try {
+            String fileExtension = keyStorePath.substring(keyStorePath.lastIndexOf("."));
             MutualSSLManager.keyStorePassword = keyStorePassword.toCharArray();
-            keyStore = KeyStore.getInstance(keyStoreType);
+            keyStore = KeystoreUtils.getKeystoreInstance(KeystoreUtils.getFileTypeByExtension(fileExtension));
             try (InputStream fis = new FileInputStream(keyStorePath)) {
                 keyStore.load(fis, MutualSSLManager.keyStorePassword);
             }
-        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
+        } catch (KeyStoreException | NoSuchProviderException | CertificateException | NoSuchAlgorithmException |
+                 IOException | CarbonException e) {
             throw new AuthenticationException("Error while trying to load Key Store.", e);
         }
     }
 
     /**
-     * Load trust store with given .jks file
+     * Load trust store with given truststore file
      *
      * @param trustStorePath     Path to truststore
      * @param trustStorePassword Password of truststore
@@ -329,11 +331,12 @@ public class MutualSSLManager {
             throws AuthenticationException {
 
         try {
-            trustStore = KeyStore.getInstance(trustStoreType);
+            trustStore = KeystoreUtils.getKeystoreInstance(trustStoreType);
             try (InputStream is = new FileInputStream(trustStorePath)) {
                 trustStore.load(is, trustStorePassword.toCharArray());
             }
-        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
+        } catch (KeyStoreException | NoSuchProviderException | CertificateException | IOException |
+                 NoSuchAlgorithmException e) {
             throw new AuthenticationException("Error while trying to load Trust Store.", e);
         }
     }
@@ -357,14 +360,9 @@ public class MutualSSLManager {
 
             if (hostNameVerificationEnabled) {
                 if (DEFAULT_AND_LOCALHOST.equals(System.getProperty(HOST_NAME_VERIFIER))) {
-                    HostnameVerifier hv = new HostnameVerifier() {
-                        @Override
-                        public boolean verify(String urlHostName, SSLSession session) {
-
-                            return Arrays.asList(LOCALHOSTS).contains(urlHostName);
-                        }
-                    };
-                    HttpsURLConnection.setDefaultHostnameVerifier(hv);
+                    HttpsURLConnection.setDefaultHostnameVerifier(new CustomHostNameVerifier());
+                } else if (ALLOW_ALL.equals(System.getProperty(HOST_NAME_VERIFIER))) {
+                    HttpsURLConnection.setDefaultHostnameVerifier(new AllowAllHostnameVerifier());
                 }
                 sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
                 sslSocketFactory = sslContext.getSocketFactory();

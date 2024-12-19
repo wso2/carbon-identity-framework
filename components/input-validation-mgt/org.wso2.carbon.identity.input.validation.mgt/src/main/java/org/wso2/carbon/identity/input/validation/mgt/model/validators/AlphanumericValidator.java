@@ -27,7 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ALPHANUMERIC_REGEX_PATTERN_WITH_SPECIAL_CHARACTERS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.DEFAULT_ALPHANUMERIC_REGEX_PATTERN;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_SPECIAL_CHARACTERS;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.ENABLE_VALIDATOR;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INPUT_VALUE_NULL;
@@ -63,6 +65,10 @@ public class AlphanumericValidator extends AbstractRulesValidator {
         String field = context.getField();
         Map<String, String> attributesMap = context.getProperties();
         String alphanumericRegEx = DEFAULT_ALPHANUMERIC_REGEX_PATTERN;
+        // Check whether special characters are allowed.
+        if (attributesMap.containsKey(ENABLE_SPECIAL_CHARACTERS)) {
+            alphanumericRegEx = ALPHANUMERIC_REGEX_PATTERN_WITH_SPECIAL_CHARACTERS;
+        }
 
         // Check whether value satisfies the alphanumeric criteria.
         if (attributesMap.containsKey(ENABLE_VALIDATOR)) {
@@ -98,6 +104,15 @@ public class AlphanumericValidator extends AbstractRulesValidator {
         enableValidator.setType("boolean");
         enableValidator.setDisplayOrder(++parameterCount);
         configProperties.add(enableValidator);
+
+        Property allowSpecialChars = new Property();
+        allowSpecialChars.setName(ENABLE_SPECIAL_CHARACTERS);
+        allowSpecialChars.setDisplayName("Alphanumeric field value with special characters");
+        allowSpecialChars.setDescription("Validate for allowed set of special characters along with alphanumeric" +
+                " in the field value.");
+        allowSpecialChars.setType("boolean");
+        allowSpecialChars.setDisplayOrder(++parameterCount);
+        configProperties.add(allowSpecialChars);
 
         return configProperties;
     }

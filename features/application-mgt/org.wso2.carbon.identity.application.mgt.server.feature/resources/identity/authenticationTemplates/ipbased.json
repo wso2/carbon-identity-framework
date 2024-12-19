@@ -1,5 +1,5 @@
 {
-  "category": "environment_based",
+  "category": "AdaptiveMFA",
   "name": "IP-Based",
   "title": "IP-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are logging outside of the given ip range.",
@@ -29,7 +29,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+IP-Based+Adaptive+Authentication",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/ip-based-template/",
   "code": [
     "// This script will step up authentication for any user who are trying to log in outside from the configured network",
     "",
@@ -83,5 +83,6 @@
     "    }",
     "    return false;",
     "};"
-  ]
+  ],
+  "runtime": "any"
 }

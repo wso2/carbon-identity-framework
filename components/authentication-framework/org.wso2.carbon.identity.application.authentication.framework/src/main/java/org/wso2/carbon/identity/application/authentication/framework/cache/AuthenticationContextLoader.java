@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -49,6 +49,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.createSPClone;
 
 /**
  * This class is used to optimize the Authentication Context before storing it and again loaded it with objects.
@@ -140,13 +142,15 @@ public class AuthenticationContextLoader {
                     authenticatorConfig.setIdPResourceIds(Collections.emptyList());
                     authenticatorConfig.setApplicationAuthenticator(null);
                     List<String> idPResourceId = new ArrayList<>();
-                    for (Map.Entry<String, IdentityProvider> entry : authenticatorConfig.getIdps().entrySet()) {
-                        String idpName = entry.getKey();
-                        IdentityProvider idp = entry.getValue();
-                        if (idp.getResourceId() == null) {
-                            idPResourceId.add(getIdPByIdPName(idpName, context.getTenantDomain()).getResourceId());
-                        } else {
-                            idPResourceId.add(idp.getResourceId());
+                    if (authenticatorConfig.getIdps() != null) {
+                        for (Map.Entry<String, IdentityProvider> entry : authenticatorConfig.getIdps().entrySet()) {
+                            String idpName = entry.getKey();
+                            IdentityProvider idp = entry.getValue();
+                            if (idp.getResourceId() == null) {
+                                idPResourceId.add(getIdPByIdPName(idpName, context.getTenantDomain()).getResourceId());
+                            } else {
+                                idPResourceId.add(idp.getResourceId());
+                            }
                         }
                     }
                     authenticatorConfig.setIdPResourceIds(idPResourceId);
@@ -236,6 +240,7 @@ public class AuthenticationContextLoader {
             throws SessionDataStorageOptimizationException {
 
         ServiceProvider serviceProvider;
+        ServiceProvider clonedSP;
         ApplicationManagementServiceImpl applicationManager = (ApplicationManagementServiceImpl)
                 FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
         try {
@@ -252,7 +257,8 @@ public class AuthenticationContextLoader {
                                         "Service Provider by the resource ID: %s tenant domain: %s",
                                 optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain));
             }
-            serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
+            clonedSP = createSPClone(serviceProvider);
+            clonedSP.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
                     optimizedApplicationConfig.getAuthenticationSteps(tenantDomain));
         } catch (IdentityApplicationManagementClientException e) {
             throw new SessionDataStorageOptimizationClientException(
@@ -269,7 +275,7 @@ public class AuthenticationContextLoader {
                     String.format("Error occurred while retrieving the service provider by resource id: %s tenant " +
                             "domain: %s", optimizedApplicationConfig.getServiceProviderResourceId(), tenantDomain), e);
         }
-        return serviceProvider;
+        return clonedSP;
     }
 
     private IdentityProvider getIdPByIdPName(String idPName, String tenantDomain)

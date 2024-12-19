@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -48,6 +48,7 @@ public class MockApiBasedAuthenticator extends AbstractApplicationAuthenticator 
         this.authenticatorData.setName(name);
         this.authenticatorData.setDisplayName(getFriendlyName());
         this.authenticatorData.setIdp(idp);
+        this.authenticatorData.setI18nKey(getI18nKey());
     }
 
     @Override
@@ -78,6 +79,12 @@ public class MockApiBasedAuthenticator extends AbstractApplicationAuthenticator 
     public String getFriendlyName() {
 
         return this.name + "-friendlyName";
+    }
+
+    @Override
+    public String getI18nKey() {
+
+        return this.name + ".authenticator";
     }
 
     @Override

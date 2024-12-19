@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -44,6 +46,19 @@ public interface ApplicationAuthenticator extends Serializable {
      * @return boolean
      */
     boolean canHandle(HttpServletRequest request);
+
+
+    /**
+     * Check whether the request from multi-option step can be handled by the authenticator.
+     *
+     * @param request HTTP servlet request.
+     * @param context Authentication context object.
+     * @return True if the request from multi-option step can be handled by the authenticator.
+     */
+    default boolean canHandleRequestFromMultiOptionStep(HttpServletRequest request, AuthenticationContext context) {
+
+        return canHandle(request);
+    }
 
     /**
      * Process the authentication or logout request.
@@ -139,9 +154,31 @@ public interface ApplicationAuthenticator extends Serializable {
      *
      * @param context Authentication context.
      * @return AuthenticatorData containing authentication initiation data.
+     * @throws AuthenticationFailedException Authentication failed exception.
      */
-    default Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) {
+    default Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) throws
+            AuthenticationFailedException {
 
         return Optional.empty();
+    }
+
+    /**
+     * Get the i18Key supported from the authenticator level.
+     *
+     * @return i18key
+     */
+    default String getI18nKey() {
+
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Get the authenticator type. Default value will be SYSTEM.
+     *
+     * @return Authenticator Type.
+     */
+    default DefinedByType getDefinedByType() {
+
+        return DefinedByType.SYSTEM;
     }
 }

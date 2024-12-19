@@ -274,7 +274,12 @@ public class ApplicationMgtDBQueries {
     public static final String REMOVE_UM_PERMISSIONS = "DELETE FROM UM_PERMISSION WHERE UM_ID = ?";
     public static final String REMOVE_UM_ROLE_PERMISSION = "DELETE FROM UM_ROLE_PERMISSION WHERE UM_PERMISSION_ID = ?";
 
-    // DELETE query - Oauth
+    // DELETE query - OAuth.
+    /**
+     * @deprecated Use the REMOVE_OAUTH_APPLICATION_WITH_TENANT query in
+     * {@link org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries} class.
+     */
+    @Deprecated
     public static final String REMOVE_OAUTH_APPLICATION = "DELETE FROM IDN_OAUTH_CONSUMER_APPS WHERE CONSUMER_KEY=?";
 
     public static final String LOAD_IDP_AUTHENTICATOR_ID = "SELECT A.ID FROM IDP_AUTHENTICATOR A JOIN IDP B ON A" +
@@ -284,7 +289,8 @@ public class ApplicationMgtDBQueries {
             "B.DISPLAY_NAME FROM IDP A JOIN IDP_AUTHENTICATOR B ON A.ID = B.IDP_ID WHERE B.ID =? AND ((A.TENANT_ID =?" +
             " AND B.TENANT_ID =?) OR  (A.TENANT_ID=? AND A.NAME LIKE 'SHARED_%' AND B.TENANT_ID=?))";
     public static final String STORE_LOCAL_AUTHENTICATOR = "INSERT INTO IDP_AUTHENTICATOR (TENANT_ID, IDP_ID, NAME," +
-            "IS_ENABLED, DISPLAY_NAME) VALUES (?, (SELECT ID FROM IDP WHERE IDP.NAME=? AND IDP.TENANT_ID =?), ?, ?, ?)";
+            "IS_ENABLED, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) " +
+            "VALUES (?, (SELECT ID FROM IDP WHERE IDP.NAME=? AND IDP.TENANT_ID =?), ?, ?, ?, ?, ?)";
 
     public static final String GET_SP_METADATA_BY_SP_ID = "SELECT ID, NAME, VALUE, DISPLAY_NAME FROM SP_METADATA " +
             "WHERE SP_ID = ?";

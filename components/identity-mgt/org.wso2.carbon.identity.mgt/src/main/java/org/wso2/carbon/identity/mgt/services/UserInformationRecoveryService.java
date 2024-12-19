@@ -206,7 +206,8 @@ public class UserInformationRecoveryService {
                 return bean;
             }
         } catch (IdentityException e1) {
-            bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e1, username);
+            UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+            bean = userIdentityManagementUtil.getCustomErrorMessagesForCodeVerification(e1, username);
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " Invalid confirmation code for user : "
                         + username, e1);
@@ -244,7 +245,8 @@ public class UserInformationRecoveryService {
 
 
         } catch (IdentityException e) {
-            bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, username);
+            UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+            bean = userIdentityManagementUtil.getCustomErrorMessagesForCodeVerification(e, username);
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_RECOVERY_NOTIFICATION_FAILURE + ": " + VerificationBean.
                         ERROR_CODE_UNEXPECTED + " Error when sending recovery message for " +
@@ -319,7 +321,8 @@ public class UserInformationRecoveryService {
                 log.error(bean.getError());
             }
         } catch (IdentityException e) {
-            bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, username);
+            UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+            bean = userIdentityManagementUtil.getCustomErrorMessagesForCodeVerification(e, username);
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " Error verifying confirmation code for " +
                         "user : " + username, e);
@@ -397,7 +400,8 @@ public class UserInformationRecoveryService {
             }
 
         } catch (IdentityException e) {
-            bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, username);
+            UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+            bean = userIdentityManagementUtil.getCustomErrorMessagesForCodeVerification(e, username);
             if (bean.getError() == null) {
                 bean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Error while updating credential " +
                         "for user: " + username, e);
@@ -696,7 +700,8 @@ public class UserInformationRecoveryService {
                     bean.setVerified(false);
                 }
             } catch (IdentityException e) {
-                bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, userName);
+                UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+                bean = userIdentityManagementUtil.getCustomErrorMessagesForCodeVerification(e, userName);
                 if (bean == null) {
                     bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
                             " Error verifying confirmation code for user : " + userName, e);
@@ -788,7 +793,8 @@ public class UserInformationRecoveryService {
                 }
             } catch (IdentityException e) {
                 log.error("Error while verifying confirmation code.", e);
-                bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, userName);
+                UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+                bean = userIdentityManagementUtil.getCustomErrorMessagesForCodeVerification(e, userName);
                 if (bean == null) {
                     bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
                                        " Error verifying confirmation code for user : " + userName, e);
@@ -1089,14 +1095,15 @@ public class UserInformationRecoveryService {
                 vBean.setVerified(true);
             }
         } catch (UserStoreException | IdentityException e) {
-            vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, userName);
+            UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+            vBean = userIdentityManagementUtil.retrieveCustomErrorMessagesForRegistration(e, userName);
             //Rollback if user exists
             try {
                 if (!e.getMessage().contains(IdentityCoreConstants.EXISTING_USER) && userStoreManager.isExistingUser(userName)) {
                     userStoreManager.deleteUser(userName);
                 }
             } catch (UserStoreException e1) {
-                vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e1, userName);
+                vBean = userIdentityManagementUtil.retrieveCustomErrorMessagesForRegistration(e1, userName);
             }
 
             return vBean;
@@ -1213,7 +1220,8 @@ public class UserInformationRecoveryService {
                     vBean.setVerified(true);
                 }
             } catch (IdentityException e) {
-                vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, userName);
+                UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+                vBean = userIdentityManagementUtil.retrieveCustomErrorMessagesForRegistration(e, userName);
                 return vBean;
             }
         } finally {
@@ -1321,7 +1329,8 @@ public class UserInformationRecoveryService {
                     log.error("User verification failed against the given confirmation code");
                 }
             } catch (IdentityException e) {
-                bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, username);
+                UserIdentityManagementUtil userIdentityManagementUtil = new UserIdentityManagementUtil();
+                bean = userIdentityManagementUtil.getCustomErrorMessagesForCodeVerification(e, username);
                 if (bean.getError() == null) {
                     bean = handleError("Error while validating confirmation code for user : " + username, e);
                 }

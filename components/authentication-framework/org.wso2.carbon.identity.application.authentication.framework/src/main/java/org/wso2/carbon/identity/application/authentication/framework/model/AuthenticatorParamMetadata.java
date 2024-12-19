@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,25 +26,71 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 public class AuthenticatorParamMetadata {
 
     private String name;
+    private String displayName;
     private FrameworkConstants.AuthenticatorParamType type;
     private boolean isConfidential = false;
     private int paramOrder;
-    private int paramGroup = 0;
+    private String i18nKey;
 
-    public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type, int paramOrder) {
+    /**
+     * AuthenticatorParamMetadata constructor.
+     *
+     * @param name parameter name
+     * @param displayName parameter display name
+     * @param type parameter type
+     * @param paramOrder parameter order
+     * @param i18nKey i18n key
+     */
+    public AuthenticatorParamMetadata(String name, String displayName, FrameworkConstants.AuthenticatorParamType type,
+                                      int paramOrder, String i18nKey) {
 
         this.name = name;
+        this.displayName = displayName;
         this.type = type;
         this.paramOrder = paramOrder;
+        this.i18nKey = i18nKey;
     }
 
-    public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type, int paramOrder,
-                                      boolean isConfidential) {
+    /**
+     * @deprecated Use {@link #AuthenticatorParamMetadata(String, String, FrameworkConstants.AuthenticatorParamType,
+     * int, boolean, String)} instead.
+     *
+     * @param name parameter name
+     * @param type parameter type
+     * @param paramOrder parameter order
+     * @param isConfidential true if the parameter is confidential
+     * @param i18nKey i18n key
+     */
+    @Deprecated
+    public AuthenticatorParamMetadata(String name, FrameworkConstants.AuthenticatorParamType type,
+                                      int paramOrder, boolean isConfidential, String i18nKey) {
 
         this.name = name;
         this.type = type;
         this.paramOrder = paramOrder;
         this.isConfidential = isConfidential;
+        this.i18nKey = i18nKey;
+    }
+
+    /**
+     * AuthenticatorParamMetadata constructor.
+     *
+     * @param name parameter name
+     * @param displayName parameter display name
+     * @param type parameter type
+     * @param paramOrder parameter order
+     * @param isConfidential true if the parameter is confidential
+     * @param i18nKey i18n key
+     */
+    public AuthenticatorParamMetadata(String name, String displayName, FrameworkConstants.AuthenticatorParamType type,
+                                      int paramOrder, boolean isConfidential, String i18nKey) {
+
+        this.name = name;
+        this.displayName = displayName;
+        this.type = type;
+        this.paramOrder = paramOrder;
+        this.isConfidential = isConfidential;
+        this.i18nKey = i18nKey;
     }
 
     public String getName() {
@@ -55,6 +101,16 @@ public class AuthenticatorParamMetadata {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public String getDisplayName() {
+
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+
+        this.displayName = displayName;
     }
 
     public FrameworkConstants.AuthenticatorParamType getType() {
@@ -87,13 +143,13 @@ public class AuthenticatorParamMetadata {
         this.paramOrder = paramOrder;
     }
 
-    public int getParamGroup() {
+    public String getI18nKey() {
 
-        return paramGroup;
+        return i18nKey;
     }
 
-    public void setParamGroup(int paramGroup) {
+    public void setI18nKey(String i18nKey) {
 
-        this.paramGroup = paramGroup;
+        this.i18nKey = i18nKey;
     }
 }

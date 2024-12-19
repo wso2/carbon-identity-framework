@@ -191,7 +191,8 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
                     updatedClaims.put(claimURI, updatedClaimValue);
                 }
                 // Get claims when the claim value is removed.
-                if (StringUtils.isEmpty(updatedClaimValue) && StringUtils.isNotEmpty(claimValue)) {
+                if (updatedClaimValue != null &&
+                        StringUtils.isEmpty(updatedClaimValue) && StringUtils.isNotEmpty(claimValue)) {
                     removedClaims.put(claimURI, claimValue);
                 }
             }

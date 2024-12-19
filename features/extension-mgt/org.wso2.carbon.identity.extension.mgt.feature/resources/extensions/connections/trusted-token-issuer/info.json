@@ -1,0 +1,10 @@
+{
+    "id": "trusted-token-issuer",
+    "name": "Trusted Token Issuer",
+    "description": "A trusted token issuer to exchange its token for a token issued by {{productName}}",
+    "image": "assets/images/icons/trusted-token-issuer.svg",
+    "category": "DEFAULT",
+    "displayOrder": 8,
+    "tags": [ "Token-Issuer" ],
+    "type": "identity-provider"
+}

@@ -18,8 +18,7 @@
 
 package org.wso2.carbon.identity.template.mgt.dao.impl;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -39,16 +38,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.getConnection;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.initiateH2Base;
-import static org.wso2.carbon.identity.template.mgt.util.TestUtils.mockDataSource;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.spyConnection;
 
-@PrepareForTest(IdentityDatabaseUtil.class)
-public class TemplateManagerDAOImplTest extends PowerMockTestCase {
+public class TemplateManagerDAOImplTest {
 
     private static final Integer SAMPLE_TENANT_ID = -1234;
     private static final Integer SAMPLE_TENANT_ID2 = 1;
@@ -190,16 +188,18 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testAddTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            when(dataSource.getConnection()).thenReturn(connection);
+            try (Connection connection = getConnection()) {
+                when(dataSource.getConnection()).thenReturn(connection);
 
-            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-            Template templateResult = templateManagerDAO.addTemplate(((Template) template));
+                TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+                Template templateResult = templateManagerDAO.addTemplate(((Template) template));
 
-            Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
-            Assert.assertEquals(templateResult.getTenantId(), ((Template) template).getTenantId());
+                Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
+                Assert.assertEquals(templateResult.getTenantId(), ((Template) template).getTenantId());
+            }
         }
     }
 
@@ -207,34 +207,39 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testAddTemplateServerException(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            when(dataSource.getConnection()).thenReturn(connection);
+            try (Connection connection = getConnection()) {
+                when(dataSource.getConnection()).thenReturn(connection);
 
+            }
+            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+            templateManagerDAO.addTemplate(((Template) template));
+
+            Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
         }
-        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-        templateManagerDAO.addTemplate(((Template) template));
-
-        Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
     }
 
     @Test(dataProvider = "UpdateTemplateDataProvider")
     public void testUpdateTemplate(String oldTemplateName, Object oldtemplate, Object newTemplate) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            when(dataSource.getConnection()).thenReturn(connection);
-            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-            addTemplates(templateManagerDAO, Collections.singletonList(oldtemplate), dataSource);
+            try (Connection connection = getConnection()) {
+                when(dataSource.getConnection()).thenReturn(connection);
+                TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+                addTemplates(templateManagerDAO, Collections.singletonList(oldtemplate), dataSource);
 
-            try (Connection connection1 = getConnection()) {
-                when(dataSource.getConnection()).thenReturn(connection1);
-                Template updatedTemplate = templateManagerDAO.updateTemplate(oldTemplateName, ((Template) newTemplate));
-                Assert.assertEquals(((Template) newTemplate).getTenantId(), updatedTemplate.getTenantId());
-                Assert.assertEquals(((Template) newTemplate).getTemplateName(), updatedTemplate.getTemplateName());
+                try (Connection connection1 = getConnection()) {
+                    when(dataSource.getConnection()).thenReturn(connection1);
+                    Template updatedTemplate =
+                            templateManagerDAO.updateTemplate(oldTemplateName, ((Template) newTemplate));
+                    Assert.assertEquals(((Template) newTemplate).getTenantId(), updatedTemplate.getTenantId());
+                    Assert.assertEquals(((Template) newTemplate).getTemplateName(), updatedTemplate.getTemplateName());
+                }
             }
         }
     }
@@ -243,16 +248,18 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testUpdateTemplateServerException(String oldTemplateName, Object oldtemplate, Object newTemplate) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            when(dataSource.getConnection()).thenReturn(connection);
-            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-            addTemplates(templateManagerDAO, Collections.singletonList(oldtemplate), dataSource);
+            try (Connection connection = getConnection()) {
+                when(dataSource.getConnection()).thenReturn(connection);
+                TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+                addTemplates(templateManagerDAO, Collections.singletonList(oldtemplate), dataSource);
 
-            templateManagerDAO.updateTemplate(oldTemplateName, ((Template) newTemplate));
-            Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
+                templateManagerDAO.updateTemplate(oldTemplateName, ((Template) newTemplate));
+                Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
 
+            }
         }
     }
 
@@ -260,20 +267,26 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testGetTemplateByName(Object templateObject, Integer tenantId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            when(dataSource.getConnection()).thenReturn(connection);
+            try (Connection connection = getConnection()) {
+                when(dataSource.getConnection()).thenReturn(connection);
 
-            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-            addTemplates(templateManagerDAO, Collections.singletonList(templateObject), dataSource);
+                TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+                addTemplates(templateManagerDAO, Collections.singletonList(templateObject), dataSource);
 
-            try (Connection connection1 = getConnection()) {
-                when(dataSource.getConnection()).thenReturn(connection1);
-                Template templateByName = templateManagerDAO.getTemplateByName(((Template) templateObject).getTemplateName(), tenantId);
-                Assert.assertEquals(((Template) templateObject).getTemplateName(), templateByName.getTemplateName());
-                Assert.assertEquals(((Template) templateObject).getDescription(), templateByName.getDescription());
-                Assert.assertEquals(((Template) templateObject).getTemplateScript(), templateByName.getTemplateScript());
+                try (Connection connection1 = getConnection()) {
+                    when(dataSource.getConnection()).thenReturn(connection1);
+                    Template templateByName =
+                            templateManagerDAO.getTemplateByName(((Template) templateObject).getTemplateName(),
+                                    tenantId);
+                    Assert.assertEquals(((Template) templateObject).getTemplateName(),
+                            templateByName.getTemplateName());
+                    Assert.assertEquals(((Template) templateObject).getDescription(), templateByName.getDescription());
+                    Assert.assertEquals(((Template) templateObject).getTemplateScript(),
+                            templateByName.getTemplateScript());
+                }
             }
         }
     }
@@ -282,16 +295,18 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testGetTemplateByNameDataAccessException(Object templateObject, Integer tenantId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            when(dataSource.getConnection()).thenReturn(connection);
+            try (Connection connection = getConnection()) {
+                when(dataSource.getConnection()).thenReturn(connection);
 
-            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-            addTemplates(templateManagerDAO, Collections.singletonList(templateObject), dataSource);
+                TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+                addTemplates(templateManagerDAO, Collections.singletonList(templateObject), dataSource);
 
-            templateManagerDAO.getTemplateByName(((Template) templateObject).getTemplateName(), tenantId);
-            Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
+                templateManagerDAO.getTemplateByName(((Template) templateObject).getTemplateName(), tenantId);
+                Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
+            }
         }
     }
 
@@ -303,26 +318,28 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
         Template template3 = new Template(SAMPLE_TENANT_ID, "Template3", "Description 3", "Script 3");
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+                TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
 
-            Template templateResult1 = templateManagerDAO.addTemplate(template1);
-            Assert.assertEquals(templateResult1.getTemplateName(), template1.getTemplateName());
+                Template templateResult1 = templateManagerDAO.addTemplate(template1);
+                Assert.assertEquals(templateResult1.getTemplateName(), template1.getTemplateName());
 
-            Template templateResult2 = templateManagerDAO.addTemplate(template2);
-            Assert.assertEquals(templateResult2.getTemplateName(), template2.getTemplateName());
+                Template templateResult2 = templateManagerDAO.addTemplate(template2);
+                Assert.assertEquals(templateResult2.getTemplateName(), template2.getTemplateName());
 
-            Template templateResult3 = templateManagerDAO.addTemplate(template3);
-            Assert.assertEquals(templateResult3.getTemplateName(), template3.getTemplateName());
+                Template templateResult3 = templateManagerDAO.addTemplate(template3);
+                Assert.assertEquals(templateResult3.getTemplateName(), template3.getTemplateName());
 
-            List<TemplateInfo> templateList = templateManagerDAO.getAllTemplates(tenantId, limit, offset);
+                List<TemplateInfo> templateList = templateManagerDAO.getAllTemplates(tenantId, limit, offset);
 
-            Assert.assertEquals(templateList.size(), resultSize);
+                Assert.assertEquals(templateList.size(), resultSize);
+            }
         }
 
     }
@@ -335,27 +352,29 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
         Template template3 = new Template(SAMPLE_TENANT_ID, "Template3", "Description 3", "Script 3");
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            Template templateResult1 = templateManagerDAO.addTemplate(template1);
-            Assert.assertEquals(templateResult1.getTemplateName(), template1.getTemplateName());
+                Template templateResult1 = templateManagerDAO.addTemplate(template1);
+                Assert.assertEquals(templateResult1.getTemplateName(), template1.getTemplateName());
 
-            Template templateResult2 = templateManagerDAO.addTemplate(template2);
-            Assert.assertEquals(templateResult2.getTemplateName(), template2.getTemplateName());
+                Template templateResult2 = templateManagerDAO.addTemplate(template2);
+                Assert.assertEquals(templateResult2.getTemplateName(), template2.getTemplateName());
 
-            Template templateResult3 = templateManagerDAO.addTemplate(template3);
-            Assert.assertEquals(templateResult3.getTemplateName(), template3.getTemplateName());
+                Template templateResult3 = templateManagerDAO.addTemplate(template3);
+                Assert.assertEquals(templateResult3.getTemplateName(), template3.getTemplateName());
+            }
+
+            templateManagerDAO.getAllTemplates(tenantId, limit, offset);
+
+            Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
         }
-
-        templateManagerDAO.getAllTemplates(tenantId, limit, offset);
-
-        Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
 
     }
 
@@ -363,19 +382,21 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testDeleteTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
+            try (Connection connection = getConnection()) {
 
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-            Template templateResult = templateManagerDAO.addTemplate(((Template) template));
-            Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
+                TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+                Template templateResult = templateManagerDAO.addTemplate(((Template) template));
+                Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
 
-            templateManagerDAO.deleteTemplate(templateResult.getTemplateName(), templateResult.getTenantId());
+                templateManagerDAO.deleteTemplate(templateResult.getTemplateName(), templateResult.getTenantId());
 
+            }
         }
     }
 
@@ -383,20 +404,23 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testDeleteTemplateDataAccessException(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
-        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
 
-        try (Connection connection = getConnection()) {
+            try (Connection connection = getConnection()) {
 
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            Template templateResult = templateManagerDAO.addTemplate(((Template) template));
-            Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
+                Template templateResult = templateManagerDAO.addTemplate(((Template) template));
+                Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
+            }
+            templateManagerDAO.deleteTemplate(((Template) template).getTemplateName(),
+                    ((Template) template).getTenantId());
+
+            Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
         }
-        templateManagerDAO.deleteTemplate(((Template) template).getTemplateName(), ((Template) template).getTenantId());
-
-        Assert.fail("Expected: " + TemplateManagementServerException.class.getName());
     }
 
     private void addTemplates(TemplateManagerDAO templateManagerDAO, List<Object> templates, DataSource dataSource) throws SQLException, TemplateManagementException {
@@ -405,5 +429,4 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
             templateManagerDAO.addTemplate((Template) template);
         }
     }
-
 }

@@ -1,0 +1,116 @@
+{
+    "create": {
+        "image": "assets/images/logos/ethereum.svg",
+        "header": "Sign In With Ethereum",
+        "Subheading": "Login users with their Ethereum wallet.",
+        "documentation": "",
+        "modal": {
+            "form": {
+                "fields": [
+                    {
+                        "index": 0,
+                        "name": "name",
+                        "ariaLabel": "SIWE IDP Name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Enter a name for the connection.",
+                        "initialValue": "Sign In With Ethereum",
+                        "maxLength": "50",
+                        "minLength": "3",
+                        "data-testid": "swe-idp-create-wizard-content-idp-name",
+                        "width": "13"
+                    },
+                    {
+                        "index": 1,
+                        "ariaLabel": "SWE Client ID", 
+                        "type": "text", 
+                        "name": "clientId", 
+                        "label": "Client ID",
+                        "placeholder": "Enter Client ID of OIDC client.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "swe-idp-create-wizard-content-idp-client-id",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 2,
+                        "ariaLabel": "SIWE Client Secret",
+                        "type": "password", 
+                        "name": "clientSecret", 
+                        "label": "Client secret",
+                        "placeholder": "Enter Client secret of OIDC client.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "swe-idp-create-wizard-content-idp-client-secret",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                    }
+                ]
+                
+            },
+            "wizardHelp": {
+                "message": {
+                    "codeSnippets": [
+                        {
+                            "description": "If you want to quickly get things started, use the following <Code withBackground={ false }>curl</Code> command to register the client.",
+                            "value": "curl -X POST https://oidc.signinwithethereum.org/register -H 'Content-Type: application/json' -d '{\"redirect_uris\": [ \"${redirect_uri}\" ]}'"
+                        }
+                    ],
+                    "copyInputFields": [
+                        {
+                            "description": "The following URL has to be set as the <strong>Redirect URI</strong>.",
+                            "value": "redirect_uri"
+                        }
+                    ],
+                    "header": "Prerequisites",
+                    "paragraphs": [
+                        "Before you begin, register an <strong>OIDC client</strong> using the OIDC client registration of <Code withBackground={false}>oidc.signinwithethereum.org</Code>, and obtain a <strong>client ID & secret</strong>."                    
+                    ],
+                    "link": {
+                        "text": "See the guide on registering an OIDC client.",
+                        "url": "https://docs.login.xyz/servers/oidc-provider/hosted-oidc-provider#openid-connect-client-registration"
+                    }
+                },                
+                "fields": [
+                    {
+                        "fieldName": "Name",
+                        "hint": "Provide a unique name for the connection."
+                    },
+                    {
+                        "fieldName": "Client ID",
+                        "hint": "Provide the <Code class=\"inline-code\">Client ID</Code> you received you received from for your OIDC client."
+                    },
+                    {
+                        "fieldName": "Client secret",
+                        "hint": "Provide the <Code class=\"inline-code\">Client secret</Code> you received from you received from for your OIDC client."
+                    }
+                ]
+            }
+        },
+        "properties": [
+            {
+                "key": "ClientId",
+                "value": ""
+            },
+            {
+                "key": "ClientSecret",
+                "value": ""
+            },
+            {
+                "key": "callbackUrl",
+                "value": "/commonauth"
+            }
+        ]
+    },
+    "edit" : {
+        "tabs": {
+            "general" : [],
+            "settings" : [],
+            "quickStart": "swe"
+        }    
+    }
+}

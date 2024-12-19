@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.core.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.core.ServletCookie;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.Cookie;
 
-
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 public class CookieBuilder {
 
     private String name;
@@ -58,6 +60,11 @@ public class CookieBuilder {
     }
 
     public CookieBuilder setPath(String path) {
+
+        if (path.startsWith("/t/"+ MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
+            StringUtils.replace(path, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME,
+                    IdentityTenantUtil.getSuperTenantAliasInPublicUrl());
+        }
         this.path = path;
         return this;
     }

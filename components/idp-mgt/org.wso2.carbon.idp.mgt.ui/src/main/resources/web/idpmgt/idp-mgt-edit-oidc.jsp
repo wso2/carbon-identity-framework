@@ -43,6 +43,7 @@
     boolean isOIDCEnabled = Boolean.parseBoolean(request.getParameter("isOIDCEnabled"));
     boolean isOIDCDefault = Boolean.parseBoolean(request.getParameter("isOIDCDefault"));
     boolean isOIDCBasicAuthEnabled = false;
+    boolean isOIDCPKCEEnabled = false;
     String clientId = null;
     String clientSecret = null;
     String authzUrl = null;
@@ -132,6 +133,11 @@
                     if (basicAuthEnabledProp != null) {
                         isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
                     }
+                    Property pkceEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.IS_PKCE_ENABLED);
+                    if (pkceEnabledProp != null) {
+                        isOIDCPKCEEnabled = Boolean.parseBoolean(pkceEnabledProp.getValue());
+                    }
                 }
             }
         }
@@ -184,6 +190,10 @@
     }
     if (scopes == null) {
         scopes = StringUtils.EMPTY;
+    }
+    String oidcPKCEEnabledChecked = StringUtils.EMPTY;
+    if (isOIDCPKCEEnabled) {
+        oidcPKCEEnabledChecked = "checked=\'checked\'";
     }
     if (oidcQueryParam == null) {
         oidcQueryParam = StringUtils.EMPTY;
@@ -375,6 +385,18 @@
                                type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
                         <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='oidc.enable.basicauth.help'/>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftCol-med labelField"><fmt:message key='oidc.enable.pkce'/>:</td>
+                <td>
+                    <div class="sectionCheckbox">
+                        <input id="oidcPKCEEnabled" name="oidcPKCEEnabled"
+                               type="checkbox" <%=oidcPKCEEnabledChecked%> />
+                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.enable.pkce.help'/>
                         </span>
                     </div>
                 </td>

@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LOCAL_IDP_NAME;
+
 /**
  * Class to store and retrieve user related data.
  */
@@ -298,7 +300,10 @@ public class UserSessionStore {
     public int getIdPId(String idpName, int tenantId) throws UserSessionException {
 
         int idPId = -1;
-        if (idpName.equals("LOCAL")) {
+        if (StringUtils.isBlank(idpName)) {
+            throw new UserSessionException("Blank IDP Name is provided to retrieve IdP id of tenant ID: " + tenantId);
+        }
+        if (StringUtils.equals(LOCAL_IDP_NAME, idpName)) {
             return idPId;
         }
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
@@ -338,10 +343,21 @@ public class UserSessionStore {
                 if (log.isDebugEnabled()) {
                     log.debug("Stored user session data for user " + userId + " with session id: " + sessionId);
                 }
+            } catch (SQLIntegrityConstraintViolationException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new DuplicatedAuthUserException("Mapping between user Id: " + userId + " and session Id: "
+                        + sessionId + " already exists in the database.", e1);
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw new UserSessionException("Error while storing mapping between user Id: " + userId +
-                        " and session Id: " + sessionId, e1);
+                // Handle constrain violation issue in JDBC drivers which does not throw
+                // SQLIntegrityConstraintViolationException
+                if (StringUtils.containsIgnoreCase(e1.getMessage(), "USER_SESSION_STORE_CONSTRAINT")) {
+                    throw new DuplicatedAuthUserException("Mapping between user Id: " + userId + " and session Id: "
+                            + sessionId + " already exists in the database.", e1);
+                } else {
+                    throw new UserSessionException("Error while storing mapping between user Id: " + userId +
+                            " and session Id: " + sessionId, e1);
+                }
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while storing mapping between user Id: " + userId +
@@ -1272,7 +1288,7 @@ public class UserSessionStore {
         long currentTime = System.currentTimeMillis();
         long minTimestamp = currentTime - idleSessionTimeOut;
 
-        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getSessionDBConnection(true)) {
             String sqlStmt = JdbcUtils.isH2DB(JdbcUtils.Database.SESSION)
                     ? SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT_H2
                     : SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT;

@@ -1,0 +1,10 @@
+{
+    "id": "expert-mode-idp",
+    "name": "Expert Mode",
+    "description": "Create a new Connection with minimum configurations.",
+    "image": "assets/images/logos/expert.svg",
+    "category": "DEFAULT",
+    "displayOrder": 11,
+    "tags": [],
+    "type": "MANUAL"
+}

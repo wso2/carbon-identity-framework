@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,18 +19,23 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +118,23 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      */
     public abstract ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Get all basic application information based on the 'SP Property Key' and 'Value'.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param key          SP Property key
+     * @param value        SP Property value
+     * @return ApplicationBasicInfo Object.
+     * @throws IdentityApplicationManagementException if loading application
+     */
+    public ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String tenantDomain, String username,
+                                                                      String key, String value)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 
     /**
      * Update Application
@@ -432,12 +454,25 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public abstract AuthenticationStep[] getConfiguredAuthenticators(String applicationID)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Get the list of trusted applications based on the requested platform type.
+     *
+     * @param platformType Platform type of the trusted apps.
+     * @return List of trusted apps of all tenants.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the trusted apps.
+     */
+    public List<TrustedApp> getTrustedApps(PlatformType platformType) throws IdentityApplicationManagementException {
+
+        return new ArrayList<>();
+    }
+
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
                                                           int offset, int limit)
             throws IdentityApplicationManagementException {
 
-        return new ApplicationBasicInfo[0];
+        return getApplicationBasicInfo(tenantDomain, username, filter, offset, limit, false);
     }
 
     /**
@@ -454,7 +489,21 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
         throw new NotImplementedException();
     }
 
+
     /**
+     * Retrieve application UUID using the application name.
+     *
+     * @param name         Name of the application
+     * @param tenantDomain Tenant domain of the application
+     * @return Application UUID
+     * @throws IdentityApplicationManagementException
+     */
+    public String getApplicationUUIDByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+        /**
      * Get custom inbound authenticator configurations.
      *
      * @return custom inbound authenticator configs maps.
@@ -492,5 +541,95 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
         return Collections.emptySet();
     }
 
+    /**
+     * Get default applications defined for the server.
+     *
+     * @return default applications set.
+     */
+    public Set<String> getDefaultApplications() {
+
+        return Collections.emptySet();
+    }
+
+    /**
+     * Get main application ID from the shared application ID.
+     *
+     * @param sharedAppId ID of the shared application.
+     * @return ID of the main application.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the main application ID.
+     */
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get the shared ancestor application IDs for the given child application ID of the given child organization.
+     *
+     * @param sharedAppId ID of the shared application.
+     * @param orgId       ID of the organization which the shared app belongs to.
+     * @return Map containing shared ancestor application IDs and their organization IDs.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the ancestor
+     *                                                application IDs.
+     */
+    public Map<String, String> getAncestorAppIds(String sharedAppId, String orgId)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get tenant ID of the application.
+     *
+     * @param appId ID of the application.
+     * @return Tenant ID.
+     * @throws IdentityApplicationManagementServerException If an error occurs while retrieving the tenant ID.
+     */
+    public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get allowed role audience for role association of the application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain Tenant domain.
+     * @return Allowed audience for role association.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving allowed audience.
+     */
+    public String getAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get associated roles of the application.
+     *
+     * @param applicationUUID Application UUID.
+     * @param tenantDomain    Tenant domain.
+     * @return List of associated roles.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving associated roles.
+     */
+    public List<RoleV2> getAssociatedRolesOfApplication(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Add role to application.
+     *
+     * @param serviceProvider Service Provider.
+     * @param roleId         Role ID.
+     * @param tenantDomain   Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurred while adding role to application.
+     */
+    public void addAssociatedRoleToApplication(ServiceProvider serviceProvider, String roleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
 }
 

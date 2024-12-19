@@ -130,8 +130,11 @@ public class CSVUserBulkImport extends UserBulkImport {
                 if (csvReader != null) {
                     csvReader.close();
                 }
+                if (reader != null) {
+                    reader.close();
+                }
             } catch (IOException e) {
-                log.error("Error occurred while closing CSV Reader", e);
+                log.error("Error occurred while closing Reader", e);
             }
         }
     }

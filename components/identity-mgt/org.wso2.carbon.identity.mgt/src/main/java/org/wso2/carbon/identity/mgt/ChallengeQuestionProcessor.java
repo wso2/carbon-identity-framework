@@ -597,6 +597,10 @@ public class ChallengeQuestionProcessor {
                 }
             }
 
+            if (count == 0) {
+                verification = false;
+            }
+
             if (verification) {
                 verification = (storedUserChallengeDTOs.length == count);
             }

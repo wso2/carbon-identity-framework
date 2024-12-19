@@ -1,17 +1,19 @@
 /*
- * Copyright 2004,2005 The Apache Software Foundation.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.core.internal;
@@ -43,10 +45,12 @@ import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
 import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtServiceImpl;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEventImpl;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -179,6 +183,13 @@ public class IdentityCoreServiceComponent {
 
             defaultKeystoreManagerServiceRef = ctxt.getBundleContext().registerService(KeyProviderService.class,
                     defaultKeyProviderService, null);
+
+            IdentityCoreServiceDataHolder.getInstance()
+                    .setTenantQualifiedUrlsEnabled(Boolean.parseBoolean(IdentityUtil.getProperty(
+                            IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS)));
+            IdentityCoreServiceDataHolder.getInstance()
+                    .setTenantedSessionsEnabled(Boolean.parseBoolean(IdentityUtil.getProperty(
+                            IdentityCoreConstants.ENABLE_TENANTED_SESSIONS)));
 
             // Register initialize service To guarantee the activation order. Component which is referring this
             // service will wait until this component activated.
@@ -358,5 +369,27 @@ public class IdentityCoreServiceComponent {
     public static ServiceURLBuilderFactory getServiceURLBuilderFactory() {
 
         return serviceURLBuilderFactory;
+    }
+    
+    @Reference(
+            name = "identity.organization.management.component.resident.resolver",
+            service = OrganizationUserResidentResolverService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationUserResidentResolverService"
+    )
+    protected void setOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+        
+        log.debug("Setting the organization management service.");
+        IdentityCoreServiceDataHolder.getInstance()
+                .setOrganizationUserResidentResolverService(organizationUserResidentResolverService);
+    }
+
+    protected void unsetOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+        
+        log.debug("Unset organization management service.");
+        IdentityCoreServiceDataHolder.getInstance().setOrganizationUserResidentResolverService(null);
     }
 }

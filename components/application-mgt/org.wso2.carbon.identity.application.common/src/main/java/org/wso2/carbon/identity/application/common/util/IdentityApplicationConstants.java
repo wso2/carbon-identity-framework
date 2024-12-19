@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2023, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -97,11 +97,16 @@ public class IdentityApplicationConstants {
     public static final String ISSUER_SP_PROPERTY_NAME = "issuer";
     public static final String TEMPLATE_ID_SP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME = "Template Id";
+    public static final String TEMPLATE_VERSION_SP_PROPERTY_NAME = "templateVersion";
+    public static final String TEMPLATE_VERSION_SP_PROPERTY_DISPLAY_NAME = "Template Version";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_NAME = "isB2BSelfServiceApp";
     public static final String IS_B2B_SS_APP_SP_PROPERTY_DISPLAY_NAME = "Is B2B Self Service Application";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_NAME = "isManagementApp";
     public static final String IS_MANAGEMENT_APP_SP_PROPERTY_DISPLAY_NAME = "Is Management Application";
     public static final String ADVANCED_CONFIG = "advancedConfigurations";
+    public static final String TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_NAME = "trustedAppConsentGranted";
+    public static final String TRUSTED_APP_CONSENT_GRANTED_SP_PROPERTY_DISPLAY_NAME =
+            "Is consent granted for trusted app";
 
     public static final String IDP_ISSUER_NAME = "idpIssuerName";
 
@@ -114,6 +119,27 @@ public class IdentityApplicationConstants {
     public static final String LOCAL_SP = "wso2carbon-local-sp";
 
     public static final String SP_NAME = "spName";
+
+    public static final String ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME = "allowedAudienceForAssociatedRoles";
+    public static final String ALLOWED_ROLE_AUDIENCE_REQUEST_ATTRIBUTE_NAME = "associatedRoles.allowedAudience";
+    public static final String ALLOWED_APPLICATION_ENABLED_REQUEST_ATTRIBUTE_NAME = "applicationEnabled";
+
+    public static final String IS_API_BASED_AUTHENTICATION_ENABLED_PROPERTY_NAME = "isAPIBasedAuthenticationEnabled";
+    public static final String IS_API_BASED_AUTHENTICATION_ENABLED_DISPLAY_NAME = "Is API Based Authentication Enabled";
+    public static final String IS_ATTESTATION_ENABLED_PROPERTY_NAME = "IsAttestationEnabled";
+    public static final String IS_ATTESTATION_ENABLED_DISPLAY_NAME = "Is Client Attestation Enabled";
+    public static final String IS_APPLICATION_ENABLED_PROPERTY_NAME = "IsApplicationEnabled";
+    public static final String IS_APPLICATION_ENABLED_DISPLAY_NAME = "Is Application Enabled";
+    public static final String ANDROID_PACKAGE_NAME_PROPERTY_NAME = "androidPackageName";
+    public static final String ANDROID_PACKAGE_NAME_DISPLAY_NAME = "Android mobile application package name";
+    public static final String APPLE_APP_ID_PROPERTY_NAME = "appleAppId";
+    public static final String APPLE_APP_ID_DISPLAY_NAME = "Apple application id";
+    public static final String APPLICATION_SECRET_TYPE_ANDROID_ATTESTATION_CREDENTIALS
+                = "ANDROID_ATTESTATION_CREDENTIALS";
+    public static final String CLIENT_ATTESTATION = "CLIENT_ATTESTATION";
+    public static final String ANDROID = "ANDROID";
+    public static final String IOS = "IOS";
+    public static final String ATTRIBUTE_SEPARATOR = ",";
 
     /**
      * Config elements.
@@ -139,6 +165,9 @@ public class IdentityApplicationConstants {
      * Authenticator constants.
      */
     public static class Authenticator {
+
+        public static final String ACTION_ID_PROPERTY = "actionId";
+        public static final String DISPLAY_NAME = "displayName";
 
         /**
          * OpenId authenticator constants.
@@ -228,6 +257,8 @@ public class IdentityApplicationConstants {
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
             public static final String IS_BASIC_AUTH_ENABLED = "IsBasicAuthEnabled";
             public static final String QUERY_PARAMS = "commonAuthQueryParams";
+            public static final String IS_PKCE_ENABLED = "IsPKCEEnabled";
+            public static final Object IS_PKCE_ENABLED_PARAM_NAME = "oidcPKCEEnabled";
         }
 
         /**
@@ -323,6 +354,7 @@ public class IdentityApplicationConstants {
         public static final String CLIENT_ID = "ClientId";
         public static final String CLIENT_SECRET = "ClientSecret";
         public static final String OAUTH2_AUTHZ_URL = "OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_URL = "OAuth2ParEPUrl";
         public static final String OAUTH2_TOKEN_URL = "OAuth2TokenEPUrl";
         public static final String OAUTH2_REVOKE_URL = "OAuth2RevokeEPUrl";
         public static final String OAUTH2_INTROSPECT_URL = "OAuth2IntrospectEPUrl";
@@ -438,6 +470,7 @@ public class IdentityApplicationConstants {
         public static final String NAME = "passivests";
         public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
         public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
+        public static final String PASSIVE_STS_REPLY_URL_LOGOUT = "passiveSTSWReplyLogout";
     }
 
     /**
@@ -594,6 +627,14 @@ public class IdentityApplicationConstants {
 
             throw new AssertionError("Must not initiate an object of SCIM2 class");
         }
+    }
+
+    /**
+     * Platform types for trusted apps.
+     */
+    public enum PlatformType {
+
+        ANDROID, IOS
     }
 
     /**

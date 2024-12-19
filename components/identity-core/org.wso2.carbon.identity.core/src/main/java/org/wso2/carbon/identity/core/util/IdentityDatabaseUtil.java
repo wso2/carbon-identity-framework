@@ -31,6 +31,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.sql.DataSource;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DB2;
+
 /**
  * Utility class for database operations.
  */
@@ -204,6 +206,9 @@ public class IdentityDatabaseUtil {
             DatabaseMetaData metaData = connection.getMetaData();
             if (metaData.storesLowerCaseIdentifiers()) {
                 tableName = tableName.toLowerCase();
+            }
+            if (connection.getMetaData().getDatabaseProductName().toUpperCase().contains(DB2)) {
+                return connection.getMetaData().getTables(null, null, tableName, new String[]{"TABLE"}).next();
             }
             String schemaName = connection.getSchema();
             String catalogName = connection.getCatalog();

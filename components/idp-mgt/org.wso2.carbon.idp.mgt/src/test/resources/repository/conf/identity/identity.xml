@@ -439,9 +439,6 @@
 
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
-                       name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
-                       orderId="10" enable="true"/>
-        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
                        orderId="50" enable="false"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -738,7 +735,7 @@
 
     <!-- Extension management service configurations -->
     <ExtensionManagementService>
-        <ExtensionTypes>applications,identity-providers</ExtensionTypes>
+        <ExtensionTypes>applications,connections</ExtensionTypes>
     </ExtensionManagementService>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->

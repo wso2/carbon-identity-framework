@@ -18,7 +18,7 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.idp.mgt.suite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="org.wso2.carbon.idp.mgt.suite">
     <test name="org.wso2.carbon.idp.mgt.test" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.idp.mgt.util.IdPManagementUtilTest"/>
@@ -26,6 +26,7 @@
             <class name="org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAOTest"/>
             <class name="org.wso2.carbon.idp.mgt.IdentityProviderManagementServiceTest"/>
             <class name="org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLoggerTest"/>
+            <class name="org.wso2.carbon.idp.mgt.util.IdPSecretsProcessorTest"/>
         </classes>
     </test>
 </suite>

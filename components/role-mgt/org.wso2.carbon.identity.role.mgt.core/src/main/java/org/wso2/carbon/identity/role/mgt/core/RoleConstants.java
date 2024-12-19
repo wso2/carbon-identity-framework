@@ -54,6 +54,10 @@ public class RoleConstants {
     // Administrator role name.
     public static final String ADMINISTRATOR = "Administrator";
 
+    // Domain names
+    public static final String APPLICATION_DOMAIN = "Application";
+    public static final String INTERNAL_DOMAIN = "Internal";
+
     /**
      * Grouping of constants related to database table names.
      */
@@ -61,6 +65,7 @@ public class RoleConstants {
 
         public static final String UM_ID = "UM_ID";
         public static final String UM_ROLE_NAME = "UM_ROLE_NAME";
+        public static final String UM_UUID = "UM_UUID";
         public static final String UM_TENANT_ID = "UM_TENANT_ID";
         public static final String NEW_UM_ROLE_NAME = "NEW_UM_ROLE_NAME";
         public static final String UM_USER_NAME = "UM_USER_NAME";
@@ -98,8 +103,12 @@ public class RoleConstants {
         OPERATION_FORBIDDEN("60009"),
         OPERATION_NOT_SUPPORTED("60010"),
 
+        // Error thrown by custom event handler.
+        ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR("55001"),
+
         UNEXPECTED_SERVER_ERROR("65001"),
-        SORTING_NOT_IMPLEMENTED("65002");
+        SORTING_NOT_IMPLEMENTED("65002"),
+        UNSUPPORTED_USER_STORE_MANAGER("65003");;
 
         private final String code;
         private static final String ROLE_MANAGEMENT_ERROR_CODE_PREFIX = "RMA-";

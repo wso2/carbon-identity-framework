@@ -26,7 +26,6 @@ import java.util.Map;
 
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_AUDIT_LOG;
 import static org.wso2.carbon.identity.event.IdentityEventConstants.Event.PUBLISH_DIAGNOSTIC_LOG;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Central log event handler for audit, and diagnostic logs.
@@ -42,10 +41,7 @@ public class CentralLogger extends AbstractEventHandler {
         // This central log event handler handles only audit logs and diagnostic logs.
         switch (eventName) {
             case PUBLISH_AUDIT_LOG:
-                // Publish new audit logs only if the old audit log publishing is disabled.
-                if (isLegacyAuditLogsDisabled()) {
-                    CarbonUtils.publishAuditLogs(eventProperties);
-                }
+                CarbonUtils.publishAuditLogs(eventProperties);
                 break;
             case PUBLISH_DIAGNOSTIC_LOG:
                 CarbonUtils.publishDiagnosticLog(eventProperties);

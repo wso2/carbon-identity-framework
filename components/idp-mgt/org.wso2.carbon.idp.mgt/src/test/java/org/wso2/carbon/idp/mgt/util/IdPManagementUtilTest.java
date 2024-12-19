@@ -19,15 +19,13 @@
 package org.wso2.carbon.idp.mgt.util;
 
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -39,11 +37,15 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.testng.Assert.assertEquals;
+import java.util.HashMap;
+import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.AssertJUnit.fail;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
@@ -53,11 +55,11 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
  * Unit tests for IdPManagementUtil.
  */
 @WithCarbonHome
-@PrepareForTest({IdentityUtil.class, IdentityApplicationConstants.class, IdentityProviderManager.class,
-        IdentityApplicationManagementUtil.class, IdPManagementServiceComponent.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*","org.mockito.*"})
-public class IdPManagementUtilTest extends PowerMockTestCase {
+@Listeners(MockitoTestNGListener.class)
+public class IdPManagementUtilTest {
+
+    private static final String TRUE_STRING = "true";
+    private static final String FALSE_STRING = "false";
 
     @Mock
     private IdentityProviderManager mockedIdentityProviderManager;
@@ -82,21 +84,23 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     @Test(dataProvider = "getTenantIdOfDomainData")
     public void testGetTenantIdOfDomain(String tenantDomain, int tenantId, String expectedResult) throws Exception {
 
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdPManagementServiceComponent.class);
-        when(IdPManagementServiceComponent.getRealmService()).thenReturn(mockedRealmService);
-        when(mockedRealmService.getTenantManager()).thenReturn(mockedTenantManager);
-        when(mockedTenantManager.getTenantId(tenantDomain)).thenReturn(tenantId);
+        try (MockedStatic<IdPManagementServiceComponent> idPManagementServiceComponent =
+                     mockStatic(IdPManagementServiceComponent.class)) {
+            idPManagementServiceComponent.when(
+                    IdPManagementServiceComponent::getRealmService).thenReturn(mockedRealmService);
+            lenient().when(mockedRealmService.getTenantManager()).thenReturn(mockedTenantManager);
+            lenient().when(mockedTenantManager.getTenantId(tenantDomain)).thenReturn(tenantId);
 
-        String result;
-        try {
-            int id = IdPManagementUtil.getTenantIdOfDomain(tenantDomain);
-            assertEquals(id, tenantId);
-            result = "success";
-        } catch (IllegalArgumentException e) {
-            result = "fail";
+            String result;
+            try {
+                int id = IdPManagementUtil.getTenantIdOfDomain(tenantDomain);
+                assertEquals(id, tenantId);
+                result = "success";
+            } catch (IllegalArgumentException e) {
+                result = "fail";
+            }
+            assertEquals(result, expectedResult);
         }
-        assertEquals(result, expectedResult);
     }
 
     @DataProvider
@@ -114,9 +118,10 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     @Test(dataProvider = "getResidentIdPEntityIdData")
     public void testGetResidentIdPEntityId(String localEntityId, String expectedEntityId) {
 
-        mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty("SSOService.EntityId")).thenReturn(localEntityId);
-        assertEquals(IdPManagementUtil.getResidentIdPEntityId(), expectedEntityId);
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(() -> IdentityUtil.getProperty("SSOService.EntityId")).thenReturn(localEntityId);
+            assertEquals(IdPManagementUtil.getResidentIdPEntityId(), expectedEntityId);
+        }
     }
 
     @DataProvider
@@ -134,26 +139,31 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     public void testGetIdleSessionTimeOut(String tenetDomain, boolean validity, String value, int timeOut)
             throws Exception {
 
-        mockStatic(IdentityProviderManager.class);
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdentityApplicationManagementUtil.class);
+        try (MockedStatic<IdentityProviderManager> identityProviderManager =
+                     mockStatic(IdentityProviderManager.class);
+             MockedStatic<IdentityApplicationManagementUtil> identityApplicationManagementUtil =
+                     mockStatic(IdentityApplicationManagementUtil.class)) {
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+            IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
 
-        when(IdentityProviderManager.getInstance()).thenReturn(mockedIdentityProviderManager);
-        when(mockedIdentityProviderManager.getResidentIdP(tenetDomain)).thenReturn(mockedIdentityProvider);
-        when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
+            identityProviderManager.when(IdentityProviderManager::getInstance)
+                    .thenReturn(mockedIdentityProviderManager);
+            when(mockedIdentityProviderManager.getResidentIdP(tenetDomain)).thenReturn(mockedIdentityProvider);
+            when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
 
-        if (validity) {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    SESSION_IDLE_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
-        } else {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    SESSION_IDLE_TIME_OUT)).thenReturn(null);
+            if (validity) {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                SESSION_IDLE_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
+            } else {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                SESSION_IDLE_TIME_OUT)).thenReturn(null);
+            }
+
+            lenient().when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
+            assertEquals(IdPManagementUtil.getIdleSessionTimeOut(tenetDomain), timeOut);
         }
-
-        when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
-        assertEquals(IdPManagementUtil.getIdleSessionTimeOut(tenetDomain), timeOut);
     }
 
     @DataProvider
@@ -171,26 +181,31 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
     public void testGetRememberMeTimeout(String tenetDomain, boolean validity, String value, int timeOut)
             throws Exception {
 
-        mockStatic(IdentityProviderManager.class);
-        mockStatic(IdentityUtil.class);
-        mockStatic(IdentityApplicationManagementUtil.class);
+        try (MockedStatic<IdentityProviderManager> identityProviderManager =
+                     mockStatic(IdentityProviderManager.class);
+             MockedStatic<IdentityApplicationManagementUtil> identityApplicationManagementUtil =
+                     mockStatic(IdentityApplicationManagementUtil.class)) {
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
+            IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
 
-        when(IdentityProviderManager.getInstance()).thenReturn(mockedIdentityProviderManager);
-        when(mockedIdentityProviderManager.getResidentIdP(anyString())).thenReturn(mockedIdentityProvider);
-        when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
+            identityProviderManager.when(IdentityProviderManager::getInstance)
+                    .thenReturn(mockedIdentityProviderManager);
+            when(mockedIdentityProviderManager.getResidentIdP(anyString())).thenReturn(mockedIdentityProvider);
+            when(mockedIdentityProvider.getIdpProperties()).thenReturn(idpProperties);
 
-        if (validity) {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    REMEMBER_ME_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
-        } else {
-            when(IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
-                    REMEMBER_ME_TIME_OUT)).thenReturn(null);
+            if (validity) {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                REMEMBER_ME_TIME_OUT)).thenReturn(mockedIdentityProviderProperty);
+            } else {
+                identityApplicationManagementUtil.when(
+                        () -> IdentityApplicationManagementUtil.getProperty(mockedIdentityProvider.getIdpProperties(),
+                                REMEMBER_ME_TIME_OUT)).thenReturn(null);
+            }
+
+            lenient().when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
+            assertEquals(IdPManagementUtil.getRememberMeTimeout(tenetDomain), timeOut);
         }
-
-        when(mockedIdentityProviderProperty.getValue()).thenReturn(value);
-        assertEquals(IdPManagementUtil.getRememberMeTimeout(tenetDomain), timeOut);
     }
 
     @DataProvider
@@ -239,4 +254,111 @@ public class IdPManagementUtilTest extends PowerMockTestCase {
         assertEquals(exception2.getErrorCode(), "IDP-65002");
         assertEquals(exception2.getMessage(), "Error while adding the Identity Provider: test2.");
     }
+
+    @Test
+    public void testExceptionValidateUsernameRecoveryPropertyValues() {
+
+        Map<String, String> configDetails1 = new HashMap<>();
+        configDetails1.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails1.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails1.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        try {
+            IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails1);
+            fail("Expected an IdentityProviderManagementServerException to be thrown");
+        } catch (IdentityProviderManagementClientException e) {
+            assertEquals(e.getErrorCode(),
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION.getCode());
+        }
+
+        Map<String, String> configDetails2 = new HashMap<>();
+        configDetails2.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails2.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        try {
+            IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails2);
+            fail("Expected an IdentityProviderManagementServerException to be thrown");
+        } catch (IdentityProviderManagementClientException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION.getCode());
+        }
+
+        Map<String, String> configDetails3 = new HashMap<>();
+        configDetails3.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails3.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        try {
+            IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails3);
+            fail("Expected an IdentityProviderManagementServerException to be thrown");
+        } catch (IdentityProviderManagementClientException e) {
+            assertEquals(e.getErrorCode(), ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION.getCode());
+        }
+
+    }
+
+    @Test(dataProvider = "setSuccessConfigDetails")
+    public void testSuccessVerificationsInValidateUsernameRecoveryPropertyValues(Map<String, String> configDetails)
+            throws IdentityProviderManagementClientException {
+
+        IdPManagementUtil.validateUsernameRecoveryPropertyValues(configDetails);
+    }
+
+    @DataProvider(name = "setSuccessConfigDetails")
+    public Object[][] setSuccessConfigDetails() {
+
+        Map<String, String> configDetails1 = new HashMap<>();
+        configDetails1.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails1.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails1.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails2 = new HashMap<>();
+        configDetails2.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails2.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails2.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails3 = new HashMap<>();
+        configDetails3.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails3.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails3.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails4 = new HashMap<>();
+        configDetails4.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails4.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails5 = new HashMap<>();
+        configDetails5.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+        configDetails5.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails6 = new HashMap<>();
+        configDetails6.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails7 = new HashMap<>();
+        configDetails7.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails8 = new HashMap<>();
+        configDetails8.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, TRUE_STRING);
+
+        Map<String, String> configDetails9 = new HashMap<>();
+        configDetails9.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails10 = new HashMap<>();
+        configDetails10.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails10.put(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        Map<String, String> configDetails11 = new HashMap<>();
+        configDetails11.put(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+        configDetails11.put(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY, FALSE_STRING);
+
+        return new Object[][]{
+                {configDetails1},
+                {configDetails2},
+                {configDetails3},
+                {configDetails4},
+                {configDetails5},
+                {configDetails6},
+                {configDetails7},
+                {configDetails8},
+                {configDetails9},
+                {configDetails10},
+                {configDetails11}
+        };
+    }
+
 }

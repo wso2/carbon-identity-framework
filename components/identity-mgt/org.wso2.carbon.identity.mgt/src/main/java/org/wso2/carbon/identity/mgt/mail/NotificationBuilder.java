@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.mail;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.mgt.IdentityMgtServiceException;
 
 import java.io.UnsupportedEncodingException;
@@ -46,14 +47,19 @@ public class NotificationBuilder {
 
             subject = contents[0];
             body = contents[1];
-            footer = contents[2];
+            if (contents.length > 2) {
+                // Ignore footer assignment when footer value is empty in the template.
+                footer = contents[2];
+            }
 
 //			Replace all the tags in the NotificationData.
             Map<String, String> tagsData = data.getTagsData();
             try {
                 subject = replaceTags(tagsData, subject);
                 body = replaceTags(tagsData, body);
-                footer = replaceTags(tagsData, footer);
+                if (StringUtils.isNotBlank(footer)) {
+                    footer = replaceTags(tagsData, footer);
+                }
             } catch (UnsupportedEncodingException e) {
                 throw new IdentityMgtServiceException("Unsupported encoding while creating notification", e);
             }

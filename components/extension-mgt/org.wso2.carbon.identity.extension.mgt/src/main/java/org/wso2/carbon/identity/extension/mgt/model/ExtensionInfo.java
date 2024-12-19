@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.extension.mgt.model;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Extension information model.
@@ -26,6 +28,7 @@ import java.util.List;
 public class ExtensionInfo {
 
     private String id;
+    private String version;
     private String name;
     private String description;
     private String image;
@@ -34,6 +37,8 @@ public class ExtensionInfo {
     private String category;
 
     private String type;
+
+    private List<Map<String, Object>> customAttributes;
 
     /**
      **/
@@ -44,6 +49,26 @@ public class ExtensionInfo {
     public String getId() {
 
         return id;
+    }
+
+    /**
+     * Set the current extension resource version.
+     *
+     * @param version Version of the extension.
+     */
+    public void setVersion(String version) {
+
+        this.version = version;
+    }
+
+    /**
+     * Retrieve the version of the current extension resource.
+     *
+     * @return Version of the extension.
+     */
+    public String getVersion() {
+
+        return version;
     }
 
     public void setId(String id) {
@@ -119,5 +144,15 @@ public class ExtensionInfo {
     public void setType(String type) {
 
         this.type = type;
+    }
+
+    public List<Map<String, Object>> getCustomAttributes() {
+
+        return customAttributes;
+    }
+
+    public void setCustomAttributes(List<Map<String, Object>> customAttributes) {
+
+        this.customAttributes = customAttributes;
     }
 }

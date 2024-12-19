@@ -4,6 +4,7 @@
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.client.UserStoreConfigAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%
     String domainName = request.getParameter("domainName");
     String driverName = request.getParameter("driverName");
@@ -28,7 +29,7 @@
 <%=canAdd%>
 <%
 } catch (Throwable e) {
-%><%=e.getMessage()%><%
+%><%=Encode.forHtml(e.getMessage())%><%
         }
     }else{
     	String errmsg = "Please specify a domain name";

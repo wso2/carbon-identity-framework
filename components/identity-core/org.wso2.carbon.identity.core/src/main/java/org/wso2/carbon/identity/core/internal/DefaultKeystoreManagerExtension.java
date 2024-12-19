@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -51,10 +52,8 @@ public class DefaultKeystoreManagerExtension implements KeyStoreManagerExtension
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
             if (!tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
                 // derive key store name
-                String ksName = tenantDomain.trim().replace(".", "-");
-                // derive JKS name
-                String jksName = ksName + ".jks";
-                privateKey = (PrivateKey) keyStoreManager.getPrivateKey(jksName, tenantDomain);
+                String PKCS12Name = KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
+                privateKey = (PrivateKey) keyStoreManager.getPrivateKey(PKCS12Name, tenantDomain);
 
             } else {
                 privateKey = keyStoreManager.getDefaultPrivateKey();

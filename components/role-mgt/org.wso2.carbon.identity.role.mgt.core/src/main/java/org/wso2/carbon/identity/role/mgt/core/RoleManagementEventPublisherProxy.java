@@ -50,6 +50,17 @@ public class RoleManagementEventPublisherProxy {
     public void publishPreAddRole(String roleName, List<String> userList, List<String> groupList,
                                   List<String> permissions, String tenantDomain) {
 
+        try {
+            publishPreAddRoleWithException(roleName, userList, groupList, permissions, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreAddRoleWithException(String roleName, List<String> userList, List<String> groupList,
+                                  List<String> permissions, String tenantDomain)
+            throws IdentityRoleManagementException {
+
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_NAME, roleName);
         eventProperties.put(IdentityEventConstants.EventProperty.USER_LIST, userList);
@@ -71,11 +82,25 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.PERMISSIONS, permissions);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_ADD_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreGetRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
                                    String tenantDomain) {
+
+        try {
+            publishPreGetRolesWithException(limit, offset, sortBy, sortOrder, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetRolesWithException(Integer limit, Integer offset, String sortBy, String sortOrder,
+                                                String tenantDomain) throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.LIMIT, limit);
@@ -97,11 +122,28 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreGetRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
                                  String tenantDomain) {
+
+        try {
+            publishPreGetRolesWithException(filter, limit, offset, sortBy, sortOrder, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+
+
+    public void publishPreGetRolesWithException(String filter, Integer limit, Integer offset, String sortBy,
+                                                String sortOrder, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.FILTER, filter);
@@ -125,10 +167,23 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.SORT_ORDER, sortOrder);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreGetRolesCount(String tenantDomain) {
+
+        try {
+            publishPreGetRolesCountWithException(tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetRolesCountWithException(String tenantDomain) throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
@@ -141,10 +196,24 @@ public class RoleManagementEventPublisherProxy {
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLES_COUNT_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreGetRole(String roleID, String tenantDomain) {
+
+        try {
+            publishPreGetRoleWithException(roleID, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -159,10 +228,24 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreUpdateRoleName(String roleID, String newRoleName, String tenantDomain) {
+
+        try {
+            publishPreUpdateRoleNameWithException(roleID, newRoleName, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreUpdateRoleNameWithException(String roleID, String newRoleName, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -179,10 +262,24 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.NEW_ROLE_NAME, newRoleName);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_ROLE_NAME_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreDeleteRole(String roleID, String tenantDomain) {
+
+        try {
+            publishPreDeleteRoleWithException(roleID, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreDeleteRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -197,10 +294,24 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_DELETE_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreGetUserListOfRole(String roleID, String tenantDomain) {
+
+        try {
+            publishPreGetUserListOfRoleWithException(roleID, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetUserListOfRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -215,11 +326,26 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_USER_LIST_OF_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreUpdateUserListOfRole(String roleID, List<String> newUserIDList,
                                                 List<String> deletedUserIDList, String tenantDomain) {
+
+        try {
+            publishPreUpdateUserListOfRoleWithException(roleID, newUserIDList, deletedUserIDList, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreUpdateUserListOfRoleWithException(String roleID, List<String> newUserIDList,
+                                               List<String> deletedUserIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -239,10 +365,24 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.DELETE_USER_ID_LIST, deletedUserIDList);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_USER_LIST_OF_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreGetGroupListOfRole(String roleID, String tenantDomain) {
+
+        try {
+            publishPreGetGroupListOfRoleWithException(roleID, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetGroupListOfRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -257,11 +397,26 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_GROUP_LIST_OF_ROLES_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreUpdateGroupListOfRole(String roleID, List<String> newGroupIDList,
                                                 List<String> deletedGroupIDList, String tenantDomain) {
+
+        try {
+            publishPreUpdateGroupListOfRoleWithException(roleID, newGroupIDList, deletedGroupIDList, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreUpdateGroupListOfRoleWithException(String roleID, List<String> newGroupIDList,
+                                                List<String> deletedGroupIDList, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -281,10 +436,24 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.DELETE_GROUP_ID_LIST, deletedGroupIDList);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_UPDATE_GROUP_LIST_OF_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreGetPermissionListOfRole(String roleID, String tenantDomain) {
+
+        try {
+            publishPreGetPermissionListOfRoleWithException(roleID, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreGetPermissionListOfRoleWithException(String roleID, String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -299,10 +468,25 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_GET_PERMISSION_LIST_OF_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void publishPreSetPermissionsForRole(String roleID, List<String> permissions, String tenantDomain) {
+
+        try {
+            publishPreSetPermissionsForRoleWithException(roleID, permissions, tenantDomain);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    public void publishPreSetPermissionsForRoleWithException(String roleID, List<String> permissions,
+                                                             String tenantDomain)
+            throws IdentityRoleManagementException {
 
         Map<String, Object> eventProperties = new HashMap<>();
         eventProperties.put(IdentityEventConstants.EventProperty.ROLE_ID, roleID);
@@ -319,7 +503,11 @@ public class RoleManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.PERMISSIONS, permissions);
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties, IdentityEventConstants.Event.POST_SET_PERMISSIONS_FOR_ROLE_EVENT);
-        doPublishEvent(event);
+        try {
+            doPublishEvent(event);
+        } catch (IdentityRoleManagementException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     private Event createEvent(Map<String, Object> eventProperties, String eventName) {
@@ -327,7 +515,7 @@ public class RoleManagementEventPublisherProxy {
         return new Event(eventName, eventProperties);
     }
 
-    private void doPublishEvent(Event event) {
+    private void doPublishEvent(Event event) throws IdentityRoleManagementException {
 
         try {
             if (log.isDebugEnabled()) {
@@ -339,6 +527,11 @@ public class RoleManagementEventPublisherProxy {
                     RoleManagementServiceComponentHolder.getInstance().getIdentityEventService();
             eventService.handleEvent(event);
         } catch (IdentityEventException e) {
+            // Throws an excpetion if the error is a custom event handler error.
+            if (RoleConstants.Error.ERROR_CODE_CUSTOM_EVENT_HANDLER_ERROR.getCode().equals(e.getErrorCode())) {
+                throw new IdentityRoleManagementException(e.getErrorCode(),
+                        "Error while publishing the event: " + event.getEventName() + ".", e);
+            }
             log.error("Error while publishing the event: " + event.getEventName() + ".", e);
         }
     }

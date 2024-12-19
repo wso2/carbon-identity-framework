@@ -70,6 +70,16 @@ public interface ServiceURLBuilder {
      */
     ServiceURLBuilder addFragmentParameter(String key, String value);
 
+    /**
+     * Returns {@link ServiceURLBuilder} after setting skipCustomDomain flag
+     *
+     * @param skipDomainBranding          Tenant domain.
+     * @return  {@link ServiceURLBuilder}
+     */
+    default ServiceURLBuilder setSkipDomainBranding(boolean skipDomainBranding) {
+
+        return this;
+    }
 
     /**
      * Returns {@link ServiceURLBuilder} with tenant domain set for the context.
@@ -112,6 +122,21 @@ public interface ServiceURLBuilder {
      *
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
+     * @deprecated Use {@link #build(String)} instead.
      */
+    @Deprecated
     ServiceURL build() throws URLBuilderException;
+
+    /**
+     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
+     * root and the tenant domain (appended if required).
+     *
+     * @param hostname Hostname.
+     * @return {@link ServiceURL}.
+     * @throws URLBuilderException If error occurred while constructing the URL.
+     */
+    default ServiceURL build(String hostname) throws URLBuilderException {
+
+        return build();
+    }
 }

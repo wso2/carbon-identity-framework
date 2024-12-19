@@ -17,8 +17,8 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
@@ -39,18 +39,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest({UserCoreUtil.class, FrameworkServiceDataHolder.class})
 public class AbstractApplicationAuthenticatorTest {
 
     @Mock
@@ -90,7 +88,7 @@ public class AbstractApplicationAuthenticatorTest {
     public void setUp() throws Exception {
         initMocks(this);
         when(abstractApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();
-        when(abstractApplicationAuthenticator.retryAuthenticationEnabled(anyObject())).thenCallRealMethod();
+        when(abstractApplicationAuthenticator.retryAuthenticationEnabled(any())).thenCallRealMethod();
         when(abstractApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
         context.initializeAnalyticsData();
         when(context.getTenantDomain()).thenReturn(TENANT_DOMAIN);
@@ -245,16 +243,20 @@ public class AbstractApplicationAuthenticatorTest {
     @Test(dataProvider = "userProvider")
     public void testSetTenantDomainToUserName(Object userObj, boolean isSuccess) throws Exception {
 
-        User user = (User) userObj;
-        mockStatic(FrameworkServiceDataHolder.class);
-        when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
-        when(frameworkServiceDataHolder.getAuthnDataPublisherProxy()).thenReturn(authenticationDataPublisherProxy);
-        when(authenticationDataPublisherProxy.isEnabled(any())).thenReturn(true);
-        doCallRealMethod().when(testApplicationAuthenticator)
-                .publishAuthenticationStepAttempt(request, context, user, true);
-        testApplicationAuthenticator.publishAuthenticationStepAttempt(request, context, user, isSuccess);
-        if (user != null) {
-            Assert.assertEquals(user.getTenantDomain(), TENANT_DOMAIN);
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                mockStatic(FrameworkServiceDataHolder.class)) {
+            User user = (User) userObj;
+            frameworkServiceDataHolder.when(
+                    FrameworkServiceDataHolder::getInstance).thenReturn(this.frameworkServiceDataHolder);
+            when(this.frameworkServiceDataHolder.getAuthnDataPublisherProxy()).thenReturn(
+                    authenticationDataPublisherProxy);
+            when(authenticationDataPublisherProxy.isEnabled(any())).thenReturn(true);
+            doCallRealMethod().when(testApplicationAuthenticator)
+                    .publishAuthenticationStepAttempt(request, context, user, true);
+            testApplicationAuthenticator.publishAuthenticationStepAttempt(request, context, user, isSuccess);
+            if (user != null) {
+                Assert.assertEquals(user.getTenantDomain(), TENANT_DOMAIN);
+            }
         }
     }
 
@@ -299,10 +301,11 @@ public class AbstractApplicationAuthenticatorTest {
                                              String threadLocalUserStoreDomain,
                                              String expectedUserName) throws Exception {
 
-        mockStatic(UserCoreUtil.class);
-        when(UserCoreUtil.getDomainFromThreadLocal()).thenReturn(threadLocalUserStoreDomain);
-        String username = abstractApplicationAuthenticator.getUserStoreAppendedName(testedUserName);
+        try (MockedStatic<UserCoreUtil> userCoreUtil = mockStatic(UserCoreUtil.class)) {
+            userCoreUtil.when(UserCoreUtil::getDomainFromThreadLocal).thenReturn(threadLocalUserStoreDomain);
+            String username = abstractApplicationAuthenticator.getUserStoreAppendedName(testedUserName);
 
-        assertEquals(username, expectedUserName);
+            assertEquals(username, expectedUserName);
+        }
     }
 }

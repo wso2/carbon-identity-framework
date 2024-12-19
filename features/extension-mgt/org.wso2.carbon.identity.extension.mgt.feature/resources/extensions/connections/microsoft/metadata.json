@@ -1,0 +1,285 @@
+{
+    "create": {
+        "image": "assets/images/logos/microsoft.svg",
+        "header": "Microsoft",
+        "Subheading": "Enable login for users with existing Microsoft accounts",
+        "documentation": "",
+        "modal": {
+            "form": {
+                "fields": [
+                    {
+                        "index": 0,
+                        "ariaLabel": "Microsoft IDP Name",
+                        "name": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Enter a name for the connection.",
+                        "initialValue": "Microsoft",
+                        "data-testid": "microsoft-idp-create-wizard-page-idp-name",
+                        "maxLength": "50",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 1,
+                        "ariaLabel": "Microsoft Client ID", 
+                        "type": "text", 
+                        "name": "clientId", 
+                        "label": "Client ID",
+                        "placeholder": "Enter client ID from Microsoft application.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "microsoft-idp-create-wizard-page-idp-client-id",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 2,
+                        "ariaLabel": "Microsoft Client Secret",
+                        "className": "addon-field-wrapper",
+                        "type": "password", 
+                        "name": "clientSecret", 
+                        "label": "Client secret",
+                        "placeholder": "Enter Client secret from Microsoft application.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "microsoft-idp-create-wizard-page-idp-client-secret",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                    }
+                ]
+                
+            },
+            "wizardHelp": {
+                "message": {
+                    "copyInputFields": [
+                        {
+                            "description": "Use the following URL as the <strong>Authorized Redirect URI</strong>.",
+                            "value": "redirect_uri"
+                        }
+                    ],
+                    "header": "Prerequisites",
+                    "paragraphs": [
+                        "Before you begin, create an <strong>OAuth credential</strong> on the <a href=\"https://entra.microsoft.com\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft Entra ID</a>, and obtain a <strong>Client ID & secret</strong>."                    ],
+                    "link": {
+                        "text": "See Microsoft's guide on configuring OAuth Apps.",
+                        "url": "https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app"
+                    }
+                },                
+                "fields": [
+                    {
+                        "fieldName": "Name",
+                        "hint": "Provide a unique name for the connection."
+                    },
+                    {
+                        "fieldName": "Client ID",
+                        "hint": "Provide the <Code class=\"inline-code\">Client ID</Code> you received from Microsoft when you registered the OAuth app."
+                    },
+                    {
+                        "fieldName": "Client secret",
+                        "hint": "Provide the <Code class=\"inline-code\">Client secret</Code> you received from Microsoft when you registered the OAuth app."
+                    }
+                ]
+            }
+        },
+        "properties": [
+            {
+                "key": "ClientId",
+                "value": ""
+            },
+            {
+                "key": "ClientSecret",
+                "value": ""
+            },
+            {
+                "key": "callbackUrl",
+                "value": "/commonauth"
+            },
+            {
+                "key": "Scopes",
+                "value": "email openid profile"
+            },
+            {
+                "key": "commonAuthQueryParams",
+                "value": ""
+            },
+            {
+                "key": "UsePrimaryEmail",
+                "value": "true"
+            },
+            {
+                "key": "OAuth2AuthzEPUrl",
+                "value": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+            },
+            {
+                "key" : "OAuth2TokenEPUrl",
+                "value" : "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+            }
+        ]
+    },
+    "edit" : {
+        "tabs": {
+            "general" : [
+                
+                {
+                    "index": 0,
+                    "displayOrder" : 1,
+                    "ariaLabel": "name", 
+                    "inputType": "resource_name",
+                    "type": "text",
+                    "name": "name",
+                    "label": "Name",
+                    "required": true ,
+                    "message": "Identity Provider name is required",
+                    "placeholder": "Microsoft",
+                    "validation": true,
+                    "value": "",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "data-testid": "idp-edit-page-general-settings-form-idp-name",
+                    "hint": "Enter a unique name for this connection.",
+                    "readOnly": false
+                },
+                {
+                    "index": 1,
+                    "displayOrder" : 2,
+                    "type": "textarea", 
+                    "name" : "description",
+                    "ariaLabel" : "description",
+                    "label" : "Description",
+                    "required": false,
+                    "placeholder": "Enter a description of the identity provider.",
+                    "value": "",
+                    "data-testid": "idp-edit-page-general-settings-form-idp-description",
+                    "maxLength": "300",
+                    "minLength": "3",
+                    "hint": "A text description of the identity provider.",
+                    "readOnly": false
+                },
+                {
+                    "index": 2,
+                    "displayOrder" : 3,
+                    "name": "jwks_endpoint",
+                    "ariaLabel": "JWKS Endpoint URL",
+                    "inputType": "url",
+                    "type": "text",
+                    "label": "JWKS Endpoint URL",
+                    "required": true,
+                    "placeholder": "https://{ oauth-provider-url }/oauth/jwks",
+                    "value": "",
+                    "data-testid": "",
+                    "maxLength": "2048",
+                    "minLength": "10",
+                    "hint": "A JSON Web Key (JWK) Set is a JSON object that represents a set of JWKs. The JSON object MUST have a keys member, with its value being an array of JWKs.",
+                    "readOnly": false
+                },
+                {
+                    "index": 3,
+                    "displayOrder" : 4,
+                    "type": "certbox",
+                    "isJWKSEnabled": "",
+                    "isReadOnly": "",
+                    "editingIDP": "",
+                    "onUpdate": "",
+                    "isPEMEnabled": ""
+                }
+            ],
+            "settings" : [
+                {
+                    "index": 0,
+                    "displayOrder" : 5,
+                    "ariaLabel": "Microsoft authenticator client ID",
+                    "inputType": "default",
+                    "name": "ClientId",
+                    "label": "Client ID",
+                    "placeholder": "Enter Client ID from Microsoft application.",
+                    "hint": "The Client ID you received from Microsoft for your OAuth app.",
+                    "required": true,
+                    "readOnly": false,
+                    "value": "",
+                    "maxLength": "100",
+                    "minLength": "3",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-OpenIDConnectAuthenticator-content-client-id"
+                },
+                {
+                    "index": 1,
+                    "displayOrder" : 6,
+                    "ariaLabel": "Microsoft authenticator client secret",
+                    "className": "addon-field-wrapper",
+                    "inputType": "password",
+                    "type": "password",
+                    "name": "ClientSecret",
+                    "label": "Client secret",
+                    "placeholder": "Enter Client secret from Microsoft application.",
+                    "hint": "The Client secret you received from Microsoft for your OAuth app.",
+                    "required": true,
+                    "readOnly": false,
+                    "value": "",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-OpenIDConnectAuthenticator-content-client-secret"
+                },
+                {
+                    "index": 2,
+                    "displayOrder" : 7,
+                    "ariaLabel": "Microsoft authenticator authorized redirect URL",
+                    "inputType": "copy_input",
+                    "type": "text",
+                    "name": "callbackUrl",
+                    "label": "Authorized redirect URI",
+                    "placeholder": "",
+                    "hint": "The authorized redirect URI used to obtain Microsoft credentials.",
+                    "required": "",
+                    "value": "",
+                    "readOnly": true,
+                    "maxLength": "",
+                    "minLength": "",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-OpenIDConnectAuthenticator-content-authorized-redirect-url-wrapper"
+                },
+                {
+                    "index": 3,
+                    "displayOrder" : 8,
+                    "field": "Scopes",
+                    "ariaLabel": "",
+                    "inputType": "default",
+                    "name": "",
+                    "label":"Scopes",
+                    "placeholder": "e.g: openid",
+                    "hint": "The types of access provided for the connected apps to access data from Microsoft.",
+                    "required": false,
+                    "value": "",
+                    "readOnly": false,
+                    "maxLength": "",
+                    "minLength": "",
+                    "width": "16",
+                    "data-testid": ""
+                },
+                {
+                    "index": 4,
+                    "displayOrder" : 9,
+                    "field": "QueryParams",
+                    "ariaLabel": "",
+                    "inputType": "default",
+                    "name": "commonAuthQueryParams",
+                    "label": "Additional Query Parameters",
+                    "placeholder": "",
+                    "hint": "Additional query parameters to be sent to Microsoft.",
+                    "required": "",
+                    "value": "",
+                    "readOnly": "",
+                    "maxLength": "",
+                    "minLength": "",
+                    "width": "16",
+                    "data-testid": ""
+                }
+            ],
+            "quickStart": "microsoft"
+        }    
+    }
+}

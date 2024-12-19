@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
@@ -89,6 +90,7 @@
     String oauth1AuthorizeUrl = null;
     String oauth1AccessTokenUrl = null;
     String authzUrl = null;
+    String parUrl = null;
     String tokenUrl = null;
     String revokeUrl = null;
     String introspectUrl = null;
@@ -160,6 +162,8 @@
             oidcIdpEntityId = IdPManagementUIUtil.getProperty(properties, "IdPEntityId").getValue();
             authzUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL).getValue();
+            parUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_PAR_URL).getValue();
             tokenUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL).getValue();
             revokeUrl = IdPManagementUIUtil.getProperty(properties,
@@ -456,6 +460,10 @@ function removeDefaultAuthSeq() {
         </h2>
         <div id="workArea">
 
+                <div style="background-color: #fff5e8; text-align: justify; padding: 10px; margin-bottom: 5px">
+                    <img src="images/warning.gif" class="editor_warn_img" width="16" height="16" style="float: left; margin-right: 5px">
+                    <fmt:message key="idp.local.banner.content"/>
+                </div>
                 <div class="sectionSeperator "><fmt:message key='resident.realm.config'/></div>
                 <div class="sectionSub">
                             <form id="idp-mgt-edit-local-form" name="idp-mgt-edit-local-form" method="post"
@@ -678,6 +686,10 @@ function removeDefaultAuthSeq() {
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(authzUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='par.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(parUrl)%></td>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='token.endpoint'/>:</td>

@@ -91,4 +91,9 @@ public class MockAuthenticator implements ApplicationAuthenticator {
         return null;
     }
 
+    @Override
+    public String getI18nKey() {
+
+        return this.name + ".authenticator";
+    }
 }

@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AdaptiveMFA",
   "name": "Login-Attempts-Based",
   "title": "Login-Attempts-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are successfully logging after specific number of failed login attempts.",
@@ -29,7 +29,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Adaptive+Authentication+Scenarios",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/login-attempt-based-template/",
   "code": [
     "// This script will step up authentication for any user who has exceeded 3 invalid login attempts continuously.",
     "// This variable is used to define the number of invalid attempts allowed before prompting the second facto.",
@@ -68,5 +68,6 @@
     "       return false;",
     "   }",
     "};"
-  ]
+  ],
+  "runtime": "any"
 }

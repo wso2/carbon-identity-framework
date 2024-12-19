@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.identity.template.mgt;
 
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -28,7 +26,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.context.internal.CarbonContextDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
@@ -42,19 +39,17 @@ import java.util.Collections;
 import java.util.List;
 import javax.sql.DataSource;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.getConnection;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.initiateH2Base;
-import static org.wso2.carbon.identity.template.mgt.util.TestUtils.mockDataSource;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.spyConnection;
 
-@PrepareForTest({IdentityDatabaseUtil.class, PrivilegedCarbonContext.class, CarbonContextDataHolder.class})
-public class TemplateManagerImplTest extends PowerMockTestCase {
+public class TemplateManagerImplTest {
 
     private static String sampleScript = "<!-- You can customize the user prompt template here... -->\n" +
             "\t\n" +
@@ -88,6 +83,8 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
             "    </div>\n" +
             "</div>";
 
+    private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
+
     @BeforeMethod
     public void setUp() throws Exception {
 
@@ -96,19 +93,21 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = Mockito.mock(PrivilegedCarbonContext.class);
+        privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext mockPrivilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        Mockito.when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        Mockito.when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
-        Mockito.when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
-        Mockito.when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+        privilegedCarbonContext.when(
+                PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(mockPrivilegedCarbonContext);
+        when(mockPrivilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(mockPrivilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
+        when(mockPrivilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
         closeH2Base();
+        privilegedCarbonContext.close();
     }
 
     @DataProvider(name = "TemplateDataProvider")
@@ -212,17 +211,20 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testAddTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            TemplateManager templateManager = new TemplateManagerImpl();
-            Template templateResult = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
+                TemplateManager templateManager = new TemplateManagerImpl();
+                Template templateResult =
+                        ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
 
-            Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
-            Assert.assertEquals(templateResult.getTenantId(), ((Template) template).getTenantId());
+                Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
+                Assert.assertEquals(templateResult.getTenantId(), ((Template) template).getTenantId());
+            }
         }
     }
 
@@ -230,20 +232,23 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testUpdateTemplate(String oldTemplateName, Object oldtemplate, Object newTemplate) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            TemplateManager templateManager = new TemplateManagerImpl();
-            addTemplates(templateManager, Collections.singletonList(oldtemplate), dataSource);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                TemplateManager templateManager = new TemplateManagerImpl();
+                addTemplates(templateManager, Collections.singletonList(oldtemplate), dataSource);
 
-            try (Connection connection1 = getConnection()) {
-                Connection spyConnection1 = spyConnection(connection1);
-                when(dataSource.getConnection()).thenReturn(spyConnection1);
-                Template updatedTemplate = templateManager.updateTemplate(oldTemplateName, ((Template) newTemplate));
-                Assert.assertEquals(((Template) newTemplate).getTenantId(), updatedTemplate.getTenantId());
-                Assert.assertEquals(((Template) newTemplate).getTemplateName(), updatedTemplate.getTemplateName());
+                try (Connection connection1 = getConnection()) {
+                    Connection spyConnection1 = spyConnection(connection1);
+                    when(dataSource.getConnection()).thenReturn(spyConnection1);
+                    Template updatedTemplate =
+                            templateManager.updateTemplate(oldTemplateName, ((Template) newTemplate));
+                    Assert.assertEquals(((Template) newTemplate).getTenantId(), updatedTemplate.getTenantId());
+                    Assert.assertEquals(((Template) newTemplate).getTemplateName(), updatedTemplate.getTemplateName());
+                }
             }
         }
     }
@@ -252,22 +257,26 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testGetTemplateByName(Object templateObject, String templateName) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            TemplateManager templateManager = new TemplateManagerImpl();
-            addTemplates(templateManager, Collections.singletonList(templateObject), dataSource);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                TemplateManager templateManager = new TemplateManagerImpl();
+                addTemplates(templateManager, Collections.singletonList(templateObject), dataSource);
 
-            try (Connection connection1 = getConnection()) {
+                try (Connection connection1 = getConnection()) {
 
-                Connection spyConnection1 = spyConnection(connection);
-                when(dataSource.getConnection()).thenReturn(spyConnection1);
-                Template templateByName = templateManager.getTemplateByName(templateName);
-                Assert.assertEquals(((Template) templateObject).getTemplateName(), templateByName.getTemplateName());
-                Assert.assertEquals(((Template) templateObject).getDescription(), templateByName.getDescription());
-                Assert.assertEquals(((Template) templateObject).getTemplateScript(), templateByName.getTemplateScript());
+                    Connection spyConnection1 = spyConnection(connection);
+                    when(dataSource.getConnection()).thenReturn(spyConnection1);
+                    Template templateByName = templateManager.getTemplateByName(templateName);
+                    Assert.assertEquals(((Template) templateObject).getTemplateName(),
+                            templateByName.getTemplateName());
+                    Assert.assertEquals(((Template) templateObject).getDescription(), templateByName.getDescription());
+                    Assert.assertEquals(((Template) templateObject).getTemplateScript(),
+                            templateByName.getTemplateScript());
+                }
             }
         }
     }
@@ -280,26 +289,31 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
         Template testTemplate3 = new Template(SUPER_TENANT_ID, "Template3", "Description 3", "Script 3");
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            TemplateManager templateManager = new TemplateManagerImpl();
+                TemplateManager templateManager = new TemplateManagerImpl();
 
-            Template templateResult1 = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate1);
-            Assert.assertEquals(templateResult1.getTemplateName(), testTemplate1.getTemplateName());
+                Template templateResult1 =
+                        ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate1);
+                Assert.assertEquals(templateResult1.getTemplateName(), testTemplate1.getTemplateName());
 
-            Template templateResult2 = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate2);
-            Assert.assertEquals(templateResult2.getTemplateName(), testTemplate2.getTemplateName());
+                Template templateResult2 =
+                        ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate2);
+                Assert.assertEquals(templateResult2.getTemplateName(), testTemplate2.getTemplateName());
 
-            Template templateResult3 = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate3);
-            Assert.assertEquals(templateResult3.getTemplateName(), testTemplate3.getTemplateName());
+                Template templateResult3 =
+                        ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate3);
+                Assert.assertEquals(templateResult3.getTemplateName(), testTemplate3.getTemplateName());
 
-            List<TemplateInfo> templateList = templateManager.listTemplates(limit, offset);
+                List<TemplateInfo> templateList = templateManager.listTemplates(limit, offset);
 
-            Assert.assertEquals(templateList.size(), resultSize);
+                Assert.assertEquals(templateList.size(), resultSize);
+            }
         }
     }
 
@@ -307,19 +321,22 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testDeleteTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
+            try (Connection connection = getConnection()) {
 
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            TemplateManager templateManager = new TemplateManagerImpl();
-            Template templateResult = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
-            Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
+                TemplateManager templateManager = new TemplateManagerImpl();
+                Template templateResult =
+                        ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
+                Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
 
-            templateManager.deleteTemplate(templateResult.getTemplateName());
+                templateManager.deleteTemplate(templateResult.getTemplateName());
 
+            }
         }
     }
 
@@ -327,15 +344,17 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testValidatingInputs(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            TemplateManager templateManager = new TemplateManagerImpl();
-            ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
-            Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
+                TemplateManager templateManager = new TemplateManagerImpl();
+                ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
+                Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
+            }
         }
     }
 
@@ -343,22 +362,24 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testErrorCodes() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
-        Template template = new Template(SUPER_TENANT_ID, null, "sample description", sampleScript);
-        String errorCode = TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED.getCode();
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
+            Template template = new Template(SUPER_TENANT_ID, null, "sample description", sampleScript);
+            String errorCode = TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED.getCode();
 
-        try (Connection connection = getConnection()) {
+            try (Connection connection = getConnection()) {
 
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
-            TemplateManager templateManager = new TemplateManagerImpl();
-            try {
-                ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(template);
-            } catch (TemplateManagementClientException e) {
-                String errorCode1 = e.getErrorCode();
-                Assert.assertEquals(errorCode, errorCode1);
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
+                TemplateManager templateManager = new TemplateManagerImpl();
+                try {
+                    ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(template);
+                } catch (TemplateManagementClientException e) {
+                    String errorCode1 = e.getErrorCode();
+                    Assert.assertEquals(errorCode, errorCode1);
+                }
+
             }
-
         }
     }
 
@@ -366,21 +387,23 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testvalidatingPaginationParameters() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockDataSource(dataSource);
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSource);
 
-        try (Connection connection = getConnection()) {
-            Connection spyConnection = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spyConnection);
+            try (Connection connection = getConnection()) {
+                Connection spyConnection = spyConnection(connection);
+                when(dataSource.getConnection()).thenReturn(spyConnection);
 
-            TemplateManager templateManager = new TemplateManagerImpl();
-            templateManager.listTemplates(-10, -5);
-            Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
+                TemplateManager templateManager = new TemplateManagerImpl();
+                templateManager.listTemplates(-10, -5);
+                Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
 
-            templateManager.listTemplates(0, -5);
-            Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
+                templateManager.listTemplates(0, -5);
+                Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
 
-            templateManager.listTemplates(-10, 0);
-            Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
+                templateManager.listTemplates(-10, 0);
+                Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
+            }
         }
 
     }
@@ -392,5 +415,4 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
             ((TemplateManagerImpl)templateManager).addTemplateUsingTemplateMgtDAO((Template) template);
         }
     }
-
 }

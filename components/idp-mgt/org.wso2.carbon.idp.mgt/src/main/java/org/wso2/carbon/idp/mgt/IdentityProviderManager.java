@@ -18,20 +18,18 @@
 
 package org.wso2.carbon.idp.mgt;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
@@ -42,10 +40,9 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.SubProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
@@ -71,22 +68,19 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.KeyStore;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
@@ -99,8 +93,12 @@ public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+    private static final int OTP_CODE_MIN_LENGTH = 4;
+    private static final int OTP_CODE_MAX_LENGTH = 10;
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
+    private final Pattern userDefinedAuthNameRegexPattern =
+            Pattern.compile(IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
 
     private IdentityProviderManager() {
 
@@ -125,127 +123,6 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getResidentIdP(String tenantDomain)
             throws IdentityProviderManagementException {
 
-        IdPManagementUtil.setTenantSpecifiers(tenantDomain);
-
-        String openIdUrl;
-        String oauth1RequestTokenUrl;
-        String oauth1AuthorizeUrl;
-        String oauth1AccessTokenUrl;
-        String oauth2AuthzEPUrl;
-        String oauth2TokenEPUrl;
-        String oauth2RevokeEPUrl;
-        String oauth2IntrospectEpUrl;
-        String oauth2UserInfoEPUrl;
-        String oidcCheckSessionEPUrl;
-        String oidcLogoutEPUrl;
-        String oIDCWebFingerEPUrl;
-        String oAuth2DCREPUrl;
-        String oAuth2JWKSPage;
-        String oIDCDiscoveryEPUrl;
-        String passiveStsUrl;
-        String stsUrl;
-        String scimUsersEndpoint;
-        String scimGroupsEndpoint;
-        String scim2UsersEndpoint;
-        String scim2GroupsEndpoint;
-
-        openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
-        oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
-        oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
-        oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
-        oauth2AuthzEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_AUTHZ_EP_URL);
-        oauth2TokenEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_TOKEN_EP_URL);
-        oauth2UserInfoEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL);
-        oidcCheckSessionEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL);
-        oidcLogoutEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL);
-        passiveStsUrl = IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL);
-        stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
-        scimUsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
-        scimGroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL);
-        scim2UsersEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM2.USER_EP_URL);
-        scim2GroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM2.GROUP_EP_URL);
-        oauth2RevokeEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_REVOKE_EP_URL);
-        oauth2IntrospectEpUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_INTROSPECT_EP_URL);
-        oIDCWebFingerEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_WEB_FINGER_EP_URL);
-        oAuth2DCREPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_DCR_EP_URL);
-        oAuth2JWKSPage = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_JWKS_EP_URL);
-        oIDCDiscoveryEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_DISCOVERY_EP_URL);
-
-        if (StringUtils.isBlank(openIdUrl)) {
-            openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
-        }
-
-        if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
-            oauth1RequestTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REQUEST_TOKEN, true, true);
-        }
-
-        if (StringUtils.isBlank(oauth1AuthorizeUrl)) {
-            oauth1AuthorizeUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.AUTHORIZE_URL, true, true);
-        }
-
-        if (StringUtils.isBlank(oauth1AccessTokenUrl)) {
-            oauth1AccessTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.ACCESS_TOKEN, true, true);
-        }
-
-        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl, tenantDomain);
-        oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl, tenantDomain);
-        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl, tenantDomain);
-        oauth2IntrospectEpUrl = resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl,
-                tenantDomain);
-        oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
-        oauth2UserInfoEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl, tenantDomain);
-        oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl,
-                tenantDomain);
-        oidcLogoutEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl,tenantDomain);
-        oAuth2DCREPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl, tenantDomain);
-        oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
-        oAuth2JWKSPage = resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage, tenantDomain);
-        oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
-        oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl, tenantDomain);
-        oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
-        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl, tenantDomain);
-
-        // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
-        if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, getTenantContextFromTenantDomain(tenantDomain) +
-                    IdentityConstants.STS.WSO2_CARBON_STS);
-        } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + getTenantContextFromTenantDomain(tenantDomain) +
-                    IdentityConstants.STS.WSO2_CARBON_STS, true, true);
-        }
-
-        if (StringUtils.isBlank(scimUsersEndpoint)) {
-            scimUsersEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.USER_EP, true, false);
-        }
-
-        if (StringUtils.isBlank(scimGroupsEndpoint)) {
-            scimGroupsEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM.GROUP_EP, true, false);
-        }
-
-        if (StringUtils.isBlank(scim2UsersEndpoint)) {
-            scim2UsersEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM2.USER_EP, true, false);
-        }
-        try {
-            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
-                    (tenantDomain)) {
-                scim2UsersEndpoint = getTenantUrl(scim2UsersEndpoint, tenantDomain);
-            }
-        } catch (URISyntaxException e) {
-            log.error("SCIM 2.0 Users endpoint is malformed");
-        }
-
-        if (StringUtils.isBlank(scim2GroupsEndpoint)) {
-            scim2GroupsEndpoint = IdentityUtil.getServerURL(IdentityConstants.SCIM2.GROUP_EP, true, false);
-        }
-        try {
-            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
-                    (tenantDomain)) {
-                scim2GroupsEndpoint = getTenantUrl(scim2GroupsEndpoint, tenantDomain);
-            }
-        } catch (URISyntaxException e) {
-            log.error("SCIM 2.0 Groups endpoint is malformed");
-        }
-
         IdentityProvider identityProvider = dao.getIdPByName(null,
                 IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
                 IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
@@ -255,495 +132,9 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(message);
         }
 
-        int tenantId = -1;
-        try {
-            tenantId = IdPManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityProviderManagementException(
-                    "Exception occurred while retrieving Tenant ID from Tenant Domain " + tenantDomain, e);
-        }
-        X509Certificate cert = null;
-        try {
-            IdentityTenantUtil.initializeRegistry(tenantId);
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(tenantDomain, true);
-            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
-            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-                // derive key store name
-                String ksName = tenantDomain.trim().replace(".", "-");
-                // derive JKS name
-                String jksName = ksName + ".jks";
-                KeyStore keyStore = keyStoreManager.getKeyStore(jksName);
-                cert = (X509Certificate) keyStore.getCertificate(tenantDomain);
-            } else {
-                cert = keyStoreManager.getDefaultPrimaryCertificate();
-            }
-        } catch (Exception e) {
-            String msg = "Error retrieving primary certificate for tenant : " + tenantDomain;
-            throw new IdentityProviderManagementException(msg, e);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
-
-        if (cert == null) {
-            throw new IdentityProviderManagementException(
-                    "Cannot find the primary certificate for tenant " + tenantDomain);
-        }
-        try {
-            identityProvider.setCertificate(Base64.encode(cert.getEncoded()));
-        } catch (CertificateEncodingException e) {
-            String msg = "Error occurred while encoding primary certificate for tenant domain " + tenantDomain;
-            throw new IdentityProviderManagementException(msg, e);
-        }
-
-        List<FederatedAuthenticatorConfig> fedAuthnCofigs = new ArrayList<FederatedAuthenticatorConfig>();
-        List<Property> propertiesList = null;
-
-        FederatedAuthenticatorConfig openIdFedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.OpenID.NAME);
-        if (openIdFedAuthn == null) {
-            openIdFedAuthn = new FederatedAuthenticatorConfig();
-            openIdFedAuthn.setName(IdentityApplicationConstants.Authenticator.OpenID.NAME);
-        }
-        propertiesList = new ArrayList<Property>(Arrays.asList(openIdFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(openIdFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OpenID.OPEN_ID_URL) == null) {
-            Property openIdUrlProp = new Property();
-            openIdUrlProp.setName(IdentityApplicationConstants.Authenticator.OpenID.OPEN_ID_URL);
-            openIdUrlProp.setValue(openIdUrl);
-            propertiesList.add(openIdUrlProp);
-        }
-        openIdFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(openIdFedAuthn);
-
-        // SAML2 related endpoints.
-        FederatedAuthenticatorConfig saml2SSOFedAuthn = buildSAMLProperties(identityProvider, tenantDomain);
-        fedAuthnCofigs.add(saml2SSOFedAuthn);
-
-        FederatedAuthenticatorConfig oauth1FedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.OAuth10A.NAME);
-        if (oauth1FedAuthn == null) {
-            oauth1FedAuthn = new FederatedAuthenticatorConfig();
-            oauth1FedAuthn.setName(IdentityApplicationConstants.OAuth10A.NAME);
-        }
-        propertiesList = new ArrayList<Property>(Arrays.asList(oauth1FedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
-                IdentityApplicationConstants.OAuth10A.OAUTH1_REQUEST_TOKEN_URL) == null) {
-            Property oauth1ReqTokUrlProp = new Property();
-            oauth1ReqTokUrlProp.setName(IdentityApplicationConstants.OAuth10A.OAUTH1_REQUEST_TOKEN_URL);
-            oauth1ReqTokUrlProp.setValue(oauth1RequestTokenUrl);
-            propertiesList.add(oauth1ReqTokUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
-                IdentityApplicationConstants.OAuth10A.OAUTH1_AUTHORIZE_URL) == null) {
-            Property oauth1AuthzUrlProp = new Property();
-            oauth1AuthzUrlProp.setName(IdentityApplicationConstants.OAuth10A.OAUTH1_AUTHORIZE_URL);
-            oauth1AuthzUrlProp.setValue(oauth1AuthorizeUrl);
-            propertiesList.add(oauth1AuthzUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
-                IdentityApplicationConstants.OAuth10A.OAUTH1_ACCESS_TOKEN_URL) == null) {
-            Property oauth1AccessTokUrlProp = new Property();
-            oauth1AccessTokUrlProp.setName(IdentityApplicationConstants.OAuth10A.OAUTH1_ACCESS_TOKEN_URL);
-            oauth1AccessTokUrlProp.setValue(oauth1AccessTokenUrl);
-            propertiesList.add(oauth1AccessTokUrlProp);
-        }
-        oauth1FedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(oauth1FedAuthn);
-
-        FederatedAuthenticatorConfig oidcFedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.OIDC.NAME);
-        if (oidcFedAuthn == null) {
-            oidcFedAuthn = new FederatedAuthenticatorConfig();
-            oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
-        }
-        propertiesList = new ArrayList<Property>();
-
-        Property idPEntityIdProp;
-        // When the tenant qualified urls are enabled, we need to see the oauth2 token endpoint.
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            idPEntityIdProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
-                    OPENID_IDP_ENTITY_ID);
-        } else {
-            idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
-                    OPENID_IDP_ENTITY_ID);
-        }
-        propertiesList.add(idPEntityIdProp);
-
-        Property authzUrlProp = resolveFedAuthnProperty(oauth2AuthzEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
-        propertiesList.add(authzUrlProp);
-
-        Property tokenUrlProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);
-        propertiesList.add(tokenUrlProp);
-
-        Property revokeUrlProp = resolveFedAuthnProperty(oauth2RevokeEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL);
-        propertiesList.add(revokeUrlProp);
-
-        Property instropsectUrlProp = resolveFedAuthnProperty(oauth2IntrospectEpUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL);
-        propertiesList.add(instropsectUrlProp);
-
-        Property userInfoUrlProp = resolveFedAuthnProperty(oauth2UserInfoEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL);
-        propertiesList.add(userInfoUrlProp);
-
-        Property checkSessionUrlProp = resolveFedAuthnProperty(oidcCheckSessionEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL);
-        propertiesList.add(checkSessionUrlProp);
-
-        Property logoutUrlProp = resolveFedAuthnProperty(oidcLogoutEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
-        propertiesList.add(logoutUrlProp);
-
-        Property dcrUrlProp = resolveFedAuthnProperty(oAuth2DCREPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL);
-        propertiesList.add(dcrUrlProp);
-
-        Property webFingerUrlProp = resolveFedAuthnProperty(oIDCWebFingerEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL);
-        propertiesList.add(webFingerUrlProp);
-
-        Property jwksUrlProp = resolveFedAuthnProperty(oAuth2JWKSPage, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL);
-        propertiesList.add(jwksUrlProp);
-
-        Property discoveryUrlProp = resolveFedAuthnProperty(oIDCDiscoveryEPUrl, oidcFedAuthn,
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL);
-        propertiesList.add(discoveryUrlProp);
-
-        oidcFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(oidcFedAuthn);
-
-        FederatedAuthenticatorConfig passiveSTSFedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        if (passiveSTSFedAuthn == null) {
-            passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
-            passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
-        }
-
-        propertiesList = new ArrayList<>();
-        Property passiveSTSUrlProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
-                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-        if (passiveSTSUrlProperty == null) {
-            passiveSTSUrlProperty = new Property();
-            passiveSTSUrlProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL);
-        }
-        passiveSTSUrlProperty.setValue(passiveStsUrl);
-        propertiesList.add(passiveSTSUrlProperty);
-
-        Property stsIdPEntityIdProperty = IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn
-                .getProperties(), IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
-        if (stsIdPEntityIdProperty == null) {
-            stsIdPEntityIdProperty = new Property();
-            stsIdPEntityIdProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS
-                    .IDENTITY_PROVIDER_ENTITY_ID);
-            stsIdPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
-        }
-        propertiesList.add(stsIdPEntityIdProperty);
-
-        for (Property property : passiveSTSFedAuthn.getProperties()) {
-            if (property != null && !IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL
-                    .equals(property.getName()) && !IdentityApplicationConstants.Authenticator.PassiveSTS
-                    .IDENTITY_PROVIDER_ENTITY_ID.equals(property.getName())) {
-                propertiesList.add(property);
-            }
-        }
-
-        passiveSTSFedAuthn
-                .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(passiveSTSFedAuthn);
-
-        FederatedAuthenticatorConfig stsFedAuthn = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        if (stsFedAuthn == null) {
-            stsFedAuthn = new FederatedAuthenticatorConfig();
-            stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        }
-        propertiesList = new ArrayList<Property>(Arrays.asList(stsFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL) == null) {
-            Property stsUrlProp = new Property();
-            stsUrlProp.setName(IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL);
-            stsUrlProp.setValue(stsUrl);
-            propertiesList.add(stsUrlProp);
-        }
-        stsFedAuthn
-                .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(stsFedAuthn);
-
-        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<IdentityProviderProperty>();
-
-        FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
-        sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
-
-        propertiesList = new ArrayList<Property>(Arrays.asList(sessionTimeoutConfig.getProperties()));
-
-        Property cleanUpPeriodProp = new Property();
-        cleanUpPeriodProp.setName(IdentityApplicationConstants.CLEAN_UP_PERIOD);
-        String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
-        if (StringUtils.isBlank(cleanUpPeriod)) {
-            cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
-        } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
-            log.warn("PersistanceCleanUpPeriod in identity.xml should be a numeric value");
-            cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
-        }
-        cleanUpPeriodProp.setValue(cleanUpPeriod);
-        propertiesList.add(cleanUpPeriodProp);
-
-        sessionTimeoutConfig.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        fedAuthnCofigs.add(sessionTimeoutConfig);
-
-        identityProvider.setFederatedAuthenticatorConfigs(fedAuthnCofigs
-                .toArray(new FederatedAuthenticatorConfig[fedAuthnCofigs.size()]));
-
-        ProvisioningConnectorConfig scimProvConn = IdentityApplicationManagementUtil
-                .getProvisioningConnector(identityProvider.getProvisioningConnectorConfigs(),
-                        "scim");
-        if (scimProvConn == null) {
-            scimProvConn = new ProvisioningConnectorConfig();
-            scimProvConn.setName("scim");
-        }
-        propertiesList = new ArrayList<>(Arrays.asList(scimProvConn.getProvisioningProperties()));
-        Property scimUserEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
-                .getProvisioningProperties(), IdentityApplicationConstants.SCIM.USERS_EP_URL);
-        if (scimUserEndpointProperty == null) {
-            Property property = new Property();
-            property.setName(IdentityApplicationConstants.SCIM.USERS_EP_URL);
-            property.setValue(scimUsersEndpoint);
-            propertiesList.add(property);
-        } else if (!scimUsersEndpoint.equalsIgnoreCase(scimUserEndpointProperty.getValue())) {
-            scimUserEndpointProperty.setValue(scimUsersEndpoint);
-        }
-        Property scimGroupEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
-                .getProvisioningProperties(), IdentityApplicationConstants.SCIM.GROUPS_EP_URL);
-        if (scimGroupEndpointProperty == null) {
-            Property property = new Property();
-            property.setName(IdentityApplicationConstants.SCIM.GROUPS_EP_URL);
-            property.setValue(scimGroupsEndpoint);
-            propertiesList.add(property);
-        } else if (!scimGroupsEndpoint.equalsIgnoreCase(scimGroupEndpointProperty.getValue())) {
-            scimGroupEndpointProperty.setValue(scimGroupsEndpoint);
-        }
-
-        Property scim2UserEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
-                .getProvisioningProperties(), IdentityApplicationConstants.SCIM2.USERS_EP_URL);
-        if (scim2UserEndpointProperty == null) {
-            Property property = new Property();
-            property.setName(IdentityApplicationConstants.SCIM2.USERS_EP_URL);
-            property.setValue(scim2UsersEndpoint);
-            propertiesList.add(property);
-        } else if (!scim2UsersEndpoint.equalsIgnoreCase(scim2UserEndpointProperty.getValue())) {
-            scim2UserEndpointProperty.setValue(scim2UsersEndpoint);
-        }
-        Property scim2GroupEndpointProperty = IdentityApplicationManagementUtil.getProperty(scimProvConn
-                .getProvisioningProperties(), IdentityApplicationConstants.SCIM2.GROUPS_EP_URL);
-        if (scim2GroupEndpointProperty == null) {
-            Property property = new Property();
-            property.setName(IdentityApplicationConstants.SCIM2.GROUPS_EP_URL);
-            property.setValue(scim2GroupsEndpoint);
-            propertiesList.add(property);
-        } else if (!scim2GroupsEndpoint.equalsIgnoreCase(scim2GroupEndpointProperty.getValue())) {
-            scim2GroupEndpointProperty.setValue(scim2GroupsEndpoint);
-        }
-        scimProvConn.setProvisioningProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        identityProvider.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
-
         return identityProvider;
     }
 
-    private String buildSAMLUrl(String urlFromConfigFile, String tenantDomain, String defaultContext,
-                                boolean appendTenantDomainInLegacyMode) throws IdentityProviderManagementException {
-
-        String url = urlFromConfigFile;
-        if (StringUtils.isBlank(url)) {
-            // Now we need to build the URL based on the default context.
-            try {
-                url = ServiceURLBuilder.create().addPath(defaultContext).build().getAbsolutePublicURL();
-            } catch (URLBuilderException ex) {
-                throw new IdentityProviderManagementException("Error while building URL for context: "
-                        + defaultContext + " for tenantDomain: " + tenantDomain, ex);
-            }
-        }
-        //Should not append the tenant domain as a query parameter if it is super tenant.
-        if (appendTenantDomainInLegacyMode && isNotSuperTenant(tenantDomain)) {
-            Map<String, String[]> queryParams = new HashMap<>();
-            queryParams.put(MultitenantConstants.TENANT_DOMAIN, new String[] {tenantDomain});
-
-            try {
-                url = IdentityUtil.buildQueryUrl(url, queryParams);
-            } catch (UnsupportedEncodingException e) {
-                throw new IdentityProviderManagementException("Error while building URL for context: "
-                        + defaultContext + " for tenantDomain: " + tenantDomain, e);
-            }
-        }
-
-        return resolveAbsoluteURL(defaultContext, url, tenantDomain);
-    }
-
-    private boolean isNotSuperTenant(String tenantDomain) {
-
-        return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-    }
-
-    private FederatedAuthenticatorConfig buildSAMLProperties(IdentityProvider identityProvider, String tenantDomain)
-            throws IdentityProviderManagementException {
-
-        String samlSSOUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL),
-                tenantDomain, IdPManagementConstants.SAMLSSO, true);
-
-        String samlLogoutUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL),
-                tenantDomain, IdPManagementConstants.SAMLSSO, true);
-
-        String samlECPUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL),
-                tenantDomain, IdPManagementConstants.SAML_ECP_URL, true);
-
-        String samlArtifactUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL),
-                tenantDomain, IdPManagementConstants.SSO_ARTIFACT_URL, false);
-
-        FederatedAuthenticatorConfig samlFederatedAuthConfig = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
-        if (samlFederatedAuthConfig == null) {
-            samlFederatedAuthConfig = new FederatedAuthenticatorConfig();
-            samlFederatedAuthConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
-        }
-
-        List<Property> propertiesList = new ArrayList<>();
-
-        Property samlSSOUrlProperty = resolveFedAuthnProperty(samlSSOUrl, samlFederatedAuthConfig,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
-        propertiesList.add(samlSSOUrlProperty);
-
-        Property samlLogoutUrlProperty = resolveFedAuthnProperty(samlLogoutUrl, samlFederatedAuthConfig,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
-        propertiesList.add(samlLogoutUrlProperty);
-
-        Property samlECPUrlProperty = resolveFedAuthnProperty(samlECPUrl, samlFederatedAuthConfig,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL);
-        propertiesList.add(samlECPUrlProperty);
-
-        Property samlArtifactUrlProperty = resolveFedAuthnProperty(samlArtifactUrl, samlFederatedAuthConfig,
-                IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
-        propertiesList.add(samlArtifactUrlProperty);
-
-        Property idPEntityIdProperty =
-                IdentityApplicationManagementUtil.getProperty(samlFederatedAuthConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-        if (idPEntityIdProperty == null) {
-            idPEntityIdProperty = new Property();
-            idPEntityIdProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-            idPEntityIdProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
-        }
-        propertiesList.add(idPEntityIdProperty);
-
-        // Add SSO URL as a destination URL if not already available.
-        addSSOUrlAsDestinationUrl(samlFederatedAuthConfig, samlSSOUrl, propertiesList);
-
-        for (Property property : samlFederatedAuthConfig.getProperties()) {
-            if (property != null &&
-                    !IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL.equals(property.getName()) &&
-                    !IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL.equals(property.getName()) &&
-                    !IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL.equals(property.getName()) &&
-                    !IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID.equals(property.getName())) {
-                propertiesList.add(property);
-            }
-        }
-
-        Property samlMetadataValidityPeriodProperty =
-                IdentityApplicationManagementUtil.getProperty(samlFederatedAuthConfig.
-                        getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
-                        SAML_METADATA_VALIDITY_PERIOD);
-        if (samlMetadataValidityPeriodProperty == null) {
-            samlMetadataValidityPeriodProperty = new Property();
-            samlMetadataValidityPeriodProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
-                    SAML_METADATA_VALIDITY_PERIOD);
-            samlMetadataValidityPeriodProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
-                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT);
-        }
-        propertiesList.add(samlMetadataValidityPeriodProperty);
-        Property samlMetadataSigningEnabledProperty =
-                IdentityApplicationManagementUtil.getProperty(samlFederatedAuthConfig.
-                        getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
-                        SAML_METADATA_SIGNING_ENABLED);
-        if (samlMetadataSigningEnabledProperty == null) {
-            samlMetadataSigningEnabledProperty = new Property();
-            samlMetadataSigningEnabledProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
-                    SAML_METADATA_SIGNING_ENABLED);
-            samlMetadataSigningEnabledProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
-                    SAML_METADATA_SIGNING_ENABLED_DEFAULT);
-        }
-        propertiesList.add(samlMetadataSigningEnabledProperty);
-        Property samlAuthnRequestSigningProperty =
-                IdentityApplicationManagementUtil.getProperty(samlFederatedAuthConfig.
-                        getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO.
-                        SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
-        if (samlAuthnRequestSigningProperty == null) {
-            samlAuthnRequestSigningProperty = new Property();
-            samlAuthnRequestSigningProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
-                    SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
-            samlAuthnRequestSigningProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
-                    SAML_METADATA_AUTHN_REQUESTS_SIGNING_DEFAULT);
-        }
-        propertiesList.add(samlAuthnRequestSigningProperty);
-        samlFederatedAuthConfig.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-        return samlFederatedAuthConfig;
-    }
-
-    private void addSSOUrlAsDestinationUrl(FederatedAuthenticatorConfig federatedAuthenticatorConfig,
-                                           String ssoUrl,
-                                           List<Property> propertiesList) {
-
-        // First find the available configured destination URLs.
-        List<Property> destinationURLs = Arrays.stream(federatedAuthenticatorConfig.getProperties())
-                .filter(property -> property.getName()
-                        .startsWith(IdentityApplicationConstants.Authenticator.SAML2SSO.DESTINATION_URL_PREFIX))
-                .collect(Collectors.toList());
-
-        // Check whether the SSO URL is already available as a destination URL
-        boolean isSAMLSSOUrlNotPresentAsDestination = destinationURLs.stream()
-                .noneMatch(x -> StringUtils.equals(ssoUrl, x.getValue()));
-
-        if (isSAMLSSOUrlNotPresentAsDestination) {
-            // There are no destination properties matching the default SSO URL.
-            int propertyNameIndex = destinationURLs.size() + 1;
-            Property destinationURLProperty = buildDestinationURLProperty(ssoUrl, propertyNameIndex);
-            propertiesList.add(destinationURLProperty);
-        }
-    }
-
-    private Property buildDestinationURLProperty(String destinationURL, int index) {
-
-        Property destinationURLProperty = new Property();
-        destinationURLProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.DESTINATION_URL_PREFIX +
-                IdentityApplicationConstants.MULTIVALUED_PROPERTY_CHARACTER + index);
-        destinationURLProperty.setValue(destinationURL);
-        return destinationURLProperty;
-    }
-
-    private Property resolveFedAuthnProperty(String epUrl, FederatedAuthenticatorConfig fedAuthnConfig,
-                                             String propertyName) {
-
-        Property property =
-                IdentityApplicationManagementUtil.getProperty(fedAuthnConfig.getProperties(), propertyName);
-
-        if (property == null || IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
-            property = new Property();
-            property.setName(propertyName);
-            // Set the calculated SAML endpoint URL.
-            property.setValue(epUrl);
-        }
-        return property;
-    }
 
     /**
      * Add Resident Identity provider for a given tenant.
@@ -773,6 +164,7 @@ public class IdentityProviderManager implements IdpManager {
         if (saml2SSOResidentAuthenticatorConfig == null) {
             saml2SSOResidentAuthenticatorConfig = new FederatedAuthenticatorConfig();
             saml2SSOResidentAuthenticatorConfig.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+            saml2SSOResidentAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
         if (saml2SSOResidentAuthenticatorConfig.getProperties() == null) {
             saml2SSOResidentAuthenticatorConfig.setProperties(new Property[0]);
@@ -857,6 +249,7 @@ public class IdentityProviderManager implements IdpManager {
         FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
         oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
         oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+        oidcAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 
         Property passiveStsProperty = new Property();
         passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
@@ -865,6 +258,7 @@ public class IdentityProviderManager implements IdpManager {
         FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
         passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
         passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+        passiveStsAuthenticationConfig.setDefinedByType(DefinedByType.SYSTEM);
 
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
                 passiveStsAuthenticationConfig, oidcAuthenticationConfig};
@@ -929,6 +323,9 @@ public class IdentityProviderManager implements IdpManager {
         IdentityProviderProperty[] identityMgtProperties = residentIdp.getIdpProperties();
         List<IdentityProviderProperty> newProperties = new ArrayList<>();
 
+        IdPManagementUtil.validatePasswordRecoveryPropertyValues(configurationDetails);
+        IdPManagementUtil.validateUsernameRecoveryPropertyValues(configurationDetails);
+
         for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
             IdentityProviderProperty prop = new IdentityProviderProperty();
             String key = identityMgtProperty.getName();
@@ -987,6 +384,13 @@ public class IdentityProviderManager implements IdpManager {
                     }
                 }
 
+            }
+            if (isAnOTPLengthConfig(idpProp)) {
+                if (StringUtils.isEmpty(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
+                        Integer.parseInt(idpProp.getValue().trim()) < OTP_CODE_MIN_LENGTH ||
+                        Integer.parseInt(idpProp.getValue().trim()) > OTP_CODE_MAX_LENGTH) {
+                    throw new IdentityProviderManagementException("Invalid OTP length");
+                }
             }
         }
         // invoking the pre listeners
@@ -1666,11 +1070,15 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getEnabledIdPByRealmId(String realmId, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        IdentityProvider idp = getIdPByRealmId(realmId, tenantDomain);
-        if (idp != null && idp.isEnable()) {
-            return idp;
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (StringUtils.isEmpty(realmId)) {
+            throw new IdentityProviderManagementException("Invalid argument: Identity Provider Home Realm Identifier value is empty.");
         }
-        return null;
+        IdentityProvider identityProvider = dao.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
+        if (identityProvider == null) {
+            identityProvider = new FileBasedIdPMgtDAO().getEnabledIdPByRealmId(realmId);
+        }
+        return identityProvider;
     }
 
     /**
@@ -2096,6 +1504,7 @@ public class IdentityProviderManager implements IdpManager {
 
         markConfidentialPropertiesUsingMetadata(identityProvider);
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        validateFederatedAuthenticatorConfigName(identityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         validateOutboundProvisioningRoles(identityProvider, tenantDomain);
 
         // Invoking the pre listeners.
@@ -2121,6 +1530,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         handleMetadata(tenantId, identityProvider);
+        resolveAuthenticatorDefinedByProperty(identityProvider, true);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
@@ -2470,16 +1880,20 @@ public class IdentityProviderManager implements IdpManager {
 
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
+        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
     }
 
     /**
-     * Get the authenticators registered in the system.
+     * Get the authenticators registered in the system (system defined federated authenticators).
      *
-     * @return <code>FederatedAuthenticatorConfig</code> array.
+     * @return FederatedAuthenticatorConfig     Array of system defined federated authenticators.
      * @throws IdentityProviderManagementException Error when getting authenticators registered
      *                                             in the system
+     * @deprecated  It is recommended to use {@link #getAllFederatedAuthenticators(String)}, which return both system
+     *              defined and user defined federated authenticators of the provided tenant.
      */
+    @Deprecated
     @Override
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators()
             throws IdentityProviderManagementException {
@@ -2683,55 +2097,7 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    /**
-     * Resolves the public service url given the default context and the url picked from the configuration based on
-     * the 'tenant_context.enable_tenant_qualified_urls' mode set in deployment.toml.
-     *
-     * @param defaultUrlContext Default url context path.
-     * @param urlFromConfig     Url picked from the file configuration.
-     * @return Absolute public url of the service if 'enable_tenant_qualified_urls' is 'true', else returns the url
-     * from the file config.
-     * @throws IdentityProviderManagementServerException When fail to build the absolute public url.
-     */
-    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig, String tenantDomain) throws IdentityProviderManagementServerException {
 
-        if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Resolved URL:" + urlFromConfig + " from file configuration for default url context: " +
-                        defaultUrlContext);
-            }
-            return urlFromConfig;
-        }
-
-        try {
-             ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().setTenant(tenantDomain);
-            return serviceURLBuilder.addPath(defaultUrlContext).build().getAbsolutePublicURL();
-        } catch (URLBuilderException e) {
-            throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
-                    "Error while building URL: " + defaultUrlContext, e);
-        }
-    }
-
-    private String addTenantPathParamInLegacyMode(String resolvedUrl, String tenantDomain) {
-
-        try {
-            if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain) &&
-                    !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-                resolvedUrl = getTenantUrl(resolvedUrl, tenantDomain);
-            }
-        } catch (URISyntaxException e) {
-            log.error(String.format("%s endpoint is malformed.", resolvedUrl), e);
-        }
-        return resolvedUrl;
-    }
-
-    private String getTenantUrl(String url, String tenantDomain) throws URISyntaxException {
-
-        URI uri = new URI(url);
-        URI uriModified = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), ("/t/" +
-                tenantDomain + uri.getPath()), uri.getQuery(), uri.getFragment());
-        return uriModified.toString();
-    }
 
     private void verifyAndUpdateRoleConfiguration(String tenantDomain, int tenantId,
                                                   PermissionsAndRoleConfig roleConfiguration)
@@ -2821,6 +2187,38 @@ public class IdentityProviderManager implements IdpManager {
             // before calling this method
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_ALREADY_EXISTS, idpName);
+        }
+    }
+
+    private void validateFederatedAuthenticatorConfigName(FederatedAuthenticatorConfig[] federatedAuthConfigs,
+                      String tenantDomain) throws IdentityProviderManagementException {
+
+        if (federatedAuthConfigs == null) {
+            return;
+        }
+
+        for (FederatedAuthenticatorConfig config : federatedAuthConfigs) {
+            if (config.getDefinedByType() == DefinedByType.SYSTEM) {
+                // Check if there is a system registered authenticator given authenticator name.
+                if (ApplicationAuthenticatorService.getInstance()
+                        .getFederatedAuthenticatorByName(config.getName()) == null) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, new String(
+                            Base64.getEncoder().encode(config.getName().getBytes(StandardCharsets.UTF_8))));
+                }
+            } else {
+                // Check if the given authenticator name is already taken.
+                if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) != null) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, config.getName());
+                }
+                // Check if the given authenticator name matches the regex pattern.
+                if (!userDefinedAuthNameRegexPattern.matcher(config.getName()).matches()) {
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_INVALID_AUTHENTICATOR_NAME,
+                            IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
+                }
+            }
         }
     }
 
@@ -2937,6 +2335,41 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps);
+    }
+
+    @Override
+    public List<IdPGroup> getValidIdPGroupsByIdPGroupIds(List<String> idpGroupIds, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        if (CollectionUtils.isEmpty(idpGroupIds)) {
+            return Collections.emptyList();
+        }
+        try {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            return dao.getIdPGroupsByIds(idpGroupIds, tenantId);
+        } catch (IdentityProviderManagementException e) {
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVING_IDP_GROUPS, null, e);
+        }
+    }
+
+    @Override
+    public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators(String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> allFederatedAuthenticators =
+                dao.getAllUserDefinedFederatedAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+        allFederatedAuthenticators.addAll(Arrays.asList(getAllFederatedAuthenticators()));
+        return allFederatedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
+    }
+
+    private FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String authenticatorName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return Arrays.stream(getAllFederatedAuthenticators(tenantDomain))
+                .filter(authenticator -> authenticator.getName().equals(authenticatorName))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -3088,19 +2521,6 @@ public class IdentityProviderManager implements IdpManager {
                 .toUpperCase().startsWith((domain + UserCoreConstants.DOMAIN_SEPARATOR).toUpperCase()));
     }
 
-    /**
-     * Get tenant context using tenant domain.
-     *
-     * @param tenantDomain Tenant domain of the tenant.
-     * @return Tenant context of the tenant.
-     */
-    private String getTenantContextFromTenantDomain(String tenantDomain) {
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            return MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
-        }
-        return "";
-    }
 
     /**
      * Extracts IdpEntityId property from metadata and adds it to the existing properties of the
@@ -3242,6 +2662,10 @@ public class IdentityProviderManager implements IdpManager {
         Map<String, List<String>> metaFedAuthConfigMap = new HashMap<>();
         FederatedAuthenticatorConfig[] metaFedAuthConfigs = getAllFederatedAuthenticators();
         for (FederatedAuthenticatorConfig metaFedAuthConfig : metaFedAuthConfigs) {
+            // Continuing as user defined authenticators does not have any authenticator properties having secrets.
+            if (metaFedAuthConfig.getDefinedByType() == DefinedByType.USER) {
+                continue;
+            }
             List<String> secretProperties = new ArrayList<>();
             for (Property property : metaFedAuthConfig.getProperties()) {
                 if (property.isConfidential()) {
@@ -3281,5 +2705,47 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
         return metaProvisioningConfigMap;
+    }
+
+    /**
+     * Check whether the identity property is an OTP length property.
+     *
+     * @param property  Identity Provider property.
+     * @return true if the identity property is OTP length property, otherwise false.
+     */
+    private boolean isAnOTPLengthConfig(IdentityProviderProperty property) {
+
+        if (StringUtils.equals(property.getName(), "SelfRegistration.OTP.OTPLength") ||
+                StringUtils.equals(property.getName(), "LiteRegistration.OTP.OTPLength") ||
+                StringUtils.equals(property.getName(), "EmailVerification.OTP.OTPLength") ||
+                StringUtils.equals(property.getName(), "UserClaimUpdate.OTP.OTPLength") ||
+                StringUtils.equals(property.getName(), "Recovery.Notification.Password.OTP.OTPLength")) {
+            return true;
+        }
+        return false;
+    }
+
+    private void resolveAuthenticatorDefinedByProperty(IdentityProvider idp, boolean isNewFederatedAuthenticator) {
+
+        /* For new federated authenticators: If 'definedByType' is null, set it to default to SYSTEM. */
+        if (isNewFederatedAuthenticator) {
+            for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                if (federatedAuthConfig.getDefinedByType() == null) {
+                    federatedAuthConfig.setDefinedByType(DefinedByType.SYSTEM);
+                }
+            }
+        }
+
+        /* For existing federated authenticators, disregard any value provided in the request payload.
+         Instead, resolve and retrieve the 'definedBy' type of the corresponding existing authenticator.
+         If the authenticator config is present in the ApplicationAuthenticatorService list, return its type,
+         if not return USER. */
+        for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+            if (federatedAuthConfig.getDefinedByType() == null) {
+                FederatedAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
+                        .getFederatedAuthenticatorByName(federatedAuthConfig.getName());
+                federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
+            }
+        }
     }
 }

@@ -101,10 +101,24 @@ public interface ConfigurationManager {
     Resources getResources() throws ConfigurationManagementException;
 
     /**
-     * Get all the resources belongs to the given {@link ResourceType}.
+     * Get all the resources belonging to the given {@link ResourceType} for a given tenant ID.
+
+     * @param tenantId         The ID of the tenant.
+     * @param resourceTypeName {@link ResourceType} object name.
+     * @return {@link Resources} object with all the resources of the given resource type name.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    default Resources getResourcesByType(int tenantId, String resourceTypeName)
+            throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
+
+    /**
+     * Get all the resources belonging to the given {@link ResourceType}.
      *
      * @param resourceTypeName {@link ResourceType} object name.
-     * @return 200 ok. @link Resources} object with all the resources of the given resource type name.
+     * @return {@link Resources} object with all the resources of the given resource type name.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
     Resources getResourcesByType(String resourceTypeName) throws ConfigurationManagementException;
@@ -165,6 +179,21 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     Resource getResource(String resourceTypeName, String resourceName) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to retrieve the given resource by the tenant ID.
+     *
+     * @param tenantId         The ID of the tenant.
+     * @param resourceTypeName The name of the {@link ResourceType}.
+     * @param resourceName     The name of the {@link ResourceType}.
+     * @return {@link Resource}
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    default Resource getResourceByTenantId(int tenantId, String resourceTypeName, String resourceName) throws
+            ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to delete the given resource.
@@ -328,4 +357,15 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Configuration management exception.
      */
     void replaceResource(Resource resource) throws ConfigurationManagementException;
+
+    /**
+     * This function is used to delete all the resources belongs to given resource type in the current tenant.
+     *
+     * @param resourceType Request to delete the resources for the given {@link ResourceType}.
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    default void deleteResourcesByType(String resourceType) throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 }

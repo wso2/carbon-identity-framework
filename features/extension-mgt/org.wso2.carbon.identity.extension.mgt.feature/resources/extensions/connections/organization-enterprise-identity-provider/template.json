@@ -1,0 +1,36 @@
+{
+    "id": "organization-enterprise-idp",
+    "name": "Organization SSO",
+    "templateId": "organization-enterprise-idp",
+    "category": "DEFAULT",
+    "description": "Organization SSO login",
+    "displayOrder": 7,
+    "tags": [
+        "Organization-Login"
+    ],
+    "idp": {
+        "name": "Organization IDP",
+        "description": "IdP for Organization SSO",
+        "image": "",
+        "isPrimary": false,
+        "isFederationHub": false,
+        "homeRealmIdentifier": "OrganizationLogin",
+        "alias": "https://localhost:9443/oauth2/token",
+        "idpIssuerName": "",
+        "federatedAuthenticators": {
+            "defaultAuthenticatorId": "T3JnYW5pemF0aW9uQXV0aGVudGljYXRvcg",
+            "authenticators": [
+                {
+                    "authenticatorId": "T3JnYW5pemF0aW9uQXV0aGVudGljYXRvcg",
+                    "isEnabled": true,
+                    "isDefault": true,
+                    "properties": []
+                }
+            ]
+        }
+    },
+    "image": "assets/images/logos/organization-sso.svg",
+    "services": [],
+    "disabled": false,
+    "type": "ENTERPRISE"
+}

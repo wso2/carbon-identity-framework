@@ -34,6 +34,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static final String SUCCESS = "Success";
     private static final String IN_PROGRESS = "In-Progress";
+    private static final String USER_IDENTITY_CLAIMS_MAP = "UserIdentityClaimsMap";
     public static final String USER_AGENT_QUERY_KEY = "User-Agent";
     public static final String USER_AGENT_KEY = "User Agent";
     public static final String REMOTE_ADDRESS_QUERY_KEY = "remoteAddress";
@@ -73,11 +75,18 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
 
         if (isEnable()) {
             JSONObject data = new JSONObject();
+            Map<String, String> tempClaims = new HashMap<>();
+            tempClaims.putAll(claims);
             data.put(ListenerUtils.PROFILE_FIELD, profile);
             if (ArrayUtils.isNotEmpty(roleList)) {
                 data.put(ListenerUtils.ROLES_FIELD, new JSONArray(roleList));
             }
-            maskClaimsInAuditLog(claims, data);
+            if (IdentityUtil.threadLocalProperties != null &&
+                    IdentityUtil.threadLocalProperties.get().get(USER_IDENTITY_CLAIMS_MAP) != null) {
+                tempClaims.putAll((Map<? extends String, ? extends String>)
+                        IdentityUtil.threadLocalProperties.get().get(USER_IDENTITY_CLAIMS_MAP));
+            }
+            maskClaimsInAuditLog(tempClaims, data);
             audit.info(createAuditMessage(ListenerUtils.ADD_USER_ACTION, getTargetForAuditLog
                     (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                      userStoreManager), data, SUCCESS));

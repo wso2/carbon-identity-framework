@@ -132,7 +132,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPreAddUser(userName, credential, roleList, claims, profile, userStoreManager)) {
                     return false;
                 }
@@ -299,7 +299,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         try {
             // Getting the userName from thread-local which has been set from doPreDeleteUserWithID.
             String userName = (String) IdentityUtil.threadLocalProperties.get().get(DO_PRE_DELETE_USER_USER_NAME);
-
+            if (userName == null) {
+                return true;
+            }
             for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
                 if (isNotAResolverListener(listener)) {
                     if (!listener.doPostDeleteUser(userName, userStoreManager)) {
@@ -329,7 +331,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPreSetUserClaimValue(userName, claimURI, claimValue, profileName, userStoreManager)) {
                     return false;
                 }
@@ -353,7 +355,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPostSetUserClaimValue(userName, userStoreManager)) {
                     return false;
                 }
@@ -377,7 +379,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPreSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
                     return false;
                 }
@@ -401,7 +403,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (isNotAResolverListener(listener)) {
+            if (isNotAResolverListener(listener) && isNotClaimValueEncryptionListener(listener)) {
                 if (!listener.doPostSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
                     return false;
                 }
@@ -1171,13 +1173,19 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
+        String userNameWithDomain = preferredUserNameValue;
+        if (!preferredUserNameValue.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+            String domainName = userStoreManager.getRealmConfiguration()
+                    .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            userNameWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + preferredUserNameValue;
+        }
         String userName;
         boolean authenticated =
                 authenticationResult.getAuthenticationStatus() == AuthenticationResult.AuthenticationStatus.SUCCESS;
         if (authenticated) {
             userName = authenticationResult.getAuthenticatedUser().get().getUsername();
         } else {
-            String[] users = userStoreManager.getUserList(preferredUserNameClaim, preferredUserNameValue, null);
+            String[] users = userStoreManager.getUserList(preferredUserNameClaim, userNameWithDomain, null);
             if (users.length == 1) {
                 userName = UserCoreUtil.removeDomainFromName(users[0]);
             } else {
@@ -1323,5 +1331,10 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             UserStoreException {
 
         return UserCoreUtil.removeDomainFromName(userStoreManager.getUserNameFromUserID(userID));
+    }
+
+    private boolean isNotClaimValueEncryptionListener(UserOperationEventListener listener) {
+
+        return !(listener instanceof IdentityClaimValueEncryptionListener);
     }
 }

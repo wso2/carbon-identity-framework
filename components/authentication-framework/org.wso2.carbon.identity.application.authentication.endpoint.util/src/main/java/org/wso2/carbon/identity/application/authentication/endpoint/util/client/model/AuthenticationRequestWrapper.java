@@ -71,6 +71,19 @@ public class AuthenticationRequestWrapper extends HttpServletRequestWrapper {
     }
 
     /**
+     * Get authParams.
+     *
+     * @return authParams Map Object.
+     */
+    public Map<String, Object> getAuthParams() {
+
+        if (authParams != null) {
+            return authParams;
+        }
+        return Collections.emptyMap();
+    }
+
+    /**
      * Get the parameter map.
      *
      * @return Parameter map.

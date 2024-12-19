@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -139,7 +140,8 @@ public class UserSessionTerminationListener extends AbstractIdentityUserOperatio
             IdentityMgtServiceComponent.getUserSessionManagementService()
                     .terminateSessionsOfUser(username, userStoreDomain, tenantDomain);
         } catch (UserSessionException e) {
-            log.error("Failed to terminate active sessions of user: " + username, e);
+            log.error("Failed to terminate active sessions of user: " +
+                    (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username), e);
         }
     }
 }

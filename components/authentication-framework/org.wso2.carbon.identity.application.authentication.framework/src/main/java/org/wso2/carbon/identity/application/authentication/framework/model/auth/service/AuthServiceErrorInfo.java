@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -25,15 +25,17 @@ public class AuthServiceErrorInfo {
 
     private String errorCode;
     private String errorMessage;
+    private String errorDescription;
 
     public AuthServiceErrorInfo() {
 
     }
 
-    public AuthServiceErrorInfo(String errorCode, String errorMessage) {
+    public AuthServiceErrorInfo(String errorCode, String errorMessage, String errorDescription) {
 
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
+        this.errorDescription = errorDescription;
     }
 
     public String getErrorCode() {
@@ -54,5 +56,15 @@ public class AuthServiceErrorInfo {
     public void setErrorMessage(String errorMessage) {
 
         this.errorMessage = errorMessage;
+    }
+
+    public String getErrorDescription() {
+
+        return errorDescription;
+    }
+
+    public void setErrorDescription(String errorDescription) {
+
+        this.errorDescription = errorDescription;
     }
 }

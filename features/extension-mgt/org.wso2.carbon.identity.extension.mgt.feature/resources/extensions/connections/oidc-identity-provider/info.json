@@ -1,0 +1,10 @@
+{
+    "id": "enterprise-oidc-idp",
+    "name": "OpenID Connect",
+    "description": "Configure a new enterprise identity provider with OpenID Connect",
+    "image": "",
+    "category": "DEFAULT",
+    "displayOrder": -1,
+    "tags": [ "OIDC", "APIAuth" ],
+    "type": "identity-provider"
+}

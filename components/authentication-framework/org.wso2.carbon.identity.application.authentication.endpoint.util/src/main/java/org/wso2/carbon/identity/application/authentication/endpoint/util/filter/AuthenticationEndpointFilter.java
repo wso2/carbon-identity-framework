@@ -70,6 +70,9 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String URI_PASSIVESTS_LOGIN = "passivests_login.do";
     private static final String URI_OAUTH2_LOGIN = "oauth2_login.do";
     public static final String ATTRIBUTE_SKIP_PROPERTY = "skip";
+    private static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String CONSOLE_APPLICATION_NAME = "Console";
+    public static final String MY_ACCOUNT_APPLICATION_NAME = "My Account";
 
     private ServletContext context = null;
 
@@ -153,6 +156,12 @@ public class AuthenticationEndpointFilter implements Filter {
                 for (String authenticatorIdPMapping : authenticatorIdPMappings) {
                     String[] authenticatorIdPMapArr = authenticatorIdPMapping.split(":");
                     for (int i = 1; i < authenticatorIdPMapArr.length; i++) {
+                        // Organization authenticator is not showed for Console and My Account applications.
+                        if (StringUtils.equalsIgnoreCase(ORGANIZATION_AUTHENTICATOR, authenticatorIdPMapArr[0])
+                                && (StringUtils.equalsIgnoreCase(CONSOLE_APPLICATION_NAME, serviceProviderName)
+                                || StringUtils.equalsIgnoreCase(MY_ACCOUNT_APPLICATION_NAME, serviceProviderName))) {
+                            continue;
+                        }
                         if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                             idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
                                                         idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +

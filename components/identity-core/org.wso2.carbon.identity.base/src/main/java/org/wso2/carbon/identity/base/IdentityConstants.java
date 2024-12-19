@@ -164,7 +164,9 @@ public class IdentityConstants {
     // User account association constants
     public static final String USER_ACCOUNT_ASSOCIATION_ENABLE_SHA256_KEY = "UserAccountAssociation.EnableSHA256Key";
 
-    public static final String IDENTITY_UTIL_ENABLE_SHA256_RANDOM_NUMBERS = "EnableSHA256RandomNumberGenerator";
+    public static final String IDENTITY_UTIL_ENABLE_SHA256 = "IdentityUtil.EnableSHA256";
+    public static final String CERT_THUMBPRINT_ENABLE_SHA256 = "CertThumbprint.EnableSHA256";
+    public static final String ALLOW_LEGACY_ROLE_CLAIM_BEHAVIOUR = "AllowLegacyRoleClaimBehaviour";
 
     private IdentityConstants() {
     }
@@ -276,6 +278,8 @@ public class IdentityConstants {
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
+        public static final String SKIP_CLAIM_METADATA_PERSISTENCE = "JDBCPersistenceManager." +
+                "SkipClaimMetadataPersistence";
 
         //Timeout Configurations
         public static final String SESSION_IDLE_TIMEOUT = "TimeConfig.SessionIdleTimeout";
@@ -363,6 +367,7 @@ public class IdentityConstants {
         public static final String OAUTH1_AUTHORIZE_URL = "OAuth.OAuth1AuthorizeUrl";
         public static final String OAUTH1_ACCESSTOKEN_URL = "OAuth.OAuth1AccessTokenUrl";
         public static final String OAUTH2_AUTHZ_EP_URL = "OAuth.OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_EP_URL = "OAuth.OAuth2ParEPUrl";
         public static final String OAUTH2_TOKEN_EP_URL = "OAuth.OAuth2TokenEPUrl";
         public static final String OAUTH2_USERINFO_EP_URL = "OAuth.OAuth2UserInfoEPUrl";
         public static final String OAUTH2_REVOKE_EP_URL = "OAuth.OAuth2RevokeEPUrl";
@@ -373,11 +378,27 @@ public class IdentityConstants {
         public static final String OAUTH2_DCR_EP_URL = "OAuth.OAuth2DCREPUrl";
         public static final String OAUTH2_JWKS_EP_URL = "OAuth.OAuth2JWKSPage";
         public static final String OIDC_DISCOVERY_EP_URL = "OAuth.OIDCDiscoveryEPUrl";
+        public static final String OAUTH1_REQUEST_TOKEN_URL_V2 = "OAuth.V2.OAuth1RequestTokenUrl";
+        public static final String OAUTH1_AUTHORIZE_URL_V2 = "OAuth.V2.OAuth1AuthorizeUrl";
+        public static final String OAUTH1_ACCESSTOKEN_URL_V2 = "OAuth.V2.OAuth1AccessTokenUrl";
+        public static final String OAUTH2_AUTHZ_EP_URL_V2 = "OAuth.V2.OAuth2AuthzEPUrl";
+        public static final String OAUTH2_PAR_EP_URL_V2 = "OAuth.V2.OAuth2ParEPUrl";
+        public static final String OAUTH2_TOKEN_EP_URL_V2 = "OAuth.V2.OAuth2TokenEPUrl";
+        public static final String OAUTH2_USERINFO_EP_URL_V2 = "OAuth.V2.OAuth2UserInfoEPUrl";
+        public static final String OAUTH2_REVOKE_EP_URL_V2 = "OAuth.V2.OAuth2RevokeEPUrl";
+        public static final String OAUTH2_INTROSPECT_EP_URL_V2 = "OAuth.V2.OAuth2IntrospectEPUrl";
+        public static final String OIDC_CHECK_SESSION_EP_URL_V2 = "OAuth.V2.OIDCCheckSessionEPUrl";
+        public static final String OIDC_LOGOUT_EP_URL_V2 = "OAuth.V2.OIDCLogoutEPUrl";
+        public static final String OIDC_WEB_FINGER_EP_URL_V2 = "OAuth.V2.OIDCWebFingerEPUrl";
+        public static final String OAUTH2_DCR_EP_URL_V2 = "OAuth.V2.OAuth2DCREPUrl";
+        public static final String OAUTH2_JWKS_EP_URL_V2 = "OAuth.V2.OAuth2JWKSPage";
+        public static final String OIDC_DISCOVERY_EP_URL_V2 = "OAuth.V2.OIDCDiscoveryEPUrl";
 
         public static final String REQUEST_TOKEN = "oauth/request-token";
         public static final String AUTHORIZE_URL = "oauth/authorize-url";
         public static final String ACCESS_TOKEN = "oauth/access-token";
         public static final String AUTHORIZE = "oauth2/authorize";
+        public static final String PAR = "oauth2/par";
         public static final String TOKEN = "oauth2/token";
         public static final String REVOKE = "oauth2/revoke";
         public static final String INTROSPECT = "oauth2/introspect";
@@ -408,14 +429,8 @@ public class IdentityConstants {
                 "PassiveSTS.DisableAppliesToInPassiveSTSResponse";
         public static final String PASSIVE_STS_ENABLE_DEFAULT_SIGNATURE_AND_DIGEST_ALG =
                 "PassiveSTS.EnableDefaultSignatureAndDigestAlgorithm";
-    }
-
-    /**
-     * Common constants related to Mex endpoint
-     */
-    public static class MEX {
-
-        public static final String ENABLE_SHA256_SIGNATURE_ALG = "Mex.EnableSHA256Alg";
+        public static final String PASSIVE_STS_LOGOUT_WREPLY_VALIDATION =
+                "PassiveSTS.EnableLogoutWreplyValidation";
     }
 
     /**
@@ -438,6 +453,14 @@ public class IdentityConstants {
         public static final String GROUP_EP_URL = "SCIM2.GroupEPUrl";
         public static final String USER_EP = "scim2/Users";
         public static final String GROUP_EP = "scim2/Groups";
+    }
+
+    /**
+     * Common constants related to Recovery.
+     */
+    public static class Recovery {
+
+        public static final String RECOVERY_V1_API_ENABLE = "Recovery.EnableV1API";
     }
 
     /**
@@ -486,7 +509,6 @@ public class IdentityConstants {
         public static final String SIMPLE_REGISTRATION = "sreg";
         public static final String ATTRIBUTE_EXCHANGE = "ax";
         public static final String PAPE = "pape";
-        public static final String ENABLE_SHA256_PPID_DISPLAY_VALUE = "OpenID.EnableSHA256PPIDDisplayValue";
 
         public static class PapeAttributes {
 
@@ -590,5 +612,16 @@ public class IdentityConstants {
         public static final String ROLE_NAME_CONFIG_ELEMENT = "Name";
         public static final String ROLE_MANDATORY_SCOPES_CONFIG_ELEMENT = "MandatoryScopes";
         public static final String ROLE_SCOPE_CONFIG_ELEMENT = "Scope";
+        public static final String API_RESOURCE_CONFIG_ELEMENT = "APIResource";
+        public static final String ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT = "MandatoryAPIResources";
+
+    }
+
+    /**
+     * Common constants related to API Response.
+     */
+    public static class APIResponse {
+
+        public static final String SET_ACCOUNT_LOCK_AUTH_FAILURE_REASON = "APIResponse.SetAccountLockAuthFailureReason";
     }
 }

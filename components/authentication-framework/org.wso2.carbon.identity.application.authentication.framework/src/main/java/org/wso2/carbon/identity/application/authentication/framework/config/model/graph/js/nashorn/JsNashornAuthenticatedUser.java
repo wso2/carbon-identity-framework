@@ -18,15 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 /**
  * Javascript wrapper for Java level AuthenticatedUser.
@@ -44,8 +38,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
  * @see AuthenticatedUser
  */
 public class JsNashornAuthenticatedUser extends JsAuthenticatedUser implements AbstractJsObject {
-
-    private static final Log LOG = LogFactory.getLog(JsNashornAuthenticatedUser.class);
 
     /**
      * Constructor to be used when required to access step specific user details.
@@ -86,53 +78,5 @@ public class JsNashornAuthenticatedUser extends JsAuthenticatedUser implements A
     public JsNashornAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser) {
 
         super(context, wrappedUser);
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT_IDENTIFIER:
-                return getWrapped().getAuthenticatedSubjectIdentifier();
-            case FrameworkConstants.JSAttributes.JS_USERNAME:
-                return getWrapped().getUserName();
-            case FrameworkConstants.JSAttributes.JS_UNIQUE_ID:
-                Object userId = null;
-                try {
-                    userId = getWrapped().getUserId();
-                } catch (UserIdNotFoundException e) {
-                    LOG.error("Error while retrieving user Id of user : " + getWrapped().getLoggableUserId(), e);
-                }
-                return userId;
-            case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
-                return getWrapped().getUserStoreDomain();
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                return getWrapped().getTenantDomain();
-            case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
-                if (StringUtils.isNotBlank(idp)) {
-                    return new JsNashornClaims(getContext(), step, idp, false);
-                } else {
-                    // Represent step independent user
-                    return new JsNashornClaims(getContext(), getWrapped(), false);
-                }
-            case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
-                if (StringUtils.isNotBlank(idp)) {
-                    return new JsNashornClaims(getContext(), step, idp, true);
-                } else {
-                    // Represent step independent user
-                    return new JsNashornClaims(getContext(), getWrapped(), true);
-                }
-            case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
-                return getLocalRoles();
-            case FrameworkConstants.JSAttributes.JS_CLAIMS:
-                if (StringUtils.isNotBlank(idp)) {
-                    return new JsNashornRuntimeClaims(getContext(), step, idp);
-                } else {
-                    // Represent step independent user
-                    return new JsNashornRuntimeClaims(getContext(), getWrapped());
-                }
-            default:
-                return super.getMember(name);
-        }
     }
 }

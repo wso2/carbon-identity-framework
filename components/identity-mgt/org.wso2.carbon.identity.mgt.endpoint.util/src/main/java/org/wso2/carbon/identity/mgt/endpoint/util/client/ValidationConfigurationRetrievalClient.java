@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,13 +27,13 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -61,8 +61,11 @@ public class ValidationConfigurationRetrievalClient {
     private static final String MAX_REPEATED_KEY = "maxConsecutiveChr";
     private static final String PROPERTIES = "properties";
     private static final String VALIDATOR = "enable.validator";
+    private static final String ENABLE_SPECIAL_CHARACTERS = "enable.special.characters";
     private static final String EMAIL_VALIDATOR_KEY = "emailFormatValidator";
     private static final String ALPHANUMERIC_VALIDATOR_KEY = "alphanumericFormatValidator";
+    private static final String ENABLE_SPECIAL_CHARACTERS_KEY = "enableSpecialCharacters";
+    private static final String JS_REG_EX_VALIDATOR_KEY = "JsRegExValidator";
 
     /**
      * Get validation configurations.
@@ -74,7 +77,7 @@ public class ValidationConfigurationRetrievalClient {
     public JSONArray getConfigurations(String tenantDomain)
             throws ValidationConfigurationRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             HttpGet request = new HttpGet(getValidationMgtEndpoint(tenantDomain));
             setAuthorizationHeader(request);
 
@@ -116,9 +119,11 @@ public class ValidationConfigurationRetrievalClient {
             for (int i = 0; i < configurations.length(); i++) {
                 JSONObject config = (JSONObject) configurations.get(i);
                 if (((String)config.get("field")).equalsIgnoreCase("password")) {
-                    JSONArray rules = (JSONArray) config.get("rules");
-                    for (int j = 0; j < rules.length(); j++) {
-                        addRuleToConfiguration(rules.getJSONObject(j), passwordConfig);
+                    if (config.has("rules")) {
+                        JSONArray rules = (JSONArray) config.get("rules");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), passwordConfig);
+                        }
                     }
                 }
             }
@@ -129,7 +134,7 @@ public class ValidationConfigurationRetrievalClient {
             passwordConfig.put(MIN_NUMBER_KEY, 1);
             passwordConfig.put(MIN_UPPER_CASE_KEY, 1);
             passwordConfig.put(MIN_LOWER_CASE_KEY, 1);
-            passwordConfig.put(MIN_SPECIAL_KEY, 1);
+            passwordConfig.put(MIN_SPECIAL_KEY, 0);
         }
         return passwordConfig;
     }
@@ -151,9 +156,16 @@ public class ValidationConfigurationRetrievalClient {
             for (int i = 0; i < configurations.length(); i++) {
                 JSONObject config = (JSONObject) configurations.get(i);
                 if (((String)config.get("field")).equalsIgnoreCase("username")) {
-                    JSONArray rules = (JSONArray) config.get("rules");
-                    for (int j = 0; j < rules.length(); j++) {
-                        addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                    if (config.has("rules")) {
+                        JSONArray rules = (JSONArray) config.get("rules");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                        }
+                    } else if (config.has("regEx")) {
+                        JSONArray rules = (JSONArray) config.get("regEx");
+                        for (int j = 0; j < rules.length(); j++) {
+                            addRuleToConfiguration(rules.getJSONObject(j), usernameConfig);
+                        }
                     }
                 }
             }
@@ -262,9 +274,32 @@ public class ValidationConfigurationRetrievalClient {
         } else if (name.equalsIgnoreCase("AlphanumericValidator")) {
             addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), config,
                     ALPHANUMERIC_VALIDATOR_KEY);
+            addBooleanValue(ENABLE_SPECIAL_CHARACTERS, (JSONArray) rule.get(PROPERTIES), config,
+                    ENABLE_SPECIAL_CHARACTERS_KEY);
         } else if (name.equalsIgnoreCase("EmailFormatValidator")) {
             addBooleanValue(VALIDATOR, (JSONArray) rule.get(PROPERTIES), config,
                     EMAIL_VALIDATOR_KEY);
+        } else if (name.equalsIgnoreCase(JS_REG_EX_VALIDATOR_KEY)) {
+            enableRegExValidation(rule, config);
+        }
+    }
+    /**
+     * Method to add a rule to the regex validation configuration json.
+     *
+     * @param rule      Rule need to be added to the regex validation configuration.
+     * @param config    Configuration object.
+     */
+    private void enableRegExValidation(JSONObject rule, JSONObject config) {
+
+        config.put(JS_REG_EX_VALIDATOR_KEY, true);
+        if (rule.has(PROPERTIES)) {
+            JSONArray properties = (JSONArray) rule.get(PROPERTIES);
+            for(int i = 0; i < properties.length(); i++) {
+                JSONObject property = properties.getJSONObject(i);
+                if (((String)property.get("key")).equalsIgnoreCase("regex")) {
+                    config.put("regex", property.get("value"));
+                }
+            }
         }
     }
 }

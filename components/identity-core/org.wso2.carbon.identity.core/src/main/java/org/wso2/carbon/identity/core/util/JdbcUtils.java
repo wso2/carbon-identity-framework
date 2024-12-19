@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.core.util;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
 import javax.sql.DataSource;
@@ -70,6 +71,33 @@ public class JdbcUtils {
             dataSource = IdentityDatabaseUtil.getDataSource();
         }
         return new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * Get a new Named Jdbc Template. Identity database is used.
+     *
+     * @return a new Named Jdbc Template.
+     */
+    public static NamedJdbcTemplate getNewNamedJdbcTemplate() {
+
+        return new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+    }
+
+    /**
+     * Get a new Named Jdbc Template for the given database type.
+     *
+     * @param database Database type.
+     * @return a new Named Jdbc Template.
+     */
+    public static NamedJdbcTemplate getNewNamedJdbcTemplate(Database database) {
+
+        DataSource dataSource;
+        if (Database.SESSION.equals(database)) {
+            dataSource = IdentityDatabaseUtil.getSessionDataSource();
+        } else {
+            dataSource = IdentityDatabaseUtil.getDataSource();
+        }
+        return new NamedJdbcTemplate(dataSource);
     }
 
     /**

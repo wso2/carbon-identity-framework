@@ -33,8 +33,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
-
 public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
 
@@ -51,10 +49,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean isEnable() {
 
-        if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
-        }
-        return false;
+        return super.isEnable();
     }
 
     @Override
@@ -103,6 +98,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Delete-IDP", idPName, null, SUCCESS));
         return true;
     }
 

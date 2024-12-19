@@ -16,8 +16,10 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.cache.AssociatedClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.ExternalClaimCacheKey;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.ExternalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
@@ -37,6 +39,7 @@ public class CacheBackedExternalClaimDAO {
 
     ExternalClaimDAO externalClaimDAO;
     ExternalClaimCache externalClaimCache = ExternalClaimCache.getInstance();
+    AssociatedClaimCache associatedClaimCache = AssociatedClaimCache.getInstance();
 
     public CacheBackedExternalClaimDAO(ExternalClaimDAO externalClaimDAO) {
         this.externalClaimDAO = externalClaimDAO;
@@ -72,6 +75,7 @@ public class CacheBackedExternalClaimDAO {
         String externalClaimDialectURI = externalClaim.getClaimDialectURI();
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
+        associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantId);
     }
     public void updateExternalClaim(ExternalClaim externalClaim, int tenantId) throws ClaimMetadataException {
 
@@ -79,13 +83,26 @@ public class CacheBackedExternalClaimDAO {
         String externalClaimDialectURI = externalClaim.getClaimDialectURI();
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
+        associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantId);
     }
     public void removeExternalClaim(String externalClaimDialectURI, String externalClaimURI, int tenantId) throws
             ClaimMetadataException {
 
+        List<ExternalClaim> externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantId);
+        String mappedLocalClaim = null;
+        if (externalClaimsList != null) {
+            for (ExternalClaim externalClaim : externalClaimsList) {
+                if (externalClaim.getClaimURI().equals(externalClaimURI)) {
+                    mappedLocalClaim = externalClaim.getMappedLocalClaim();
+                }
+            }
+        }
         externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
+        if (StringUtils.isNotBlank(mappedLocalClaim)) {
+            associatedClaimCache.clearCacheEntry(mappedLocalClaim, tenantId);
+        }
     }
 
     public boolean isMappedLocalClaim(String mappedLocalClaimURI, int tenantId) throws
@@ -107,9 +124,20 @@ public class CacheBackedExternalClaimDAO {
      * @param externalClaimDialectURI External claim dialect uri
      * @param tenantId                Tenant Id
      */
-    public void removeExternalClaimCache(String externalClaimDialectURI, int tenantId) {
+    public void removeExternalClaimCache(String externalClaimDialectURI, int tenantId) throws ClaimMetadataException {
 
+        List<ExternalClaim> externalClaimsList = null;
+        List<String> mappedLocalClaim = new ArrayList<>();
+        externalClaimsList = getExternalClaims(externalClaimDialectURI, tenantId);
+        if (externalClaimsList != null) {
+            for (ExternalClaim externalClaim : externalClaimsList) {
+                mappedLocalClaim.add(externalClaim.getMappedLocalClaim());
+            }
+        }
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI);
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
+        for (String localClaim : mappedLocalClaim) {
+            associatedClaimCache.clearCacheEntry(localClaim, tenantId);
+        }
     }
 }

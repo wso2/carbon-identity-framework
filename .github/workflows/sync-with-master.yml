@@ -1,12 +1,12 @@
 # This workflow will sync commits from a PR from master to a target branch.
 name: Sync PR from master
 
-on:
-  pull_request_target:
-    types:
-      - closed
-    branches:
-      - master
+# on:
+#   pull_request_target:
+#     types:
+#       - closed
+#     branches:
+#       - master
 
 env:
   REPOSITORY: carbon-identity-framework

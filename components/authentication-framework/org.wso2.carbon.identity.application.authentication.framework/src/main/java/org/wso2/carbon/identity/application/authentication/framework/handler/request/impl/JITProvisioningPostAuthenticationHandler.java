@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -25,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
@@ -51,10 +53,13 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -75,20 +80,22 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ALLOW_LOGIN_TO_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION;
@@ -205,27 +212,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             externalIdPConfigName, context, localClaimValues, externalIdPConfig);
                     if (context.getProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED) != null) {
                         username = request.getParameter(FrameworkConstants.USERNAME);
-                        try {
-                            /*
-                            Checks whether the provided user is already existing in the system. If so an exception
-                            will be thrown.
-                            */
-                            UserRealm realm = getUserRealm(context.getTenantDomain());
-                            UserStoreManager userStoreManager = getUserStoreManager(context.getExternalIdP()
-                                    .getProvisioningUserStoreId(), realm, username);
-                            String sanitizedUserName = UserCoreUtil.removeDomainFromName(
-                                    MultitenantUtils.getTenantAwareUsername(username));
-                            if (userStoreManager.isExistingUser(sanitizedUserName)) {
-                                // Logging the error because the thrown exception is handled in the UI.
-                                log.error(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getCode() + " - "
-                                        + ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage());
-                                handleExceptions(ErrorMessages.USER_ALREADY_EXISTS_ERROR.getMessage(),
-                                        "provided.username.already.exists", null);
-                            }
-                        } catch (UserStoreException e) {
-                            handleExceptions(ErrorMessages.ERROR_WHILE_CHECKING_USERNAME_EXISTENCE.getMessage(),
-                                    "error.user.existence", e);
-                        }
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
@@ -263,7 +249,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     localClaimValues.put(uri, claimValue);
                 } else {
                     /* Claims that are mandatory from service provider level will pre-appended with "missing-" in
-                     there name.
+                     their name.
                      */
                     claimValue = request.getParameter("missing-" + uri);
                     if (StringUtils.isNotEmpty(claimValue)) {
@@ -331,10 +317,16 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         localClaimValues = new HashMap<>();
                     }
 
+                    String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+                    if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+                        externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
+                    }
                     String associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                                    externalSubject,
                                     context.getTenantDomain());
+                    boolean isUserAllowsToLoginIdp =  Boolean.parseBoolean(IdentityUtil
+                            .getProperty(ALLOW_LOGIN_TO_IDP));
 
                     // If associatedLocalUser is null, that means relevant association not exist already.
                     if (StringUtils.isEmpty(associatedLocalUser) && externalIdPConfig.isPromptConsentEnabled()) {
@@ -368,8 +360,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                     FrameworkUtils.getFederatedAssociationManager()
                                             .createFederatedAssociation(new User(user),
                                                     stepConfig.getAuthenticatedIdP(),
-                                                    stepConfig.getAuthenticatedUser()
-                                                            .getAuthenticatedSubjectIdentifier());
+                                                    externalSubject);
                                     associatedLocalUser = user.getDomainQualifiedUsername();
                                 }
                             } catch (UserStoreException e) {
@@ -380,7 +371,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             }
                         }
                     }
-                    if (StringUtils.isNotBlank(associatedLocalUser)) {
+                    if (StringUtils.isNotBlank(associatedLocalUser) && !isUserAllowsToLoginIdp) {
                         // Check if the associated local account is locked.
                         if (isAccountLocked(associatedLocalUser, context.getTenantDomain())) {
                             if (log.isDebugEnabled()) {
@@ -415,14 +406,6 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         log.debug("User : " + sequenceConfig.getAuthenticatedUser().getLoggableUserId()
                                 + " coming from " + externalIdPConfig.getIdPName()
                                 + " do have a local account, with the username " + username);
-                    }
-                    //When the local user association is enabled, user email id will be used to create the association.
-                    //Since the default provisioning handler removes the email domain, in case the username equals to
-                    //the email address, tenant domain is appended to the username.
-                    if (externalIdPConfig.isAssociateLocalUserEnabled() &&
-                            StringUtils.equals(UserCoreUtil.removeDomainFromName(username),
-                                    localClaimValues.get(EMAIL_ADDRESS_CLAIM))) {
-                        username = UserCoreUtil.addTenantDomainToEntry(username, context.getTenantDomain());
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, localClaimValues,
                             stepConfig);
@@ -490,7 +473,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         } catch (UserStoreException e) {
             throw new PostAuthenticationFailedException(
                     ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getCode(),
-                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(), username), e);
+                    String.format(ErrorMessages.ERROR_WHILE_CHECKING_ACCOUNT_LOCK_STATUS.getMessage(),
+                            (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username) : username)), e);
         }
         return false;
     }
@@ -773,7 +757,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      *
      * @param tenantDomain          Relevant tenant domain.
      * @param externalIdPConfigName External IDP config name.
-     * @return list of cliams available in the tenant.
+     * @return list of claims available in the tenant.
      * @throws PostAuthenticationFailedException PostAuthentication Failed Exception.
      */
     private org.wso2.carbon.user.api.ClaimMapping[] getClaimsForTenant(String tenantDomain,
@@ -834,11 +818,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         ApplicationAuthenticator authenticator
                 = stepConfig.getAuthenticatedAutenticator().getApplicationAuthenticator();
         String idPStandardDialect = authenticator.getClaimDialectURI();
-        String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         Map<ClaimMapping, String> extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
         Map<String, String> originalExternalAttributeValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
         Map<String, String> claimMapping = null;
-        boolean excludeUnmappedRoles = false;
+
         if (useDefaultIdpDialect && StringUtils.isNotBlank(idPStandardDialect)) {
             try {
                 claimMapping = ClaimMetadataHandler.getInstance()
@@ -850,44 +833,119 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
 
-        if (claimMapping != null) {
-            //Ex. Standard dialects like OIDC.
-            idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
-        } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
-            //Ex. SAML custom claims.
-            idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+        String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
         }
-
-        /* Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from the
-         returned list.
-         */
-        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
-            excludeUnmappedRoles = Boolean
-                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
-        }
-        List<String> identityProviderMappedUserRolesUnmappedExclusive = FrameworkUtils
-                .getIdentityProvideMappedUserRoles(externalIdPConfig, originalExternalAttributeValueMap,
-                        idpRoleClaimUri, excludeUnmappedRoles);
-        localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
-                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+        localClaimValues.put(FrameworkConstants.ASSOCIATED_ID, externalSubject);
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
 
         /*
         If TOTP is enabled for federated users, the initial federated user login will be identified with the following
         check and will set the secret key claim for the federated user who is going to be provisioned.
          */
-        if (context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL) != null) {
-            localClaimValues.put(FrameworkConstants.SECRET_KEY_CLAIM_URL,
-                    context.getProperty(FrameworkConstants.SECRET_KEY_CLAIM_URL).toString());
+        String totpSecretKeyClaimUrl = FrameworkConstants.SECRET_KEY_CLAIM_URL;
+        try {
+            if (context.getProperty(totpSecretKeyClaimUrl) != null) {
+                String totpSecretKeyClaimValue = context.getProperty(totpSecretKeyClaimUrl).toString();
+                /*
+                The secret key sent through the context will be a decrypted value. Therefore, it is required to encrypt
+                the secret key before storing it in the user store.
+                 */
+                totpSecretKeyClaimValue = FrameworkUtils.getProcessedClaimValue(totpSecretKeyClaimUrl,
+                        totpSecretKeyClaimValue, context.getTenantDomain());
+                localClaimValues.put(totpSecretKeyClaimUrl, totpSecretKeyClaimValue);
+            }
+        } catch (FrameworkException e) {
+            handleExceptions(String.format(ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY.getMessage(), username),
+                    ERROR_WHILE_ENCRYPTING_TOTP_SECRET_KEY.getCode(), e);
         }
 
         // Remove role claim from local claims as roles are specifically handled.
         localClaimValues.remove(FrameworkUtils.getLocalClaimUriMappedForIdPRoleClaim(externalIdPConfig));
         localClaimValues.remove(UserCoreConstants.USER_STORE_GROUPS_CLAIM);
+
+        Map<String, String> runtimeClaims = context.getRuntimeClaims();
+        Map<String, String> remoteClaims =
+                (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
+
+        // Remove or revert runtime claims from local claims before calling JIT provisioning.
+        for (Map.Entry<String, String> entry : runtimeClaims.entrySet()) {
+            String localClaimURI = entry.getKey();
+            if (claimMapping != null && remoteClaims.containsKey(claimMapping.get(localClaimURI))) {
+                // If remote claim value was overridden by temp claim, revert it
+                String claimValue = remoteClaims.get(claimMapping.get(localClaimURI));
+                localClaimValues.put(localClaimURI, claimValue);
+            } else {
+                // If no remote claim value was overridden by temp claim, remove it
+                localClaimValues.remove(localClaimURI);
+            }
+        }
+
+        /*
+         Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from
+         the returned list.
+         */
+        boolean excludeUnmappedRoles = false;
+        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP))) {
+            excludeUnmappedRoles = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP));
+        }
         try {
-            FrameworkUtils.getStepBasedSequenceHandler()
-                    .callJitProvisioning(username, context, identityProviderMappedUserRolesUnmappedExclusive,
-                            localClaimValues);
+            if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                // This block handle the JIT provisioning in legacy authz runtime with v1 roles.
+                String idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
+                if (claimMapping != null) {
+                    //Ex. Standard dialects like OIDC.
+                    idpRoleClaimUri = claimMapping.get(IdentityUtil.getLocalGroupsClaimURI());
+                } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
+                    //Ex. SAML custom claims.
+                    idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(stepConfig, context);
+                }
+
+                List<String> identityProviderMappedUserRolesUnmappedExclusive = FrameworkUtils
+                        .getIdentityProvideMappedUserRoles(externalIdPConfig, originalExternalAttributeValueMap,
+                                idpRoleClaimUri, excludeUnmappedRoles);
+
+                FrameworkUtils.getStepBasedSequenceHandler()
+                        .callJitProvisioning(username, context, identityProviderMappedUserRolesUnmappedExclusive,
+                                localClaimValues);
+            } else {
+                // This block handle the JIT provisioning in new authz runtime with v2 roles.
+                String idpGroupsClaimUri = FrameworkUtils.getEffectiveIdpGroupClaimUri(stepConfig, context);
+                List<String> assignedRoleIdList = FrameworkUtils.getAssignedRolesFromIdPGroups(externalIdPConfig,
+                        originalExternalAttributeValueMap, idpGroupsClaimUri, context.getTenantDomain());
+
+                /*
+                 This block adds unmapped IDP groups as roles when `SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP` is set to
+                 false. This is not a recommended flow with the new authz runtime and it is only supported for
+                 backward compatibility for sending unmapped roles capability in previous IDP role to local role
+                 mapping implementation.
+                 */
+                if (!excludeUnmappedRoles) {
+                    List<String> unmappedIDPGroups = FrameworkUtils.getUnmappedIDPGroups(externalIdPConfig,
+                            originalExternalAttributeValueMap, idpGroupsClaimUri);
+                    if (CollectionUtils.isNotEmpty(unmappedIDPGroups)) {
+                        String applicationId = context.getSequenceConfig().getApplicationConfig().getServiceProvider()
+                                .getApplicationResourceId();
+                        // Get the roles assigned to the application.
+                        List<RoleV2> appAssociatedRoles = getRolesAssociatedWithApplication(applicationId,
+                                context.getTenantDomain());
+                        List<String> unmappedRoleIds = appAssociatedRoles.stream()
+                                .filter(role -> unmappedIDPGroups.contains(role.getName()))
+                                .map(RoleV2::getId)
+                                .collect(Collectors.toList());
+                        for (String roleId : unmappedRoleIds) {
+                            if (!assignedRoleIdList.contains(roleId)) {
+                                assignedRoleIdList.add(roleId);
+                            }
+                        }
+                    }
+                }
+
+                FrameworkUtils.getStepBasedSequenceHandler()
+                        .callJitProvisioningWithV2Roles(username, context, assignedRoleIdList, localClaimValues);
+            }
         } catch (FrameworkException e) {
             handleExceptions(
                     String.format(ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING.getMessage(),
@@ -907,8 +965,12 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     private void handleConsents(HttpServletRequest request, StepConfig stepConfig, String tenantDomain)
             throws PostAuthenticationFailedException {
 
+        String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, tenantDomain);
+        }
         String userName = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), tenantDomain);
+                externalSubject, tenantDomain);
         String consent = request.getParameter("consent");
         String policyURL = request.getParameter("policy");
         if (StringUtils.isNotEmpty(consent)) {
@@ -945,7 +1007,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     }
 
     /**
-     * Set the IDP releated data in the receipt service input.
+     * Set the IDP related data in the receipt service input.
      *
      * @param tenantDomain        Tenant domain.
      * @param receiptServiceInput Relevant receipt service input which the
@@ -1122,5 +1184,25 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             throw new UserStoreException(e.getMessage(), e);
         }
         return userStoreDomain;
+    }
+
+    /**
+     * Get roles associated with the application.
+     *
+     * @param applicationId Application ID.
+     * @param tenantDomain  Tenant domain.
+     * @return Roles associated with the application.
+     * @throws FrameworkException If an error occurred while getting roles associated with the application.
+     */
+    private List<RoleV2> getRolesAssociatedWithApplication(String applicationId, String tenantDomain)
+            throws FrameworkException {
+
+        try {
+            return FrameworkServiceDataHolder.getInstance().getApplicationManagementService()
+                    .getAssociatedRolesOfApplication(applicationId, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            throw new FrameworkException("Error while retrieving app associated roles for application: "
+                    + applicationId, e);
+        }
     }
 }

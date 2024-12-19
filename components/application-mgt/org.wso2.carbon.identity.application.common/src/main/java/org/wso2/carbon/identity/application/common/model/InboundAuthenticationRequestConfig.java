@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.axiom.om.OMElement;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
@@ -29,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -36,6 +38,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Inbound authentication request configuration.
@@ -68,6 +71,13 @@ public class InboundAuthenticationRequestConfig implements Serializable {
     @XmlElementWrapper(name = "Properties")
     @XmlElement(name = "Property")
     private Property[] properties = new Property[0];
+    
+    // This is used to store the data related to the inbound protocol. This is not persisted in the database.
+    // We use this for auditing purposes.
+    @IgnoreNullElement
+    @XmlTransient
+    @JsonIgnore
+    private Map<String, Object> data;
 
     /*
      * <InboundAuthenticationRequestConfig> <InboundAuthKey></InboundAuthKey>
@@ -222,5 +232,14 @@ public class InboundAuthenticationRequestConfig implements Serializable {
 
         this.inboundConfigurationProtocol = inboundConfigurationProtocol;
     }
-
+    
+    public Map<String, Object> getData() {
+        
+        return data;
+    }
+    
+    public void setData(Map<String, Object> data) {
+        
+        this.data = data;
+    }
 }

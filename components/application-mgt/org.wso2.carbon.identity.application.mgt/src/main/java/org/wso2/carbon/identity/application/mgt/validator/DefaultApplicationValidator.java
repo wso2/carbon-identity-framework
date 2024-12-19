@@ -41,10 +41,13 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpTrustedAppMetadata;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
@@ -66,6 +69,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
@@ -92,6 +96,14 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     private static final String GROUPS_ARE_PROHIBITED_FOR_ROLE_MAPPING = "Groups including: %s, are " +
             "prohibited for role mapping. Use roles instead.";
+    private static final String TRUSTED_APP_FEATURE_ENABLED_WITHOUT_DATA = "Trusted app feature is enabled " +
+            "without data.";
+    private static final String MAX_THUMBPRINT_COUNT_EXCEEDED = "Maximum thumbprint count exceeded for Android " +
+            "trusted app metadata.";
+    private static final String TRUSTED_APP_NOT_CONSENTED = "Consent should be granted for trusted apps " +
+            "if FIDO trusted app feature is enabled.";
+    private static final String INCORRECT_TRUSTED_ANDROID_APP_DETAILS = "Both package name and thumbprints are " +
+            "required when configuring an android application as a trusted mobile application.";
     public static final String IS_HANDLER = "IS_HANDLER";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
@@ -99,6 +111,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final int MODE_STRING = 3;
     private static final int MODE_SINGLE_LINE = 4;
     private static final int MODE_MULTI_LINE = 5;
+    private static final int DEFAULT_MAX_ANDROID_THUMBPRINT_COUNT = 20;
 
     public DefaultApplicationValidator() {
 
@@ -116,6 +129,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                                             String username) throws IdentityApplicationManagementException {
 
         List<String> validationErrors = new ArrayList<>();
+        validateApplicationVersion(validationErrors, serviceProvider);
         validateDiscoverabilityConfigs(validationErrors, serviceProvider);
         validateInboundAuthenticationConfig(serviceProvider.getInboundAuthenticationConfig(), tenantDomain,
                 serviceProvider.getApplicationID());
@@ -124,6 +138,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 tenantDomain);
         validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(),
                 tenantDomain);
+        validateTrustedAppMetadata(validationErrors, serviceProvider);
         validateOutBoundProvisioning(validationErrors, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(validationErrors, serviceProvider.getClaimConfig(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null ? serviceProvider
@@ -136,6 +151,22 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
 
         return validationErrors;
+    }
+
+    /**
+     * Validating whether,
+     * 1. Application version is a valid version.
+     * 2. Application version is not any lesser than the applicable latest versions.
+     *
+     * @param validationErrors List of validation errors.
+     * @param serviceProvider  Service provider.
+     */
+    private void validateApplicationVersion(List<String> validationErrors, ServiceProvider serviceProvider) {
+
+        if (Stream.of(ApplicationConstants.ApplicationVersion.ApplicationVersions.values())
+                .noneMatch(v -> v.getValue().equals(serviceProvider.getApplicationVersion()))) {
+            validationErrors.add("Invalid application version: " + serviceProvider.getApplicationVersion());
+        }
     }
 
     private void validateDiscoverabilityConfigs(List<String> validationErrors,
@@ -302,6 +333,46 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, config.getName()));
                 }
             }
+        }
+    }
+
+    /**
+     * Validate trusted app related configurations and append to the validation msg list.
+     *
+     * @param validationMsg   validation error messages.
+     * @param serviceProvider service provider.
+     */
+    private void validateTrustedAppMetadata(List<String> validationMsg, ServiceProvider serviceProvider) {
+
+        SpTrustedAppMetadata trustedAppMetadata = serviceProvider.getTrustedAppMetadata();
+        if (trustedAppMetadata == null) {
+            return;
+        }
+
+        // Validate if feature is enabled without data.
+        if (trustedAppMetadata.getIsFidoTrusted() && StringUtils.isBlank(trustedAppMetadata.getAndroidPackageName()) &&
+                StringUtils.isBlank(trustedAppMetadata.getAppleAppId())) {
+            validationMsg.add(TRUSTED_APP_FEATURE_ENABLED_WITHOUT_DATA);
+        }
+
+        // Validate the android thumbprints count.
+        if (ArrayUtils.isNotEmpty(trustedAppMetadata.getAndroidThumbprints()) &&
+                trustedAppMetadata.getAndroidThumbprints().length > getTrustedAppMaxThumbprintCount()) {
+                validationMsg.add(MAX_THUMBPRINT_COUNT_EXCEEDED);
+        }
+
+        // Validate consent for trusted apps.
+        if ((ApplicationMgtUtil.isTrustedAppConsentRequired() && trustedAppMetadata.getIsFidoTrusted()) &&
+                !trustedAppMetadata.getIsConsentGranted()) {
+            validationMsg.add(TRUSTED_APP_NOT_CONSENTED);
+        }
+
+        // Validate the android app details.
+        if ((StringUtils.isNotBlank(trustedAppMetadata.getAndroidPackageName()) &&
+                ArrayUtils.isEmpty(trustedAppMetadata.getAndroidThumbprints())) ||
+                (StringUtils.isBlank(trustedAppMetadata.getAndroidPackageName()) &&
+                        ArrayUtils.isNotEmpty(trustedAppMetadata.getAndroidThumbprints()))) {
+            validationMsg.add(INCORRECT_TRUSTED_ANDROID_APP_DETAILS);
         }
     }
 
@@ -528,5 +599,14 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig() != null;
+    }
+
+    private int getTrustedAppMaxThumbprintCount() {
+
+        String thumbprintCount = IdentityUtil.getProperty(TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY);
+        if (thumbprintCount != null) {
+            return Integer.parseInt(thumbprintCount);
+        }
+        return DEFAULT_MAX_ANDROID_THUMBPRINT_COUNT;
     }
 }

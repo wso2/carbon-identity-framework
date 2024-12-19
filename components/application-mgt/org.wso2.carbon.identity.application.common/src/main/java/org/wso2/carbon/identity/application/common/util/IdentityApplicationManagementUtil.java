@@ -102,6 +102,8 @@ public class IdentityApplicationManagementUtil {
     private static final int MODE_MULTI_LINE = 5;
     private static final Pattern JS_LOOP_PATTERN = Pattern.compile("\\b(for|while|forEach)\\b");
 
+    private static ThreadLocal<Boolean> allowUpdateSystemApplicationThreadLocal = new ThreadLocal<>();
+
     static {
         //initialize xmlSignatureAlgorithms
         Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<>();
@@ -298,7 +300,7 @@ public class IdentityApplicationManagementUtil {
 
         if (uriString != null) {
             try {
-                URL url = new URL(uriString);
+                new URL(uriString);
             } catch (MalformedURLException e) {
                 log.debug(e.getMessage(), e);
                 return false;
@@ -415,7 +417,13 @@ public class IdentityApplicationManagementUtil {
 
         if (encodedCert != null) {
             MessageDigest digestValue = null;
-            digestValue = MessageDigest.getInstance("SHA-256");
+            String algorithm;
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.CERT_THUMBPRINT_ENABLE_SHA256))) {
+                algorithm = "SHA-256";
+            } else {
+                algorithm = "SHA-1";
+            }
+            digestValue = MessageDigest.getInstance(algorithm);
             byte[] der = Base64.decode(encodedCert);
             digestValue.update(der);
             byte[] digestInBytes = digestValue.digest();
@@ -807,6 +815,7 @@ public class IdentityApplicationManagementUtil {
      * @return
      * @throws SignatureException
      */
+    @Deprecated
     public static String calculateHmacSha1(String key, String value) throws SignatureException {
         String result;
         try {
@@ -939,6 +948,25 @@ public class IdentityApplicationManagementUtil {
         return propValueSet;
     }
 
+    /**
+     * Get a list of property values for a given property name prefix.
+     *
+     * @param properties            Authenticator config properties to iterate with.
+     * @param propNameStartsWith    the prefix of the property name.
+     * @return the list of values which starts with the propNameStartsWith.
+     */
+    public static List<String> getPropertyValuesForNameStartsWith(Property[] properties, String propNameStartsWith) {
+
+        List<String> propValueSet = new ArrayList<>();
+        for (Property property : properties) {
+            if (property.getName().startsWith(propNameStartsWith)) {
+                propValueSet.add(property.getValue());
+            }
+        }
+
+        return propValueSet;
+    }
+
     public static String getPropertyValue(Property[] properties, String propertyName) {
 
         Property property = getProperty(properties, propertyName);
@@ -990,6 +1018,35 @@ public class IdentityApplicationManagementUtil {
         }
 
         return Boolean.parseBoolean(confAllowLoops);
+    }
+
+    /**
+     * Set updating system apps allowed for the current thread.
+     *
+     * @param isAllowUpdateSystem True if updating system apps is allowed.
+     */
+    public static void setAllowUpdateSystemApplicationThreadLocal(Boolean isAllowUpdateSystem) {
+
+        allowUpdateSystemApplicationThreadLocal.set(isAllowUpdateSystem);
+    }
+
+    /**
+     * Get updating system apps allowed for the current thread.
+     *
+     * @return True if updating system apps is allowed.
+     */
+    public static boolean getAllowUpdateSystemApplicationThreadLocal() {
+
+        return allowUpdateSystemApplicationThreadLocal.get() != null ?
+                allowUpdateSystemApplicationThreadLocal.get() : false;
+    }
+
+    /**
+     * Clear allow update system application thread local.
+     */
+    public static void removeAllowUpdateSystemApplicationThreadLocal() {
+
+        allowUpdateSystemApplicationThreadLocal.remove();
     }
 
     /**

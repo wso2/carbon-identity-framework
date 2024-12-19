@@ -1,0 +1,243 @@
+{
+    "create": {
+        "image": "assets/images/logos/facebook.svg",
+        "header": "Facebook",
+        "Subheading": "Enable login for users with existing Facebook accounts",
+        "documentation": "",
+        "modal": {
+            "form": {
+                "fields": [
+                    {
+                        "index": 0,
+                        "ariaLabel": "Facebook IDP Name",
+                        "name": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Enter a name for the connection.",
+                        "initialValue": "Facebook",
+                        "data-testid": "facebook-idp-create-wizard-content-idp-name",
+                        "maxLength": "50",
+                        "minLength": "3",
+                        "width": "13"
+                    },
+                    {
+                        "index": 1,
+                        "ariaLabel": "Facebook Client ID", 
+                        "type": "text", 
+                        "name": "clientId", 
+                        "label": "App ID",
+                        "placeholder": "Enter App ID from Facebook application.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "facebook-idp-create-wizard-content-idp-client-id",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                        
+                    },
+                    {
+                        "index": 2,
+                        "ariaLabel": "Facebook Client Secret",
+                        "className": "addon-field-wrapper",
+                        "type": "password",
+                        "name": "clientSecret", 
+                        "label": "App secret",
+                        "placeholder": "Enter App secret from Facebook application.",
+                        "required": true, 
+                        "autoComplete": true,
+                        "data-testid": "facebook-idp-create-wizard-content-idp-client-secret",
+                        "maxLength": "100",
+                        "minLength": "3",
+                        "width": "13"
+                    }
+                ]
+                
+            },
+            "wizardHelp": {
+                "message": {
+                    "copyInputFields": [
+                        {
+                            "description": "Use the following as the <strong>Site URL</strong>.",
+                            "value": "site_url"
+                        },
+                        {
+                            "description": "Add the following URL as a <strong>Valid OAuth Redirect URI</strong>.",
+                            "value": "redirect_uri"
+                        }
+                    ],
+                    "header": "Prerequisites",
+                    "paragraphs": [
+                        "Before you begin, create an <strong>application</strong> <a href=\"https://developers.facebook.com/\" target=\"_blank\" rel=\"noopener noreferrer\">on Facebook Developer Console</a>, and obtain a <strong>App ID & secret</strong>."
+                    ],
+                    "link": {
+                        "text": "See Facebooks's guide on configuring apps.",
+                        "url": "https://developers.facebook.com/docs/development/create-an-app"
+                    }
+                },
+                "fields": [
+                    {
+                        "fieldName": "Name",
+                        "hint": "Provide a unique name for the connection."
+                    },
+                    {
+                        "fieldName": "App ID",
+                        "hint": "Provide the <Code class=\"inline-code\">App ID</Code> you received from Facebook when you registered the OAuth app."
+                    },
+                    {
+                        "fieldName": "App secret",
+                        "hint": "Provide the <Code class=\"inline-code\">App secret</Code> you received from Facebook when you registered the OAuth app."
+                    }
+                ]
+            }
+        },
+        "properties": [
+            {
+                "key": "ClientId",
+                "value": ""
+            },
+            {
+                "key": "ClientSecret",
+                "value": ""
+            },
+            {
+                "key": "callBackUrl",
+                "value": "/commonauth"
+            },
+            {
+                "key": "Scope",
+                "value": "email,public_profile"
+            },
+            {
+                "key": "UserInfoFields",
+                "value": "id,name,gender,email,first_name,last_name,age_range,link"
+            }
+        ]
+    },
+    "edit" : {
+        "tabs": {
+            "general" : [
+                {
+                    "index": 0,
+                    "displayOrder" : 1,
+                    "ariaLabel": "name", 
+                    "inputType": "resource_name",
+                    "type": "text",
+                    "name": "name",
+                    "label": "Name",
+                    "required": true ,
+                    "message": "Identity Provider name is required",
+                    "placeholder": "Facebook",
+                    "validation": true,
+                    "value": "",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "data-testid": "idp-edit-page-general-settings-form-idp-name",
+                    "hint": "Enter a unique name for this connection.",
+                    "readOnly": false
+                },
+                {
+                    "index": 1,
+                    "displayOrder" : 2,
+                    "type": "textarea", 
+                    "name" : "description",
+                    "ariaLabel" : "description",
+                    "label" : "Description",
+                    "required": false,
+                    "placeholder": "Enter a description of the identity provider.",
+                    "value": "",
+                    "data-testid": "idp-edit-page-general-settings-form-idp-description",
+                    "maxLength": "300",
+                    "minLength": "3",
+                    "hint": "A text description of the identity provider.",
+                    "readOnly": false
+                },
+                {
+                    "index": 2,
+                    "displayOrder" : 3,
+                    "name": "jwks_endpoint",
+                    "ariaLabel": "JWKS Endpoint URL",
+                    "inputType": "url",
+                    "type": "text",
+                    "label": "JWKS Endpoint URL",
+                    "required": true,
+                    "placeholder": "https://{ oauth-provider-url }/oauth/jwks",
+                    "value": "",
+                    "data-testid": "",
+                    "maxLength": "2048",
+                    "minLength": "10",
+                    "hint": "A JSON Web Key (JWK) Set is a JSON object that represents a set of JWKs. The JSON object MUST have a keys member, with its value being an array of JWKs.",
+                    "readOnly": false
+                },
+                {
+                    "index": 3,
+                    "displayOrder" : 4,
+                    "type": "certbox",
+                    "isJWKSEnabled": "",
+                    "isReadOnly": "",
+                    "editingIDP": "",
+                    "onUpdate": "",
+                    "isPEMEnabled": ""
+                }
+            ],
+            "settings" : [
+                {
+                    "index": 0,
+                    "displayOrder" : 5,
+                    "ariaLabel": "Facebook authenticator client ID",
+                    "inputType": "default",
+                    "name": "ClientId",
+                    "label": "App ID",
+                    "placeholder": "Enter App ID from Facebook application.",
+                    "hint": "The generated unique ID which is generated when the Facebook OAuth app is created.",
+                    "required": true,
+                    "readOnly": false,
+                    "value": "",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-FacebookAuthenticator-content-client-id"
+                },
+                {
+                    "index": 1,
+                    "displayOrder" : 6,
+                    "ariaLabel": "Facebook authenticator client secret",
+                    "className": "addon-field-wrapper",
+                    "inputType": "password",
+                    "type": "password",
+                    "name": "ClientSecret",
+                    "label": "App secret",
+                    "placeholder": "Enter App secret from Facebook application.",
+                    "hint": "The App secret  value of the Facebook OAuth app.",
+                    "required": true,
+                    "readOnly": false,
+                    "value": "",
+                    "maxLength": "50",
+                    "minLength": "3",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-FacebookAuthenticator-content-client-secret"
+                },
+                {
+                    "index": 2,
+                    "displayOrder" : 7,
+                    "type": "text",
+                    "ariaLabel": "Facebook authenticator authorized redirect URL",
+                    "inputType": "copy_input",
+                    "name": "callBackUrl",
+                    "label": "Valid OAuth redirect URI",
+                    "placeholder": "",
+                    "hint": "The redirect URI specified as valid in the Facebook OAuth app.",
+                    "required": "",
+                    "value": "",
+                    "readOnly": true,
+                    "maxLength": "",
+                    "minLength": "",
+                    "width": "16",
+                    "data-testid": "idp-edit-page-authenticator-settings-FacebookAuthenticator-content-authorized-redirect-url-wrapper"
+                }
+            ],
+            "quickStart": "facebook"
+        }
+        
+    }
+}

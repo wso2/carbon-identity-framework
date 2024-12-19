@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -58,6 +58,7 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_CREDENTIAL= "POST_UPDATE_CREDENTIAL";
         public static final String PRE_UPDATE_CREDENTIAL_BY_ADMIN= "PRE_UPDATE_CREDENTIAL_BY_ADMIN";
         public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN= "POST_UPDATE_CREDENTIAL_BY_ADMIN";
+        public static final String POST_UPDATE_CREDENTIAL_BY_SCIM= "POST_UPDATE_CREDENTIAL_BY_SCIM";
         public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
         public static final String POST_DELETE_USER= "POST_DELETE_USER";
         public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
@@ -225,6 +226,93 @@ public class IdentityEventConstants {
         // Loggers related events.
         public static final String PUBLISH_AUDIT_LOG = "PUBLISH_AUDIT_LOG";
         public static final String PUBLISH_DIAGNOSTIC_LOG = "PUBLISH_DIAGNOSTIC_LOG";
+
+        // Role-Mgt V2 events
+        public static final String PRE_ADD_ROLE_V2_EVENT = "PRE_ADD_ROLE_V2_EVENT";
+        public static final String POST_ADD_ROLE_V2_EVENT = "POST_ADD_ROLE_V2_EVENT";
+        public static final String PRE_GET_ROLES_V2_EVENT = "PRE_GET_ROLES_V2_EVENT";
+        public static final String POST_GET_ROLES_V2_EVENT = "POST_GET_ROLES_V2_EVENT";
+        public static final String PRE_GET_ROLES_V2_COUNT_EVENT = "PRE_GET_ROLES_V2_COUNT_EVENT";
+        public static final String POST_GET_ROLES_V2_COUNT_EVENT = "POST_GET_ROLES_V2_COUNT_EVENT";
+        public static final String PRE_GET_ROLES_V2_FILTERED_COUNT_EVENT = "PRE_GET_ROLES_V2_COUNT_EVENT";
+        public static final String POST_GET_ROLES_V2_FILTERED_COUNT_EVENT = "POST_GET_ROLES_V2_COUNT_EVENT";
+        public static final String PRE_GET_ROLE_V2_EVENT = "PRE_GET_ROLE_V2_EVENT";
+        public static final String POST_GET_ROLE_V2_EVENT = "POST_GET_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_ROLE_V2_NAME_EVENT = "PRE_UPDATE_ROLE_V2_NAME_EVENT";
+        public static final String POST_UPDATE_ROLE_V2_NAME_EVENT = "POST_UPDATE_ROLE_V2_NAME_EVENT";
+        public static final String PRE_DELETE_ROLE_V2_EVENT = "PRE_DELETE_ROLE_V2_EVENT";
+        public static final String POST_DELETE_ROLE_V2_EVENT = "POST_DELETE_ROLE_V2_EVENT";
+        public static final String PRE_GET_USER_LIST_OF_ROLE_V2_EVENT = "PRE_GET_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_GET_USER_LIST_OF_ROLE_V2_EVENT = "POST_GET_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_USER_LIST_OF_ROLE_V2_EVENT = "PRE_UPDATE_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_USER_LIST_OF_ROLE_V2_EVENT = "POST_UPDATE_USER_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_GET_GROUP_LIST_OF_ROLES_V2_EVENT = "PRE_GET_GROUP_LIST_OF_ROLES_V2_EVENT";
+        public static final String POST_GET_GROUP_LIST_OF_ROLES_V2_EVENT = "POST_GET_GROUP_LIST_OF_ROLES_V2_EVENT";
+        public static final String PRE_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT = "PRE_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT =
+                "PRE_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT =
+                "POST_UPDATE_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT =
+                "POST_UPDATE_IDP_GROUP_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT =
+                "PRE_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
+        public static final String POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT =
+                "POST_GET_PERMISSION_LIST_OF_ROLE_V2_EVENT";
+        public static final String PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT =
+                "PRE_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+        public static final String POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT =
+                "POST_UPDATE_PERMISSIONS_FOR_ROLE_V2_EVENT";
+        public static final String PRE_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT =
+                "PRE_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT";
+        public static final String POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT =
+                "POST_ADD_MAIN_ROLE_TO_SHARED_ROLE_RELATIONSHIP_V2_EVENT";
+
+        public static final String POST_APP_USER_ATTRIBUTE_UPDATE = "POST_APP_USER_ATTRIBUTE_UPDATE";
+
+        // API Resource Management events.
+        public static final String PRE_ADD_API_RESOURCE = "PRE_ADD_API_RESOURCE";
+
+        public static final String POST_ADD_API_RESOURCE = "POST_ADD_API_RESOURCE";
+
+        public static final String PRE_DELETE_API_RESOURCE = "PRE_DELETE_API_RESOURCE";
+
+        public static final String POST_DELETE_API_RESOURCE = "POST_DELETE_API_RESOURCE";
+
+        public static final String PRE_UPDATE_API_RESOURCE = "PRE_UPDATE_API_RESOURCE";
+
+        public static final String POST_UPDATE_API_RESOURCE = "POST_UPDATE_API_RESOURCE";
+
+        public static final String PRE_UPDATE_SCOPE_METADATA = "PRE_UPDATE_SCOPE_METADATA";
+
+        public static final String POST_UPDATE_SCOPE_METADATA = "POST_UPDATE_SCOPE_METADATA";
+
+        public static final String PRE_DELETE_API_RESOURCE_SCOPES = "PRE_DELETE_API_RESOURCE_SCOPES";
+
+        public static final String POST_DELETE_API_RESOURCE_SCOPES = "POST_DELETE_API_RESOURCE_SCOPES";
+
+        public static final String PRE_DELETE_SCOPE = "PRE_DELETE_SCOPE";
+
+        public static final String POST_DELETE_SCOPE = "POST_DELETE_SCOPE";
+
+        public static final String PRE_PUT_API_RESOURCE_SCOPES = "PRE_PUT_API_RESOURCE_SCOPES";
+
+        public static final String POST_PUT_API_RESOURCE_SCOPES = "POST_PUT_API_RESOURCE_SCOPES";
+
+        // Application Authorized API
+        public static final String PRE_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "PRE_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "POST_ADD_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "PRE_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+        public static final String POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT =
+                "POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT";
+
     }
 
     /**
@@ -252,6 +340,8 @@ public class IdentityEventConstants {
         public static final String USER_NAME = "user-name";
         public static final String ROLE_NAME = "role-name";
         public static final String ROLE_ID = "role-id";
+        public static final String SHARED_ROLE_ID = "shared-role-id";
+        public static final String SHARED_ROLE_TENANT_DOMAIN = "shared-role-tenant-domain";
         public static final String USER_STORE_DOMAIN = "userstore-domain";
         public static final String CONFIRMATION_CODE = "confirmation-code";
         public static final String TEMPORARY_PASSWORD = "temporary-password";
@@ -259,6 +349,7 @@ public class IdentityEventConstants {
         public static final String IDENTITY_MGT_CONFIG = "identityMgtConfig";
         public static final String TENANT_ID = "tenantId";
         public static final String TENANT_DOMAIN = "tenant-domain";
+        public static final String APPLICATION_DOMAIN = "application-domain";
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
         public static final String OPERATION_DESCRIPTION = "OPERATION_DESCRIPTION";
         public static final String USER_STORE_MANAGER = "userStoreManager";
@@ -274,6 +365,8 @@ public class IdentityEventConstants {
         public static final String CLAIM_VALUE = "CLAIM_VALUE";
         public static final String USER_LIST = "USER_LIST";
         public static final String PERMISSIONS = "PERMISSIONS";
+        public static final String ADDED_PERMISSIONS = "ADDED_PERMISSIONS";
+        public static final String DELETED_PERMISSIONS = "DELETED_PERMISSIONS";
         public static final String OLD_CREDENTIAL = "OLD_CREDENTIAL";
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
         public static final String DELETED_USERS = "DELETED_USERS";
@@ -302,6 +395,7 @@ public class IdentityEventConstants {
         public static final String SORT_ORDER = "SORT_ORDER";
         public static final String USER = "USER";
         public static final String FILTER = "FILTER";
+        public static final String SEARCH_FILTER = "SEARCH_FILTER";
         public static final String USER_CLAIM_SEARCH_ENTRIES = "USER_CLAIM_SEARCH_ENTRIES";
         public static final String LOGIN_IDENTIFIERS = "LOGIN_IDENTIFIERS";
         public static final String CONTEXT = "context";
@@ -320,6 +414,7 @@ public class IdentityEventConstants {
         public static final String UPDATED_DISABLED_STATUS = "updatedDisableStatus";
         public static final String CORRELATION_ID = "correlation-id";
         public static final String APPLICATION_NAME = "application-name";
+        public static final String SERVICE_PROVIDER_UUID = "serviceProviderUUID";
         public static final String APPLICATION_ID = "application-id";
         public static final String USER_AGENT = "user-agent";
         public static final String RESEND_CODE = "resend-code";
@@ -343,6 +438,33 @@ public class IdentityEventConstants {
         public static final String AUTHENTICATOR_NAME = "authenticatorName";
         public static final String MAPPED_ATTRIBUTES = "mappedAttributes";
         public static final String MAPPED_LOCAL_CLAIM_URI = "mappedLocalClaimUri";
+        public static final String AUDIENCE = "audience";
+        public static final String AUDIENCE_ID = "audienceId";
+
+        public static final String UPDATED_CLAIM_MAPPINGS = "updatedClaimMappings";
+        public static final String REQUIRED_ATTRIBUTES = "requiredAttributes";
+
+        // API Resource and Application Authorized API related event properties.
+        public static final String API_RESOURCE = "API_RESOURCE";
+        public static final String API_ID = "API_ID";
+        public static final String SCOPE_NAME = "SCOPE_NAME";
+        public static final String ADDED_SCOPES = "ADDED_SCOPES";
+        public static final String SCOPE = "SCOPE";
+        public static final String DELETED_SCOPES = "DELETED_SCOPES";
+        public static final String OLD_SCOPES = "OLD_SCOPES";
+        public static final String NEW_SCOPES = "NEW_SCOPES";
+        public static final String AUTHORIZED_API = "AUTHORIZED_API";
+
+        public static final String SCENARIO = "SCENARIO";
+
+        public class Scenario {
+
+            public class ScenarioTypes {
+
+                public static final String POST_CREDENTIAL_UPDATE_BY_ADMIN = "POST_CREDENTIAL_UPDATE_BY_ADMIN";
+                public static final String POST_CREDENTIAL_UPDATE_BY_USER = "POST_CREDENTIAL_UPDATE_BY_USER";
+            }
+        }
     }
 
     public class ErrorMessage {

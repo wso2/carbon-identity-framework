@@ -1,0 +1,41 @@
+{
+    "category": "DEFAULT",
+    "description": "A trusted token issuer to exchange its token for a token issued by {{productName}}",
+    "docLink": "/guides/authentication/configure-a-trusted-token-issuer/",
+    "displayOrder": 8,
+    "id": "trusted-token-issuer",
+    "tags": [ "Token-Issuer" ],
+    "idp": {
+        "certificate": {},
+        "claims": {
+            "provisioningClaims": [],
+            "roleClaim": {
+                "uri": ""
+            },
+            "userIdClaim": {
+                "uri": ""
+            }
+        },
+        "description": "",
+        "federatedAuthenticators": {
+            "defaultAuthenticatorId": "",
+            "authenticators": []
+        },
+        "homeRealmIdentifier": "",
+        "image": "",
+        "isFederationHub": false,
+        "isPrimary": false,
+        "name": "Trusted Token Issuer",
+        "idpIssuerName": "IDP issuer name",
+        "alias": "Alias",
+        "roles": {
+            "mappings": [],
+            "outboundProvisioningRoles": []
+        }
+    },
+    "image": "assets/images/icons/trusted-token-issuer.svg",
+    "name": "Trusted Token Issuer",
+    "services": [],
+    "disabled": false,
+    "templateId": "trusted-token-issuer"
+}

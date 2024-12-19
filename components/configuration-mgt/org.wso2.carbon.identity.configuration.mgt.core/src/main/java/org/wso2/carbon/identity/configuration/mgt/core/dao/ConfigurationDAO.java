@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.configuration.mgt.core.dao;
 
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.NotImplementedException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
@@ -312,4 +313,16 @@ public interface ConfigurationDAO {
      * @throws ConfigurationManagementException if an error occurs while validating the resourceId.
      */
     boolean isExistingResource(int tenantId, String resourceId) throws ConfigurationManagementException;
+
+    /**
+     * Delete all the resources by the given resource type in the given tenant.
+     *
+     * @param tenantId       Id of the tenant
+     * @param resourceTypeId Id of the {@link ResourceType}.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    default void deleteResourcesByType(int tenantId, String resourceTypeId) throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 }

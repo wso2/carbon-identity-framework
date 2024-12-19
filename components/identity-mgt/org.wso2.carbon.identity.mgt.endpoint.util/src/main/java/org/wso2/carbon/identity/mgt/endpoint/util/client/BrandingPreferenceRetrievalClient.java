@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,11 +29,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
+import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -48,9 +50,13 @@ public class BrandingPreferenceRetrievalClient {
     private static final String CLIENT = "Client ";
     private static final Log log = LogFactory.getLog(PreferenceRetrievalClient.class);
     private static final String BRANDING_PREFERENCE_API_RELATIVE_PATH = "/api/server/v1/branding-preference/resolve";
+    private static final String CUSTOM_TEXT_API_RELATIVE_PATH = "/api/server/v1/branding-preference/text/resolve";
     private static final String RESOURCE_TYPE_URL_SEARCH_PARAM = "type";
     private static final String RESOURCE_NAME_URL_SEARCH_PARAM = "name";
     private static final String RESOURCE_LOCALE_URL_SEARCH_PARAM = "locale";
+    private static final String RESOURCE_SCREEN_URL_SEARCH_PARAM = "screen";
+    private static final String RESTRICT_TO_PUBLISHED_URL_SEARCH_PARAM = "restrictToPublished";
+    private static final String TRUE = "true";
 
     /**
      * Check for branding preference in the given tenant.
@@ -65,7 +71,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getPreference(String tenant, String type, String name, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
 
             String uri = getBrandingPreferenceEndpoint(tenant);
 
@@ -84,10 +90,11 @@ public class BrandingPreferenceRetrievalClient {
                     uriBuilder.addParameter(RESOURCE_LOCALE_URL_SEARCH_PARAM, locale);
                 }
 
+                uriBuilder.addParameter(RESTRICT_TO_PUBLISHED_URL_SEARCH_PARAM, TRUE);
+                uri = uriBuilder.build().toString();
+
                 if (log.isDebugEnabled()) {
-                    log.debug("Preferences endpoint URI for tenant " + tenant
-                            + " was constructed with params - type : "
-                            + type + ", name :" + name + ", locale :" + locale);
+                    log.debug("Preferences endpoint URI with params for tenant " + tenant + " : " + uri);
                 }
             } catch (URISyntaxException e) {
                 if (log.isDebugEnabled()) {
@@ -125,6 +132,80 @@ public class BrandingPreferenceRetrievalClient {
     }
 
     /**
+     * Check for custom text preference in the given tenant.
+     *
+     * @param tenant Tenant Domain.
+     * @param type   Resource Type. ex: ORG, APP, etc.
+     * @param name   Resource Name. ex: Console, My Account, etc.
+     * @param screen Screen where the custom text needs to be applied. ex: Login, Recovery, etc.
+     * @param locale ISO language code of the resource. ex: en-US, pt-BR, etc.
+     * @return A JSON Object containing custom text preferences.
+     * @throws BrandingPreferenceRetrievalClientException If an error occurred while retrieving custom text preference.
+     */
+    public JSONObject getCustomTextPreference(String tenant, String type, String name, String screen, String locale)
+            throws BrandingPreferenceRetrievalClientException {
+
+        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+
+            String uri = getCustomTextPreferenceEndpoint(tenant);
+
+            try {
+                URIBuilder uriBuilder = new URIBuilder(uri);
+
+                if (StringUtils.isNotBlank(type)) {
+                    uriBuilder.addParameter(RESOURCE_TYPE_URL_SEARCH_PARAM, type);
+                }
+                if (StringUtils.isNotBlank(name)) {
+                    uriBuilder.addParameter(RESOURCE_NAME_URL_SEARCH_PARAM, name);
+                }
+                if (StringUtils.isNotBlank(screen)) {
+                    uriBuilder.addParameter(RESOURCE_SCREEN_URL_SEARCH_PARAM, screen);
+                }
+                if (StringUtils.isNotBlank(locale)) {
+                    uriBuilder.addParameter(RESOURCE_LOCALE_URL_SEARCH_PARAM, locale);
+                }
+                uri = uriBuilder.build().toString();
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Custom Text Preferences endpoint URI for tenant " + tenant
+                            + " was constructed with params - type : "
+                            + type + ", name :" + name + ", locale :" + locale);
+                }
+            } catch (URISyntaxException e) {
+                if (log.isDebugEnabled()) {
+                    String msg = "Error while building the custom text preference endpoint URI with params for : "
+                            + tenant + ". Falling back to default endpoint URI: " + uri;
+                    log.debug(msg, e);
+                }
+            }
+
+            HttpGet request = new HttpGet(uri);
+            setAuthorizationHeader(request);
+
+            JSONObject jsonResponse = new JSONObject();
+
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                }
+
+                return jsonResponse;
+            } finally {
+                request.releaseConnection();
+            }
+        } catch (IOException e) {
+            String msg = "Error while getting custom text preference for tenant : " + tenant;
+
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new BrandingPreferenceRetrievalClientException(msg, e);
+        }
+    }
+
+    /**
      * Get the tenant branding preferences endpoint.
      *
      * @param tenantDomain Tenant Domain.
@@ -135,6 +216,19 @@ public class BrandingPreferenceRetrievalClient {
             throws BrandingPreferenceRetrievalClientException {
 
         return getEndpoint(tenantDomain, BRANDING_PREFERENCE_API_RELATIVE_PATH);
+    }
+
+    /**
+     * Get the tenant custom text preferences endpoint.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @return A tenant qualified custom text endpoint.
+     * @throws BrandingPreferenceRetrievalClientException
+     */
+    private String getCustomTextPreferenceEndpoint(String tenantDomain)
+            throws BrandingPreferenceRetrievalClientException {
+
+        return getEndpoint(tenantDomain, CUSTOM_TEXT_API_RELATIVE_PATH);
     }
 
     /**
@@ -149,7 +243,16 @@ public class BrandingPreferenceRetrievalClient {
             throws BrandingPreferenceRetrievalClientException {
 
         try {
-            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            String brandingPreferenceURL = IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+            /* Branding preference retrieval API has exposed as an organization qualified API when accessing the
+               branding preferences of organizations. */
+            if (StringUtils.isNotEmpty(PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId()) &&
+                    brandingPreferenceURL != null &&
+                    brandingPreferenceURL.contains(FrameworkConstants.TENANT_CONTEXT_PREFIX)) {
+                brandingPreferenceURL = brandingPreferenceURL.replace(FrameworkConstants.TENANT_CONTEXT_PREFIX,
+                        FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX);
+            }
+            return brandingPreferenceURL;
         } catch (ApiException e) {
             throw new BrandingPreferenceRetrievalClientException("Error while building url for context: " + context);
         }

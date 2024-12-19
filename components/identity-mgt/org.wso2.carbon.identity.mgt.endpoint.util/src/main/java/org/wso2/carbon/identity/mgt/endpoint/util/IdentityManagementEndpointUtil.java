@@ -24,6 +24,7 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,8 +34,10 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -88,6 +91,7 @@ public class IdentityManagementEndpointUtil {
     public static final String PADDING_CHAR = "=";
     public static final String UNDERSCORE = "_";
     public static final String SPLITTING_CHAR = "&";
+    public static final String FRAGMENT_CHAR = "#";
     public static final String PII_CATEGORIES = "piiCategories";
     public static final String PII_CATEGORY = "piiCategory";
     public static final String PURPOSES = "purposes";
@@ -186,9 +190,15 @@ public class IdentityManagementEndpointUtil {
         try {
             if (StringUtils.isNotEmpty(tenantDomain)) {
                 ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+                String myAccountAccessUrl;
                 try {
-                    String myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
-                            My_ACCOUNT_APPLICATION_NAME);
+                    if (CarbonConstants.ENABLE_LEGACY_AUTHZ_RUNTIME) {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    } else {
+                        myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(tenantDomain,
+                                My_ACCOUNT_APPLICATION_NAME);
+                    }
                     if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
                         return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
                     }
@@ -224,6 +234,29 @@ public class IdentityManagementEndpointUtil {
         }
         return url.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
                 .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
+    }
+
+    /**
+     * Replace the ${organizationIdHint} placeholder in the url with the organization id.
+     *
+     * @param url URL.
+     * @param orgId Organization id.
+     * @return The value replaced url.
+     */
+    public static String getOrganizationIdHintReplacedURL(String url, String orgId) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        if (StringUtils.isNotBlank(orgId)) {
+            return url.replaceAll(Pattern.quote(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER),
+                    orgId);
+        }
+        return url.replaceAll(Pattern.quote(IdentityManagementEndpointConstants.ORGANIZATION_ID_HINT_PLACE_HOLDER),
+                StringUtils.EMPTY);
     }
 
     /**
@@ -454,14 +487,19 @@ public class IdentityManagementEndpointUtil {
      */
     public static String i18nBase64(ResourceBundle resourceBundle, String key) {
 
-        String base64Key = Base64.encode(key.getBytes(StandardCharsets.UTF_8)).replaceAll(PADDING_CHAR, UNDERSCORE);
+        /*
+        If the key is encoded already, before encoding (avoid double encoding) it within this method,
+        Unescapes an HTML string to a string containing the actual Unicode characters corresponding to the escapes.
+         */
+        String unescapedKey = StringEscapeUtils.unescapeHtml(key);
+        String base64Key = Base64.encode(unescapedKey.getBytes(StandardCharsets.UTF_8)).replaceAll(PADDING_CHAR, UNDERSCORE);
         try {
             return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(base64Key)) ?
-                    resourceBundle.getString(base64Key) : key));
+                    resourceBundle.getString(base64Key) : unescapedKey));
         } catch (Exception e) {
             // Intentionally catching Exception and if something goes wrong while finding the value for key, return
             // default, not to break the UI
-            return Encode.forHtml(key);
+            return Encode.forHtml(unescapedKey);
         }
     }
 
@@ -521,6 +559,7 @@ public class IdentityManagementEndpointUtil {
     /**
      * Encode query params of the call back url. Method supports all URL formats supported in
      * {@link #getURLEncodedCallback(String)} and URLs containing spaces
+     * NOTE: This method will not support URLs that contain a fragment part.
      *
      * @param callbackUrl callback url from the request.
      * @return encoded callback url.
@@ -531,7 +570,24 @@ public class IdentityManagementEndpointUtil {
         URL url = new URL(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
-        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
+
+        /*
+         * If the given URL contains query parameters that include a `#` symbol,
+         * the URL class will store the content after the `#` in the `ref` field.
+         * This logic checks if both query parameters and the `ref` field exist,
+         * and if so, appends the `ref` part, prefixed with a `#`, to the query
+         * parameters.
+         */
+        StringBuilder queryParams = new StringBuilder();
+        if (StringUtils.isNotBlank(url.getQuery())) {
+            queryParams.append(url.getQuery());
+            if (StringUtils.isNotBlank(url.getRef())) {
+                queryParams.append(FRAGMENT_CHAR);
+                queryParams.append(url.getRef());
+            }
+        }
+
+        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(queryParams.toString());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
             encodedCallbackUrl.append("?");
@@ -772,6 +828,12 @@ public class IdentityManagementEndpointUtil {
                 if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                     basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
                             .getAbsoluteInternalURL();
+                    if (basePath != null && basePath.contains(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX)) {
+                    /* Resolving tenant domain from organization ID is not provided by an API. Hence, the retrieval
+                       client will have to assume organization ID is same as tenant domain. */
+                    basePath = basePath.replace(FrameworkConstants.ORGANIZATION_CONTEXT_PREFIX,
+                                FrameworkConstants.TENANT_CONTEXT_PREFIX);
+                    }
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
                     if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME

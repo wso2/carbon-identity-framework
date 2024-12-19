@@ -39,6 +39,8 @@ import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.Map;
+
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS;
 
 public class IdPManagementUtil {
@@ -272,5 +274,95 @@ public class IdPManagementUtil {
             message = error.getMessage();
         }
         return message;
+    }
+
+    /**
+     * This method is used to validate the password recovery property values.
+     *
+     * @param configurationDetails Configuration updates for governance configuration.
+     */
+    public static void validatePasswordRecoveryPropertyValues(Map<String, String> configurationDetails)
+            throws IdentityProviderManagementClientException {
+
+        if (configurationDetails.containsKey(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
+                configurationDetails.containsKey(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
+            // Perform process only if notification based password recovery connector or options are updated.
+            String recNotPwProp = configurationDetails.get(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
+            String emailLinkPwRecProp = configurationDetails.get(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String smsOtpPwRecProp = configurationDetails.get(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
+            boolean recoveryNotificationPasswordProperty = Boolean.parseBoolean(recNotPwProp);
+            boolean smsOtpPasswordRecoveryProperty = Boolean.parseBoolean(emailLinkPwRecProp);
+            boolean emailLinkPasswordRecoveryProperty = Boolean.parseBoolean(smsOtpPwRecProp);
+
+            if (recoveryNotificationPasswordProperty &&
+                    StringUtils.isNotBlank(emailLinkPwRecProp) && !emailLinkPasswordRecoveryProperty &&
+                    StringUtils.isNotBlank(smsOtpPwRecProp) && !smsOtpPasswordRecoveryProperty) {
+                // Disabling all recovery options when recovery connector is enabled is not allowed.
+                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
+                // this behaviour.
+                throw IdPManagementUtil
+                        .handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                                "Disabling all recovery options when recovery connector is enabled, is not allowed.");
+            }
+            if (StringUtils.isNotBlank(recNotPwProp) && !recoveryNotificationPasswordProperty &&
+                    (emailLinkPasswordRecoveryProperty || smsOtpPasswordRecoveryProperty)) {
+                // Enabling any recovery options when connector is disabled is not allowed.
+                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
+                // this behaviour.
+                throw IdPManagementUtil
+                        .handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                                "Enabling recovery options when connector is disabled, is not allowed.");
+            }
+        }
+    }
+
+    /**
+     * This method is used to validate the username recovery property values.
+     *
+     * @param configurationDetails Configuration updates for governance configuration.
+     */
+    public static void validateUsernameRecoveryPropertyValues(Map<String, String> configurationDetails)
+            throws IdentityProviderManagementClientException {
+
+        if (configurationDetails.containsKey(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY)) {
+            // Perform process only if notification based username recovery connector or options are updated.
+            String usernameRecoveryProp = configurationDetails.get(IdPManagementConstants.USERNAME_RECOVERY_PROPERTY);
+            String usernameRecoveryEmailProp =
+                    configurationDetails.get(IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY);
+            String usernameRecoverySmsProp =
+                    configurationDetails.get(IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY);
+
+            boolean usernameRecoveryProperty = Boolean.parseBoolean(usernameRecoveryProp);
+            boolean usernameRecoveryEmailProperty = Boolean.parseBoolean(usernameRecoveryEmailProp);
+            boolean usernameRecoverySmsProperty = Boolean.parseBoolean(usernameRecoverySmsProp);
+
+            if (usernameRecoveryProperty &&
+                    StringUtils.isNotBlank(usernameRecoveryEmailProp) && !usernameRecoveryEmailProperty &&
+                    StringUtils.isNotBlank(usernameRecoverySmsProp) && !usernameRecoverySmsProperty) {
+                // Disabling all recovery options when recovery connector is enabled is not allowed.
+                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
+                // this behaviour.
+                throw IdPManagementUtil
+                        .handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                                "Disabling all recovery options when recovery connector is enabled, is not allowed.");
+
+            }
+            if (StringUtils.isNotBlank(usernameRecoveryProp) && !usernameRecoveryProperty &&
+                    (usernameRecoveryEmailProperty || usernameRecoverySmsProperty)) {
+                // Enabling any recovery options when connector is disabled is not allowed.
+                // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
+                // this behaviour.
+                throw IdPManagementUtil
+                        .handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
+                                "Enabling recovery options when connector is disabled, is not allowed.");
+            }
+        }
     }
 }

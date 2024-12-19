@@ -1,0 +1,10 @@
+{
+    "id": "google-idp",
+    "name": "Google",
+    "description": "Login users with existing Google accounts.",
+    "image": "assets/images/logos/google.svg",
+    "category": "DEFAULT",
+    "displayOrder": 1,
+    "tags": [ "Social-Login", "APIAuth" ],
+    "type": "identity-provider"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 
 import java.util.Map;
@@ -32,7 +33,7 @@ import java.util.Map;
  */
 public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implements JsBaseParameters {
 
-    private static final Log LOG = LogFactory.getLog(JsParameters.class);
+    protected static final Log LOG = LogFactory.getLog(JsParameters.class);
 
     public JsParameters(Map wrapped) {
 
@@ -42,7 +43,17 @@ public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implemen
     @Override
     public Object getMember(String name) {
 
-        return getWrapped().get(name);
+        Object member = getWrapped().get(name);
+        if (member instanceof Map) {
+            return JsWrapperFactoryProvider.getInstance().getWrapperFactory()
+                    .createJsParameters((Map) member);
+        }
+        return member;
+    }
+
+    public Object getMemberKeys() {
+
+        return getWrapped().keySet().toArray();
     }
 
     @Override
@@ -56,5 +67,10 @@ public abstract class JsParameters extends AbstractJSObjectWrapper<Map> implemen
 
         LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + name + " to value: "
                 + value);
+    }
+
+    public void removeMemberObject(String name) {
+
+        getWrapped().remove(name);
     }
 }

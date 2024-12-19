@@ -35,14 +35,19 @@ public class IdentityCoreConstants {
     public static final String PORTS_OFFSET = "Ports.Offset";
 
     public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
-    public static final String ENABLE_TENANT_QUALIFIED_URLS = "EnableTenantQualifiedUrls";
-    public static final String ENABLE_TENANTED_SESSIONS = "EnableTenantedSessions";
+    public static final String ENABLE_TENANT_QUALIFIED_URLS = "TenantContext.TenantQualifiedUrls.Enable";
+    public static final String REQUIRED_SUPER_TENANT_IN_URLS =
+            "TenantContext.TenantQualifiedUrls.RequireSuperTenantInUrls";
+    public static final String APPEND_SUPER_TENANT_IN_COOKIE_PATH =
+            "TenantContext.TenantQualifiedUrls.AppendSuperTenantInCookiePath";
+    public static final String ENABLE_TENANTED_SESSIONS = "TenantContext.TenantQualifiedUrls.EnableTenantedSessions";
     public static final String PROXY_CONTEXT_PATH = "ProxyContextPath";
     public static final int DEFAULT_HTTPS_PORT = 443;
     public static final String UTF_8 = "UTF-8";
     public static final String UTC = "UTC";
     public static final int EVENT_LISTENER_ORDER_ID = -1;
     public static final String ENABLE_LEGACY_SAAS_AUTHENTICATION = "EnableLegacySaaSAuthentication";
+    public static final String SUPER_TENANT_ALIAS_IN_PUBLIC_URL = "SuperTenantAliasInPublicUrl";
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
     public static final String USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS = "UseCaseSensitiveUsernameForCacheKeys";
@@ -85,8 +90,10 @@ public class IdentityCoreConstants {
     // Pagination constants.
     public static final int DEFAULT_MAXIMUM_ITEMS_PRE_PAGE = 100;
     public static final int DEFAULT_ITEMS_PRE_PAGE = 15;
+    public static final int USERS_LIST_PER_ROLE_LOWER_BOUND = 1000;
     public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
     public static final String DEFAULT_ITEMS_PRE_PAGE_PROPERTY = "DefaultItemsPerPage";
+    public static final String MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY = "MaximumUsersListPerRole";
 
     //DB constants
     public static final String H2 = "H2";
@@ -98,6 +105,14 @@ public class IdentityCoreConstants {
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";
     public static final String S_MICROSOFT = "microsoft";
+
+    // SCIM2 constants.
+    public static final String SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED = "SCIM2.UserEndpointMaxItemsPerPageEnabled";
+
+    // Actions constants.
+    public static final String MAXIMUM_ACTIONS_PER_TYPE_PROPERTY = "Actions.MaximumActionsPerType";
+    
+    public static final int DEFAULT_MAXIMUM_ACTIONS_PER_TYPE = 1;
 
     public static class Filter {
 

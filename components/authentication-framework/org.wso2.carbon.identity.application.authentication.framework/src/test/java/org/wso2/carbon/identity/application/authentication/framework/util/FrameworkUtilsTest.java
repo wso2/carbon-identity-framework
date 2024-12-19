@@ -19,10 +19,11 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.annotations.BeforeTest;
+import org.mockito.MockedStatic;
+import org.mockito.testng.MockitoTestNGListener;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -37,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -58,15 +60,19 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
-import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
+import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
@@ -79,24 +85,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 @WithCarbonHome
-@PrepareForTest({SameSiteCookie.class, SessionContextCache.class, AuthenticationResultCache.class,
-        AuthenticationContextCache.class, IdentityTenantUtil.class})
-@PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
-public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
+@Listeners(MockitoTestNGListener.class)
+public class FrameworkUtilsTest extends IdentityBaseTest {
 
     private static final String ROOT_DOMAIN = "/";
     private static final String DUMMY_TENANT_DOMAIN = "ABC";
@@ -127,10 +132,22 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Mock
     AuthenticationContextCache mockedAuthenticationContextCache;
 
+    @Mock
+    private IdentityProviderManager mockedIdentityProviderManager;
+
+    @Mock
+    private IdentityProvider mockedIdentityProvider;
+
+    @Mock
+    private ClaimConfig mockedClaimConfig;
+
+    @Mock
+    private ClaimMapping mockedClaimMapping;
+
     @Captor
     ArgumentCaptor<Cookie> cookieCaptor;
 
-    @BeforeTest
+    @BeforeClass
     public void setFrameworkServiceComponent() {
 
         FrameworkServiceComponent.getAuthenticators().clear();
@@ -328,20 +345,23 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Test
     public void getAddAuthenticationContextToCache() {
 
-        mockStatic(AuthenticationContextCache.class);
-        when(AuthenticationContextCache.getInstance()).thenReturn(mockedAuthenticationContextCache);
-        String contextId = "CONTEXT-ID";
+        try (MockedStatic<AuthenticationContextCache> authenticationContextCache =
+                mockStatic(AuthenticationContextCache.class)) {
+            authenticationContextCache.when(
+                    AuthenticationContextCache::getInstance).thenReturn(mockedAuthenticationContextCache);
+            String contextId = "CONTEXT-ID";
 
-        FrameworkUtils.addAuthenticationContextToCache(contextId, authenticationContext);
+            FrameworkUtils.addAuthenticationContextToCache(contextId, authenticationContext);
 
-        ArgumentCaptor<AuthenticationContextCacheKey> captorKey;
-        captorKey = ArgumentCaptor.forClass(AuthenticationContextCacheKey.class);
-        ArgumentCaptor<AuthenticationContextCacheEntry> captorEntry;
-        captorEntry = ArgumentCaptor.forClass(AuthenticationContextCacheEntry.class);
-        verify(mockedAuthenticationContextCache).addToCache(captorKey.capture(), captorEntry.capture());
-        assertEquals(captorKey.getValue().getContextId(), contextId);
-        assertEquals(captorEntry.getValue().getContext(), authenticationContext);
-        assertTrue(captorEntry.getValue().getValidityPeriod() > 0);
+            ArgumentCaptor<AuthenticationContextCacheKey> captorKey;
+            captorKey = ArgumentCaptor.forClass(AuthenticationContextCacheKey.class);
+            ArgumentCaptor<AuthenticationContextCacheEntry> captorEntry;
+            captorEntry = ArgumentCaptor.forClass(AuthenticationContextCacheEntry.class);
+            verify(mockedAuthenticationContextCache).addToCache(captorKey.capture(), captorEntry.capture());
+            assertEquals(captorKey.getValue().getContextId(), contextId);
+            assertEquals(captorEntry.getValue().getContext(), authenticationContext);
+            assertTrue(captorEntry.getValue().getValidityPeriod() > 0);
+        }
     }
 
     @DataProvider(name = "provideURLParamData")
@@ -430,48 +450,56 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         FrameworkUtils.appendQueryParamsToUrl("https://www.example.com", null);
     }
 
-    private void setMockedAuthenticationResultCache() {
-
-        mockStatic(AuthenticationResultCache.class);
-        when(AuthenticationResultCache.getInstance()).thenReturn(mockedAuthenticationResultCache);
-        when(mockedAuthenticationResultCache.getValueFromCache(authenticationCacheKey))
-                .thenReturn(authenticationCacheEntry);
-    }
-
     @Test
     public void getAddAuthenticationResultToCache() {
 
-        setMockedAuthenticationResultCache();
-        FrameworkUtils.addAuthenticationResultToCache(DUMMY_CACHE_KEY, authenticationResult);
+        try (MockedStatic<AuthenticationResultCache> authenticationResultCache =
+                     mockStatic(AuthenticationResultCache.class)) {
+            authenticationResultCache.when(
+                    AuthenticationResultCache::getInstance).thenReturn(mockedAuthenticationResultCache);
+            FrameworkUtils.addAuthenticationResultToCache(DUMMY_CACHE_KEY, authenticationResult);
 
-        ArgumentCaptor<AuthenticationResultCacheKey> captorKey;
-        captorKey = ArgumentCaptor.forClass(AuthenticationResultCacheKey.class);
-        ArgumentCaptor<AuthenticationResultCacheEntry> captorEntry;
-        captorEntry = ArgumentCaptor.forClass(AuthenticationResultCacheEntry.class);
-        verify(mockedAuthenticationResultCache).addToCache(captorKey.capture(), captorEntry.capture());
-        assertEquals(captorKey.getValue().getResultId(), DUMMY_CACHE_KEY);
-        assertEquals(captorEntry.getValue().getResult(), authenticationResult);
-        assertTrue(captorEntry.getValue().getValidityPeriod() > 0);
+            ArgumentCaptor<AuthenticationResultCacheKey> captorKey;
+            captorKey = ArgumentCaptor.forClass(AuthenticationResultCacheKey.class);
+            ArgumentCaptor<AuthenticationResultCacheEntry> captorEntry;
+            captorEntry = ArgumentCaptor.forClass(AuthenticationResultCacheEntry.class);
+            verify(mockedAuthenticationResultCache).addToCache(captorKey.capture(), captorEntry.capture());
+            assertEquals(captorKey.getValue().getResultId(), DUMMY_CACHE_KEY);
+            assertEquals(captorEntry.getValue().getResult(), authenticationResult);
+            assertTrue(captorEntry.getValue().getValidityPeriod() > 0);
+        }
     }
 
     @Test
     public void testGetAuthenticationResultFromCache() {
 
-        setMockedAuthenticationResultCache();
-        AuthenticationResultCacheEntry cacheEntry = FrameworkUtils.getAuthenticationResultFromCache(DUMMY_CACHE_KEY);
-        assertEquals(cacheEntry, authenticationCacheEntry);
+        try (MockedStatic<AuthenticationResultCache> authenticationResultCache =
+                     mockStatic(AuthenticationResultCache.class)) {
+            authenticationResultCache.when(
+                    AuthenticationResultCache::getInstance).thenReturn(mockedAuthenticationResultCache);
+            when(mockedAuthenticationResultCache.getValueFromCache(authenticationCacheKey))
+                    .thenReturn(authenticationCacheEntry);
+            AuthenticationResultCacheEntry cacheEntry =
+                    FrameworkUtils.getAuthenticationResultFromCache(DUMMY_CACHE_KEY);
+            assertEquals(cacheEntry, authenticationCacheEntry);
+        }
     }
 
     @Test
     public void testRemoveAuthenticationResultFromCache() {
 
-        setMockedAuthenticationResultCache();
-        FrameworkUtils.removeAuthenticationResultFromCache(DUMMY_CACHE_KEY);
+        try (MockedStatic<AuthenticationResultCache> authenticationResultCache =
+                     mockStatic(AuthenticationResultCache.class)) {
+            authenticationResultCache.when(
+                    AuthenticationResultCache::getInstance).thenReturn(mockedAuthenticationResultCache);
 
-        ArgumentCaptor<AuthenticationResultCacheKey> captor;
-        captor = ArgumentCaptor.forClass(AuthenticationResultCacheKey.class);
-        verify(mockedAuthenticationResultCache).clearCacheEntry(captor.capture());
-        assertEquals(captor.getValue().getResultId(), DUMMY_CACHE_KEY);
+            FrameworkUtils.removeAuthenticationResultFromCache(DUMMY_CACHE_KEY);
+
+            ArgumentCaptor<AuthenticationResultCacheKey> captor;
+            captor = ArgumentCaptor.forClass(AuthenticationResultCacheKey.class);
+            verify(mockedAuthenticationResultCache).clearCacheEntry(captor.capture());
+            assertEquals(captor.getValue().getResultId(), DUMMY_CACHE_KEY);
+        }
     }
 
     @DataProvider(name = "provideRequestAttributes")
@@ -513,7 +541,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
 
     private void mockCookieTest() {
 
-        mockStatic(SameSiteCookie.class);
         Cookie[] cookies = getAuthenticationCookies();
         when(request.getCookies()).thenReturn(cookies);
     }
@@ -584,15 +611,13 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         FrameworkUtils.removeCookie(request, response, "NonExistingCookie",
                 SameSiteCookie.STRICT, ROOT_DOMAIN);
 
-        verify(response, never()).addCookie(anyObject());
+        verify(response, never()).addCookie(any());
     }
 
     @Test
     public void testSetCookieNonExistCookieConfig() {
 
-        mockCookieTest();
         int age = 3600;
-
         FrameworkUtils.setCookie(request, response, FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue", age);
 
         verify(response, times(1)).addCookie(cookieCaptor.capture());
@@ -606,7 +631,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Test
     public void testSetCookieExistCookieConfig() {
 
-        mockCookieTest();
         IdentityCookieConfig cookieConfig = new IdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
         IdentityUtil.getIdentityCookiesConfigurationHolder().put(FrameworkConstants.COMMONAUTH_COOKIE, cookieConfig);
         int age = 3600;
@@ -624,9 +648,7 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Test
     public void testSetCookieWithSameSiteCookieNonExistCookieConfig() {
 
-        mockCookieTest();
         int age = 3600;
-
         FrameworkUtils.setCookie(request, response, FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue", age,
                 SameSiteCookie.STRICT, "Dummy-Path");
 
@@ -641,7 +663,6 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
     @Test
     public void testSetCookieWithSameSiteExistCookieConfig() {
 
-        mockCookieTest();
         IdentityCookieConfig cookieConfig = new IdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
         IdentityUtil.getIdentityCookiesConfigurationHolder().put(FrameworkConstants.COMMONAUTH_COOKIE, cookieConfig);
         int age = 3600;
@@ -655,6 +676,27 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
         assertEquals(storedCookie.getPath(), "Dummy-Path");
         assertEquals(storedCookie.getMaxAge(), age);
+    }
+
+    @Test
+    public void testSetCookieExistCookieConfigWithMaxAgeAndPath() {
+
+        IdentityCookieConfig cookieConfig = new IdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
+        cookieConfig.setPath("Dummy-Path");
+        cookieConfig.setMaxAge(3600);
+        IdentityUtil.getIdentityCookiesConfigurationHolder().put(FrameworkConstants.COMMONAUTH_COOKIE, cookieConfig);
+        int age = 7200;
+
+        FrameworkUtils.setCookie(request, response, FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue", age);
+
+        verify(response, times(1)).addCookie(cookieCaptor.capture());
+        List<Cookie> capturedCookies = cookieCaptor.getAllValues();
+        Cookie storedCookie = capturedCookies.get(0);
+        assertEquals(storedCookie.getName(), FrameworkConstants.COMMONAUTH_COOKIE);
+        assertEquals(storedCookie.getPath(), "Dummy-Path");
+        assertEquals(storedCookie.getMaxAge(), age);
+
+        IdentityUtil.getIdentityCookiesConfigurationHolder().put(FrameworkConstants.COMMONAUTH_COOKIE, null);
     }
 
     @Test
@@ -717,59 +759,149 @@ public class FrameworkUtilsTest extends PowerMockIdentityBaseTest {
         assertEquals(userNameProvisioningUIUrl, "/accountrecoveryendpoint/register.do");
     }
 
-    private void setMockedSessionContextCache() {
-
-        mockStatic(SessionContextCache.class);
-        when(SessionContextCache.getInstance()).thenReturn(mockedSessionContextCache);
-    }
-
     @Test
     public void testGetSessionContextFromCacheNullCacheEntry() {
 
-        setMockedSessionContextCache();
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY,
-                SUPER_TENANT_DOMAIN_NAME);
-        assertNull(sessionContext);
+        try (MockedStatic<SessionContextCache> sessionContextCache = mockStatic(SessionContextCache.class)) {
+            sessionContextCache.when(SessionContextCache::getInstance).thenReturn(mockedSessionContextCache);
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY,
+                    SUPER_TENANT_DOMAIN_NAME);
+            assertNull(sessionContext);
+        }
     }
 
     @Test
     public void testGetSessionContextFromCacheValidCacheEntry() {
 
         cacheEntry.setContext(context);
-        setMockedSessionContextCache();
-        when(mockedSessionContextCache.getValueFromCache(cacheKey, "abc")).thenReturn(cacheEntry);
+        try (MockedStatic<SessionContextCache> sessionContextCache = mockStatic(SessionContextCache.class)) {
+            sessionContextCache.when(SessionContextCache::getInstance).thenReturn(mockedSessionContextCache);
+            when(mockedSessionContextCache.getValueFromCache(cacheKey, "abc")).thenReturn(cacheEntry);
 
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY, "abc");
-        assertEquals(sessionContext, context);
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(DUMMY_CACHE_KEY, "abc");
+            assertEquals(sessionContext, context);
+        }
     }
 
     @Test
     public void testGetSessionContextFromCacheExpiredSession() throws FrameworkException {
 
         cacheEntry.setContext(context);
-        setMockedSessionContextCache();
-        when(mockedSessionContextCache.getValueFromCache(cacheKey)).thenReturn(cacheEntry);
-        when(mockedSessionContextCache.isSessionExpired(any(SessionContextCacheKey.class),
-                any(SessionContextCacheEntry.class))).thenReturn(true);
-        IdentityEventService identityEventService = new IdentityEventServiceImpl(Collections.EMPTY_LIST, 1);
+        try (MockedStatic<SessionContextCache> sessionContextCache = mockStatic(SessionContextCache.class)) {
+            sessionContextCache.when(SessionContextCache::getInstance).thenReturn(mockedSessionContextCache);
+            IdentityEventService identityEventService = new IdentityEventServiceImpl(Collections.EMPTY_LIST, 1);
 
-        FrameworkServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
-        AuthenticationContext authenticationContext = new AuthenticationContext();
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request,
-                authenticationContext, DUMMY_CACHE_KEY);
-        assertNull(sessionContext);
+            FrameworkServiceDataHolder.getInstance().setIdentityEventService(identityEventService);
+            AuthenticationContext authenticationContext = new AuthenticationContext();
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request,
+                    authenticationContext, DUMMY_CACHE_KEY);
+            assertNull(sessionContext);
+        }
     }
 
     @Test
     public void testGetSessionContextFromCacheNotExpiredSession() throws FrameworkException {
 
         cacheEntry.setContext(context);
-        setMockedSessionContextCache();
-        when(mockedSessionContextCache.getSessionContextCacheEntry(cacheKey, "abc")).thenReturn(cacheEntry);
-        when(mockedSessionContextCache.isSessionExpired(any(SessionContextCacheKey.class),
-                any(SessionContextCacheEntry.class))).thenReturn(false);
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request,
-                authenticationContext, DUMMY_CACHE_KEY);
-        assertEquals(sessionContext, context);
+        try (MockedStatic<SessionContextCache> sessionContextCache = mockStatic(SessionContextCache.class)) {
+            sessionContextCache.when(SessionContextCache::getInstance).thenReturn(mockedSessionContextCache);
+            when(mockedSessionContextCache.getSessionContextCacheEntry(cacheKey, "abc")).thenReturn(cacheEntry);
+            when(mockedSessionContextCache.isSessionExpired(any(SessionContextCacheKey.class),
+                    any(SessionContextCacheEntry.class))).thenReturn(false);
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(request,
+                    authenticationContext, DUMMY_CACHE_KEY);
+            assertEquals(sessionContext, context);
+        }
+    }
+
+    @DataProvider(name = "idpRoleClaimUriProvider")
+    public Object[][] getIdpRoleClaimUriData() {
+
+        return new Object[][]{
+                {"IDP_ROLE_CLAIM", "IDP_ROLE_CLAIM"},
+                {"", getLocalGroupsClaimURI()},
+                {null, getLocalGroupsClaimURI()}
+        };
+    }
+
+    /*
+     Get User Role Claim URI from IDP Mapped Role Claim URI
+     */
+    @Test(dataProvider = "idpRoleClaimUriProvider")
+    public void testGetIdpRoleClaimUri(String idpRoleClaimUri,
+                                       String expectedRoleClaimUri) throws Exception {
+
+        ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
+        when(externalIdPConfig.getRoleClaimUri()).thenReturn(idpRoleClaimUri);
+        assertEquals(FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig), expectedRoleClaimUri);
+    }
+
+    @DataProvider(name = "idpClaimMappingProvider")
+    public Object[][] getIdpClaimMappingsProvider() {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(IdentityUtil::getLocalGroupsClaimURI).thenReturn(UserCoreConstants.ROLE_CLAIM);
+            return new Object[][]{
+                    {       // SP mapped role claim
+                            new ClaimMapping[]{
+                                    ClaimMapping.build(getLocalGroupsClaimURI(), "IDP_ROLE_CLAIM", "", true)
+                            },
+                            "IDP_ROLE_CLAIM"
+                    },
+                    {       // Role claim not among SP mapped claims
+                            new ClaimMapping[]{
+                                    ClaimMapping.build("LOCAL_CLAIM", "IDP_CLAIM", "", true)
+                            },
+                            null
+                    },
+                    {       // Role claim among claim mappings but remote claim is null
+                            new ClaimMapping[]{
+                                    ClaimMapping.build(getLocalGroupsClaimURI(), null, null, true)
+                            },
+                            null
+                    },
+                    {      // No IDP mapped claims
+                            new ClaimMapping[0], UserCoreConstants.ROLE_CLAIM
+                    },
+                    {
+                            null, UserCoreConstants.ROLE_CLAIM
+                    }
+            };
+        }
+    }
+
+    @Test(dataProvider = "idpClaimMappingProvider")
+    public void testGetIdpRoleClaimUriFromClaimMappings(Object claimMappings,
+                                                        String expectedRoleClaimUri) throws Exception {
+
+        try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+            identityUtil.when(IdentityUtil::getLocalGroupsClaimURI).thenReturn(UserCoreConstants.ROLE_CLAIM);
+            ExternalIdPConfig externalIdPConfig = mock(ExternalIdPConfig.class);
+            when(externalIdPConfig.getClaimMappings()).thenReturn((ClaimMapping[]) claimMappings);
+
+            String roleClaim = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+            assertEquals(roleClaim, expectedRoleClaimUri);
+        }
+    }
+
+    @Test
+    public void testGetUserIdClaimURI() throws Exception {
+
+        when(mockedIdentityProviderManager.getIdPByName("testIdp", "testTenant"))
+                .thenReturn(mockedIdentityProvider);
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+
+        when(mockedClaimConfig.getUserClaimURI()).thenReturn("http://wso2.org/claims/username");
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(new ClaimMapping[]{mockedClaimMapping});
+
+        try (MockedStatic<FrameworkServiceDataHolder> mockedFrameworkService =
+                     mockStatic(FrameworkServiceDataHolder.class)) {
+            FrameworkServiceDataHolder frameworkServiceDataHolder = mock(FrameworkServiceDataHolder.class);
+            when(frameworkServiceDataHolder.getIdentityProviderManager()).thenReturn(mockedIdentityProviderManager);
+            mockedFrameworkService.when(FrameworkServiceDataHolder::getInstance).thenReturn(frameworkServiceDataHolder);
+
+            String result = FrameworkUtils.getUserIdClaimURI("testIdp", "testTenant");
+            assertEquals(result, "http://wso2.org/claims/username");
+        }
     }
 }

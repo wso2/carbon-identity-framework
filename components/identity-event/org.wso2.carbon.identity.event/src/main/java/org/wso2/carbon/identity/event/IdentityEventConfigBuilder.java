@@ -143,7 +143,7 @@ public class IdentityEventConfigBuilder {
      * Build and store per module configuration objects
      */
     private void build() {
-        Properties moduleNames = IdentityEventUtils.getSubProperties("module.name", notificationMgtConfigProperties);
+        Properties moduleNames = IdentityEventUtils.getModuleNames("module.name", notificationMgtConfigProperties);
         Enumeration propertyNames = moduleNames.propertyNames();
         // Iterate through events and build event objects
         while (propertyNames.hasMoreElements()) {

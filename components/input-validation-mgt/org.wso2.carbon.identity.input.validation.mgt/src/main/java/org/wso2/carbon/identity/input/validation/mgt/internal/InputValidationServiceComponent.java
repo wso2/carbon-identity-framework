@@ -46,7 +46,9 @@ import org.wso2.carbon.identity.input.validation.mgt.model.validators.UniqueChar
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.UpperCaseValidator;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementServiceImpl;
+import org.wso2.carbon.identity.input.validation.mgt.userinfo.UserInfoHandlerImpl;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.utils.multitenancy.userinfo.UserInfoHandler;
 
 /**
  * OSGi declarative services component which handled registration and un-registration of
@@ -67,6 +69,9 @@ public class InputValidationServiceComponent {
         try {
             context.getBundleContext().registerService(InputValidationManagementService.class.getName(),
                     new InputValidationManagementServiceImpl(), null);
+
+            context.getBundleContext().registerService(UserInfoHandler.class.getName(),
+                    new UserInfoHandlerImpl(), null);
 
             // Register Validators.
             context.getBundleContext().registerService(Validator.class.getName(),

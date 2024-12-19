@@ -24,11 +24,15 @@ package org.wso2.carbon.identity.application.authentication.framework.util;
 public abstract class FrameworkConstants {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String SECRET_TYPE = "ADAPTIVE_AUTH_CALL_CHOREO";
     public static final String QUERY_PARAMS = "commonAuthQueryParams";
     public static final String SUBJECT = "subject";
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
+    public static final String REDIRECT_URL = "REDIRECT_URL";
+    public static final String IS_API_BASED = "IS_API_BASED";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
+    public static final String ALLOW_SESSION_CREATION = "allowSessionCreation";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
     // Cookie used for post authenticaion sequence tracking
     public static final String PASTR_COOKIE = "pastr";
@@ -38,8 +42,11 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
+    public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
     public static final String EMAIL_ADDRESS_CLAIM = "http://wso2.org/claims/emailaddress";
     public static final String APP_ROLES_CLAIM = "http://wso2.org/claims/applicationRoles";
+    public static final String ROLES_CLAIM = "http://wso2.org/claims/roles";
+
     public static final String GROUPS_CLAIM = "http://wso2.org/claims/groups";
     public static final String PROVISIONED_SOURCE_ID_CLAIM = "http://wso2.org/claims/identity/userSourceId";
     public static final String IDP_TYPE_CLAIM = "http://wso2.org/claims/identity/idpType";
@@ -76,6 +83,7 @@ public abstract class FrameworkConstants {
     public static final String SKIP_NONCE_COOKIE_VALIDATION = "SkipNonceCookieValidation";
     public static final String IS_MULTI_OPS_RESPONSE = "isMultiOptionsResponse";
     public static final String IS_AUTH_FLOW_CONCLUDED = "isAuthFlowConcluded";
+    public static final String IS_API_BASED_AUTH_FLOW = "isAPIBasedAuthFlow";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -119,6 +127,7 @@ public abstract class FrameworkConstants {
     public static final String POST_AUTH_MISSING_CLAIMS_ERROR_CODE = "postAuthMissingClaimsErrorCode";
 
     public static final String REQUEST_PARAM_SP = "sp";
+    public static final String REQUEST_PARAM_SP_UUID = "spId";
     public static final String REQUEST_PARAM_ERROR_KEY = "errorKey";
     public static final String REQUEST_PARAM_AUTH_FLOW_ID = "authFlowId";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
@@ -127,10 +136,15 @@ public abstract class FrameworkConstants {
     public static final String ASSOCIATED_ID = "associatedID";
 
     public static final String JIT_PROVISIONING_FLOW = "JITProvisioningFlow";
+    public static final String ALLOW_LOGIN_TO_IDP = "JITProvisioning.AllowLoginToIDP";
     public static final String SECRET_KEY_CLAIM_URL = "http://wso2.org/claims/identity/secretkey";
+    public static final String ENABLE_ENCRYPTION = "EnableEncryption";
+    public static final String TOTP_KEY = "CryptoService.TotpSecret";
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
     public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
+    public static final String ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION
+            = "JITProvisioning.EnableConfiguredIdpSubForFederatedUserAssociation";
 
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
@@ -140,6 +154,8 @@ public abstract class FrameworkConstants {
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
     public static final String ORGANIZATION_USER_PROPERTIES = "ORGANIZATION_USER_PROPERTIES";
     public static final String ORGANIZATION_AUTHENTICATOR = "OrganizationAuthenticator";
+    public static final String ORGANIZATION_LOGIN_HOME_REALM_IDENTIFIER = "OrganizationSSO";
+    public static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     public static final String ORG_ID_PARAMETER = "orgId";
     public static final String USER_ORGANIZATION_CLAIM = "user_organization";
     public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
@@ -171,6 +187,10 @@ public abstract class FrameworkConstants {
 
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
             "FederatedIDPRoleClaimValueAttributeSeparator";
+    public static final String FEDERATED_IDP_GROUP_CLAIM_VALUE_SEPARATOR =
+            "FederatedIDPGroupClaimValueAttributeSeparator";
+    public static final String USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM =
+            "UseIDPRoleClaimAsIDPGroupClaim";
 
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
@@ -209,8 +229,11 @@ public abstract class FrameworkConstants {
     public static final String ORACLE = "Oracle";
 
     public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
+    public static final String THREAD_LOCAL_SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.LimitScriptEngineCreation";
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
+    public static final String GRAAL_JS = "graaljs";
+    public static final String POLYGLOT_CLASS = "org.graalvm.polyglot";
 
     // Attribute sync related constants.
     public static final String ATTRIBUTE_SYNC_METHOD = "attributeSyncMethod";
@@ -226,6 +249,22 @@ public abstract class FrameworkConstants {
 
     public static final String BLOCKED_USERSTORE_DOMAINS_LIST = "BlockedUserStoreDomains";
     public static final String BLOCKED_USERSTORE_DOMAINS_SEPARATOR = ",";
+
+    public static final String IS_USER_RESOLVED = "isUserResolved";
+    public static final String ERROR_STATUS_AUTH_CONTEXT_NULL = "authentication.context.null";
+    public static final String ERROR_DESCRIPTION_AUTH_CONTEXT_NULL = "authentication.context.null.description";
+    public static final String ERROR_STATUS_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout";
+    public static final String ERROR_DESCRIPTION_AUTH_FLOW_TIMEOUT = "authentication.flow.timeout.description";
+    public static final String ERROR_STATUS_APP_DISABLED = "authentication.flow.app.disabled";
+    public static final String ERROR_DESCRIPTION_APP_DISABLED = "authentication.flow.app.disabled.description";
+    public static final String IS_SENT_TO_RETRY = "isSentToRetry";
+    public static final String CONTEXT_IDENTIFIER = "contextIdentifier";
+    public static final String REQ_ATTR_RETRY_STATUS = "retryStatus";
+    public static final String IDP_MAPPED_USER_ROLES = "identityProviderMappedUserRoles";
+    public static final String ALLOW_ASSOCIATING_TO_EXISTING_USER = "JITProvisioning.AllowAssociatingToExistingUser";
+
+    // The constant to used as the attribute key or the property key of the federated tokens.
+    public static final String FEDERATED_TOKENS = "federated_tokens";
 
     private FrameworkConstants() {
 
@@ -331,6 +370,8 @@ public abstract class FrameworkConstants {
          */
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+        public static final String SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS =
+                "SkipLocalUserSearchForAuthenticationFlowHandlers";
 
         /**
          * Configuration used for session data storage optimization.
@@ -401,6 +442,7 @@ public abstract class FrameworkConstants {
         public static final String USER_TENANT_DOMAIN_HINT = "ut";
         public static final String CORRELATION_ID = "crId";
         public static final String IS_IDF_INITIATED_FROM_AUTHENTICATOR = "isIdfInitiatedFromAuthenticator";
+        public static final String SESSION_ID = "sessionId";
 
         private RequestParams() {
         }
@@ -562,6 +604,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
+        public static final String JS_FUNC_GET_SECRET_BY_NAME = "getSecretByName";
         public static final String JS_AUTH_FAILURE = "fail";
         public static final String JS_ENDPOINT_PARAMS = "endpointParams";
 
@@ -573,6 +616,12 @@ public abstract class FrameworkConstants {
         public static final String FORCE_AUTH_PARAM = "forceAuth";
         public static final String SUBJECT_IDENTIFIER_PARAM = "markAsSubjectIdentifierStep";
         public static final String SUBJECT_ATTRIBUTE_PARAM = "markAsSubjectAttributeStep";
+        public static final String SKIP_PROMPT = "skipPrompt";
+
+        public static final String POLYGLOT_SOURCE = "src.js";
+        public static final String POLYGLOT_LANGUAGE = "js";
+        public static final String GRAALJS = "graaljs";
+        public static final String NASHORN = "nashorn";
     }
 
     /**
@@ -632,6 +681,9 @@ public abstract class FrameworkConstants {
                 = "AdaptiveAuthExecutionSupervisorResult";
         public static final String AUTHENTICATOR_NAME_IN_AUTH_CONFIG
                 = "AdaptiveAuth.AuthenticatorNameInAuthConfig.Enable";
+        public static final String GRAALJS_SCRIPT_STATEMENTS_LIMIT
+                = "AdaptiveAuth.GraalJS.ScriptStatementsLimit";
+        public static final int DEFAULT_GRAALJS_SCRIPT_STATEMENTS_LIMIT = 0;
     }
 
     /**
@@ -696,7 +748,11 @@ public abstract class FrameworkConstants {
         public static final String TENANT_DOMAIN = "tenant domain";
         public static final String REQUESTED_CLAIMS = "requested claims";
         public static final String MANDATORY_CLAIMS = "mandatory claims";
+        public static final String USE_EXISTING_CONSENT = "using existing consent";
+        public static final String CLAIMS_WITH_CONSENT = "claims with consent";
+        public static final String DENIED_CLAIMS = "denied claims";
         public static final String MISSING_CLAIMS = "missing claims";
+        public static final String READ_ONLY_CLAIMS = "read only claims";
         public static final String THREAD_ID = "thread id";
         public static final String CONTEXT_ID = "context id";
         public static final String ORIGINATING_ADDRESS = "originating address";
@@ -711,6 +767,7 @@ public abstract class FrameworkConstants {
         public static final String COUNT = "count";
         public static final String AUTHENTICATED_IDPS = "authenticated idps";
         public static final String IDP = "idp";
+        public static final String SESSION_CONTEXT_KEY = "session context key";
 
         /**
          * Define action IDs for diagnostic logs in the framework component.
@@ -719,12 +776,15 @@ public abstract class FrameworkConstants {
 
             public static final String INIT_AUTH_FLOW = "init-authentication-flow";
             public static final String INIT_LOGOUT_FLOW = "init-logout-flow";
+            public static final String PROCESS_LOGOUT_REQUEST = "process-logout-request";
             public static final String HANDLE_CLAIM_MAPPING = "handle-claim-mappings";
             public static final String HANDLE_AUTH_REQUEST = "handle-authentication-request";
             public static final String HANDLE_AUTH_STEP = "handle-authentication-step";
             public static final String PROCESS_ACR_VALUES = "process-acr-values";
             public static final String HANDLE_MISSING_CLAIMS = "handle-missing-claims";
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
+            public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
+            public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
         }
     }
 
@@ -735,5 +795,29 @@ public abstract class FrameworkConstants {
 
         STRING,
         INTEGER,
+    }
+
+    /**
+     * Enum for authenticator prompt type.
+     * USER_PROMPT - Obtain data from user input.
+     * INTERNAL_PROMPT - Generate required data internally.
+     * REDIRECTION_PROMPT - Requires redirection.
+     */
+    public enum AuthenticatorPromptType {
+
+        USER_PROMPT,
+        INTERNAL_PROMPT,
+        REDIRECTION_PROMPT
+    }
+
+    /**
+     * Enum for authenticator message type.
+     * INFO - Info messages.
+     * ERROR - Error messages.
+     */
+    public enum AuthenticatorMessageType {
+
+        INFO,
+        ERROR
     }
 }

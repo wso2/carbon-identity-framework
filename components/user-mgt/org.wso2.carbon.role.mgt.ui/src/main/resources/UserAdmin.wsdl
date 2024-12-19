@@ -1,0 +1,1429 @@
+<!--
+  Copyright (c) 2024 WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+
+   WSO2 LLC. licenses this file to you under the Apache License,
+   Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+  -->
+
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:ax2289="http://common.mgt.user.carbon.wso2.org/xsd"
+                  xmlns:ns="http://mgt.user.carbon.wso2.org"
+                  xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                  targetNamespace="http://mgt.user.carbon.wso2.org">
+    <wsdl:documentation>UserAdmin</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema
+                attributeFormDefault="qualified" elementFormDefault="qualified"
+                targetNamespace="http://mgt.user.carbon.wso2.org">
+            <xs:import namespace="http://common.mgt.user.carbon.wso2.org/xsd"/>
+            <xs:element name="updateUsersOfRoleUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateUsersOfRole">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="roleName" nillable="true" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="userList"
+                                    nillable="true" type="ax2289:FlaggedName"/>
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateRolesOfUserUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="updateRolesOfUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="newRoleList"
+                                    nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateRoleNameUserAdminException">
+
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateRoleName">
+                <xs:complexType>
+                    <xs:sequence>
+
+                        <xs:element minOccurs="0" name="roleName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="newRoleName" nillable="true"
+                                    type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="setRoleUIPermissionUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="setRoleUIPermission">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="roleName" nillable="true" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="rawResources"
+                                    nillable="true" type="xs:string"/>
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listUsersUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="listUsers">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listUsersResponse">
+                <xs:complexType>
+
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return"
+                                    nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUsersOfRoleUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUsersOfRole">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="roleName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUsersOfRoleResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return"
+                                    nillable="true" type="ax2289:FlaggedName"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="getUserStoreInfoUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserStoreInfo">
+                <xs:complexType>
+
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserStoreInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true"
+                                    type="ax2289:UserStoreInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+
+            </xs:element>
+            <xs:element name="getRolesOfUserUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRolesOfUser">
+
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRolesOfUserResponse">
+                <xs:complexType>
+                    <xs:sequence>
+
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return"
+                                    nillable="true" type="ax2289:FlaggedName"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRolesOfCurrentUserUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRolesOfCurrentUser">
+
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRolesOfCurrentUserResponse">
+                <xs:complexType>
+                    <xs:sequence>
+
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return"
+                                    nillable="true" type="ax2289:FlaggedName"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRolePermissionsUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRolePermissions">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="roleName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="getRolePermissionsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true"
+                                    type="ax2289:UIPermissionNode"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllUIPermissionsUserAdminException">
+                <xs:complexType>
+
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllUIPermissions">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+
+            </xs:element>
+            <xs:element name="getAllUIPermissionsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true"
+                                    type="ax2289:UIPermissionNode"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllRolesNamesUserAdminException">
+
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllRolesNames">
+                <xs:complexType>
+                    <xs:sequence/>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllRolesNamesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return"
+                                    nillable="true" type="ax2289:FlaggedName"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="deleteUserUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteUser">
+                <xs:complexType>
+
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteRoleUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteRole">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="roleName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+
+            </xs:element>
+            <xs:element name="changePasswordByUserUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="changePasswordByUser">
+
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="oldPassword" nillable="true"
+                                    type="xs:string"/>
+                        <xs:element minOccurs="0" name="newPassword" nillable="true"
+                                    type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="changePasswordUserAdminException">
+                <xs:complexType>
+
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="changePassword">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+
+                        <xs:element minOccurs="0" name="newPassword" nillable="true"
+                                    type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="bulkImportUsersUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="bulkImportUsers">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="fileName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="handler" nillable="true"
+                                    type="xs:base64Binary"/>
+                        <xs:element minOccurs="0" name="defaultPassword" nillable="true"
+                                    type="xs:string"/>
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addUserUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="addUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="password" nillable="true" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="roles" nillable="true"
+                                    type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="claims"
+                                    nillable="true" type="ax2289:ClaimValue"/>
+                        <xs:element minOccurs="0" name="profileName" nillable="true"
+                                    type="xs:string"/>
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addRoleUserAdminException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserAdminException" nillable="true"
+                                    type="ax2289:UserAdminException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="addRole">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="roleName" nillable="true" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="userList"
+                                    nillable="true" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="permissions"
+                                    nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
+                   targetNamespace="http://common.mgt.user.carbon.wso2.org/xsd">
+            <xs:complexType name="UserAdminException">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="errorMessage" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="FlaggedName">
+                <xs:sequence>
+
+                    <xs:element minOccurs="0" name="editable" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="itemName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="roleType" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="selected" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UserStoreInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="adminRole" nillable="true" type="xs:string"/>
+
+                    <xs:element minOccurs="0" name="adminUser" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="bulkImportSupported" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="everyOneRole" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="jsRegEx" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="maxUserListCount" type="xs:int"/>
+                    <xs:element minOccurs="0" name="passwordsExternallyManaged" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="readOnly" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="roleNameRegEx" nillable="true"
+                                type="xs:string"/>
+                    <xs:element minOccurs="0" name="userNameRegEx" nillable="true"
+                                type="xs:string"/>
+
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UIPermissionNode">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="nodeList" nillable="true"
+                                type="ax2289:UIPermissionNode"/>
+                    <xs:element minOccurs="0" name="resourcePath" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="selected" type="xs:boolean"/>
+                </xs:sequence>
+
+            </xs:complexType>
+            <xs:complexType name="ClaimValue">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="claimURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="changePasswordRequest">
+        <wsdl:part name="parameters" element="ns:changePassword"/>
+    </wsdl:message>
+    <wsdl:message name="changePasswordUserAdminException">
+        <wsdl:part name="parameters" element="ns:changePasswordUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="getAllRolesNamesRequest">
+        <wsdl:part name="parameters" element="ns:getAllRolesNames"/>
+    </wsdl:message>
+
+    <wsdl:message name="getAllRolesNamesResponse">
+        <wsdl:part name="parameters" element="ns:getAllRolesNamesResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getAllRolesNamesUserAdminException">
+        <wsdl:part name="parameters" element="ns:getAllRolesNamesUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="updateUsersOfRoleRequest">
+        <wsdl:part name="parameters" element="ns:updateUsersOfRole"/>
+    </wsdl:message>
+
+    <wsdl:message name="updateUsersOfRoleResponse"/>
+    <wsdl:message name="updateUsersOfRoleUserAdminException">
+        <wsdl:part name="parameters" element="ns:updateUsersOfRoleUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="getRolesOfUserRequest">
+        <wsdl:part name="parameters" element="ns:getRolesOfUser"/>
+    </wsdl:message>
+    <wsdl:message name="getRolesOfUserResponse">
+        <wsdl:part name="parameters" element="ns:getRolesOfUserResponse"/>
+
+    </wsdl:message>
+    <wsdl:message name="getRolesOfUserUserAdminException">
+        <wsdl:part name="parameters" element="ns:getRolesOfUserUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="getRolesOfCurrentUserRequest">
+        <wsdl:part name="parameters" element="ns:getRolesOfCurrentUser"/>
+    </wsdl:message>
+    <wsdl:message name="getRolesOfCurrentUserResponse">
+        <wsdl:part name="parameters" element="ns:getRolesOfCurrentUserResponse"/>
+
+    </wsdl:message>
+    <wsdl:message name="getRolesOfCurrentUserUserAdminException">
+        <wsdl:part name="parameters" element="ns:getRolesOfCurrentUserUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="listUsersRequest">
+        <wsdl:part name="parameters" element="ns:listUsers"/>
+    </wsdl:message>
+    <wsdl:message name="listUsersResponse">
+        <wsdl:part name="parameters" element="ns:listUsersResponse"/>
+
+    </wsdl:message>
+    <wsdl:message name="listUsersUserAdminException">
+        <wsdl:part name="parameters" element="ns:listUsersUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="deleteUserRequest">
+        <wsdl:part name="parameters" element="ns:deleteUser"/>
+    </wsdl:message>
+    <wsdl:message name="deleteUserUserAdminException">
+        <wsdl:part name="parameters" element="ns:deleteUserUserAdminException"/>
+
+    </wsdl:message>
+    <wsdl:message name="updateRolesOfUserRequest">
+        <wsdl:part name="parameters" element="ns:updateRolesOfUser"/>
+    </wsdl:message>
+    <wsdl:message name="updateRolesOfUserUserAdminException">
+        <wsdl:part name="parameters" element="ns:updateRolesOfUserUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="deleteRoleRequest">
+        <wsdl:part name="parameters" element="ns:deleteRole"/>
+
+    </wsdl:message>
+    <wsdl:message name="deleteRoleUserAdminException">
+        <wsdl:part name="parameters" element="ns:deleteRoleUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="bulkImportUsersRequest">
+        <wsdl:part name="parameters" element="ns:bulkImportUsers"/>
+    </wsdl:message>
+    <wsdl:message name="bulkImportUsersUserAdminException">
+        <wsdl:part name="parameters" element="ns:bulkImportUsersUserAdminException"/>
+
+    </wsdl:message>
+    <wsdl:message name="getRolePermissionsRequest">
+        <wsdl:part name="parameters" element="ns:getRolePermissions"/>
+    </wsdl:message>
+    <wsdl:message name="getRolePermissionsResponse">
+        <wsdl:part name="parameters" element="ns:getRolePermissionsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getRolePermissionsUserAdminException">
+        <wsdl:part name="parameters" element="ns:getRolePermissionsUserAdminException"/>
+
+    </wsdl:message>
+    <wsdl:message name="updateRoleNameRequest">
+        <wsdl:part name="parameters" element="ns:updateRoleName"/>
+    </wsdl:message>
+    <wsdl:message name="updateRoleNameUserAdminException">
+        <wsdl:part name="parameters" element="ns:updateRoleNameUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="getUsersOfRoleRequest">
+        <wsdl:part name="parameters" element="ns:getUsersOfRole"/>
+
+    </wsdl:message>
+    <wsdl:message name="getUsersOfRoleResponse">
+        <wsdl:part name="parameters" element="ns:getUsersOfRoleResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getUsersOfRoleUserAdminException">
+        <wsdl:part name="parameters" element="ns:getUsersOfRoleUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="setRoleUIPermissionRequest">
+        <wsdl:part name="parameters" element="ns:setRoleUIPermission"/>
+
+    </wsdl:message>
+    <wsdl:message name="setRoleUIPermissionUserAdminException">
+        <wsdl:part name="parameters" element="ns:setRoleUIPermissionUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="changePasswordByUserRequest">
+        <wsdl:part name="parameters" element="ns:changePasswordByUser"/>
+    </wsdl:message>
+    <wsdl:message name="changePasswordByUserResponse"/>
+    <wsdl:message name="changePasswordByUserUserAdminException">
+
+        <wsdl:part name="parameters" element="ns:changePasswordByUserUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="getUserStoreInfoRequest">
+        <wsdl:part name="parameters" element="ns:getUserStoreInfo"/>
+    </wsdl:message>
+    <wsdl:message name="getUserStoreInfoResponse">
+        <wsdl:part name="parameters" element="ns:getUserStoreInfoResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getUserStoreInfoUserAdminException">
+
+        <wsdl:part name="parameters" element="ns:getUserStoreInfoUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="addUserRequest">
+        <wsdl:part name="parameters" element="ns:addUser"/>
+    </wsdl:message>
+    <wsdl:message name="addUserUserAdminException">
+        <wsdl:part name="parameters" element="ns:addUserUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="addRoleRequest">
+
+        <wsdl:part name="parameters" element="ns:addRole"/>
+    </wsdl:message>
+    <wsdl:message name="addRoleUserAdminException">
+        <wsdl:part name="parameters" element="ns:addRoleUserAdminException"/>
+    </wsdl:message>
+    <wsdl:message name="getAllUIPermissionsRequest">
+        <wsdl:part name="parameters" element="ns:getAllUIPermissions"/>
+    </wsdl:message>
+    <wsdl:message name="getAllUIPermissionsResponse">
+
+        <wsdl:part name="parameters" element="ns:getAllUIPermissionsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getAllUIPermissionsUserAdminException">
+        <wsdl:part name="parameters" element="ns:getAllUIPermissionsUserAdminException"/>
+    </wsdl:message>
+    <wsdl:portType name="UserAdminPortType">
+        <wsdl:operation name="changePassword">
+            <wsdl:input message="ns:changePasswordRequest" wsaw:Action="urn:changePassword"/>
+            <wsdl:fault message="ns:changePasswordUserAdminException"
+                        name="changePasswordUserAdminException"
+                        wsaw:Action="urn:changePasswordchangePasswordUserAdminException"/>
+
+        </wsdl:operation>
+        <wsdl:operation name="getAllRolesNames">
+            <wsdl:input message="ns:getAllRolesNamesRequest" wsaw:Action="urn:getAllRolesNames"/>
+            <wsdl:output message="ns:getAllRolesNamesResponse"
+                         wsaw:Action="urn:getAllRolesNamesResponse"/>
+            <wsdl:fault message="ns:getAllRolesNamesUserAdminException"
+                        name="getAllRolesNamesUserAdminException"
+                        wsaw:Action="urn:getAllRolesNamesgetAllRolesNamesUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="updateUsersOfRole">
+            <wsdl:input message="ns:updateUsersOfRoleRequest" wsaw:Action="urn:updateUsersOfRole"/>
+            <wsdl:output message="ns:updateUsersOfRoleResponse"
+                         wsaw:Action="urn:updateUsersOfRoleResponse"/>
+
+            <wsdl:fault message="ns:updateUsersOfRoleUserAdminException"
+                        name="updateUsersOfRoleUserAdminException"
+                        wsaw:Action="urn:updateUsersOfRoleupdateUsersOfRoleUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getRolesOfUser">
+            <wsdl:input message="ns:getRolesOfUserRequest" wsaw:Action="urn:getRolesOfUser"/>
+            <wsdl:output message="ns:getRolesOfUserResponse"
+                         wsaw:Action="urn:getRolesOfUserResponse"/>
+            <wsdl:fault message="ns:getRolesOfUserUserAdminException"
+                        name="getRolesOfUserUserAdminException"
+                        wsaw:Action="urn:getRolesOfUsergetRolesOfUserUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getRolesOfCurrentUser">
+            <wsdl:input message="ns:getRolesOfCurrentUserRequest" wsaw:Action="urn:getRolesOfCurrentUser"/>
+            <wsdl:output message="ns:getRolesOfCurrentUserResponse"
+                         wsaw:Action="urn:getRolesOfCurrentUserResponse"/>
+            <wsdl:fault message="ns:getRolesOfCurrentUserUserAdminException"
+                        name="getRolesOfCurrentUserUserAdminException"
+                        wsaw:Action="urn:getRolesOfCurrentUsergetRolesOfCurrentUserUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="listUsers">
+            <wsdl:input message="ns:listUsersRequest" wsaw:Action="urn:listUsers"/>
+
+            <wsdl:output message="ns:listUsersResponse" wsaw:Action="urn:listUsersResponse"/>
+            <wsdl:fault message="ns:listUsersUserAdminException" name="listUsersUserAdminException"
+                        wsaw:Action="urn:listUserslistUsersUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <wsdl:input message="ns:deleteUserRequest" wsaw:Action="urn:deleteUser"/>
+            <wsdl:fault message="ns:deleteUserUserAdminException"
+                        name="deleteUserUserAdminException"
+                        wsaw:Action="urn:deleteUserdeleteUserUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="updateRolesOfUser">
+            <wsdl:input message="ns:updateRolesOfUserRequest" wsaw:Action="urn:updateRolesOfUser"/>
+
+            <wsdl:fault message="ns:updateRolesOfUserUserAdminException"
+                        name="updateRolesOfUserUserAdminException"
+                        wsaw:Action="urn:updateRolesOfUserupdateRolesOfUserUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="deleteRole">
+            <wsdl:input message="ns:deleteRoleRequest" wsaw:Action="urn:deleteRole"/>
+            <wsdl:fault message="ns:deleteRoleUserAdminException"
+                        name="deleteRoleUserAdminException"
+                        wsaw:Action="urn:deleteRoledeleteRoleUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="bulkImportUsers">
+            <wsdl:input message="ns:bulkImportUsersRequest" wsaw:Action="urn:bulkImportUsers"/>
+            <wsdl:fault message="ns:bulkImportUsersUserAdminException"
+                        name="bulkImportUsersUserAdminException"
+                        wsaw:Action="urn:bulkImportUsersbulkImportUsersUserAdminException"/>
+
+        </wsdl:operation>
+        <wsdl:operation name="getRolePermissions">
+            <wsdl:input message="ns:getRolePermissionsRequest"
+                        wsaw:Action="urn:getRolePermissions"/>
+            <wsdl:output message="ns:getRolePermissionsResponse"
+                         wsaw:Action="urn:getRolePermissionsResponse"/>
+            <wsdl:fault message="ns:getRolePermissionsUserAdminException"
+                        name="getRolePermissionsUserAdminException"
+                        wsaw:Action="urn:getRolePermissionsgetRolePermissionsUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="updateRoleName">
+            <wsdl:input message="ns:updateRoleNameRequest" wsaw:Action="urn:updateRoleName"/>
+            <wsdl:fault message="ns:updateRoleNameUserAdminException"
+                        name="updateRoleNameUserAdminException"
+                        wsaw:Action="urn:updateRoleNameupdateRoleNameUserAdminException"/>
+
+        </wsdl:operation>
+        <wsdl:operation name="getUsersOfRole">
+            <wsdl:input message="ns:getUsersOfRoleRequest" wsaw:Action="urn:getUsersOfRole"/>
+            <wsdl:output message="ns:getUsersOfRoleResponse"
+                         wsaw:Action="urn:getUsersOfRoleResponse"/>
+            <wsdl:fault message="ns:getUsersOfRoleUserAdminException"
+                        name="getUsersOfRoleUserAdminException"
+                        wsaw:Action="urn:getUsersOfRolegetUsersOfRoleUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="setRoleUIPermission">
+            <wsdl:input message="ns:setRoleUIPermissionRequest"
+                        wsaw:Action="urn:setRoleUIPermission"/>
+            <wsdl:fault message="ns:setRoleUIPermissionUserAdminException"
+                        name="setRoleUIPermissionUserAdminException"
+                        wsaw:Action="urn:setRoleUIPermissionsetRoleUIPermissionUserAdminException"/>
+
+        </wsdl:operation>
+        <wsdl:operation name="changePasswordByUser">
+            <wsdl:input message="ns:changePasswordByUserRequest"
+                        wsaw:Action="urn:changePasswordByUser"/>
+            <wsdl:output message="ns:changePasswordByUserResponse"
+                         wsaw:Action="urn:changePasswordByUserResponse"/>
+            <wsdl:fault message="ns:changePasswordByUserUserAdminException"
+                        name="changePasswordByUserUserAdminException"
+                        wsaw:Action="urn:changePasswordByUserchangePasswordByUserUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getUserStoreInfo">
+            <wsdl:input message="ns:getUserStoreInfoRequest" wsaw:Action="urn:getUserStoreInfo"/>
+            <wsdl:output message="ns:getUserStoreInfoResponse"
+                         wsaw:Action="urn:getUserStoreInfoResponse"/>
+
+            <wsdl:fault message="ns:getUserStoreInfoUserAdminException"
+                        name="getUserStoreInfoUserAdminException"
+                        wsaw:Action="urn:getUserStoreInfogetUserStoreInfoUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="addUser">
+            <wsdl:input message="ns:addUserRequest" wsaw:Action="urn:addUser"/>
+            <wsdl:fault message="ns:addUserUserAdminException" name="addUserUserAdminException"
+                        wsaw:Action="urn:addUseraddUserUserAdminException"/>
+        </wsdl:operation>
+        <wsdl:operation name="addRole">
+            <wsdl:input message="ns:addRoleRequest" wsaw:Action="urn:addRole"/>
+            <wsdl:fault message="ns:addRoleUserAdminException" name="addRoleUserAdminException"
+                        wsaw:Action="urn:addRoleaddRoleUserAdminException"/>
+
+        </wsdl:operation>
+        <wsdl:operation name="getAllUIPermissions">
+            <wsdl:input message="ns:getAllUIPermissionsRequest"
+                        wsaw:Action="urn:getAllUIPermissions"/>
+            <wsdl:output message="ns:getAllUIPermissionsResponse"
+                         wsaw:Action="urn:getAllUIPermissionsResponse"/>
+            <wsdl:fault message="ns:getAllUIPermissionsUserAdminException"
+                        name="getAllUIPermissionsUserAdminException"
+                        wsaw:Action="urn:getAllUIPermissionsgetAllUIPermissionsUserAdminException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="UserAdminSoap11Binding" type="ns:UserAdminPortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+
+        <wsdl:operation name="getAllRolesNames">
+            <soap:operation soapAction="urn:getAllRolesNames" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getAllRolesNamesUserAdminException">
+
+                <soap:fault use="literal" name="getAllRolesNamesUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changePassword">
+            <soap:operation soapAction="urn:changePassword" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="changePasswordUserAdminException">
+
+                <soap:fault use="literal" name="changePasswordUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateUsersOfRole">
+            <soap:operation soapAction="urn:updateUsersOfRole" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="updateUsersOfRoleUserAdminException">
+                <soap:fault use="literal" name="updateUsersOfRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRolesOfUser">
+            <soap:operation soapAction="urn:getRolesOfUser" style="document"/>
+            <wsdl:input>
+
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getRolesOfUserUserAdminException">
+                <soap:fault use="literal" name="getRolesOfUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRolesOfCurrentUser">
+            <soap:operation soapAction="urn:getRolesOfCurrentUser" style="document"/>
+            <wsdl:input>
+
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getRolesOfCurrentUserUserAdminException">
+                <soap:fault use="literal" name="getRolesOfCurrentUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="deleteRole">
+            <soap:operation soapAction="urn:deleteRole" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="deleteRoleUserAdminException">
+                <soap:fault use="literal" name="deleteRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="listUsers">
+            <soap:operation soapAction="urn:listUsers" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="listUsersUserAdminException">
+
+                <soap:fault use="literal" name="listUsersUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateRolesOfUser">
+            <soap:operation soapAction="urn:updateRolesOfUser" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="updateRolesOfUserUserAdminException">
+
+                <soap:fault use="literal" name="updateRolesOfUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <soap:operation soapAction="urn:deleteUser" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="deleteUserUserAdminException">
+
+                <soap:fault use="literal" name="deleteUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRolePermissions">
+            <soap:operation soapAction="urn:getRolePermissions" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getRolePermissionsUserAdminException">
+                <soap:fault use="literal" name="getRolePermissionsUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="bulkImportUsers">
+            <soap:operation soapAction="urn:bulkImportUsers" style="document"/>
+            <wsdl:input>
+
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="bulkImportUsersUserAdminException">
+                <soap:fault use="literal" name="bulkImportUsersUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUsersOfRole">
+            <soap:operation soapAction="urn:getUsersOfRole" style="document"/>
+            <wsdl:input>
+
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getUsersOfRoleUserAdminException">
+                <soap:fault use="literal" name="getUsersOfRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="updateRoleName">
+            <soap:operation soapAction="urn:updateRoleName" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="updateRoleNameUserAdminException">
+                <soap:fault use="literal" name="updateRoleNameUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="changePasswordByUser">
+            <soap:operation soapAction="urn:changePasswordByUser" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="changePasswordByUserUserAdminException">
+
+                <soap:fault use="literal" name="changePasswordByUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setRoleUIPermission">
+            <soap:operation soapAction="urn:setRoleUIPermission" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="setRoleUIPermissionUserAdminException">
+
+                <soap:fault use="literal" name="setRoleUIPermissionUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserStoreInfo">
+            <soap:operation soapAction="urn:getUserStoreInfo" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getUserStoreInfoUserAdminException">
+                <soap:fault use="literal" name="getUserStoreInfoUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addUser">
+            <soap:operation soapAction="urn:addUser" style="document"/>
+            <wsdl:input>
+
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="addUserUserAdminException">
+                <soap:fault use="literal" name="addUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addRole">
+            <soap:operation soapAction="urn:addRole" style="document"/>
+            <wsdl:input>
+
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="addRoleUserAdminException">
+                <soap:fault use="literal" name="addRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllUIPermissions">
+            <soap:operation soapAction="urn:getAllUIPermissions" style="document"/>
+            <wsdl:input>
+
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getAllUIPermissionsUserAdminException">
+                <soap:fault use="literal" name="getAllUIPermissionsUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+    </wsdl:binding>
+    <wsdl:binding name="UserAdminSoap12Binding" type="ns:UserAdminPortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getAllRolesNames">
+            <soap12:operation soapAction="urn:getAllRolesNames" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getAllRolesNamesUserAdminException">
+                <soap12:fault use="literal" name="getAllRolesNamesUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changePassword">
+            <soap12:operation soapAction="urn:changePassword" style="document"/>
+            <wsdl:input>
+
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="changePasswordUserAdminException">
+                <soap12:fault use="literal" name="changePasswordUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateUsersOfRole">
+            <soap12:operation soapAction="urn:updateUsersOfRole" style="document"/>
+            <wsdl:input>
+
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="updateUsersOfRoleUserAdminException">
+                <soap12:fault use="literal" name="updateUsersOfRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="getRolesOfUser">
+            <soap12:operation soapAction="urn:getRolesOfUser" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getRolesOfUserUserAdminException">
+
+                <soap12:fault use="literal" name="getRolesOfUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="getRolesOfCurrentUser">
+            <soap12:operation soapAction="urn:getRolesOfCurrentUser" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getRolesOfCurrentUserUserAdminException">
+
+                <soap12:fault use="literal" name="getRolesOfCurrentUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteRole">
+            <soap12:operation soapAction="urn:deleteRole" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="deleteRoleUserAdminException">
+
+                <soap12:fault use="literal" name="deleteRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="listUsers">
+            <soap12:operation soapAction="urn:listUsers" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="listUsersUserAdminException">
+                <soap12:fault use="literal" name="listUsersUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateRolesOfUser">
+            <soap12:operation soapAction="urn:updateRolesOfUser" style="document"/>
+            <wsdl:input>
+
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="updateRolesOfUserUserAdminException">
+                <soap12:fault use="literal" name="updateRolesOfUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <soap12:operation soapAction="urn:deleteUser" style="document"/>
+            <wsdl:input>
+
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="deleteUserUserAdminException">
+                <soap12:fault use="literal" name="deleteUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRolePermissions">
+            <soap12:operation soapAction="urn:getRolePermissions" style="document"/>
+            <wsdl:input>
+
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getRolePermissionsUserAdminException">
+                <soap12:fault use="literal" name="getRolePermissionsUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="bulkImportUsers">
+            <soap12:operation soapAction="urn:bulkImportUsers" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="bulkImportUsersUserAdminException">
+                <soap12:fault use="literal" name="bulkImportUsersUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="getUsersOfRole">
+            <soap12:operation soapAction="urn:getUsersOfRole" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getUsersOfRoleUserAdminException">
+
+                <soap12:fault use="literal" name="getUsersOfRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateRoleName">
+            <soap12:operation soapAction="urn:updateRoleName" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="updateRoleNameUserAdminException">
+
+                <soap12:fault use="literal" name="updateRoleNameUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changePasswordByUser">
+            <soap12:operation soapAction="urn:changePasswordByUser" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="changePasswordByUserUserAdminException">
+                <soap12:fault use="literal" name="changePasswordByUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setRoleUIPermission">
+            <soap12:operation soapAction="urn:setRoleUIPermission" style="document"/>
+            <wsdl:input>
+
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="setRoleUIPermissionUserAdminException">
+                <soap12:fault use="literal" name="setRoleUIPermissionUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserStoreInfo">
+            <soap12:operation soapAction="urn:getUserStoreInfo" style="document"/>
+            <wsdl:input>
+
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getUserStoreInfoUserAdminException">
+                <soap12:fault use="literal" name="getUserStoreInfoUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="addUser">
+            <soap12:operation soapAction="urn:addUser" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="addUserUserAdminException">
+                <soap12:fault use="literal" name="addUserUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="addRole">
+            <soap12:operation soapAction="urn:addRole" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="addRoleUserAdminException">
+                <soap12:fault use="literal" name="addRoleUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="getAllUIPermissions">
+            <soap12:operation soapAction="urn:getAllUIPermissions" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="getAllUIPermissionsUserAdminException">
+
+                <soap12:fault use="literal" name="getAllUIPermissionsUserAdminException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserAdminHttpBinding" type="ns:UserAdminPortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="getAllRolesNames">
+            <http:operation location="getAllRolesNames"/>
+            <wsdl:input>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="changePassword">
+            <http:operation location="changePassword"/>
+            <wsdl:input>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="updateUsersOfRole">
+            <http:operation location="updateUsersOfRole"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getRolesOfUser">
+            <http:operation location="getRolesOfUser"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getRolesOfCurrentUser">
+            <http:operation location="getRolesOfCurrentUser"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="deleteRole">
+            <http:operation location="deleteRole"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+
+        <wsdl:operation name="listUsers">
+            <http:operation location="listUsers"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="updateRolesOfUser">
+            <http:operation location="updateRolesOfUser"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <http:operation location="deleteUser"/>
+            <wsdl:input>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getRolePermissions">
+            <http:operation location="getRolePermissions"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="bulkImportUsers">
+            <http:operation location="bulkImportUsers"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+
+        <wsdl:operation name="getUsersOfRole">
+            <http:operation location="getUsersOfRole"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="updateRoleName">
+            <http:operation location="updateRoleName"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="changePasswordByUser">
+            <http:operation location="changePasswordByUser"/>
+            <wsdl:input>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setRoleUIPermission">
+            <http:operation location="setRoleUIPermission"/>
+            <wsdl:input>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getUserStoreInfo">
+            <http:operation location="getUserStoreInfo"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addUser">
+            <http:operation location="addUser"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+
+        <wsdl:operation name="addRole">
+            <http:operation location="addRole"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getAllUIPermissions">
+            <http:operation location="getAllUIPermissions"/>
+            <wsdl:input>
+
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="UserAdmin">
+        <wsdl:port name="UserAdminHttpsSoap11Endpoint" binding="ns:UserAdminSoap11Binding">
+
+            <soap:address
+                    location="https://localhost:9443/services/UserAdmin.UserAdminHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserAdminHttpsSoap12Endpoint" binding="ns:UserAdminSoap12Binding">
+            <soap12:address
+                    location="https://localhost:9443/services/UserAdmin.UserAdminHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserAdminHttpsEndpoint" binding="ns:UserAdminHttpBinding">
+            <http:address
+                    location="https://localhost:9443/services/UserAdmin.UserAdminHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+
+</wsdl:definitions>

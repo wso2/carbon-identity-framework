@@ -29,30 +29,53 @@ import java.util.Map;
 public interface ProvisioningHandler {
 
     /**
-     * @param roles
-     * @param subject
-     * @param attributes
-     * @param provisioningUserStoreId
-     * @param tenantDomain
-     * @throws FrameworkException
+     * Handle provisioning with v1 roles.
+     *
+     * @param roles                   List of role names.
+     * @param subject                 Subject identifier.
+     * @param attributes              Attributes.
+     * @param provisioningUserStoreId Provisioning user store Id.
+     * @param tenantDomain            Tenant domain.
+     * @throws FrameworkException If an error occurred while handling provisioning.
+     * @deprecated This method is deprecated and use {@link #handleWithV2Roles(List, String, Map, String, String)}.
      */
+    @Deprecated
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
                        String provisioningUserStoreId, String tenantDomain) throws FrameworkException;
 
     /**
-     * Default implementation to validate idp role mappings by keeping backward compatibility.
+     * Default implementation to handle provisioning with v1 roles by validating idp role mappings by keeping backward
+     * compatibility.
      *
-     * @param roles
-     * @param subject
-     * @param attributes
-     * @param provisioningUserStoreId
-     * @param tenantDomain
-     * @param idpToLocalRoleMapping
-     * @throws FrameworkException
+     * @param roles                   List of role names.
+     * @param subject                 Subject identifier.
+     * @param attributes              Attributes.
+     * @param provisioningUserStoreId Provisioning user store Id.
+     * @param tenantDomain            Tenant domain.
+     * @param idpToLocalRoleMapping   IdP to local role mapping.
+     * @throws FrameworkException If an error occurred while handling provisioning.
+     * @deprecated This method is deprecated and use {@link #handleWithV2Roles(List, String, Map, String, String)}.
      */
+    @Deprecated
     default void handle(List<String> roles, String subject, Map<String, String> attributes,
             String provisioningUserStoreId, String tenantDomain, List<String> idpToLocalRoleMapping)
             throws FrameworkException {
+        throw new FrameworkException("Operation is not supported.");
+    }
+
+    /**
+     * Handle provisioning with v2 roles.
+     *
+     * @param roleIdList              List of role ids.
+     * @param subject                 Subject identifier.
+     * @param attributes              Attributes.
+     * @param provisioningUserStoreId Provisioning user store Id.
+     * @param tenantDomain            Tenant domain.
+     * @throws FrameworkException If an error occurred while handling provisioning with v2 roles.
+     */
+    default void handleWithV2Roles(List<String> roleIdList, String subject, Map<String, String> attributes,
+                                   String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+
         throw new FrameworkException("Operation is not supported.");
     }
 }

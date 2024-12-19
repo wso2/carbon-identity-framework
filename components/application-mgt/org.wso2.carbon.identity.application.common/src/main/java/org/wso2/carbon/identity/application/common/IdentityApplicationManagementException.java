@@ -24,6 +24,7 @@ package org.wso2.carbon.identity.application.common;
 public class IdentityApplicationManagementException extends Exception {
 
     private String errorCode;
+    private String description;
 
     private static final long serialVersionUID = -1982152066401023165L;
 
@@ -59,6 +60,20 @@ public class IdentityApplicationManagementException extends Exception {
         super(message);
         this.errorCode = errorCode;
     }
+    
+    /**
+     * Constructs a new exception with the specified error code, message and description.
+     *
+     * @param errorCode   Error code.
+     * @param message     Error message.
+     * @param description Error description.
+     */
+    public IdentityApplicationManagementException(String errorCode, String message, String description) {
+
+        super(message);
+        this.errorCode = errorCode;
+        this.description = description;
+    }
 
     /**
      * Constructs a new exception with the specified error code, message and cause.
@@ -71,6 +86,22 @@ public class IdentityApplicationManagementException extends Exception {
 
         super(message, cause);
         this.errorCode = errorCode;
+    }
+
+    /**
+     * Constructs a new exception with the specified error code, message, description and cause.
+     *
+     * @param errorCode Error code.
+     * @param message   Detailed message.
+     * @param cause     Cause as {@link Throwable}.
+     * @param description Error description.
+     */
+    public IdentityApplicationManagementException(String errorCode, String message, String description,
+                                                  Throwable cause) {
+
+        super(message, cause);
+        this.errorCode = errorCode;
+        this.description = description;
     }
 
     /**
@@ -93,5 +124,10 @@ public class IdentityApplicationManagementException extends Exception {
     public String getMessage() {
 
         return super.getMessage();
+    }
+
+    public String getDescription() {
+
+        return description;
     }
 }

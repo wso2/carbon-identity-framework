@@ -1,0 +1,205 @@
+{
+    "id": "facebook-idp",
+    "name": "Facebook",
+    "description": "Login users with existing Facebook accounts.",
+    "docLink": "/guides/authentication/social-login/add-facebook-login/",
+    "image": "assets/images/logos/facebook.svg",
+    "category": "DEFAULT",
+    "displayOrder": 3,
+    "services": [],
+    "tags": [ "Social-Login", "APIAuth" ],
+    "idp": {
+        "name": "Facebook",
+        "description": "",
+        "image": "",
+        "isPrimary": false,
+        "isFederationHub": false,
+        "homeRealmIdentifier": "",
+        "certificate": {
+            "certificates": []
+        },
+        "alias": "https://localhost:9444/oauth2/token",
+        "idpIssuerName": "",
+        "claims": {
+            "userIdClaim": {
+                "uri": "email"
+            },
+            "roleClaim": {
+                "uri": "http://wso2.org/claims/role"
+            },
+            "mappings": [
+                {
+                    "idpClaim": "email",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9lbWFpbGFkZHJlc3M",
+                        "uri": "http://wso2.org/claims/emailaddress",
+                        "displayName": "Email"
+                    }
+                },
+                {
+                    "idpClaim": "gender",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9nZW5kZXI",
+                        "uri": "http://wso2.org/claims/gender",
+                        "displayName": "Gender"
+                    }
+                },
+                {
+                    "idpClaim": "name",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9mdWxsbmFtZQ",
+                        "uri": "http://wso2.org/claims/fullname",
+                        "displayName": "Full Name"
+                    }
+                },
+                {
+                    "idpClaim": "first_name",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9naXZlbm5hbWU",
+                        "uri": "http://wso2.org/claims/givenname",
+                        "displayName": "First Name"
+                    }
+                },
+                {
+                    "idpClaim": "last_name",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9sYXN0bmFtZQ",
+                        "uri": "http://wso2.org/claims/lastname",
+                        "displayName": "Last Name"
+                    }
+                },
+                {
+                    "idpClaim": "age_range",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy9kb2I",
+                        "uri": "http://wso2.org/claims/dob",
+                        "displayName": "Birth Date"
+                    }
+                },
+                {
+                    "idpClaim": "link",
+                    "localClaim": {
+                        "id": "aHR0cDovL3dzbzIub3JnL2NsYWltcy91cmw",
+                        "uri": "http://wso2.org/claims/url",
+                        "displayName": "URL"
+                    }
+                }
+            ],
+            "provisioningClaims": []
+        },
+        "roles": {
+            "mappings": []
+        },
+        "federatedAuthenticators": {
+            "defaultAuthenticatorId": "RmFjZWJvb2tBdXRoZW50aWNhdG9y",
+            "authenticators": [
+                {
+                    "authenticatorId": "RmFjZWJvb2tBdXRoZW50aWNhdG9y",
+                    "isEnabled": true,
+                    "properties": [
+                        {
+                            "key": "AuthnEndpoint",
+                            "type": "STRING",
+                            "displayOrder": 0,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "Scope",
+                            "displayName": "Scope",
+                            "description": "Enter a comma separated list of permissions to request from the user",
+                            "type": "STRING",
+                            "displayOrder": 3,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "email",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "UserInfoFields",
+                            "displayName": "User Information Fields",
+                            "description": "Enter comma-separated user information fields you want to retrieve",
+                            "type": "STRING",
+                            "displayOrder": 4,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "ClientId",
+                            "displayName": "Client Id",
+                            "description": "Enter Facebook client identifier value",
+                            "type": "STRING",
+                            "displayOrder": 1,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "UserInfoEndpoint",
+                            "type": "STRING",
+                            "displayOrder": 0,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "AuthTokenEndpoint",
+                            "type": "STRING",
+                            "displayOrder": 0,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "callBackUrl",
+                            "displayName": "Callback Url",
+                            "description": "Enter value corresponding to callback url",
+                            "type": "STRING",
+                            "displayOrder": 5,
+                            "regex": ".*",
+                            "isMandatory": false,
+                            "isConfidential": false,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        },
+                        {
+                            "key": "ClientSecret",
+                            "displayName": "Client Secret",
+                            "description": "Enter Facebook client secret value",
+                            "type": "STRING",
+                            "displayOrder": 2,
+                            "regex": ".*",
+                            "isMandatory": true,
+                            "isConfidential": true,
+                            "options": [],
+                            "defaultValue": "",
+                            "subProperties": []
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "type": "SOCIAL",
+    "templateId": "facebook-idp"
+}

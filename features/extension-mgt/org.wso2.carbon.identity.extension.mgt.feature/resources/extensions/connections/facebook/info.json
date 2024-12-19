@@ -1,0 +1,10 @@
+{
+    "id": "facebook-idp",
+    "name": "Facebook",
+    "description": "Login users with existing Facebook accounts.",
+    "image": "assets/images/logos/facebook.svg",
+    "category": "DEFAULT",
+    "displayOrder": 3,
+    "tags": [ "Social-Login", "APIAuth" ],
+    "type": "identity-provider"
+}

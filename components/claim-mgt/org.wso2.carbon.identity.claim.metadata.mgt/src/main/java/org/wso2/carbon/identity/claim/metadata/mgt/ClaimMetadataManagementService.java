@@ -16,21 +16,13 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
-import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
-import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
-
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_LOCAL_CLAIM_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 
 /**
  * This interface used to expose claim metadata management functionalities as an OSGi Service.
@@ -203,6 +195,20 @@ public interface ClaimMetadataManagementService {
      * @throws ClaimMetadataException If an error occurred while retrieving local claims.
      */
     default String getMaskingRegexForLocalClaim(String localClaimURI, String tenantDomain) throws
+            ClaimMetadataException {
+
+        return null;
+    }
+
+    /**
+     * Get mapped external claims for provided local claim.
+     *
+     * @param localClaimURI Local claim URI.
+     * @param tenantDomain  Tenant domain.
+     * @return List of mapped external claims.
+     * @throws ClaimMetadataException If an error occurred while retrieving external claims.
+     */
+    default List<Claim> getMappedExternalClaimsForLocalClaim(String localClaimURI, String tenantDomain) throws
             ClaimMetadataException {
 
         return null;

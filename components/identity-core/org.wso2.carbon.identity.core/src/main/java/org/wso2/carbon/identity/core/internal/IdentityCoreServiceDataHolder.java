@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core.internal;
 
+import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -27,6 +28,11 @@ public class IdentityCoreServiceDataHolder {
 
     private static IdentityCoreServiceDataHolder instance = new IdentityCoreServiceDataHolder();
     private RealmService realmService = null;
+    private OrganizationUserResidentResolverService organizationUserResidentResolverService = null;
+
+    private boolean isTenantQualifiedUrlsEnabled;
+
+    private boolean isTenantedSessionsEnabled;
 
     private IdentityCoreServiceDataHolder() {
 
@@ -55,5 +61,57 @@ public class IdentityCoreServiceDataHolder {
     public void setRealmService(RealmService realmService) {
 
         this.realmService = realmService;
+    }
+    
+    /**
+     * Get organization user resident resolver service instance.
+     *
+     * @return User resident resolver service instance.
+     */
+    public OrganizationUserResidentResolverService getOrganizationUserResidentResolverService() {
+        
+        return organizationUserResidentResolverService;
+    }
+    
+    /**
+     * Set organization user resident resolver service instance.
+     *
+     * @param organizationUserResidentResolverService OrganizationUserResidentResolverService user resident resolver
+     *                                                service instance.
+     */
+    public void setOrganizationUserResidentResolverService(
+            OrganizationUserResidentResolverService organizationUserResidentResolverService) {
+        
+        this.organizationUserResidentResolverService = organizationUserResidentResolverService;
+    }
+
+    /**
+     * Get tenant qualified URLs enabled status.
+     *
+     * @return Tenant qualified URLs enabled status.
+     */
+    public boolean isTenantQualifiedUrlsEnabled() {
+
+        return isTenantQualifiedUrlsEnabled;
+    }
+
+    /**
+     * Get tenanted sessions enabled status.
+     *
+     * @return Tenanted sessions enabled status.
+     */
+    public boolean isTenantedSessionsEnabled() {
+
+        return isTenantedSessionsEnabled;
+    }
+
+    public void setTenantQualifiedUrlsEnabled(boolean tenantQualifiedUrlsEnabled) {
+
+        isTenantQualifiedUrlsEnabled = tenantQualifiedUrlsEnabled;
+    }
+
+    public void setTenantedSessionsEnabled(boolean tenantedSessionsEnabled) {
+
+        isTenantedSessionsEnabled = tenantedSessionsEnabled;
     }
 }

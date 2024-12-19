@@ -158,7 +158,6 @@ public class LocalClaimDAO extends ClaimDAO {
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement prepStmt = null;
 
         String localClaimURI = localClaim.getClaimURI();
 
@@ -194,7 +193,6 @@ public class LocalClaimDAO extends ClaimDAO {
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
-        PreparedStatement prepStmt = null;
 
         String localClaimURI = localClaim.getClaimURI();
 
@@ -243,17 +241,36 @@ public class LocalClaimDAO extends ClaimDAO {
 
             for (LocalClaim localClaim : localClaimList) {
                 String localClaimURI = localClaim.getClaimURI();
-                int localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
-                        localClaimURI, tenantId);
-                List<AttributeMapping> existingClaimAttributeMappings =
-                        claimAttributeMappingsOfDialect.get(localClaimId);
-                existingClaimAttributeMappings.removeIf(attributeMapping -> attributeMapping.getUserStoreDomain().
-                        equals(userStoreDomain.toUpperCase()));
-                existingClaimAttributeMappings.add(new AttributeMapping(userStoreDomain,
-                        localClaim.getMappedAttribute(userStoreDomain)));
+                int localClaimId = getIdOfClaim(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI,
+                        tenantId);
+                boolean isLocalClaimExist = localClaimId != 0;
+                if (isLocalClaimExist) {
+                    List<AttributeMapping> existingClaimAttributeMappings =
+                            claimAttributeMappingsOfDialect.get(localClaimId);
+                    if (existingClaimAttributeMappings == null) {
+                        existingClaimAttributeMappings = new ArrayList<>();
+                    }
+                    existingClaimAttributeMappings.removeIf(attributeMapping -> attributeMapping.getUserStoreDomain()
+                            .equals(userStoreDomain.toUpperCase()));
+                    existingClaimAttributeMappings.add(new AttributeMapping(userStoreDomain,
+                            localClaim.getMappedAttribute(userStoreDomain)));
 
-                deleteClaimAttributeMappings(connection, localClaimId, tenantId);
-                addClaimAttributeMappings(connection, localClaimId, existingClaimAttributeMappings, tenantId);
+                    deleteClaimAttributeMappings(connection, localClaimId, tenantId);
+                    addClaimAttributeMappings(connection, localClaimId, existingClaimAttributeMappings, tenantId);
+                } else {
+                    localClaimId = addClaim(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI, tenantId);
+
+                    // Some JDBC Drivers returns this in the result, some don't
+                    if (localClaimId == 0) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("JDBC Driver did not return the claimId, executing Select operation");
+                        }
+                        localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, localClaimURI, tenantId);
+                    }
+
+                    addClaimAttributeMappings(connection, localClaimId, localClaim.getMappedAttributes(), tenantId);
+                    addClaimProperties(connection, localClaimId, localClaim.getClaimProperties(), tenantId);
+                }
             }
 
             // End transaction.
@@ -366,6 +383,36 @@ public class LocalClaimDAO extends ClaimDAO {
             }
         } catch (SQLException e1) {
             log.error("An error occurred while rolling back transactions. ", e1);
+        }
+    }
+
+    /**
+     * Fetch mapped external claims of a local claim.
+     *
+     * @param tenantId      Tenant Id.
+     * @param localClaimURI URI of the local claim.
+     * @return List of associated external claims.
+     * @throws ClaimMetadataException When trying to fetch mapped external claims for a local claim.
+     */
+    public List<Claim> fetchMappedExternalClaims(String localClaimURI, int tenantId)
+            throws ClaimMetadataException {
+
+        List<Claim> mappedExternalClaims = new ArrayList<>();
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt =
+                     dbConnection.prepareStatement(SQLConstants.FETCH_EXTERNAL_MAPPED_CLAIM_OF_LOCAL_CLAIM)) {
+            prepStmt.setString(1, localClaimURI);
+            prepStmt.setInt(2, tenantId);
+            ResultSet resultSet = prepStmt.executeQuery();
+            while (resultSet.next()) {
+                String claimURI = resultSet.getString(SQLConstants.CLAIM_URI_COLUMN);
+                String dialectURI = resultSet.getString(SQLConstants.DIALECT_URI_COLUMN);
+                Claim claim = new Claim(dialectURI, claimURI);
+                mappedExternalClaims.add(claim);
+            }
+            return mappedExternalClaims;
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error while obtaining mapped external claims for local claim.", e);
         }
     }
 }

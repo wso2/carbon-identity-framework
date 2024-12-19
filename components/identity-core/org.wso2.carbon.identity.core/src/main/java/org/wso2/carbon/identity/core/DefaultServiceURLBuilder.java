@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -42,6 +43,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.PROXY_CONTEXT_PATH;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isSuperTenantRequiredInUrl;
 
 /**
  * Implementation for {@link ServiceURLBuilder}.
@@ -56,6 +58,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     protected boolean mandateTenantedPath = false;
     protected Map<String, String> parameters = new HashMap<>();
     protected Map<String, String> fragmentParams = new HashMap<>();
+    // This flag is added to skip custom domain configurations.
+    // When set to true, custom domain configurations for the tenant will be ignored when building service urls.
+    protected boolean skipDomainBranding = false;
 
     /**
      * Returns {@link ServiceURLBuilder} appended the URL path.
@@ -76,12 +81,32 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
      *
      * @return {@link ServiceURL}.
      * @throws URLBuilderException If error occurred while constructing the URL.
+     * @deprecated Use {@link #build(String)} (String)} instead.
      */
     @Override
+    @Deprecated
     public ServiceURL build() throws URLBuilderException {
 
+        return buildServiceURL(fetchProxyHostName());
+    }
+
+    /**
+     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
+     * root and the tenant domain (appended if required).
+     *
+     * @param hostname Hostname.
+     * @return {@link ServiceURL}.
+     * @throws URLBuilderException If error occurred while constructing the URL.
+     */
+    @Override
+    public ServiceURL build(String hostname) throws URLBuilderException {
+
+        return buildServiceURL(hostname);
+    }
+
+    private ServiceURL buildServiceURL(String proxyHostName) throws URLBuilderException {
+
         String protocol = fetchProtocol();
-        String proxyHostName = fetchProxyHostName();
         String internalHostName = fetchInternalHostName();
         String authenticationEndpointHostName = fetchAuthenticationEndpointHostName();
         String authenticationEndpointPath = fetchAuthenticationEndpointPath();
@@ -90,23 +115,25 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
         String tenantDomain = StringUtils.isNotBlank(tenant) ? tenant : resolveTenantDomain();
+        String tenantDomainForPublicUrl = resolveTenantDomainForUrlBuilder(tenantDomain);
         String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
-        String relativePublicUrl = fetchRelativePublicUrl(proxyContextPath, urlPath, resolvedFragment);
+        String urlPathForPublicUrl = getResolvedUrlPath(tenantDomainForPublicUrl);
+        String relativePublicUrl = fetchRelativePublicUrl(proxyContextPath, urlPathForPublicUrl, resolvedFragment);
         String relativeInternalUrl = fetchRelativeInternalUrl(urlPath, resolvedFragment);
         String absoluteInternalUrl = fetchAbsoluteInternalUrl(protocol, internalHostName, transportPort,
                 relativeInternalUrl);
         String absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol, proxyHostName,
                 proxyPort);
-        if (StringUtils.isNotBlank(urlPath)) {
+        if (StringUtils.isNotBlank(urlPathForPublicUrl)) {
             if (authenticationEndpointHostName != null && authenticationEndpointPath != null &&
-                    urlPath.contains(authenticationEndpointPath)) {
+                    urlPathForPublicUrl.contains(authenticationEndpointPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         authenticationEndpointHostName, proxyPort);
             }
             if (recoveryEndpointHostName != null && recoveryEndpointPath != null &&
-                    urlPath.contains(recoveryEndpointPath)) {
+                    urlPathForPublicUrl.contains(recoveryEndpointPath)) {
                 absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath(protocol,
                         recoveryEndpointHostName, proxyPort);
             }
@@ -124,16 +151,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && !resolvedUrlContext.startsWith("t/") &&
                 !resolvedUrlContext.startsWith("o/")) {
-            if (mandateTenantedPath || isNotSuperTenant(tenantDomain)) {
-                String organizationId = StringUtils.isNotBlank(orgId) ? orgId :
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
-                if (organizationId != null) {
-                    // When requesting from an organization qualified url, the service urls should also be organization
-                    // qualified.
-                    resolvedUrlStringBuilder.append("/o/").append(organizationId);
-                } else {
-                    resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
-                }
+            if (mandateTenantedPath || isSuperTenantRequiredInUrl() || isNotSuperTenant(tenantDomain)) {
+                setURL(resolvedUrlStringBuilder, tenantDomain);
             }
         }
 
@@ -193,6 +212,13 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     public ServiceURLBuilder addFragmentParameter(String key, String value) {
 
         fragmentParams.put(key, value);
+        return this;
+    }
+
+    @Override
+    public ServiceURLBuilder setSkipDomainBranding(boolean skipDomainBranding) {
+
+        this.skipDomainBranding = skipDomainBranding;
         return this;
     }
 
@@ -467,6 +493,47 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                 serverUrl.append(contextPath.trim());
             }
         }
+    }
+
+    private void setURL(StringBuilder resolvedUrlStringBuilder, String tenantDomain) {
+
+        // ####### Organization perspective resource URL building.
+        // if organization ID is explicitly set, build an organization qualified URL.
+        if (StringUtils.isNotEmpty(this.orgId)) {
+            // The service urls are requested to be organization qualified.
+            resolvedUrlStringBuilder.append("/o/").append(this.orgId);
+            return;
+        }
+        /*  If the root tenant domain of the accessed organization is set in the thread local properties, use it to build
+        the URL in the form of /t/<tenant-domain>/o   */
+        String rootTenantDomain = (String) IdentityUtil.threadLocalProperties.get()
+                .get(OrganizationManagementConstants.ROOT_TENANT_DOMAIN);
+        if (StringUtils.isNotEmpty(rootTenantDomain)) {
+            // Set root tenant domain when resource accessed with organization perspective.
+            if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(rootTenantDomain)) {
+                resolvedUrlStringBuilder.append("/o");
+                return;
+            }
+            resolvedUrlStringBuilder.append("/t/").append(rootTenantDomain).append("/o");
+            return;
+        }
+        String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
+        if (StringUtils.isNotEmpty(organizationId)) {
+            resolvedUrlStringBuilder.append("/o/").append(organizationId);
+            return;
+        }
+        // ####### Tenant perspective resource URL building.
+        resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+    }
+
+    private String resolveTenantDomainForUrlBuilder(String tenantDomain) {
+
+        // If the "SuperTenantAliasInPublicUrl" is not null, use it as the domain name for carbon.super in public urls.
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain) &&
+                StringUtils.isNotBlank(IdentityTenantUtil.getSuperTenantAliasInPublicUrl())) {
+            return IdentityTenantUtil.getSuperTenantAliasInPublicUrl();
+        }
+        return tenantDomain;
     }
 
     protected static class ServiceURLImpl implements ServiceURL {

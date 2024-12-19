@@ -1,6 +1,6 @@
 {
-  "category": "idp_based",
-  "name": "Office365-based",
+  "category": "UserAttributes",
+  "name": "Update Office365 role",
   "title": "Office365-Based Authentication Template",
   "summary": "Office365 integration of WSO2 IS require role based, on-demand user provisioning. Therefore assign a given role specific to office365 for successfully authenticated users if not already assigned, in order to trigger the role based user provisioning.",
   "preRequisites": [
@@ -23,10 +23,10 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Adaptive+Authentication+Scenarios",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/",
   "code": [
     "// This script will assign the below Office365 specific role to any user if not already assigned",
-    "var roleToBeAssigned = ['office365Role'];",
+    "var roleToBeAssigned = ['Internal/office365Role'];",
     "",
     "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
@@ -42,5 +42,6 @@
     "        }",
     "    });",
     "};"
-  ]
+  ],
+  "runtime": "legacy"
 }

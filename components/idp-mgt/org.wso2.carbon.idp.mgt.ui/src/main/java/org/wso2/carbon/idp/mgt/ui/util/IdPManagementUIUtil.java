@@ -71,7 +71,7 @@ public class IdPManagementUIUtil {
     public static final String JWKS_URI = "jwksUri";
 
     private static final String META_DATA_SAML = "meta_data_saml";
-
+    private static final String SCOPES = "scopes";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 
     public static final String FILTER_STRING = "org.wso2.carbon.idp.mgt.filter";
@@ -84,6 +84,12 @@ public class IdPManagementUIUtil {
 
     public static final String IDP_LIST_UNIQUE_ID = "idpUniqueIdMap";
 
+    public static final String CHECKBOX_ON = "on";
+
+    public static final String PROPERTY_TRUE = "true";
+
+    public static final String PROPERTY_FALSE = "false";
+
     /**
      * Validates an URI.
      *
@@ -94,7 +100,7 @@ public class IdPManagementUIUtil {
 
         if (uriString != null) {
             try {
-                URL url = new URL(uriString);
+                new URL(uriString);
             } catch (MalformedURLException e) {
                 log.debug(e.getMessage(), e);
                 return false;
@@ -1378,9 +1384,9 @@ public class IdPManagementUIUtil {
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.SCOPES);
-        if (paramMap.get("scopes") != null
-                && paramMap.get("scopes").trim().length() > 0) {
-            property.setValue(paramMap.get("scopes"));
+        if (paramMap.get(SCOPES) != null
+                && paramMap.get(SCOPES).trim().length() > 0) {
+            property.setValue(paramMap.get(SCOPES));
         }
         properties[5] = property;
 
@@ -1414,6 +1420,16 @@ public class IdPManagementUIUtil {
             property.setValue("true");
         } else {
             property.setValue("false");
+        }
+        properties[10] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED);
+        property.setValue(PROPERTY_FALSE);
+        if (paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME) != null
+                && CHECKBOX_ON.equals(
+                        paramMap.get(IdentityApplicationConstants.Authenticator.OIDC.IS_PKCE_ENABLED_PARAM_NAME))) {
+            property.setValue(PROPERTY_TRUE);
         }
         properties[10] = property;
 

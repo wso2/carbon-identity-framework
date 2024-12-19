@@ -36,20 +36,25 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
@@ -58,6 +63,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -86,8 +92,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
         // if an authentication flow
         if (!context.isLogoutRequest()) {
-            if (!canHandle(request)
-                    || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED))) {
+            boolean skipPrompt = isSkipPrompt(context);
+            if (!skipPrompt && (!canHandle(request)
+                    || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
                 if (getName().equals(context.getProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR))) {
                     context.setRetrying(true);
                 }
@@ -97,13 +104,17 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.INCOMPLETE;
             } else {
                 try {
+                    if (skipPrompt) {
+                        context.setCurrentAuthenticator(getName());
+                        context.setRetrying(false);
+                    }
                     processAuthenticationResponse(request, response, context);
                     if (this instanceof LocalApplicationAuthenticator) {
                         if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
                             String userDomain = context.getSubject().getTenantDomain();
                             String tenantDomain = context.getTenantDomain();
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
-                                context.setProperty("UserTenantDomainMismatch", true);
+                                context.setProperty(FrameworkConstants.USER_TENANT_DOMAIN_MISMATCH, true);
                                 throw new AuthenticationFailedException(
                                         ErrorMessages.MISMATCHING_TENANT_DOMAIN.getCode(),
                                         ErrorMessages.MISMATCHING_TENANT_DOMAIN.getMessage(),
@@ -122,7 +133,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setSendToMultiOptionPage(sendToMultiOptionPage);
-                    context.setRetrying(retryAuthenticationEnabled());
+                    context.setRetrying(retryAuthenticationEnabled() && !skipPrompt);
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
                         if (log.isDebugEnabled()) {
                             log.debug("Error occurred during the authentication process, hence retrying.", e);
@@ -130,6 +141,38 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         // The Authenticator will re-initiate the authentication and retry.
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
+                        if (LoggerUtils.isDiagnosticLogsEnabled()) {
+                            DiagnosticLog.DiagnosticLogBuilder diagLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                                    FrameworkConstants.LogConstants.AUTHENTICATION_FRAMEWORK,
+                                    FrameworkConstants.LogConstants.ActionIDs.HANDLE_AUTH_STEP);
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.STEP, context.getCurrentStep())
+                                    .resultMessage("Authentication failed.")
+                                    .resultStatus(DiagnosticLog.ResultStatus.FAILED)
+                                    .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION);
+                            // Adding user related details to diagnostic log.
+                            Optional.ofNullable(e.getUser()).ifPresent(user -> {
+                                Optional.ofNullable(user.toFullQualifiedUsername()).ifPresent(username ->
+                                        diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER,
+                                        LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(username)
+                                                : username));
+                                diagLogBuilder.inputParam(FrameworkConstants.LogConstants.USER_STORE_DOMAIN,
+                                        user.getUserStoreDomain());
+                            });
+                            // Adding application related details to diagnostic log.
+                            FrameworkUtils.getApplicationResourceId(context).ifPresent(applicationId ->
+                                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_ID, applicationId));
+                            FrameworkUtils.getApplicationName(context).ifPresent(applicationName ->
+                                    diagLogBuilder.inputParam(LogConstants.InputKeys.APPLICATION_NAME,
+                                            applicationName));
+                            // Sanitize the error message before adding to diagnostic log.
+                            String errorMessage = e.getMessage();
+                            if (context.getLastAuthenticatedUser() != null) {
+                                String userName = context.getLastAuthenticatedUser().getUserName();
+                                errorMessage = LoggerUtils.getSanitizedErrorMessage(errorMessage, userName);
+                            }
+                            diagLogBuilder.inputParam(LogConstants.InputKeys.ERROR_MESSAGE, errorMessage);
+                            LoggerUtils.triggerDiagnosticLogEvent(diagLogBuilder);
+                        }
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     } else {
                         context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
@@ -157,6 +200,20 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
         }
+    }
+
+    /**
+     * Checks whether the skipPrompt step config is set to true for the current step.
+     *
+     * @param context Authentication context.
+     * @return True if the skipPrompt step config is set to true for the current step.
+     */
+    private boolean isSkipPrompt(AuthenticationContext context) {
+
+        if (context.getCurrentStep() == 0) {
+            return false;
+        }
+        return context.getSequenceConfig().getStepMap().get(context.getCurrentStep()).isSkipPrompt();
     }
 
     private void handlePostAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
@@ -193,13 +250,22 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     }
 
     protected boolean retryAuthenticationEnabled(AuthenticationContext context) {
+
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
         boolean isRetryAuthenticatorEnabled = false;
+
+        // Handle the local authenticator configs done in file level.
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        if (MapUtils.isNotEmpty(parameterMap)) {
+            isRetryAuthenticatorEnabled = Boolean.parseBoolean(parameterMap.get(ENABLE_RETRY_FROM_AUTHENTICATOR));
+        }
+
         Map<String, String> authParams = context.getAuthenticatorParams(context.getCurrentAuthenticator());
         if (MapUtils.isNotEmpty(authParams)) {
             isRetryAuthenticatorEnabled = Boolean.parseBoolean(authParams.get(ENABLE_RETRY_FROM_AUTHENTICATOR));
         }
+
         if (graph == null || !graph.isEnabled() || isRetryAuthenticatorEnabled) {
             return retryAuthenticationEnabled();
         }
@@ -233,16 +299,22 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         System.currentTimeMillis() - (long) currentAuthenticatorStartTime);
             }
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
+            if (user != null) {
+                if (user.getTenantDomain() == null) {
+                    user.setTenantDomain(context.getTenantDomain());
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("User object is null when publishing authentication step result.");
+                }
+            }
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
             if (isFederated) {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
                 paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
-                paramMap.put(FrameworkConstants.AUTHENTICATOR, getName());
-                if (user != null) {
-                    user.setTenantDomain(context.getTenantDomain());
-                }
             } else {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_LOCAL_STEP, true);
@@ -282,6 +354,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
                                                          User user, String errorCode) {
 
+        if (user == null) {
+            user = context.getLastAuthenticatedUser();
+        }
         context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_CODE, errorCode);
         publishAuthenticationStepAttempt(request, context, user, false);
     }
@@ -363,6 +438,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser)
             throws AuthenticationFailedException {
 
+        return getUser(authenticatedUser, null);
+    }
+    protected org.wso2.carbon.user.core.common.User getUser(AuthenticatedUser authenticatedUser,
+                                                            AuthenticationContext context)
+            throws AuthenticationFailedException {
+
         org.wso2.carbon.user.core.common.User user = null;
         String tenantDomain = authenticatedUser.getTenantDomain();
         if (tenantDomain == null) {
@@ -370,6 +451,20 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
+            if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+                String username = authenticatedUser.getUserName();
+                if (context != null) {
+                    username = FrameworkUtils.preprocessUsername(username, context);
+                }
+                ResolvedUserResult resolvedUserResult = FrameworkServiceDataHolder.getInstance()
+                        .getMultiAttributeLoginService().resolveUser(MultitenantUtils.getTenantAwareUsername(
+                                username), tenantDomain);
+                if (resolvedUserResult != null && ResolvedUserResult.UserResolvedStatus.SUCCESS.
+                        equals(resolvedUserResult.getResolvedStatus())) {
+                    user = resolvedUserResult.getUser();
+                }
+                return user;
+            }
             UserRealm userRealm = FrameworkServiceDataHolder.getInstance().getRealmService()
                     .getTenantUserRealm(tenantId);
             if (userRealm != null) {
@@ -395,8 +490,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         + tenantDomain);
             }
         } catch (UserStoreException e) {
-            String msg = "Failed to retrieve the user from the user store.";
-            throw new AuthenticationFailedException(msg, e);
+            throw new AuthenticationFailedException("Failed to retrieve the user from the user store.", e);
         }
         return user;
     }

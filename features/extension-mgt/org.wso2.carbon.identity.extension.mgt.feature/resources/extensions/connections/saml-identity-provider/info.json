@@ -1,0 +1,10 @@
+{
+    "id": "enterprise-saml-idp",
+    "name": "",
+    "description": "Configure a new enterprise identity provider with SAML 2.0",
+    "image": "",
+    "category": "DEFAULT",
+    "displayOrder": 7,
+    "tags": [ "SAML" ],
+    "type": "identity-provider"
+}

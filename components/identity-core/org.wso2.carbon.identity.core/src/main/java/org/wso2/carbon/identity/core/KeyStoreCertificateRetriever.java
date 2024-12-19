@@ -24,12 +24,13 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
 /**
- * The Keystore file (JKS) based implementation of @{@link CertificateRetriever}
+ * The Keystore file (PKCS12) based implementation of @{@link CertificateRetriever}
  */
 public class KeyStoreCertificateRetriever implements CertificateRetriever {
 
@@ -59,7 +60,7 @@ public class KeyStoreCertificateRetriever implements CertificateRetriever {
         try {
             if (tenant.getId() != MultitenantConstants.SUPER_TENANT_ID) {
                 // This is a tenant. So load the tenant key store.
-                keyStore = keyStoreManager.getKeyStore(getKeyStoreName(tenant.getDomain()));
+                keyStore = keyStoreManager.getKeyStore(KeystoreUtils.getKeyStoreFileLocation(tenant.getDomain()));
             } else {
                 // This is the super tenant. So load the primary key store.
                 keyStore = keyStoreManager.getPrimaryKeyStore();
@@ -71,10 +72,5 @@ public class KeyStoreCertificateRetriever implements CertificateRetriever {
                     "of the tenant domain '%s'.", certificateId, tenant.getDomain());
             throw new CertificateRetrievingException(errorMsg, e);
         }
-    }
-
-    private String getKeyStoreName(String tenantDomain) {
-        String keyStoreName = tenantDomain.trim().replace(".", "-");
-        return keyStoreName + ".jks";
     }
 }

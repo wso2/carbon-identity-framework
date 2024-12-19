@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
 
     private Map<String, String[]> parameters = new HashMap<>();
+    private boolean isAuthFlowConcluded;
 
     public AuthServiceRequestWrapper(HttpServletRequest request, Map<String, String[]> parameters) {
 
@@ -47,6 +48,7 @@ public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
         this.parameters = parameters;
         setSessionDataKey(parameters);
         skipNonceCookieValidation();
+        this.setAttribute(FrameworkConstants.IS_API_BASED_AUTH_FLOW, true);
     }
 
     @Override
@@ -132,7 +134,17 @@ public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
      */
     public boolean isAuthFlowConcluded() {
 
-        return Boolean.TRUE.equals(getAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED));
+        return Boolean.TRUE.equals(getAttribute(FrameworkConstants.IS_AUTH_FLOW_CONCLUDED)) || isAuthFlowConcluded;
+    }
+
+    /**
+     * Mark whether the flow is concluded.
+     *
+     * @param isAuthFlowConcluded set true if the flow is concluded.
+     */
+    public void setAuthFlowConcluded(boolean isAuthFlowConcluded) {
+
+        this.isAuthFlowConcluded = isAuthFlowConcluded;
     }
 
     private void setSessionDataKey(Map<String, String[]> parameters) {
@@ -145,5 +157,37 @@ public class AuthServiceRequestWrapper extends HttpServletRequestWrapper {
     private void skipNonceCookieValidation() {
 
         this.setAttribute(FrameworkConstants.SKIP_NONCE_COOKIE_VALIDATION, true);
+    }
+
+    /**
+     * Get the session data key.
+     *
+     * @return String of session data key.
+     */
+    public String getSessionDataKey() {
+
+        if (this.parameters.containsKey(FrameworkConstants.SESSION_DATA_KEY)) {
+            String[] sessionDataKeyParam = this.parameters.get(FrameworkConstants.SESSION_DATA_KEY);
+            if (sessionDataKeyParam != null && sessionDataKeyParam.length > 0) {
+                return sessionDataKeyParam[0];
+            }
+        }
+
+        Object contextIdentifierAttr = getAttribute(FrameworkConstants.CONTEXT_IDENTIFIER);
+        if (contextIdentifierAttr != null) {
+            return contextIdentifierAttr.toString();
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if the request was sent to retry.
+     *
+     * @return True if sent to retry.
+     */
+    public boolean isSentToRetry() {
+
+        return Boolean.TRUE.equals(getAttribute(FrameworkConstants.IS_SENT_TO_RETRY));
     }
 }

@@ -47,11 +47,21 @@ BEGIN
         BEGIN
             IF (@enableLog = 1)
             BEGIN
-                SELECT '[' + convert(varchar, getdate(), 121) + '] DELETING OLD BACKUP...' AS 'INFO LOG'
+                SELECT '[' + convert(varchar, getdate(), 121) + '] DELETING OLD IDN_RECOVERY_DATA BACKUP...' AS 'INFO LOG'
             END
             DROP TABLE BAK_IDN_RECOVERY_DATA
         END
         SELECT * INTO BAK_IDN_RECOVERY_DATA FROM IDN_RECOVERY_DATA
+
+        IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'BAK_IDN_RECOVERY_FLOW_DATA'))
+        BEGIN
+            IF (@enableLog = 1)
+            BEGIN
+                SELECT '[' + convert(varchar, getdate(), 121) + '] DELETING OLD IDN_RECOVERY_FLOW_DATA BACKUP...' AS 'INFO LOG'
+            END
+            DROP TABLE BAK_IDN_RECOVERY_FLOW_DATA
+        END
+        SELECT * INTO BAK_IDN_RECOVERY_FLOW_DATA FROM IDN_RECOVERY_FLOW_DATA
     END
 
     -- ------------------------------------------
@@ -115,9 +125,69 @@ BEGIN
         END
     END
 
+    SET @chunkCount = 1
+    WHILE (@chunkCount > 0)
+    BEGIN
+        -- CREATE CHUNK TABLE
+        DROP TABLE IF EXISTS IDN_RECOVERY_FLOW_DATA_CHUNK_TMP
+        CREATE TABLE IDN_RECOVERY_FLOW_DATA_CHUNK_TMP(RECOVERY_FLOW_ID VARCHAR(255))
+        INSERT INTO IDN_RECOVERY_FLOW_DATA_CHUNK_TMP(RECOVERY_FLOW_ID) SELECT TOP (@chunkSize) RECOVERY_FLOW_ID FROM IDN_RECOVERY_FLOW_DATA where (@cleanUpDateTimeLimit > TIME_CREATED);
+        SET @chunkCount = @@ROWCOUNT
+
+        IF (@chunkCount = 0)
+        BEGIN
+            BREAK;
+        END
+
+        CREATE INDEX IDN_RECOVERY_FLOW_DATA_CHUNK_TMP_INDX on IDN_RECOVERY_FLOW_DATA_CHUNK_TMP (RECOVERY_FLOW_ID)
+        IF (@enableLog = 1)
+        BEGIN
+            SELECT '[' + convert(varchar, getdate(), 121) + '] CREATED IDN_RECOVERY_FLOW_DATA_CHUNK_TMP...' AS 'INFO LOG'
+        END
+
+        -- BATCH LOOP
+        SET @batchCount = 1
+        WHILE (@batchCount > 0)
+        BEGIN
+            -- CREATE BATCH TABLE
+            DROP TABLE IF EXISTS IDN_RECOVERY_FLOW_DATA_BATCH_TMP
+            CREATE TABLE IDN_RECOVERY_FLOW_DATA_BATCH_TMP(RECOVERY_FLOW_ID VARCHAR(255))
+            INSERT INTO IDN_RECOVERY_FLOW_DATA_BATCH_TMP(RECOVERY_FLOW_ID) SELECT TOP (@batchSize) RECOVERY_FLOW_ID FROM IDN_RECOVERY_FLOW_DATA_CHUNK_TMP
+            SET @batchCount = @@ROWCOUNT
+
+            IF (@batchCount = 0)
+            BEGIN
+                BREAK;
+            END
+
+            CREATE INDEX IDN_RECOVERY_FLOW_DATA_BATCH_TMP on IDN_RECOVERY_FLOW_DATA_BATCH_TMP (RECOVERY_FLOW_ID)
+            IF (@enableLog = 1)
+            BEGIN
+                SELECT '[' + convert(varchar, getdate(), 121) + '] CREATED IDN_RECOVERY_FLOW_DATA_BATCH_TMP...' AS 'INFO LOG'
+            END
+
+            -- BATCH DELETION
+            IF (@enableLog = 1)
+            BEGIN
+                SELECT '[' + convert(varchar, getdate(), 121) + '] BATCH DELETE STARTED ON IDN_RECOVERY_FLOW_DATA...' AS 'INFO LOG'
+            END
+            DELETE FROM IDN_RECOVERY_FLOW_DATA WHERE RECOVERY_FLOW_ID IN (SELECT RECOVERY_FLOW_ID FROM IDN_RECOVERY_FLOW_DATA_BATCH_TMP)
+            SET @rowCount = @@ROWCOUNT
+            IF (@enableLog = 1)
+            BEGIN
+                SELECT CONCAT('BATCH DELETE FINISHED ON IDN_RECOVERY_FLOW_DATA : ', @rowCount) AS 'INFO LOG'
+            END
+
+            -- DELETE FROM CHUNK
+            DELETE FROM IDN_RECOVERY_FLOW_DATA_CHUNK_TMP WHERE RECOVERY_FLOW_ID IN (SELECT RECOVERY_FLOW_ID FROM IDN_RECOVERY_FLOW_DATA_BATCH_TMP)
+        END
+    END
+
     -- DELETE TEMP TABLES
     DROP TABLE IF EXISTS IDN_RECOVERY_DATA_BATCH_TMP
     DROP TABLE IF EXISTS IDN_RECOVERY_DATA_CHUNK_TMP
+    DROP TABLE IF EXISTS IDN_RECOVERY_FLOW_DATA_BATCH_TMP
+    DROP TABLE IF EXISTS IDN_RECOVERY_FLOW_DATA_CHUNK_TMP
 
     IF (@enableLog = 1)
     BEGIN

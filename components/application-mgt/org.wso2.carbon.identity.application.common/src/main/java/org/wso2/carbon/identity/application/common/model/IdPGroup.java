@@ -48,6 +48,10 @@ public class IdPGroup implements Serializable {
     @XmlTransient
     @JsonIgnore
     private String idpGroupId = null;
+    @IgnoreNullElement
+    @XmlTransient
+    @JsonIgnore
+    private String idpId = null;
 
     public static IdPGroup build(OMElement idpGroupOM) {
 
@@ -100,5 +104,25 @@ public class IdPGroup implements Serializable {
     public void setIdpGroupId(String idpGroupId) {
 
         this.idpGroupId = idpGroupId;
+    }
+
+    /**
+     * Get idp id.
+     *
+     * @return idp Id.
+     */
+    public String getIdpId() {
+
+        return idpId;
+    }
+
+    /**
+     * Set idp id.
+     *
+     * @param idpId idp id.
+     */
+    public void setIdpId(String idpId) {
+
+        this.idpId = idpId;
     }
 }

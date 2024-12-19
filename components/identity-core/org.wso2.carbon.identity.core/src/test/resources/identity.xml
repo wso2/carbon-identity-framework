@@ -48,6 +48,21 @@
         <KeyStoresDir>${carbon.home}/conf/keystores</KeyStoresDir>
         <KeyManagerType>SunX509</KeyManagerType>
         <TrustManagerType>SunX509</TrustManagerType>
+
+        <KeyStoreMapping>
+            <OAuth>
+                <KeyStoreName>custom.jks</KeyStoreName>
+                <UseInAllTenants>true</UseInAllTenants>
+            </OAuth>
+            <WS-Trust>
+                <KeyStoreName>custom.jks</KeyStoreName>
+                <UseInAllTenants></UseInAllTenants> <!-- Test if default value taken as false. -->
+            </WS-Trust>
+            <WS-Federation>
+                <KeyStoreName></KeyStoreName> <!-- Test if invalid configs are skipped. -->
+                <UseInAllTenants>true</UseInAllTenants>
+            </WS-Federation>
+        </KeyStoreMapping>
     </Security>
 
     <Identity>
@@ -69,6 +84,10 @@
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <DisableOpenIDDumbMode>false</DisableOpenIDDumbMode>
     </OpenID>
+
+    <IdentityUtil>
+        <EnableSHA256>true</EnableSHA256>
+    </IdentityUtil>
 
     <OAuth>
         <OAuth1RequestTokenUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth/request-token</OAuth1RequestTokenUrl>
@@ -151,7 +170,6 @@
 
         <ScopeValidators>
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator" />
-            <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator"/>
         </ScopeValidators>
 
         <ScopeHandlers>
@@ -290,9 +308,6 @@
     </AuthenticationPolicy>
 
     <EventListeners>
-        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
-                       name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"
-                       orderId="10" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
                        orderId="50" enable="false"/>

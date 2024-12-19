@@ -1,31 +1,25 @@
 {
-  "user_based": {
-    "displayName": "User",
+  "AccessControl": {
+    "displayName": "Access Control",
     "order": 1,
-    "icon": "./images/user-template.png"
+    "icon": "./images/access-control-template.png"
   },
 
-  "request_based": {
-    "displayName": "Request",
+  "AdaptiveMFA": {
+    "displayName": "Adaptive MFA",
     "order": 2,
-    "icon": "./images/request-template.png"
+    "icon": "./images/adaptive-mfa-template.png"
   },
 
-  "environment_based": {
-    "displayName": "Environment",
+  "UserAttributes": {
+    "displayName": "User Attributes",
     "order": 3,
-    "icon": "./images/environment-template.png"
+    "icon": "./images/user-attributes-template.png"
   },
 
-  "analytics_based": {
-    "displayName": "Analytics",
+  "PasskeyEnrollment": {
+    "displayName": "Passkey Enrollment",
     "order": 4,
-    "icon": "./images/analytics-template.png"
-  },
-
-  "idp_based": {
-    "displayName": "Idp",
-    "order": 5,
-    "icon": "./images/idp-template.png"
+    "icon": "./images/passkey-enrollment-template.png"
   }
 }

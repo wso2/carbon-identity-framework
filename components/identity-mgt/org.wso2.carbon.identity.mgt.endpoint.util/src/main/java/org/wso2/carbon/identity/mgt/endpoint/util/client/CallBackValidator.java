@@ -65,13 +65,16 @@ public class CallBackValidator {
 
         IdentityProvider residentIdP;
 
-        // Build the service URL of idp management admin service
         StringBuilder builder = new StringBuilder();
+        /* Build the service URL of the Identity Provider Management Admin service.
+        Append the user identity management paths to the service URL.
+        Replace any unintended double slashes in the URL with a single slash. */
         String serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
                 .append(IdentityManagementEndpointConstants.SERVICE_CONTEXT_PATH)
                 .append(IdentityManagementEndpointConstants.ServiceEndpoints.IDENTITY_PROVIDER_MANAGEMENT_SERVICE)
                 .toString().replaceAll("(?<!(http:|https:))//", "/");
         try {
+            // Create a stub for the Identity Provider Management Service.
             IdentityProviderMgtServiceStub idPMgtStub = new IdentityProviderMgtServiceStub(serviceURL);
             ServiceClient idpClient = idPMgtStub._getServiceClient();
             IdentityManagementEndpointUtil.authenticate(idpClient);
@@ -93,7 +96,7 @@ public class CallBackValidator {
                 log.debug("Resident identity provider is not found for the tenant domain: " + tenantDomain);
             }
         }
-
+        // Retrieve the callback URL regex from the IDP properties.
         String callbackRegex = null;
         if (idpProperties != null) {
             for (IdentityProviderProperty property : idpProperties) {
@@ -107,7 +110,7 @@ public class CallBackValidator {
                 }
             }
         }
-
+        // Encode the callback URL.
         if (StringUtils.isNotBlank(callbackURL)) {
             try {
                 String encodeURL = URLEncoder.encode(callbackURL, IdentityManagementEndpointConstants.UTF_8);

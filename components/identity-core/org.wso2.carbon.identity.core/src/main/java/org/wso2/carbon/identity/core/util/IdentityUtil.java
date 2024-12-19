@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2005-2024, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,10 +11,11 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.core.util;
 
 import com.ibm.wsdl.util.xml.DOM2Writer;
@@ -36,10 +37,13 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AdminServicesUtil;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -50,18 +54,20 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -71,6 +77,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
@@ -86,6 +94,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,10 +108,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.USERS_LIST_PER_ROLE_LOWER_BOUND;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
 public class IdentityUtil {
 
@@ -146,6 +158,7 @@ public class IdentityUtil {
     private static final String APPLICATION_DOMAIN = "Application";
     private static final String WORKFLOW_DOMAIN = "Workflow";
     private static Boolean groupsVsRolesSeparationImprovementsEnabled;
+    private static String JAVAX_TRANSFORMER_PROP_VAL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 
     // System Property for trust managers.
     public static final String PROP_TRUST_STORE_UPDATE_REQUIRED =
@@ -332,7 +345,7 @@ public class IdentityUtil {
         byte[] rawPpid = Base64.getDecoder().decode(value);
 
         String algorithm;
-        if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.OpenId.ENABLE_SHA256_PPID_DISPLAY_VALUE))) {
+        if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256))) {
             algorithm = SHA256_ALGORITHM;
         } else {
             algorithm = SHA1_ALGORITHM;
@@ -367,8 +380,14 @@ public class IdentityUtil {
 
     public static String getHMAC(String secretKey, String baseString) throws SignatureException {
         try {
-            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), HMAC_SHA256_ALGORITHM);
-            Mac mac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
+            String algorithm;
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256))) {
+                algorithm = HMAC_SHA256_ALGORITHM;
+            } else {
+                algorithm = HMAC_SHA1_ALGORITHM;
+            }
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), algorithm);
+            Mac mac = Mac.getInstance(algorithm);
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
             return Base64.getEncoder().encodeToString(rawHmac);
@@ -414,7 +433,7 @@ public class IdentityUtil {
             String baseString = UUIDGenerator.generateUUID();
 
             String algorithm;
-            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256_RANDOM_NUMBERS))) {
+            if (Boolean.parseBoolean(IdentityUtil.getProperty(IdentityConstants.IDENTITY_UTIL_ENABLE_SHA256))) {
                 algorithm = HMAC_SHA256_ALGORITHM;
             } else {
                 algorithm = HMAC_SHA1_ALGORITHM;
@@ -527,6 +546,50 @@ public class IdentityUtil {
         return serverUrl.toString();
     }
 
+    /**
+     * Checks whether the second domain is a subdomain of the first domain.
+     *
+     * @param domainName    Domain name.
+     * @param subdomainName Subdomain name.
+     * @return true if the second domain is a subdomain of the first domain.
+     */
+    public static boolean isSubdomain(String domainName, String subdomainName) {
+
+        if (StringUtils.isBlank(domainName) || StringUtils.isBlank(subdomainName)) {
+            return false;
+        }
+        subdomainName = subdomainName.toLowerCase();
+        domainName = domainName.toLowerCase();
+
+        if (subdomainName.equals(domainName)) {
+            return true;
+        }
+        return subdomainName.endsWith("." + domainName);
+    }
+
+    /**
+     * Get the root domain of the given domain.
+     * Note: this assumes that the root domain only consists of two parts (eg: wso2.io). The method will not work for
+     * TLDs with more than two parts (eg: wso2.co.uk).
+     *
+     * @param domain Domain.
+     * @return Root domain.
+     */
+    public static String getRootDomain(String domain) {
+
+        if (StringUtils.isBlank(domain)) {
+            return domain;
+        }
+        String[] domainParts = domain.split("\\.");
+        int length = domainParts.length;
+
+        if (length > 2) {
+            return domainParts[length - 2] + "." + domainParts[length - 1];
+        } else {
+            return domain;
+        }
+    }
+
     private static StringBuilder getServerUrlWithPort(String hostName) {
 
         String mgtTransport = CarbonUtils.getManagementTransport();
@@ -637,7 +700,17 @@ public class IdentityUtil {
      */
     public static TransformerFactory getSecuredTransformerFactory() {
 
-        TransformerFactory trfactory = TransformerFactory.newInstance();
+        TransformerFactory trfactory;
+        try {
+            // Prevent XXE Attack by ensure using the correct factory class to create TrasformerFactory instance.
+            // This will instruct Java to use to version which supports using ACCESS_EXTERNAL_DTD argument.
+            trfactory = TransformerFactory.newInstance(JAVAX_TRANSFORMER_PROP_VAL, null);
+        } catch (TransformerFactoryConfigurationError e) {
+            log.error("Failed to load default TransformerFactory", e);
+            // This part uses the default implementation of xalan.
+            trfactory = TransformerFactory.newInstance();
+        }
+
         try {
             trfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         } catch (TransformerConfigurationException e) {
@@ -1301,8 +1374,8 @@ public class IdentityUtil {
 
         byte[] encodedCertificate = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
 
-        String encodedPEM = String.format("%s\n%s\n%s", X509Factory.BEGIN_CERT, new String(encodedCertificate),
-                X509Factory.END_CERT);
+        String encodedPEM = String.format("%s\n%s\n%s", PEM_BEGIN_CERTFICATE, new String(encodedCertificate),
+                PEM_END_CERTIFICATE);
 
         return encodedPEM;
     }
@@ -1457,6 +1530,28 @@ public class IdentityUtil {
     }
 
     /**
+     * Get the Maximum Actions per Action Type to be configured.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    public static int getMaximumActionsPerActionType() {
+
+        int maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ACTIONS_PER_TYPE;
+        String maximumActionsPerActionTypePropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_ACTIONS_PER_TYPE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumActionsPerActionTypePropertyValue)) {
+            try {
+                maximumActionsPerActionType = Integer.parseInt(maximumActionsPerActionTypePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumActionsPerActionType = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'maximumActionsPerActionType' property value " +
+                        "in identity.xml.", e);
+            }
+        }
+        return maximumActionsPerActionType;
+    }
+
+    /**
      * Get the Default Items per Page needed to display.
      *
      * @return defaultItemsPerPage need to display.
@@ -1477,6 +1572,36 @@ public class IdentityUtil {
             // Ignore.
         }
         return defaultItemsPerPage;
+    }
+
+    /**
+     * Get the Maximum Users List per Role needed to display.
+     *
+     * @return maxUsersListPerRole need to display. If the property is invalid, falls back to the lower bound value.
+     */
+    public static int getMaximumUsersListPerRole() {
+
+        String maxUsersListPerRolePropertyValue = IdentityUtil.getProperty(
+                IdentityCoreConstants.MAXIMUM_USERS_LIST_PER_ROLE_PROPERTY);
+
+        if (StringUtils.isBlank(maxUsersListPerRolePropertyValue)) {
+            log.warn("Missing 'MaximumUsersListPerRole' property. Using lower bound value "
+                    + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+            return USERS_LIST_PER_ROLE_LOWER_BOUND;
+        }
+
+        try {
+            int maxUsersListPerRole = Integer.parseInt(maxUsersListPerRolePropertyValue);
+            if (maxUsersListPerRole >= USERS_LIST_PER_ROLE_LOWER_BOUND) {
+                return maxUsersListPerRole;
+            }
+            log.warn("Configured 'MaximumUsersListPerRole' value " + maxUsersListPerRolePropertyValue +
+                    " is below the recommended minimum.");
+        } catch (NumberFormatException e) {
+            log.warn("Error occurred while parsing the 'MaximumUsersListPerRole' property.", e);
+        }
+        log.warn("Falling back to the lower bound value " + USERS_LIST_PER_ROLE_LOWER_BOUND + ".");
+        return USERS_LIST_PER_ROLE_LOWER_BOUND;
     }
 
     /**
@@ -1591,6 +1716,57 @@ public class IdentityUtil {
     }
 
     /**
+     * This will return a map of system roles and the list of api resource collection configured for each system role.
+     *
+     * @return A map of system roles against the api resource collection list.
+     */
+    public static Map<String, Set<String>> getSystemRolesWithAPIResources() {
+
+        Map<String, Set<String>> systemRolesWithAPIResources = new HashMap<>();
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemRolesConfig = configParser.getConfigElement(IdentityConstants.SystemRoles
+                .SYSTEM_ROLES_CONFIG_ELEMENT);
+
+        if (systemRolesConfig != null) {
+            Iterator roleIdentifierIterator = systemRolesConfig.getChildrenWithLocalName(IdentityConstants.SystemRoles
+                    .ROLE_CONFIG_ELEMENT);
+
+            while (roleIdentifierIterator != null && roleIdentifierIterator.hasNext()) {
+                OMElement roleIdentifierConfig = (OMElement) roleIdentifierIterator.next();
+                String roleName = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_NAME_CONFIG_ELEMENT)).getText();
+
+                OMElement mandatoryApiResourcesIdentifier = roleIdentifierConfig.getFirstChildWithName(
+                        new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,
+                                IdentityConstants.SystemRoles.ROLE_MANDATORY_API_RESOURCES_CONFIG_ELEMENT));
+
+                if (mandatoryApiResourcesIdentifier == null) {
+                    continue;
+                }
+
+                Iterator apiResourceIdentifier = mandatoryApiResourcesIdentifier.getChildrenWithLocalName(
+                        IdentityConstants.SystemRoles.API_RESOURCE_CONFIG_ELEMENT);
+
+                Set<String> apiResourceCollections = new HashSet<>();
+                while (apiResourceIdentifier != null && apiResourceIdentifier.hasNext()) {
+                    OMElement apiResourceConfig = (OMElement) apiResourceIdentifier.next();
+                    String apiResource = apiResourceConfig.getText();
+                    if (StringUtils.isNotBlank(apiResource)) {
+                        apiResourceCollections.add(apiResource.trim());
+                    }
+                }
+                if (StringUtils.isNotBlank(roleName)) {
+                    systemRolesWithAPIResources.put(roleName.trim(), apiResourceCollections);
+                }
+            }
+        } else {
+            log.debug(IdentityConstants.SystemRoles.SYSTEM_ROLES_CONFIG_ELEMENT + " config cannot be found.");
+        }
+        return systemRolesWithAPIResources;
+    }
+
+    /**
      * Check whether the system roles are enabled in the environment.
      *
      * @return {@code true} if the the system roles are enabled.
@@ -1648,7 +1824,24 @@ public class IdentityUtil {
                         if (log.isDebugEnabled()) {
                             log.debug("User id could not be resolved for username: " + username + " in user store " +
                                     "domain: " + userStoreDomain + " and tenant with id: " + tenantId + ". Probably " +
-                                    "user does not exist in the user store.");
+                                    "user does not exist in the user store. Hence trying to resolve user from the " +
+                                    "resident organization.");
+                        }
+                        Tenant tenant = IdentityCoreServiceDataHolder.getInstance().getRealmService()
+                                .getTenantManager().getTenant(tenantId);
+                        if (tenant == null) {
+                            return userId;
+                        }
+                        String associatedOrganizationUUID = tenant.getAssociatedOrganizationUUID();
+                        if (StringUtils.isNotBlank(associatedOrganizationUUID)) {
+                            // Trying to resolve the user from the Resident Organization if the user is not found in
+                            // the user store of the current organization.
+                            Optional<User> user = IdentityCoreServiceDataHolder.getInstance()
+                                    .getOrganizationUserResidentResolverService().resolveUserFromResidentOrganization(
+                                            username, null, associatedOrganizationUUID);
+                            if (user.isPresent()) {
+                                return user.get().getUserID();
+                            }
                         }
                     }
                     return userId;
@@ -1658,7 +1851,7 @@ public class IdentityUtil {
                             "AbstractUserStore manager");
                 }
                 throw new IdentityException("Unable to get the unique id of the user: " + username + ".");
-            } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            } catch (org.wso2.carbon.user.core.UserStoreException | OrganizationManagementException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error occurred while resolving Id for the user: " + username, e);
                 }
@@ -1753,9 +1946,174 @@ public class IdentityUtil {
             try {
                 return IdentityUtil.resolveUserIdFromUsername(tenantId, userStoreDomain, username);
             } catch (IdentityException e) {
-                log.error("Error occurred while resolving Id for the user: " + username);
+                // Below log is changed to a debug log hence the exception is not thrown
+                // from the upper layer and handled gracefully.
+                log.debug("Error occurred while resolving Id for the user: " + username);
             }
         }
         return userId;
+    }
+
+    /**
+     * Read the SCIM User Endpoint Maximum Items Per Page is enabled config and returns it.
+     *
+     * @return If SCIM User Endpoint Maximum Items Per Page is enabled.
+     */
+    public static boolean isSCIM2UserMaxItemsPerPageEnabled() {
+
+        String scim2UserMaxItemsPerPageEnabledProperty =
+                IdentityUtil.getProperty(IdentityCoreConstants.SCIM2_USER_MAX_ITEMS_PER_PAGE_ENABLED);
+
+        if (StringUtils.isBlank(scim2UserMaxItemsPerPageEnabledProperty)) {
+            return true;
+        }
+        return Boolean.parseBoolean(scim2UserMaxItemsPerPageEnabledProperty);
+    }
+
+    /**
+     * Validates the provided signature for the given data using the public key of a specified tenant.
+     *
+     * The method retrieves the public key for the tenant from the certificate stored in the tenant's keystore.
+     * If a context is provided, the method attempts to retrieve the certificate within that context.
+     *
+     * @param data        The data to validate the signature against.
+     * @param signature   The signature to be validated.
+     * @param tenantDomain The domain name of the tenant whose public key should be used for validation.
+     * @param context     The optional context for retrieving the tenant's certificate (can be null or blank).
+     * @return True if the signature is valid; false otherwise.
+     * @throws SignatureException If an error occurs while validating the signature or accessing tenant data.
+     */
+    public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain,
+                                                      String context) throws SignatureException {
+
+        // Retrieve tenant ID based on the tenant domain
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            // Initialize the tenant's registry
+            IdentityTenantUtil.initializeRegistry(tenantId);
+
+            // Retrieve the tenant's public key
+            PublicKey publicKey;
+            if (StringUtils.isBlank(context)) {
+                // Fetch certificate without context if context is null or blank
+                publicKey = IdentityKeyStoreResolver.getInstance()
+                        .getCertificate(tenantDomain, null)
+                        .getPublicKey();
+            } else {
+                try {
+                    // Fetch certificate within the provided context
+                    Certificate certificate = IdentityKeyStoreResolver.getInstance()
+                            .getCertificate(tenantDomain, null, context);
+                    publicKey = certificate.getPublicKey();
+                } catch (IdentityKeyStoreResolverException e) {
+                    if (ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST.getCode()
+                            .equals(e.getErrorCode())) {
+                        // Context keystore not exits, hence return validation as false.
+                        return false;
+                    } else {
+                        throw new SignatureException("Error while validating the signature for tenant: "
+                                + tenantDomain, e);
+                    }
+                }
+            }
+
+            // Validate the signature using the retrieved public key
+            return SignatureUtil.validateSignature(data, signature, publicKey);
+        } catch (IdentityException e) {
+            // Log and throw an exception if an error occurs
+            throw new SignatureException("Error while validating the signature for tenant: " + tenantDomain, e);
+        }
+    }
+
+    /**
+     * Validates the signature of the given data for the specified tenant domain.
+     *
+     * @param data         The data to be verified.
+     * @param signature    The signature to be verified.
+     * @param tenantDomain The tenant domain to which the data belongs.
+     * @return true if the signature is valid, false otherwise.
+     * @throws SignatureException If an error occurs during the signature validation process.
+     */
+    public static boolean validateSignatureFromTenant(String data, byte[] signature, String tenantDomain)
+            throws SignatureException {
+
+        return validateSignatureFromTenant(data, signature, tenantDomain, null);
+    }
+
+    /**
+     * Signs the given data using the private key of the specified tenant.
+     *
+     * For super tenant domains, the default private key is used. For other tenants, the method retrieves the private
+     * key from the tenant's keystore. If a context is provided, it will attempt to retrieve the private key associated
+     * with that context.
+     *
+     * @param data         The data to be signed.
+     * @param tenantDomain The domain name of the tenant whose private key will be used for signing.
+     * @param context      The optional context for retrieving the tenant's private key (can be null or blank).
+     * @return A byte array containing the signature for the provided data.
+     * @throws SignatureException If an error occurs while retrieving the private key or signing the data.
+     */
+    public static byte[] signWithTenantKey(String data, String tenantDomain, String context) throws SignatureException {
+
+        // Get tenant ID from tenant domain
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+        PrivateKey privateKey;
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            try {
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+                // Retrieve private key from the tenant's keystore
+                if (StringUtils.isBlank(context)) {
+                    // Retrieve default private key for the super tenant
+                    privateKey = keyStoreManager.getDefaultPrivateKey();
+                } else {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
+                            tenantDomain +
+                                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
+                }
+
+            } catch (Exception e) {
+                throw new SignatureException(String.format(
+                        IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY
+                                .getDescription(),
+                        tenantDomain), e);
+            }
+        } else {
+            try {
+                // Build tenant keystore name
+                String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
+
+                // Initialize the tenant's registry
+                IdentityTenantUtil.initializeRegistry(tenantId);
+
+                // Retrieve private key from the tenant's keystore
+                if (StringUtils.isBlank(context)) {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
+                } else {
+                    privateKey = (PrivateKey) keyStoreManager.getPrivateKey(tenantKeyStoreName,
+                            tenantDomain +
+                                    IdentityKeyStoreResolverConstants.KEY_STORE_CONTEXT_SEPARATOR + context);
+                }
+            } catch (IdentityException e) {
+                throw new SignatureException("Error while retrieving the private key for tenant: " + tenantDomain, e);
+            }
+        }
+
+        // Sign the data with the retrieved private key
+        return SignatureUtil.doSignature(data, privateKey);
+    }
+
+    /**
+     * Sign the given data for the specified tenant domain.
+     *
+     * @param data         The data to be signed.
+     * @param tenantDomain The tenant domain to which the data belongs.
+     * @return The signature of the data.
+     * @throws SignatureException If an error occurs during the signature generation process.
+     */
+    public static byte[] signWithTenantKey(String data, String tenantDomain) throws SignatureException {
+
+        return signWithTenantKey(data, tenantDomain, null);
     }
 }

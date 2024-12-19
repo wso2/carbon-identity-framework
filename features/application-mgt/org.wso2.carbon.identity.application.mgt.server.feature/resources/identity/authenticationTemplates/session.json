@@ -1,7 +1,7 @@
 
 {
-  "category": "user_based",
-  "name": "Concurrent-Session-Management",
+  "category": "AccessControl",
+  "name": "Session-Based",
   "title": "Concurrent Session Management Template",
   "summary": "Prompts session handling to the users who belongs to any of the given set of roles based on currently active session count.",
   "preRequisites": [
@@ -30,7 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Role-Based+Adaptive+Authentication",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/",
   "code": [
     "// This script will prompt concurrent session handling",
     "// to one of the given roles",
@@ -62,5 +62,6 @@
     "       }",
     "   });",
     "};"
-  ]
+  ],
+  "runtime": "legacy"
 }

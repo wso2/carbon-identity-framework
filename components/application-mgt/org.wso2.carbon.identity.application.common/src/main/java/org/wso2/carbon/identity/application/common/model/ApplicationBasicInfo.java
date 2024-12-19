@@ -28,6 +28,7 @@ public class ApplicationBasicInfo implements Serializable {
 
     private int applicationId;
     private String applicationName;
+    private String applicationVersion;
     private String description;
 
     private String applicationResourceId;
@@ -38,6 +39,7 @@ public class ApplicationBasicInfo implements Serializable {
     private String clientId;
     private String issuer;
     private String tenantDomain;
+    private String uuid;
 
     /**
      * Get application id.
@@ -77,6 +79,26 @@ public class ApplicationBasicInfo implements Serializable {
     public void setApplicationName(String applicationName) {
 
         this.applicationName = applicationName;
+    }
+
+    /**
+     * Get application version.
+     *
+     * @return Application version.
+     */
+    public String getApplicationVersion() {
+
+        return applicationVersion;
+    }
+
+    /**
+     * Set application version.
+     *
+     * @param applicationVersion Application version.
+     */
+    public void setApplicationVersion(String applicationVersion) {
+
+        this.applicationVersion = applicationVersion;
     }
 
     /**
@@ -238,4 +260,25 @@ public class ApplicationBasicInfo implements Serializable {
 
         this.tenantDomain = tenantDomain;
     }
+
+    /**
+     * Get application uuid.
+     *
+     * @return uuid application uuid
+     */
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    /**
+     * Set application uuid.
+     *
+     * @param uuid application uuid
+     */
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
+    }
+
 }

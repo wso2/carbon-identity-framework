@@ -1,5 +1,5 @@
 {
-  "category": "user_based",
+  "category": "AdaptiveMFA",
   "name": "Tenant-Based",
   "title": "Tenant-Based Authentication Template",
   "summary": "Prompts 2FA to the users who are from one of the given tenants.",
@@ -30,7 +30,7 @@
       "federated": []
     }
   },
-  "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Tenant-Based+Adaptive+Authentication",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/",
   "code": [
     "// This script will prompt 2FA to the app only for a selected",
     "// set of tenants.",
@@ -51,5 +51,6 @@
     "        }",
     "    });",
     "};"
-  ]
+  ],
+  "runtime": "any"
 }

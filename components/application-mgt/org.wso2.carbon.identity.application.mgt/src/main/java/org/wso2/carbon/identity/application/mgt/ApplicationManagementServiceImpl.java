@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -46,10 +47,12 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -67,6 +70,10 @@ import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.ApplicationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolConfigurationDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.dto.InboundProtocolsDTO;
+import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
@@ -74,10 +81,23 @@ import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtL
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementServerException;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -86,6 +106,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
@@ -103,11 +124,13 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -135,19 +158,25 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.OPERATION_FORBIDDEN;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getAppId;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getApplicationName;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getInitiatorId;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUser;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.validateTenant;
+import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.doRollback;
+import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.rollbackInbounds;
+import static org.wso2.carbon.identity.application.mgt.inbound.InboundFunctions.updateOrInsertInbound;
 import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
-import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_MANAGEMENT_ERROR_CODE_PREFIX;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
@@ -158,8 +187,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
-    private static final String TARGET_APPLICATION = "APPLICATION";
-    private static final String USER = "USER";
+    private String message;
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -207,6 +235,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        // Set default application version.
+        serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
@@ -228,12 +259,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 break;
             }
         }
-
-        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
-                CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(),
-                getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION,
-                buildSPData(serviceProvider));
-
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain),  LoggerUtils.Target.User.name(),
+                    getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
+                    .data(buildSPData(serviceProvider));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
         return serviceProvider;
     }
 
@@ -311,6 +344,40 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfoBySPProperty(String tenantDomain, String username,
+                                                                      String key, String value)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO;
+        ApplicationBasicInfo[] applicationBasicInfos;
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.getApplicationBasicInfoBySPProperty(tenantDomain, username, key,
+                    value)) {
+                return new ApplicationBasicInfo[0];
+            }
+        }
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+
+            if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
+                log.error("Get application basic info service is not supported.");
+                throw new IdentityApplicationManagementException("This service is not supported.");
+            }
+
+            applicationBasicInfos = ((AbstractApplicationDAOImpl) appDAO)
+                    .getApplicationBasicInfoBySPProperty(key, value);
+        } finally {
+            endTenantFlow();
+        }
+
+        return applicationBasicInfos;
     }
 
     /**
@@ -490,9 +557,30 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return An array of {@link ApplicationBasicInfo} instances within the limit.
      * @throws IdentityApplicationManagementException Error in retrieving basic application information.
      */
+    @Deprecated
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
                                                           int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        return getApplicationBasicInfo(tenantDomain, username, filter, offset, limit, false);
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User name.
+     * @param filter                Application name filter.
+     * @param offset                Starting index of the count.
+     * @param limit                 Counting value.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                          int offset, int limit, Boolean excludeSystemPortals)
             throws IdentityApplicationManagementException {
 
         ApplicationBasicInfo[] applicationBasicInfoArray;
@@ -517,7 +605,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
 
                 applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO).
-                        getApplicationBasicInfo(filter, offset, limit);
+                        getApplicationBasicInfo(filter, offset, limit, excludeSystemPortals);
 
                 // Invoking post listeners.
                 for (ApplicationMgtListener listener : listeners) {
@@ -569,6 +657,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return basicAppInfo;
     }
 
+    @Override
+    public String getApplicationUUIDByName(String name, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting application UUID for name: " + name
+                    + " in tenantDomain: " + tenantDomain);
+        }
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationUUIDByName(name, tenantDomain);
+    }
+
     /**
      * Get count of all Application Basic Information.
      *
@@ -604,15 +705,34 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @return int
      * @throws IdentityApplicationManagementException
      */
+    @Deprecated
     @Override
     public int getCountOfApplications(String tenantDomain, String username, String filter) throws
             IdentityApplicationManagementException {
+
+        return getCountOfApplications(tenantDomain, username, filter, false);
+    }
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param username              User Name.
+     * @param filter                Application name filter.
+     * @param excludeSystemPortals  Exclude system portals.
+     * @return int Count of applications.
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public int getCountOfApplications(String tenantDomain, String username, String filter, Boolean excludeSystemPortals)
+            throws IdentityApplicationManagementException {
 
         try {
             startTenantFlow(tenantDomain, username);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             if (appDAO instanceof PaginatableFilterableApplicationDAO) {
-                return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfApplications(filter);
+                return ((PaginatableFilterableApplicationDAO) appDAO)
+                        .getCountOfApplications(filter, excludeSystemPortals);
             } else {
                 throw new UnsupportedOperationException("Application count is not supported. " + "Tenant domain: " +
                         tenantDomain);
@@ -681,10 +801,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
-                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(),
-                getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION,
-                buildSPData(serviceProvider));
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    getAppId(serviceProvider), LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
+                    .data(buildSPData(serviceProvider));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
 
     // Will be supported with 'Advance Consent Management Feature'.
@@ -793,9 +917,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
-                CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(),
-                getAppId(serviceProvider), getApplicationName(serviceProvider), TARGET_APPLICATION, null);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), getAppId(serviceProvider),
+                    LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
 
     /**
@@ -1422,6 +1550,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 basicApplication.setApplicationName(serviceProvider.getApplicationName());
                 basicApplication.setDescription(serviceProvider.getDescription());
 
+                if (serviceProvider.isManagementApp()) {
+                    basicApplication.setManagementApp(true);
+                }
+
                 String resourceId = createApplication(basicApplication, tenantDomain, username);
                 savedSP = getApplicationByResourceId(resourceId, tenantDomain);
             }
@@ -1431,6 +1563,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.setOwner(getUser(tenantDomain, username).orElseThrow(() ->
                             new IdentityApplicationManagementException("Error resolving service provider owner.")));
             serviceProvider.setSpProperties(savedSP.getSpProperties());
+            serviceProvider.setApplicationVersion(savedSP.getApplicationVersion());
 
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {
@@ -1585,6 +1718,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            // Set default application version.
+            if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+            }
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -1687,6 +1824,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             validateSPTemplateExists(oldTemplateName, spTemplate, tenantDomain);
 
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
+            // Set default application version.
+            if (StringUtils.isBlank(serviceProvider.getApplicationVersion())) {
+                serviceProvider.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
+            }
             validateUnsupportedTemplateConfigs(serviceProvider);
 
             applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
@@ -2131,6 +2272,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw buildClientException(INVALID_REQUEST, message);
         }
 
+        boolean isValid = isAssociatedRolesConfigValid(serviceProvider, tenantDomain);
+        if (!isValid) {
+            throw new IdentityApplicationManagementClientException(
+                    "One or more associating roles does not exist or not in the allowed " +
+                            "audience for the application.");
+        }
+
         addUserIdAsDefaultSubject(serviceProvider);
 
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
@@ -2437,7 +2585,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         return appDAO.getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
     }
-
+    
+    /**
+     * Create the application. This method creates the service provider without creating any protocol configurations.
+     *
+     * @param application  Service provider.
+     * @param tenantDomain Tenant domain.
+     * @param username     Username.
+     */
     @Override
     public String createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
@@ -2453,6 +2608,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         " of tenantDomain: " + tenantDomain);
             }
         }
+
+        // Set default application version.
+        application.setApplicationVersion(ApplicationConstants.ApplicationVersion.LATEST_APP_VERSION);
 
         doPreAddApplicationChecks(application, tenantDomain, username);
         ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
@@ -2482,12 +2640,94 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw buildServerException("Server encountered an unexpected error when creating the application.");
             }
         }
-
-        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
-                CarbonConstants.LogEventConstants.EventCatalog.CREATE_APPLICATION.getEventId(), getAppId(application),
-                getApplicationName(application), TARGET_APPLICATION, buildSPData(application));
-
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(), resourceId,
+                    LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.CREATE_APPLICATION_ACTION)
+                    .data(buildSPData(application));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
         return resourceId;
+    }
+    
+    /**
+     * Create the application. This method creates the service provider with protocol configurations.
+     *
+     * @param applicationModel ApplicationModelDTO containing the app information.
+     * @param tenantDomain     Tenant domain.
+     * @param username         Username.
+     * @return Application ID.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    public String createApplication(ApplicationDTO applicationModel, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
+        List<InboundAuthenticationRequestConfig> addedInbounds = new ArrayList<>();
+        try {
+            ServiceProvider application = applicationModel.getServiceProvider();
+             addedInbounds = addInboundAuthenticationProtocolsToApplication(
+                    application, applicationModel.getInboundProtocolConfigurationDto());
+            
+            return createApplication(application, tenantDomain, username);
+        } catch (IdentityApplicationManagementException identityApplicationManagementException) {
+            /*
+             * The current implementation of the application creation process is not atomic. Therefore, if an Exception
+             * occurs, there is a chance that the database gets updated partially. Hence, we need to rollback the
+             * created inbounds if available.
+             * For more information read https://github.com/wso2/product-is/issues/12579.
+             */
+            rollbackInbounds(addedInbounds);
+            throw identityApplicationManagementException;
+        }
+    }
+
+    private List<InboundAuthenticationRequestConfig> addInboundAuthenticationProtocolsToApplication(
+            ServiceProvider application, InboundProtocolsDTO inboundProtocolsModel)
+            throws IdentityApplicationManagementException {
+
+        if (inboundProtocolsModel == null) {
+            return Collections.emptyList();
+        }
+        List<InboundAuthenticationRequestConfig> addedInbounds = new ArrayList<>();
+        try {
+            // This handles the inbound protocol creation with the help of protocol handlers.
+            List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandlerList =
+                    ApplicationManagementServiceComponentHolder.getInstance().getApplicationInboundAuthConfigHandler();
+            for (ApplicationInboundAuthConfigHandler applicationInboundAuthConfigHandler :
+                    applicationInboundAuthConfigHandlerList) {
+                if (applicationInboundAuthConfigHandler.canHandle(inboundProtocolsModel)) {
+                    addedInbounds.add(applicationInboundAuthConfigHandler.handleConfigCreation(application,
+                            inboundProtocolsModel));
+                }
+            }
+        } catch (IdentityApplicationManagementClientException e) {
+            /*
+             * If there is a client exception, we don't need to do rollback since it will not affect the already
+             * existing app.
+             */
+            throw e;
+        } catch (IdentityApplicationManagementException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while adding inbound protocols for application id: "
+                        + application.getApplicationResourceId() + ". Cleaning up possible partially created inbound " +
+                        "configurations.");
+            }
+            rollbackInbounds(addedInbounds);
+            throw e;
+        }
+        InboundAuthenticationConfig alreadyAddedInboundConfigs = application.getInboundAuthenticationConfig();
+        InboundAuthenticationConfig inboundAuthConfig = new InboundAuthenticationConfig();
+        if (alreadyAddedInboundConfigs != null) {
+            List<InboundAuthenticationRequestConfig> alreadyAddedInbounds =
+                    Arrays.asList(alreadyAddedInboundConfigs.getInboundAuthenticationRequestConfigs());
+            addedInbounds.addAll(alreadyAddedInbounds);
+        }
+        inboundAuthConfig.setInboundAuthenticationRequestConfigs(
+                addedInbounds.toArray(new InboundAuthenticationRequestConfig[0])
+        );
+        application.setInboundAuthenticationConfig(inboundAuthConfig);
+        return addedInbounds;
     }
 
     private <T> String getName(T listener) {
@@ -2521,7 +2761,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return null;
             }
         }
-
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() &&
                     !listener.doPostGetApplicationByResourceId(application, resourceId, tenantDomain)) {
@@ -2533,13 +2772,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         return application;
     }
-
+    
     @Override
     public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
                                               String username) throws IdentityApplicationManagementException {
-
+        
         validateApplicationConfigurations(updatedApp, tenantDomain, username);
-
+        
         updatedApp.setApplicationResourceId(resourceId);
         setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
         Collection<ApplicationResourceManagementListener> listeners =
@@ -2547,40 +2786,42 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled() &&
                     !listener.doPreUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
-
+                
                 throw buildServerException("Pre Update application operation of listener: " + getName(listener) +
                         " failed for application with resourceId: " + resourceId);
             }
         }
-
+        
         try {
             startTenantFlow(tenantDomain, username);
-
+            
             ApplicationBasicInfo storedAppInfo = getApplicationBasicInfo(resourceId, tenantDomain);
             if (storedAppInfo == null) {
                 String msg = "Cannot find an application for " + "resourceId: " + resourceId + " in tenantDomain: "
                         + tenantDomain;
                 throw buildClientException(APPLICATION_NOT_FOUND, msg);
             }
-
+            
             String updatedAppName = updatedApp.getApplicationName();
             String storedAppName = storedAppInfo.getApplicationName();
-
+            
             doPreUpdateChecks(storedAppName, updatedApp, tenantDomain, username);
-
+            
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
             appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
-
+            postApplicationUserAttributeUpdate(updatedApp, storedApp, tenantDomain);
+            
             if (isOwnerUpdateRequest(storedAppInfo.getAppOwner(), updatedApp.getOwner())) {
                 // User existence check is already done in appDAO.updateApplicationByResourceId() method.
                 assignApplicationRole(updatedApp.getApplicationName(), updatedApp.getOwner().getUserName());
             }
-
+            
             updateApplicationPermissions(updatedApp, updatedAppName, storedAppName);
         } finally {
             endTenantFlow();
         }
-
+        
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled()
                     && !listener.doPostUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain, username)) {
@@ -2589,44 +2830,248 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-
-        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
-                CarbonConstants.LogEventConstants.EventCatalog.UPDATE_APPLICATION.getEventId(), getAppId(updatedApp),
-                getApplicationName(updatedApp), TARGET_APPLICATION, buildSPData(updatedApp));
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    resourceId, LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.UPDATE_APPLICATION_ACTION)
+                    .data(buildSPData(updatedApp));
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
+    }
+    
+    /**
+     * Update the application by resource id. This method update the inbound protocol configurations of the application
+     * by calling the relevant protocol handlers if available.
+     *
+     * @param resourceId        Unique resource identifier of the application.
+     * @param serviceProvider   Service provider. This can contain updated application information.
+     * @param tenantDomain      Tenant domain of the application.
+     * @param username          Tenant aware username of the user performing the operation.
+     * @throws IdentityApplicationManagementException Identity Application Management Exception.
+     */
+    public void updateApplicationByResourceId(String resourceId, ServiceProvider serviceProvider,
+                                              InboundProtocolConfigurationDTO inboundProtocolConfigurationDTO,
+                                              String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+        
+        if (inboundProtocolConfigurationDTO == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Inbound protocol configuration is not provided for the application: " + resourceId +
+                        ". Hence updating the application just using the service provider details in the" +
+                        " serviceProvider object.");
+            }
+            updateApplicationByResourceId(resourceId, serviceProvider, tenantDomain, username);
+            return;
+        }
+        InboundAuthenticationRequestConfig addedInbound = null;
+        List<ApplicationInboundAuthConfigHandler> applicationInboundAuthConfigHandlers =
+                ApplicationManagementServiceComponentHolder.getInstance().getApplicationInboundAuthConfigHandler();
+        for (ApplicationInboundAuthConfigHandler handler : applicationInboundAuthConfigHandlers) {
+            if (handler.canHandle(inboundProtocolConfigurationDTO.fetchProtocolName())) {
+                addedInbound = handler.handleConfigUpdate(serviceProvider,
+                        inboundProtocolConfigurationDTO);
+                break;
+            }
+        }
+        if (addedInbound != null) {
+            updateOrInsertInbound(serviceProvider, addedInbound);
+        }
+        try {
+            /*
+             * At this point the serviceProvided object is updated with the inbound auth config details. So we can call
+             * the updateApplicationByResourceId(String, ServiceProvider, String, String) method to update the
+             * service provider details in the database.
+             */
+            updateApplicationByResourceId(resourceId, serviceProvider, tenantDomain, username);
+        } catch (IdentityApplicationManagementException e) {
+            if (addedInbound != null) {
+                doRollback(resourceId, addedInbound, tenantDomain);
+            }
+            throw e;
+        }
     }
 
     @Override
     public Set<String> getSystemApplications() {
 
-        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
-        OMElement systemApplicationsConfig = configParser.getConfigElement(SYSTEM_APPLICATIONS_CONFIG_ELEMENT);
-        if (systemApplicationsConfig == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + SYSTEM_APPLICATIONS_CONFIG_ELEMENT + "' config not found.");
+        return getApplications(SYSTEM_APPLICATIONS_CONFIG_ELEMENT);
+    }
+
+    @Override
+    public Set<String> getDefaultApplications() {
+
+        return getApplications(DEFAULT_APPLICATIONS_CONFIG_ELEMENT);
+    }
+
+    @Override
+    public String getMainAppId(String sharedAppId) throws IdentityApplicationManagementServerException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getMainAppId(sharedAppId);
+    }
+
+    @Override
+    public Map<String, String> getAncestorAppIds(String sharedAppId, String orgId)
+            throws IdentityApplicationManagementException {
+
+        String mainAppId = getMainAppId(sharedAppId);
+        if (StringUtils.isBlank(mainAppId)) {
+            String tenantDomain;
+            try {
+                tenantDomain = getOrganizationManager().resolveTenantDomain(orgId);
+            } catch (OrganizationManagementException e) {
+                throw buildServerException("Error while resolving the tenant domain for the organization id: " + orgId);
             }
-            return Collections.emptySet();
+            // Check if the child app is a main application.
+            if (isMainApp(sharedAppId, tenantDomain)) {
+                return Collections.singletonMap(orgId, sharedAppId);
+            }
+            return Collections.emptyMap();
         }
 
-        Iterator applicationIdentifierIterator = systemApplicationsConfig
-                .getChildrenWithLocalName(APPLICATION_NAME_CONFIG_ELEMENT);
-        if (applicationIdentifierIterator == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("'" + APPLICATION_NAME_CONFIG_ELEMENT + "' config not found.");
-            }
-            return Collections.emptySet();
+        String ownerOrgId = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getOwnerOrgId(sharedAppId);
+        if (StringUtils.isBlank(ownerOrgId)) {
+            throw buildServerException("Owner organization id cannot be blank for the shared app with id: " +
+                    sharedAppId + " in organization: " + orgId);
         }
 
-        Set<String> systemApplications = new HashSet<>();
+        Map<String, String> ancestorAppIds = new HashMap<>();
+        // Add main app to the map.
+        ancestorAppIds.put(ownerOrgId, mainAppId);
 
-        while (applicationIdentifierIterator.hasNext()) {
-            OMElement applicationIdentifierConfig = (OMElement) applicationIdentifierIterator.next();
-            String applicationName = applicationIdentifierConfig.getText();
-            if (StringUtils.isNotBlank(applicationName)) {
-                systemApplications.add(applicationName.trim());
+        List<String> ancestorOrganizationIds;
+        try {
+            ancestorOrganizationIds = getOrganizationManager().getAncestorOrganizationIds(orgId);
+        } catch (OrganizationManagementServerException e) {
+            throw buildServerException("Error while getting the ancestor organization ids for the organization id: " +
+                    orgId);
+        }
+
+        if (CollectionUtils.isNotEmpty(ancestorOrganizationIds) && ancestorOrganizationIds.size() > 1) {
+            ancestorAppIds.putAll(ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                    .getSharedApplicationIds(mainAppId, ownerOrgId, ancestorOrganizationIds));
+        }
+        return ancestorAppIds;
+    }
+
+    @Override
+    public int getTenantIdByApp(String appId) throws IdentityApplicationManagementServerException {
+
+        return ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getTenantIdByApp(appId);
+    }
+
+    @Override
+    public String getAllowedAudienceForRoleAssociation(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        // Invoking the pre listeners.
+        Collection<ApplicationMgtListener> preListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : preListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPreGetAllowedAudienceForRoleAssociation(applicationUUID, tenantDomain)) {
+                throw buildServerException("Error executing doPreGetAllowedAudienceForRoleAssociation operation of " +
+                        "listener: " + getName(listener) + " for application with id: " + applicationUUID);
             }
         }
 
-        return systemApplications;
+        String allowedAudience = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                .getSPPropertyValueByPropertyKey(applicationUUID,
+                        IdentityApplicationConstants.ALLOWED_ROLE_AUDIENCE_PROPERTY_NAME, tenantDomain);
+        AssociatedRolesConfig associatedRolesConfigExcludingRoles = new AssociatedRolesConfig();
+        associatedRolesConfigExcludingRoles.setAllowedAudience(allowedAudience);
+
+        // Invoking the post listeners.
+        Collection<ApplicationMgtListener> postListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : postListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPostGetAllowedAudienceForRoleAssociation(associatedRolesConfigExcludingRoles,
+                            applicationUUID, tenantDomain)) {
+                throw buildServerException(
+                        "Error executing doPostGetAllowedAudienceForRoleAssociation operation of listener: " +
+                                getName(listener) + " for application with id: " + applicationUUID);
+            }
+        }
+        return associatedRolesConfigExcludingRoles.getAllowedAudience();
+    }
+
+    @Override
+    public List<RoleV2> getAssociatedRolesOfApplication(String applicationUUID, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        // Invoking the pre listeners.
+        Collection<ApplicationMgtListener> preListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : preListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPreGetAssociatedRolesOfApplication(applicationUUID, tenantDomain)) {
+                throw buildServerException("Error executing doPreGetAssociatedRolesOfApplication operation of " +
+                        "listener: " + getName(listener) + " for application with id: " + applicationUUID);
+            }
+        }
+
+        List<RoleV2> associatedRolesOfApplication = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                .getAssociatedRolesOfApplication(applicationUUID, tenantDomain);
+
+        // Invoking the post listeners.
+        Collection<ApplicationMgtListener> postListeners = getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : postListeners) {
+            if (listener.isEnable() &&
+                    !listener.doPostGetAssociatedRolesOfApplication(associatedRolesOfApplication, applicationUUID,
+                            tenantDomain)) {
+                throw buildServerException("Error executing doPostGetAssociatedRolesOfApplication operation of " +
+                        "listener: " + getName(listener) + " for application with id: " + applicationUUID);
+            }
+        }
+        return associatedRolesOfApplication;
+    }
+
+    @Override
+    public void addAssociatedRoleToApplication(ServiceProvider serviceProvider, String roleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
+        if (associatedRolesConfig == null) {
+            return;
+        }
+        String allowedAudienceType =
+                StringUtils.isBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
+                        associatedRolesConfig.getAllowedAudience().toLowerCase();
+        String allowedAudienceId;
+        switch (allowedAudienceType) {
+            case RoleConstants.APPLICATION:
+                allowedAudienceId = serviceProvider.getApplicationResourceId();
+                break;
+            default:
+                try {
+                    allowedAudienceId = getOrganizationManager().resolveOrganizationId(tenantDomain);
+                } catch (OrganizationManagementException e) {
+                    throw new IdentityApplicationManagementException(
+                            String.format("Error while resolving the organization id for the tenant domain: %s",
+                                    tenantDomain), e);
+                }
+                break;
+        }
+        boolean isValid = isRoleInCorrectAudience(new RoleV2(roleId), tenantDomain, allowedAudienceType,
+                allowedAudienceId);
+        if (!isValid) {
+            throw new IdentityApplicationManagementClientException(
+                    "Invalid role audience provided.");
+        }
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        appDAO.addAssociatedRoleToApplication(serviceProvider.getApplicationResourceId(), roleId);
+    }
+
+    /**
+     * Get the list of trusted applications based on the requested platform type.
+     *
+     * @param platformType Platform type of the trusted apps.
+     * @return List of trusted apps of all tenants.
+     * @throws IdentityApplicationManagementException If an error occurs while retrieving the trusted apps.
+     */
+    @Override
+    public List<TrustedApp> getTrustedApps(PlatformType platformType) throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getTrustedApps(platformType);
     }
 
     private void doPreUpdateChecks(String storedAppName, ServiceProvider updatedApp, String tenantDomain,
@@ -2636,7 +3081,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         validateAuthorization(updatedAppName, storedAppName, username, tenantDomain);
         validateAppName(storedAppName, updatedApp, tenantDomain);
-        validateApplicationCertificate(updatedApp, tenantDomain);
+        boolean isValid = isAssociatedRolesConfigValid(updatedApp, tenantDomain);
+        if (!isValid) {
+            throw new IdentityApplicationManagementClientException(
+                    "One or more associating roles does not exist or not in the allowed " +
+                            "audience for the application.");
+        }
         // Will be supported with 'Advance Consent Management Feature'.
         // validateConsentPurposes(serviceProvider);
     }
@@ -2649,17 +3099,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         if (updatedApp.getPermissionAndRoleConfig() != null) {
             ApplicationMgtUtil.updatePermissions(updatedAppName,
                     updatedApp.getPermissionAndRoleConfig().getPermissions());
-        }
-    }
-
-    private void validateApplicationCertificate(ServiceProvider updatedApp,
-                                                String tenantDomain) throws IdentityApplicationManagementException {
-
-        if (!isValidPEMCertificate(updatedApp.getCertificateContent())) {
-            String error = "Provided application certificate for application with name: %s in tenantDomain: %s " +
-                    "is malformed.";
-            throw buildClientException(INVALID_REQUEST,
-                    String.format(error, updatedApp.getApplicationName(), tenantDomain));
         }
     }
 
@@ -2770,7 +3209,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider application;
         try {
-            startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain, username);
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
@@ -2807,9 +3246,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
-        triggerAuditLogEvent(getInitiatorId(username, tenantDomain), getInitiatorId(username, tenantDomain), USER,
-                CarbonConstants.LogEventConstants.EventCatalog.DELETE_APPLICATION.getEventId(), getAppId(application),
-                getApplicationName(application), TARGET_APPLICATION, null);
+        if (ApplicationMgtUtil.isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                    getInitiatorId(username, tenantDomain), LoggerUtils.Target.User.name(),
+                    resourceId, LoggerUtils.Target.Application.name(),
+                    LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
 
     private void doPreDeleteChecks(String applicationName, String tenantDomain,
@@ -2905,5 +3348,166 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
         return localClaimsArray;
     }
-}
 
+    private void postApplicationUserAttributeUpdate(ServiceProvider updatedApp, ServiceProvider storedApp,
+                                                    String tenantDomain) {
+
+        if (updatedApp.getClaimConfig().getClaimMappings().length > 0) {
+            List<String> storedAppClaimUrls = Arrays.stream(storedApp.getClaimConfig()
+                            .getClaimMappings()).map(claimMapping -> claimMapping.getLocalClaim().getClaimUri())
+                    .collect(Collectors.toList());
+            List<org.wso2.carbon.identity.application.common.model.ClaimMapping> updatedClaimMappings =
+                    Arrays.stream(updatedApp.getClaimConfig().getClaimMappings())
+                            .filter(claimMapping ->
+                                    !storedAppClaimUrls.contains(claimMapping.getLocalClaim().getClaimUri()))
+                            .collect(Collectors.toList());
+
+            if (!updatedClaimMappings.isEmpty()) {
+                Map<String, Object> eventProperties = new HashMap<>();
+                eventProperties.put(IdentityEventConstants.EventProperty.UPDATED_CLAIM_MAPPINGS,
+                        updatedClaimMappings);
+                eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_ID,
+                        updatedApp.getApplicationResourceId());
+                eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+                Event event = new Event(IdentityEventConstants.Event.POST_APP_USER_ATTRIBUTE_UPDATE, eventProperties);
+                fireEvent(event);
+            }
+
+        }
+    }
+
+    private void fireEvent(Event event) {
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Event: " + event.getEventName() + " is published for the application user attribute " +
+                        "update operation in the tenant with the tenantId: " + event.getEventProperties().
+                        get(IdentityEventConstants.EventProperty.TENANT_ID));
+            }
+            IdentityEventService eventService =
+                    ApplicationManagementServiceComponentHolder.getInstance().getIdentityEventService();
+            eventService.handleEvent(event);
+        } catch (IdentityEventException e) {
+            log.error("Error while publishing the event: " + event.getEventName() + ".", e);
+        }
+    }
+
+    private boolean isAssociatedRolesConfigValid(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        AssociatedRolesConfig associatedRolesConfig = serviceProvider.getAssociatedRolesConfig();
+        if (associatedRolesConfig == null) {
+            return true;
+        }
+        List<RoleV2> roles = new ArrayList<>();
+        if (associatedRolesConfig.getRoles() != null) {
+            roles = Arrays.asList(associatedRolesConfig.getRoles());
+        }
+        if (CollectionUtils.isEmpty(roles)) {
+            return true;
+        }
+        String allowedAudienceType =
+                StringUtils.isBlank(associatedRolesConfig.getAllowedAudience()) ? RoleConstants.ORGANIZATION :
+                        associatedRolesConfig.getAllowedAudience().toLowerCase();
+        String allowedAudienceId;
+        switch (allowedAudienceType) {
+            case RoleConstants.APPLICATION:
+                allowedAudienceId = serviceProvider.getApplicationResourceId();
+                break;
+            default:
+                try {
+                    allowedAudienceId = getOrganizationManager().resolveOrganizationId(tenantDomain);
+                } catch (OrganizationManagementException e) {
+                    throw new IdentityApplicationManagementException(
+                            String.format("Error while resolving the organization id for the tenant domain: %s",
+                                    tenantDomain), e);
+                }
+                break;
+        }
+        // Stream the roles and check whether the role exits in the correct audience.
+        boolean allRolesInCorrectAudience = roles.stream()
+                .allMatch(role -> isRoleInCorrectAudience(role, tenantDomain, allowedAudienceType, allowedAudienceId));
+        if (!allRolesInCorrectAudience) {
+            log.debug("One or more role does not exist or not in correct audience.");
+        }
+        return allRolesInCorrectAudience;
+    }
+
+    private boolean isRoleInCorrectAudience(RoleV2 role, String tenantDomain, String allowedAudienceType,
+                                            String allowedAudienceId) {
+
+        try {
+            RoleBasicInfo retrievedRole = getRoleManagementServiceV2().getRoleBasicInfoById(role.getId(), tenantDomain);
+            if (retrievedRole != null) {
+                return allowedAudienceType.equals(retrievedRole.getAudience()) &&
+                        StringUtils.equals(allowedAudienceId, retrievedRole.getAudienceId());
+            }
+        } catch (IdentityRoleManagementException e) {
+            if ((ROLE_MANAGEMENT_ERROR_CODE_PREFIX + ROLE_NOT_FOUND).equals(e.getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Role: %s does not exist.", role.getId()));
+                }
+                return false;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Error while retrieving the role: %s", role.getId()));
+            }
+            return false;
+        }
+        return false;
+    }
+
+    private static Set<String> getApplications(String parentElement) {
+
+        IdentityConfigParser configParser = IdentityConfigParser.getInstance();
+        OMElement systemApplicationsConfig = configParser.getConfigElement(parentElement);
+        if (systemApplicationsConfig == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + parentElement + "' config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Iterator applicationIdentifierIterator = systemApplicationsConfig
+                .getChildrenWithLocalName(APPLICATION_NAME_CONFIG_ELEMENT);
+        if (applicationIdentifierIterator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("'" + APPLICATION_NAME_CONFIG_ELEMENT + "' config not found.");
+            }
+            return Collections.emptySet();
+        }
+
+        Set<String> applications = new HashSet<>();
+        while (applicationIdentifierIterator.hasNext()) {
+            OMElement applicationIdentifierConfig = (OMElement) applicationIdentifierIterator.next();
+            String applicationName = applicationIdentifierConfig.getText();
+            if (StringUtils.isNotBlank(applicationName)) {
+                applications.add(applicationName.trim());
+            }
+        }
+
+        return applications;
+    }
+
+    private static RoleManagementService getRoleManagementServiceV2() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2();
+    }
+
+    private static OrganizationManager getOrganizationManager() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager();
+    }
+
+    private boolean isMainApp(String appId, String tenantDomain) throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationByResourceId(appId, tenantDomain);
+        if (serviceProvider != null) {
+            boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
+                    .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                            Boolean.parseBoolean(property.getValue()));
+            return !isFragmentApp;
+        }
+        return false;
+    }
+}

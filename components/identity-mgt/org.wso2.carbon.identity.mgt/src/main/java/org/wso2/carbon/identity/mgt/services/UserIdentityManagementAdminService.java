@@ -38,9 +38,11 @@ import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.mgt.util.Utils;
 import org.wso2.carbon.user.api.AuthorizationManager;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -83,6 +85,10 @@ public class UserIdentityManagementAdminService {
         try {
             UserStoreManager userStoreManager = IdentityMgtServiceComponent.getRealmService().
                     getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId()).getUserStoreManager();
+            if (isSuperAdmin(userName)) {
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
+                        "delete superAdmin user");
+            }
             userStoreManager.deleteUser(userName);
             log.info("Deleted user: " + userName);
         } catch (UserStoreException e) {
@@ -102,11 +108,17 @@ public class UserIdentityManagementAdminService {
     public void lockUserAccount(String userName) throws IdentityMgtServiceException {
 
         try {
+
+            if (isSuperAdmin(userName)) {
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
+                        "lock superAdmin user");
+            }
+
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.lockUserAccount(userNameWithoutDomain, userStoreManager);
             log.info("User account locked: " + userName);
-        } catch (UserStoreException|IdentityException e) {
+        } catch (UserStoreException | IdentityException e) {
             log.error("Error occurred while trying to lock the account " + userName, e);
             throw new IdentityMgtServiceException("Error occurred while trying to lock the account " + userName, e);
         }
@@ -140,7 +152,7 @@ public class UserIdentityManagementAdminService {
                 IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
             }
             log.info("Account unlocked for: " + userName);
-        } catch (UserStoreException|IdentityException e) {
+        } catch (UserStoreException | IdentityException e) {
             String message = "Error occurred while unlocking account for: " + userName;
             log.error(message, e);
             throw new IdentityMgtServiceException(message, e);
@@ -157,6 +169,10 @@ public class UserIdentityManagementAdminService {
     public void disableUserAccount(String userName, String notificationType) throws IdentityMgtServiceException {
 
         try {
+            if (isSuperAdmin(userName)) {
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
+                        "disable superAdmin user");
+            }
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.disableUserAccount(userNameWithoutDomain, userStoreManager);
@@ -180,7 +196,7 @@ public class UserIdentityManagementAdminService {
                 dto.setNotificationType(notificationType);
                 IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
 
-                if(log.isDebugEnabled()){
+                if (log.isDebugEnabled()) {
                     log.debug("Account enabled notification is sent in " + notificationType);
                 }
             }
@@ -231,7 +247,7 @@ public class UserIdentityManagementAdminService {
                 dto.setNotificationType(notificationType);
                 IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
 
-                if(log.isDebugEnabled()){
+                if (log.isDebugEnabled()) {
                     log.debug("Account enabled notification is sent in " + notificationType);
                 }
             }
@@ -253,6 +269,10 @@ public class UserIdentityManagementAdminService {
     public void resetUserPassword(String userName, String newPassword)
             throws IdentityMgtServiceException {
         try {
+            if (isSuperAdmin(userName)) {
+                throw new IdentityMgtServiceException("You do not have the required privilege to " +
+                        "update superAdmin user");
+            }
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             userStoreManager.updateCredentialByAdmin(userNameWithoutDomain, newPassword);
@@ -265,7 +285,7 @@ public class UserIdentityManagementAdminService {
     }
 
     /**
-     * get challenges of user
+     * get challenges of user.
      *
      * @param userName bean class that contains user and tenant Information
      * @return array of challenges  if null, return empty array
@@ -278,28 +298,28 @@ public class UserIdentityManagementAdminService {
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
-        if(userName != null && !userName.equals(loggedInName)){
+        if (userName != null && !userName.equals(loggedInName)) {
             AuthorizationManager authzManager = null;
             try {
                 authzManager = IdentityMgtServiceComponent.getRealmService().getTenantUserRealm(tenantId).
                         getAuthorizationManager();
             } catch (UserStoreException e) {
-                throw new IdentityMgtServiceException("Error occurred while retrieving AuthorizationManager for tenant " +
-                        tenantDomain, e);
+                throw new IdentityMgtServiceException(
+                        "Error occurred while retrieving AuthorizationManager for tenant " + tenantDomain, e);
             }
             boolean isAuthorized = false;
             try {
-                isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/manage/identity/identitymgt/view",
-                        CarbonConstants.UI_PERMISSION_ACTION);
+                isAuthorized = authzManager.isUserAuthorized(loggedInName,
+                        "/permission/admin/manage/identity/identitymgt/view", CarbonConstants.UI_PERMISSION_ACTION);
             } catch (UserStoreException e) {
                     throw new IdentityMgtServiceException("Error occurred while checking access level for " +
                             "user " + userName + " in tenant " + tenantDomain, e);
             }
-            if(!isAuthorized){
+            if (!isAuthorized) {
                 throw new IdentityMgtServiceException("Unauthorized access!! Possible violation of confidentiality. " +
                         "User " + loggedInName + " trying to get challenge questions for user " + userName);
             }
-        } else if (userName == null){
+        } else if (userName == null) {
             userName = loggedInName;
         }
 
@@ -310,7 +330,7 @@ public class UserIdentityManagementAdminService {
     }
 
     /**
-     * get all promoted user challenges
+     * get all promoted user challenges.
      *
      * @return array of user challenges
      * @throws IdentityMgtServiceException if fails
@@ -356,7 +376,7 @@ public class UserIdentityManagementAdminService {
     }
 
     /**
-     * get all challenge questions
+     * get all challenge questions.
      *
      * @return array of questions
      * @throws IdentityMgtServiceException if fails
@@ -378,7 +398,7 @@ public class UserIdentityManagementAdminService {
     }
 
     /**
-     * set all challenge questions
+     * set all challenge questions.
      *
      * @param challengeQuestionDTOs array of questions
      * @throws IdentityMgtServiceException if fails
@@ -397,12 +417,13 @@ public class UserIdentityManagementAdminService {
     }
 
     /**
-     * set challenges of user
+     * set challenges of user.
      *
      * @param userName bean class that contains user and tenant Information
      * @throws IdentityMgtServiceException if fails
      */
-    public void setChallengeQuestionsOfUser(String userName, UserChallengesDTO[] challengesDTOs) throws IdentityMgtServiceException {
+    public void setChallengeQuestionsOfUser(String userName, UserChallengesDTO[] challengesDTOs) throws
+            IdentityMgtServiceException {
 
         if (challengesDTOs == null || challengesDTOs.length < 1) {
             log.error("no challenges provided by user");
@@ -413,28 +434,28 @@ public class UserIdentityManagementAdminService {
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
-        if(userName != null && !userName.equals(loggedInName)){
+        if (userName != null && !userName.equals(loggedInName)) {
             AuthorizationManager authzManager = null;
             try {
                 authzManager = IdentityMgtServiceComponent.getRealmService().getTenantUserRealm(tenantId).
                         getAuthorizationManager();
             } catch (UserStoreException e) {
-                throw new IdentityMgtServiceException("Error occurred while retrieving AuthorizationManager for tenant " +
-                        tenantDomain, e);
+                throw new IdentityMgtServiceException(
+                        "Error occurred while retrieving AuthorizationManager for tenant " + tenantDomain, e);
             }
             boolean isAuthorized = false;
             try {
-                isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/manage/identity/identitymgt/update",
-                        CarbonConstants.UI_PERMISSION_ACTION);
+                isAuthorized = authzManager.isUserAuthorized(loggedInName,
+                        "/permission/admin/manage/identity/identitymgt/update", CarbonConstants.UI_PERMISSION_ACTION);
             } catch (UserStoreException e) {
                 throw new IdentityMgtServiceException("Error occurred while checking access level for " +
                         "user " + userName + " in tenant " + tenantDomain, e);
             }
-            if(!isAuthorized){
+            if (!isAuthorized) {
                 throw new IdentityMgtServiceException("Unauthorized access!! Possible elevation of privilege attack. " +
                         "User " + loggedInName + " trying to change challenge questions for user " + userName);
             }
-        } else if (userName == null){
+        } else if (userName == null) {
             userName = loggedInName;
         }
 
@@ -445,17 +466,18 @@ public class UserIdentityManagementAdminService {
 
         try {
             List<ChallengeQuestionDTO> challengeQuestionDTOs = processor.getAllChallengeQuestions();
-            for (UserChallengesDTO userChallengesDTO : challengesDTOs){
-                boolean found = false ;
-                for (ChallengeQuestionDTO challengeQuestionDTO :challengeQuestionDTOs ){
-                    if(challengeQuestionDTO.getQuestion().equals(userChallengesDTO.getQuestion()) &&
-                            challengeQuestionDTO.getQuestionSetId().equals(userChallengesDTO.getId())){
-                        found = true ;
-                        break ;
+            for (UserChallengesDTO userChallengesDTO : challengesDTOs) {
+                boolean found = false;
+                for (ChallengeQuestionDTO challengeQuestionDTO :challengeQuestionDTOs) {
+                    if (challengeQuestionDTO.getQuestion().equals(userChallengesDTO.getQuestion()) &&
+                            challengeQuestionDTO.getQuestionSetId().equals(userChallengesDTO.getId())) {
+                        found = true;
+                        break;
                     }
                 }
-                if(!found){
-                    String errMsg = "Error while persisting user challenges for user : " + userName + ", because these user challengers are not registered with the tenant" ;
+                if (!found) {
+                    String errMsg = "Error while persisting user challenges for user : " + userName +
+                            ", because these user challengers are not registered with the tenant";
                     log.error(errMsg);
                     throw new IdentityMgtServiceException(errMsg);
                 }
@@ -496,7 +518,7 @@ public class UserIdentityManagementAdminService {
             }
             userStoreManager.setUserClaimValues(userName, claims, null);
 
-        } catch (UserStoreException|IdentityException e) {
+        } catch (UserStoreException | IdentityException e) {
             String errorMessage = "Error while updating identity recovery data for : " + userName;
             log.error(errorMessage, e);
             throw new IdentityMgtServiceException(errorMessage, e);
@@ -504,7 +526,7 @@ public class UserIdentityManagementAdminService {
     }
 
     /**
-     * Returns all user claims which can be used in the identity recovery
+     * Returns all user claims which can be used in the identity recovery.
      * process
      * such as the email address, telephone number etc
      *
@@ -576,9 +598,9 @@ public class UserIdentityManagementAdminService {
         try {
             if (userStoreManager != null && userStoreManager.isReadOnly()) {
                 isReadOnly = true;
-            } else
+            } else {
                 isReadOnly = false;
-
+            }
         } catch (org.wso2.carbon.user.core.UserStoreException e) {
             String errorMessage = "Error while retrieving user store manager";
             log.error(errorMessage, e);
@@ -610,18 +632,59 @@ public class UserIdentityManagementAdminService {
         return userNameWithoutDomain;
     }
 
-    private void validateSecurityQuestionDuplicate(UserChallengesDTO[] challengesDTOs) throws IdentityMgtServiceException {
+    private void validateSecurityQuestionDuplicate(UserChallengesDTO[] challengesDTOs)
+            throws IdentityMgtServiceException {
 
         Set<String> tmpMap = new HashSet<String>();
-        for(int i = 0; i < challengesDTOs.length ; i++) {
+        for (int i = 0; i < challengesDTOs.length; i++) {
             UserChallengesDTO userChallengesDTO = challengesDTOs[i];
-            if(tmpMap.contains(userChallengesDTO.getId())){
-                String errMsg = "Error while validating user challenges, because these can't be more than one security challenges for one claim uri" ;
+            if (tmpMap.contains(userChallengesDTO.getId())) {
+                String errMsg = "Error while validating user challenges, because these can't be " +
+                        "more than one security challenges for one claim uri";
                 log.error(errMsg);
                 throw new IdentityMgtServiceException(errMsg);
             }
             tmpMap.add(userChallengesDTO.getId());
         }
+    }
+
+    /**
+     * Check if the request updates super admin properties.
+     *
+     * @param userName Username
+     * @return boolean
+     */
+    private boolean isSuperAdmin(String userName) throws org.wso2.carbon.user.core.UserStoreException {
+
+        String loggedInUserName = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (loggedInUserName != null) {
+            loggedInUserName = addPrimaryDomainIfNotExists(loggedInUserName);
+        }
+        UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+        RealmConfiguration realmConfig = realm.getRealmConfiguration();
+        String adminUser = addPrimaryDomainIfNotExists(realmConfig.getAdminUserName());
+        if (realmConfig.getAdminUserName().equalsIgnoreCase(userName) &&
+                !adminUser.equalsIgnoreCase(loggedInUserName)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Add the primary domain to the username if username does not contain a domain.
+     *
+     * @param userName Username
+     * @return Primary domain added username
+     */
+    private final String addPrimaryDomainIfNotExists(String userName) {
+
+        if (StringUtils.isNotEmpty(userName) && (!userName.contains(UserCoreConstants.DOMAIN_SEPARATOR))) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME).append(CarbonConstants.DOMAIN_SEPARATOR)
+                    .append(userName);
+            userName = builder.toString();
+        }
+        return userName;
     }
 
 }

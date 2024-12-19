@@ -36,13 +36,18 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCache;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCacheEntry;
 import org.wso2.carbon.identity.provisioning.cache.ServiceProviderProvisioningConnectorCacheKey;
 import org.wso2.carbon.identity.provisioning.dao.CacheBackedProvisioningMgtDAO;
 import org.wso2.carbon.identity.provisioning.dao.ProvisioningManagementDAO;
 import org.wso2.carbon.identity.provisioning.internal.IdentityProvisionServiceComponent;
-import org.wso2.carbon.identity.provisioning.rules.XACMLBasedRuleHandler;
+import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
+import org.wso2.carbon.identity.provisioning.rules.ProvisioningHandler;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -51,6 +56,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -65,8 +71,17 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_APPLICATION_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.ASK_PASSWORD_CLAIM;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.GROUP_CLAIM_URI;
+import static org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants.SELF_SIGNUP_ROLE;
+import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isApplicationBasedOutboundProvisioningEnabled;
 import static org.wso2.carbon.identity.provisioning.ProvisioningUtil.isUserTenantBasedOutboundProvisioningEnabled;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.INTERNAL_DOMAIN;
 
 /**
  *
@@ -340,6 +355,15 @@ public class OutboundProvisioningManager {
             if (provisioningEntity.getEntityName() == null) {
                 setProvisioningEntityName(provisioningEntity);
             }
+
+            // Any provisioning request coming via Console, considered as coming from the resident SP.
+            // If the application based outbound provisioning is disabled, resident SP configuration will be used.
+            if (StringUtils.equals(CONSOLE_APPLICATION_NAME, serviceProviderIdentifier) ||
+                    !isApplicationBasedOutboundProvisioningEnabled()) {
+                serviceProviderIdentifier = LOCAL_SP;
+                inboundClaimDialect = IdentityProvisioningConstants.WSO2_CARBON_DIALECT;
+            }
+
             // get details about the service provider.any in-bound provisioning request via
             // the SOAP based API (or the management console) - or SCIM API with HTTP Basic
             // Authentication is considered as coming from the local service provider.
@@ -460,8 +484,8 @@ public class OutboundProvisioningManager {
                 if (ProvisioningOperation.DELETE.equals(provisioningOp) &&
                     (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null)) {
                     //No provisioning identifier found. User has not outbound provisioned to this idp. So no need to
-                    // send outbound delete request. Skip the flow
-                    return;
+                    // send outbound delete request. Continue the flow
+                    continue;
                 }
                 if (provisionedIdentifier == null || provisionedIdentifier.getIdentifier() == null) {
                     provisioningOp = ProvisioningOperation.POST;
@@ -469,7 +493,7 @@ public class OutboundProvisioningManager {
 
                 String[] provisionByRoleList = new String[0];
 
-                if (provisioningIdp.getProvisioningRole() != null) {
+                if (StringUtils.isNotBlank(provisioningIdp.getProvisioningRole())) {
                     provisionByRoleList = provisioningIdp.getProvisioningRole().trim().split("\\s*,[,\\s]*");
                 }
 
@@ -479,9 +503,15 @@ public class OutboundProvisioningManager {
                     List<String> newUsersList = attributes.get(ClaimMapping.build(
                             IdentityProvisioningConstants.NEW_USER_CLAIM_URI, null, null, false));
 
+                    if (newUsersList == null) {
+                        newUsersList = new ArrayList<>();
+                    }
                     List<String> deletedUsersList = attributes.get(ClaimMapping.build(
                             IdentityProvisioningConstants.DELETED_USER_CLAIM_URI, null, null, false));
 
+                    if (deletedUsersList == null) {
+                        deletedUsersList = new ArrayList<>();
+                    }
                     Map<ClaimMapping, List<String>> mappedUserClaims;
                     ProvisionedIdentifier provisionedUserIdentifier;
 
@@ -562,13 +592,19 @@ public class OutboundProvisioningManager {
                         boolean isAllowed = true;
                         boolean isBlocking = entry.getValue().isBlocking();
                         boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
-                        if (isPolicyEnabled) {
-                            isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(spTenantDomainName,
-                                    provisioningEntity,
-                                    serviceProvider,
-                                    idPName,
-                                    connectorType);
+
+                        if (isPolicyEnabled){
+                            try {
+                                ProvisioningHandler provisioningHandler = ProvisioningServiceDataHolder.getInstance()
+                                        .getProvisioningHandler();
+
+                                isAllowed  = provisioningHandler.isAllowedToProvision(spTenantDomainName,
+                                        provisioningEntity, serviceProvider, idPName, connectorType);
+                            } catch (NullPointerException e) {
+                                log.error("ProvisioningHandler service is not available.");
+                            }
                         }
+
                         if (isAllowed) {
                             executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
                         }
@@ -622,7 +658,18 @@ public class OutboundProvisioningManager {
                                              String connectorType,
                                              String idPName, Callable<Boolean> proThread, boolean isBlocking)
             throws IdentityProvisioningException {
-        if (!isBlocking) {
+
+        if (!isBlocking && needToWaitForUserProvisioning(provisioningEntity)) {
+            try {
+                boolean success = proThread.call();
+                if (!success) {
+                    log.error(generateMessageOnFailureProvisioningOperation(idPName, connectorType, provisioningEntity));
+                    //DO not roll back since non-blocking configuration was enabled.
+                }
+            } catch (Exception e) {
+                handleException(idPName, connectorType, provisioningEntity, executors, e);
+            }
+        } else if (!isBlocking) {
             executors.submit(proThread);
         } else {
             try {
@@ -638,9 +685,23 @@ public class OutboundProvisioningManager {
                     //DO Rollback
                 }
             } catch (Exception e) { //call() of Callable interface throws this exception
+                if (isFailOnBlockingOutBoundProvisionEnabled()) {
+                    throw new IdentityProvisioningException(e.getMessage());
+                }
                 handleException(idPName, connectorType, provisioningEntity, executors, e);
             }
         }
+    }
+
+    /**
+     * When outbound provisioning with blocking mode is enabled for any specific provisioning connector, check whether
+     * the flow should break if the outbound provisioning has failed.
+     *
+     * @return Whether request should be failed if outbound provisioning has failed in blocking outbound provision flow.
+     */
+    private boolean isFailOnBlockingOutBoundProvisionEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(FAIL_ON_BLOCKING_OUTBOUND_PROVISION_FAILURE));
     }
 
     private ProvisioningEntity getInboundProvisioningEntity(ProvisioningEntity provisioningEntity,
@@ -653,10 +714,10 @@ public class OutboundProvisioningManager {
                     IdentityProvisioningConstants.USERNAME_CLAIM_URI, null, null, false),
                                    Arrays.asList(new String[]{userName}));
         }
-        List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
-        if (roleListOfUser != null) {
+        List<String> groupListOfUser = getUserGroups(userName, tenantDomain);
+        if (groupListOfUser != null) {
             outboundAttributes.put(ClaimMapping.build(
-                    IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false), roleListOfUser);
+                    GROUP_CLAIM_URI, null, null, false), groupListOfUser);
         }
 
         String domainAwareName = userName;
@@ -704,7 +765,7 @@ public class OutboundProvisioningManager {
         }
 
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
-                IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                GROUP_CLAIM_URI);
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
                 IdentityProvisioningConstants.NEW_GROUP_CLAIM_URI);
         updateMappedGroupForAttribute(provisioningEntity, idPRoleMapping,
@@ -804,8 +865,7 @@ public class OutboundProvisioningManager {
      * @return
      */
     protected List<String> getGroupNames(Map<ClaimMapping, List<String>> attributeMap) {
-        return ProvisioningUtil.getClaimValues(attributeMap,
-                                               IdentityProvisioningConstants.GROUP_CLAIM_URI, null);
+        return ProvisioningUtil.getClaimValues(attributeMap, GROUP_CLAIM_URI, null);
     }
 
     /**
@@ -840,6 +900,11 @@ public class OutboundProvisioningManager {
             // we apply restrictions only for users.
             // if service provider's out-bound provisioning configuration does not define any roles
             // to be provisioned then we apply no restrictions.
+            // Internal role provisioning should be blocked.
+            if (provisioningEntity.getEntityName().startsWith(RoleConstants.INTERNAL_DOMAIN +
+                    UserCoreConstants.DOMAIN_SEPARATOR)) {
+                return false;
+            }
             return true;
         }
 
@@ -848,14 +913,21 @@ public class OutboundProvisioningManager {
             String userName = provisioningEntity.getEntityName();
             List<String> provisioningRoleList = Arrays.asList(provisionByRoleList);
 
+            /* Both user groups and roles are considered when deciding to outbound provisioning.
+               The roles have "Internal/" prefix compared to the groups. */
+            List<String> roleGroupListOfUser = new ArrayList<>();
+            List<String> groupListOfUser = getUserGroups(userName, tenantDomain);
+            // Only fetch directly assigned roles to the user.
             List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
-            if (userHasProvisioningRoles(roleListOfUser, provisioningRoleList, userName)) {
+            roleGroupListOfUser.addAll(roleListOfUser);
+            roleGroupListOfUser.addAll(groupListOfUser);
+            if (userHasProvisioningRoles(roleGroupListOfUser, provisioningRoleList, userName)) {
                 return true;
             }
-            List<String> newRoleListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
-                        (IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false));
+            List<String> newGroupListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
+                        (GROUP_CLAIM_URI, null, null, false));
 
-            if (userHasProvisioningRoles(newRoleListOfUser, provisioningRoleList, userName)) {
+            if (userHasProvisioningRoles(newGroupListOfUser, provisioningRoleList, userName)) {
                 return true;
             }
         }
@@ -888,7 +960,7 @@ public class OutboundProvisioningManager {
      * @throws CarbonException
      * @throws UserStoreException
      */
-    private List<String> getUserRoles(String userName, String tenantDomain) throws UserStoreException {
+    private List<String> getUserGroups(String userName, String tenantDomain) throws UserStoreException {
 
         RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
         int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
@@ -897,7 +969,37 @@ public class OutboundProvisioningManager {
 
         UserStoreManager userstore = realm.getUserStoreManager();
         String[] newRoles = userstore.getRoleListOfUser(userName);
-        return Arrays.asList(newRoles);
+        return Arrays.stream(newRoles).filter(role -> !role.startsWith(INTERNAL_DOMAIN)).collect(Collectors.toList());
+    }
+
+    private List<String> getUserRoles(String username, String tenantDomain) throws UserStoreException {
+
+        List<String> userRoleList = new ArrayList<>();
+        RealmService realmService = IdentityProvisionServiceComponent.getRealmService();
+        int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+        UserRealm realm = (UserRealm) realmService.getTenantUserRealm(tenantId);
+        AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) realm.getUserStoreManager();
+        String userId = userStoreManager.getUserIDFromUserName(username);
+        if (userId == null) {
+            return userRoleList;
+        }
+        try {
+            List<String> userRoleIdList = ProvisioningServiceDataHolder.getInstance().getRoleManagementService()
+                    .getRoleIdListOfUser(userId, tenantDomain);
+            for (String roleId : userRoleIdList) {
+                RoleBasicInfo roleBasicInfo = ProvisioningServiceDataHolder.getInstance().getRoleManagementService()
+                        .getRoleBasicInfoById(roleId, tenantDomain);
+                // Only organization audience roles are supported for role based outbound provisioning.
+                if (!RoleConstants.ORGANIZATION.equals(roleBasicInfo.getAudience())) {
+                    continue;
+                }
+                userRoleList.add(roleBasicInfo.getName());
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
+        String internalRolePrefix = RoleConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR;
+        return userRoleList.stream().map(role -> internalRolePrefix + role).collect(Collectors.toList());
     }
 
     /**
@@ -1013,8 +1115,7 @@ public class OutboundProvisioningManager {
 
             if (ProvisioningOperation.PUT.equals(provisioningOperation)) {
                 String oldGroupName = provisionedEntityName;
-                String currentGroupName = ProvisioningUtil
-                        .getAttributeValue(provisioningEntity, IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                String currentGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity, GROUP_CLAIM_URI);
                 if (!oldGroupName.equals(currentGroupName)) {
                     attributeList.put(org.wso2.carbon.identity.application.common.model.ClaimMapping
                                               .build(IdentityProvisioningConstants.OLD_GROUP_NAME_CLAIM_URI,
@@ -1027,8 +1128,7 @@ public class OutboundProvisioningManager {
                 }
             } else if (ProvisioningOperation.PATCH.equals(provisioningOperation)) {
                 String oldGroupName = provisionedEntityName;
-                String currentGroupName = ProvisioningUtil
-                        .getAttributeValue(provisioningEntity, IdentityProvisioningConstants.GROUP_CLAIM_URI);
+                String currentGroupName = ProvisioningUtil.getAttributeValue(provisioningEntity, GROUP_CLAIM_URI);
                 if (currentGroupName == null) {
                     currentGroupName = oldGroupName;
                 }
@@ -1094,6 +1194,54 @@ public class OutboundProvisioningManager {
             }
         }
 
+        return false;
+    }
+
+    /**
+     * Check whether it is needed to wait for provisioning operation getting completed.
+     * Even in the non-blocking provisioning, In Self Registration flow and Ask Password flow it is necessary to wait
+     * till the user provisioning get completed. The reason for this is that the User provisioning identifier receives
+     * only after the successful user provisioning. So if we don't wait till the user provisioning get completed, if a
+     * user claim update happens in IS side, since we don't have a user provisioning identifier in the DB, we are trying
+     * to create the user again instead of updating the user. This is critical in Self registration and Ask password
+     * flows, since during the user creation process we are doing a claim update also for lock the user account.
+     *
+     * @param provisioningEntity Provisioning Entity object.
+     * @return true if it is needed to wait(block) till the provisioning operation get completed, false otherwise.
+     */
+    private boolean needToWaitForUserProvisioning(ProvisioningEntity provisioningEntity) {
+
+        if (ProvisioningEntityType.USER.equals(provisioningEntity.getEntityType()) &&
+                provisioningEntity.getOperation().equals(ProvisioningOperation.POST)) {
+
+            // Need to wait in the self registration flow.
+            Map<ClaimMapping, List<String>> attributes = provisioningEntity.getAttributes();
+            if (attributes != null) {
+                for (Entry<ClaimMapping, List<String>> entry : attributes.entrySet()) {
+                    if (entry.getKey().getLocalClaim() != null &&
+                            StringUtils.equals(GROUP_CLAIM_URI, entry.getKey().getLocalClaim().getClaimUri())) {
+                        List<String> claimList = entry.getValue();
+                        if (claimList != null && claimList.contains(SELF_SIGNUP_ROLE)) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Need to wait in the ask password(user-invitation) flow.
+            Map<String, String> inboundAttributes = provisioningEntity.getInboundAttributes();
+            if (inboundAttributes != null) {
+                for (Entry<String, String> entry : inboundAttributes.entrySet()) {
+                    if (StringUtils.equals(ASK_PASSWORD_CLAIM, entry.getKey())) {
+                        if (StringUtils.equalsIgnoreCase(entry.getValue(), "true")) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         return false;
     }
 }

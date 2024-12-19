@@ -39,9 +39,11 @@ import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.CarbonUtils;
+
+import java.util.Arrays;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUsernameWithUserTenantDomain;
-import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
 
 /**
  * Audit log implementation for Application (Service Provider) changes.
@@ -57,7 +59,8 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     public boolean isEnable() {
 
         if (super.isEnable()) {
-            return !isLegacyAuditLogsDisabled();
+            // Legacy audit logs should be enabled to log these audit logs.
+            return !CarbonUtils.isLegacyAuditLogsDisabled();
         }
         return false;
     }
@@ -135,6 +138,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
         StringBuilder data = new StringBuilder();
         data.append("Name:").append(serviceProvider.getApplicationName()).append(", ");
         data.append("Description:").append(serviceProvider.getDescription()).append(", ");
+        data.append("Application Version:").append(serviceProvider.getApplicationVersion()).append(", ");
         data.append("Resource ID:").append(serviceProvider.getApplicationResourceId()).append(", ");
         data.append("Access URL:").append(serviceProvider.getAccessUrl()).append(", ");
         data.append("Is Discoverable:").append(serviceProvider.isDiscoverable()).append(", ");
@@ -298,6 +302,21 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
                 }
                 data.append("]");
             }
+            data.append("}");
+        }
+
+        if (serviceProvider.getTrustedAppMetadata() != null) {
+            data.append(", Trusted App Metadata:{");
+            data.append("isConsentGranted:").append(serviceProvider.getTrustedAppMetadata()
+                    .getIsConsentGranted()).append(", ");
+            data.append("isFidoTrusted:").append(serviceProvider.getTrustedAppMetadata()
+                    .getIsFidoTrusted()).append(", ");
+            data.append("androidPackageName:").append(serviceProvider.getTrustedAppMetadata()
+                    .getAndroidPackageName()).append(", ");
+            data.append("androidThumbprints:").append(Arrays.toString(serviceProvider.getTrustedAppMetadata()
+                    .getAndroidThumbprints())).append(", ");
+            data.append("appleAppId:").append(serviceProvider.getTrustedAppMetadata()
+                    .getAppleAppId()).append(", ");
             data.append("}");
         }
 

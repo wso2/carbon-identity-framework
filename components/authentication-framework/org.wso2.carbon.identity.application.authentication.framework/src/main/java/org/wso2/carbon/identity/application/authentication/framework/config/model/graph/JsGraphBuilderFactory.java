@@ -30,9 +30,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -54,11 +57,13 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
     @SuppressWarnings("removal")
     private NashornScriptEngineFactory factory;
 
+    private static boolean useThreadLocalScriptEngine = false;
 
     public void init() {
 
         factory = new NashornScriptEngineFactory();
         classFilter = new RestrictedClassFilter();
+        setUseThreadLocalScriptEngine();
     }
 
     public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
@@ -88,17 +93,26 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
 
     public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
 
-        ScriptEngine engine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
-        Bindings bindings = engine.createBindings();
-        engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-        engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+        ScriptEngine engine;
+        Bindings globalBindings;
+        if (useThreadLocalScriptEngine) {
+            Optional<ScriptEngine> optionalScriptEngine = new ThreadLocalScriptEngineHolder().getScriptEngine();
+            engine = optionalScriptEngine.orElseThrow(
+                    () -> new IdentityRuntimeException("Failed to create a script engine"));
+            globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
+        } else {
+            engine = factory.getScriptEngine(NASHORN_ARGS, getClassLoader(), classFilter);
+            globalBindings = engine.createBindings();
+            engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
+            engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+        }
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
 //        todo move to functions registry
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-            (SelectOneFunction) selectAcrFromFunction::evaluate);
+        globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
+                (SelectOneFunction) selectAcrFromFunction::evaluate);
 
         JsLogger jsLogger = new JsLogger();
-        bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+        globalBindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
         return engine;
     }
 
@@ -132,4 +146,11 @@ public class JsGraphBuilderFactory implements JsBaseGraphBuilderFactory {
         return new JsNashornGraphBuilder(authenticationContext, stepConfigMap,
                 createEngine(authenticationContext), currentNode);
     }
+
+    private void setUseThreadLocalScriptEngine() {
+
+        useThreadLocalScriptEngine =
+                Boolean.parseBoolean(IdentityUtil.getProperty(FrameworkConstants.THREAD_LOCAL_SCRIPT_ENGINE_CONFIG));
+    }
+
 }

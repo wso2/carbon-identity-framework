@@ -83,6 +83,7 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
     private static final String FILE_ELEMENT_ISSUER = "Issuer";
     private static final String FILE_ELEMENT_JWKS_ENDPOINT = "JWKSEndpoint";
+    private static final String FILE_ELEMENT_FEDERATED_ASSOCIATION_CONFIG = "FederatedAssociationConfig";
     private static final String THUMB_PRINT = "thumbPrint";
     private static final String CERT_VALUE = "certValue";
     private static final String JSON_ARRAY_IDENTIFIER = "[";
@@ -152,6 +153,9 @@ public class IdentityProvider implements Serializable {
 
     @XmlElement(name = "JustInTimeProvisioningConfig")
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
+
+    @XmlElement(name = "FederatedAssociationConfig")
+    private FederatedAssociationConfig federatedAssociationConfig;
 
     @XmlElement(name = "IdpProperties")
     private IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
@@ -347,6 +351,9 @@ public class IdentityProvider implements Serializable {
                         .setPermissionAndRoleConfig(PermissionsAndRoleConfig.build(element));
             } else if (FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG.equals(elementName)) {
                 identityProvider.setJustInTimeProvisioningConfig(JustInTimeProvisioningConfig
+                        .build(element));
+            } else if (FILE_ELEMENT_FEDERATED_ASSOCIATION_CONFIG.equals(elementName)) {
+                identityProvider.setFederatedAssociationConfig(FederatedAssociationConfig
                         .build(element));
             } else if (FILE_ELEMENT_IMAGE_URL.equals(elementName)) {
                 identityProvider.setImageUrl(element.getText());
@@ -800,6 +807,16 @@ public class IdentityProvider implements Serializable {
     public void setJustInTimeProvisioningConfig(
             JustInTimeProvisioningConfig justInTimeProvisioningConfig) {
         this.justInTimeProvisioningConfig = justInTimeProvisioningConfig;
+    }
+
+    public FederatedAssociationConfig getFederatedAssociationConfig() {
+
+        return federatedAssociationConfig;
+    }
+
+    public void setFederatedAssociationConfig(FederatedAssociationConfig federatedAssociationConfig) {
+
+        this.federatedAssociationConfig = federatedAssociationConfig;
     }
 
     /**

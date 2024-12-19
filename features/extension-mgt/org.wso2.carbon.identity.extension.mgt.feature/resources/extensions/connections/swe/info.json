@@ -1,0 +1,10 @@
+{
+    "id": "swe-idp",
+    "name": "Sign In With Ethereum",
+    "description": "Login users with their Ethereum wallet.",
+    "image": "assets/images/logos/ethereum.svg",
+    "category": "DEFAULT",
+    "displayOrder": 9,
+    "tags": [ "OIDC", "APIAuth" ],
+    "type": "identity-provider"
+}

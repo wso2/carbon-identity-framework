@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.core.util;
 
 import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -30,6 +31,7 @@ import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -344,8 +346,11 @@ public class IdentityTenantUtil {
                 throw IdentityRuntimeException.error(errorMsg, e);
             }
         }
-        if(tenantId == MultitenantConstants.INVALID_TENANT_ID){
-            throw IdentityRuntimeException.error("Invalid tenant domain of user " + username);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid tenant domain of user " + username);
+            }
+            throw IdentityRuntimeException.error("Invalid tenant domain");
         } else {
             return tenantId;
         }
@@ -362,13 +367,56 @@ public class IdentityTenantUtil {
     }
 
     /**
+     * Get the tenant name from the thread local properties if available, otherwise get from the
+     * privileged carbon context.
+     *
+     * @return Tenant domain name.
+     */
+    public static String resolveTenantDomain() {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("The tenant domain is not set to the thread local. Hence using the tenant domain from the " +
+                        "privileged carbon context.");
+            }
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            return tenantDomain;
+        }
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+    }
+
+    /**
+     * Get the login tenant id.
+     * First it gets the tenant domain from the thread local properties. If empty, retrieve it from thread local
+     * carbon context. If carbon context is also empty, returns super tenant id.
+     *
+     * @return Login tenant domain.
+     */
+    public static int getLoginTenantId() {
+
+        String tenantDomain = getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            return getTenantId(tenantDomain);
+        }
+        return MultitenantConstants.SUPER_TENANT_ID;
+    }
+
+    /**
      * Checks whether the tenant URL support is enabled.
      *
      * @return true if the config is set to true, false otherwise.
      */
     public static boolean isTenantQualifiedUrlsEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
+        return IdentityCoreServiceDataHolder.getInstance().isTenantQualifiedUrlsEnabled();
     }
 
 
@@ -378,7 +426,27 @@ public class IdentityTenantUtil {
      */
     public static boolean isTenantedSessionsEnabled() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANTED_SESSIONS));
+        return IdentityCoreServiceDataHolder.getInstance().isTenantedSessionsEnabled();
+    }
+
+    /**
+     * Checks if it is required to specify carbon.super in tenant qualified URLs.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static boolean isSuperTenantRequiredInUrl() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.REQUIRED_SUPER_TENANT_IN_URLS));
+    }
+
+    /**
+     * Checks if it is required to append the carbon.super in cookie path.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static boolean isSuperTenantAppendInCookiePath() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.APPEND_SUPER_TENANT_IN_COOKIE_PATH));
     }
 
     /**
@@ -398,5 +466,15 @@ public class IdentityTenantUtil {
     public static boolean isLegacySaaSAuthenticationEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_LEGACY_SAAS_AUTHENTICATION));
+    }
+
+    /**
+     * Checks if it is required to specify carbon.super in tenant qualified in public URLs.
+     *
+     * @return true if it is mandatory, false otherwise.
+     */
+    public static String getSuperTenantAliasInPublicUrl() {
+
+        return IdentityUtil.getProperty(IdentityCoreConstants.SUPER_TENANT_ALIAS_IN_PUBLIC_URL);
     }
 }
