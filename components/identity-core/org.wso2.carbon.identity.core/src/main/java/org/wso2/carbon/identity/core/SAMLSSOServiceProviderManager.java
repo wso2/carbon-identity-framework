@@ -22,9 +22,6 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderRegistryDAOImpl;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.registry.api.RegistryException;
-import org.wso2.carbon.registry.core.Registry;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -32,7 +29,7 @@ import org.wso2.carbon.registry.core.Registry;
  */
 public class SAMLSSOServiceProviderManager {
 
-    SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
+    private static SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
 
     /**
      * Add a saml service provider.
