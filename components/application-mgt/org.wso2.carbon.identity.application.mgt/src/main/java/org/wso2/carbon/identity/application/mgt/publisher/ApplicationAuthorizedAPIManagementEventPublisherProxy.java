@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,20 +103,16 @@ public class ApplicationAuthorizedAPIManagementEventPublisherProxy {
      * @param removedScopes Removed scopes.
      * @param tenantDomain  Tenant domain.
      * @throws IdentityApplicationManagementException If an error occurred while publishing the event.
+     * @deprecated Use the {@link #publishPreUpdateAuthorizedAPIForApplication(String, String, List, List,
+     * List, List, String)} instead.
      */
+    @Deprecated
     public void publishPreUpdateAuthorizedAPIForApplication(String appId, String apiId, List<String> addedScopes,
                                                             List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        Map<String, Object> eventProperties = new HashMap<>();
-        eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_ID, appId);
-        eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiId);
-        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_SCOPES, addedScopes);
-        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_SCOPES, removedScopes);
-        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties,
-                IdentityEventConstants.Event.PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT);
-        doPublishEvent(event);
+        this.publishPreUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
+                Collections.emptyList(), Collections.emptyList(), tenantDomain);
     }
 
     /**
@@ -127,21 +124,16 @@ public class ApplicationAuthorizedAPIManagementEventPublisherProxy {
      * @param removedScopes Removed scopes.
      * @param tenantDomain  Tenant domain.
      * @throws IdentityApplicationManagementException If an error occurred while publishing the event.
+     * @deprecated Use the {@link #publishPostUpdateAuthorizedAPIForApplication(String, String, List, List,
+     * List, List, String)} instead.
      */
+    @Deprecated
     public void publishPostUpdateAuthorizedAPIForApplication(String appId, String apiId, List<String> addedScopes,
                                                              List<String> removedScopes, String tenantDomain)
             throws IdentityApplicationManagementException {
 
-        Map<String, Object> eventProperties = new HashMap<>();
-        eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_ID, appId);
-        eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiId);
-        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_SCOPES, addedScopes);
-        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_SCOPES, removedScopes);
-        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
-        Event event = createEvent(eventProperties,
-                IdentityEventConstants.Event.POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT);
-        doPublishEvent(event);
-
+        this.publishPostUpdateAuthorizedAPIForApplication(appId, apiId, addedScopes, removedScopes,
+                Collections.emptyList(), Collections.emptyList(), tenantDomain);
     }
 
     /**
@@ -181,6 +173,72 @@ public class ApplicationAuthorizedAPIManagementEventPublisherProxy {
         eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         Event event = createEvent(eventProperties,
                 IdentityEventConstants.Event.POST_DELETE_AUTHORIZED_API_FOR_APPLICATION_EVENT);
+        doPublishEvent(event);
+    }
+
+    /**
+     * Publishes the pre update authorized API for application event.
+     *
+     * @param appId                            Application ID.
+     * @param apiId                            API ID.
+     * @param addedScopes                      Added scopes.
+     * @param removedScopes                    Removed scopes.
+     * @param addedAuthorizationDetailsTypes   Added authorization details types.
+     * @param removedAuthorizationDetailsTypes Removed authorization details types.
+     * @param tenantDomain                     Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurred while publishing the event.
+     */
+    public void publishPreUpdateAuthorizedAPIForApplication(String appId, String apiId, List<String> addedScopes,
+                                                            List<String> removedScopes,
+                                                            List<String> addedAuthorizationDetailsTypes,
+                                                            List<String> removedAuthorizationDetailsTypes,
+                                                            String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_ID, appId);
+        eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiId);
+        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_SCOPES, addedScopes);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_SCOPES, removedScopes);
+        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_AUTHORIZATION_DETAILS_TYPES,
+                addedAuthorizationDetailsTypes);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_AUTHORIZATION_DETAILS_TYPES,
+                removedAuthorizationDetailsTypes);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties,
+                IdentityEventConstants.Event.PRE_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT);
+        doPublishEvent(event);
+    }
+
+    /**
+     * Publishes the post update authorized API for application event.
+     *
+     * @param appId         Application ID.
+     * @param apiId         API ID.
+     * @param addedScopes   Added scopes.
+     * @param removedScopes Removed scopes.
+     * @param tenantDomain  Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occurred while publishing the event.
+     */
+    public void publishPostUpdateAuthorizedAPIForApplication(String appId, String apiId, List<String> addedScopes,
+                                                             List<String> removedScopes,
+                                                             List<String> addedAuthorizationDetailsTypes,
+                                                             List<String> removedAuthorizationDetailsTypes,
+                                                             String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_ID, appId);
+        eventProperties.put(IdentityEventConstants.EventProperty.API_ID, apiId);
+        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_SCOPES, addedScopes);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_SCOPES, removedScopes);
+        eventProperties.put(IdentityEventConstants.EventProperty.ADDED_AUTHORIZATION_DETAILS_TYPES,
+                addedAuthorizationDetailsTypes);
+        eventProperties.put(IdentityEventConstants.EventProperty.DELETED_AUTHORIZATION_DETAILS_TYPES,
+                removedAuthorizationDetailsTypes);
+        eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = createEvent(eventProperties,
+                IdentityEventConstants.Event.POST_UPDATE_AUTHORIZED_API_FOR_APPLICATION_EVENT);
         doPublishEvent(event);
     }
 
