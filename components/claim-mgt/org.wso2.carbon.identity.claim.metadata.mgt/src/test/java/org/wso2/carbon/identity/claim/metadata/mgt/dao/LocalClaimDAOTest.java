@@ -40,7 +40,7 @@ import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
-                files = { "dbScripts/claim_properties.sql" })
+        files = {"dbScripts/claim_properties.sql"})
 @WithCarbonHome
 public class LocalClaimDAOTest {
 
@@ -133,16 +133,17 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "getLocalClaim")
     public Object[][] testGetLocalClaimData() {
-        return new Object[][] {
+
+        return new Object[][]{
                 {
                         localClaim1, TEST_LOCAL_TENANT_ID
                 }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
+                localClaim2, TEST_LOCAL_TENANT_ID
+        }, {
+                localClaim3, TEST_LOCAL_TENANT_ID
+        },
 
-                };
+        };
     }
 
     @Test(dataProvider = "updateLocalClaim")
@@ -186,16 +187,17 @@ public class LocalClaimDAOTest {
 
     @DataProvider(name = "updateLocalClaim")
     public Object[][] testUpdateLocalClaimData() {
-        return new Object[][] {
+
+        return new Object[][]{
                 {
                         localClaim1, TEST_LOCAL_TENANT_ID
                 }, {
-                        localClaim2, TEST_LOCAL_TENANT_ID
-                }, {
-                        localClaim3, TEST_LOCAL_TENANT_ID
-                },
+                localClaim2, TEST_LOCAL_TENANT_ID
+        }, {
+                localClaim3, TEST_LOCAL_TENANT_ID
+        },
 
-                };
+        };
     }
 
     @Test(dataProvider = "updateLocalClaimMappings")
@@ -276,6 +278,7 @@ public class LocalClaimDAOTest {
     }
 
     private LocalClaim createLocalClaim(String uri, String description, List<AttributeMapping> attributeMappings) {
+
         LocalClaim localClaim = new LocalClaim(uri);
         if (description != null) {
             Map<String, String> claimProperties = new HashMap<>();
@@ -289,6 +292,7 @@ public class LocalClaimDAOTest {
     }
 
     private List<AttributeMapping> createAttributeMappings(String... mappings) {
+
         List<AttributeMapping> attributeMappings = new ArrayList<>();
         for (int i = 0; i < mappings.length; i += 2) {
             attributeMappings.add(new AttributeMapping(mappings[i], mappings[i + 1]));

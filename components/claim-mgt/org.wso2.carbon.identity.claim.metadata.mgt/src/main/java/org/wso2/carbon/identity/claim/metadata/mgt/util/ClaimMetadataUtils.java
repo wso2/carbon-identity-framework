@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
 
 /**
  * Utility class containing various claim metadata implementation related functionality.
@@ -398,5 +399,20 @@ public class ClaimMetadataUtils {
         Map<String, String> filteredClaimProperties = filterClaimProperties(claimProperties);
         return new ExternalClaim(claimKey.getDialectUri(), claimKey.getClaimUri(),
                 mappedLocalClaimURI, filteredClaimProperties);
+    }
+
+    /**
+     * Retrieves the server-level uniqueness validation scope for claims based on configuration.
+     *
+     * @return Enum value of ClaimConstants.ClaimUniquenessScope indicating the server-level uniqueness scope.
+     * Returns WITHIN_USERSTORE if the configuration is set to restrict uniqueness within the user store;
+     * otherwise, returns ACROSS_USERSTORES.
+     */
+    public static ClaimConstants.ClaimUniquenessScope getServerLevelClaimUniquenessScope() {
+
+        boolean isScopeWithinUserstore = Boolean.parseBoolean(IdentityUtil.getProperty(UNIQUENESS_VALIDATION_SCOPE));
+
+        return isScopeWithinUserstore ? ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE :
+                ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES;
     }
 }

@@ -16,15 +16,27 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.management.exception;
+package org.wso2.carbon.identity.rule.management.cache;
+
+import org.wso2.carbon.identity.core.cache.BaseCache;
+import org.wso2.carbon.utils.CarbonUtils;
 
 /**
- * Runtime exception class for Action Management.
+ * Cache for Rule Management.
  */
-public class ActionMgtRuntimeException extends RuntimeException {
+public class RuleCache extends BaseCache<RuleCacheKey, RuleCacheEntry> {
 
-    public ActionMgtRuntimeException(String message, Throwable e) {
+    private static final String CACHE_NAME = "RuleCache";
+    private static final RuleCache INSTANCE = new RuleCache();
 
-        super(message, e);
+    public RuleCache() {
+
+        super(CACHE_NAME);
+    }
+
+    public static RuleCache getInstance() {
+
+        CarbonUtils.checkSecurity();
+        return INSTANCE;
     }
 }

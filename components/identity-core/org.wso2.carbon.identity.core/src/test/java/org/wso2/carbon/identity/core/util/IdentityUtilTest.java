@@ -34,7 +34,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.IdentityKeyStoreResolver;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
@@ -53,6 +56,7 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -62,6 +66,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -91,6 +97,8 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE;
+import static org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverConstants.ErrorMessages.ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST;
 
 @Listeners(MockitoTestNGListener.class)
 public class IdentityUtilTest {
@@ -121,6 +129,18 @@ public class IdentityUtilTest {
     private RealmConfiguration mockRealmConfiguration;
     @Mock
     private HttpServletRequest mockRequest;
+    @Mock
+    private IdentityKeyStoreResolver mockIdentityKeyStoreResolver;
+    @Mock
+    private PrivateKey mockPrivateKey;
+    @Mock
+    private PublicKey mockPublicKey;
+    @Mock
+    private KeyStoreManager mockKeyStoreManager;
+    @Mock
+    private Certificate mockCertificate;
+
+
 
     private KeyStore primaryKeyStore;
 
@@ -130,6 +150,11 @@ public class IdentityUtilTest {
     MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponent;
     MockedStatic<IdentityConfigParser> identityConfigParser;
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    MockedStatic<SignatureUtil> signatureUtil;
+    MockedStatic<IdentityKeyStoreResolver> identityKeyStoreResolver;
+    MockedStatic<KeyStoreManager> keyStoreManager;
+    private MockedStatic<KeystoreUtils> keystoreUtils;
+
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -140,6 +165,10 @@ public class IdentityUtilTest {
         identityCoreServiceComponent = mockStatic(IdentityCoreServiceComponent.class);
         identityConfigParser = mockStatic(IdentityConfigParser.class);
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        signatureUtil = mockStatic(SignatureUtil.class);
+        identityKeyStoreResolver = mockStatic(IdentityKeyStoreResolver.class);
+        keyStoreManager = mockStatic(KeyStoreManager.class);
+        keystoreUtils = mockStatic(KeystoreUtils.class);
 
         serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(mockServerConfiguration);
         identityCoreServiceComponent.when(
@@ -176,6 +205,10 @@ public class IdentityUtilTest {
         identityCoreServiceComponent.close();
         identityConfigParser.close();
         identityTenantUtil.close();
+        signatureUtil.close();
+        identityKeyStoreResolver.close();
+        keyStoreManager.close();
+        keystoreUtils.close();
     }
 
     @Test(description = "Test converting a certificate to PEM format")
@@ -1067,4 +1100,105 @@ public class IdentityUtilTest {
         return keystore;
     }
 
+    @Test
+    public void testValidateSignatureFromTenant() throws Exception {
+
+        String data = "testData";
+        byte[] signature = new byte[]{1, 2, 3};
+        String tenantDomain = "carbon.super";
+
+        when(mockCertificate.getPublicKey()).thenReturn(mockPublicKey);
+        identityKeyStoreResolver.when(IdentityKeyStoreResolver::getInstance).thenReturn(mockIdentityKeyStoreResolver);
+        when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null)).thenReturn(mockCertificate);
+        signatureUtil.when(() -> SignatureUtil.validateSignature(data, signature, mockPublicKey)).thenReturn(true);
+
+        boolean result = IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testValidateSignatureFromContextKeystore() throws Exception {
+
+        String data = "testData";
+        byte[] signature = new byte[]{1, 2, 3};
+        String tenantDomain = "carbon.super";
+        String context = "cookie";
+
+        when(mockCertificate.getPublicKey()).thenReturn(mockPublicKey);
+        identityKeyStoreResolver.when(IdentityKeyStoreResolver::getInstance).thenReturn(mockIdentityKeyStoreResolver);
+        when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null, context)).thenReturn(mockCertificate);
+        signatureUtil.when(() -> SignatureUtil.validateSignature(data, signature, mockPublicKey)).thenReturn(true);
+
+        boolean result = IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain, context);
+        assertTrue(result);
+    }
+
+    @Test(description = "Validate signature when the context keystore does not exist. "
+            + "Expect the method to return false without throwing an exception.")
+    public void testValidateSignatureFromContextKeystoreIfNotExists() throws Exception {
+
+        String data = "testData";
+        byte[] signature = new byte[]{1, 2, 3};
+        String tenantDomain = "carbon.super";
+        String context = "cookie";
+
+        identityKeyStoreResolver.when(IdentityKeyStoreResolver::getInstance).thenReturn(mockIdentityKeyStoreResolver);
+        when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null, context))
+                .thenThrow(new IdentityKeyStoreResolverException
+                        (ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST.getCode(),
+                         ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST.getDescription()));
+        signatureUtil.when(() -> SignatureUtil.validateSignature(data, signature, mockPublicKey)).thenReturn(true);
+
+        boolean result = IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain, context);
+        assertFalse(result);
+    }
+
+    @Test(description = "Validate signature when an unexpected exception occurs while retrieving the "
+            + "tenant's public certificate. Expect a SignatureException to be thrown.",
+            expectedExceptions = SignatureException.class)
+    public void testValidateSignatureFromContextKeystoreNegative() throws Exception {
+
+        String data = "testData";
+        byte[] signature = new byte[]{1, 2, 3};
+        String tenantDomain = "carbon.super";
+        String context = "cookie";
+
+        identityKeyStoreResolver.when(IdentityKeyStoreResolver::getInstance).thenReturn(mockIdentityKeyStoreResolver);
+        when(mockIdentityKeyStoreResolver.getCertificate(tenantDomain, null, context))
+                .thenThrow(new IdentityKeyStoreResolverException
+                        (ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getCode(),
+                                ERROR_CODE_ERROR_RETRIEVING_TENANT_PUBLIC_CERTIFICATE.getDescription()));
+
+        IdentityUtil.validateSignatureFromTenant(data, signature, tenantDomain, context);
+    }
+
+    @Test
+    public void testSignWithTenantKey() throws Exception {
+
+        String data = "testData";
+        String superTenantDomain = "carbon.super";
+        keyStoreManager.when(() -> KeyStoreManager.getInstance(anyInt())).thenReturn(mockKeyStoreManager);
+        keystoreUtils.when(() -> KeystoreUtils.getKeyStoreFileExtension(superTenantDomain)).thenReturn(".jks");
+        when(mockKeyStoreManager.getDefaultPrivateKey()).thenReturn(mockPrivateKey);
+        when(mockKeyStoreManager.getPrivateKey(anyString(), anyString())).thenReturn(mockPrivateKey);
+
+        byte[] expectedSignature = new byte[]{1, 2, 3};
+        signatureUtil.when(() -> SignatureUtil.doSignature(data, mockPrivateKey)).thenReturn(expectedSignature);
+
+        byte[] result = IdentityUtil.signWithTenantKey(data, "wso2.com");
+        assertEquals(result, expectedSignature);
+
+        // Test sign with super tenant key.
+        result = IdentityUtil.signWithTenantKey(data, superTenantDomain);
+        assertEquals(result, expectedSignature);
+
+        // Sign with super tenant causing an exception.
+        when(mockKeyStoreManager.getDefaultPrivateKey()).thenThrow(new Exception());
+        try {
+            IdentityUtil.signWithTenantKey(data, superTenantDomain);
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), String.format(IdentityKeyStoreResolverConstants.ErrorMessages
+                    .ERROR_CODE_ERROR_RETRIEVING_TENANT_PRIVATE_KEY.getDescription(), superTenantDomain));
+        }
+    }
 }

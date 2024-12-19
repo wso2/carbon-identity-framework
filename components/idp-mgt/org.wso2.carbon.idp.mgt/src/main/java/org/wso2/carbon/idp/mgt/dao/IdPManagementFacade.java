@@ -315,7 +315,7 @@ public class IdPManagementFacade {
     }
 
     private IdentityProvider populateEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
-            throws IdentityProviderManagementServerException {
+            throws IdentityProviderManagementException {
 
         if (identityProvider == null || identityProvider.getFederatedAuthenticatorConfigs().length != 1) {
             return identityProvider;
@@ -326,7 +326,7 @@ public class IdPManagementFacade {
     }
 
     private void addEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
-            throws IdentityProviderManagementServerException {
+            throws IdentityProviderManagementException {
 
         if (identityProvider == null || identityProvider.getFederatedAuthenticatorConfigs().length != 1) {
             return;
@@ -337,7 +337,7 @@ public class IdPManagementFacade {
 
     private void updateEndpointConfig(IdentityProvider newIdentityProvider, IdentityProvider oldIdentityProvider,
                                       String tenantDomain)
-            throws IdentityProviderManagementServerException {
+            throws IdentityProviderManagementException {
 
         if (newIdentityProvider == null || newIdentityProvider.getFederatedAuthenticatorConfigs().length != 1) {
             return;
@@ -358,7 +358,7 @@ public class IdPManagementFacade {
     }
 
     private void deleteEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
-            throws IdentityProviderManagementServerException {
+            throws IdentityProviderManagementException {
 
         if (identityProvider == null || identityProvider.getFederatedAuthenticatorConfigs().length != 1) {
             return;

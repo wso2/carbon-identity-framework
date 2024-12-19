@@ -41,6 +41,7 @@ public class IdentityKeyStoreResolverConstants {
 
     // KeyStore Constants.
     public static final String KEY_STORE_EXTENSION = ".jks";
+    public static final String KEY_STORE_CONTEXT_SEPARATOR = "--";
 
     // Inbound Protocols.
     public static final String INBOUND_PROTOCOL_OAUTH = "oauth";
@@ -119,6 +120,10 @@ public class IdentityKeyStoreResolverConstants {
         ERROR_CODE_ERROR_RETRIEVING_CUSTOM_KEYSTORE_CONFIGURATION(
                 "IKSR-10009", "Error retrieving custom keystore configuration.",
                 "Error occurred when retrieving custom keystore configuration for: %s."),
+        ERROR_RETRIEVING_TENANT_CONTEXT_PUBLIC_CERTIFICATE_KEYSTORE_NOT_EXIST(
+                "IKSR-10010", "Error retrieving context public certificate. Keystore doesn't exist.",
+                "Error occurred when retrieving context certificate for tenant: %s. " +
+                        "Context Keystore doesn't exist."),
 
         // Errors occurred within the IdentityKeyStoreResolver
         ERROR_CODE_INVALID_ARGUMENT(

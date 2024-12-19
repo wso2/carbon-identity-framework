@@ -78,7 +78,6 @@
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
 <!--        <SAMLConfigs>database</SAMLConfigs>-->
-<!--        <KeyStores>database</KeyStores>-->
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -1167,10 +1166,14 @@
         <!-- When updating the claim value, it can be validated against the provided regex pattern.
         To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
         <!--<EnableUserClaimInputRegexValidation>false</EnableUserClaimInputRegexValidation>-->
+        <UniquenessValidation>
+            <ScopeWithinUserstore>false</ScopeWithinUserstore>
+        </UniquenessValidation>
     </UserClaimUpdate>
 
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
+        <ExecuteTaskOnMasterNode>false</ExecuteTaskOnMasterNode>
     </AccountSuspension>
 
     <SCIM2MultiAttributeFiltering>
@@ -1271,6 +1274,9 @@
             identity data store value is empty for corresponding claim. -->
             <Property name="EnableHybridDataStore">false</Property>
         </EventListener>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.password.expiry.listener.PasswordExpiryEventListener"
+                       orderId="102" enable="true"/>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
                        orderId="11" enable="true"/>
@@ -2313,6 +2319,19 @@
         <Resource context="(.*)/api/server/v1/actions(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/actionmgt/view</Permissions>
             <Scopes>internal_action_mgt_view</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/authenticators/custom" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/custom_authenticator/create</Permissions>
+            <Scopes>internal_custom_authenticator_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/custom_authenticator/update</Permissions>
+            <Scopes>internal_custom_authenticator_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/custom_authenticator/delete</Permissions>
+            <Scopes>internal_custom_authenticator_delete</Scopes>
         </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>

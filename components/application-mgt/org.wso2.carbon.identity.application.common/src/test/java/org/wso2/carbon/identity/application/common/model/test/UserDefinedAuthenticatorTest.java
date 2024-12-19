@@ -29,6 +29,8 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import java.util.HashMap;
 
 import static org.testng.Assert.assertEquals;
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_2FA;
+import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_CUSTOM;
 
 public class UserDefinedAuthenticatorTest {
 
@@ -39,7 +41,7 @@ public class UserDefinedAuthenticatorTest {
 
         UserDefinedLocalAuthenticatorConfig config =
                 new UserDefinedLocalAuthenticatorConfig(AuthenticatorPropertyConstants.AuthenticationType.VERIFICATION);
-        assertEquals(config.getTags(), new String[]{"CUSTOM", "2FA"});
+        assertEquals(config.getTags(), new String[]{TAG_CUSTOM, TAG_2FA});
         assertEquals(config.getDefinedByType(), AuthenticatorPropertyConstants.DefinedByType.USER);
     }
 
@@ -49,7 +51,7 @@ public class UserDefinedAuthenticatorTest {
         UserDefinedLocalAuthenticatorConfig config =
                 new UserDefinedLocalAuthenticatorConfig(
                         AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION);
-        assertEquals(config.getTags(), new String[]{"CUSTOM"});
+        assertEquals(config.getTags(), new String[]{TAG_CUSTOM});
         assertEquals(config.getDefinedByType(), AuthenticatorPropertyConstants.DefinedByType.USER);
     }
 
@@ -57,7 +59,7 @@ public class UserDefinedAuthenticatorTest {
     public void createUserDefinedFederatedAuthenticator() {
 
         UserDefinedFederatedAuthenticatorConfig config = new UserDefinedFederatedAuthenticatorConfig();
-        assertEquals(config.getTags(), new String[]{"CUSTOM"});
+        assertEquals(config.getTags(), new String[]{TAG_CUSTOM});
         assertEquals(config.getDefinedByType(), AuthenticatorPropertyConstants.DefinedByType.USER);
     }
 

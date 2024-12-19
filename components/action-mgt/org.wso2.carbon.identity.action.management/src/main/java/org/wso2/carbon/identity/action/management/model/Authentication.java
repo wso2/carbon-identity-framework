@@ -20,10 +20,10 @@ package org.wso2.carbon.identity.action.management.model;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.action.management.ActionSecretProcessor;
-import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
+import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.util.ActionManagementUtil;
+import org.wso2.carbon.identity.action.management.util.ActionManagementExceptionHandler;
+import org.wso2.carbon.identity.action.management.util.ActionSecretProcessor;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.util.ArrayList;
@@ -140,10 +140,10 @@ public class Authentication {
 
         try {
             return CollectionUtils.isEmpty(properties) ? properties :
-                    secretProcessor.decryptAssociatedSecrets(properties, type.getName(), actionId);
+                    secretProcessor.decryptAssociatedSecrets(this, actionId);
         } catch (SecretManagementException e) {
-            throw ActionManagementUtil.handleServerException(
-                    ActionMgtConstants.ErrorMessages.ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES, e);
+            throw ActionManagementExceptionHandler.handleServerException(
+                    ErrorMessage.ERROR_WHILE_DECRYPTING_ACTION_ENDPOINT_AUTH_PROPERTIES, e);
         }
     }
 

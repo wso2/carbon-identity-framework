@@ -25,12 +25,15 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -44,6 +47,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.CERTIFICATE_ID;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.CERTIFICATE_NAME;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.CERTIFICATE_PROPERTY_NAME;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.PASSWORD_SHARING_TYPE_PROPERTY_NAME;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_ACTION_ID;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PASSWORD_ACTION_ID;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACCESS_TOKEN;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_DESCRIPTION_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_NAME;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_NAME_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_URI;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_ACTION_URI_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_HEADER;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_API_KEY_VALUE;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_CERTIFICATE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_PASSWORD_SHARING_TYPE_UPDATED;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.TEST_USERNAME;
 
 /**
  * Unit test class for ActionManagementAuditLogger class.
@@ -52,7 +76,7 @@ import static org.mockito.Mockito.when;
 public class ActionManagementAuditLoggerTest {
 
     private ActionManagementAuditLogger auditLogger;
-    private Action action;
+    private ActionDTO actionDTO;
     private CarbonContext carbonContext;
     private MockedStatic<CarbonContext> carbonContextMockedStatic;
     private MockedStatic<IdentityUtil> identityUtil;
@@ -82,67 +106,168 @@ public class ActionManagementAuditLoggerTest {
         loggerUtilsMockedStatic = mockStatic(LoggerUtils.class);
         loggerUtilsMockedStatic.when(LoggerUtils::isEnableV2AuditLogs).thenReturn(true);
         loggerUtilsMockedStatic.when(() -> LoggerUtils.jsonObjectToMap(any(JSONObject.class))).thenCallRealMethod();
+        loggerUtilsMockedStatic.when(() -> LoggerUtils.getMaskedContent(any(String.class))).thenCallRealMethod();
 
-        // Mock Action
-        action = mock(Action.class);
-        when(action.getId()).thenReturn("action-test-id");
-        when(action.getName()).thenReturn("Test Action");
-        when(action.getDescription()).thenReturn("This is a test action.");
-        when(action.getType()).thenReturn(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
-        Map<String, String> authProperties = new HashMap<>();
-        authProperties.put("accessToken", "W*********t");
-        Authentication auth = new Authentication.AuthenticationBuilder().type(
-                Authentication.Type.BEARER).properties(authProperties).build();
-        when(action.getEndpoint()).thenReturn(new EndpointConfig.EndpointConfigBuilder().
-                uri("https://test.com").
-                authentication(auth).build());
-        when(action.getStatus()).thenReturn(Action.Status.ACTIVE);
+        Map<String, Object> actionProperties = new HashMap<>();
+        actionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE);
+        actionProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
+                .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
+                .certificateContent(TEST_CERTIFICATE).build());
+
+        actionDTO = new ActionDTOBuilder()
+                .id(PRE_UPDATE_PASSWORD_ACTION_ID)
+                .name(TEST_ACTION_NAME)
+                .description(TEST_ACTION_DESCRIPTION)
+                .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                .status(Action.Status.ACTIVE)
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri(TEST_ACTION_URI)
+                        .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
+                        .build())
+                .properties(actionProperties)
+                .build();
     }
 
     @AfterMethod
     public void tearDown() {
 
         auditLogger = null;
-        action = null;
+        actionDTO = null;
         carbonContextMockedStatic.close();
         identityUtil.close();
         identityTenantUtil.close();
         loggerUtilsMockedStatic.close();
     }
 
-    @Test
-    public void testPrintAuditLogWithAction() throws NoSuchFieldException, IllegalAccessException {
+    @DataProvider
+    public Object[][] actionDataProvider() {
 
-        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.ADD;
-        auditLogger.printAuditLog(operation, action);
-        AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
+        Map<String, Object> actionProperties = new HashMap<>();
+        actionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE);
+        actionProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
+                .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
+                .certificateContent(TEST_CERTIFICATE).build());
 
-        Assert.assertNotNull(capturedArg);
-        assertActionData(capturedArg);
-        assertAuditLoggerData(capturedArg, ADD_ACTION);
+        Map<String, Object> updatedActionProperties = new HashMap<>();
+        updatedActionProperties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, TEST_PASSWORD_SHARING_TYPE_UPDATED);
+        updatedActionProperties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
+                .id(CERTIFICATE_ID).name(CERTIFICATE_NAME)
+                .certificateContent(TEST_CERTIFICATE_UPDATED).build());
+
+        return new Object[][]{
+                // Create object with all the fields.
+                {ActionManagementAuditLogger.Operation.ADD,
+                        new ActionDTOBuilder()
+                        .id(PRE_UPDATE_PASSWORD_ACTION_ID)
+                        .name(TEST_ACTION_NAME)
+                        .description(TEST_ACTION_DESCRIPTION)
+                        .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
+                        .status(Action.Status.ACTIVE)
+                        .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                .uri(TEST_ACTION_URI)
+                                .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
+                                .build())
+                        .properties(actionProperties)
+                        .build()
+                },
+                // Create object without properties
+                {ActionManagementAuditLogger.Operation.ADD,
+                        new ActionDTOBuilder()
+                        .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                        .name(TEST_ACTION_NAME)
+                        .description(TEST_ACTION_DESCRIPTION)
+                        .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                        .status(Action.Status.ACTIVE)
+                        .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                .uri(TEST_ACTION_URI)
+                                .authentication(new Authentication.BasicAuthBuilder(TEST_USERNAME, TEST_PASSWORD)
+                                        .build())
+                                .build())
+                        .build()
+                },
+                // Update Objects
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                        .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                        .name(TEST_ACTION_NAME_UPDATED)
+                        .description(TEST_ACTION_DESCRIPTION_UPDATED)
+                        .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
+                        .status(Action.Status.ACTIVE)
+                        .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                .uri(TEST_ACTION_URI_UPDATED)
+                                .authentication(new Authentication.APIKeyAuthBuilder(TEST_API_KEY_HEADER,
+                                        TEST_API_KEY_VALUE).build())
+                                .build())
+                        .properties(updatedActionProperties)
+                        .build()
+                },
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .name(TEST_ACTION_NAME_UPDATED)
+                                .build()
+                },
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .description(TEST_ACTION_DESCRIPTION_UPDATED)
+                                .build()
+                },
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI)
+                                        .authentication(new Authentication.NoneAuthBuilder().build())
+                                        .build())
+                                .build()
+                },
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .uri(TEST_ACTION_URI)
+                                        .build())
+                                .build()
+                },
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                                        .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
+                                        .build())
+                                .build()
+                },
+                {ActionManagementAuditLogger.Operation.UPDATE,
+                        new ActionDTOBuilder()
+                                .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
+                                .properties(updatedActionProperties)
+                                .build()
+                }
+        };
     }
 
-    @Test
-    public void testPrintAuditLogWithActionId() throws NoSuchFieldException, IllegalAccessException {
+    @Test(dataProvider = "actionDataProvider")
+    public void testPrintAuditLogWithAction(ActionManagementAuditLogger.Operation operation, ActionDTO actionDTO)
+            throws NoSuchFieldException, IllegalAccessException {
 
-        ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.UPDATE;
-        auditLogger.printAuditLog(operation, action.getId(), action);
+        auditLogger.printAuditLog(operation, actionDTO);
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
 
         Assert.assertNotNull(capturedArg);
-        assertActionData(capturedArg);
-        assertAuditLoggerData(capturedArg, UPDATE_ACTION);
+        assertActionData(capturedArg, actionDTO);
+        assertAuditLoggerData(capturedArg, operation.getLogAction());
     }
 
     @Test
     public void testPrintAuditLogWithActionTypeAndId() throws NoSuchFieldException, IllegalAccessException {
 
         ActionManagementAuditLogger.Operation operation = ActionManagementAuditLogger.Operation.DELETE;
-        auditLogger.printAuditLog(operation, action.getType().name(), action.getId());
+        auditLogger.printAuditLog(operation, actionDTO.getType().name(), actionDTO.getId());
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
 
         Assert.assertNotNull(capturedArg);
-        Assert.assertEquals(extractMapByField("ActionId", capturedArg), "action-test-id");
+        Assert.assertEquals(extractMapByField("ActionId", capturedArg), actionDTO.getId());
         Assert.assertEquals(extractMapByField("ActionType", capturedArg),
                 Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
         assertAuditLoggerData(capturedArg, DELETE_ACTION);
@@ -183,25 +308,6 @@ public class ActionManagementAuditLoggerTest {
     }
 
     /**
-     * Extract the specific field name from the provided map.
-     *
-     * @param fieldName       Name of the field to be extracted.
-     * @param auditLogBuilder {@link AuditLog.AuditLogBuilder} instance.
-     * @return Value of the extracted field.
-     * @throws NoSuchFieldException   if the provided field does not exist.
-     * @throws IllegalAccessException if the provided field is not accessible.
-     */
-    private String extractEndpointMapByField(String fieldName, AuditLog.AuditLogBuilder auditLogBuilder)
-            throws NoSuchFieldException, IllegalAccessException {
-
-        Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
-        dataField.setAccessible(true);
-        Map<String, Object> dataMap = (Map<String, Object>) dataField.get(auditLogBuilder);
-        Map<String, Object> endpointConfigMap = (Map<String, Object>) dataMap.get("EndpointConfiguration");
-        return (String) endpointConfigMap.get(fieldName);
-    }
-
-    /**
      * Extract field.
      *
      * @param fieldName       Name of the field to be extracted.
@@ -222,23 +328,92 @@ public class ActionManagementAuditLoggerTest {
      * Assert data fields related to the Action object of the captured audit logger.
      *
      * @param auditLogBuilder {@link AuditLog.AuditLogBuilder} instance.
+     * @param actionDTO       {@link ActionDTO} instance.
      * @throws NoSuchFieldException   if the provided field does not exist.
      * @throws IllegalAccessException if the provided field is not accessible.
      */
-    private void assertActionData(AuditLog.AuditLogBuilder auditLogBuilder)
+    private void assertActionData(AuditLog.AuditLogBuilder auditLogBuilder, ActionDTO actionDTO)
             throws NoSuchFieldException, IllegalAccessException {
 
-        Assert.assertEquals(extractMapByField("ActionId", auditLogBuilder), "action-test-id");
-        Assert.assertEquals(extractMapByField("ActionName", auditLogBuilder), "Test Action");
-        Assert.assertEquals(extractMapByField("ActionType", auditLogBuilder),
-                Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType());
-        Assert.assertEquals(extractMapByField("ActionStatus", auditLogBuilder), Action.Status.ACTIVE.value());
-        Assert.assertEquals(extractMapByField("ActionDescription", auditLogBuilder),
-                "This is a test action.");
-        Assert.assertEquals(extractEndpointMapByField("AuthenticationScheme", auditLogBuilder),
-                Authentication.Type.BEARER.getName());
-        Assert.assertEquals(extractEndpointMapByField("EndpointUri", auditLogBuilder),
-                "https://test.com");
+        Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
+        dataField.setAccessible(true);
+        Map<String, Object> dataMap = (Map<String, Object>) dataField.get(auditLogBuilder);
+        Map<String, Object> endpointConfigMap = (Map<String, Object>) dataMap.get("EndpointConfiguration");
+        Map<String, Object> propertiesMap = (Map<String, Object>) dataMap.get("Properties");
+
+        String id = actionDTO.getId();
+        String name = actionDTO.getName();
+        String description = actionDTO.getDescription();
+        String type = actionDTO.getType() != null ? actionDTO.getType().name() : null;
+        String status = actionDTO.getStatus() != null ? actionDTO.getStatus().name() : null;
+        String uri = actionDTO.getEndpoint() != null && actionDTO.getEndpoint().getUri() != null ?
+                actionDTO.getEndpoint().getUri() : null;
+        String authenticationScheme = actionDTO.getEndpoint() != null &&
+                actionDTO.getEndpoint().getAuthentication() != null &&
+                actionDTO.getEndpoint().getAuthentication().getType() != null ?
+                actionDTO.getEndpoint().getAuthentication().getType().getName() : null;
+
+        assertField(id != null, dataMap, "ActionId", id);
+        assertField(name != null, dataMap, "ActionName", name);
+        assertField(description != null, dataMap, "ActionDescription", description);
+        assertField(type != null, dataMap, "ActionType", type);
+        assertField(status != null, dataMap, "ActionStatus", status);
+        assertField(uri != null, endpointConfigMap, "EndpointUri", uri);
+        assertField(authenticationScheme != null, endpointConfigMap, "AuthenticationScheme",
+                authenticationScheme);
+
+        if (authenticationScheme != null) {
+            switch (actionDTO.getEndpoint().getAuthentication().getType()) {
+                case BASIC:
+                    assertMasked(endpointConfigMap.get("Username").toString());
+                    assertMasked(endpointConfigMap.get("Password").toString());
+                    break;
+                case BEARER:
+                    assertMasked(endpointConfigMap.get("AccessToken").toString());
+                    break;
+                case API_KEY:
+                    assertMasked(endpointConfigMap.get("ApiKeyHeader").toString());
+                    assertMasked(endpointConfigMap.get("ApiKeyValue").toString());
+                    break;
+                case NONE:
+                default:
+                    break;
+            }
+        }
+
+        if (actionDTO.getProperties() != null && actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME) != null) {
+            assertMasked(propertiesMap.get(PASSWORD_SHARING_TYPE_PROPERTY_NAME).toString());
+        }
+        if (actionDTO.getProperties() != null && actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME) != null) {
+            assertMasked(propertiesMap.get(CERTIFICATE_PROPERTY_NAME).toString());
+        }
+    }
+
+    /**
+     * Assert field.
+     *
+     * @param isFieldExist Field existence.
+     * @param dataMap      Data map.
+     * @param fieldName    Field name.
+     * @param value        Value to be asserted.
+     */
+    private void assertField(boolean isFieldExist, Map<String, Object> dataMap, String fieldName, String value) {
+
+        if (isFieldExist) {
+            Assert.assertEquals(dataMap.get(fieldName).toString(), value);
+        } else {
+            Assert.assertTrue(dataMap == null || dataMap.get(fieldName) == null);
+        }
+    }
+
+    /**
+     * Assert masked data fields.
+     *
+     * @param value Value to be asserted.
+     */
+    private void assertMasked(String value) {
+
+        Assert.assertTrue(value.contains("*"));
     }
 
     /**
