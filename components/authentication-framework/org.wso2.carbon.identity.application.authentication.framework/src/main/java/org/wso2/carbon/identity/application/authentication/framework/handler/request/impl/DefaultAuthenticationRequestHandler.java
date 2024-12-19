@@ -66,6 +66,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.model.UserMgtContext;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -576,7 +577,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         context.getLoginTenantDomain());
                 // Since the session context is already available, audit log will be added with updated details.
                 addAuditLogs(SessionMgtConstants.UPDATE_SESSION_ACTION,
-                        authenticationResult.getSubject().getUserName(), sessionContextKey,
+                        authenticationResult.getSubject().getUserStoreDomain() +
+                                UserCoreConstants.DOMAIN_SEPARATOR +
+                                authenticationResult.getSubject().getUserName(), sessionContextKey,
                         authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
                         updatedSessionTime, sessionContext.isRememberMe());
             } else {
@@ -624,7 +627,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // The session context will be stored from here. Since the audit log will be logged as a storing
                 // operation.
                 addAuditLogs(SessionMgtConstants.STORE_SESSION_ACTION,
-                        authenticationResult.getSubject().getUserName(), sessionContextKey,
+                        authenticationResult.getSubject().getUserStoreDomain() +
+                                UserCoreConstants.DOMAIN_SEPARATOR +
+                                authenticationResult.getSubject().getUserName(), sessionContextKey,
                         authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
                         createdTimeMillis, sessionContext.isRememberMe());
                 if (request.getAttribute(ALLOW_SESSION_CREATION) == null
@@ -701,6 +706,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         StringUtils.join(federatedAuthenticatorNames, COMMA) +
                         " and added to the authentication result");
             }
+        }
+
+        // Adding locally mapped remote claims to authentication results.
+        if (context.getProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES) instanceof Map) {
+            Map<String, String> mappedRemoteClaims =
+                    (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES);
+            authenticationResult.setMappedRemoteClaims(mappedRemoteClaims);
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other

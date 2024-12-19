@@ -78,7 +78,6 @@
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
 <!--        <SAMLConfigs>database</SAMLConfigs>-->
-<!--        <KeyStores>database</KeyStores>-->
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -282,6 +281,8 @@
         <TimestampSkew>0</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>true</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable the authenticated user validation config for refresh grant -->
+        <ValidateAuthenticatedUserForRefreshGrant>false</ValidateAuthenticatedUserForRefreshGrant>
         <!-- Enable Extend renews refresh token expiry time -->
         <ExtendRenewedRefreshTokenExpiryTime>true</ExtendRenewedRefreshTokenExpiryTime>
         <!-- Process the token before storing it in database, e.g. encrypting -->
@@ -469,7 +470,6 @@
         <!-- Scope validators list. The validators registered here wil be executed during token validation. -->
         <ScopeValidators>
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator" />
-            <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator"/>
         </ScopeValidators>
 
         <!-- Flag to enable or disable scope validation for implicit grant and authorization code grant.
@@ -639,7 +639,7 @@
                 <EnableCibaProfile>false</EnableCibaProfile>
                 <EnableSecurityProfile>false</EnableSecurityProfile>
             </FAPI>
-            <EnableClaimsSeparationForAccessToken>false</EnableClaimsSeparationForAccessToken>
+            <EnableClaimsSeparationForAccessToken>true</EnableClaimsSeparationForAccessToken>
         </OpenIDConnect>
 
         <!--
@@ -1015,7 +1015,20 @@
             Default value : true
         -->
         <!--<EnableGroupBasedUserFilteringImprovements>true</EnableGroupBasedUserFilteringImprovements>-->
+        <!--
+            This configuration is added to consider the server-wide user endpoint max limit when the count query parameter is used.
+            Default value : true
+            Supported versions : IS 7.1.0 onwards
+        -->
+        <ConsiderServerWideUserEndpointMaxLimit>true</ConsiderServerWideUserEndpointMaxLimit>
 
+        <!--
+            If you want to get the error code appended to the password policy violation error detail,
+            then enable this property value.
+            Default value : false
+            Supported versions : IS 6.0.0 onwards
+        -->
+        <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
     </SCIM2>
 
     <!--Recovery>
@@ -1036,6 +1049,7 @@
                 </smsOtp>
             </Password>
             <Username>
+                <NonUniqueUsername>false</NonUniqueUsername>
                 <Enable>false</Enable>
             </Username>
             <InternallyManage>true</InternallyManage>
@@ -1095,6 +1109,7 @@
 	        <PasswordGenerator>org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator</PasswordGenerator>
 	        <DisableRandomValueForCredentials>false</DisableRandomValueForCredentials>
         </AskPassword>
+        <DisableNotifyUnlockState>false</DisableNotifyUnlockState>
     </EmailVerification>
 
     <SelfRegistration>
@@ -1151,10 +1166,14 @@
         <!-- When updating the claim value, it can be validated against the provided regex pattern.
         To enable this option,'EnableUserClaimInputRegexValidation' should be set to true. -->
         <!--<EnableUserClaimInputRegexValidation>false</EnableUserClaimInputRegexValidation>-->
+        <UniquenessValidation>
+            <ScopeWithinUserstore>false</ScopeWithinUserstore>
+        </UniquenessValidation>
     </UserClaimUpdate>
 
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
+        <ExecuteTaskOnMasterNode>false</ExecuteTaskOnMasterNode>
     </AccountSuspension>
 
     <SCIM2MultiAttributeFiltering>
@@ -1219,12 +1238,14 @@
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
+        <FailAuthnOnProvisionFailure>false</FailAuthnOnProvisionFailure>
         <EnableEnhancedFeature>false</EnableEnhancedFeature>
     </JITProvisioning>
 
     <OutboundProvisioning>
         <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
         <enableApplicationBasedOutboundProvisioning>false</enableApplicationBasedOutboundProvisioning>
+        <FailOnBlockingOutboundProvisionFailure>false</FailOnBlockingOutboundProvisionFailure>
     </OutboundProvisioning>
 
     <EventListeners>
@@ -1253,6 +1274,9 @@
             identity data store value is empty for corresponding claim. -->
             <Property name="EnableHybridDataStore">false</Property>
         </EventListener>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.password.expiry.listener.PasswordExpiryEventListener"
+                       orderId="102" enable="true"/>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
                        orderId="11" enable="true"/>
@@ -1372,6 +1396,11 @@
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="128" enable="true"/>
 
+        <!-- Role based outbound provision management Event Listener -->
+        <EventListener id="provisioning_role_mgt_listener"
+                       type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
+                       name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener"
+                       orderId="999" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
@@ -1515,6 +1544,40 @@
         <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
+            <Scopes>internal_secret_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
+            <Scopes>internal_secret_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
+            <Scopes>internal_secret_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secret-type/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
+            <Scopes>internal_secret_mgt_delete</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/secretmgt/add</Permissions>
+            <Scopes>internal_secret_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="PATCH, PUT">
+            <Permissions>/permission/admin/manage/identity/secretmgt/update</Permissions>
+            <Scopes>internal_secret_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/secretmgt/view</Permissions>
+            <Scopes>internal_secret_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/secrets/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/secretmgt/delete</Permissions>
+            <Scopes>internal_secret_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/server/v1/branding-preference(.*)" secured="false" http-method="GET"/>
@@ -2258,6 +2321,19 @@
             <Scopes>internal_action_mgt_view</Scopes>
         </Resource>
 
+        <Resource context="(.*)/api/server/v1/authenticators/custom" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/custom_authenticator/create</Permissions>
+            <Scopes>internal_custom_authenticator_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/custom_authenticator/update</Permissions>
+            <Scopes>internal_custom_authenticator_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/custom_authenticator/delete</Permissions>
+            <Scopes>internal_custom_authenticator_delete</Scopes>
+        </Resource>
+
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
@@ -2667,6 +2743,7 @@
     <OnDemandConfig>
         <OnInitialUse>
             <EnableSMSOTPPasswordRecoveryIfConnectorEnabled>false</EnableSMSOTPPasswordRecoveryIfConnectorEnabled>
+            <EnableSMSUsernameRecoveryIfConnectorEnabled>false</EnableSMSUsernameRecoveryIfConnectorEnabled>
         </OnInitialUse>
     </OnDemandConfig>
 </Server>

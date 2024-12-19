@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.io.Serializable;
@@ -62,6 +63,14 @@ public class LocalAuthenticatorConfig implements Serializable {
 
     @XmlElement(name = "Tags")
     protected String[] tags;
+
+    @XmlElement(name = "DefinedBy")
+    protected DefinedByType definedByType;
+
+    public LocalAuthenticatorConfig() {
+
+        definedByType = DefinedByType.SYSTEM;
+    }
 
     /*
      * <LocalAuthenticatorConfig> <Name></Name> <DisplayName></DisplayName> <IsEnabled></IsEnabled>
@@ -111,8 +120,15 @@ public class LocalAuthenticatorConfig implements Serializable {
                     Property[] propertiesArr = propertiesArrList.toArray(new Property[0]);
                     localAuthenticatorConfig.setProperties(propertiesArr);
                 }
+            } else if ("DefinedBy".equals(member.getLocalName())) {
+                localAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(member.getText()));
             }
         }
+
+        if (localAuthenticatorConfig.getDefinedByType() == null) {
+            localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        }
+
         return localAuthenticatorConfig;
     }
 
@@ -223,5 +239,25 @@ public class LocalAuthenticatorConfig implements Serializable {
     public void setTags(String[] tagList) {
 
         tags = tagList;
+    }
+
+    /**
+     * Get the defined by type of the Local authenticator config.
+     *
+     * @return DefinedByType
+     */
+    public DefinedByType getDefinedByType() {
+
+        return definedByType;
+    }
+
+    /**
+     * Set the defined by type of the Local authenticator config.
+     *
+     * @param type The defined by type of the local authenticator config.
+     */
+    public void setDefinedByType(DefinedByType type) {
+
+        definedByType = type;
     }
 }

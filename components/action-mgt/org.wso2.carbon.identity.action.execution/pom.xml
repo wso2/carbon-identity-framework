@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>action-mgt</artifactId>
-        <version>7.5.22-SNAPSHOT</version>
+        <version>7.7.56-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -40,6 +40,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.action.management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -77,9 +81,13 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
                             org.wso2.carbon.identity.action.execution.internal,
+                            org.wso2.carbon.identity.action.execution.impl,
+                            org.wso2.carbon.identity.action.execution.util,
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.action.execution.internal,
+                            !org.wso2.carbon.identity.action.execution.impl,
+                            !org.wso2.carbon.identity.action.execution.util,
                             org.wso2.carbon.identity.action.execution.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
@@ -100,7 +108,9 @@
                             org.apache.http.impl.conn; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             com.fasterxml.jackson.core.*; version="${com.fasterxml.jackson.annotation.version.range}",
                             com.fasterxml.jackson.databind.*;
@@ -163,6 +173,7 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
+                                            <!-- temp decreasing the coverage -->
                                             <minimum>0.79</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">

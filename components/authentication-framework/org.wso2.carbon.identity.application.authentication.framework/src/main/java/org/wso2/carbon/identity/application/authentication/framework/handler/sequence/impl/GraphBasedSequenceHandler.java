@@ -79,6 +79,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.Auth
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POLYGLOT_CLASS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 /**
@@ -142,8 +143,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                         FrameworkConstants.LogConstants.AUTH_SCRIPT_LOGGING)
                         .inputParam(LogConstants.InputKeys.TENANT_DOMAIN, context.getTenantDomain())
                         .inputParam(LogConstants.InputKeys.APPLICATION_NAME, context.getServiceProviderName())
-                        .resultMessage("Error while parsing the authentication script. Nested exception is: " + graph
-                                .getErrorReason())
+                        .resultMessage((graph.getErrorReason() != null &&
+                                graph.getErrorReason().contains(POLYGLOT_CLASS)) ? "Error while parsing the " +
+                                "authentication script." :
+                                "Error while parsing the authentication script. Nested exception is: " + graph
+                                        .getErrorReason())
                         .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
                         .resultStatus(DiagnosticLog.ResultStatus.FAILED));
             }

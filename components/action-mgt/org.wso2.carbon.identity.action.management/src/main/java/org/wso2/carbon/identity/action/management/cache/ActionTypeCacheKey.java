@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.core.cache.CacheKey;
  */
 public class ActionTypeCacheKey extends CacheKey {
 
+    private static final long serialVersionUID = 8132735629148475983L;
     private final String actionType;
 
     public ActionTypeCacheKey(String actionType) {

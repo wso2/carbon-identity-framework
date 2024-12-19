@@ -19,7 +19,6 @@ package org.wso2.carbon.identity.claim.metadata.mgt.model;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

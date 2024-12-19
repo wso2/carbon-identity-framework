@@ -40,6 +40,14 @@
                    description="Delete API resources"/>
         </Scopes>
     </APIResource>
+    <APIResource name="API Resource Management API" identifier="/o/api/server/v1/api-resources"
+                 requiresAuthorization="true"
+                 description="API representation of the API Resource Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View API Resources" name="internal_org_api_resource_view"
+                   description = "View API resources in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Shared Application Management API" identifier="/api/server/v1/applications/share"
                  requiresAuthorization="true"
                  description="API representation of the Shared Application Management API" type="TENANT">
@@ -283,6 +291,34 @@
                     description="Delete identity provider connectors in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Identity Verification Provider Management API"
+                identifier="/api/server/v1/idv-providers" requiresAuthorization="true"
+                description="API representation of the Identity Verification Provider Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Identity Verification Provider" name="internal_idvp_view"
+                    description="View identity verification provider connectors in the organization (root)"/>
+            <Scope displayName="Create Identity Verification Provider" name="internal_idvp_add"
+                    description="Add new identity verification provider connectors in the organization (root)"/>
+            <Scope displayName="Update Identity Verification Provider" name="internal_idvp_update"
+                    description="Update identity verification provider connectors in the organization (root)"/>
+            <Scope displayName="Delete Identity Verification Provider" name="internal_idvp_delete"
+                    description="Delete identity verification provider connectors in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Identity Verification Claim Management API"
+                identifier="/api/users/v1/(.*)/idv" requiresAuthorization="true"
+                description="API representation of the Identity Verification Claim Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Identity Verification Claim" name="internal_idv_claim_view"
+                    description="View identity verification claims of a user in the organization (root)"/>
+            <Scope displayName="Create Identity Verification Claim" name="internal_idv_claim_add"
+                    description="Add new identity verification claim for a user in the organization (root)"/>
+            <Scope displayName="Update Identity Verification Claim" name="internal_idv_claim_update"
+                    description="Update identity verification claim of a user in the organization (root)"/>
+            <Scope displayName="Verify Identity Verification Claim" name="internal_idv_claim_verify"
+                    description="Veirfy identity verification claim of a user in the organization (root)"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Validation Rules API" identifier="/api/server/v1/validation-rules"
                  requiresAuthorization="true" description="API representation of the Validation Rules API" type="TENANT">
         <Scopes>
@@ -413,6 +449,8 @@
                     description="View discovery configurations of the organization (root)"/>
             <Scope displayName="Add Organization Configs" name="internal_organization_config_add" 
                     description="Add new discovery configurations of the organization (root)"/>
+            <Scope displayName="Update Organization Configs" name="internal_organization_config_update"
+                   description="Update discovery configurations of the organization (root)"/>
             <Scope displayName="Delete Organization Configs" name="internal_organization_config_delete" 
                     description="Delete discovery configurations of the organization (root)"/>
         </Scopes>
@@ -437,6 +475,33 @@
                     description="Update script libraries"/>
             <Scope displayName="Delete Functional Library" name="internal_functional_lib_delete" 
                     description="Delete script libraries"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Secret Type Management API" identifier="/api/server/v1/secret-type"
+                 requiresAuthorization="true"
+                 description="API representation of the Secret Type Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Add Secret Type" name="internal_secret_type_mgt_add" 
+                    description="Create new secret types in secret management service"/>
+            <Scope displayName="Update Secret Type" name="internal_secret_type_mgt_update" 
+                    description="Update secret types in secret management service"/>
+            <Scope displayName="View Secret Type" name="internal_secret_type_mgt_view" 
+                    description="View secret types in secret management service"/>
+            <Scope displayName="Delete Secret Type" name="internal_secret_type_mgt_delete" 
+                    description="Delete secret types in secret management service"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Secret Management API" identifier="/api/server/v1/secrets"
+                 requiresAuthorization="true" description="API representation of the Secret Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Add Secret" name="internal_secret_mgt_add" 
+                    description="Create new secrets in secret management service"/>
+            <Scope displayName="Update Secret" name="internal_secret_mgt_update" 
+                    description="Update secrets in secret management service"/>
+            <Scope displayName="View Secret" name="internal_secret_mgt_view" 
+                    description="View secrets in secret management service"/>
+            <Scope displayName="Delete Secret" name="internal_secret_mgt_delete" 
+                    description="Delete secrets in secret management service"/>
         </Scopes>
     </APIResource>
     <APIResource name="Userstore Management API" identifier="/api/server/v1/userstore"
@@ -600,8 +665,12 @@
         <Scopes>
             <Scope displayName="View Role" name="internal_org_role_mgt_view" 
                     description="View roles details in the organization"/>
+            <Scope displayName="Create Role" name="internal_org_role_mgt_create"
+                    description="Create new roles in the organization"/>
             <Scope displayName="Update Role" name="internal_org_role_mgt_update" 
                     description="Update roles details in the organization"/>
+            <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"
+                    description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
@@ -734,6 +803,29 @@
         <Scopes>
             <Scope displayName="View Email Template" name="internal_org_email_mgt_view" 
                     description="View email templates and types in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Notification Template Management API"
+                 identifier="/api/server/v(.*)/notification/(?:email|sms)/template-types" requiresAuthorization="true"
+                 description="API representation of the Notification Template Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Notification Template" name="internal_template_mgt_view"
+                   description="View notification templates and types in the organization (root)"/>
+            <Scope displayName="Create Notification Template" name="internal_template_mgt_create"
+                   description="Create new notification templates and types in the organization (root)"/>
+            <Scope displayName="Update Notification Template" name="internal_template_mgt_update"
+                   description="Update notification templates and types in the organization (root)"/>
+            <Scope displayName="Delete Notification Template" name="internal_template_mgt_delete"
+                   description="Delete notification templates and types in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Notification Template Management API"
+                 identifier="/o/api/server/v(.*)/notification/(?:email|sms)/template-types" requiresAuthorization="true"
+                 description="API representation of the Notification Template Management API"
+                 type="CONSOLE_ORG_LEVEL">
+        <Scopes>
+            <Scope displayName="View Notification Template" name="internal_org_template_mgt_view"
+                   description="View notification templates and types in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Entitlement Management API" identifier="/api/identity/entitlement/"
@@ -1017,6 +1109,24 @@
                    description="Manage email templates in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="SMS Template Management Feature" identifier="console:smsTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the SMS Template Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="SMS Template Feature" name="console:smsTemplates"
+                   description="Manage SMS templates from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="SMS Template Management Feature" identifier="console:org:smsTemplates"
+                 requiresAuthorization="true"
+                 description="Resource representation of the SMS Template Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="SMS Template Feature" name="console:org:smsTemplates"
+                   description="Manage SMS templates in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:settings"
                  requiresAuthorization="true"
                  description="Resource representation of the Console Setting Management Feature"
@@ -1053,6 +1163,15 @@
                    description="Manage home settings in the organization from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Secret Management Feature" identifier="console:secretsManagement"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Secret Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Secret Management Feature" name="console:secretsManagement" 
+                    description="Manage secrets from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Certificate Management Feature" identifier="console:certificates"
                  requiresAuthorization="true"
                  description="Resource representation of the Certificate Management Feature"
@@ -1070,7 +1189,16 @@
             <Scope displayName="Action Feature" name="console:actions" 
                     description="Manage actions from the Console"/>
         </Scopes>
-    </APIResource> 
+    </APIResource>
+    <APIResource name="Tenant Management Feature" identifier="console:tenants"
+                 requiresAuthorization="true"
+                 description="Resource representation of the Tenant Management Feature"
+                 type="CONSOLE_FEATURE">
+        <Scopes>
+            <Scope displayName="Tenants Feature" name="console:tenants" 
+                   description="Manage tenants from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
                  requiresAuthorization="true"
                  description="API to generate user onboard offline invite link" type="ORGANIZATION">
@@ -1085,6 +1213,26 @@
         <Scopes>
             <Scope displayName="Offline invite link" name="internal_offline_invite" 
                     description="Manage offline invitations from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Rule Metadata API" identifier="/api/server/v1/rules/metadata"
+                 requiresAuthorization="true"
+                 description="API representation of the Rules Metadata API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Metadata" name="internal_rule_metadata_view"
+                   description="View metadata for rule configuration"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User defined local authenticator API" identifier="/api/server/v1/authenticators/custom"
+                 requiresAuthorization="true"
+                 description="API representation of the User Defined Local Authenticator Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Create Authenticator" name="internal_custom_authenticator_create"
+                   description="Create new user defined local authenticator"/>
+            <Scope displayName="Update Authenticator" name="internal_custom_authenticator_update"
+                   description="Update user defined local authenticator"/>
+            <Scope displayName="Delete Authenticator" name="internal_custom_authenticator_delete"
+                   description="Delete user defined local authenticator"/>
         </Scopes>
     </APIResource>
 </APIResources>

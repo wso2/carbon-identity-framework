@@ -129,6 +129,21 @@ public class IdPManagementConstants {
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.smsOtp.Enable";
 
+    // User defined federated authenticator related constants.
+    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-_]*$";
+
+    // Resident IDP Username Recovery Configs.
+    public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
+    public static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
+    public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
+
+    public static class SQLConstants {
+
+        public static final String DEFINED_BY_COLUMN = "DEFINED_BY";
+        public static final String PROPERTY_KEY = "PROPERTY_KEY";
+        public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
+    }
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
@@ -225,7 +240,7 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_BY_RESOURCE_ID_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, " +
                 "CERTIFICATE, ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, " +
-                "ROLE_CLAIM_URI, DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, " +
+                "ROLE_CLAIM_URI, DEFAULT_AUTHENTICATOR_NAME, DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, " +
                 "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, " +
                 "UUID FROM IDP WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) " +
                 "AND UUID = ?";
@@ -235,7 +250,7 @@ public class IdPManagementConstants {
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
-        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME FROM " +
+        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY FROM " +
                 "IDP_AUTHENTICATOR WHERE IDP_ID = ?";
 
         public static final String GET_IDP_AUTH_SQL = "SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = ? AND NAME = ?";
@@ -357,7 +372,8 @@ public class IdPManagementConstants {
         public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.\"VALUE\" = 'true' AND ";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
-                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
+                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) VALUES " +
+                "(?,?,?,?,?,?,?)";
 
         public static final String DELETE_IDP_AUTH_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE IDP_ID=? AND NAME=?";
 
@@ -456,7 +472,8 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME " +
+                "idp.DISPLAY_NAME, " +
+                "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
                 "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID =?";
@@ -468,7 +485,8 @@ public class IdPManagementConstants {
                 "idp.ROLE_CLAIM_URI, idp.DEFAULT_AUTHENTICATOR_NAME, idp.DEFAULT_PRO_CONNECTOR_NAME, " +
                 "idp.DESCRIPTION, " +
                 "idp.IS_FEDERATION_HUB, idp.IS_LOCAL_CLAIM_DIALECT, idp.PROVISIONING_ROLE, idp.IS_ENABLED, " +
-                "idp.DISPLAY_NAME " +
+                "idp.DISPLAY_NAME, " +
+                "idp_auth.DEFINED_BY " +
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
                 "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID " +
@@ -590,6 +608,8 @@ public class IdPManagementConstants {
         public static final String GET_IDP_GROUPS_BY_IDP_GROUP_IDS = "SELECT IDP_GROUP.UUID, IDP_GROUP.GROUP_NAME, " +
                 "IDP.UUID AS IDP_ID FROM IDP_GROUP LEFT JOIN IDP ON IDP.ID = IDP_GROUP.IDP_ID WHERE " +
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
+        public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
+                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER'";
     }
 
     public enum ErrorMessage {
@@ -612,6 +632,12 @@ public class IdPManagementConstants {
         ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
                 "provisioning roles does not exist"),
         ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION("IDP-60011", "Invalid connector configuration. %s"),
+        ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
+                "provided authenticator Id %s."),
+        ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN("IDP-60013", "Federated authenticator name %s" +
+                " is already taken."),
+        ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Federated authenticator name does not match the" +
+                " regex pattern %s."),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
@@ -624,7 +650,15 @@ public class IdPManagementConstants {
                 "applications of Identity Provider with resource ID: %s."),
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
                 "the outbound provisioning roles"),
-        ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups");
+        ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups"),
+        ERROR_CODE_ADDING_ENDPOINT_CONFIG("IDP-65010", "An error occurred while adding" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_UPDATING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while updating" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while retrieving" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
+                " endpoint configuration for authenticator: %s.");
 
         private final String code;
         private final String message;

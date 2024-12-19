@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -37,14 +38,18 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.Operation;
+import org.wso2.carbon.identity.action.management.model.AuthProperty;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -71,6 +76,7 @@ public class APIClientTest {
     private StatusLine statusLine;
 
     private MockedStatic<ActionExecutorConfig> actionExecutorConfigStatic;
+    private MockedStatic<LoggerUtils> loggerUtils;
 
     @InjectMocks
     private APIClient apiClient;
@@ -79,8 +85,11 @@ public class APIClientTest {
     public void setUp() throws Exception {
 
         actionExecutorConfigStatic = mockStatic(ActionExecutorConfig.class);
+        loggerUtils = mockStatic(LoggerUtils.class);
+        loggerUtils.when(() -> LoggerUtils.isDiagnosticLogsEnabled()).thenReturn(true);
         ActionExecutorConfig actionExecutorConfig = mock(ActionExecutorConfig.class);
         actionExecutorConfigStatic.when(ActionExecutorConfig::getInstance).thenReturn(actionExecutorConfig);
+        when(actionExecutorConfig.getHttpConnectionPoolSize()).thenReturn(20);
         MockitoAnnotations.openMocks(this);
         when(actionExecutorConfig.getHttpRequestRetryCount()).thenReturn(2);
         setField(apiClient, "httpClient", httpClient);
@@ -90,6 +99,7 @@ public class APIClientTest {
     public void tearDown() {
 
         actionExecutorConfigStatic.close();
+        loggerUtils.close();
     }
 
     @Test
@@ -117,7 +127,8 @@ public class APIClientTest {
     @DataProvider(name = "unacceptableSuccessResponsePayloads")
     public String[] unacceptableSuccessResponsePayloads() {
 
-        return new String[]{"{}", "", "success", "{\"actionStatus\":\"SUCCESS\"}", "{\"actionStatus\":\"ERROR\"}"};
+        return new String[]{"{}", "", "success", "{\"actionStatus\":\"SUCCESS\"}", "{\"actionStatus\":\"ERROR\"}, " +
+                "{\"actionStatus\": \"FAILED\"}"};
     }
 
     @Test(dataProvider = "unacceptableSuccessResponsePayloads")
@@ -138,7 +149,7 @@ public class APIClientTest {
         assertFalse(apiResponse.isRetry());
         assertNotNull(apiResponse.getErrorLog());
         assertEquals(apiResponse.getErrorLog(),
-                "Unexpected response for status code: 200. Parsing JSON response failed.");
+                "Unexpected response for status code: 200. Reading JSON response failed.");
     }
 
     @Test
@@ -180,24 +191,106 @@ public class APIClientTest {
         assertNull(apiResponse.getErrorLog());
     }
 
+    @Test
+    public void testCallAPIAcceptablePayloadForFailureResponse() throws Exception {
+
+        String failureResponse =
+                "{\"actionStatus\":\"FAILED\",\"failureReason\":\"Error_reason\"," +
+                        "\"failureDescription\":\"Error_description\"}";
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+
+        InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(failureResponse.getBytes(
+                StandardCharsets.UTF_8)));
+        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        AuthProperty authProperty = new AuthProperty.AuthPropertyBuilder()
+                .name("accessToken")
+                .value("value")
+                .isConfidential(true)
+                .build();
+        AuthMethods.AuthMethod bearAuth = new AuthMethods.BearerAuth(Collections.singletonList(authProperty));
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", bearAuth, "{}");
+
+        assertNotNull(apiResponse);
+        assertNotNull(apiResponse.getResponse());
+        assertEquals(apiResponse.getResponse().getActionStatus(), ActionInvocationResponse.Status.FAILED);
+        assertEquals(((ActionInvocationFailureResponse) apiResponse.getResponse()).getFailureReason(),
+                "Error_reason");
+        assertEquals(((ActionInvocationFailureResponse) apiResponse.getResponse()).getFailureDescription(),
+                "Error_description");
+        assertFalse(apiResponse.isRetry());
+        assertNull(apiResponse.getErrorLog());
+    }
+
+    @DataProvider(name = "unexpectedFailureResponses")
+    public Object[][] unexpectedFailureResponses() {
+
+        return new Object[][]{
+                {HttpStatus.SC_OK, ContentType.DEFAULT_TEXT.getMimeType(), "",
+                        "Unexpected response for status code: 200. The response content type is not application/json."},
+                {HttpStatus.SC_OK, ContentType.APPLICATION_JSON.getMimeType(), "{\"actionStatus\":\"FAILED\"}",
+                        "Unexpected response for status code: 200. Reading JSON response failed."},
+                {HttpStatus.SC_OK, ContentType.APPLICATION_JSON.getMimeType(),
+                        "{\"actionStatus\":\"FAILED\", \"failedReason\": \"Scope validation failed\"}",
+                        "Unexpected response for status code: 200. Reading JSON response failed."},
+                {HttpStatus.SC_OK, ContentType.APPLICATION_JSON.getMimeType(),
+                        "{\"actionStatus\":\"FAILED\", \"failedReason\": \"Scope validation failed\"}, " +
+                                "\"failedDescription\": \"<alert();>\"}",
+                        "Unexpected response for status code: 200. Reading JSON response failed."}
+        };
+    }
+
+    @Test(dataProvider = "unexpectedFailureResponses")
+    public void testCallAPIUnexpectedFailureResponse(Object statusCode, Object contentType, Object payload,
+                                                     Object expectedErrorLog)
+            throws Exception {
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn((int) statusCode);
+        InputStreamEntity entity =
+                new InputStreamEntity(new ByteArrayInputStream(payload.toString().getBytes(StandardCharsets.UTF_8)));
+        entity.setContentType(contentType.toString());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        assertNotNull(apiResponse);
+        assertTrue(apiResponse.isError());
+        assertFalse(apiResponse.isRetry());
+        assertNotNull(apiResponse.getErrorLog());
+        assertEquals(apiResponse.getErrorLog(), expectedErrorLog.toString());
+    }
+
     @DataProvider(name = "unexpectedErrorResponses")
     public Object[][] unexpectedErrorResponses() {
 
         return new Object[][]{
                 {HttpStatus.SC_BAD_REQUEST, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Failed to execute the action request. Received: 400"},
+                        "", "Failed to execute the action request. Received status code: 400."},
                 {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
-                        "{}", "Failed to execute the action request. Received: 401"},
+                        "{}", "Unexpected error response received for the status code: 401. " +
+                        "Parsing JSON response failed."},
                 {HttpStatus.SC_BAD_REQUEST, ContentType.APPLICATION_JSON.getMimeType(),
-                        "{\"actionStatus\":\"ERROR\"}", "Failed to execute the action request. Received: 400"},
+                        "{\"actionStatus\":\"ERROR\"}", "Unexpected error response received for the status " +
+                        "code: 400. Parsing JSON response failed."},
                 {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
-                        "{\"actionStatus\":\"SUCCESS\"}", "Failed to execute the action request. Received: 401"},
+                        "{\"actionStatus\":\"SUCCESS\"}", "Unexpected error response received for the status " +
+                        "code: 401. Parsing JSON response failed."},
+                {HttpStatus.SC_UNAUTHORIZED, ContentType.APPLICATION_JSON.getMimeType(),
+                        "{\"actionStatus\": \"ERROR\", \"error\": \"Scope validation failed\"," +
+                                " \"errorDescription\": \"<alert;>\"}",
+                        "Unexpected error response received for the status code: 401. Parsing JSON response failed."},
                 {HttpStatus.SC_INTERNAL_SERVER_ERROR, ContentType.APPLICATION_JSON.getMimeType(),
-                        "server_error", "Failed to execute the action request. Received: 500"},
+                        "server_error", "Unexpected error response received for the status " +
+                        "code: 500. Parsing JSON response failed."},
                 {HttpStatus.SC_BAD_GATEWAY, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Failed to execute the action request. Received: 502"},
+                        "", "Failed to execute the action request. Received status code: 502."},
                 {HttpStatus.SC_CONFLICT, ContentType.DEFAULT_TEXT.getMimeType(),
-                        "", "Unexpected response status code: 409"}
+                        "", "Unexpected response received with status code: 409."}
         };
     }
 
@@ -232,14 +325,17 @@ public class APIClientTest {
 
         return new Object[][]{
                 {HttpStatus.SC_BAD_REQUEST,
-                        "{\"actionStatus\":\"ERROR\",\"error\":\"invalid_request\"," +
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"invalid_request\"," +
                                 "\"errorDescription\":\"client_id is missing\"}"},
                 {HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        "{\"actionStatus\":\"ERROR\",\"error\":\"server_error\"," +
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"server_error\"," +
                                 "\"errorDescription\":\"internal server error\"}"},
                 {HttpStatus.SC_UNAUTHORIZED,
-                        "{\"actionStatus\":\"ERROR\",\"error\":\"access_denied\"," +
-                                "\"errorDescription\":\"scope validation failed\"}"}
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"access_denied\"," +
+                                "\"errorDescription\":\"scope validation failed\"}"},
+                {HttpStatus.SC_UNAUTHORIZED,
+                        "{\"actionStatus\":\"ERROR\",\"errorMessage\":\"access_denied\"," +
+                                "\"errorDescription\":\"\"}"}
         };
     }
 
@@ -266,9 +362,9 @@ public class APIClientTest {
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(payload.toString());
-        String error = rootNode.path("error").asText();
+        String error = rootNode.path("errorMessage").asText();
         String errorDescription = rootNode.path("errorDescription").asText();
-        assertEquals(errorResponseObject.getError(), error);
+        assertEquals(errorResponseObject.getErrorMessage(), error);
         assertEquals(errorResponseObject.getErrorDescription(), errorDescription);
         assertNull(apiResponse.getErrorLog());
     }
@@ -309,6 +405,18 @@ public class APIClientTest {
         assertTrue(response.isError());
         assertEquals(response.getErrorLog(), "Failed to execute the action request or maximum retry attempts reached.");
         verify(httpClient, times(2)).execute(any(HttpPost.class));
+    }
+
+    @Test
+    public void testUnexpectedExceptionFromHttpClient() throws Exception {
+
+        when(httpClient.execute(any(HttpPost.class))).thenThrow(new ClientProtocolException("Unexpected exception"));
+
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        assertNotNull(apiResponse);
+        assertTrue(apiResponse.isError());
+        assertEquals(apiResponse.getErrorLog(),
+                "Failed to execute the action request or maximum retry attempts reached.");
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {

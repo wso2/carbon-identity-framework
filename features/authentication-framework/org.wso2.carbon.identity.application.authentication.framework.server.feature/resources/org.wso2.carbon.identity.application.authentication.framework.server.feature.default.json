@@ -64,6 +64,7 @@
   "authentication.authenticator.basic.parameters.AuthMechanism": "basic",
   "authentication.authenticator.basic.parameters.Tags": "Username-Password",
   "authentication.authenticator.basic.parameters.redirectToRetryPageOnAccountLock": "false",
+  "authentication.authenticator.basic.parameters.showAuthFailureReason": "true",
 
   "authentication.authenticator.basic_request_path.name": "BasicAuthRequestPathAuthenticator",
   "authentication.authenticator.basic_request_path.enable": true,
@@ -246,7 +247,7 @@
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
   "authorization_control.skip_authorization.client_authentication.name":"ClientAuthentication",
-  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*)",
+  "authorization_control.skip_authorization.client_authentication.allowedEndpoints": "(.*)/accountrecoveryendpoint(.*),(.*)/api/identity/recovery/(.*),(.*)/data/AuthRequestKey/(.*),(.*)/applications(.*),(.*)/identity-governance(.*),(.*)/user/(.*)/validate-username(.*),(.*)/consent-mgt/v(.*)/consents/(.*),(.*)/user/v(.*)/me(.*),(.*)/identity/auth/v(.*)/data/(.*),(.*)/identity/user/v(.*)/validate-code,(.*)/api/server/v(.*)/identity-providers(.*),(.*)/api/identity/auth/(.*)/context(.*),(.*)/api/identity/user/v(.*)/resend-code(.*),(.*)/api/users/v2/recovery/password/(.*),(.*)/api/users/v2/recovery/username/(.*),(.*)/api/server/v(.*)/organization-configs/discovery(.*)",
 
   "jit_provisioning.indelible_claims.claim_uris": [
     "http://wso2.org/claims/userid",
@@ -263,5 +264,6 @@
     "console",
     "SYSTEM"
   ],
-  "authentication.jit_provisioning.associating_to_existing_user": false
+  "authentication.jit_provisioning.associating_to_existing_user": false,
+  "authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association": false
 }

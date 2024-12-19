@@ -17,10 +17,12 @@
 package org.wso2.carbon.security.keystore;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -128,8 +130,8 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
 
         KeyStore trustStore = null;
         try {
-            trustStore = getKeyStoreAdmin(tenantDomain).getTrustStore();
-        } catch (SecurityConfigException e) {
+            trustStore = getKeyStoreManager(tenantDomain).getTrustStore();
+        } catch (CarbonException e) {
             throw handleServerException(ERROR_CODE_RETRIEVE_CLIENT_TRUSTSTORE, tenantDomain, e);
         }
 
@@ -161,7 +163,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         String certAlias;
         boolean isAliasExists;
         try {
-            keyStore = keyStoreAdmin.getKeyStore(keyStoreName);
+            keyStore = getKeyStoreManager(tenantDomain).getKeyStore(keyStoreName);
             isAliasExists = keyStore.containsAlias(alias);
             certAlias = keyStore.getCertificateAlias(cert);
         } catch (Exception e) {
@@ -293,6 +295,11 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
 
         return new KeyStoreAdmin(IdentityTenantUtil.getTenantId(tenantDomain),
                 (Registry) CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.SYSTEM_GOVERNANCE));
+    }
+
+    private KeyStoreManager getKeyStoreManager(String tenantDomain) {
+
+        return KeyStoreManager.getInstance(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     private boolean isSuperTenant(String tenantDomain) {

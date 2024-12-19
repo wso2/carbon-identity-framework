@@ -143,6 +143,8 @@ public abstract class FrameworkConstants {
     public static final String IDP_RESOURCE_ID = "IDPResourceID";
     public static final String ENABLE_JIT_PROVISION_ENHANCE_FEATURE = "JITProvisioning.EnableEnhancedFeature";
     public static final String ERROR_CODE_INVALID_ATTRIBUTE_UPDATE = "SUO-10000";
+    public static final String ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION
+            = "JITProvisioning.EnableConfiguredIdpSubForFederatedUserAssociation";
 
     // Error details sent from authenticators
     public static final String AUTH_ERROR_CODE = "AuthErrorCode";
@@ -231,6 +233,7 @@ public abstract class FrameworkConstants {
     public static final String OPENJDK_NASHORN = "openjdkNashorn";
     public static final String NASHORN = "nashorn";
     public static final String GRAAL_JS = "graaljs";
+    public static final String POLYGLOT_CLASS = "org.graalvm.polyglot";
 
     // Attribute sync related constants.
     public static final String ATTRIBUTE_SYNC_METHOD = "attributeSyncMethod";

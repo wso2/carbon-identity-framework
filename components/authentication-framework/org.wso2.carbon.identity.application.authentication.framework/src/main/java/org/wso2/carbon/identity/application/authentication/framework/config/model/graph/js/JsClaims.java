@@ -59,6 +59,7 @@ import java.util.Optional;
 public abstract class JsClaims extends AbstractJSContextMemberObject implements JsBaseClaims {
 
     private static final Log LOG = LogFactory.getLog(JsClaims.class);
+    private static final String ERROR_GETTING_CLAIMS_MESSAGE = "Error when getting claim : %s of user: %s";
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
@@ -293,7 +294,7 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
                 return localToIdpClaimMapping.get(localClaim);
             }
         } catch (IdentityProviderManagementException e) {
-            LOG.error(String.format("Error when getting claim : %s of user: %s", localClaim, authenticatedUser), e);
+            LOG.error(String.format(ERROR_GETTING_CLAIMS_MESSAGE, localClaim, authenticatedUser), e);
         } catch (ClaimMetadataException e) {
             LOG.error("Error when getting claim mappings from " + authenticatorDialect + " for tenant domain: " +
                     tenantDomain);
@@ -434,8 +435,12 @@ public abstract class JsClaims extends AbstractJSContextMemberObject implements 
                     ((AbstractUserStoreManager) userRealm.getUserStoreManager())
                             .getUserClaimValuesWithID(authenticatedUser.getUserId(), new String[] {claimUri}, null);
             return claimValues.get(claimUri);
+        } catch (UserStoreClientException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format(ERROR_GETTING_CLAIMS_MESSAGE, claimUri, authenticatedUser), e);
+            }
         } catch (UserStoreException e) {
-            LOG.error(String.format("Error when getting claim : %s of user: %s", claimUri, authenticatedUser), e);
+            LOG.error(String.format(ERROR_GETTING_CLAIMS_MESSAGE, claimUri, authenticatedUser), e);
         } catch (UserIdNotFoundException e) {
             LOG.error("User id is not available for the user: " + authenticatedUser.getLoggableMaskedUserId(), e);
         }

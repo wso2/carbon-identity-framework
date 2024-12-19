@@ -18,11 +18,20 @@
 
 package org.wso2.carbon.idp.mgt;
 
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.core.util.CryptoUtil;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
+import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Claim;
@@ -36,7 +45,10 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
@@ -47,28 +59,43 @@ import org.wso2.carbon.identity.common.testng.WithKeyStore;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.common.testng.WithRegistry;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.secret.mgt.core.IdPSecretsProcessor;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
+import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+import org.wso2.carbon.idp.mgt.util.ActionMgtTestUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
 import static java.lang.Boolean.TRUE;
@@ -86,28 +113,175 @@ public class IdentityProviderManagementServiceTest {
 
     MetadataConverter mockMetadataConverter;
     private IdentityProviderManagementService identityProviderManagementService;
+    private CacheBackedIdPMgtDAO dao;
+    private CacheBackedIdPMgtDAO daoForException;
+    private Field field;
+    private IdentityProviderManager identityProviderManager;
+    private MockedStatic<CryptoUtil> cryptoUtil;
+    private ActionManagementService actionManagementService;
+
+    private static final String ASSOCIATED_ACTION_ID = "Dummy_Action_ID";
+    private static final String CUSTOM_IDP_NAME = "customIdP";
+    private static Action action;
+    private static EndpointConfig endpointConfig;
+    private static EndpointConfig endpointConfigToBeUpdated;
+    private IdentityProvider idpForErrorScenarios;
+    private IdentityProvider userDefinedIdP;
+
+    @BeforeClass
+    public void setUpClass() throws Exception {
+
+        SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
+        SecretType secretType = mock(SecretType.class);
+        IdpMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
+        when(secretType.getId()).thenReturn("secretId");
+        doReturn(secretType).when(secretManager).getSecretType(any());
+        when(secretManager.isSecretExist(anyString(), anyString())).thenReturn(false);
+
+        cryptoUtil = mockStatic(CryptoUtil.class);
+        CryptoUtil mockCryptoUtil = mock(CryptoUtil.class);
+        cryptoUtil.when(CryptoUtil::getDefaultCryptoUtil).thenReturn(mockCryptoUtil);
+
+        dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
+        identityProviderManager = mock(IdentityProviderManager.class);
+        identityProviderManagementService = new IdentityProviderManagementService();
+        field = IdentityProviderManager.class.getDeclaredField("dao");
+        field.setAccessible(true);
+        field.set(identityProviderManager, dao);
+
+        registerSystemAuthenticators();
+
+        endpointConfig = ActionMgtTestUtil.createEndpointConfig("http://localhost", "admin", "admin");
+        endpointConfigToBeUpdated = ActionMgtTestUtil.createEndpointConfig(
+                "http://localhost1", "admin1", "admin1");
+        action = ActionMgtTestUtil.createAction(endpointConfig);
+        userDefinedIdP = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME, action.getEndpoint());
+        idpForErrorScenarios = ActionMgtTestUtil.createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                CUSTOM_IDP_NAME + "Error", action.getEndpoint());
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+        cryptoUtil.close();
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        field.set(identityProviderManager, dao);
         mockMetadataConverter = mock(MetadataConverter.class);
-        identityProviderManagementService = new IdentityProviderManagementService();
         List<MetadataConverter> metadataConverterList = Arrays.asList(mockMetadataConverter);
         IdpMgtServiceComponentHolder.getInstance().setMetadataConverters(metadataConverterList);
 
-        SecretsProcessor<IdentityProvider> identityProviderSecretsProcessor = mock(IdPSecretsProcessor.class);
-        IdpMgtServiceComponentHolder.getInstance().setIdPSecretsProcessorService(identityProviderSecretsProcessor);
-        when(identityProviderSecretsProcessor.encryptAssociatedSecrets(any())).thenAnswer(
-                invocation -> invocation.getArguments()[0]);
-        when(identityProviderSecretsProcessor.decryptAssociatedSecrets(any())).thenAnswer(
-                invocation -> invocation.getArguments()[0]);
+        actionManagementService = mock(ActionManagementService.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        when(actionManagementService.addAction(anyString(), any(), any())).thenReturn(action);
+        when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
+        when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
+        doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
 
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
+        field.set(identityProviderManager, dao);
         // Clear Database after every test.
         removeTestIdps();
+    }
+
+    private void registerSystemAuthenticators() {
+
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
+        federatedAuthenticatorConfig.setDisplayName("DisplayName");
+        federatedAuthenticatorConfig.setName("SAMLSSOAuthenticator");
+        federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        Property property1 = new Property();
+        property1.setName("SPEntityId");
+        property1.setConfidential(false);
+        Property property2 = new Property();
+        property2.setName("meta_data_saml");
+        property2.setConfidential(false);
+        federatedAuthenticatorConfig.setProperties(new Property[]{property1, property2});
+        ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
+
+        FederatedAuthenticatorConfig config = new FederatedAuthenticatorConfig();
+        config.setName("Name");
+        config.setDisplayName("DisplayName");
+        config.setEnabled(true);
+        config.setDefinedByType(DefinedByType.USER);
+        ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(config);
+    }
+
+    @DataProvider
+    public Object[][] addFederatedAuthenticatorData() {
+
+        FederatedAuthenticatorConfig systemDefinedAuthWithInvalidName = new FederatedAuthenticatorConfig();
+        systemDefinedAuthWithInvalidName.setDisplayName("DisplayName1");
+        systemDefinedAuthWithInvalidName.setName("NonRegisteredAuthenticator");
+        systemDefinedAuthWithInvalidName.setEnabled(true);
+        systemDefinedAuthWithInvalidName.setDefinedByType(DefinedByType.SYSTEM);
+
+        FederatedAuthenticatorConfig userDefinedAuthWithExistingName = new UserDefinedFederatedAuthenticatorConfig();
+        userDefinedAuthWithExistingName.setDisplayName("DisplayName1");
+        userDefinedAuthWithExistingName.setName("SAMLSSOAuthenticator");
+        userDefinedAuthWithExistingName.setEnabled(true);
+        userDefinedAuthWithExistingName.setDefinedByType(DefinedByType.USER);
+
+        FederatedAuthenticatorConfig userDefinedAuthWithInvalidName = new UserDefinedFederatedAuthenticatorConfig();
+        userDefinedAuthWithInvalidName.setDisplayName("DisplayName1");
+        userDefinedAuthWithInvalidName.setName("Invalid regex name");
+        userDefinedAuthWithInvalidName.setEnabled(true);
+        userDefinedAuthWithInvalidName.setDefinedByType(DefinedByType.USER);
+
+        return new Object[][]{
+                {systemDefinedAuthWithInvalidName, ErrorMessage.ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND},
+                {userDefinedAuthWithExistingName, ErrorMessage.ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN},
+                {userDefinedAuthWithInvalidName, ErrorMessage.ERROR_INVALID_AUTHENTICATOR_NAME}
+        };
+    }
+
+    @Test(dataProvider = "addFederatedAuthenticatorData")
+    public void testFederatedAuthenticatorNameValidation(FederatedAuthenticatorConfig config, ErrorMessage error) {
+
+        IdentityProvider identityProvider = new IdentityProvider();
+        identityProvider.setIdentityProviderName("testInvalidIdP");
+        identityProvider.setDisplayName("test Invalid IdP");
+        identityProvider.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{config});
+
+        IdentityProviderManagementException thrownException = assertThrows(
+                IdentityProviderManagementException.class,
+                () -> identityProviderManagementService.addIdP(identityProvider)
+        );
+        assertEquals(thrownException.getErrorCode(), error.getCode());
+    }
+
+    @Test
+    public void testAddIdPActionException() throws Exception {
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.addAction(anyString(), any(), any()))
+                .thenThrow(ActionMgtServerException.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
+
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.addIdP(idpForErrorScenarios));
+        identityProviderManagementService.getIdPByName(idpForErrorScenarios.getIdentityProviderName());
+    }
+
+    @Test
+    public void testAddIdPActionClientException() throws Exception {
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.addAction(anyString(), any(), any()))
+                .thenThrow(ActionMgtClientException.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
+
+        assertThrows(IdentityProviderManagementClientException.class, () ->
+                identityProviderManagementService.addIdP(idpForErrorScenarios));
+        identityProviderManagementService.getIdPByName(idpForErrorScenarios.getIdentityProviderName());
     }
 
     @DataProvider
@@ -132,6 +306,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -193,6 +368,7 @@ public class IdentityProviderManagementServiceTest {
                 {idp2},
                 // IDP with only the name.
                 {idp3},
+                {userDefinedIdP}
         };
     }
 
@@ -203,6 +379,7 @@ public class IdentityProviderManagementServiceTest {
         identityProviderManagementService.addIdP(((IdentityProvider) identityProvider));
 
         IdentityProvider idpFromDb = identityProviderManagementService.getIdPByName(idpName);
+        assertIdPResult(idpFromDb);
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
@@ -243,6 +420,7 @@ public class IdentityProviderManagementServiceTest {
                 {"testIdP1"},
                 {"testIdP2"},
                 {"testIdP3"},
+                {userDefinedIdP.getIdentityProviderName()}
         };
     }
 
@@ -252,6 +430,7 @@ public class IdentityProviderManagementServiceTest {
         addTestIdps();
 
         IdentityProvider idpFromDb = identityProviderManagementService.getIdPByName(idpName);
+        assertIdPResult(idpFromDb);
         Assert.assertEquals(idpFromDb.getIdentityProviderName(), idpName);
     }
 
@@ -298,7 +477,7 @@ public class IdentityProviderManagementServiceTest {
         // With 3 idps  in database.
         addTestIdps();
         idpCount = identityProviderManagementService.getAllIdpCount();
-        Assert.assertEquals(idpCount, 3);
+        Assert.assertEquals(idpCount, 4);
     }
 
     @Test
@@ -311,19 +490,19 @@ public class IdentityProviderManagementServiceTest {
         // With 3 idps  in database.
         addTestIdps();
         idpsList = identityProviderManagementService.getAllIdPs();
-        Assert.assertEquals(idpsList.length, 3);
+        Assert.assertEquals(idpsList.length, 4);
 
         // With 3 idps and Shared idp  in database.
         addSharedIdp();
         idpsList = identityProviderManagementService.getAllIdPs();
-        Assert.assertEquals(idpsList.length, 3);
+        Assert.assertEquals(idpsList.length, 4);
     }
 
     @DataProvider
     public Object[][] getAllPaginatedIdpInfoData() {
 
         return new Object[][]{
-                {1, 3},
+                {1, 4},
                 {2, 0},
         };
     }
@@ -359,10 +538,10 @@ public class IdentityProviderManagementServiceTest {
     public Object[][] getPaginatedIdpInfoData() {
 
         return new Object[][]{
-                {1, "", 3},
+                {1, "", 4},
                 {1, "name sw test", 3},
                 {1, "homeRealmIdentifier eq 1", 1},
-                {1, "isEnabled co true", 3},
+                {1, "isEnabled co true", 4},
                 {1, "isEnabled eq false", 0},
                 {1, "id ew NotExist", 0},
                 {2, "name eq testIdP2", 0},
@@ -402,9 +581,9 @@ public class IdentityProviderManagementServiceTest {
     public Object[][] getFilteredIdpCountData() {
 
         return new Object[][]{
-                {"", 3},
+                {"", 4},
                 {"name ew 1", 1},
-                {"name co IdP", 3},
+                {"name co IdP", 4},
                 {"description eq Test Idp 1", 1}
         };
     }
@@ -422,7 +601,7 @@ public class IdentityProviderManagementServiceTest {
     public Object[][] getAllIdPsSearchData() {
 
         return new Object[][]{
-                {"", 3},
+                {"", 4},
                 {"test*", 3},
                 {"????IdP*", 3},
                 {"tes_I*", 3},
@@ -451,7 +630,24 @@ public class IdentityProviderManagementServiceTest {
         addTestIdps();
 
         IdentityProvider[] idpsList = identityProviderManagementService.getEnabledAllIdPs();
-        Assert.assertEquals(idpsList.length, 3);
+        Assert.assertEquals(idpsList.length, 4);
+    }
+
+    @Test
+    public void testDeleteIdPActionException() throws Exception {
+
+        identityProviderManagementService.addIdP(userDefinedIdP);
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        doThrow(ActionMgtServerException.class).when(actionManagementServiceForException)
+                .deleteAction(any(), any(), any());
+        when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
+
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
+        Assert.assertNotNull(identityProviderManagementService.getIdPByName(userDefinedIdP
+                .getIdentityProviderName()));
     }
 
     @DataProvider
@@ -461,6 +657,7 @@ public class IdentityProviderManagementServiceTest {
                 {"testIdP1"},
                 {"testIdP2"},
                 {"testIdP3"},
+                {userDefinedIdP.getIdentityProviderName()}
         };
     }
 
@@ -499,6 +696,7 @@ public class IdentityProviderManagementServiceTest {
                 {"testIdP1"},
                 {"testIdP2"},
                 {"testIdP3"},
+                {userDefinedIdP.getIdentityProviderName()}
         };
     }
 
@@ -510,6 +708,25 @@ public class IdentityProviderManagementServiceTest {
         Assert.assertNotNull(identityProviderManagementService.getIdPByName(idpName));
         identityProviderManagementService.forceDeleteIdP(idpName);
         Assert.assertNull(identityProviderManagementService.getIdPByName(idpName));
+    }
+
+    @Test(dataProvider = "forceDeleteIdPData")
+    public void testForceDeleteIdPDAOException(String idpName) throws Exception {
+
+        addTestIdps();
+        Assert.assertNotNull(identityProviderManagementService.getIdPByName(idpName));
+
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementServerException.class).when(daoForError)
+                .forceDeleteIdPByResourceId(anyString(), anyInt(), anyString());
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.forceDeleteIdP(idpName));
+
+        field.set(identityProviderManager, dao);
+        Assert.assertNotNull(identityProviderManagementService.getIdPByName(idpName));
     }
 
     @DataProvider
@@ -528,6 +745,26 @@ public class IdentityProviderManagementServiceTest {
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.forceDeleteIdP(idpName));
+    }
+
+    @Test
+    public void testUpdateIdPActionException() throws Exception {
+
+        IdentityProvider idpForErrorScenariosTobeUpdate = ActionMgtTestUtil.
+                createIdPWithUserDefinedFederatedAuthenticatorConfig(
+                idpForErrorScenarios.getIdentityProviderName(), endpointConfig);
+        identityProviderManagementService.addIdP(idpForErrorScenarios);
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.updateAction(any(), any(), any(), any()))
+                .thenThrow(ActionMgtServerException.class);
+        when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
+
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.updateIdP(idpForErrorScenariosTobeUpdate.getIdentityProviderName(),
+                        idpForErrorScenarios));
+        identityProviderManagementService.getIdPByName(idpForErrorScenarios.getIdentityProviderName());
     }
 
     @DataProvider
@@ -557,6 +794,7 @@ public class IdentityProviderManagementServiceTest {
         newFederatedAuthenticatorConfig.setDisplayName("DisplayName1New");
         newFederatedAuthenticatorConfig.setName("Name");
         newFederatedAuthenticatorConfig.setEnabled(true);
+        newFederatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property newProperty1 = new Property();
         newProperty1.setName("Property1New");
         newProperty1.setValue("value1New");
@@ -599,6 +837,13 @@ public class IdentityProviderManagementServiceTest {
         IdentityProvider idp3New = new IdentityProvider();
         idp3New.setIdentityProviderName("testIdP3New");
 
+        IdentityProvider updateIdPWithExistingUserDefinedFedAuth = ActionMgtTestUtil.
+                createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME + "new", endpointConfigToBeUpdated);
+        IdentityProvider updateIdPWithNewUserDefinedFedAuth = ActionMgtTestUtil.
+                createIdPWithUserDefinedFederatedAuthenticatorConfig(CUSTOM_IDP_NAME + "new", endpointConfigToBeUpdated);
+        updateIdPWithNewUserDefinedFedAuth.getFederatedAuthenticatorConfigs()[0].setName("New Fed Auth");
+
+
         return new Object[][]{
                 // IDP with PermissionsAndRoleConfig,FederatedAuthenticatorConfig,ProvisioningConnectorConfig,ClaimConf.
                 {"testIdP1", idp1New},
@@ -606,6 +851,8 @@ public class IdentityProviderManagementServiceTest {
                 {"testIdP2", idp2New},
                 // New IDP with Only name.
                 {"testIdP3", idp3New},
+                // IDP with User Defined Federated Authenticator.
+                {userDefinedIdP.getIdentityProviderName(), updateIdPWithExistingUserDefinedFedAuth}
         };
     }
 
@@ -617,7 +864,9 @@ public class IdentityProviderManagementServiceTest {
         String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
 
         Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
+        IdentityProvider newIdpFromDb = identityProviderManagementService.getIdPByName(newIdpName);
+        Assert.assertNotNull(newIdpFromDb);
+        assertIdPResult(newIdpFromDb);
     }
 
     @Test(dataProvider = "updateIdPData")
@@ -630,7 +879,9 @@ public class IdentityProviderManagementServiceTest {
         String newIdpName = ((IdentityProvider) newIdp).getIdentityProviderName();
 
         Assert.assertNull(identityProviderManagementService.getIdPByName(oldIdpName));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(newIdpName));
+        IdentityProvider newIdpFromDb = identityProviderManagementService.getIdPByName(newIdpName);
+        Assert.assertNotNull(newIdpFromDb);
+        assertIdPResult(newIdpFromDb);
     }
 
     @DataProvider
@@ -656,6 +907,20 @@ public class IdentityProviderManagementServiceTest {
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.updateIdP(oldIdpName, (IdentityProvider) newIdp));
+    }
+
+    @Test
+    public void testGetIdPActionException() throws Exception {
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.addAction(anyString(), any(), any())).thenReturn(action);
+        when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any()))
+                .thenThrow(ActionMgtServerException.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
+
+        IdentityProviderManagementServerException error = assertThrows(IdentityProviderManagementServerException.class,
+                () -> identityProviderManagementService.addIdP(idpForErrorScenarios));
+        assertEquals(error.getErrorCode(), ErrorMessage.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG.getCode());
     }
 
     @Test
@@ -692,31 +957,32 @@ public class IdentityProviderManagementServiceTest {
 
         FederatedAuthenticatorConfig[] allFederatedAuthenticators =
                 identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 0);
+        Assert.assertEquals(allFederatedAuthenticators.length, 2);
 
-        FederatedAuthenticatorConfig federatedAuthenticatorConfig1 = mock(FederatedAuthenticatorConfig.class);
+
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig1 = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig1.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig1.setName("Name1");
         federatedAuthenticatorConfig1.setEnabled(true);
-        FederatedAuthenticatorConfig federatedAuthenticatorConfig2 = mock(FederatedAuthenticatorConfig.class);
+        FederatedAuthenticatorConfig federatedAuthenticatorConfig2 = new FederatedAuthenticatorConfig();
         federatedAuthenticatorConfig2.setDisplayName("DisplayName2");
         federatedAuthenticatorConfig2.setName("Name2");
         federatedAuthenticatorConfig2.setEnabled(true);
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig1);
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 1);
+        Assert.assertEquals(allFederatedAuthenticators.length, 3);
 
         ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig2);
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 2);
+        Assert.assertEquals(allFederatedAuthenticators.length, 4);
 
         // Clear after the test.
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(federatedAuthenticatorConfig1);
         ApplicationAuthenticatorService.getInstance().removeFederatedAuthenticator(federatedAuthenticatorConfig2);
 
         allFederatedAuthenticators = identityProviderManagementService.getAllFederatedAuthenticators();
-        Assert.assertEquals(allFederatedAuthenticators.length, 0);
+        Assert.assertEquals(allFederatedAuthenticators.length, 2);
     }
 
     @Test
@@ -796,6 +1062,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("DisplayName1New");
         facNew.setName("Name");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         idp2New.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
 
         // Initialize New Resident Identity Provider 3.
@@ -893,6 +1160,7 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
@@ -915,11 +1183,67 @@ public class IdentityProviderManagementServiceTest {
         facNew.setDisplayName("SAML2SSO");
         facNew.setName("saml2sso");
         facNew.setEnabled(true);
+        facNew.setDefinedByType(DefinedByType.SYSTEM);
         newIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{facNew});
         identityProviderManagementService.updateResidentIdP((IdentityProvider) newIdp);
 
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.getResidentIDPMetadata());
+    }
+
+    @Test
+    public void testAddIdPDAOException() throws Exception {
+
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementServerException.class).when(daoForError)
+                .addIdPWithResourceId(any(), anyInt());
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.addIdP(userDefinedIdP));
+
+        // check ActionManagementService actionManagementService.deleteAction() is called.
+        verify(actionManagementService, times(1)).deleteAction(anyString(), any(), any());
+    }
+
+    @Test
+    public void testUpdateIdPDAOException() throws Exception {
+
+        identityProviderManagementService.addIdP(userDefinedIdP);
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementServerException.class).when(daoForError).updateIdPWithResourceId(anyString(),
+                any(), any(), anyInt());
+        when(daoForError.getIdPByName(any(), anyString(), anyInt(), anyString())).thenReturn(userDefinedIdP);
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.updateIdP(userDefinedIdP.getIdentityProviderName(), userDefinedIdP));
+
+        // check ActionManagementService actionManagementService.deleteAction() is called.
+        verify(actionManagementService, times(2)).updateAction(anyString(), anyString(),
+                any(), anyString());
+    }
+
+    @Test
+    public void testDeleteIdPDAOException() throws Exception {
+
+        identityProviderManagementService.addIdP(userDefinedIdP);
+        IdPManagementDAO daoForError = mock(IdPManagementDAO.class);
+        doThrow(IdentityProviderManagementException.class).when(daoForError)
+                .deleteIdPByResourceId(anyString(), anyInt(), anyString());
+        when(daoForError.getIdPByName(any(), anyString(), anyInt(), anyString())).thenReturn(userDefinedIdP);
+        when(daoForError.getIDPbyResourceId(any(), anyString(), anyInt(), anyString())).thenReturn(userDefinedIdP);
+        daoForException = new CacheBackedIdPMgtDAO(daoForError);
+        field.set(identityProviderManager, daoForException);
+
+        assertThrows(IdentityProviderManagementException.class, () ->
+                identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
+
+        /* check ActionManagementService actionManagementService.deleteAction() is called. Two time, when  creating idp
+         and rollback when idp deletion. */
+        verify(actionManagementService, times(2)).addAction(anyString(), any(), anyString());
     }
 
     private void addTestIdps() throws IdentityProviderManagementException {
@@ -950,6 +1274,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
@@ -1020,6 +1345,10 @@ public class IdentityProviderManagementServiceTest {
 
         // IDP with Only name.
         identityProviderManagementService.addIdP(idp3);
+
+        // User defined IDP.
+        identityProviderManagementService.addIdP(userDefinedIdP);
+        userDefinedIdP = identityProviderManagementService.getIdPByName(userDefinedIdP.getIdentityProviderName());
     }
 
     private void addResidentIdp() throws IdentityProviderManagementException {
@@ -1103,6 +1432,7 @@ public class IdentityProviderManagementServiceTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName");
         federatedAuthenticatorConfig.setName("SAMLSSOAuthenticator");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         Property property1 = new Property();
         property1.setName("SPEntityId");
         property1.setValue("wso2-is");
@@ -1130,4 +1460,18 @@ public class IdentityProviderManagementServiceTest {
         return federatedAuthenticatorConfig;
     }
 
+    private void assertIdPResult(IdentityProvider idpResult) {
+
+        for (FederatedAuthenticatorConfig config : idpResult.getFederatedAuthenticatorConfigs()) {
+            if (config instanceof UserDefinedFederatedAuthenticatorConfig) {
+                Assert.assertEquals(config.getDefinedByType(), DefinedByType.USER);
+                Property[] prop = idpResult.getFederatedAuthenticatorConfigs()[0].getProperties();
+                assertEquals(prop.length, 1);
+                assertEquals(prop[0].getName(), "actionId");
+                assertEquals(prop[0].getValue(), ASSOCIATED_ACTION_ID);
+            } else {
+                Assert.assertEquals(config.getDefinedByType(), DefinedByType.SYSTEM);
+            }
+        }
+    }
 }

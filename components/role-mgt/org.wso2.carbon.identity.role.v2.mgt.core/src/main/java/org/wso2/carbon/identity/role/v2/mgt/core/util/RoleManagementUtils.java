@@ -21,12 +21,15 @@ package org.wso2.carbon.identity.role.v2.mgt.core.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 
 import java.util.Locale;
+
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ALLOW_SYSTEM_PREFIX_FOR_ROLES;
 
 /**
  * Util class for role management functionality.
@@ -62,5 +65,29 @@ public class RoleManagementUtils {
     public static int resolveAudienceRefId(String audience, String audienceId) throws IdentityRoleManagementException {
 
         return roleDAO.getRoleAudienceRefId(audience, audienceId);
+    }
+
+    /**
+     * Checks whether the given role is a shared role in the given tenant domain.
+     *
+     * @param roleId The role ID.
+     * @param tenantDomain The tenant domain.
+     * @return Whether the role is a shared role or not.
+     * @throws IdentityRoleManagementException If an error occurs while checking the shared role.
+     */
+    public static boolean isSharedRole(String roleId, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.isSharedRole(roleId, tenantDomain);
+    }
+
+    /**
+     * Get the configuration to allow adding roles with the system_ prefix. This config should be enabled only if
+     * IS is used as a KM for APIM.
+     *
+     * @return True, if it is allowed to add roles with system_ prefix.
+     */
+    public static boolean isAllowSystemPrefixForRole() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ALLOW_SYSTEM_PREFIX_FOR_ROLES));
     }
 }

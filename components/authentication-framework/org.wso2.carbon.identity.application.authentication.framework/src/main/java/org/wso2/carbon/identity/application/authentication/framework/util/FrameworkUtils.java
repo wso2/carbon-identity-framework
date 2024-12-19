@@ -107,6 +107,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
@@ -205,12 +206,14 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.SKIP_LOCAL_USER_SEARCH_FOR_AUTHENTICATION_FLOW_HANDLERS;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.CORRELATION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IS_IDF_INITIATED_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
@@ -797,6 +800,87 @@ public class FrameworkUtils {
                 .map(SequenceConfig::getApplicationConfig)
                 .map(ApplicationConfig::getServiceProvider)
                 .map(ServiceProvider::getApplicationResourceId);
+    }
+
+    /**
+     * Retrieve the user id claim configured for the federated IDP.
+     *
+     * @param federatedIdpName  Federated IDP name.
+     * @param tenantDomain      Tenant domain.
+     * @return  User ID claim configured for the IDP.
+     * @throws PostAuthenticationFailedException PostAuthenticationFailedException.
+     */
+    public static String getUserIdClaimURI(String federatedIdpName, String tenantDomain)
+            throws PostAuthenticationFailedException {
+
+        String userIdClaimURI;
+        IdentityProvider idp;
+        try {
+            idp = FrameworkServiceDataHolder.getInstance().getIdentityProviderManager()
+                    .getIdPByName(federatedIdpName, tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            throw new PostAuthenticationFailedException(
+                    ERROR_WHILE_GETTING_IDP_BY_NAME.getCode(),
+                    String.format(FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME.getMessage(),
+                            tenantDomain), e);
+        }
+        if (idp == null) {
+            return null;
+        }
+        ClaimConfig claimConfigs = idp.getClaimConfig();
+        if (claimConfigs == null) {
+            return null;
+        }
+        ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
+        if (claimMappings == null || claimMappings.length < 1) {
+            return null;
+        }
+        userIdClaimURI = claimConfigs.getUserClaimURI();
+        if (userIdClaimURI != null) {
+            return userIdClaimURI;
+        }
+        ClaimMapping userNameClaimMapping = Arrays.stream(claimMappings).filter(claimMapping ->
+                        StringUtils.equals(USERNAME_CLAIM, claimMapping.getLocalClaim().getClaimUri()))
+                .findFirst()
+                .orElse(null);
+        if (userNameClaimMapping != null) {
+            userIdClaimURI = userNameClaimMapping.getRemoteClaim().getClaimUri();
+        }
+        return userIdClaimURI;
+    }
+
+    /**
+     * Get the external subject from the step config.
+     *
+     * @param stepConfig    Step config.
+     * @param tenantDomain  Tenant domain.
+     * @return External subject.
+     * @throws PostAuthenticationFailedException PostAuthenticationFailedException.
+     */
+    public static String getExternalSubject(StepConfig stepConfig, String tenantDomain)
+            throws PostAuthenticationFailedException {
+
+        String externalSubject = null;
+        String userIdClaimURI = getUserIdClaimURI(stepConfig.getAuthenticatedIdP(), tenantDomain);
+        if (StringUtils.isNotEmpty(userIdClaimURI)) {
+            externalSubject = stepConfig.getAuthenticatedUser().getUserAttributes().entrySet().stream()
+                    .filter(userAttribute -> userAttribute.getKey().getRemoteClaim().getClaimUri()
+                            .equals(userIdClaimURI))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return externalSubject;
+    }
+
+    /**
+     * Get the configuration whether the external subject attribute based on IdP configurations..
+     *
+     * @return true if the IdP configurations has to be honoured.
+     */
+    public static boolean isConfiguredIdpSubForFederatedUserAssociationEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_CONFIGURED_IDP_SUB_FOR_FEDERATED_USER_ASSOCIATION));
     }
 
     private static String getServiceProviderNameByReferer(HttpServletRequest request) {
@@ -2745,7 +2829,7 @@ public class FrameworkUtils {
                 }
                 // check for role claim uri in the idaps dialect.
                 for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                    if (StringUtils.isNotEmpty(idpRoleMappingURI) && 
+                    if (StringUtils.isNotEmpty(idpRoleMappingURI) &&
                         idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
                         idpRoleMappingURI = entry.getKey();
                     }
@@ -2940,6 +3024,16 @@ public class FrameworkUtils {
 
         return Boolean.parseBoolean(
                 IdentityUtil.getProperty("JITProvisioning.SkipUsernamePatternValidation"));
+    }
+
+    /**
+     * This method determines whether authentication flow should be break if JIT provisioning has failed.
+     *
+     * @return boolean Whether to fail the authentication flow.
+     */
+    public static boolean isAuthenticationFailOnJitFail() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty("JITProvisioning.FailAuthnOnProvisionFailure"));
     }
 
 
