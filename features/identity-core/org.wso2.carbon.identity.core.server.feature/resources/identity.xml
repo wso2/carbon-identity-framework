@@ -77,6 +77,7 @@
     -->
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
+        <SAML>database</SAML>
 <!--        <SAMLConfigs>database</SAMLConfigs>-->
     </DataStorageType>
 
