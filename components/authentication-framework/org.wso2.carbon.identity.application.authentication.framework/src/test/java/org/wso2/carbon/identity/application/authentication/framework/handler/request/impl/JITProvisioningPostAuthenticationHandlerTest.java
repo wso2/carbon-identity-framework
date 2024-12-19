@@ -134,6 +134,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         frameworkUtils.close();
         configurationFacade.close();
         carbonUtils.close();
+        privilegedCarbonContextMockedStatic.close();
     }
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow without an authenticated user")
