@@ -2184,11 +2184,13 @@ public class IdPManagementDAO {
                             String blobValue = getBlobValue(rs2.getBinaryStream("PROPERTY_BLOB_VALUE"));
 
                             String propertyType = rs2.getString("PROPERTY_TYPE");
+                            if (propertyType != null) {
+                                propertyType = propertyType.trim();
+                            }
                             String isSecret = rs2.getString("IS_SECRET");
 
                             property.setName(name);
-                            if (propertyType != null && IdentityApplicationConstants.ConfigElements.
-                                    PROPERTY_TYPE_BLOB.equals(propertyType.trim())) {
+                            if (IdentityApplicationConstants.ConfigElements.PROPERTY_TYPE_BLOB.equals(propertyType)) {
                                 property.setValue(blobValue);
                             } else {
                                 property.setValue(value);
