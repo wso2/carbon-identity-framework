@@ -1,0 +1,15 @@
+{
+  "category": "DEFAULT",
+  "description": "Register externally implemented authentication service.",
+  "docLink": "",
+  "templateGroup": "custom-authentication",
+  "displayOrder": 1,
+  "id": "external-custom-authentication",
+  "tags": [ "Custom" ],
+  "image": "",
+  "name": "External Custom Authentication",
+  "services": [],
+  "disabled": false,
+  "templateId": "external-custom-authentication"
+}
+
