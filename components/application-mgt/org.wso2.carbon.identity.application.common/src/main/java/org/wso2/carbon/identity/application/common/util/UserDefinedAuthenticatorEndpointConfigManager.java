@@ -198,7 +198,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
         if (actionException instanceof ActionMgtClientException) {
             ActionMgtClientException error = (ActionMgtClientException) actionException;
             throw new AuthenticatorMgtClientException(
-                    authenticatorMgtError.getCode(), authenticatorMgtError.getMessage(), error.getDescription());
+                    authenticatorMgtError.getCode(), error.getMessage(), error.getDescription());
         }
 
         throw buildServerException(authenticatorMgtError, data);
