@@ -508,6 +508,54 @@ public interface IdpManager {
         return null;
     }
 
+    /**
+     * Check whether the IDP with the given resource ID is associated with any service providers.
+     *
+     * @param resourceId   Identity Provider's resource ID.
+     * @param idpName      Identity Provider's name.
+     * @param tenantDomain Tenant domain of Identity Provider.
+     * @return Whether the given IDP is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP associations.
+     */
+    default boolean isIdpReferredBySP(String resourceId, String idpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return false;
+    }
+
+    /**
+     * Check whether the specified IDP authenticator is associated with any service providers.
+     *
+     * @param resourceId        Identity Provider's resource ID.
+     * @param idpName           Identity Provider's name.
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantDomain      Tenant domain of Identity Provider.
+     * @return Whether the specified IDP authenticator is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP authenticator associations.
+     */
+    default boolean isAuthenticatorReferredBySP(String resourceId, String idpName, String authenticatorName,
+                                                String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        return false;
+    }
+
+    /**
+     * Check whether the specified IDP outbound connector is associated with any service providers.
+     *
+     * @param resourceId    Identity Provider's resource ID.
+     * @param idpName       Identity Provider's name.
+     * @param connectorName Name of the outbound connector.
+     * @param tenantDomain  Tenant domain of Identity Provider.
+     * @return Whether the specified IDP outbound connector is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP outbound connector associations.
+     */
+    default boolean isOutboundConnectorReferredBySP(String resourceId, String idpName, String connectorName,
+                                                    String tenantDomain) throws IdentityProviderManagementException {
+
+        return false;
+    }
+
     default ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
                                                                       Integer limit, Integer offset)
             throws IdentityProviderManagementException {

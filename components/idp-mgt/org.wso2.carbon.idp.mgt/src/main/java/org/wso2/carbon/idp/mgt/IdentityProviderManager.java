@@ -2075,6 +2075,32 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
+    public boolean isIdpReferredBySP(String resourceId, String idpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isIdpReferredBySP(idpName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public boolean isAuthenticatorReferredBySP(String resourceId, String idpName, String authenticatorName,
+                                               String tenantDomain) throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isAuthenticatorReferredBySP(idpName, authenticatorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public boolean isOutboundConnectorReferredBySP(String resourceId, String idpName, String connectorName,
+                                                   String tenantDomain) throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isOutboundConnectorReferredBySP(idpName, connectorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
     public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
                                                                      Integer limit, Integer offset)
             throws IdentityProviderManagementException {
