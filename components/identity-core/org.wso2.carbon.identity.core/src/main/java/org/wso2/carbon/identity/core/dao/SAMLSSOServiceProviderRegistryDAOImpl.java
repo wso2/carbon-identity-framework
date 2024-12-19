@@ -69,6 +69,9 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
 
     private static Log log = LogFactory.getLog(SAMLSSOServiceProviderRegistryDAOImpl.class);
 
+    public SAMLSSOServiceProviderRegistryDAOImpl () {
+    }
+
     protected SAMLSSOServiceProviderDO resourceToObject(Resource resource) {
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
         serviceProviderDO.setIssuer(resource

@@ -79,6 +79,7 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
     private Map<String, List<String>> dummyBasicProperties;
     private Map<String, List<String>> dummyAdvProperties;
     private Map<String, List<String>> dummyPropertiesWithAnIssuerQualifier;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -102,7 +103,7 @@ public class SAMLSSOServiceProviderDAOTest extends PowerMockTestCase {
             }
         }).when(mockRegistry).beginTransaction();
 
-        objUnderTest = new SAMLSSOServiceProviderRegistryDAOImpl(mockRegistry);
+        objUnderTest = new SAMLSSOServiceProviderRegistryDAOImpl();
         when(mockRegistry.newResource()).thenReturn(new ResourceImpl());
     }
 

@@ -39,12 +39,7 @@ public class SAMLSSOServiceProviderManager {
      */
     private SAMLSSOServiceProviderDAO buildSAMLSSOProvider() throws IdentityException {
 
-        try {
-            Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry();
-            return new SAMLSSOServiceProviderRegistryDAOImpl(registry);
-        } catch (RegistryException e) {
-            throw new IdentityException("Error while retrieving registry", e);
-        }
+        return new SAMLSSOServiceProviderRegistryDAOImpl();
     }
 
 

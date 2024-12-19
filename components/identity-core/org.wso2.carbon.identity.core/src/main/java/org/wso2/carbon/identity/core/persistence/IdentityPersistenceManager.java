@@ -239,9 +239,10 @@ public class IdentityPersistenceManager {
             throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
         return serviceProviderDAO.addServiceProvider(serviceProviderDO, tenantId);
     }
+
     /**
      * Upload Service Provider
      *
@@ -252,7 +253,7 @@ public class IdentityPersistenceManager {
     public SAMLSSOServiceProviderDO uploadServiceProvider(Registry registry, SAMLSSOServiceProviderDO samlssoServiceProviderDO) throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
         return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO, tenantId);
     }
 
@@ -266,14 +267,14 @@ public class IdentityPersistenceManager {
             throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDOA = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDOA = new SAMLSSOServiceProviderRegistryDAOImpl();
         return serviceProviderDOA.getServiceProviders(tenantId);
     }
 
     public boolean removeServiceProvider(Registry registry, String issuer) throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
         return serviceProviderDAO.removeServiceProvider(issuer, tenantId);
     }
 
@@ -281,14 +282,14 @@ public class IdentityPersistenceManager {
             throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
         return serviceProviderDAO.getServiceProvider(issuer, tenantId);
     }
 
     public boolean isServiceProviderExists(Registry registry, String issuer) throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl(registry);
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
         return serviceProviderDAO.isServiceProviderExists(issuer, tenantId);
     }
 
