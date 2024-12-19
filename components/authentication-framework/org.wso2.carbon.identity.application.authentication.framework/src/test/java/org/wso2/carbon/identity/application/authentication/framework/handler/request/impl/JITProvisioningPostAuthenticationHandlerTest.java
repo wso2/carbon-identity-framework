@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.engine.AxisConfiguration;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -25,9 +28,11 @@ import org.mockito.testng.MockitoTestNGListener;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
@@ -46,7 +51,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
@@ -54,8 +61,11 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.exceptio
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.CarbonUtils;
+import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -70,6 +80,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * This is a test class for {@link JITProvisioningPostAuthenticationHandler}.
@@ -88,6 +100,8 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
 
     private MockedStatic<FrameworkUtils> frameworkUtils;
     private MockedStatic<ConfigurationFacade> configurationFacade;
+    private MockedStatic<CarbonUtils> carbonUtils;
+    private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMockedStatic;
 
     @BeforeClass
     protected void setupSuite() throws XMLStreamException, IdentityProviderManagementException {
@@ -111,12 +125,15 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         response = mock(HttpServletResponse.class);
         postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
         sp = getTestServiceProvider("default-sp-1.xml");
+        carbonUtils = mockStatic(CarbonUtils.class);
+        privilegedCarbonContextMockedStatic = mockStatic(PrivilegedCarbonContext.class);
     }
 
     @AfterClass
     protected void cleanup() {
         frameworkUtils.close();
         configurationFacade.close();
+        carbonUtils.close();
     }
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow without an authenticated user")
@@ -172,6 +189,83 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
             Assert.assertEquals(postAuthnHandlerFlowStatus, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED,
                     "Post JIT provisioning handler executed while having a authenticated user without federated "
                             + "authenticator");
+        }
+    }
+
+    @DataProvider(name = "usernameAutoFillDataProvider")
+    public Object[][] usernameAutoFillDataProvider() {
+
+        return new Object[][] {
+                {false, true, true},
+                {true, false, false},
+                {true, true, true}
+        };
+    }
+
+    @Test(description = "This test case verifies that the username attribute auto-fill functionality works correctly"
+            + " when username and password provisioning are enabled.", dataProvider = "usernameAutoFillDataProvider")
+    public void testUsernameAutoFillingFunctionality(boolean isUsernameModifiable, boolean isUsernameAutoFillEnabled,
+                                                     boolean usernameShouldContainInURL)
+            throws FrameworkException, XMLStreamException, IdentityProviderManagementException, IOException {
+
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdentityCoreServiceComponent> identityCoreServiceComponentMockedStatic = mockStatic(
+                     IdentityCoreServiceComponent.class)) {
+            frameworkServiceDataHolder.when(
+                    FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder);
+            AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
+            FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
+            frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager).thenReturn(federatedAssociationManager);
+            frameworkUtils.when(
+                            FrameworkUtils::getStepBasedSequenceHandler)
+                    .thenReturn(mock(StepBasedSequenceHandler.class));
+            frameworkUtils.when(() -> FrameworkUtils.getMissingClaims(any()))
+                    .thenReturn(new String[] {"test-claim", "test-claim1"});
+            frameworkUtils.when(FrameworkUtils::isUsernameFieldAutofillWithSubjectAttr)
+                    .thenReturn(isUsernameAutoFillEnabled);
+
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+
+            carbonUtils.when(() -> CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), any()))
+                    .thenReturn(101010);
+            carbonUtils.when(CarbonUtils::getManagementTransport).thenReturn("https");
+
+            // Need to mock getIdPConfigByName with a null parameter.
+            ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
+            IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
+            JustInTimeProvisioningConfig justInTimeProvisioningConfig =
+                    identityProvider.getJustInTimeProvisioningConfig();
+            justInTimeProvisioningConfig.setPromptConsent(true);
+            justInTimeProvisioningConfig.setModifyUserNameAllowed(isUsernameModifiable);
+            identityProvider.setJustInTimeProvisioningConfig(justInTimeProvisioningConfig);
+            ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
+            doReturn(externalIdPConfig).when(mockConfigurationFacade).getIdPConfigByName(eq(null), anyString());
+
+            ConfigurationContextService configurationContextService = mock(ConfigurationContextService.class);
+            ConfigurationContext configurationContext = mock(ConfigurationContext.class);
+            when(configurationContextService.getServerConfigContext()).thenReturn(configurationContext);
+            identityCoreServiceComponentMockedStatic.when(IdentityCoreServiceComponent::getConfigurationContextService)
+                    .thenReturn(configurationContextService);
+
+            PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+            when(privilegedCarbonContext.getTenantDomain()).thenReturn("test-domain");
+            privilegedCarbonContextMockedStatic.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
+                    .thenReturn(privilegedCarbonContext);
+
+            HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+            postJITProvisioningHandler.handle(request, mockResponse, context);
+
+            ArgumentCaptor<String> uiRedirectionUrl = ArgumentCaptor.forClass(String.class);
+            verify(mockResponse).sendRedirect(uiRedirectionUrl.capture());
+            boolean urlContainsUsernameParam = uiRedirectionUrl.getValue().contains("username=test");
+            if (usernameShouldContainInURL) {
+                Assert.assertTrue(urlContainsUsernameParam);
+            } else {
+                Assert.assertFalse(urlContainsUsernameParam);
+            }
         }
     }
 
