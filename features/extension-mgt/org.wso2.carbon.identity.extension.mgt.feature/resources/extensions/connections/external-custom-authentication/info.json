@@ -5,6 +5,6 @@
   "image": "",
   "category": "DEFAULT",
   "displayOrder": -1,
-  "tags": [ "CUSTOM" ],
+  "tags": [ "Custom" ],
   "type": "custom-authenticator"
 }

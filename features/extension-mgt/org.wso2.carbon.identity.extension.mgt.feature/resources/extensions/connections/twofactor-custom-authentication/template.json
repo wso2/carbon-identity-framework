@@ -6,6 +6,7 @@
   "displayOrder": 1,
   "id": "twofactor-custom-authentication",
   "tags": [ "Custom" ],
+  "idp": {},
   "image": "",
   "name": "2FA Authentication",
   "services": [],

@@ -6,6 +6,7 @@
   "displayOrder": 1,
   "id": "external-custom-authentication",
   "tags": [ "Custom" ],
+  "idp": {},
   "image": "",
   "name": "External Custom Authentication",
   "services": [],
