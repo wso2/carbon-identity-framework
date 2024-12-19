@@ -19,6 +19,8 @@
 package org.wso2.carbon.idp.mgt.dao;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -27,10 +29,10 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
+import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.UserDefinedAuthenticatorEndpointConfigManager;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +42,7 @@ public class IdPManagementFacade {
     private final IdPManagementDAO dao;
     private final UserDefinedAuthenticatorEndpointConfigManager endpointConfigurationManager =
             new UserDefinedAuthenticatorEndpointConfigManager();
+    private static final Log LOG = LogFactory.getLog(IdPManagementFacade.class);
 
     public IdPManagementFacade(IdPManagementDAO dao) {
 
@@ -183,12 +186,12 @@ public class IdPManagementFacade {
             throws IdentityProviderManagementException {
 
         IdentityProvider identityProvider = getIdPByName(null, idPName, tenantId, tenantDomain);
-        deleteEndpointConfig(identityProvider, tenantDomain);
+        dao.deleteIdP(idPName, tenantId, tenantDomain);
         try {
-            dao.deleteIdP(idPName, tenantId, tenantDomain);
+            deleteEndpointConfig(identityProvider, tenantDomain);
         } catch (IdentityProviderManagementException e) {
-            addEndpointConfig(identityProvider, tenantDomain);
-            throw e;
+            // Error will not be thrown, since the IDP is already deleted. But there will be stale action.
+            LOG.warn(String.format(IdPManagementConstants.WarningMessage.WARN_STALE_IDP_ACTION, idPName));
         }
     }
 
@@ -197,16 +200,14 @@ public class IdPManagementFacade {
         // TODO: Replace loops with batch operations once issue:https://github.com/wso2/product-is/issues/21783 is done.
         List<IdentityProvider> idpList = getIdPs(null, tenantId,
                 IdentityTenantUtil.getTenantDomain(tenantId));
-        for (IdentityProvider idp : idpList) {
-            deleteEndpointConfig(idp, IdentityTenantUtil.getTenantDomain(tenantId));
-        }
+        dao.deleteIdPs(tenantId);
         try {
-            dao.deleteIdPs(tenantId);
-        } catch (IdentityProviderManagementException e) {
             for (IdentityProvider idp : idpList) {
-                addEndpointConfig(idp, IdentityTenantUtil.getTenantDomain(tenantId));
+                deleteEndpointConfig(idp, IdentityTenantUtil.getTenantDomain(tenantId));
             }
-            throw e;
+        } catch (IdentityProviderManagementException e) {
+            // Error will not be thrown, since the IDPs is already deleted. But there will be stale actions.
+            LOG.warn(IdPManagementConstants.WarningMessage.WARN_STALE_IDP_ACTIONS);
         }
     }
 
@@ -214,12 +215,14 @@ public class IdPManagementFacade {
             throws IdentityProviderManagementException {
 
         IdentityProvider identityProvider = getIDPbyResourceId(null, resourceId, tenantId, tenantDomain);
-        deleteEndpointConfig(identityProvider, tenantDomain);
+        dao.deleteIdPByResourceId(resourceId, tenantId, tenantDomain);
         try {
-            dao.deleteIdPByResourceId(identityProvider.getResourceId(), tenantId, tenantDomain);
+
+            deleteEndpointConfig(identityProvider, tenantDomain);
         } catch (IdentityProviderManagementException e) {
-            addEndpointConfig(identityProvider, tenantDomain);
-            throw e;
+            // Error will not be thrown, since the IDP is already deleted. But there will be stale action.
+            LOG.warn(String.format(IdPManagementConstants.WarningMessage.WARN_STALE_IDP_ACTION,
+                    identityProvider.getIdentityProviderName()));
         }
     }
 
@@ -227,12 +230,12 @@ public class IdPManagementFacade {
             throws IdentityProviderManagementException {
 
         IdentityProvider identityProvider = getIdPByName(null, idPName, tenantId, tenantDomain);
-        deleteEndpointConfig(identityProvider, tenantDomain);
+        dao.forceDeleteIdP(idPName, tenantId, tenantDomain);
         try {
-            dao.forceDeleteIdP(idPName, tenantId, tenantDomain);
+            deleteEndpointConfig(identityProvider, tenantDomain);
         } catch (IdentityProviderManagementException e) {
-            addEndpointConfig(identityProvider, tenantDomain);
-            throw e;
+            // Error will not be thrown, since the IDP is already deleted. But there will be stale action.
+            LOG.warn(String.format(IdPManagementConstants.WarningMessage.WARN_STALE_IDP_ACTION, idPName));
         }
     }
 
@@ -240,12 +243,13 @@ public class IdPManagementFacade {
             throws IdentityProviderManagementException {
 
         IdentityProvider identityProvider = getIDPbyResourceId(null, resourceId, tenantId, tenantDomain);
-        deleteEndpointConfig(identityProvider, tenantDomain);
+        dao.forceDeleteIdPByResourceId(resourceId, tenantId, tenantDomain);
         try {
-            dao.forceDeleteIdPByResourceId(resourceId, tenantId, tenantDomain);
+            deleteEndpointConfig(identityProvider, tenantDomain);
         } catch (IdentityProviderManagementException e) {
-            addEndpointConfig(identityProvider, tenantDomain);
-            throw e;
+            // Error will not be thrown, since the IDP is already deleted. But there will be stale action.
+            LOG.warn(String.format(IdPManagementConstants.WarningMessage.WARN_STALE_IDP_ACTION,
+                    identityProvider.getIdentityProviderName()));
         }
     }
 
