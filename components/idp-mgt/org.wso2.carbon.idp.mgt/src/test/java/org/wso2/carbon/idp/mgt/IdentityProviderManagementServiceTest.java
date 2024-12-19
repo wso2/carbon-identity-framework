@@ -643,10 +643,8 @@ public class IdentityProviderManagementServiceTest {
                 .deleteAction(any(), any(), any());
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
-
-        assertThrows(IdentityProviderManagementServerException.class, () ->
-                identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(userDefinedIdP
+        identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName());
+        Assert.assertNull(identityProviderManagementService.getIdPByName(userDefinedIdP
                 .getIdentityProviderName()));
     }
 
@@ -1241,9 +1239,9 @@ public class IdentityProviderManagementServiceTest {
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
 
-        /* check ActionManagementService actionManagementService.deleteAction() is called. Two time, when  creating idp
-         and rollback when idp deletion. */
-        verify(actionManagementService, times(2)).addAction(anyString(), any(), anyString());
+        /* check ActionManagementService actionManagementService.deleteAction() is called only once when creating the
+        user defined federated authenticator. */
+        verify(actionManagementService, times(1)).addAction(anyString(), any(), anyString());
     }
 
     private void addTestIdps() throws IdentityProviderManagementException {

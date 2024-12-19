@@ -604,6 +604,14 @@ public class IdPManagementConstants {
                 "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER'";
     }
 
+    public static class WarningMessage {
+
+        public static final String WARN_STALE_IDP_ACTION = "The Identity Provider: %s is deleted, but an error " +
+                "occurred while deleting its associated action.";
+        public static final String WARN_STALE_IDP_ACTIONS = "Identity Providers are deleted, but an error " +
+                "occurred while deleting their associated actions.";
+    }
+
     public enum ErrorMessage {
 
         // Client Errors.
