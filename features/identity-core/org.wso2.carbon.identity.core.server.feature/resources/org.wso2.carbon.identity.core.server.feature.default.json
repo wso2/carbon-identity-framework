@@ -526,6 +526,7 @@
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
+  "authentication.jit_provisioning.autofill_username_field_with_subject_attribute": true,
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
   "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
