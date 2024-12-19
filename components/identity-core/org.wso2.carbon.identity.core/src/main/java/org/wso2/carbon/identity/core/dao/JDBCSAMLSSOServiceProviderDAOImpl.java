@@ -41,9 +41,15 @@ import java.security.cert.X509Certificate;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML_SCHEMA_VERSION;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ID;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.TENANT_ID;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ISSUER;
@@ -73,12 +79,18 @@ import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.IDP_ENTITY_ID_ALIAS;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ISSUER_QUALIFIER;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.VERSION;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.CREATED_AT;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.UPDATED_AT;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.PROPERTY_NAME;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.PROPERTY_VALUE;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.SP_ID;
 
+import static java.time.ZoneOffset.UTC;
+
 public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
 
+    private static final Calendar CALENDAR = Calendar.getInstance(TimeZone.getTimeZone(UTC));
     private static final Log log = LogFactory.getLog(JDBCSAMLSSOServiceProviderDAOImpl.class);
     private int tenantId;
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
@@ -379,7 +391,7 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
         serviceProviderDO.addMultiValuedProperties(properties);
     }
 
-    private void setServiceProviderParameters(NamedPreparedStatement statement,
+    private void setUpdateServiceProviderParameters(NamedPreparedStatement statement,
                                               SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
 
         statement.setInt(TENANT_ID, tenantId);
@@ -412,6 +424,45 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
         statement.setString(ISSUER_QUALIFIER, serviceProviderDO.getIssuerQualifier());
         statement.setString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
                 serviceProviderDO.getSupportedAssertionQueryRequestTypes());
+        statement.setTimeStamp(UPDATED_AT, new Timestamp(new Date().getTime()), CALENDAR);
+    }
+
+    private void setServiceProviderParameters(NamedPreparedStatement statement,
+                                              SAMLSSOServiceProviderDO serviceProviderDO) throws SQLException {
+        Timestamp currentTime = new Timestamp(new Date().getTime());
+        statement.setInt(TENANT_ID, tenantId);
+        statement.setString(ISSUER, serviceProviderDO.getIssuer());
+        statement.setString(DEFAULT_ASSERTION_CONSUMER_URL, serviceProviderDO.getDefaultAssertionConsumerUrl());
+        statement.setString(NAME_ID_FORMAT, serviceProviderDO.getNameIDFormat());
+        statement.setString(CERT_ALIAS, serviceProviderDO.getCertAlias());
+        statement.setBoolean(REQ_SIG_VALIDATION, serviceProviderDO.isDoValidateSignatureInRequests());
+        statement.setBoolean(SIGN_RESPONSE, serviceProviderDO.isDoSignResponse());
+        statement.setBoolean(SIGN_ASSERTIONS, serviceProviderDO.isDoSignAssertions());
+        statement.setString(SIGNING_ALGO, serviceProviderDO.getSigningAlgorithmUri());
+        statement.setString(DIGEST_ALGO, serviceProviderDO.getDigestAlgorithmUri());
+        statement.setBoolean(ENCRYPT_ASSERTION, serviceProviderDO.isDoEnableEncryptedAssertion());
+        statement.setString(ASSERTION_ENCRYPTION_ALGO, serviceProviderDO.getAssertionEncryptionAlgorithmUri());
+        statement.setString(KEY_ENCRYPTION_ALGO, serviceProviderDO.getKeyEncryptionAlgorithmUri());
+        statement.setBoolean(ATTR_PROFILE_ENABLED, serviceProviderDO.isEnableAttributesByDefault());
+        statement.setString(ATTR_SERVICE_INDEX, serviceProviderDO.getAttributeConsumingServiceIndex());
+        statement.setBoolean(SLO_PROFILE_ENABLED, serviceProviderDO.isDoSingleLogout());
+        statement.setString(SLO_METHOD, serviceProviderDO.getSingleLogoutMethod());
+        statement.setString(SLO_RESPONSE_URL, serviceProviderDO.getSloResponseURL());
+        statement.setString(SLO_REQUEST_URL, serviceProviderDO.getSloRequestURL());
+        statement.setBoolean(IDP_INIT_SSO_ENABLED, serviceProviderDO.isIdPInitSSOEnabled());
+        statement.setBoolean(IDP_INIT_SLO_ENABLED, serviceProviderDO.isIdPInitSLOEnabled());
+        statement.setBoolean(QUERY_REQUEST_PROFILE_ENABLED, serviceProviderDO.isAssertionQueryRequestProfileEnabled());
+        statement.setBoolean(ECP_ENABLED, serviceProviderDO.isSamlECP());
+        statement.setBoolean(ARTIFACT_BINDING_ENABLED, serviceProviderDO.isEnableSAML2ArtifactBinding());
+        statement.setBoolean(ARTIFACT_RESOLVE_REQ_SIG_VALIDATION,
+                serviceProviderDO.isDoValidateSignatureInArtifactResolve());
+        statement.setString(IDP_ENTITY_ID_ALIAS, serviceProviderDO.getIdpEntityIDAlias());
+        statement.setString(ISSUER_QUALIFIER, serviceProviderDO.getIssuerQualifier());
+        statement.setString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
+                serviceProviderDO.getSupportedAssertionQueryRequestTypes());
+        statement.setString(VERSION, SAML_SCHEMA_VERSION);
+        statement.setTimeStamp(CREATED_AT, currentTime, CALENDAR);
+        statement.setTimeStamp(UPDATED_AT, currentTime, CALENDAR);
     }
 
     private int processGetServiceProviderId(String issuer) throws DataAccessException {
@@ -462,7 +513,7 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
         namedJdbcTemplate.executeUpdate(SAMLSSOServiceProviderConstants.SQLQueries.UPDATE_SAML2_SSO_CONFIG,
                 namedPreparedStatement -> {
                     namedPreparedStatement.setInt(ID, serviceProviderId);
-                    setServiceProviderParameters(namedPreparedStatement, serviceProviderDO);
+                    setUpdateServiceProviderParameters(namedPreparedStatement, serviceProviderDO);
                 });
     }
 
