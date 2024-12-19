@@ -324,6 +324,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
                 "AuthenticationEndpointMissingClaimsURL";
+        public static final String V2 = "V2";
         public static final String QNAME_PROXY_MODE = "ProxyMode";
         public static final String QNAME_MAX_LOGIN_ATTEMPT_COUNT = "MaxLoginAttemptCount";
         public static final String QNAME_EXTENSIONS = "Extensions";
