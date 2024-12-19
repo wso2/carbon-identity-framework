@@ -1575,7 +1575,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         for (LocalAuthenticatorConfig lclAuthenticator : authStep
                                 .getLocalAuthenticatorConfigs()) {
                             // set the identity provider name to LOCAL.
-                            int authenticatorId = getAuthentictorID(connection, tenantID,
+                            int authenticatorId = getAuthenticatorID(connection, tenantID,
                                     ApplicationConstants.LOCAL_IDP_NAME, lclAuthenticator.getName());
                             if (authenticatorId < 0) {
                                 authenticatorId = addAuthenticator(connection, tenantID,
@@ -1623,7 +1623,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                 for (FederatedAuthenticatorConfig authenticator : authenticators) {
                                     // ID, TENANT_ID, AUTHENTICATOR_ID
                                     if (authenticator != null) {
-                                        int authenticatorId = getAuthentictorID(connection, tenantID,
+                                        int authenticatorId = getAuthenticatorID(connection, tenantID,
                                                 idpName, authenticator.getName());
                                         if (authenticatorId > 0) {
                                             storeStepIDPAuthnPrepStmt.setInt(1, stepId);
@@ -5015,8 +5015,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws SQLException
      */
-    private int getAuthentictorID(Connection conn, int tenantId, String idpName,
-                                  String authenticatorName) throws SQLException {
+    private int getAuthenticatorID(Connection conn, int tenantId, String idpName,
+                                   String authenticatorName) throws SQLException {
 
         if (idpName == null || idpName.isEmpty()) {
             return -1;
@@ -6673,6 +6673,61 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return trustedApps;
     }
 
+    @Override
+    public String[] getSPsAssociatedWithFederatedIDPAuthenticator(String idpName,
+                                                                  String defaultAuthenticatorName,
+                                                                  String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<String> spResourceIDs = new ArrayList<>();
+
+        try {
+            int defaultAuthenticatorId =
+                    getAuthenticatorID(dbConnection, tenantId, idpName, defaultAuthenticatorName);
+
+            prepStmt = dbConnection.prepareStatement(
+                    ApplicationMgtDBQueries.GET_SP_UUIDS_ASSOCIATED_AUTH_FLOW_AUTHENTICATOR);
+            prepStmt.setInt(1, defaultAuthenticatorId);
+            prepStmt.setString(2, ApplicationConstants.AUTH_TYPE_FEDERATED);
+            resultSet = prepStmt.executeQuery();
+            while (resultSet.next()) {
+                spResourceIDs.add(resultSet.getString(ApplicationTableColumns.UUID));
+            }
+
+            return spResourceIDs.toArray(new String[0]);
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error occurred while getting SP resource IDs " +
+                    "associated with the default authenticator: " + defaultAuthenticatorName +
+                    " of the federated IDP: " + idpName, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
+    }
+
+    @Override
+    public void updateApplicationLocalAndOutboundAuthConfig(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        int applicationId = serviceProvider.getApplicationID();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        try {
+            deleteLocalAndOutboundAuthenticationConfiguration(applicationId, connection);
+            updateLocalAndOutboundAuthenticationConfiguration(applicationId,
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig(), connection);
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new IdentityApplicationManagementException(
+                    "Failed to update local and outbound config of application: " + applicationId, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+          
     private void rollbackAddApplicationTransaction(Connection connection, ServiceProvider application,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
 
