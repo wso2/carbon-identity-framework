@@ -643,8 +643,7 @@ public class IdentityProviderManagementServiceTest {
                 .deleteAction(any(), any(), any());
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
-        assertThrows(IdentityProviderManagementServerException.class, () ->
-                identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
+        identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName());
         Assert.assertNull(identityProviderManagementService.getIdPByName(userDefinedIdP
                 .getIdentityProviderName()));
     }

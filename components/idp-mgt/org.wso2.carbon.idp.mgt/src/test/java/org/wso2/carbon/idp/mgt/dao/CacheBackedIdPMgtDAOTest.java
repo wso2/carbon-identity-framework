@@ -20,7 +20,10 @@ package org.wso2.carbon.idp.mgt.dao;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.junit.Assert;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -28,6 +31,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
@@ -105,8 +109,10 @@ public class CacheBackedIdPMgtDAOTest {
     private IdPManagementDAO idPManagementDAO;
     private IdPManagementDAO idPManagementDAOForException;
     private ActionManagementService actionManagementService;
+    private final ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
     MockedStatic<IdpMgtServiceComponentHolder> idpMgtServiceComponentHolder;
+    IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
 
     private void initiateH2Database(String databaseName, String scriptPath) throws Exception {
 
@@ -170,6 +176,11 @@ public class CacheBackedIdPMgtDAOTest {
         when(actionManagementService.updateAction(anyString(), any(), any(), any())).thenReturn(action);
         when(actionManagementService.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         doNothing().when(actionManagementService).deleteAction(anyString(), any(), any());
+
+        doThrow(ActionMgtServerException.class).when(actionManagementServiceForException)
+                .deleteAction(any(), any(), any());
+        when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
     }
 
     @BeforeMethod
@@ -194,7 +205,6 @@ public class CacheBackedIdPMgtDAOTest {
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
         idpMgtServiceComponentHolder = mockStatic(IdpMgtServiceComponentHolder.class);
-        IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
         idpMgtServiceComponentHolder.when(
                 IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
         when(mockIdpMgtServiceComponentHolder.getActionManagementService()).thenReturn(actionManagementService);
@@ -1913,6 +1923,89 @@ public class CacheBackedIdPMgtDAOTest {
             String idPNameCache = idPCacheByMetadataProperty.getValueFromCache(cacheKey, TENANT_DOMAIN);
             assertEquals(idPNameCache, idpName, "Cannot find idP in cache!");
         }
+    }
+
+    @Test
+    public void testDeleteIdPActionException() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            Log mockedLog = mockLogger();
+            setActionServiceForException();
+
+            cacheBackedIdPMgtDAO.deleteIdP(userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN);
+            Assert.assertNull(cacheBackedIdPMgtDAO.getIdPByName(null,
+                    userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
+            Mockito.verify(mockedLog).warn(Mockito.any());
+        }
+    }
+
+    @Test
+    public void testForceDeleteIdPActionException() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            Log mockedLog = mockLogger();
+            setActionServiceForException();
+
+            cacheBackedIdPMgtDAO.forceDeleteIdP(
+                    userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN);
+            Assert.assertNull(cacheBackedIdPMgtDAO.getIdPByName(null,
+                    userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
+            Mockito.verify(mockedLog).warn(Mockito.any());
+        }
+    }
+
+    @Test
+    public void testDeleteIdPByResourceIdActionException() throws Exception {
+
+        try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
+             Connection connection = getConnection(DB_NAME)) {
+            identityDatabaseUtil.when(() -> IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
+            identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
+            addTestIdps();
+
+            Log mockedLog = mockLogger();
+            setActionServiceForException();
+
+            cacheBackedIdPMgtDAO.deleteIdPByResourceId(
+                    userDefinedIdP.getResourceId(), SAMPLE_TENANT_ID1, TENANT_DOMAIN);
+            Assert.assertNull(cacheBackedIdPMgtDAO.getIdPByName(null,
+                    userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
+            Mockito.verify(mockedLog).warn(Mockito.any());
+        }
+    }
+
+    private Log mockLogger() throws Exception {
+
+        Log mockedLog = Mockito.mock(Log.class);
+        Field logField = IdPManagementFacade.class.getDeclaredField("LOG");
+        logField.setAccessible(true);
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        modifiersField.setInt(logField, logField.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
+        logField.set(null, mockedLog);
+
+        return mockedLog;
+    }
+
+    private void setActionServiceForException() {
+
+        idpMgtServiceComponentHolder.when(
+                IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
+        when(mockIdpMgtServiceComponentHolder.getActionManagementService()).thenReturn(
+                actionManagementServiceForException);
     }
 
     private void addTestIdps() throws IdentityProviderManagementException {
