@@ -52,6 +52,9 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
+/**
+ * This class is used for managing SAML SSO service providers in the Registry.
+ */
 public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOServiceProviderDO>
         implements SAMLSSOServiceProviderDAO {
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
@@ -249,13 +252,9 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
         return serviceProviderDO;
     }
 
-    /**
-     * Add the service provider information to the registry.
-     * @param serviceProviderDO Service provider information object.
-     * @return True if addition successful.
-     * @throws IdentityException Error while persisting to the registry.
-     */
-    public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
+    @Override
+    public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
+            throws IdentityException {
 
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
                 StringUtils.isBlank(serviceProviderDO.getIssuer())) {
@@ -476,15 +475,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
         return issuerWithQualifier;
     }
 
-    /**
-     * Update the service provider if it exists.
-     *
-     * @param serviceProviderDO     Service provider to be updated.
-     * @param currentIssuer         Issuer of the service provider before the update.
-     * @return True if the update is successful.
-     * @throws IdentityException If an error occurs while updating the service provider.
-     */
-    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer)
+    @Override
+    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException {
 
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
@@ -559,7 +551,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
         }
     }
 
-    public SAMLSSOServiceProviderDO[] getServiceProviders() throws IdentityException {
+    @Override
+    public SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId) throws IdentityException {
         List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
         try {
             if (registry.resourceExists(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)) {
@@ -580,13 +573,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
         return serviceProvidersList.toArray(new SAMLSSOServiceProviderDO[serviceProvidersList.size()]);
     }
 
-    /**
-     * Remove the service provider with the given name.
-     * @return True if deletion success.
-     * @param issuer Name of the SAML issuer.
-     * @throws IdentityException Error occurred while removing the SAML service provider from registry.
-     */
-    public boolean removeServiceProvider(String issuer) throws IdentityException {
+    @Override
+    public boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException {
 
         if (issuer == null || StringUtils.isEmpty(issuer.trim())) {
             throw new IllegalArgumentException("Trying to delete issuer \'" + issuer + "\'");
@@ -620,14 +608,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
         }
     }
 
-    /**
-     * Get the service provider.
-     *
-     * @param issuer
-     * @return
-     * @throws IdentityException
-     */
-    public SAMLSSOServiceProviderDO getServiceProvider(String issuer) throws IdentityException {
+    @Override
+    public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         SAMLSSOServiceProviderDO serviceProviderDO = null;
@@ -731,7 +713,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
         }
     }
 
-    public boolean isServiceProviderExists(String issuer) throws IdentityException {
+    @Override
+    public boolean isServiceProviderExists(String issuer, int tenantId) throws IdentityException {
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         try {
             return registry.resourceExists(path);
@@ -746,14 +729,9 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
         return encodedStr.replace("=", "");
     }
 
-    /**
-     * Upload service Provider using metadata file..
-     * @param serviceProviderDO Service provider information object.
-     * @return True if upload success.
-     * @throws IdentityException Error occurred while adding the information to registry.
-     */
-    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws
-            IdentityException {
+    @Override
+    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
+            throws IdentityException {
 
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null) {
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
