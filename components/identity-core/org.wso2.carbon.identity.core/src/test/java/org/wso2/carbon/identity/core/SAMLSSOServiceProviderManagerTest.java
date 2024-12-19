@@ -283,7 +283,6 @@ public class SAMLSSOServiceProviderManagerTest {
 
         SAMLSSOServiceProviderDO serviceProviderFromStorage =
                 samlSSOServiceProviderManager.getServiceProvider(getIssuerWithQualifier(ISSUER1), TENANT_ID);
-
         assertEquals(serviceProviderFromStorage, sampleServiceProvider1);
     }
 

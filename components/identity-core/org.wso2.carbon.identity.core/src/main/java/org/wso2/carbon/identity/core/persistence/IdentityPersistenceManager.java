@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.OpenIDAdminDAO;
 import org.wso2.carbon.identity.core.dao.OpenIDUserDAO;
 import org.wso2.carbon.identity.core.dao.ParameterDAO;
+import org.wso2.carbon.identity.core.dao.SAMLSSOPersistenceManagerFactory;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
 import org.wso2.carbon.identity.core.dao.RegistrySAMLSSOServiceProviderDAOImpl;
 import org.wso2.carbon.identity.core.dao.XMPPSettingsDAO;
@@ -238,7 +239,8 @@ public class IdentityPersistenceManager {
     public boolean addServiceProvider(Registry registry, SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();
+        SAMLSSOPersistenceManagerFactory samlSSOPersistenceManagerFactory = new SAMLSSOPersistenceManagerFactory();
+        SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.buildSSOServiceProviderManager();
         return serviceProviderDAO.addServiceProvider(serviceProviderDO, tenantId);
     }
     /**
@@ -250,7 +252,8 @@ public class IdentityPersistenceManager {
      */
     public SAMLSSOServiceProviderDO uploadServiceProvider(Registry registry, SAMLSSOServiceProviderDO samlssoServiceProviderDO) throws IdentityException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();
+        SAMLSSOPersistenceManagerFactory samlSSOPersistenceManagerFactory = new SAMLSSOPersistenceManagerFactory();
+        SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.buildSSOServiceProviderManager();
         return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO, tenantId);
     }
 
@@ -263,26 +266,30 @@ public class IdentityPersistenceManager {
     public SAMLSSOServiceProviderDO[] getServiceProviders(Registry registry)
             throws IdentityException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDOA = new RegistrySAMLSSOServiceProviderDAOImpl();
-        return serviceProviderDOA.getServiceProviders(tenantId);
+        SAMLSSOPersistenceManagerFactory samlSSOPersistenceManagerFactory = new SAMLSSOPersistenceManagerFactory();
+        SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.buildSSOServiceProviderManager();
+        return serviceProviderDAO.getServiceProviders(tenantId);
     }
 
     public boolean removeServiceProvider(Registry registry, String issuer) throws IdentityException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();
+        SAMLSSOPersistenceManagerFactory samlSSOPersistenceManagerFactory = new SAMLSSOPersistenceManagerFactory();
+        SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.buildSSOServiceProviderManager();
         return serviceProviderDAO.removeServiceProvider(issuer, tenantId);
     }
 
     public SAMLSSOServiceProviderDO getServiceProvider(Registry registry, String issuer)
             throws IdentityException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();
+        SAMLSSOPersistenceManagerFactory samlSSOPersistenceManagerFactory = new SAMLSSOPersistenceManagerFactory();
+        SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.buildSSOServiceProviderManager();
         return serviceProviderDAO.getServiceProvider(issuer, tenantId);
     }
 
     public boolean isServiceProviderExists(Registry registry, String issuer) throws IdentityException {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();
+        SAMLSSOPersistenceManagerFactory samlSSOPersistenceManagerFactory = new SAMLSSOPersistenceManagerFactory();
+        SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.buildSSOServiceProviderManager();
         return serviceProviderDAO.isServiceProviderExists(issuer, tenantId);
     }
 
