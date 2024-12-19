@@ -31,6 +31,7 @@
             <class name="org.wso2.carbon.identity.core.IdentityKeyStoreResolverTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtilTest"/>
             <class name="org.wso2.carbon.identity.core.SAMLSSOServiceProviderManagerTest"/>
+            <class name="org.wso2.carbon.identity.core.dao.SAMLSSOPersistenceManagerFactoryTest"/>
         </classes>
     </test>
 </suite>

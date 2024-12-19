@@ -10,7 +10,7 @@ import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.
 public class SAMLSSOPersistenceManagerFactory {
 
     private static final Log LOG = LogFactory.getLog(SAMLSSOPersistenceManagerFactory.class);
-    private static final String SAML_STORAGE_TYPE = IdentityUtil.getProperty(SAML_STORAGE_CONFIG);
+    private static String SAML_STORAGE_TYPE = IdentityUtil.getProperty(SAML_STORAGE_CONFIG);
     private static final String HYBRID = "hybrid";
     private static final String REGISTRY = "registry";
 
