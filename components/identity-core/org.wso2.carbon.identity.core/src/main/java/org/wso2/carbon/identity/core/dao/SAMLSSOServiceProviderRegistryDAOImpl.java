@@ -57,6 +57,7 @@ import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
  */
 public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOServiceProviderDO>
         implements SAMLSSOServiceProviderDAO {
+
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
     private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
             "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
@@ -66,11 +67,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
             "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
-    private static Log log = LogFactory.getLog(SAMLSSOServiceProviderDAO.class);
-
-    public SAMLSSOServiceProviderRegistryDAOImpl(Registry registry) {
-        this.registry = registry;
-    }
+    private static Log log = LogFactory.getLog(SAMLSSOServiceProviderRegistryDAOImpl.class);
 
     protected SAMLSSOServiceProviderDO resourceToObject(Resource resource) {
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
@@ -256,6 +253,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
             throws IdentityException {
 
+        Registry registry = getRegistry(tenantId);
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
                 StringUtils.isBlank(serviceProviderDO.getIssuer())) {
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
@@ -479,6 +477,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
     public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException {
 
+        Registry registry = getRegistry(tenantId);
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
                 StringUtils.isBlank(serviceProviderDO.getIssuer())) {
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
@@ -553,6 +552,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
 
     @Override
     public SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId) throws IdentityException {
+
+        Registry registry = getRegistry(tenantId);
         List<SAMLSSOServiceProviderDO> serviceProvidersList = new ArrayList<>();
         try {
             if (registry.resourceExists(IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS)) {
@@ -576,6 +577,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
     @Override
     public boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException {
 
+        Registry registry = getRegistry(tenantId);
         if (issuer == null || StringUtils.isEmpty(issuer.trim())) {
             throw new IllegalArgumentException("Trying to delete issuer \'" + issuer + "\'");
         }
@@ -611,6 +613,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
     @Override
     public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
+        Registry registry = getRegistry(tenantId);
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         SAMLSSOServiceProviderDO serviceProviderDO = null;
 
@@ -715,6 +718,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
 
     @Override
     public boolean isServiceProviderExists(String issuer, int tenantId) throws IdentityException {
+
+        Registry registry = getRegistry(tenantId);
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         try {
             return registry.resourceExists(path);
@@ -733,6 +738,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
     public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
             throws IdentityException {
 
+        Registry registry = getRegistry(tenantId);
         if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null) {
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
@@ -830,6 +836,16 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
             } else {
                 serviceProviderList.add(resourceToObject(resource));
             }
+        }
+    }
+
+    private Registry getRegistry(int tenantId) throws IdentityException {
+
+        try {
+            Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry(tenantId);
+            return registry;
+        } catch (RegistryException e) {
+            throw new IdentityException("Error while retrieving registry", e);
         }
     }
 }

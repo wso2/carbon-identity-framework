@@ -45,7 +45,7 @@ public interface SAMLSSOServiceProviderDAO {
      * @return True if the update is successful.
      * @throws IdentityException If an error occurs while updating the service provider.
      */
-    public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
+    boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException;
 
     /**
