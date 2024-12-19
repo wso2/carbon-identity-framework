@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.util;
 
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
@@ -26,6 +27,8 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ErrorMessage;
@@ -50,7 +53,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @throws IdentityProviderManagementServerException If an error occurs while adding the action.
      */
     public void addEndpointConfig(FederatedAuthenticatorConfig config, String tenantDomain)
-            throws IdentityProviderManagementServerException {
+            throws IdentityProviderManagementException {
 
         if (config.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return;
@@ -69,9 +72,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             endpointProperty.setConfidential(false);
             config.setProperties(new Property[]{endpointProperty});
         } catch (ActionMgtException e) {
-            ErrorMessage error = ErrorMessage.ERROR_CODE_ADDING_ENDPOINT_CONFIG;
-            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
-                    config.getName()), e);
+            throw handleActionMgtException(ErrorMessage.ERROR_CODE_ADDING_ENDPOINT_CONFIG, e, config.getName());
         }
     }
 
@@ -84,7 +85,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @throws IdentityProviderManagementServerException If an error occurs while updating associated action.
      */
     public void updateEndpointConfig(FederatedAuthenticatorConfig newConfig, FederatedAuthenticatorConfig oldConfig,
-                                       String tenantDomain) throws IdentityProviderManagementServerException {
+                                       String tenantDomain) throws IdentityProviderManagementException {
 
         if (oldConfig.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return;
@@ -100,9 +101,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                                   tenantDomain);
             newConfig.setProperties(oldConfig.getProperties());
         } catch (ActionMgtException e) {
-            ErrorMessage error = ErrorMessage.ERROR_CODE_UPDATING_ENDPOINT_CONFIG;
-            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
-                    newConfig.getName()), e);
+            throw handleActionMgtException(ErrorMessage.ERROR_CODE_UPDATING_ENDPOINT_CONFIG, e, newConfig.getName());
         }
     }
 
@@ -115,7 +114,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @throws IdentityProviderManagementServerException If an error occurs retrieving updating associated action.
      */
     public FederatedAuthenticatorConfig resolveEndpointConfig(FederatedAuthenticatorConfig config,
-                        String tenantDomain) throws IdentityProviderManagementServerException {
+                        String tenantDomain) throws IdentityProviderManagementException {
 
         if (config.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return config;
@@ -132,9 +131,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
             castedConfig.setEndpointConfig(buildUserDefinedAuthenticatorEndpointConfig(action.getEndpoint()));
             return castedConfig;
         } catch (ActionMgtException e) {
-            ErrorMessage error = ErrorMessage.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG;
-            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
-                    config.getName()), e);
+            throw handleActionMgtException(ErrorMessage.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG, e, config.getName());
         }
     }
 
@@ -160,7 +157,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
      * @throws IdentityProviderManagementServerException If an error occurs while deleting associated action.
      */
     public void deleteEndpointConfig(FederatedAuthenticatorConfig config, String tenantDomain) throws
-            IdentityProviderManagementServerException {
+            IdentityProviderManagementException {
 
         if (config.getDefinedByType() != AuthenticatorPropertyConstants.DefinedByType.USER) {
             return;
@@ -173,9 +170,7 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                                           actionId,
                                           tenantDomain);
         } catch (ActionMgtException e) {
-            ErrorMessage error = ErrorMessage.ERROR_CODE_DELETING_ENDPOINT_CONFIG;
-            throw new IdentityProviderManagementServerException(error.getCode(), String.format(error.getMessage(),
-                    config.getName()), e);
+            throw handleActionMgtException(ErrorMessage.ERROR_CODE_DELETING_ENDPOINT_CONFIG, e, config.getName());
         }
     }
 
@@ -208,5 +203,19 @@ public class UserDefinedAuthenticatorEndpointConfigManager {
                 .orElseThrow(() -> new IdentityProviderManagementServerException(
                         "No action Id was found in the properties of the authenticator configurations for the " +
                                 "authenticator: " + authenticatorName));
+    }
+
+    private static IdentityProviderManagementClientException handleActionMgtException(ErrorMessage idpMgtError,
+                                                                      Throwable actionException, String... data)
+            throws IdentityProviderManagementException {
+
+        if (actionException instanceof ActionMgtClientException) {
+            ActionMgtClientException error = (ActionMgtClientException) actionException;
+            throw new IdentityProviderManagementClientException(
+                    idpMgtError.getCode(), idpMgtError.getMessage(), error.getDescription());
+        }
+
+        throw new IdentityProviderManagementServerException(idpMgtError.getCode(),
+                String.format(idpMgtError.getMessage(), data), actionException);
     }
 }

@@ -175,10 +175,12 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Deleting Action for Action Type: %s and Action ID: %s", actionType, actionId));
         }
-        String resolvedActionType = getActionTypeFromPath(actionType);
-        ActionDTO existingActionDTO = checkIfActionExists(resolvedActionType, actionId, tenantDomain);
-        DAO_FACADE.deleteAction(existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
-        auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId);
+        ActionDTO existingActionDTO = DAO_FACADE.getActionByActionId(getActionTypeFromPath(actionType), actionId,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+        if (existingActionDTO != null) {
+            DAO_FACADE.deleteAction(existingActionDTO, IdentityTenantUtil.getTenantId(tenantDomain));
+            auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DELETE, actionType, actionId);
+        }
     }
 
     /**
