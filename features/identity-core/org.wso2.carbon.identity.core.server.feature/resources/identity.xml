@@ -77,7 +77,7 @@
     -->
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
-<!--        <SAMLConfigs>database</SAMLConfigs>-->
+        <SAML>database</SAML>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
