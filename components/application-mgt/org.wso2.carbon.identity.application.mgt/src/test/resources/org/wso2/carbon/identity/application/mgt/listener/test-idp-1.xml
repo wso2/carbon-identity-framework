@@ -82,11 +82,29 @@
                 </property>
             </Properties>
         </FederatedAuthenticatorConfig>
+        <FederatedAuthenticatorConfig>
+            <Name>CustomAuthenticator</Name>
+            <DisplayName>custom</DisplayName>
+            <IsEnabled>true</IsEnabled>
+            <Properties>
+                <property>
+                    <Name>TestProp</Name>
+                    <Value>test</Value>
+                </property>
+            </Properties>
+        </FederatedAuthenticatorConfig>
     </FederatedAuthenticatorConfigs>
     <DefaultAuthenticatorConfig>SAMLSSOAuthenticator</DefaultAuthenticatorConfig>
     <ProvisioningConnectorConfigs>
+        <ProvisioningConnectorConfig>
+            <Name>ProvisioningConnector</Name>
+            <IsEnabled>true</IsEnabled>
+        </ProvisioningConnectorConfig>
     </ProvisioningConnectorConfigs>
-    <DefaultProvisioningConnectorConfig/>
+    <DefaultProvisioningConnectorConfig>
+        <Name>ProvisioningConnector</Name>
+        <IsEnabled>true</IsEnabled>
+    </DefaultProvisioningConnectorConfig>
     <ClaimConfig/>
     <Certificate/>
     <PermissionAndRoleConfig/>

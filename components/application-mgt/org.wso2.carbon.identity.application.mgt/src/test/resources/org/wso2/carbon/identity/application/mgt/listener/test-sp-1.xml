@@ -54,7 +54,16 @@
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
     <InboundProvisioningConfig></InboundProvisioningConfig>
-    <OutboundProvisioningConfig></OutboundProvisioningConfig>
+    <OutboundProvisioningConfig>
+        <ProvisioningIdentityProviders>
+            <DefaultProvisioningConnectorConfig>
+                <Blocking>false</Blocking>
+                <Enabled>true</Enabled>
+                <Name>ProvisioningConnector</Name>
+            </DefaultProvisioningConnectorConfig>
+            <IdentityProviderName>identityProviderIDP_IS</IdentityProviderName>
+        </ProvisioningIdentityProviders>
+    </OutboundProvisioningConfig>
     <ClaimConfig>
         <AlwaysSendMappedLocalSubjectId>true</AlwaysSendMappedLocalSubjectId>
     </ClaimConfig>
