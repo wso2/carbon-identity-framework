@@ -2237,8 +2237,7 @@ public class RoleDAOImpl implements RoleDAO {
                                             int tenantId, String primaryDomainName, Connection connection,
                                             String removeUserFromRoleSql) throws SQLException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, removeUserFromRoleSql,
-                RoleConstants.RoleTableColumns.UM_ID)) {
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, removeUserFromRoleSql)) {
             for (String userName : userNamesList) {
                 // Add domain if not set.
                 userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
@@ -2275,8 +2274,7 @@ public class RoleDAOImpl implements RoleDAO {
                                              int tenantId, String primaryDomainName, Connection connection, String sql)
             throws SQLException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql,
-                RoleConstants.RoleTableColumns.UM_ID)) {
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql)) {
             for (String groupName : groupNamesList) {
                 // Add domain if not set.
                 groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);
