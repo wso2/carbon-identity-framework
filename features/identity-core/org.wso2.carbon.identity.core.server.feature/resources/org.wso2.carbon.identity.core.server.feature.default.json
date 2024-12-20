@@ -1354,6 +1354,16 @@
     "internal_validation_rule_mgt_update",
     "internal_config_update"
   ],
+  "console.internal_notification_sending.enabled": true,
+  "console.internal_notification_sending.scopes.feature": [
+    "console:loginAndRegistration"
+  ],
+  "console.internal_notification_sending.scopes.read": [
+    "internal_governance_view"
+  ],
+  "console.internal_notification_sending.scopes.update": [
+    "internal_governance_update"
+  ],
   "console.logs.enabled": false,
   "console.my_account.enabled": false,
   "console.oidc_scopes.enabled": true,
