@@ -22,8 +22,8 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.OpenIDAdminDAO;
 import org.wso2.carbon.identity.core.dao.OpenIDUserDAO;
 import org.wso2.carbon.identity.core.dao.ParameterDAO;
+import org.wso2.carbon.identity.core.dao.SAMLServiceProviderPersistenceManagerFactory;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
-import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderRegistryDAOImpl;
 import org.wso2.carbon.identity.core.dao.XMPPSettingsDAO;
 import org.wso2.carbon.identity.core.model.OpenIDAdminDO;
 import org.wso2.carbon.identity.core.model.OpenIDUserDO;
@@ -36,7 +36,9 @@ import org.wso2.carbon.user.core.UserRealm;
 public class IdentityPersistenceManager {
 
     private static IdentityPersistenceManager manager = new IdentityPersistenceManager();
-    private static SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
+    SAMLServiceProviderPersistenceManagerFactory
+            samlSSOPersistenceManagerFactory = new SAMLServiceProviderPersistenceManagerFactory();
+    SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.getSAMLServiceProviderPersistenceManager();
 
     private IdentityPersistenceManager() {
     }
@@ -266,8 +268,7 @@ public class IdentityPersistenceManager {
             throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        SAMLSSOServiceProviderDAO serviceProviderDOA = new SAMLSSOServiceProviderRegistryDAOImpl();
-        return serviceProviderDOA.getServiceProviders(tenantId);
+        return serviceProviderDAO.getServiceProviders(tenantId);
     }
 
     public boolean removeServiceProvider(Registry registry, String issuer) throws IdentityException {

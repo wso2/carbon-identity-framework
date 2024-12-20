@@ -55,7 +55,7 @@ import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 /**
  * This class is used for managing SAML SSO service providers in the Registry.
  */
-public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOServiceProviderDO>
+public class RegistrySAMLSSOServiceProviderDAOImpl extends AbstractDAO<SAMLSSOServiceProviderDO>
         implements SAMLSSOServiceProviderDAO {
 
     private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
@@ -67,9 +67,9 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
             "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
             "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
-    private static Log log = LogFactory.getLog(SAMLSSOServiceProviderRegistryDAOImpl.class);
+    private static Log log = LogFactory.getLog(RegistrySAMLSSOServiceProviderDAOImpl.class);
 
-    public SAMLSSOServiceProviderRegistryDAOImpl () {
+    public RegistrySAMLSSOServiceProviderDAOImpl() {
     }
 
     protected SAMLSSOServiceProviderDO resourceToObject(Resource resource) {
