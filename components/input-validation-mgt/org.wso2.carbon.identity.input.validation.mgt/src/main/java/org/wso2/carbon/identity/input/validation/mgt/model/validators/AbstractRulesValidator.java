@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2022-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.input.validation.mgt.exceptions.InputValidationMgtClientException;
 import org.wso2.carbon.identity.input.validation.mgt.model.Property;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidationContext;
@@ -33,11 +34,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MAX_PASSWORD_ALLOWED_LENGTH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.MIN_LENGTH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.PASSWORD;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_DEFAULT_MIN_MAX_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_INVALID_VALIDATOR_PROPERTY_VALUE;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_NOT_SUPPORTED;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_PROPERTY_TYPE_MISMATCH;
+import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.ErrorMessages.ERROR_VALIDATION_MAX_LENGTH_MISMATCH;
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.SUPPORTED_PARAMS;
 
 /**
@@ -92,6 +96,21 @@ public abstract class AbstractRulesValidator implements Validator {
             throw new InputValidationMgtClientException(ERROR_DEFAULT_MIN_MAX_MISMATCH.getCode(),
                     String.format(ERROR_DEFAULT_MIN_MAX_MISMATCH.getDescription(), this.getClass().getSimpleName(),
                             properties.get(MIN_LENGTH), properties.get(MAX_LENGTH)));
+        }
+
+        // Validate the max length for the password field.
+        if (PASSWORD.equals(context.getField())) {
+            int maxPasswordValue = Integer.parseInt(IdentityUtil.getProperty(MAX_PASSWORD_ALLOWED_LENGTH));
+            if (properties.get(MAX_LENGTH) != null &&
+                    Integer.parseInt(properties.get(MAX_LENGTH)) > maxPasswordValue) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("The property %s should be less than or equal to %s for the tenant %s.",
+                            MAX_LENGTH, maxPasswordValue, context.getTenantDomain()));
+                }
+                throw new InputValidationMgtClientException(ERROR_VALIDATION_MAX_LENGTH_MISMATCH.getCode(),
+                        String.format(ERROR_VALIDATION_MAX_LENGTH_MISMATCH.getDescription(), PASSWORD, maxPasswordValue,
+                                context.getTenantDomain()));
+            }
         }
         return true;
     }

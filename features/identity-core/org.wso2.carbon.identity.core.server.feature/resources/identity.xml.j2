@@ -1623,7 +1623,8 @@
     </SCIM2>
 
       <PasswordPolicy>
-        <PasswordPolicyValidationHandler>
+          <MaxPasswordAllowedLength>{{identity_mgt.password_policy.max_password_allowed_length}}</MaxPasswordAllowedLength>
+          <PasswordPolicyValidationHandler>
             <Enable>{{identity_mgt.password_policy.password_policy_validation_handler.enable}}</Enable>
         </PasswordPolicyValidationHandler>
       </PasswordPolicy>
