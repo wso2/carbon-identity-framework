@@ -287,7 +287,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
                 return false;
             }
 
-            Resource resource = createResource(serviceProviderDO);
+            Resource resource = createResource(serviceProviderDO, registry);
             if (!isTransactionStarted) {
                 registry.beginTransaction();
             }
@@ -315,13 +315,14 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
             log.error(msg, e);
             throw IdentityException.error(msg, e);
         } finally {
-            commitOrRollbackTransaction(isErrorOccurred);
+            commitOrRollbackTransaction(isErrorOccurred, registry);
         }
     }
 
-    private Resource createResource(SAMLSSOServiceProviderDO serviceProviderDO) throws RegistryException {
-        Resource resource;
-        resource = registry.newResource();
+    private Resource createResource(SAMLSSOServiceProviderDO serviceProviderDO, Registry registry)
+            throws RegistryException {
+
+        Resource resource = registry.newResource();
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER,
                 serviceProviderDO.getIssuer());
         resource.setProperty(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_CONS_URLS,
@@ -514,7 +515,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
                 return false;
             }
 
-            Resource resource = createResource(serviceProviderDO);
+            Resource resource = createResource(serviceProviderDO, registry);
             if (!isTransactionStarted) {
                 registry.beginTransaction();
             }
@@ -549,7 +550,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
             log.error(msg, e);
             throw new IdentityException(msg, e);
         } finally {
-            commitOrRollbackTransaction(isErrorOccurred);
+            commitOrRollbackTransaction(isErrorOccurred, registry);
         }
     }
 
@@ -566,7 +567,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
                     Collection samlSSOServiceProvidersCollection = (Collection) samlSSOServiceProvidersResource;
                     String[] resources = samlSSOServiceProvidersCollection.getChildren();
                     for (String resource : resources) {
-                        getChildResources(resource, serviceProvidersList);
+                        getChildResources(resource, serviceProvidersList, registry);
                     }
                 }
             }
@@ -609,7 +610,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
             log.error(msg, e);
             throw IdentityException.error(msg, e);
         } finally {
-            commitOrRollbackTransaction(isErrorOccurred);
+            commitOrRollbackTransaction(isErrorOccurred, registry);
         }
     }
 
@@ -779,7 +780,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
                 registry.beginTransaction();
             }
 
-            Resource resource = createResource(serviceProviderDO);
+            Resource resource = createResource(serviceProviderDO, registry);
             registry.put(path, resource);
             if (log.isDebugEnabled()) {
                 if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
@@ -795,7 +796,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
             isErrorOccurred = true;
             throw IdentityException.error("Error while adding Service Provider.", e);
         } finally {
-            commitOrRollbackTransaction(isErrorOccurred);
+            commitOrRollbackTransaction(isErrorOccurred, registry);
         }
     }
 
@@ -804,7 +805,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
      * @param isErrorOccurred Identifier for error transactions.
      * @throws IdentityException Error while committing or running rollback on the transaction.
      */
-    private void commitOrRollbackTransaction(boolean isErrorOccurred) throws IdentityException {
+    private void commitOrRollbackTransaction(boolean isErrorOccurred, Registry registry) throws IdentityException {
 
         try {
             // Rollback the transaction if there is an error, Otherwise try to commit.
@@ -825,8 +826,8 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
      * @param serviceProviderList child resource list.
      * @throws RegistryException
      */
-    private void getChildResources(String parentResource, List<SAMLSSOServiceProviderDO>
-            serviceProviderList) throws RegistryException {
+    private void getChildResources(String parentResource, List<SAMLSSOServiceProviderDO> serviceProviderList,
+                                   Registry registry) throws RegistryException {
 
         if (registry.resourceExists(parentResource)) {
             Resource resource = registry.get(parentResource);
@@ -834,7 +835,7 @@ public class SAMLSSOServiceProviderRegistryDAOImpl extends AbstractDAO<SAMLSSOSe
                 Collection collection = (Collection) resource;
                 String[] resources = collection.getChildren();
                 for (String res : resources) {
-                    getChildResources(res, serviceProviderList);
+                    getChildResources(res, serviceProviderList, registry);
                 }
             } else {
                 serviceProviderList.add(resourceToObject(resource));
