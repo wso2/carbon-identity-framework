@@ -18,15 +18,10 @@
 
 package org.wso2.carbon.identity.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderRegistryDAOImpl;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.registry.api.RegistryException;
-import org.wso2.carbon.registry.core.Registry;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
@@ -34,20 +29,7 @@ import org.wso2.carbon.registry.core.Registry;
  */
 public class SAMLSSOServiceProviderManager {
 
-    private static final Log LOG = LogFactory.getLog(SAMLSSOServiceProviderManager.class);
-
-    /**
-     * Build the SAML service provider.
-     *
-     * @param tenantId Tenant ID.
-     * @return SAML service provider.
-     */
-    private SAMLSSOServiceProviderDAO buildSAMLSSOProvider(int tenantId) throws RegistryException {
-
-        Registry registry = IdentityTenantUtil.getRegistryService().getConfigSystemRegistry(tenantId);
-        return new SAMLSSOServiceProviderRegistryDAOImpl(registry);
-    }
-
+    private static SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
 
     /**
      * Add a saml service provider.
@@ -60,13 +42,7 @@ public class SAMLSSOServiceProviderManager {
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
             throws IdentityException {
 
-        try {
-            SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-            return serviceProviderDAO.addServiceProvider(serviceProviderDO);
-        } catch (RegistryException e) {
-            LOG.error("Error while adding service provider", e);
-            throw new IdentityException("Error while retrieving registry", e);
-        }
+        return serviceProviderDAO.addServiceProvider(serviceProviderDO, tenantId);
     }
 
     /**
@@ -81,13 +57,7 @@ public class SAMLSSOServiceProviderManager {
     public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException {
 
-        try {
-            SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-            return serviceProviderDAO.updateServiceProvider(serviceProviderDO, currentIssuer);
-        } catch (RegistryException e) {
-            LOG.error("Error while updating service provider", e);
-            throw new IdentityException("Error while retrieving registry", e);
-        }
+        return serviceProviderDAO.updateServiceProvider(serviceProviderDO, currentIssuer, tenantId);
     }
 
     /**
@@ -97,16 +67,9 @@ public class SAMLSSOServiceProviderManager {
      * @return Array of SAMLSSOServiceProviderDO.
      * @throws IdentityException Error when getting the SAML service providers.
      */
-    public SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId)
-            throws IdentityException {
+    public SAMLSSOServiceProviderDO[] getServiceProviders(int tenantId) throws IdentityException {
 
-        try {
-            SAMLSSOServiceProviderDAO serviceProviderDOA = buildSAMLSSOProvider(tenantId);
-            return serviceProviderDOA.getServiceProviders();
-        } catch (RegistryException e) {
-            LOG.error("Error while getting service providers", e);
-            throw new IdentityException("Error while retrieving registry", e);
-        }
+        return serviceProviderDAO.getServiceProviders(tenantId);
     }
 
     /**
@@ -117,17 +80,9 @@ public class SAMLSSOServiceProviderManager {
      * @return SAMLSSOServiceProviderDO
      * @throws IdentityException Error when getting the SAML service provider.
      */
-    public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId)
-            throws IdentityException {
+    public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
-        try {
-            SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-            return serviceProviderDAO.getServiceProvider(issuer);
-        } catch (RegistryException e) {
-            LOG.error("Error while getting service provider", e);
-            throw new IdentityException("Error while retrieving SAML issuer " + e.getMessage());
-        }
-
+        return serviceProviderDAO.getServiceProvider(issuer, tenantId);
     }
 
     /**
@@ -141,13 +96,7 @@ public class SAMLSSOServiceProviderManager {
     public boolean isServiceProviderExists(String issuer, int tenantId)
             throws IdentityException {
 
-        try {
-            SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-            return serviceProviderDAO.isServiceProviderExists(issuer);
-        } catch (RegistryException e) {
-            LOG.error("Error while getting service provider", e);
-            throw new IdentityException("Error while retrieving SAML issuer " + e.getMessage());
-        }
+        return serviceProviderDAO.isServiceProviderExists(issuer, tenantId);
     }
 
     /**
@@ -157,16 +106,9 @@ public class SAMLSSOServiceProviderManager {
      * @param tenantId  Tenant ID.
      * @throws IdentityException Error when removing the SAML configuration.
      */
-    public boolean removeServiceProvider(String issuer, int tenantId)
-            throws IdentityException {
+    public boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException {
 
-        try {
-            SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-            return serviceProviderDAO.removeServiceProvider(issuer);
-        } catch (RegistryException e) {
-            LOG.error("Error while removing service provider", e);
-            throw new IdentityException("Error while deleting SAML issuer " + e.getMessage());
-        }
+        return serviceProviderDAO.removeServiceProvider(issuer, tenantId);
     }
 
     /**
@@ -177,15 +119,9 @@ public class SAMLSSOServiceProviderManager {
      * @return SAML service provider information object.
      * @throws IdentityException Error when uploading the SAML configuration.
      */
-    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO, int tenantId)
-            throws IdentityException {
+    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO,
+                                                          int tenantId) throws IdentityException {
 
-        try {
-            SAMLSSOServiceProviderDAO serviceProviderDAO = buildSAMLSSOProvider(tenantId);
-            return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO);
-        } catch (RegistryException e) {
-            LOG.error("Error while uploading service provider", e);
-            throw new IdentityException("Error while uploading SAML issuer " + e.getMessage());
-        }
+        return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO, tenantId);
     }
 }

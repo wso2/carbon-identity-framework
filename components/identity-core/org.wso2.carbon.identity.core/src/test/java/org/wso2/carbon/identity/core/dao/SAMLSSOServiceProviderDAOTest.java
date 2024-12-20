@@ -39,6 +39,7 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.ResourceImpl;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
+import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -78,13 +79,15 @@ public class SAMLSSOServiceProviderDAOTest {
     private Map<String, List<String>> dummyAdvProperties;
     private Map<String, List<String>> dummyPropertiesWithAnIssuerQualifier;
     private MockedStatic<Transaction> transaction;
-
+    private MockedStatic<IdentityTenantUtil> identityTenantUtil;
+    private static final int TENANT_ID = 1;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
         transaction = mockStatic(Transaction.class);
         mockRegistry = mock(UserRegistry.class);
+        RegistryService mockRegistryService = mock(RegistryService.class);
         transaction.when(Transaction::isStarted).thenReturn(transactionStarted);
         //Mock commit transaction
         doAnswer(new Answer<Object>() {
@@ -103,7 +106,10 @@ public class SAMLSSOServiceProviderDAOTest {
             }
         }).when(mockRegistry).beginTransaction();
 
-        objUnderTest = new SAMLSSOServiceProviderRegistryDAOImpl(mockRegistry);
+        objUnderTest = new SAMLSSOServiceProviderRegistryDAOImpl();
+        identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getRegistryService()).thenReturn(mockRegistryService);
+        when(mockRegistryService.getConfigSystemRegistry(TENANT_ID)).thenReturn((UserRegistry) mockRegistry);
         when(mockRegistry.newResource()).thenReturn(new ResourceImpl());
     }
 
@@ -187,6 +193,7 @@ public class SAMLSSOServiceProviderDAOTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
+        identityTenantUtil.close();
         transaction.close();
     }
 
@@ -348,7 +355,7 @@ public class SAMLSSOServiceProviderDAOTest {
                     + IdentityRegistryResources.QUALIFIER_ID + dummyResource.getProperty(IdentityRegistryResources.
                     PROP_SAML_SSO_ISSUER_QUALIFIER));
         }
-        objUnderTest.addServiceProvider(serviceProviderDO);
+        objUnderTest.addServiceProvider(serviceProviderDO, TENANT_ID);
         verify(mockRegistry).put(captor.capture(), any(Resource.class));
         assertEquals(captor.getValue(), expectedPath, "Resource is not added at correct path");
     }
@@ -359,7 +366,7 @@ public class SAMLSSOServiceProviderDAOTest {
         String existingPath = getPath("existingIssuer");
         serviceProviderDO.setIssuer("existingIssuer");
         when(mockRegistry.resourceExists(existingPath)).thenReturn(true);
-        assertFalse(objUnderTest.addServiceProvider(serviceProviderDO), "Resource should not have added.");
+        assertFalse(objUnderTest.addServiceProvider(serviceProviderDO, TENANT_ID), "Resource should not have added.");
     }
 
     @Test(expectedExceptions = {IdentityException.class})
@@ -369,7 +376,7 @@ public class SAMLSSOServiceProviderDAOTest {
         String existingPath = getPath("erringIssuer");
         serviceProviderDO.setIssuer("erringIssuer");
         doThrow(RegistryException.class).when(mockRegistry).put(eq(existingPath), any(Resource.class));
-        objUnderTest.addServiceProvider(serviceProviderDO);
+        objUnderTest.addServiceProvider(serviceProviderDO, TENANT_ID);
     }
 
     @Test(dataProvider = "ResourceToObjectData")
@@ -388,7 +395,7 @@ public class SAMLSSOServiceProviderDAOTest {
         }
         String expectedPath = getPath(existingIssuer);
         when(mockRegistry.resourceExists(expectedPath)).thenReturn(true);
-        objUnderTest.updateServiceProvider(serviceProviderDO, existingIssuer);
+        objUnderTest.updateServiceProvider(serviceProviderDO, existingIssuer, TENANT_ID);
         verify(mockRegistry).put(captor.capture(), any(Resource.class));
         assertEquals(captor.getValue(), expectedPath, "Resource is not added at correct path");
     }
@@ -398,7 +405,7 @@ public class SAMLSSOServiceProviderDAOTest {
         SAMLSSOServiceProviderDO serviceProviderDO = new SAMLSSOServiceProviderDO();
         serviceProviderDO.setIssuer("newIssuer");
         when(mockRegistry.resourceExists(getPath("newIssuer"))).thenReturn(true);
-        assertFalse(objUnderTest.updateServiceProvider(serviceProviderDO, "existingIssuer"), "Resource should not have updated.");
+        assertFalse(objUnderTest.updateServiceProvider(serviceProviderDO, "existingIssuer", TENANT_ID), "Resource should not have updated.");
     }
 
     @Test
@@ -431,7 +438,7 @@ public class SAMLSSOServiceProviderDAOTest {
         when(mockRegistry.resourceExists(paths[0])).thenReturn(true);
         when(mockRegistry.resourceExists(paths[1])).thenReturn(true);
         when(mockRegistry.resourceExists(paths[2])).thenReturn(true);
-        SAMLSSOServiceProviderDO[] serviceProviders = objUnderTest.getServiceProviders();
+        SAMLSSOServiceProviderDO[] serviceProviders = objUnderTest.getServiceProviders(TENANT_ID);
         assertEquals(serviceProviders.length, 3, "Should have returned 3 service providers.");
     }
 
@@ -440,7 +447,7 @@ public class SAMLSSOServiceProviderDAOTest {
         String existingIssuer = "ExistingIssuer";
         String path = getPath(existingIssuer);
         when(mockRegistry.resourceExists(path)).thenReturn(true);
-        assertTrue(objUnderTest.removeServiceProvider(existingIssuer), "SP Resource is not deleted from path");
+        assertTrue(objUnderTest.removeServiceProvider(existingIssuer, TENANT_ID), "SP Resource is not deleted from path");
     }
 
     @Test
@@ -448,40 +455,39 @@ public class SAMLSSOServiceProviderDAOTest {
         String nonExistingIssuer = "NonExistingIssuer";
         String path = getPath(nonExistingIssuer);
         when(mockRegistry.resourceExists(path)).thenReturn(false);
-        assertFalse(objUnderTest.removeServiceProvider(nonExistingIssuer), "SP Resource should not have existed to " +
+        assertFalse(objUnderTest.removeServiceProvider(nonExistingIssuer, TENANT_ID), "SP Resource should not have existed to " +
                 "delete.");
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testRemoveEmptyServiceProvider() throws Exception {
-        objUnderTest.removeServiceProvider("");
+        objUnderTest.removeServiceProvider("", TENANT_ID);
         fail("SP Resource with empty name could not have been deleted.");
     }
 
     @Test
     public void testGetServiceProvider() throws Exception {
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
-            RealmService mockRealmService = mock(RealmService.class);
-            TenantManager mockTenantManager = mock(TenantManager.class);
-            identityTenantUtil.when(IdentityTenantUtil::getRealmService).thenReturn(mockRealmService);
-            when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
-            when(mockTenantManager.getDomain(anyInt())).thenReturn("test.com");
+        RealmService mockRealmService = mock(RealmService.class);
+        TenantManager mockTenantManager = mock(TenantManager.class);
+        identityTenantUtil.when(IdentityTenantUtil::getRealmService).thenReturn(mockRealmService);
+        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
+        when(mockTenantManager.getDomain(anyInt())).thenReturn("test.com");
 
-            Properties dummyResourceProperties = new Properties();
-            dummyResourceProperties.putAll(dummyBasicProperties);
-            Resource dummyResource = new ResourceImpl();
-            dummyResource.setProperties(dummyResourceProperties);
+        Properties dummyResourceProperties = new Properties();
+        dummyResourceProperties.putAll(dummyBasicProperties);
+        Resource dummyResource = new ResourceImpl();
+        dummyResource.setProperties(dummyResourceProperties);
 
-            String path = getPath(dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
-            when(mockRegistry.resourceExists(path)).thenReturn(true);
-            when(mockRegistry.get(path)).thenReturn(dummyResource);
+        String path = getPath(dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
+        when(mockRegistry.resourceExists(path)).thenReturn(true);
+        when(mockRegistry.get(path)).thenReturn(dummyResource);
 
-            SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.getServiceProvider(dummyResource.getProperty
-                    (IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
-            assertEquals(serviceProviderDO.getTenantDomain(), "test.com",
-                    "Retrieved resource's tenant domain mismatch");
-        }
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.getServiceProvider(dummyResource.getProperty
+                (IdentityRegistryResources.PROP_SAML_SSO_ISSUER), TENANT_ID);
+        assertEquals(serviceProviderDO.getTenantDomain(), "test.com",
+                "Retrieved resource's tenant domain mismatch");
+
     }
 
     @Test
@@ -489,7 +495,7 @@ public class SAMLSSOServiceProviderDAOTest {
         String validSP = "ValidSP";
         String path = getPath(validSP);
         when(mockRegistry.resourceExists(path)).thenReturn(true);
-        assertTrue(objUnderTest.isServiceProviderExists(validSP));
+        assertTrue(objUnderTest.isServiceProviderExists(validSP, TENANT_ID));
     }
 
     @Test
@@ -497,7 +503,7 @@ public class SAMLSSOServiceProviderDAOTest {
         String invalidSP = "InvalidSP";
         String path = getPath(invalidSP);
         when(mockRegistry.resourceExists(path)).thenReturn(false);
-        assertFalse(objUnderTest.isServiceProviderExists(invalidSP));
+        assertFalse(objUnderTest.isServiceProviderExists(invalidSP, TENANT_ID));
     }
 
     @Test
@@ -511,7 +517,7 @@ public class SAMLSSOServiceProviderDAOTest {
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
         when(mockRegistry.resourceExists(expectedPath)).thenReturn(false);
         SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
-        assertEquals(objUnderTest.uploadServiceProvider(serviceProviderDO), serviceProviderDO, "Same resource should" +
+        assertEquals(objUnderTest.uploadServiceProvider(serviceProviderDO, TENANT_ID), serviceProviderDO, "Same resource should" +
                 " have returned after successful upload.");
     }
 
@@ -526,7 +532,7 @@ public class SAMLSSOServiceProviderDAOTest {
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
         when(mockRegistry.resourceExists(expectedPath)).thenReturn(true);
         SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
-        objUnderTest.uploadServiceProvider(serviceProviderDO);
+        objUnderTest.uploadServiceProvider(serviceProviderDO, TENANT_ID);
         fail("Uploading an existing SP should have failed");
     }
 
