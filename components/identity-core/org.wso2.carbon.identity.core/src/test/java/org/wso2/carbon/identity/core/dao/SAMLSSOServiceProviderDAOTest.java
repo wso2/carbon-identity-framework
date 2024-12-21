@@ -70,7 +70,7 @@ import static org.testng.Assert.fail;
  */
 public class SAMLSSOServiceProviderDAOTest {
 
-    private SAMLSSOServiceProviderRegistryDAOImpl objUnderTest;
+    private RegistrySAMLSSOServiceProviderDAOImpl objUnderTest;
     private boolean transactionStarted = false;
 
     private Registry mockRegistry;
@@ -106,7 +106,7 @@ public class SAMLSSOServiceProviderDAOTest {
             }
         }).when(mockRegistry).beginTransaction();
 
-        objUnderTest = new SAMLSSOServiceProviderRegistryDAOImpl();
+        objUnderTest = new RegistrySAMLSSOServiceProviderDAOImpl();
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         when(IdentityTenantUtil.getRegistryService()).thenReturn(mockRegistryService);
         when(mockRegistryService.getConfigSystemRegistry(TENANT_ID)).thenReturn((UserRegistry) mockRegistry);

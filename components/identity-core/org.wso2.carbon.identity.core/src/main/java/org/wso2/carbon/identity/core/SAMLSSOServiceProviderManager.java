@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.core;
 
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.dao.SAMLServiceProviderPersistenceManagerFactory;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
-import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderRegistryDAOImpl;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 
 /**
@@ -29,7 +29,9 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
  */
 public class SAMLSSOServiceProviderManager {
 
-    private static SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderRegistryDAOImpl();
+    SAMLServiceProviderPersistenceManagerFactory
+            samlSSOPersistenceManagerFactory = new SAMLServiceProviderPersistenceManagerFactory();
+    SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.getSAMLServiceProviderPersistenceManager();
 
     /**
      * Add a saml service provider.
