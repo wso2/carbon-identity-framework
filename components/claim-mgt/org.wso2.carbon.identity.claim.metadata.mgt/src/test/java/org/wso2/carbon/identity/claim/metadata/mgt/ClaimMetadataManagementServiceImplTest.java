@@ -270,20 +270,17 @@ public class ClaimMetadataManagementServiceImplTest {
 
         Map<String, String> propertiesWithOutSharedProfileValueResolvingMethod = new HashMap<>();
         propertiesWithOutSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1, CLAIM_PROPERTY_VALUE_1);
-        propertiesWithOutSharedProfileValueResolvingMethod.put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
 
         Map<String, String> propertiesWithFromOriginAsSharedProfileValueResolvingMethod = new HashMap<>();
         propertiesWithFromOriginAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
                 ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
         propertiesWithFromOriginAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1, CLAIM_PROPERTY_VALUE_1);
-        propertiesWithOutSharedProfileValueResolvingMethod.put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
 
         Map<String, String> propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod = new HashMap<>();
         propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
                 ClaimConstants.SharedProfileValueResolvingMethod.FROM_SHARED_PROFILE.getName());
         propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1,
                 CLAIM_PROPERTY_VALUE_1);
-        propertiesWithOutSharedProfileValueResolvingMethod.put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
 
         return new Object[][]{
                 // Case 1: Updating claim and existing claim don't have SharedProfileValueResolvingMethod property.
@@ -359,6 +356,9 @@ public class ClaimMetadataManagementServiceImplTest {
                                                                                         boolean isValidationSuccess)
             throws ClaimMetadataException {
 
+        // Setting IS_SYSTEM_CLAIM property to true for both claims to identify this tested claim is system claim.
+        claimToBeUpdated.getClaimProperties().put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+        existingClaim.getClaimProperties().put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
         when(unifiedClaimMetadataManager.getLocalClaim(claimToBeUpdated.getClaimURI(), SUPER_TENANT_ID))
                 .thenReturn(Optional.of(existingClaim));
         try {
@@ -395,9 +395,9 @@ public class ClaimMetadataManagementServiceImplTest {
                 CLAIM_PROPERTY_VALUE_1);
 
         Map<String, String> propertiesWithInvalidSharedProfileValueResolvingMethod = new HashMap<>();
-        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+        propertiesWithInvalidSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
                 "InvalidSharedProfileValueResolvingMethod");
-        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1,
+        propertiesWithInvalidSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1,
                 CLAIM_PROPERTY_VALUE_1);
 
         return new Object[][]{
