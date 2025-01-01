@@ -212,6 +212,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     @Override
+    public Optional<LocalClaim> getLocalClaim(String localClaimURI, String tenantDomain) throws ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return this.unifiedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
+    }
+
+    @Override
     public void addLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException {
 
         if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
@@ -257,7 +264,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        Optional<LocalClaim> existingLocalClaim = getLocalClaim(localClaim.getClaimURI(), tenantId);
+        Optional<LocalClaim> existingLocalClaim = getLocalClaim(localClaim.getClaimURI(), tenantDomain);
         if (!existingLocalClaim.isPresent()) {
             throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getCode(),
                     String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getMessage(), localClaim.getClaimURI()));
@@ -618,11 +625,6 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         return this.unifiedClaimMetadataManager.getLocalClaims(tenantId).stream().anyMatch(
                 claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI));
-    }
-
-    private Optional<LocalClaim> getLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
-
-        return this.unifiedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
     }
 
     @Override

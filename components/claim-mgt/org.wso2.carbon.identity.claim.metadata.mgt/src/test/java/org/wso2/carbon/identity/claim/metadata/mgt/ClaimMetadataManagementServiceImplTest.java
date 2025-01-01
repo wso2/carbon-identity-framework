@@ -209,6 +209,13 @@ public class ClaimMetadataManagementServiceImplTest {
     }
 
     @Test
+    public void testGetLocalClaim() throws ClaimMetadataException {
+
+        service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME);
+        verify(unifiedClaimMetadataManager, times(1)).getLocalClaim(anyString(), anyInt());
+    }
+
+    @Test
     public void testAddLocalClaim() throws ClaimMetadataException {
 
         LocalClaim localClaimToBeAdded = new LocalClaim(LOCAL_CLAIM_1);

@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This interface used to expose claim metadata management functionalities as an OSGi Service.
@@ -74,6 +75,19 @@ public interface ClaimMetadataManagementService {
      * @throws ClaimMetadataException
      */
     List<LocalClaim> getLocalClaims(String tenantDomain) throws ClaimMetadataException;
+
+    /**
+     * Get local claim for specified claim URI and tenant.
+     *
+     * @param localClaimURI Local claim URI.
+     * @param tenantDomain Tenant domain.
+     * @return Local claim.
+     * @throws ClaimMetadataException If an error occurred while retrieving local claims.
+     */
+    default Optional<LocalClaim> getLocalClaim(String localClaimURI, String tenantDomain) throws ClaimMetadataException {
+
+        return Optional.empty();
+    }
 
     /**
      * Add new local claim with attribute mappings and claim properties for specified tenant
