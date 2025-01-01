@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +58,9 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.IS_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.testutil.Whitebox.setInternalState;
 
 @WithCarbonHome
@@ -67,11 +70,15 @@ public class ClaimMetadataManagementServiceImplTest {
     private static final String LOCAL_CLAIM_DIALECT = "http://wso2.org/claims";
     private static final String LOCAL_CLAIM_1 = "http://wso2.org/claims/username";
     private static final String LOCAL_CLAIM_2 = "http://wso2.org/claims/email";
+    private static final String CUSTOM_CLAIM = "http://wso2.org/claims/customAttribute";
     private static final String EXTERNAL_CLAIM_DIALECT_URI = "https://abc.org";
     private static final String EXTERNAL_CLAIM_URI = "test";
     private static final String MAPPED_LOCAL_CLAIM_URI = "http://wso2.org/claims/test";
     private static final String PRIMARY_DOMAIN = "PRIMARY";
     private static final String USERNAME_ATTRIBUTE = "username";
+    private static final String CUSTOM_ATTRIBUTE = "custom_attribute";
+    private static final String CLAIM_PROPERTY_KEY_1 = "property_1";
+    private static final String CLAIM_PROPERTY_VALUE_1 = "value_1";
 
     private final ExternalClaim externalClaim = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, EXTERNAL_CLAIM_URI,
             MAPPED_LOCAL_CLAIM_URI);
@@ -256,6 +263,231 @@ public class ClaimMetadataManagementServiceImplTest {
         assertThrows(ClaimMetadataClientException.class, () -> {
             service.updateLocalClaim(localClaimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
         });
+    }
+
+    @DataProvider(name = "sharedProfileValueResolvingMethodValidationForSystemClaimData")
+    public Object[][] sharedProfileValueResolvingMethodValidationForSystemClaimData() {
+
+        Map<String, String> propertiesWithOutSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithOutSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1, CLAIM_PROPERTY_VALUE_1);
+        propertiesWithOutSharedProfileValueResolvingMethod.put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+
+        Map<String, String> propertiesWithFromOriginAsSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithFromOriginAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+        propertiesWithFromOriginAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1, CLAIM_PROPERTY_VALUE_1);
+        propertiesWithOutSharedProfileValueResolvingMethod.put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+
+        Map<String, String> propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_SHARED_PROFILE.getName());
+        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1,
+                CLAIM_PROPERTY_VALUE_1);
+        propertiesWithOutSharedProfileValueResolvingMethod.put(IS_SYSTEM_CLAIM, Boolean.TRUE.toString());
+
+        return new Object[][]{
+                // Case 1: Updating claim and existing claim don't have SharedProfileValueResolvingMethod property.
+                {
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 2: Updating claim has SharedProfileValueResolvingMethod matching to system default
+                // but existing claim don't have SharedProfileValueResolvingMethod property.
+                {
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 3: Updating claim has SharedProfileValueResolvingMethod value same as the existing claim's
+                // SharedProfileValueResolvingMethod value.
+                {
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 4: Updating claim has SharedProfileValueResolvingMethod value different than system default
+                // while existing claim don't have SharedProfileValueResolvingMethod property.
+                {
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        false
+                },
+                // Case 5: Updating claim has SharedProfileValueResolvingMethod value different than the existing claim's
+                // SharedProfileValueResolvingMethod value.
+                {
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
+                        false
+                },
+        };
+    }
+
+    @Test(dataProvider = "sharedProfileValueResolvingMethodValidationForSystemClaimData")
+    public void testSharedProfileValueResolvingMethodValidationOnLocalSystemClaimUpdate(LocalClaim claimToBeUpdated,
+                                                                                        LocalClaim existingClaim,
+                                                                                        boolean isValidationSuccess)
+            throws ClaimMetadataException {
+
+        when(unifiedClaimMetadataManager.getLocalClaim(claimToBeUpdated.getClaimURI(), SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingClaim));
+        try {
+            service.updateLocalClaim(claimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
+            if (isValidationSuccess) {
+                verify(unifiedClaimMetadataManager, times(1)).updateLocalClaim(any(), anyInt());
+            }
+        } catch (ClaimMetadataClientException e) {
+            if (!isValidationSuccess) {
+                assertEquals(e.getErrorCode(),
+                        ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM.getCode());
+                assertEquals(e.getMessage(), String.format(
+                        ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM.getMessage(),
+                        existingClaim.getClaimURI()));
+            }
+        }
+    }
+
+    @DataProvider(name = "sharedProfileValueResolvingMethodValidationForNonSystemClaimData")
+    public Object[][] sharedProfileValueResolvingMethodValidationForNonSystemClaimData() {
+
+        Map<String, String> propertiesWithOutSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithOutSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1, CLAIM_PROPERTY_VALUE_1);
+
+        Map<String, String> propertiesWithFromOriginAsSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithFromOriginAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+        propertiesWithFromOriginAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1, CLAIM_PROPERTY_VALUE_1);
+
+        Map<String, String> propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_SHARED_PROFILE.getName());
+        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1,
+                CLAIM_PROPERTY_VALUE_1);
+
+        Map<String, String> propertiesWithInvalidSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                "InvalidSharedProfileValueResolvingMethod");
+        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1,
+                CLAIM_PROPERTY_VALUE_1);
+
+        return new Object[][]{
+                // Case 1: Updating claim and existing claim don't have SharedProfileValueResolvingMethod property.
+                {
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 2: Updating claim has a SharedProfileValueResolvingMethod value but existing claim don't
+                // have SharedProfileValueResolvingMethod property.
+                {
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 3: Updating claim has a SharedProfileValueResolvingMethod value different than existing
+                // claim's SharedProfileValueResolvingMethod value.
+                {
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 4: Updating claim don't have SharedProfileValueResolvingMethod property but existing claim has.
+                {
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 5: Updating claim has invalid resolving method.
+                {
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithInvalidSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                CUSTOM_CLAIM,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE)),
+                                propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
+                        false
+                },
+        };
+    }
+
+    @Test(dataProvider = "sharedProfileValueResolvingMethodValidationForNonSystemClaimData")
+    public void testSharedProfileValueResolvingMethodValidationOnLocalNonSystemClaimUpdate(LocalClaim claimToBeUpdated,
+                                                                                           LocalClaim existingClaim,
+                                                                                           boolean isValidationSuccess)
+            throws ClaimMetadataException {
+
+        when(unifiedClaimMetadataManager.getLocalClaim(claimToBeUpdated.getClaimURI(), SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingClaim));
+        try {
+            service.updateLocalClaim(claimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
+            if (isValidationSuccess) {
+                verify(unifiedClaimMetadataManager, times(1)).updateLocalClaim(any(), anyInt());
+            }
+        } catch (ClaimMetadataClientException e) {
+            if (!isValidationSuccess) {
+                assertEquals(e.getErrorCode(),
+                        ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getCode());
+                assertEquals(e.getMessage(), String.format(
+                        ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getMessage(),
+                        claimToBeUpdated.getClaimProperties().get(SHARED_PROFILE_VALUE_RESOLVING_METHOD)));
+            }
+        }
     }
 
     @Test
