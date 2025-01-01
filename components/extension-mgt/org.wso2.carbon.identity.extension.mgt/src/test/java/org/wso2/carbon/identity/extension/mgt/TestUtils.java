@@ -51,6 +51,20 @@ public class TestUtils {
     }
 
     /**
+     * Read the extension resource template.json.
+     *
+     * @param type Extension resource type.
+     * @param id Extension resource identifier.
+     * @return content of the template file.
+     * @throws IOException Exception when file reading fails.
+     */
+    public static String readExtensionResourceTemplate(String type, String id) throws IOException {
+
+        return readResource(EXTENSION_RESOURCE_PATH + type + PATH_SEPARATOR + id + PATH_SEPARATOR +
+                ExtensionMgtConstants.TEMPLATE_FILE_NAME);
+    }
+
+    /**
      * Read a resource in current class path.
      *
      * @param path File path to be read.
