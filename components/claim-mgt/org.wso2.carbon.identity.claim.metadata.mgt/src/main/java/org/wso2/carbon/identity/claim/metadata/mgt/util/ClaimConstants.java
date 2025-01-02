@@ -100,7 +100,7 @@ public class ClaimConstants {
         ERROR_CODE_NON_EXISTING_EXTERNAL_CLAIM_URI("CMT-600010", "External claim URI: %s in dialect: %s does not exist."),
         ERROR_CODE_NON_EXISTING_LOCAL_CLAIM("CMT-600011", "Local claim URI: %s  does not exist."),
         ERROR_CODE_EXISTING_EXTERNAL_CLAIM("CMT-600012", "External claim URI: %s in dialect: %s already exists."),
-        ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM("CMT-600013",
+        ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM("CMT-60013",
                 "Cannot change the shared profile value resolving method of the system claim: %s"),
         ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD("CMT-60014",
                 "Invalid shared profile value resolving method: %s"),
