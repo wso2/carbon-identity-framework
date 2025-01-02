@@ -8,9 +8,15 @@
   "tags": [ "Custom" ],
   "image": "",
   "idp": {},
+  "endpoint": {
+    "uri": "",
+    "authentication": {
+      "type": "",
+      "properties": {}
+    }
+  },
   "name": "Internal Custom Authentication",
   "services": [],
   "disabled": false,
   "templateId": "internal-custom-authentication"
 }
-

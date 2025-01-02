@@ -6,11 +6,31 @@
   "displayOrder": 1,
   "id": "external-custom-authentication",
   "tags": [ "Custom" ],
-  "idp": {},
+  "idp": {
+    "name": "",
+    "description": "",
+    "image": "",
+    "federatedAuthenticators": {
+      "defaultAuthenticatorId": "",
+      "authenticators": [
+        {
+          "authenticatorId": "",
+          "isEnabled": false,
+          "isDefault": false,
+          "endpoint": {
+            "uri": "",
+            "authentication": {
+              "type": "",
+              "properties": {}
+            }
+          }
+        }
+      ]
+    }
+  },
   "image": "",
   "name": "External Custom Authentication",
   "services": [],
   "disabled": false,
   "templateId": "external-custom-authentication"
 }
-

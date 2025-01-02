@@ -7,6 +7,13 @@
   "id": "two-factor-custom-authentication",
   "tags": [ "Custom" ],
   "idp": {},
+  "endpoint": {
+    "uri": "",
+    "authentication": {
+      "type": "",
+      "properties": {}
+    }
+  },
   "image": "",
   "name": "2FA Authentication",
   "services": [],
