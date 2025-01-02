@@ -726,7 +726,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
      * @param updatedLocalClaim  Updated local claim.
      * @param existingLocalClaim Existing local claim.
      * @param tenantId           Tenant ID.
-     * @throws ClaimMetadataException If the shared profile value resolving method change is not allowed for system claims.
+     * @throws ClaimMetadataException If the shared profile value resolving method change is invalid for system claim
+     *                                or updating value is unaccepted.
      */
     private void validateSharedProfileValueResolvingMethodChange(LocalClaim updatedLocalClaim,
                                                                  LocalClaim existingLocalClaim, int tenantId)
@@ -756,7 +757,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             return;
         }
 
-        // If both values are blank or the same, no need to validate further
+        // If both values are blank or the same, no need to validate further.
         if (StringUtils.isBlank(updatedClaimProperty) && StringUtils.isBlank(existingClaimProperty)) {
             return;
         }
