@@ -4,12 +4,12 @@
   "docLink": "",
   "templateGroup": "custom-authentication",
   "displayOrder": 1,
-  "id": "twofactor-custom-authentication",
+  "id": "two-factor-custom-authentication",
   "tags": [ "Custom" ],
   "idp": {},
   "image": "",
   "name": "2FA Authentication",
   "services": [],
   "disabled": false,
-  "templateId": "twofactor-custom-authentication"
+  "templateId": "two-factor-custom-authentication"
 }

@@ -1,5 +1,5 @@
 {
-  "id": "twofactor-custom-authentication",
+  "id": "two-factor-custom-authentication",
   "name": "2FA Authentication",
   "description": "Only verify users in a second or later step of the login flow.",
   "image": "",
