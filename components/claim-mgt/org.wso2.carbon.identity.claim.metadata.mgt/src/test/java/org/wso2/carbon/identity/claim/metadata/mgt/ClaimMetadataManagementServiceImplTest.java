@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.com).
+ * Copyright (c) 2022-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -206,6 +206,13 @@ public class ClaimMetadataManagementServiceImplTest {
 
         service.getLocalClaims(SUPER_TENANT_DOMAIN_NAME);
         verify(unifiedClaimMetadataManager, times(1)).getLocalClaims(anyInt());
+    }
+
+    @Test
+    public void testGetLocalClaim() throws ClaimMetadataException {
+
+        service.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_DOMAIN_NAME);
+        verify(unifiedClaimMetadataManager, times(1)).getLocalClaim(anyString(), anyInt());
     }
 
     @Test
