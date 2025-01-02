@@ -91,57 +91,53 @@ public class APIResourceManagementUtil {
             String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
             Map<String, APIResource> configs = APIResourceManagementConfigBuilder.getInstance()
                     .getAPIResourceMgtConfigurations();
-            Map<String, APIResource> duplicateConfigs = APIResourceManagementConfigBuilder.getInstance()
-                    .getDuplicateAPIResourceConfigs();
             if (!isSystemAPIExist(tenantDomain)) {
                 LOG.debug("Registering system API resources in the server.");
                 registerAPIResources(new ArrayList<>(configs.values()), tenantDomain);
             } else {
                 LOG.debug("System APIs are already registered in the server. Applying the latest configurations.");
-                // Remove the existing system APIs from the configs.
+                // Update the existing system APIs from the configs.
                 // Existing system APIs will be evaluated using the identifier.
                 HashMap<String, APIResource> tempConfigs = new HashMap<>(configs);
                 List<APIResource> systemAPIs = getSystemAPIs(tenantDomain);
+                // Get the system API scopes to compare with the newly added scope of an existing system API resource.
+                HashMap<String, List<String>> systemScopes = getSystemScopes(tenantDomain);
                 for (APIResource systemAPI : systemAPIs) {
+                    // Check whether the API resource is already registered as system API.
+                    if (configs.containsKey(systemAPI.getIdentifier())) {
+                        APIResource updatedAPIResource = configs.get(systemAPI.getIdentifier());
+                        List<Scope> addedScopes = updatedAPIResource.getScopes().stream()
+                                .filter(scope -> !systemScopes.get(systemAPI.getId()).contains(scope.getName()))
+                                .collect(Collectors.toList());
+                        // Only allowed to add new scopes or update the type of the existing system API resource.
+                        if (addedScopes.isEmpty() &&
+                                StringUtils.equals(systemAPI.getType(), updatedAPIResource.getType())) {
+                            continue;
+                        }
+                        APIResource apiResourceFromDB = APIResourceManagerImpl.getInstance().getAPIResourceByIdentifier(
+                                systemAPI.getIdentifier(), tenantDomain);
+                        APIResource updatedAPIResourceFromDB = new APIResource.APIResourceBuilder()
+                                .id(apiResourceFromDB.getId())
+                                .name(apiResourceFromDB.getName())
+                                .description(apiResourceFromDB.getDescription())
+                                .identifier(apiResourceFromDB.getIdentifier())
+                                // Set the type as the updated API resource type.
+                                .type(updatedAPIResource.getType())
+                                .tenantId(apiResourceFromDB.getTenantId())
+                                .requiresAuthorization(apiResourceFromDB.isAuthorizationRequired())
+                                .scopes(apiResourceFromDB.getScopes())
+                                .subscribedApplications(apiResourceFromDB.getSubscribedApplications())
+                                .properties(apiResourceFromDB.getProperties())
+                                .build();
+
+                        // If there are scopes which are not in the existing API resource, update the API resource.
+                        APIResourceManagerImpl.getInstance().updateAPIResource(updatedAPIResourceFromDB, addedScopes,
+                                new ArrayList<>(), tenantDomain);
+                    }
                     tempConfigs.remove(systemAPI.getIdentifier());
                 }
                 // Register the new system APIs.
                 registerAPIResources(new ArrayList<>(tempConfigs.values()), tenantDomain);
-                // Handle duplicate system APIs.
-                for (APIResource oldAPIResource : duplicateConfigs.values()) {
-                    // Get the existing API resource from the DB.
-                    APIResource apiResourceFromDB = APIResourceManagerImpl.getInstance().getAPIResourceByIdentifier(
-                            oldAPIResource.getIdentifier(), tenantDomain);
-                    // Get the updated API resource from the configs.
-                    APIResource updatedAPIResource = configs.get(oldAPIResource.getIdentifier());
-                    // Get the scopes which are not in the existing API resource.
-                    List<Scope> addedScopes = updatedAPIResource.getScopes().stream()
-                            .filter(scope1 -> apiResourceFromDB.getScopes().stream()
-                                    .noneMatch(scope2 -> scope2.getName().equals(scope1.getName())))
-                            .collect(Collectors.toList());
-                    if (addedScopes.isEmpty() &&
-                            StringUtils.equals(apiResourceFromDB.getType(), updatedAPIResource.getType())) {
-                        continue;
-                    }
-
-                    APIResource updatedAPIResourceFromDB = new APIResource.APIResourceBuilder()
-                            .id(apiResourceFromDB.getId())
-                            .name(apiResourceFromDB.getName())
-                            .description(apiResourceFromDB.getDescription())
-                            .identifier(apiResourceFromDB.getIdentifier())
-                            // Set the type as the updated API resource type.
-                            .type(updatedAPIResource.getType())
-                            .tenantId(apiResourceFromDB.getTenantId())
-                            .requiresAuthorization(apiResourceFromDB.isAuthorizationRequired())
-                            .scopes(apiResourceFromDB.getScopes())
-                            .subscribedApplications(apiResourceFromDB.getSubscribedApplications())
-                            .properties(apiResourceFromDB.getProperties())
-                            .build();
-
-                    // If there are scopes which are not in the existing API resource, update the API resource.
-                    APIResourceManagerImpl.getInstance().updateAPIResource(updatedAPIResourceFromDB, addedScopes,
-                            new ArrayList<>(), tenantDomain);
-                }
             }
 
             LOG.debug("System APIs successfully registered in tenant domain: " + tenantDomain);
@@ -179,6 +175,22 @@ public class APIResourceManagementUtil {
         return new ArrayList<>(APIResourceManagerImpl.getInstance().getAPIResources(null, null, systemAPICount,
                         APIResourceManagementConstants.NON_BUSINESS_API_FILTER, APIResourceManagementConstants.ASC,
                         tenantDomain).getAPIResources());
+    }
+
+    public static HashMap<String, List<String>> getSystemScopes(String tenantDomain) throws APIResourceMgtException {
+
+        List<Scope> scopes = APIResourceManagerImpl.getInstance().getSystemAPIScopes(tenantDomain);
+        HashMap<String, List<String>> scopesMap = new HashMap<>();
+        scopes.forEach(scope -> {
+            if (scopesMap.containsKey(scope.getApiID())) {
+                scopesMap.get(scope.getApiID()).add(scope.getName());
+            } else {
+                List<String> scopeList = new ArrayList<>();
+                scopeList.add(scope.getName());
+                scopesMap.put(scope.getApiID(), scopeList);
+            }
+        });
+        return scopesMap;
     }
 
     /**
