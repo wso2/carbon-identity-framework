@@ -856,4 +856,14 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
+    <APIResourceCollection name="org_apiResources" displayName="API Resources" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:apiResources"/>
+            </Feature>
+            <Read>
+                <Scope name="internal_org_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
 </APIResourceCollections>
