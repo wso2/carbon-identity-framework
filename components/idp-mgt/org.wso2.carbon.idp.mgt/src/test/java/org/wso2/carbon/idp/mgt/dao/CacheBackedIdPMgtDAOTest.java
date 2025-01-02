@@ -111,8 +111,6 @@ public class CacheBackedIdPMgtDAOTest {
     private ActionManagementService actionManagementService;
     private final ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
     MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    MockedStatic<IdpMgtServiceComponentHolder> idpMgtServiceComponentHolder;
-    IdpMgtServiceComponentHolder mockIdpMgtServiceComponentHolder = mock(IdpMgtServiceComponentHolder.class);
 
     private void initiateH2Database(String databaseName, String scriptPath) throws Exception {
 
@@ -180,7 +178,6 @@ public class CacheBackedIdPMgtDAOTest {
         doThrow(ActionMgtServerException.class).when(actionManagementServiceForException)
                 .deleteAction(any(), any(), any());
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
-        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
     }
 
     @BeforeMethod
@@ -204,10 +201,7 @@ public class CacheBackedIdPMgtDAOTest {
 
         identityTenantUtil = mockStatic(IdentityTenantUtil.class);
         identityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(TENANT_DOMAIN);
-        idpMgtServiceComponentHolder = mockStatic(IdpMgtServiceComponentHolder.class);
-        idpMgtServiceComponentHolder.when(
-                IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
-        when(mockIdpMgtServiceComponentHolder.getActionManagementService()).thenReturn(actionManagementService);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
     }
 
     @AfterMethod
@@ -226,7 +220,6 @@ public class CacheBackedIdPMgtDAOTest {
 
         closeH2Database();
         identityTenantUtil.close();
-        idpMgtServiceComponentHolder.close();
     }
 
     @DataProvider
@@ -1555,7 +1548,7 @@ public class CacheBackedIdPMgtDAOTest {
             // Deleting multiple IDPs on a tenant.
             assertThrows(IdentityProviderManagementException.class, () ->
                     cacheBackedIdPMgtDAOForException.deleteIdPs(SAMPLE_TENANT_ID1));
-            verify(actionManagementService, times(0)).addAction(anyString(), any(), anyString());
+            verify(actionManagementService, never()).addAction(anyString(), any(), anyString());
         }
     }
 
@@ -1640,7 +1633,7 @@ public class CacheBackedIdPMgtDAOTest {
                     cacheBackedIdPMgtDAOForException.forceDeleteIdP(
                             userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
 
-            verify(actionManagementService, times(0)).addAction(anyString(), any(), anyString());
+            verify(actionManagementService, never()).addAction(anyString(), any(), anyString());
         }
     }
 
@@ -1664,7 +1657,7 @@ public class CacheBackedIdPMgtDAOTest {
                     cacheBackedIdPMgtDAOForException.deleteIdP(
                             userDefinedIdP.getIdentityProviderName(), SAMPLE_TENANT_ID1, TENANT_DOMAIN));
 
-            verify(actionManagementService, times(0)).addAction(anyString(), any(), anyString());
+            verify(actionManagementService, never()).addAction(anyString(), any(), anyString());
         }
     }
 
@@ -2002,10 +1995,7 @@ public class CacheBackedIdPMgtDAOTest {
 
     private void setActionServiceForException() {
 
-        idpMgtServiceComponentHolder.when(
-                IdpMgtServiceComponentHolder::getInstance).thenReturn(mockIdpMgtServiceComponentHolder);
-        when(mockIdpMgtServiceComponentHolder.getActionManagementService()).thenReturn(
-                actionManagementServiceForException);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
     }
 
     private void addTestIdps() throws IdentityProviderManagementException {

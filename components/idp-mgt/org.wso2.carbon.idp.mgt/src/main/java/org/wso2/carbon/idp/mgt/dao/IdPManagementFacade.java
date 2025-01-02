@@ -206,7 +206,7 @@ public class IdPManagementFacade {
                 deleteEndpointConfig(idp, IdentityTenantUtil.getTenantDomain(tenantId));
             }
         } catch (IdentityProviderManagementException e) {
-            // Error will not be thrown, since the IdPs is already deleted. But there will be stale actions.
+            // Error will not be thrown, since the IdPs are already deleted. But there will be stale actions.
             LOG.warn(IdPManagementConstants.WarningMessage.WARN_STALE_IDP_ACTIONS);
         }
     }
@@ -217,7 +217,6 @@ public class IdPManagementFacade {
         IdentityProvider identityProvider = getIDPbyResourceId(null, resourceId, tenantId, tenantDomain);
         dao.deleteIdPByResourceId(resourceId, tenantId, tenantDomain);
         try {
-
             deleteEndpointConfig(identityProvider, tenantDomain);
         } catch (IdentityProviderManagementException e) {
             // Error will not be thrown, since the IDP is already deleted. But there will be stale action.
