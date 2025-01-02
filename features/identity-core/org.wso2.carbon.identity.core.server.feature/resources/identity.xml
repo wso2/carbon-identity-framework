@@ -1241,6 +1241,7 @@
 
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
+        <AutofillUsernameFieldWithSubjectAttribute>true</AutofillUsernameFieldWithSubjectAttribute>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
         <FailAuthnOnProvisionFailure>false</FailAuthnOnProvisionFailure>
         <EnableEnhancedFeature>false</EnableEnhancedFeature>
