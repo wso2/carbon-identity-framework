@@ -3,7 +3,6 @@
   "description": "Register externally implemented authentication service.",
   "docLink": "",
   "templateGroup": "custom-authentication",
-  "displayOrder": 2,
   "id": "internal-custom-authentication",
   "tags": [ "Custom" ],
   "image": "",
