@@ -1,0 +1,21 @@
+{
+  "category": "DEFAULT",
+  "description": "Register externally implemented authentication service.",
+  "docLink": "",
+  "templateGroup": "custom-authentication",
+  "id": "two-factor-custom-authentication",
+  "tags": [ "Custom" ],
+  "idp": {},
+  "endpoint": {
+    "uri": "",
+    "authentication": {
+      "type": "",
+      "properties": {}
+    }
+  },
+  "image": "",
+  "name": "2FA Authentication",
+  "services": [],
+  "disabled": false,
+  "templateId": "two-factor-custom-authentication"
+}

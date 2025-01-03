@@ -1,0 +1,21 @@
+{
+  "category": "DEFAULT",
+  "description": "Register externally implemented authentication service.",
+  "docLink": "",
+  "templateGroup": "custom-authentication",
+  "id": "internal-custom-authentication",
+  "tags": [ "Custom" ],
+  "image": "",
+  "idp": {},
+  "endpoint": {
+    "uri": "",
+    "authentication": {
+      "type": "",
+      "properties": {}
+    }
+  },
+  "name": "Internal Custom Authentication",
+  "services": [],
+  "disabled": false,
+  "templateId": "internal-custom-authentication"
+}
