@@ -713,8 +713,26 @@
         <Resource context="(.*)/o/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_template_mgt_view</Scopes>
         </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_template_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_org_template_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/notification/email/template-types(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_template_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/o/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_template_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_template_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_org_template_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/notification/sms/template-types(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_template_mgt_delete</Scopes>
         </Resource>
 
         <!-- Notification Template Management API -->
@@ -749,6 +767,15 @@
         <!-- [Organization] Email Template Management API v1/v2 -->
         <Resource context="(.*)/o/api/server/v(.*)/email/template-types(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_email_mgt_view</Scopes>
+        </Resource>
+         <Resource context="(.*)/o/api/server/v(.*)/email/template-types(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_email_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/email/template-types/(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_org_email_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v(.*)/email/template-types/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_email_mgt_delete</Scopes>
         </Resource>
 
         <!-- Email Template Management API v1/v2 -->
