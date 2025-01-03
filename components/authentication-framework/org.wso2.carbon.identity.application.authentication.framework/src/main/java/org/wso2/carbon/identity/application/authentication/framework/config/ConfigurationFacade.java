@@ -195,7 +195,8 @@ public class ConfigurationFacade {
     public String getAuthenticationEndpointURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT,
-                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointURL);
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointURL,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointURLV2);
     }
 
     public String getAuthenticationEndpointAbsoluteURL() {
@@ -207,19 +208,22 @@ public class ConfigurationFacade {
     public String getAuthenticationEndpointRetryURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_RETRY,
-                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointRetryURL);
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointRetryURL,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointRetryURLV2);
     }
 
     public String getAuthenticationEndpointErrorURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_ERROR,
-                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointErrorURL);
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointErrorURL,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointErrorURLV2);
     }
 
     public String getAuthenticationEndpointWaitURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_WAIT,
-                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURL);
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURL,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointWaitURLV2);
     }
 
     public String getAccountRecoveryEndpointAbsolutePath() {
@@ -235,13 +239,15 @@ public class ConfigurationFacade {
     public String getIdentifierFirstConfirmationURL() {
 
         return buildUrl(IDENTIFIER_FIRST_CONFIRMATION,
-                FileBasedConfigurationBuilder.getInstance()::getIdentifierFirstConfirmationURL);
+                FileBasedConfigurationBuilder.getInstance()::getIdentifierFirstConfirmationURL,
+                FileBasedConfigurationBuilder.getInstance()::getIdentifierFirstConfirmationURLV2);
     }
 
     public String getAuthenticationEndpointPromptURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT,
-                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointPromptURL);
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointPromptURL,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointPromptURLV2);
     }
 
     /**
@@ -252,7 +258,8 @@ public class ConfigurationFacade {
     public String getAuthenticationEndpointMissingClaimsURL() {
 
         return buildUrl(AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT,
-                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointMissingClaimsURL);
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointMissingClaimsURL,
+                FileBasedConfigurationBuilder.getInstance()::getAuthenticationEndpointMissingClaimsURLV2);
     }
 
     /**
@@ -324,11 +331,21 @@ public class ConfigurationFacade {
         }
     }
 
+    @Deprecated
     private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {
+
+        return buildUrl(defaultContext, getValueFromFileBasedConfig, null);
+    }
+
+    private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig,
+                            Supplier<String> getV2VaueFromFileBasedConfig) {
 
         String applicationName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationName();
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             try {
+                if (StringUtils.isNotBlank(getV2VaueFromFileBasedConfig.get())) {
+                    return getV2VaueFromFileBasedConfig.get();
+                }
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
                 ServiceURLBuilder serviceURLBuilder =
                         ServiceURLBuilder.create().addPath(defaultContext).setOrganization(organizationId);
