@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,14 +32,22 @@ public class AuthorizedAPI {
     private String policyId;
     private List<Scope> scopes;
     private String type;
+    private List<AuthorizationDetailsType> authorizationDetailsTypes;
 
     public AuthorizedAPI(String appId, String apiId, String policyId, List<Scope> scopes, String type) {
+
+        this(appId, apiId, policyId, scopes, type, null);
+    }
+
+    public AuthorizedAPI(String appId, String apiId, String policyId, List<Scope> scopes, String type,
+                         List<AuthorizationDetailsType> authorizationDetailsTypes) {
 
         this.appId = appId;
         this.apiId = apiId;
         this.policyId = policyId;
         this.scopes = scopes;
         this.type = type;
+        this.authorizationDetailsTypes = authorizationDetailsTypes;
     }
 
     public AuthorizedAPI() {
@@ -121,6 +129,16 @@ public class AuthorizedAPI {
         return type;
     }
 
+    public List<AuthorizationDetailsType> getAuthorizationDetailsTypes() {
+
+        return this.authorizationDetailsTypes;
+    }
+
+    public void setAuthorizationDetailsTypes(List<AuthorizationDetailsType> authorizationDetailsTypes) {
+
+        this.authorizationDetailsTypes = authorizationDetailsTypes;
+    }
+
     /**
      * Builder class for {@link AuthorizedAPI}.
      */
@@ -131,6 +149,7 @@ public class AuthorizedAPI {
         private String policyId;
         private List<Scope> scopes;
         private String type;
+        private List<AuthorizationDetailsType> authorizationDetailsTypes;
 
         public AuthorizedAPIBuilder() {
 
@@ -166,9 +185,16 @@ public class AuthorizedAPI {
             return this;
         }
 
+        public AuthorizedAPIBuilder authorizationDetailsTypes(
+                List<AuthorizationDetailsType> authorizationDetailsTypes) {
+
+            this.authorizationDetailsTypes = authorizationDetailsTypes;
+            return this;
+        }
+
         public AuthorizedAPI build() {
 
-            return new AuthorizedAPI(appId, apiId, policyId, scopes, type);
+            return new AuthorizedAPI(appId, apiId, policyId, scopes, type, authorizationDetailsTypes);
         }
     }
 }
