@@ -213,7 +213,7 @@ public class SAMLSSOServiceProviderDAOTest {
         properties.putAll((Map<?, ?>) paramMapObj);
         Resource dummyResource = new ResourceImpl();
         dummyResource.setProperties(properties);
-        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.buildSAMLSSOServiceProviderDAO(dummyResource);
 
         assertEquals(serviceProviderDO.getIssuer(), dummyResource.getProperty(IdentityRegistryResources
                 .PROP_SAML_SSO_ISSUER), "Issuer Mismatch.");
@@ -346,7 +346,7 @@ public class SAMLSSOServiceProviderDAOTest {
         properties.putAll((Map<?, ?>) paramMapObj);
         Resource dummyResource = new ResourceImpl();
         dummyResource.setProperties(properties);
-        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.buildSAMLSSOServiceProviderDAO(dummyResource);
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         String expectedPath = getPath(dummyResource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
@@ -385,7 +385,7 @@ public class SAMLSSOServiceProviderDAOTest {
         properties.putAll((Map<?, ?>) paramMapObj);
         Resource dummyResource = new ResourceImpl();
         dummyResource.setProperties(properties);
-        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.buildSAMLSSOServiceProviderDAO(dummyResource);
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         String existingIssuer = dummyResource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER);
         if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
@@ -516,7 +516,7 @@ public class SAMLSSOServiceProviderDAOTest {
         String expectedPath = getPath(dummyResource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
         when(mockRegistry.resourceExists(expectedPath)).thenReturn(false);
-        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.buildSAMLSSOServiceProviderDAO(dummyResource);
         assertEquals(objUnderTest.uploadServiceProvider(serviceProviderDO, TENANT_ID), serviceProviderDO, "Same resource should" +
                 " have returned after successful upload.");
     }
@@ -531,7 +531,7 @@ public class SAMLSSOServiceProviderDAOTest {
         String expectedPath = getPath(dummyResource
                 .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ISSUER));
         when(mockRegistry.resourceExists(expectedPath)).thenReturn(true);
-        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.resourceToObject(dummyResource);
+        SAMLSSOServiceProviderDO serviceProviderDO = objUnderTest.buildSAMLSSOServiceProviderDAO(dummyResource);
         objUnderTest.uploadServiceProvider(serviceProviderDO, TENANT_ID);
         fail("Uploading an existing SP should have failed");
     }
