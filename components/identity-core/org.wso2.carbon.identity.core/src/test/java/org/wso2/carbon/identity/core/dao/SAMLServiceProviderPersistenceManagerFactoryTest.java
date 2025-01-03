@@ -26,6 +26,9 @@ import java.lang.reflect.Field;
 
 import static org.testng.Assert.assertTrue;
 
+/**
+ * This class tests the methods of the SAMLServiceProviderPersistenceManagerFactory class.
+ */
 public class SAMLServiceProviderPersistenceManagerFactoryTest {
 
     private SAMLServiceProviderPersistenceManagerFactory factory;
@@ -49,7 +52,7 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
 
         setPrivateStaticField(SAMLServiceProviderPersistenceManagerFactory.class, "SAML_STORAGE_TYPE", "database");
         SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = factory.getSAMLServiceProviderPersistenceManager();
-//        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
+        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
     }
 
     @Test
@@ -63,9 +66,10 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
     @Test
     public void testGetSAMLServiceProviderPersistenceManagerWithHybridStorage() throws Exception {
 
+        //TODO : Change test to check for HybridSAMLSSOServiceProviderDAOImpl once implemented.
         setPrivateStaticField(SAMLServiceProviderPersistenceManagerFactory.class, "SAML_STORAGE_TYPE", "hybrid");
         SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = factory.getSAMLServiceProviderPersistenceManager();
-//        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
+        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
     }
 
     private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)

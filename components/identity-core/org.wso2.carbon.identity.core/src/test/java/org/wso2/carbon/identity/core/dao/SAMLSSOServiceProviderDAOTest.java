@@ -64,6 +64,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.wso2.carbon.identity.core.constant.TestConstants.TENANT_ID;
 
 /**
  * Test class for SAMLSSOServiceProviderDAO.
@@ -80,7 +81,6 @@ public class SAMLSSOServiceProviderDAOTest {
     private Map<String, List<String>> dummyPropertiesWithAnIssuerQualifier;
     private MockedStatic<Transaction> transaction;
     private MockedStatic<IdentityTenantUtil> identityTenantUtil;
-    private static final int TENANT_ID = 1;
 
     @BeforeMethod
     public void setUp() throws Exception {
