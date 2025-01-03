@@ -157,7 +157,12 @@ public class ClaimConstants {
             return name;
         }
 
-        // Method to match resolving method names with enum constants.
+        /**
+         * Get the SharedProfileValueResolvingMethod from the name.
+         *
+         * @param name Name of the SharedProfileValueResolvingMethod.
+         * @return SharedProfileValueResolvingMethod name.
+         */
         public static SharedProfileValueResolvingMethod fromName(String name) {
 
             for (SharedProfileValueResolvingMethod method : SharedProfileValueResolvingMethod.values()) {

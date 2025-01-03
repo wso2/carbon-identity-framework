@@ -738,7 +738,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         String existingClaimProperty =
                 existingLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
 
-        if (!StringUtils.isBlank(updatedClaimProperty)) {
+        if (StringUtils.isNotBlank(updatedClaimProperty)) {
             try {
                 ClaimConstants.SharedProfileValueResolvingMethod.fromName(updatedClaimProperty);
             } catch (IllegalArgumentException e) {
@@ -765,10 +765,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             return;
         }
         /*
-        If existingClaimProperty is null and updatedClaimProperty has a value,
-        it should be equals to system default.
+        If updatedClaimProperty has a value, it should be equals to system default.
+        Removing the updatedClaimProperty is allowed. Then, in the runtime, the system default value will be used.
          */
-        if (StringUtils.isBlank(existingClaimProperty)) {
+        if (StringUtils.isNotBlank(updatedClaimProperty)) {
             Optional<LocalClaim> systemDefaultClaim =
                     this.systemDefaultClaimMetadataManager.getLocalClaim(existingLocalClaim.getClaimURI(), tenantId);
             if (systemDefaultClaim.isPresent()) {

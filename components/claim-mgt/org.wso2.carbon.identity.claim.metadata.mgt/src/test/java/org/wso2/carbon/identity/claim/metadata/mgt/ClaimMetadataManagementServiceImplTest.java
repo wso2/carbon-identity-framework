@@ -321,7 +321,19 @@ public class ClaimMetadataManagementServiceImplTest {
                                 propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
                         true
                 },
-                // Case 4: Updating claim has SharedProfileValueResolvingMethod value different than system default
+                // Case 4: Able to remove the SharedProfileValueResolvingMethod property from the existing claim.
+                {
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithOutSharedProfileValueResolvingMethod),
+                        new LocalClaim(
+                                LOCAL_CLAIM_1,
+                                Arrays.asList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)),
+                                propertiesWithFromOriginAsSharedProfileValueResolvingMethod),
+                        true
+                },
+                // Case 5: Updating claim has SharedProfileValueResolvingMethod value different than system default
                 // while existing claim don't have SharedProfileValueResolvingMethod property.
                 {
                         new LocalClaim(
@@ -334,7 +346,7 @@ public class ClaimMetadataManagementServiceImplTest {
                                 propertiesWithOutSharedProfileValueResolvingMethod),
                         false
                 },
-                // Case 5: Updating claim has SharedProfileValueResolvingMethod value different than the existing claim's
+                // Case 6: Updating claim has SharedProfileValueResolvingMethod value different than the existing claim's
                 // SharedProfileValueResolvingMethod value.
                 {
                         new LocalClaim(
@@ -365,6 +377,8 @@ public class ClaimMetadataManagementServiceImplTest {
             service.updateLocalClaim(claimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
             if (isValidationSuccess) {
                 verify(unifiedClaimMetadataManager, times(1)).updateLocalClaim(any(), anyInt());
+            } else {
+                verify(unifiedClaimMetadataManager, times(0)).updateLocalClaim(any(), anyInt());
             }
         } catch (ClaimMetadataClientException e) {
             if (!isValidationSuccess) {
@@ -478,6 +492,8 @@ public class ClaimMetadataManagementServiceImplTest {
             service.updateLocalClaim(claimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
             if (isValidationSuccess) {
                 verify(unifiedClaimMetadataManager, times(1)).updateLocalClaim(any(), anyInt());
+            } else {
+                verify(unifiedClaimMetadataManager, times(0)).updateLocalClaim(any(), anyInt());
             }
         } catch (ClaimMetadataClientException e) {
             if (!isValidationSuccess) {
