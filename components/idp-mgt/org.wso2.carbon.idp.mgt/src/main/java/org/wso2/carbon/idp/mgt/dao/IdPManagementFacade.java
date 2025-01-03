@@ -182,6 +182,16 @@ public class IdPManagementFacade {
         return dao.isIdpReferredBySP(idPName, tenantId);
     }
 
+    public boolean isAuthenticatorReferredBySP(String idpName, String authenticatorName, int tenantId) throws IdentityProviderManagementException {
+
+        return dao.isAuthenticatorReferredBySP(idpName, authenticatorName, tenantId);
+    }
+
+    public boolean isOutboundConnectorReferredBySP(String idpName, String connectorName, int tenantId) throws IdentityProviderManagementException {
+
+        return dao.isOutboundConnectorReferredBySP(idpName, connectorName, tenantId);
+    }
+
     public void deleteIdP(String idPName, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
