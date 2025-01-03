@@ -132,6 +132,8 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "IsDiscoverable")
     private boolean isDiscoverable;
 
+    private List<DiscoverableGroup> discoverableGroups;
+
     @IgnoreNullElement
     @XmlElement(name = TEMPLATE_ID)
     private String templateId;
@@ -600,6 +602,16 @@ public class ServiceProvider implements Serializable {
     public void setDiscoverable(boolean discoverable) {
 
         isDiscoverable = discoverable;
+    }
+
+    public List<DiscoverableGroup> getDiscoverableGroups() {
+
+        return discoverableGroups;
+    }
+
+    public void setDiscoverableGroups(List<DiscoverableGroup> discoverableGroupList) {
+
+        discoverableGroups = discoverableGroupList;
     }
 
     public String getTemplateId() {
