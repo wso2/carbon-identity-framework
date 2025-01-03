@@ -40,7 +40,7 @@ public class TestUtils {
      * Read the extension resource info.json.
      *
      * @param type Extension resource type.
-     * @param id Extension resource identifier.
+     * @param id   Extension resource identifier.
      * @return content of the info file.
      * @throws IOException Exception when file reading fails.
      */
@@ -54,7 +54,7 @@ public class TestUtils {
      * Read the extension resource template.json.
      *
      * @param type Extension resource type.
-     * @param id Extension resource identifier.
+     * @param id   Extension resource identifier.
      * @return content of the template file.
      * @throws IOException Exception when file reading fails.
      */
