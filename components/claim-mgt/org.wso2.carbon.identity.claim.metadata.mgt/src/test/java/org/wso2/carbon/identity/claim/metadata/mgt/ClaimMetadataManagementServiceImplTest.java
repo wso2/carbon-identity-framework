@@ -290,8 +290,8 @@ public class ClaimMetadataManagementServiceImplTest {
             verify(unifiedClaimMetadataManager, times(1)).addLocalClaim(any(), anyInt());
         } else {
             assertThrows(ClaimMetadataClientException.class, () -> {
-                        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
-                    });
+                service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+            });
         }
     }
 
