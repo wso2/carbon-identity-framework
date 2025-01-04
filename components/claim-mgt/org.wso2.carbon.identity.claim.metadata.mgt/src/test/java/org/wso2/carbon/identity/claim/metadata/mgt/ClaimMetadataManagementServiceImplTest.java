@@ -58,6 +58,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.IS_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD;
@@ -238,6 +239,60 @@ public class ClaimMetadataManagementServiceImplTest {
         assertThrows(ClaimMetadataClientException.class, () -> {
             service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
         });
+    }
+
+    @DataProvider(name = "sharedProfileValueResolvingMethodValidationForClaimAdditionData")
+    public Object[][] sharedProfileValueResolvingMethodValidationForClaimAdditionData() {
+
+        Map<String, String> propertiesWithOutSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithOutSharedProfileValueResolvingMethod.put(CLAIM_PROPERTY_KEY_1, CLAIM_PROPERTY_VALUE_1);
+
+        Map<String, String> propertiesWithFromOriginAsSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithFromOriginAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+
+        Map<String, String> propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_SHARED_PROFILE.getName());
+
+        Map<String, String> propertiesWithFromFirstFoundInHierarchyAsProfileAsSharedProfileValueResolvingMethod =
+                new HashMap<>();
+        propertiesWithFromFirstFoundInHierarchyAsProfileAsSharedProfileValueResolvingMethod.put(
+                SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_FIRST_FOUND_IN_HIERARCHY.getName());
+
+        Map<String, String> propertiesWithInvalidProfileAsSharedProfileValueResolvingMethod = new HashMap<>();
+        propertiesWithInvalidProfileAsSharedProfileValueResolvingMethod.put(SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                "InvalidMethod");
+
+        return new Object[][]{
+                {propertiesWithOutSharedProfileValueResolvingMethod, true},
+                {propertiesWithFromOriginAsSharedProfileValueResolvingMethod, true},
+                {propertiesWithFromSharedProfileAsSharedProfileValueResolvingMethod, true},
+                {propertiesWithFromFirstFoundInHierarchyAsProfileAsSharedProfileValueResolvingMethod, true},
+                {propertiesWithInvalidProfileAsSharedProfileValueResolvingMethod, false}
+        };
+    }
+
+    @Test(dataProvider = "sharedProfileValueResolvingMethodValidationForClaimAdditionData")
+    public void testSharedProfileValueResolvingMethodValidationOnLocalClaimAdd(Map<String, String> claimProperties,
+                                                                               boolean isValidClaimAddition)
+            throws ClaimMetadataException {
+
+        LocalClaim localClaimToBeAdded = new LocalClaim(CUSTOM_CLAIM);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes().add(new AttributeMapping(PRIMARY_DOMAIN, CUSTOM_ATTRIBUTE));
+        localClaimToBeAdded.getClaimProperties().putAll(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(SUPER_TENANT_ID)).thenReturn(new ArrayList<>());
+        if (isValidClaimAddition) {
+            service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+            verify(unifiedClaimMetadataManager, times(1)).addLocalClaim(any(), anyInt());
+        } else {
+            assertThrows(ClaimMetadataClientException.class, () -> {
+                        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+                    });
+        }
     }
 
     @Test
@@ -498,9 +553,9 @@ public class ClaimMetadataManagementServiceImplTest {
         } catch (ClaimMetadataClientException e) {
             if (!isValidationSuccess) {
                 assertEquals(e.getErrorCode(),
-                        ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getCode());
+                        ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getCode());
                 assertEquals(e.getMessage(), String.format(
-                        ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getMessage(),
+                        ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getMessage(),
                         claimToBeUpdated.getClaimProperties().get(SHARED_PROFILE_VALUE_RESOLVING_METHOD)));
             }
         }
