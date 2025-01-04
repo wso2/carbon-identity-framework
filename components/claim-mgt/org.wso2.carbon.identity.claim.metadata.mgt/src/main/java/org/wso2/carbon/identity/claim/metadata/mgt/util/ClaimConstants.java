@@ -166,7 +166,7 @@ public class ClaimConstants {
         public static SharedProfileValueResolvingMethod fromName(String name) {
 
             for (SharedProfileValueResolvingMethod method : SharedProfileValueResolvingMethod.values()) {
-                if (method.getName().equalsIgnoreCase(name)) {
+                if (method.getName().equals(name)) {
                     return method;
                 }
             }
