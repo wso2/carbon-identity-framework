@@ -575,6 +575,8 @@
   "event.default_listener.consent_mgt_handler.enable": true,
   "event.default_listener.user_session_termination.priority": "85",
   "event.default_listener.user_session_termination.enable": true,
+  "event.default_listener.email_domain_validation_handler.priority": "15",
+  "event.default_listener.email_domain_validation_handler.enable": true,
   "event.default_listener.jit_provisioning_handler.priority": "20",
   "event.default_listener.jit_provisioning_handler.enable": true,
   "event.default_listener.post_auth_association_handler.priority": "25",
