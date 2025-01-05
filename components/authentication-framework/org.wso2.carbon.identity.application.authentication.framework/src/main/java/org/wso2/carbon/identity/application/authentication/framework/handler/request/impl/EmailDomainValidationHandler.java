@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_RETRIEVING_ORG_DISCOVERY_ATTRIBUTES;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.INVALID_EMAIL_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.NO_EMAIL_ATTRIBUTE_FOUND;
 
 /**
  * This class is responsible for validating the email domain of the user during the authentication flow.
@@ -147,10 +148,11 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
 
                 if (emailDomain == null) {
                     if (log.isDebugEnabled()) {
-                        log.debug("email address not found or is not in the correct format." +
-                                " Skipping email domain validation.");
+                        log.debug("Email address not found or is not in the correct format." +
+                                " Email domain validation failed.");
                     }
-                    return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+                    throw new PostAuthenticationFailedException(NO_EMAIL_ATTRIBUTE_FOUND.getCode(),
+                            NO_EMAIL_ATTRIBUTE_FOUND.getMessage());
                 }
 
                 if (!isValidEmailDomain(context, emailDomain)) {
