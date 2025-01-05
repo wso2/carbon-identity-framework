@@ -17,11 +17,13 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="org.wso2.carbon.identity.application.common.model.test">
-    <test name="org.wso2.carbon.identity.application.common.model.test" preserve-order="false" parallel="false">
+    <test name="org.wso2.carbon.identity.application.common.model.test" preserve-order="true" parallel="false">
         <!--<parameter name="log-level" value="debug"/>-->
         <classes>
+            <class name="org.wso2.carbon.identity.application.common.model.test.dao.AuthenticatorManagementDAOImplTest"/>
             <class name="org.wso2.carbon.identity.application.common.model.test.ProvisioningConnectorConfigTest"/>
             <class name="org.wso2.carbon.identity.application.common.model.test.UserDefinedAuthenticatorTest"/>
+            <class name="org.wso2.carbon.identity.application.common.model.test.ApplicationAuthenticatorServiceTest"/>
         </classes>
     </test>
 </suite>

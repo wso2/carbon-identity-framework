@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
@@ -24,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
@@ -39,9 +42,11 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,6 +65,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI;
@@ -67,6 +73,8 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
@@ -77,6 +85,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     private static final Log log = LogFactory.getLog(ClaimMetadataManagementServiceImpl.class);
 
     private final ReadWriteClaimMetadataManager unifiedClaimMetadataManager = new UnifiedClaimMetadataManager();
+    private final ReadOnlyClaimMetadataManager systemDefaultClaimMetadataManager =
+            new SystemDefaultClaimMetadataManager();
     private static final int MAX_CLAIM_PROPERTY_LENGTH = 255;
     private static final int MAX_CLAIM_PROPERTY_LENGTH_LIMIT = 1024;
     private static final int MIN_CLAIM_PROPERTY_LENGTH_LIMIT = 0;
@@ -187,9 +197,32 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // Add listener
 
-        return IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled() ? localClaims.stream().filter(
-                localClaim -> !UserCoreConstants.ROLE_CLAIM.equals(localClaim.getClaimURI())).collect(
-                Collectors.toList()) : localClaims;
+        boolean isGroupRoleSeparationEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
+        List<LocalClaim> filteredLocalClaims = new ArrayList<>(localClaims.size());
+
+        for (LocalClaim claim : localClaims) {
+            if (isGroupRoleSeparationEnabled && UserCoreConstants.ROLE_CLAIM.equals(claim.getClaimURI())) {
+                continue;
+            }
+            // Add `UniquenessScope` property for claims that only have legacy `isUnique` property.
+            // `UniquenessScope` is the current property used to configure claim-wise uniqueness validation scope,
+            // while `isUnique` is maintained for backward compatibility.
+            Map<String, String> properties = claim.getClaimProperties();
+            if (properties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY) &&
+                    !properties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY)) {
+                updateScopeFromIsUnique(properties,
+                        properties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY));
+            }
+            filteredLocalClaims.add(claim);
+        }
+        return filteredLocalClaims;
+    }
+
+    @Override
+    public Optional<LocalClaim> getLocalClaim(String localClaimURI, String tenantDomain) throws ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return this.unifiedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
     }
 
     @Override
@@ -211,6 +244,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getCode(),
                     String.format(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
         }
+
+        validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(), null);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
@@ -236,10 +271,16 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        if (!isExistingLocalClaim(localClaim.getClaimURI(), tenantId)) {
+        Optional<LocalClaim> existingLocalClaim = getLocalClaim(localClaim.getClaimURI(), tenantDomain);
+        if (!existingLocalClaim.isPresent()) {
             throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getCode(),
                     String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getMessage(), localClaim.getClaimURI()));
         }
+
+        validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(),
+                existingLocalClaim.get().getClaimProperties());
+
+        validateSharedProfileValueResolvingMethodChange(localClaim, existingLocalClaim.get(), tenantId);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
 
@@ -603,4 +644,145 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         return this.unifiedClaimMetadataManager.getMappedExternalClaims(localClaimURI, tenantId);
     }
 
+    /**
+     * Updates and synchronizes the claim uniqueness properties in the properties map.
+     * Manages the relationship between the legacy 'isUnique' property and the newer 'UniquenessScope' property,
+     * ensuring consistency between both properties based on their values.
+     *
+     * @param claimProperties         Map of claim properties to be updated.
+     * @param existingClaimProperties Map of existing claim properties (null for new claims).
+     */
+    private void validateAndSyncUniquenessClaimProperties(Map<String, String> claimProperties,
+                                                          Map<String, String> existingClaimProperties) {
+
+        // Case 1: If the 'isUnique' property is not provided,
+        // no property synchronization is needed.
+        if (!claimProperties.containsKey(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY)) {
+            return;
+        }
+
+        String newUniquenessScopeValue = claimProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
+        String newIsUniqueValue = claimProperties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
+
+        // Case 2: If only the 'isUnique' property is provided,
+        // set the 'UniquenessScope' property based on the 'isUnique' value.
+        if (!claimProperties.containsKey(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY)) {
+            updateScopeFromIsUnique(claimProperties, newIsUniqueValue);
+            return;
+        }
+
+        // Case 3: If both 'isUnique' and 'UniquenessScope' properties are provided.
+        if (existingClaimProperties == null) {
+            // If there are no existing claim properties (i.e., this is a new claim),
+            // prioritize 'UniquenessScope' & update the 'isUnique' property accordingly.
+            updateIsUniqueFromScope(claimProperties, newUniquenessScopeValue);
+            return;
+        }
+
+        String existingScopeValue = existingClaimProperties.get(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY);
+        String existingIsUniqueValue = existingClaimProperties.get(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY);
+
+        boolean isScopeChanged = !StringUtils.equals(newUniquenessScopeValue, existingScopeValue);
+        boolean isUniqueChanged = !StringUtils.equalsIgnoreCase(newIsUniqueValue, existingIsUniqueValue);
+
+        if (isScopeChanged) {
+            // If 'UniquenessScope' has changed (regardless of 'isUnique' changes), prioritize 'UniquenessScope'.
+            updateIsUniqueFromScope(claimProperties, newUniquenessScopeValue);
+        } else if (isUniqueChanged) {
+            // If only 'isUnique' has changed, update 'UniquenessScope' based on the new 'isUnique' value.
+            updateScopeFromIsUnique(claimProperties, newIsUniqueValue);
+        }
+    }
+
+    /**
+     * Updates the uniqueness scope property based on the isUnique value.
+     *
+     * @param properties    Map of claim properties to update.
+     * @param isUniqueValue String value of isUnique property ("true" or "false").
+     */
+    private void updateScopeFromIsUnique(Map<String, String> properties, String isUniqueValue) {
+
+        boolean isUnique = Boolean.parseBoolean(isUniqueValue);
+        properties.put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
+                isUnique ? getServerLevelClaimUniquenessScope().toString() :
+                        ClaimConstants.ClaimUniquenessScope.NONE.toString());
+    }
+
+    /**
+     * Updates the isUnique property based on the uniqueness scope value.
+     *
+     * @param properties Map of claim properties to update.
+     * @param scopeValue String value of the uniqueness scope.
+     */
+    private void updateIsUniqueFromScope(Map<String, String> properties, String scopeValue) {
+
+        boolean isUnique = !ClaimConstants.ClaimUniquenessScope.NONE.toString().equals(scopeValue);
+        properties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, String.valueOf(isUnique));
+    }
+
+    /**
+     * Validates the shared profile value resolving method change for system claims.
+     *
+     * @param updatedLocalClaim  Updated local claim.
+     * @param existingLocalClaim Existing local claim.
+     * @param tenantId           Tenant ID.
+     * @throws ClaimMetadataException If the shared profile value resolving method change is invalid for system claim
+     *                                or updating value is unaccepted.
+     */
+    private void validateSharedProfileValueResolvingMethodChange(LocalClaim updatedLocalClaim,
+                                                                 LocalClaim existingLocalClaim, int tenantId)
+            throws ClaimMetadataException {
+
+        String updatedClaimProperty =
+                updatedLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+        String existingClaimProperty =
+                existingLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+
+        if (StringUtils.isNotBlank(updatedClaimProperty)) {
+            try {
+                ClaimConstants.SharedProfileValueResolvingMethod.fromName(updatedClaimProperty);
+            } catch (IllegalArgumentException e) {
+                throw new ClaimMetadataClientException(
+                        ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getCode(),
+                        String.format(ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getMessage(),
+                                updatedClaimProperty));
+            }
+        }
+
+        /*
+        If the existing local claim is non system claim, shared profile value resolving method can be changed 
+        if the updating value is valid.
+         */
+        if (!Boolean.parseBoolean(existingLocalClaim.getClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM))) {
+            return;
+        }
+
+        // If both values are blank or the same, no need to validate further.
+        if (StringUtils.isBlank(updatedClaimProperty) && StringUtils.isBlank(existingClaimProperty)) {
+            return;
+        }
+        if (StringUtils.equals(updatedClaimProperty, existingClaimProperty)) {
+            return;
+        }
+        /*
+        If updatedClaimProperty has a value, it should be equals to system default.
+        Removing the updatedClaimProperty is allowed. Then, in the runtime, the system default value will be used.
+         */
+        if (StringUtils.isNotBlank(updatedClaimProperty)) {
+            Optional<LocalClaim> systemDefaultClaim =
+                    this.systemDefaultClaimMetadataManager.getLocalClaim(existingLocalClaim.getClaimURI(), tenantId);
+            if (systemDefaultClaim.isPresent()) {
+                String systemDefaultClaimPropertyValue =
+                        systemDefaultClaim.get().getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+                if (StringUtils.equals(systemDefaultClaimPropertyValue, updatedClaimProperty)) {
+                    return;
+                }
+                throw new ClaimMetadataClientException(
+                        ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM.getCode(),
+                        String.format(
+                                ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM.getMessage(),
+                                existingLocalClaim.getClaimURI()));
+            }
+        }
+    }
 }

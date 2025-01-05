@@ -60,7 +60,9 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -69,6 +71,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
@@ -82,6 +85,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -89,6 +93,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
@@ -128,6 +133,18 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
     @Mock
     AuthenticationContextCache mockedAuthenticationContextCache;
+
+    @Mock
+    private IdentityProviderManager mockedIdentityProviderManager;
+
+    @Mock
+    private IdentityProvider mockedIdentityProvider;
+
+    @Mock
+    private ClaimConfig mockedClaimConfig;
+
+    @Mock
+    private ClaimMapping mockedClaimMapping;
 
     @Captor
     ArgumentCaptor<Cookie> cookieCaptor;
@@ -866,6 +883,44 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
             String roleClaim = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
             assertEquals(roleClaim, expectedRoleClaimUri);
+        }
+    }
+
+    @Test
+    public void testGetUserIdClaimURI() throws Exception {
+
+        when(mockedIdentityProviderManager.getIdPByName("testIdp", "testTenant"))
+                .thenReturn(mockedIdentityProvider);
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+
+        when(mockedClaimConfig.getUserClaimURI()).thenReturn("http://wso2.org/claims/username");
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(new ClaimMapping[]{mockedClaimMapping});
+
+        try (MockedStatic<FrameworkServiceDataHolder> mockedFrameworkService =
+                     mockStatic(FrameworkServiceDataHolder.class)) {
+            FrameworkServiceDataHolder frameworkServiceDataHolder = mock(FrameworkServiceDataHolder.class);
+            when(frameworkServiceDataHolder.getIdentityProviderManager()).thenReturn(mockedIdentityProviderManager);
+            mockedFrameworkService.when(FrameworkServiceDataHolder::getInstance).thenReturn(frameworkServiceDataHolder);
+
+            String result = FrameworkUtils.getUserIdClaimURI("testIdp", "testTenant");
+            assertEquals(result, "http://wso2.org/claims/username");
+        }
+    }
+
+    @Test(description = "Verify that the username auto-fill configuration is retrieved correctly")
+    public void testGetUsernameFieldAutofillWithSubjectAttrConfig() {
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(
+                            () -> IdentityUtil.getProperty(
+                                    eq("JITProvisioning.AutofillUsernameFieldWithSubjectAttribute")))
+                    .thenReturn("true");
+            assertTrue(FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr());
+            identityUtilMockedStatic.when(
+                            () -> IdentityUtil.getProperty(
+                                    eq("JITProvisioning.AutofillUsernameFieldWithSubjectAttribute")))
+                    .thenReturn("false");
+            assertFalse(FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr());
         }
     }
 }

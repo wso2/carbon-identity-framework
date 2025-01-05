@@ -665,8 +665,12 @@
         <Scopes>
             <Scope displayName="View Role" name="internal_org_role_mgt_view" 
                     description="View roles details in the organization"/>
+            <Scope displayName="Create Role" name="internal_org_role_mgt_create"
+                    description="Create new roles in the organization"/>
             <Scope displayName="Update Role" name="internal_org_role_mgt_update" 
                     description="Update roles details in the organization"/>
+            <Scope displayName="Delete Role" name="internal_org_role_mgt_delete"
+                    description="Delete roles in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="SCIM2 Bulk API" identifier="/scim2/Bulk" requiresAuthorization="true"
@@ -952,6 +956,15 @@
                     description="Manage api resources from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="API Resource Management Feature" identifier="console:org:apiResources"
+                 requiresAuthorization="true"
+                 description="Resource representation of the API Resource Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="API Resource Feature" name="console:org:apiResources"
+                   description="Manage api resources in the organization from the Console"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="OIDC Scope Management Feature" identifier="console:scopes:oidc"
                  requiresAuthorization="true"
                  description="Resource representation of the OIDC Scope Management Feature"
@@ -1217,6 +1230,18 @@
         <Scopes>
             <Scope displayName="View Metadata" name="internal_rule_metadata_view"
                    description="View metadata for rule configuration"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User defined local authenticator API" identifier="/api/server/v1/authenticators/custom"
+                 requiresAuthorization="true"
+                 description="API representation of the User Defined Local Authenticator Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Create Authenticator" name="internal_custom_authenticator_create"
+                   description="Create new user defined local authenticator"/>
+            <Scope displayName="Update Authenticator" name="internal_custom_authenticator_update"
+                   description="Update user defined local authenticator"/>
+            <Scope displayName="Delete Authenticator" name="internal_custom_authenticator_delete"
+                   description="Delete user defined local authenticator"/>
         </Scopes>
     </APIResource>
 </APIResources>

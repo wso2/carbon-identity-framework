@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.base;
 
 public class AuthenticatorPropertyConstants {
 
+    public static final String TAG_2FA = "2FA";
+    public static final String TAG_CUSTOM = "Custom";
+
     /**
      * The Defined by Types - SYSTEM: system define authenticator, USER: user defined authentication extension.
      */

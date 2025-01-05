@@ -86,7 +86,6 @@
     -->
     <DataStorageType>
         <NotificationTemplates>{{data_storage_type.notification_templates}}</NotificationTemplates>
-        <KeyStores>{{data_storage_type.keystores}}</KeyStores>
         <XACML>{{data_storage_type.xacml}}</XACML>
     </DataStorageType>
 
@@ -96,10 +95,14 @@
             <Tenant>{{tenant}}</Tenant>
             {% endfor %}
         </LegacyTenants>
+        <DebugTenants>
+            {% for tenant in notification_templates.debug_tenants %}
+            <Tenant>{{tenant}}</Tenant>
+            {% endfor %}
+        </DebugTenants>
         <SMSTemplates>
             <Apply>{{notification_templates.sms_templates.apply}}</Apply>
         </SMSTemplates>
-        <EnableUnicodeSupport>{{notification_templates.enable_unicode_support}}</EnableUnicodeSupport>
     </NotificationTemplates>
 
     <!-- Time configurations are in minutes -->
@@ -961,6 +964,7 @@
             <UserInfoEndpointClaimRetriever>{{oauth.oidc.extensions.user_info_claim_retriever}}</UserInfoEndpointClaimRetriever>
             <UserInfoEndpointRequestValidator>{{oauth.oidc.extensions.user_info_request_validator}}</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>{{oauth.oidc.extensions.user_info_access_token_validator}}</UserInfoEndpointAccessTokenValidator>
+            <UserInfoMultiValueSupportEnabled>{{oauth.oidc.user_info.enable_multi_value_support}}</UserInfoMultiValueSupportEnabled>
             {% if oauth.oidc.extensions.user_info_response_builder is defined %}
             <UserInfoEndpointResponseBuilder>{{oauth.oidc.extensions.user_info_response_builder}}</UserInfoEndpointResponseBuilder>
             {% else %}
@@ -1124,7 +1128,7 @@
             <PoolSize>0</PoolSize>
             <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
-        
+
         <!--
             Config related to OAuth2 authorization code persistence.
             Prior to IS 7.0.0, this was handled by the config <TokenPersistence>.<Enable>.
@@ -1619,7 +1623,8 @@
     </SCIM2>
 
       <PasswordPolicy>
-        <PasswordPolicyValidationHandler>
+          <MaxPasswordAllowedLength>{{identity_mgt.password_policy.max_password_allowed_length}}</MaxPasswordAllowedLength>
+          <PasswordPolicyValidationHandler>
             <Enable>{{identity_mgt.password_policy.password_policy_validation_handler.enable}}</Enable>
         </PasswordPolicyValidationHandler>
       </PasswordPolicy>
@@ -1895,10 +1900,20 @@
 
         <!-- Enable support for storing multiple email addresses and mobile numbers per user. -->
         <EnableMultipleEmailsAndMobileNumbers>{{identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers}}</EnableMultipleEmailsAndMobileNumbers>
+
+        <!-- 
+            Defines the scope for which claim uniqueness validation should happen, this can be either within userstore
+            or across userstore. This config is already defined in the EventListener with 
+            id="unique_claim_user_operation_event_listener" of type "UserOperationEventListener".
+        -->
+        <UniquenessValidation>
+            <ScopeWithinUserstore>{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</ScopeWithinUserstore>
+        </UniquenessValidation>
     </UserClaimUpdate>
 
      <AccountSuspension>
         <UseIdentityClaims>{{identity_mgt_account_suspension.use_identity_claims}}</UseIdentityClaims>
+        <ExecuteTaskOnMasterNode>{{identity_mgt_account_suspension.execute_task_on_master_node}}</ExecuteTaskOnMasterNode>
      </AccountSuspension>
 
      <SCIM2MultiAttributeFiltering>
@@ -2004,6 +2019,7 @@
 
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
+        <AutofillUsernameFieldWithSubjectAttribute>{{authentication.jit_provisioning.autofill_username_field_with_subject_attribute}}</AutofillUsernameFieldWithSubjectAttribute>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
         <FailAuthnOnProvisionFailure>{{authentication.jit_provisioning.fail_authn_on_provision_failure}}</FailAuthnOnProvisionFailure>
         <SkipUsernamePatternValidation>{{authentication.jit_provisioning.skip_username_pattern_validation}}</SkipUsernamePatternValidation>
@@ -2022,6 +2038,7 @@
             <AllowLoginToIDP>{{authentication.jit_provisioning.allow_idp_login}}</AllowLoginToIDP>
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
+        <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
     </JITProvisioning>
 
     <!--Application management service configurations-->
@@ -2036,6 +2053,13 @@
         <TrustedAppConsentRequired>{{application_mgt.trusted_app_consent_required}}</TrustedAppConsentRequired>
         <TrustedAppMaxThumbprintCount>{{application_mgt.trusted_app_max_thumbprint_count}}</TrustedAppMaxThumbprintCount>
     </ApplicationMgt>
+
+    <!--Role management service configurations-->
+    <RoleMgt>
+        {% if role_mgt.allow_system_prefix_for_role is defined %}
+        <AllowSystemPrefixForRoles>{{role_mgt.allow_system_prefix_for_role}}</AllowSystemPrefixForRoles>
+        {% endif %}
+    </RoleMgt>
 
     <OutboundProvisioning>
         {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
@@ -2161,6 +2185,11 @@
             store value is empty for corresponding claim. -->
             <Property name="EnableHybridDataStore">{{event.default_listener.governance_identity_store.enable_hybrid_data_store}}</Property>
         </EventListener>
+        <EventListener id="password_expiry"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.password.expiry.listener.PasswordExpiryEventListener"
+                       orderId="{{event.default_listener.password_expiry.priority}}"
+                       enable="{{event.default_listener.password_expiry.enable}}"/>
         <EventListener id="application_authentication"
                        type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
@@ -3580,6 +3609,18 @@
             <Scopes>internal_action_mgt_view</Scopes>
         </Resource>
 
+        <Resource context="(.*)/api/server/v1/authenticators/custom" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/custom_authenticator/create</Permissions>
+            <Scopes>internal_custom_authenticator_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/custom_authenticator/update</Permissions>
+            <Scopes>internal_custom_authenticator_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/custom_authenticator/delete</Permissions>
+            <Scopes>internal_custom_authenticator_delete</Scopes>
+        </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>

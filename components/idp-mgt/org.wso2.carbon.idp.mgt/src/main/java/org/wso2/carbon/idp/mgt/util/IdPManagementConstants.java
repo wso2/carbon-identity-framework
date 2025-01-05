@@ -129,10 +129,20 @@ public class IdPManagementConstants {
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.smsOtp.Enable";
 
+    // User defined federated authenticator related constants.
+    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-_]*$";
+
     // Resident IDP Username Recovery Configs.
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
     public static final String EMAIL_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Email.Enable";
     public static final String SMS_USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.SMS.Enable";
+
+    public static class SQLConstants {
+
+        public static final String DEFINED_BY_COLUMN = "DEFINED_BY";
+        public static final String PROPERTY_KEY = "PROPERTY_KEY";
+        public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
+    }
 
     public static class SQLQueries {
 
@@ -590,6 +600,16 @@ public class IdPManagementConstants {
         public static final String GET_IDP_GROUPS_BY_IDP_GROUP_IDS = "SELECT IDP_GROUP.UUID, IDP_GROUP.GROUP_NAME, " +
                 "IDP.UUID AS IDP_ID FROM IDP_GROUP LEFT JOIN IDP ON IDP.ID = IDP_GROUP.IDP_ID WHERE " +
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
+        public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
+                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER'";
+    }
+
+    public static class WarningMessage {
+
+        public static final String WARN_STALE_IDP_ACTION = "The Identity Provider: %s is deleted, but an error " +
+                "occurred while deleting its associated action.";
+        public static final String WARN_STALE_IDP_ACTIONS = "Identity Providers are deleted, but an error " +
+                "occurred while deleting their associated actions.";
     }
 
     public enum ErrorMessage {
@@ -612,6 +632,12 @@ public class IdPManagementConstants {
         ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
                 "provisioning roles does not exist"),
         ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION("IDP-60011", "Invalid connector configuration. %s"),
+        ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND("IDP-60012", "No system authenticator found for the " +
+                "provided authenticator Id %s."),
+        ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN("IDP-60013", "Federated authenticator name %s" +
+                " is already taken."),
+        ERROR_INVALID_AUTHENTICATOR_NAME("IDP-60014", "Federated authenticator name does not match the" +
+                " regex pattern %s."),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
@@ -624,7 +650,15 @@ public class IdPManagementConstants {
                 "applications of Identity Provider with resource ID: %s."),
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
                 "the outbound provisioning roles"),
-        ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups");
+        ERROR_CODE_RETRIEVING_IDP_GROUPS("IDP-65009", "Error while retrieving IDP groups"),
+        ERROR_CODE_ADDING_ENDPOINT_CONFIG("IDP-65010", "An error occurred while adding" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_UPDATING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while updating" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while retrieving" +
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
+                " endpoint configuration for authenticator: %s.");
 
         private final String code;
         private final String message;

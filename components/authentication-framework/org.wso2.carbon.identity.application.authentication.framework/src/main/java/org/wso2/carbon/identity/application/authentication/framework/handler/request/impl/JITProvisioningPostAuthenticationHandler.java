@@ -318,9 +318,13 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                         localClaimValues = new HashMap<>();
                     }
 
+                    String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+                    if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+                        externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
+                    }
                     String associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
+                                    externalSubject,
                                     context.getTenantDomain());
                     boolean isUserAllowsToLoginIdp =  Boolean.parseBoolean(IdentityUtil
                             .getProperty(ALLOW_LOGIN_TO_IDP));
@@ -357,8 +361,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                     FrameworkUtils.getFederatedAssociationManager()
                                             .createFederatedAssociation(new User(user),
                                                     stepConfig.getAuthenticatedIdP(),
-                                                    stepConfig.getAuthenticatedUser()
-                                                            .getAuthenticatedSubjectIdentifier());
+                                                    externalSubject);
                                     associatedLocalUser = user.getDomainQualifiedUsername();
                                 }
                             } catch (UserStoreException e) {
@@ -691,7 +694,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
             uriBuilder.addParameter(FrameworkConstants.SERVICE_PROVIDER, context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName());
-            uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
+            if (!externalIdPConfig.isModifyUserNameAllowed() || (externalIdPConfig.isModifyUserNameAllowed() &&
+                    FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr())) {
+                uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
+            }
             uriBuilder.addParameter(FrameworkConstants.SKIP_SIGN_UP_ENABLE_CHECK, String.valueOf(true));
             uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
             addMissingClaims(uriBuilder, context);
@@ -831,8 +837,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
         }
 
-        localClaimValues.put(FrameworkConstants.ASSOCIATED_ID,
-                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+        String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, context.getTenantDomain());
+        }
+        localClaimValues.put(FrameworkConstants.ASSOCIATED_ID, externalSubject);
         localClaimValues.put(FrameworkConstants.IDP_ID, stepConfig.getAuthenticatedIdP());
 
         /*
@@ -960,8 +969,12 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
     private void handleConsents(HttpServletRequest request, StepConfig stepConfig, String tenantDomain)
             throws PostAuthenticationFailedException {
 
+        String externalSubject = stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        if (FrameworkUtils.isConfiguredIdpSubForFederatedUserAssociationEnabled()) {
+            externalSubject = FrameworkUtils.getExternalSubject(stepConfig, tenantDomain);
+        }
         String userName = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), tenantDomain);
+                externalSubject, tenantDomain);
         String consent = request.getParameter("consent");
         String policyURL = request.getParameter("policy");
         if (StringUtils.isNotEmpty(consent)) {
