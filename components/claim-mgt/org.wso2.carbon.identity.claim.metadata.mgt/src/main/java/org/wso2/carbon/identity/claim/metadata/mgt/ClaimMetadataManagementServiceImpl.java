@@ -247,6 +247,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(), null);
 
+        validateSharedProfileValueResolvingMethodValue(localClaim);
+
         ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
         this.unifiedClaimMetadataManager.addLocalClaim(localClaim, tenantId);
@@ -733,22 +735,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                                                                  LocalClaim existingLocalClaim, int tenantId)
             throws ClaimMetadataException {
 
-        String updatedClaimProperty =
-                updatedLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
-        String existingClaimProperty =
-                existingLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
-
-        if (StringUtils.isNotBlank(updatedClaimProperty)) {
-            try {
-                ClaimConstants.SharedProfileValueResolvingMethod.fromName(updatedClaimProperty);
-            } catch (IllegalArgumentException e) {
-                throw new ClaimMetadataClientException(
-                        ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getCode(),
-                        String.format(ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getMessage(),
-                                updatedClaimProperty));
-            }
-        }
-
+        validateSharedProfileValueResolvingMethodValue(updatedLocalClaim);
         /*
         If the existing local claim is non system claim, shared profile value resolving method can be changed 
         if the updating value is valid.
@@ -757,6 +744,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             return;
         }
 
+        String updatedClaimProperty =
+                updatedLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+        String existingClaimProperty =
+                existingLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
         // If both values are blank or the same, no need to validate further.
         if (StringUtils.isBlank(updatedClaimProperty) && StringUtils.isBlank(existingClaimProperty)) {
             return;
@@ -782,6 +773,30 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                         String.format(
                                 ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM.getMessage(),
                                 existingLocalClaim.getClaimURI()));
+            }
+        }
+    }
+
+    /**
+     * Validates the shared profile value resolving method value.
+     *
+     * @param localClaim Local claim.
+     * @throws ClaimMetadataException If the shared profile value resolving method value is invalid.
+     */
+    private void validateSharedProfileValueResolvingMethodValue(LocalClaim localClaim)
+            throws ClaimMetadataClientException {
+
+        String claimProperty =
+                localClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+
+        if (StringUtils.isNotBlank(claimProperty)) {
+            try {
+                ClaimConstants.SharedProfileValueResolvingMethod.fromName(claimProperty);
+            } catch (IllegalArgumentException e) {
+                throw new ClaimMetadataClientException(
+                        ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getCode(),
+                        String.format(ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getMessage(),
+                                claimProperty));
             }
         }
     }
