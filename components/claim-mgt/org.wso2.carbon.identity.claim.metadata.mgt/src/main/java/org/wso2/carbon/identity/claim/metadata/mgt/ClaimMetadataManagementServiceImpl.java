@@ -198,10 +198,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         boolean isGroupRoleSeparationEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
+        boolean isShowRoleClaimOnGroupRoleSeparation = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
         List<LocalClaim> filteredLocalClaims = new ArrayList<>(localClaims.size());
 
         for (LocalClaim claim : localClaims) {
-            if (isGroupRoleSeparationEnabled && UserCoreConstants.ROLE_CLAIM.equals(claim.getClaimURI())) {
+            if (isGroupRoleSeparationEnabled && !isShowRoleClaimOnGroupRoleSeparation &&
+                    UserCoreConstants.ROLE_CLAIM.equals(claim.getClaimURI())) {
                 continue;
             }
             // Add `UniquenessScope` property for claims that only have legacy `isUnique` property.
