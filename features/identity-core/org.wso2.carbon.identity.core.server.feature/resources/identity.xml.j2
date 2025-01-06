@@ -1415,6 +1415,7 @@
         {% if saml.separate_multi_attributes_from_idp is defined %}
             <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
         {% endif %}
+        <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
     </SSOService>
 
     <Consent>
