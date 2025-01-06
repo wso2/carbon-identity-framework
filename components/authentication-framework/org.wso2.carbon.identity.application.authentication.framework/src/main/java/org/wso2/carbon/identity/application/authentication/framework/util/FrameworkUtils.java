@@ -3015,6 +3015,19 @@ public class FrameworkUtils {
     }
 
     /**
+     * Checks if the username field should be autofilled with the subject attribute
+     * during Just-In-Time (JIT) provisioning with prompt for username, password, and consent.
+     *
+     * @return true if the username field should be autofilled with the
+     * subject attribute; false otherwise.
+     */
+    public static boolean isUsernameFieldAutofillWithSubjectAttr() {
+
+        return Boolean.parseBoolean(
+                IdentityUtil.getProperty("JITProvisioning.AutofillUsernameFieldWithSubjectAttribute"));
+    }
+
+    /**
      * This method determines whether username pattern validation should be skipped for JIT provisioning users based
      * on the configuration file.
      *

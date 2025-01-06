@@ -709,9 +709,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         // Adding locally mapped remote claims to authentication results.
-        if (context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES) instanceof Map) {
+        if (context.getProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES) instanceof Map) {
             Map<String, String> mappedRemoteClaims =
-                    (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+                    (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES);
             authenticationResult.setMappedRemoteClaims(mappedRemoteClaims);
         }
 
