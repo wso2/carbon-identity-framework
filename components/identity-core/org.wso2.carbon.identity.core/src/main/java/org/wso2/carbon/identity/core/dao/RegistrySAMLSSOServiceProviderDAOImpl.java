@@ -256,36 +256,11 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId) throws IdentityException {
 
         Registry registry = getRegistry(tenantId);
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
-
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
 
         boolean isTransactionStarted = Transaction.isStarted();
         boolean isErrorOccurred = false;
         try {
-            if (registry.resourceExists(path)) {
-                if (LOG.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        LOG.debug("SAML2 Service Provider already exists with the same issuer name "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                + serviceProviderDO.getIssuerQualifier());
-                    } else {
-                        LOG.debug("SAML2 Service Provider already exists with the same issuer name "
-                                + serviceProviderDO.getIssuer());
-                    }
-                }
-                return false;
-            }
-
             Resource resource = createResource(serviceProviderDO, registry);
             if (!isTransactionStarted) {
                 registry.beginTransaction();
@@ -480,17 +455,6 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
             throws IdentityException {
 
         Registry registry = getRegistry(tenantId);
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
-                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
-
         String currentPath = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(currentIssuer);
         String newPath = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
 
@@ -498,21 +462,6 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
         boolean isTransactionStarted = Transaction.isStarted();
         boolean isErrorOccurred = false;
         try {
-            // Check if the updated issuer value already exists.
-            if (isIssuerUpdated && registry.resourceExists(newPath)) {
-                if (LOG.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        LOG.debug("SAML2 Service Provider already exists with the same issuer name "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                + serviceProviderDO.getIssuerQualifier());
-                    } else {
-                        LOG.debug("SAML2 Service Provider already exists with the same issuer name "
-                                + serviceProviderDO.getIssuer());
-                    }
-                }
-                return false;
-            }
-
             Resource resource = createResource(serviceProviderDO, registry);
             if (!isTransactionStarted) {
                 registry.beginTransaction();
@@ -578,21 +527,11 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
     public boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException {
 
         Registry registry = getRegistry(tenantId);
-        if (issuer == null || StringUtils.isEmpty(issuer.trim())) {
-            throw new IllegalArgumentException("Trying to delete issuer \'" + issuer + "\'");
-        }
 
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         boolean isTransactionStarted = Transaction.isStarted();
         boolean isErrorOccurred = false;
         try {
-            if (!registry.resourceExists(path)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Registry resource does not exist for the path: " + path);
-                }
-                return false;
-            }
-
             // Since we are getting a global registry object, better to check whether this is a task inside already
             // started transaction.
             if (!isTransactionStarted) {
@@ -738,39 +677,11 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
             throws IdentityException {
 
         Registry registry = getRegistry(tenantId);
-        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null) {
-            throw new IdentityException("Issuer cannot be found in the provided arguments.");
-        }
-
-        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-            serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
-                    serviceProviderDO.getIssuerQualifier()));
-        }
-
-        if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
-            throw new IdentityException("No default assertion consumer URL provided for service provider :" +
-                    serviceProviderDO.getIssuer());
-        }
-
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
 
         boolean isTransactionStarted = Transaction.isStarted();
         boolean isErrorOccurred = false;
         try {
-            if (registry.resourceExists(path)) {
-                if (LOG.isDebugEnabled()) {
-                    if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
-                        LOG.debug("SAML2 Service Provider already exists with the same issuer name "
-                                + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) + " and qualifier name "
-                                + serviceProviderDO.getIssuerQualifier());
-                    } else {
-                        LOG.debug("SAML2 Service Provider already exists with the same issuer name "
-                                + serviceProviderDO.getIssuer());
-                    }
-                }
-                throw IdentityException.error("A Service Provider already exists.");
-            }
-
             if (!isTransactionStarted) {
                 registry.beginTransaction();
             }
