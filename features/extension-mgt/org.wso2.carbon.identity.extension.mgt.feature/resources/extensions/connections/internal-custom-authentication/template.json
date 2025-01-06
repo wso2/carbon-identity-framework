@@ -7,11 +7,22 @@
   "tags": [ "Custom" ],
   "image": "",
   "idp": {},
-  "endpoint": {
-    "uri": "",
-    "authentication": {
-      "type": "",
-      "properties": {}
+  "localAuthenticator": {
+    "id": "",
+    "name": "",
+    "displayName": "",
+    "definedBy": "USER",
+    "type": "LOCAL",
+    "isEnabled": false,
+    "tags": [
+      "MFA"
+    ],
+    "endpoint": {
+      "uri": "",
+      "authentication": {
+        "type": "",
+        "properties": {}
+      }
     }
   },
   "name": "Internal Custom Authentication",

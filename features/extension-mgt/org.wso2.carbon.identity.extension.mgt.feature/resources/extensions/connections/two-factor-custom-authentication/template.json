@@ -6,11 +6,22 @@
   "id": "two-factor-custom-authentication",
   "tags": [ "Custom" ],
   "idp": {},
-  "endpoint": {
-    "uri": "",
-    "authentication": {
-      "type": "",
-      "properties": {}
+  "localAuthenticator": {
+    "id": "",
+    "name": "",
+    "displayName": "",
+    "definedBy": "USER",
+    "type": "LOCAL",
+    "isEnabled": false,
+    "tags": [
+      "MFA"
+    ],
+    "endpoint": {
+      "uri": "",
+      "authentication": {
+        "type": "",
+        "properties": {}
+      }
     }
   },
   "image": "",
