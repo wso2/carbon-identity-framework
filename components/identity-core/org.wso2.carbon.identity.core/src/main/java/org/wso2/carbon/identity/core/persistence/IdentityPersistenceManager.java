@@ -19,11 +19,10 @@ package org.wso2.carbon.identity.core.persistence;
 
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
 import org.wso2.carbon.identity.core.dao.OpenIDAdminDAO;
 import org.wso2.carbon.identity.core.dao.OpenIDUserDAO;
 import org.wso2.carbon.identity.core.dao.ParameterDAO;
-import org.wso2.carbon.identity.core.dao.SAMLServiceProviderPersistenceManagerFactory;
-import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
 import org.wso2.carbon.identity.core.dao.XMPPSettingsDAO;
 import org.wso2.carbon.identity.core.model.OpenIDAdminDO;
 import org.wso2.carbon.identity.core.model.OpenIDUserDO;
@@ -36,9 +35,7 @@ import org.wso2.carbon.user.core.UserRealm;
 public class IdentityPersistenceManager {
 
     private static IdentityPersistenceManager manager = new IdentityPersistenceManager();
-    SAMLServiceProviderPersistenceManagerFactory
-            samlSSOPersistenceManagerFactory = new SAMLServiceProviderPersistenceManagerFactory();
-    SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.getSAMLServiceProviderPersistenceManager();
+    SAMLSSOServiceProviderManager samlSSOServiceProviderManager = new SAMLSSOServiceProviderManager();
 
     private IdentityPersistenceManager() {
     }
@@ -242,20 +239,20 @@ public class IdentityPersistenceManager {
             throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return serviceProviderDAO.addServiceProvider(serviceProviderDO, tenantId);
+        return samlSSOServiceProviderManager.addServiceProvider(serviceProviderDO, tenantId);
     }
 
     /**
      * Upload Service Provider
      *
-     * @param registry,samlssoServiceProviderDO
+     * @param registry, samlSSOServiceProviderDO
      * @return
      * @throws IdentityException
      */
-    public SAMLSSOServiceProviderDO uploadServiceProvider(Registry registry, SAMLSSOServiceProviderDO samlssoServiceProviderDO) throws IdentityException {
+    public SAMLSSOServiceProviderDO uploadServiceProvider(Registry registry, SAMLSSOServiceProviderDO samlSSOServiceProviderDO) throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO, tenantId);
+        return samlSSOServiceProviderManager.uploadServiceProvider(samlSSOServiceProviderDO, tenantId);
     }
 
     /**
@@ -268,26 +265,26 @@ public class IdentityPersistenceManager {
             throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return serviceProviderDAO.getServiceProviders(tenantId);
+        return samlSSOServiceProviderManager.getServiceProviders(tenantId);
     }
 
     public boolean removeServiceProvider(Registry registry, String issuer) throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return serviceProviderDAO.removeServiceProvider(issuer, tenantId);
+        return samlSSOServiceProviderManager.removeServiceProvider(issuer, tenantId);
     }
 
     public SAMLSSOServiceProviderDO getServiceProvider(Registry registry, String issuer)
             throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return serviceProviderDAO.getServiceProvider(issuer, tenantId);
+        return samlSSOServiceProviderManager.getServiceProvider(issuer, tenantId);
     }
 
     public boolean isServiceProviderExists(Registry registry, String issuer) throws IdentityException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        return serviceProviderDAO.isServiceProviderExists(issuer, tenantId);
+        return samlSSOServiceProviderManager.isServiceProviderExists(issuer, tenantId);
     }
 
     public void createOrUpdateOpenIDAdmin(Registry registry, OpenIDAdminDO opAdmin)
