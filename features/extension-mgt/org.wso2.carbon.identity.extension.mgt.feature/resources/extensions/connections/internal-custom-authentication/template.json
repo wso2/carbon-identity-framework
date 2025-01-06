@@ -8,15 +8,11 @@
   "image": "",
   "idp": {},
   "localAuthenticator": {
-    "id": "",
     "name": "",
     "displayName": "",
-    "definedBy": "USER",
-    "type": "LOCAL",
     "isEnabled": false,
-    "tags": [
-      "MFA"
-    ],
+    "authenticationType": "IDENTIFICATION",
+    "description": "",
     "endpoint": {
       "uri": "",
       "authentication": {
