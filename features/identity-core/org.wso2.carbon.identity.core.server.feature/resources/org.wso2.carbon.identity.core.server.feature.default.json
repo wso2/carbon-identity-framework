@@ -1351,9 +1351,7 @@
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
   "console.login_and_registration.scopes.read": [
-    "internal_governance_view",
-    "internal_group_mgt_view",
-    "internal_role_mgt_view"
+    "internal_governance_view"
   ],
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
@@ -1514,6 +1512,17 @@
     "internal_application_mgt_view"
   ],
   "console.resident_outbound_provisioning.scopes.update": ["internal_application_mgt_update"],
+  "console.rule_based_password_expiry.enabled": true,
+  "console.rule_based_password_expiry.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
+  ],
+  "console.rule_based_password_expiry.scopes.update": [
+    "internal_config_update",
+    "internal_governance_update",
+    "internal_validation_rule_mgt_update"
+  ],
   "console.console_settings.enabled": true,
   "console.console_settings.disabled_features": [
     "consoleSettings.invitedExternalAdmins",
