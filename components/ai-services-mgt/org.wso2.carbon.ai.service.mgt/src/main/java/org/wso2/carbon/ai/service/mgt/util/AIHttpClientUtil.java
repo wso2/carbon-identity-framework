@@ -30,11 +30,16 @@ import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.ai.service.mgt.exceptions.AIClientException;
 import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
 import org.wso2.carbon.ai.service.mgt.token.AIAccessTokenManager;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -42,10 +47,16 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static org.apache.axis2.transport.http.HTTPConstants.HEADER_CONTENT_TYPE;
+import static org.apache.http.HttpHeaders.AUTHORIZATION;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.CONTENT_TYPE_JSON;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages.CLIENT_ERROR_WHILE_CONNECTING_TO_AI_SERVICE;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages.ERROR_RETRIEVING_ACCESS_TOKEN;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages.SERVER_ERROR_WHILE_CONNECTING_TO_AI_SERVICE;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages.UNABLE_TO_ACCESS_AI_SERVICE_WITH_RENEW_ACCESS_TOKEN;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.HTTP_BEARER;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.TENANT_CONTEXT_PREFIX;
 
 /**
  * Utility class for AI Services to send HTTP requests.
@@ -54,6 +65,48 @@ public class AIHttpClientUtil {
 
     private static final Log LOG = LogFactory.getLog(AIHttpClientUtil.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final int HTTP_CONNECTION_POOL_SIZE = IdentityUtil.getProperty(
+            HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME) != null ? Integer.parseInt(IdentityUtil.getProperty(
+                    HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME)) : 20;
+
+
+    // Singleton instance of CloseableHttpAsyncClient with connection pooling.
+    private static final CloseableHttpAsyncClient httpClient;
+
+    static {
+        // Configure the IO reactor.
+        IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+                .setIoThreadCount(Runtime.getRuntime().availableProcessors())
+                .build();
+        ConnectingIOReactor ioReactor;
+        try {
+            // Create the IO reactor.
+            ioReactor = new DefaultConnectingIOReactor(ioReactorConfig);
+        } catch (IOException e) {
+            throw new RuntimeException("Error initializing IO Reactor", e);
+        }
+        // Create a connection manager with the IO reactor.
+        PoolingNHttpClientConnectionManager connectionManager = new PoolingNHttpClientConnectionManager(ioReactor);
+        // Maximum total connections.
+        connectionManager.setMaxTotal(HTTP_CONNECTION_POOL_SIZE);
+        // Initialize the HttpClient with the connection manager.
+        httpClient = HttpAsyncClients.custom()
+                .setConnectionManager(connectionManager)
+                .build();
+        // Start the HttpClient.
+        httpClient.start();
+        // Add a shutdown hook to close the client when the application stops.
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                LOG.error("Error while shutting down HTTP client: " + e.getMessage());
+            }
+        }));
+    }
+
+
 
     /**
      * Execute a request to the AI service.
@@ -72,14 +125,13 @@ public class AIHttpClientUtil {
 
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
 
-        try (CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
-            client.start();
+        try {
             String accessToken = AIAccessTokenManager.getInstance().getAccessToken(false);
             String orgName = AIAccessTokenManager.getInstance().getClientId();
 
-            HttpUriRequest request = createRequest(aiServiceEndpoint + "/t/" + orgName + path, requestType,
-                    accessToken, requestBody);
-            HttpResponseWrapper aiServiceResponse = executeRequestWithRetry(client, request);
+            HttpUriRequest request = createRequest(aiServiceEndpoint + TENANT_CONTEXT_PREFIX + orgName + path,
+                    requestType, accessToken, requestBody);
+            HttpResponseWrapper aiServiceResponse = executeRequestWithRetry(httpClient, request);
 
             int statusCode = aiServiceResponse.getStatusCode();
             String responseBody = aiServiceResponse.getResponseBody();
@@ -92,7 +144,14 @@ public class AIHttpClientUtil {
             throw new AIServerException("An error occurred while connecting to the AI Service.",
                     SERVER_ERROR_WHILE_CONNECTING_TO_AI_SERVICE.getCode(), e);
         } catch (InterruptedException e) {
+            // Restore the interrupted status of the thread to ensure it is not swallowed
+            // and can be handled appropriately by other parts of the program. This is
+            // important for proper thread coordination and graceful shutdown in a
+            // multithreaded environment.
             Thread.currentThread().interrupt();
+
+            // Wrap and rethrow the exception as a custom AIServerException to provide
+            // a meaningful error message and maintain the original exception for debugging.
             throw new AIServerException("An error occurred while connecting to the AI Service.",
                     SERVER_ERROR_WHILE_CONNECTING_TO_AI_SERVICE.getCode(), e);
         }
@@ -114,8 +173,8 @@ public class AIHttpClientUtil {
             throw new IllegalArgumentException("Unsupported request type: " + requestType.getName());
         }
 
-        request.setHeader("Authorization", "Bearer " + accessToken);
-        request.setHeader("Content-Type", "application/json");
+        request.setHeader(AUTHORIZATION, HTTP_BEARER + " " + accessToken);
+        request.setHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON);
         return request;
     }
 
@@ -130,7 +189,7 @@ public class AIHttpClientUtil {
             if (newAccessToken == null) {
                 throw new AIServerException("Failed to renew access token.", ERROR_RETRIEVING_ACCESS_TOKEN.getCode());
             }
-            request.setHeader("Authorization", "Bearer " + newAccessToken);
+            request.setHeader(AUTHORIZATION, "Bearer " + newAccessToken);
             response = executeHttpRequest(client, request);
         }
 

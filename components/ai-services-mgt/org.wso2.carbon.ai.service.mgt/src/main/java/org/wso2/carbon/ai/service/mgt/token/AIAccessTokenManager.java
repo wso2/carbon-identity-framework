@@ -45,7 +45,16 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.axis2.transport.http.HTTPConstants.HEADER_CONTENT_TYPE;
+import static org.apache.http.HttpHeaders.AUTHORIZATION;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ACCESS_TOKEN_KEY;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.AI_SERVICE_KEY_PROPERTY_NAME;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.AI_TOKEN_ENDPOINT_PROPERTY_NAME;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.AI_TOKEN_SERVICE_MAX_RETRIES_PROPERTY_NAME;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.AI_TOKEN_SERVICE_TIMEOUT_PROPERTY_NAME;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.CONTENT_TYPE_FORM_URLENCODED;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages.MAXIMUM_RETRIES_EXCEEDED;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.HTTP_BASIC;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.getTenantDomainFromContext;
 
 /**
@@ -58,20 +67,28 @@ public class AIAccessTokenManager {
 
     private static final Log LOG = LogFactory.getLog(AIAccessTokenManager.class);
 
-    public static final String LOGIN_FLOW_AI_KEY = IdentityUtil.getProperty("AIServices.Key");
-    public static final String LOGIN_FLOW_AI_TOKEN_ENDPOINT = IdentityUtil.getProperty("AIServices.TokenEndpoint");
+    private static final String AI_KEY = IdentityUtil.getProperty(AI_SERVICE_KEY_PROPERTY_NAME);
+    private static final String AI_TOKEN_ENDPOINT = IdentityUtil.getProperty(AI_TOKEN_ENDPOINT_PROPERTY_NAME);
 
     private AccessTokenRequestHelper accessTokenRequestHelper;
 
     private String accessToken;
-    private String clientId;
+    private final String clientId;
 
     private AIAccessTokenManager() {
-        // Prevent from initialization.
+
+        byte[] decodedBytes = Base64.getDecoder().decode(AI_KEY);
+        String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
+        String[] parts = decodedString.split(":");
+        if (parts.length == 2) {
+            this.clientId = parts[0]; // Extract clientId.
+        } else {
+            throw new IllegalArgumentException("Invalid AI service key.");
+        }
     }
 
     /**
-     * Get the singleton instance of the LoginFlowAITokenService.
+     * Get the singleton instance of the AIAccessTokenManager.
      *
      * @return The singleton instance.
      */
@@ -119,18 +136,10 @@ public class AIAccessTokenManager {
 
     private AccessTokenRequestHelper createDefaultHelper() {
 
-        return new AccessTokenRequestHelper(LOGIN_FLOW_AI_KEY, LOGIN_FLOW_AI_TOKEN_ENDPOINT,
+        return new AccessTokenRequestHelper(AI_KEY, AI_TOKEN_ENDPOINT,
+                // Here we keep the default HTTP client to send the token request.
+                // We open and close it for each request.
                 HttpAsyncClients.createDefault());
-    }
-
-    /**
-     * Set the client ID.
-     *
-     * @param clientId The client ID.
-     */
-    public void setClientId(String clientId) {
-
-        this.clientId = clientId;
     }
 
     /**
@@ -144,7 +153,7 @@ public class AIAccessTokenManager {
     }
 
     /**
-     * Helper class to request access token from the Login Flow AI service.
+     * Helper class to request access token from the AI services.
      */
     protected static class AccessTokenRequestHelper {
 
@@ -153,11 +162,10 @@ public class AIAccessTokenManager {
         private final String key;
         private final String aiServiceTokenEndpoint;
         private static final int MAX_RETRIES = IdentityUtil.getProperty(
-                "AIServices.LoginFlow.TokenRequestMaxRetries") != null ?
-                Integer.parseInt(IdentityUtil.getProperty("AIServices.LoginFlow.TokenRequestMaxRetries")) : 3;
-        private static final long TIMEOUT = IdentityUtil.getProperty(
-                "AIServices.LoginFlow.TokenRequestTimeout") != null ?
-                Long.parseLong(IdentityUtil.getProperty("AIServices.LoginFlow.TokenRequestTimeout")) : 3000;
+                AI_TOKEN_SERVICE_MAX_RETRIES_PROPERTY_NAME) != null ?
+                Integer.parseInt(IdentityUtil.getProperty(AI_TOKEN_SERVICE_MAX_RETRIES_PROPERTY_NAME)) : 3;
+        private static final long TIMEOUT = IdentityUtil.getProperty(AI_TOKEN_SERVICE_TIMEOUT_PROPERTY_NAME) != null ?
+                Long.parseLong(IdentityUtil.getProperty(AI_TOKEN_SERVICE_TIMEOUT_PROPERTY_NAME)) : 3000;
 
         AccessTokenRequestHelper(String key, String tokenEndpoint, CloseableHttpAsyncClient client) {
 
@@ -168,7 +176,7 @@ public class AIAccessTokenManager {
         }
 
         /**
-         * Request access token to access the Login Flow AI service.
+         * Request access token to access the AI services.
          *
          * @return the JWT access token.
          * @throws AIServerException If an error occurs while requesting the access token.
@@ -176,16 +184,16 @@ public class AIAccessTokenManager {
         public String requestAccessToken() throws AIServerException {
 
             String tenantDomain = getTenantDomainFromContext();
-            LOG.info("Initiating access token request for Login Flow AI service from tenant: " + tenantDomain);
+            LOG.info("Initiating access token request for AI services from tenant: " + tenantDomain);
             try {
                 client.start();
                 for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
                     HttpPost post = new HttpPost(aiServiceTokenEndpoint);
-                    post.setHeader("Authorization", "Basic " + key);
-                    post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+                    post.setHeader(AUTHORIZATION, HTTP_BASIC + " " + key);
+                    post.setHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_FORM_URLENCODED);
 
                     StringEntity entity = new StringEntity("grant_type=client_credentials");
-                    entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/x-www-form-urlencoded"));
+                    entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_FORM_URLENCODED));
                     post.setEntity(entity);
 
                     CountDownLatch latch = new CountDownLatch(1);
@@ -198,23 +206,13 @@ public class AIAccessTokenManager {
                                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                                     String responseBody = EntityUtils.toString(response.getEntity());
                                     Map<String, Object> responseMap = gson.fromJson(responseBody, Map.class);
-                                    accessToken[0] = (String) responseMap.get("access_token");
-
-                                    // Decode the JWT to extract client ID.
-                                    String[] jwtParts = accessToken[0].split("\\.");
-                                    if (jwtParts.length == 3) {
-                                        String payloadJson = new String(Base64.getUrlDecoder().decode(jwtParts[1]),
-                                                StandardCharsets.UTF_8);
-                                        Map<String, Object> payloadMap = gson.fromJson(payloadJson, Map.class);
-                                        String clientId = (String) payloadMap.get("client_id");
-                                        AIAccessTokenManager.getInstance().setClientId(clientId);
-                                    }
+                                    accessToken[0] = (String) responseMap.get(ACCESS_TOKEN_KEY);
                                 } else {
                                     LOG.error("Token request failed with status code: " +
                                             response.getStatusLine().getStatusCode());
                                 }
                             } catch (IOException | JsonSyntaxException e) {
-                                LOG.error("Error parsing token response: " + e.getMessage(), e);
+                                LOG.warn("Error parsing token response: " + e.getMessage(), e);
                             } finally {
                                 latch.countDown();
                             }
@@ -223,7 +221,7 @@ public class AIAccessTokenManager {
                         @Override
                         public void failed(Exception e) {
 
-                            LOG.error("Token request failed: " + e.getMessage(), e);
+                            LOG.warn("Token request failed: " + e.getMessage(), e);
                             latch.countDown();
                         }
 
@@ -240,7 +238,7 @@ public class AIAccessTokenManager {
                             return accessToken[0];
                         }
                     } else {
-                        LOG.error("Token request timed out");
+                        LOG.warn("Token request timed out");
                     }
                     // Wait before retrying.
                     TimeUnit.MILLISECONDS.sleep(500);

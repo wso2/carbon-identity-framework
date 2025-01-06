@@ -23,6 +23,23 @@ package org.wso2.carbon.ai.service.mgt.constants;
  */
 public class AIConstants {
 
+    public static final String AI_SERVICE_KEY_PROPERTY_NAME = "AIServices.Key";
+    public static final String AI_TOKEN_ENDPOINT_PROPERTY_NAME = "AIServices.TokenEndpoint";
+    public static final String AI_TOKEN_SERVICE_MAX_RETRIES_PROPERTY_NAME = "AIServices.TokenRequestMaxRetries";
+    public static final String AI_TOKEN_SERVICE_TIMEOUT_PROPERTY_NAME = "AIServices.TokenRequestTimeout";
+    public static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME = "AIServices.HTTPConnectionPoolSize";
+
+    // Http constants.
+    public static final String HTTP_BASIC = "Basic";
+    public static final String HTTP_BEARER = "Bearer";
+    public static final String CONTENT_TYPE_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    public static final String CONTENT_TYPE_JSON = "application/json";
+
+    // Access Token response constants.
+    public static final String ACCESS_TOKEN_KEY = "access_token";
+
+    public static final String TENANT_CONTEXT_PREFIX = "/t/";
+
     /**
      * Enums for error messages.
      */
