@@ -23,6 +23,12 @@ package org.wso2.carbon.identity.application.mgt.ai.constant;
  */
 public class LoginFlowAIConstants {
 
+    public static final String OPERATION_ID_PROPERTY = "operation_id";
+    public static final String USER_CLAIM_PROPERTY = "user_claims";
+    public static final String USER_QUERY_PROPERTY = "user_query";
+    public static final String AUTHENTICATORS_PROPERTY = "available_authenticators";
+
+
     /**
      * Enums for error messages.
      */

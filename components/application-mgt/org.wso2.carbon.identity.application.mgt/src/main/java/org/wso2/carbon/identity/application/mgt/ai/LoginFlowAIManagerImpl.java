@@ -36,7 +36,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil.executeRequest;
+import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.AUTHENTICATORS_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.ErrorMessages.SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE;
+import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.OPERATION_ID_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.USER_CLAIM_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.USER_QUERY_PROPERTY;
+import static org.wso2.carbon.registry.core.RegistryConstants.PATH_SEPARATOR;
 
 /**
  * Implementation of the LoginFlowAIManager interface to communicate with the LoginFlowAI service.
@@ -71,16 +76,16 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
 
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("user_query", userQuery);
+        requestBody.put(USER_QUERY_PROPERTY, userQuery);
         try {
             // Convert JSONArray to List.
             List<Object> userClaimsList = objectMapper.readValue(userClaims.toString(), List.class);
-            requestBody.put("user_claims", userClaimsList);
+            requestBody.put(USER_CLAIM_PROPERTY, userClaimsList);
 
             // Convert JSONObject to Map.
             Map<String, Object> authenticatorsMap = objectMapper.readValue(availableAuthenticators.toString(),
                     Map.class);
-            requestBody.put("available_authenticators", authenticatorsMap);
+            requestBody.put(AUTHENTICATORS_PROPERTY, authenticatorsMap);
         } catch (JsonSyntaxException | IOException e) {
             throw new AIClientException("Error occurred while parsing the user claims or available " +
                     "authenticators.", SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getCode(), e);
@@ -88,7 +93,7 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
 
         Map<String, Object> stringObjectMap = executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_GENERATE_PATH,
                 HttpPost.class, requestBody);
-        return (String) stringObjectMap.get("operation_id");
+        return (String) stringObjectMap.get(OPERATION_ID_PROPERTY);
     }
 
     /**
@@ -104,7 +109,8 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
     public Map<String, Object> getAuthenticationSequenceGenerationStatus(String operationId) throws AIServerException,
             AIClientException {
 
-        return executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_STATUS_PATH + "/" + operationId, HttpGet.class, null);
+        return executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_STATUS_PATH + PATH_SEPARATOR + operationId,
+                HttpGet.class, null);
     }
 
     /**
@@ -120,6 +126,7 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
     public Map<String, Object> getAuthenticationSequenceGenerationResult(String operationId) throws AIServerException,
             AIClientException {
 
-        return executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_RESULT_PATH + "/" + operationId, HttpGet.class, null);
+        return executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_RESULT_PATH + PATH_SEPARATOR + operationId,
+                HttpGet.class, null);
     }
 }
