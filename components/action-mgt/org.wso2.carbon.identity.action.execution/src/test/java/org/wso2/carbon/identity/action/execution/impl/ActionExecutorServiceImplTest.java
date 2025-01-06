@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
@@ -48,6 +49,8 @@ import org.wso2.carbon.identity.action.execution.model.Event;
 import org.wso2.carbon.identity.action.execution.model.FailedStatus;
 import org.wso2.carbon.identity.action.execution.model.Failure;
 import org.wso2.carbon.identity.action.execution.model.Header;
+import org.wso2.carbon.identity.action.execution.model.Incomplete;
+import org.wso2.carbon.identity.action.execution.model.IncompleteStatus;
 import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.execution.model.Organization;
 import org.wso2.carbon.identity.action.execution.model.Param;
@@ -55,6 +58,7 @@ import org.wso2.carbon.identity.action.execution.model.Request;
 import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
+import org.wso2.carbon.identity.action.execution.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutionDiagnosticLogger;
@@ -328,7 +332,8 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test
-    public void testBuildActionExecutionRequestWithExcludedHeaders() throws Exception {
+    public void testBuildActionExecutionRequestWithExcludedHeaders()
+            throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
         Map<String, Object> eventContext = Collections.emptyMap();
@@ -506,6 +511,56 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
+    @Test
+    public void testExecuteIncomplete() throws Exception {
+        // Setup
+        ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
+        Map<String, Object> eventContext = Collections.emptyMap();
+
+        // Mock Action and its dependencies
+        Action action = createAction();
+
+        // Mock ActionManagementService
+        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+                Collections.singletonList(action));
+
+        // Mock ActionRequestBuilder and ActionResponseProcessor
+        actionExecutionRequestBuilderFactory.when(
+                        () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
+                .thenReturn(actionExecutionRequestBuilder);
+        actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
+                        .getActionExecutionResponseProcessor(any()))
+                .thenReturn(actionExecutionResponseProcessor);
+
+        // Configure request builder
+        when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
+                mock(ActionExecutionRequest.class));
+
+        // Mock APIClient response
+        ActionInvocationResponse actionInvocationResponse = createIncompleteActionInvocationResponse();
+        when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
+
+        // Configure response processor
+        ActionExecutionStatus expectedStatus = new IncompleteStatus.Builder()
+                .incomplete(new Incomplete("http://localhost:8080/redirect"))
+                .responseContext(new HashMap<>())
+                .build();
+        when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
+        when(actionExecutionResponseProcessor.processIncompleteResponse(any(), any(), any())).thenReturn(
+                expectedStatus);
+        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
+
+        // Execute and assert
+        ActionExecutionStatus actualStatus =
+                actionExecutorService.execute(actionType, eventContext, "tenantDomain");
+        assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
+
+        ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
+                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+        assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
+    }
+
     @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "Received an invalid or unexpected response for action type: " +
                     "PRE_ISSUE_ACCESS_TOKEN action ID: actionId")
@@ -616,6 +671,19 @@ public class ActionExecutorServiceImplTest {
         return actionInvocationResponse;
     }
 
+    private ActionInvocationResponse createIncompleteActionInvocationResponse() {
+
+        ActionInvocationIncompleteResponse incompleteResponse = mock(ActionInvocationIncompleteResponse.class);
+        when(incompleteResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.INCOMPLETE);
+        when(incompleteResponse.getOperations()).thenReturn(Collections.emptyList());
+
+        ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
+        when(actionInvocationResponse.isIncomplete()).thenReturn(true);
+        when(actionInvocationResponse.getResponse()).thenReturn(incompleteResponse);
+        return actionInvocationResponse;
+    }
+
+
     private ActionInvocationResponse createFailureActionInvocationResponse() {
 
         ActionInvocationFailureResponse failureResponse = mock(ActionInvocationFailureResponse.class);
@@ -672,7 +740,9 @@ public class ActionExecutorServiceImplTest {
         setField(event, "request", request);
         setField(event, "tenant", new Tenant("45", "tenant-45"));
         setField(event, "organization", new Organization("9600e5d0-969d-46b4-a463-9fd5de97196a", "test-org-1"));
-        setField(event, "user", new User("8ebe008f-33c1-4d2d-97ee-eaacb17d8114"));
+        User user =  new User("8ebe008f-33c1-4d2d-97ee-eaacb17d8114");
+        user.setUserClaims(new UserClaim("http://wso2.org/claims/username", "testuser"));
+        setField(event, "user", user);
         setField(event, "userStore", new UserStore("PRIMARY"));
         setField(event, "application", new Application("af82f304-ac9b-4d2b-b4da-17e01bd13d09", "test-app-1"));
 

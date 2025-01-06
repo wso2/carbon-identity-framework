@@ -75,6 +75,20 @@ public class ActionExecutionDiagnosticLogger {
         triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
     }
 
+    public void logIncompleteResponse(Action action) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
+                ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE,
+                "Received response with INCOMPLETE status from external endpoint " +
+                        action.getEndpoint().getUri() + " for " +
+                        action.getType().getDisplayName() + " action.",
+                DiagnosticLog.ResultStatus.SUCCESS);
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
+    }
+
     public void logErrorResponse(Action action) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {

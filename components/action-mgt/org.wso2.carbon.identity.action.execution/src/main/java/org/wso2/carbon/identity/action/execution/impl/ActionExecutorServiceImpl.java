@@ -36,12 +36,14 @@ import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.model.Error;
 import org.wso2.carbon.identity.action.execution.model.Failure;
+import org.wso2.carbon.identity.action.execution.model.Incomplete;
 import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.model.Request;
 import org.wso2.carbon.identity.action.execution.model.Success;
@@ -106,6 +108,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
+    @Override
     public ActionExecutionStatus<?> execute(ActionType actionType, Map<String, Object> eventContext,
                                             String tenantDomain) throws ActionExecutionException {
 
@@ -131,6 +134,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
+    @Override
     public ActionExecutionStatus<?> execute(ActionType actionType, String[] actionIdList,
                                             Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
@@ -179,7 +183,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         try {
             return ActionExecutionServiceComponentHolder.getInstance().getActionManagementService().getActionByActionId(
-                    Action.ActionTypes.valueOf(actionType.name()).getActionType(), actionId, tenantDomain);
+                    Action.ActionTypes.valueOf(actionType.name()).getPathParam(), actionId, tenantDomain);
         } catch (ActionMgtException e) {
             throw new ActionExecutionException("Error occurred while retrieving action by action Id.", e);
         }
@@ -310,6 +314,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             return processSuccessResponse(action,
                     (ActionInvocationSuccessResponse) actionInvocationResponse.getResponse(),
                     eventContext, actionRequest, actionExecutionResponseProcessor);
+        } else if (actionInvocationResponse.isIncomplete()) {
+            return processIncompleteResponse(action,
+                    (ActionInvocationIncompleteResponse) actionInvocationResponse.getResponse(),
+                    eventContext, actionRequest, actionExecutionResponseProcessor);
         } else if (actionInvocationResponse.isFailure() && actionInvocationResponse.getResponse() != null) {
             return processFailureResponse(action, (ActionInvocationFailureResponse) actionInvocationResponse
                     .getResponse(), eventContext, actionRequest, actionExecutionResponseProcessor);
@@ -333,12 +341,32 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         logSuccessResponse(action, successResponse);
 
         List<PerformableOperation> allowedPerformableOperations =
-                validatePerformableOperations(actionRequest, successResponse, action);
+                validatePerformableOperations(actionRequest, successResponse.getOperations(), action);
         ActionInvocationSuccessResponse.Builder successResponseBuilder =
                 new ActionInvocationSuccessResponse.Builder().actionStatus(ActionInvocationResponse.Status.SUCCESS)
                         .operations(allowedPerformableOperations);
         return actionExecutionResponseProcessor.processSuccessResponse(eventContext,
                 actionRequest.getEvent(), successResponseBuilder.build());
+    }
+
+    private ActionExecutionStatus<Incomplete> processIncompleteResponse(
+                                                Action action,
+                                                ActionInvocationIncompleteResponse incompleteResponse,
+                                                Map<String, Object> eventContext,
+                                                ActionExecutionRequest actionRequest,
+                                                ActionExecutionResponseProcessor actionExecutionResponseProcessor)
+            throws ActionExecutionResponseProcessorException {
+
+        logIncompleteResponse(action, incompleteResponse);
+
+        List<PerformableOperation> allowedPerformableOperations =
+                validatePerformableOperations(actionRequest, incompleteResponse.getOperations(), action);
+        ActionInvocationIncompleteResponse.Builder incompleteResponseBuilder =
+                new ActionInvocationIncompleteResponse.Builder()
+                        .actionStatus(ActionInvocationResponse.Status.INCOMPLETE)
+                        .operations(allowedPerformableOperations);
+        return actionExecutionResponseProcessor.processIncompleteResponse(eventContext,
+                actionRequest.getEvent(), incompleteResponseBuilder.build());
     }
 
     private ActionExecutionStatus<Error> processErrorResponse(Action action,
@@ -383,6 +411,27 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                         responseBody));
             } catch (JsonProcessingException e) {
                 LOG.error("Error occurred while deserializing the success response for action: " +
+                        action.getId() + " for action type: " + action.getType().getActionType(), e);
+            }
+        }
+    }
+
+    private void logIncompleteResponse(Action action, ActionInvocationIncompleteResponse incompleteResponse) {
+
+        DIAGNOSTIC_LOGGER.logIncompleteResponse(action);
+        if (LOG.isDebugEnabled()) {
+            try {
+                String responseBody = serializeIncompleteResponse(incompleteResponse);
+                LOG.debug(String.format(
+                        "Received incomplete response from API: %s for action type: %s action id: %s with " +
+                                "authentication: %s. Response: %s",
+                        action.getEndpoint().getUri(),
+                        action.getType().getActionType(),
+                        action.getId(),
+                        action.getEndpoint().getAuthentication().getType(),
+                        responseBody));
+            } catch (JsonProcessingException e) {
+                LOG.error("Error occurred while deserializing the incomplete response for action: " +
                         action.getId() + " for action type: " + action.getType().getActionType(), e);
             }
         }
@@ -459,6 +508,13 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return objectMapper.writeValueAsString(response);
     }
 
+    private String serializeIncompleteResponse(ActionInvocationIncompleteResponse response)
+            throws JsonProcessingException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(response);
+    }
+
     private String serializeErrorResponse(ActionInvocationErrorResponse response) throws JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -472,11 +528,14 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     private List<PerformableOperation> validatePerformableOperations(
-            ActionExecutionRequest request, ActionInvocationSuccessResponse response, Action action) {
+            ActionExecutionRequest request, List<PerformableOperation> operations, Action action) {
 
         List<AllowedOperation> allowedOperations = request.getAllowedOperations();
 
-        List<PerformableOperation> allowedPerformableOperations = response.getOperations().stream()
+        if (operations == null) {
+            return new ArrayList<>();
+        }
+        List<PerformableOperation> allowedPerformableOperations = operations.stream()
                 .filter(performableOperation -> allowedOperations.stream()
                         .anyMatch(allowedOperation -> OperationComparator.compare(allowedOperation,
                                 performableOperation)))
@@ -486,7 +545,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 List<String> allowedOps = new ArrayList<>();
                 List<String> notAllowedOps = new ArrayList<>();
 
-                response.getOperations().forEach(operation -> {
+                operations.forEach(operation -> {
                     String operationDetails = "Operation: " + operation.getOp() + " Path: " + operation.getPath();
                     if (allowedPerformableOperations.contains(operation)) {
                         allowedOps.add(operationDetails);
