@@ -1,16 +1,20 @@
 {
-  "category": "DEFAULT",
+  "id": "internal-custom-authentication",
+  "name": "Internal Custom Authentication",
   "description": "Register externally implemented authentication service.",
   "docLink": "",
-  "templateGroup": "custom-authentication",
-  "id": "internal-custom-authentication",
-  "tags": [ "Custom" ],
   "image": "",
-  "idp": {},
+  "category": "DEFAULT",
+  "disabled": false,
+  "templateId": "internal-custom-authentication",
+  "templateGroup": "custom-authentication",
+  "displayOrder": -1,
+  "services": [],
+  "tags": [ "Custom" ],
   "localAuthenticator": {
     "name": "",
     "displayName": "",
-    "isEnabled": false,
+    "isEnabled": true,
     "authenticationType": "IDENTIFICATION",
     "description": "",
     "endpoint": {
@@ -20,9 +24,5 @@
         "properties": {}
       }
     }
-  },
-  "name": "Internal Custom Authentication",
-  "services": [],
-  "disabled": false,
-  "templateId": "internal-custom-authentication"
+  }
 }

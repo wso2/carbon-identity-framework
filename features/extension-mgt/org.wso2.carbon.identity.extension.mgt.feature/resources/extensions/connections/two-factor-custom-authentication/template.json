@@ -1,16 +1,21 @@
 {
-  "category": "DEFAULT",
+  "id": "two-factor-custom-authentication",
+  "name": "2FA Authentication",
   "description": "Register externally implemented authentication service.",
   "docLink": "",
+  "image": "",
+  "category": "DEFAULT",
+  "disabled": false,
+  "templateId": "two-factor-custom-authentication",
   "templateGroup": "custom-authentication",
-  "id": "two-factor-custom-authentication",
-  "tags": [ "Custom" ],
-  "idp": {},
+  "displayOrder": -1,
+  "services": [],
+  "tags": [ "Custom", "2FA" ],
   "localAuthenticator": {
     "name": "",
     "displayName": "",
-    "isEnabled": false,
-    "authenticationType": "IDENTIFICATION",
+    "isEnabled": true,
+    "authenticationType": "VERIFICATION",
     "description": "",
     "endpoint": {
       "uri": "",
@@ -19,10 +24,5 @@
         "properties": {}
       }
     }
-  },
-  "image": "",
-  "name": "2FA Authentication",
-  "services": [],
-  "disabled": false,
-  "templateId": "two-factor-custom-authentication"
+  }
 }

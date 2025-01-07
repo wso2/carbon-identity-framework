@@ -1,20 +1,47 @@
 {
-  "category": "DEFAULT",
+  "id": "external-custom-authentication",
+  "name": "External Custom Authentication",
   "description": "Register externally implemented authentication service.",
   "docLink": "",
+  "image": "",
+  "category": "DEFAULT",
+  "disabled": false,
+  "templateId": "external-custom-authentication",
   "templateGroup": "custom-authentication",
-  "id": "external-custom-authentication",
+  "displayOrder": -1,
+  "services": [],
   "tags": [ "Custom" ],
   "idp": {
     "name": "",
     "description": "",
     "image": "",
+    "isPrimary": false,
+    "isFederationHub": false,
+    "homeRealmIdentifier": "",
+    "certificate": {
+      "certificates": []
+    },
+    "alias": "",
+    "idpIssuerName": "",
+    "claims": {
+      "userIdClaim": {
+        "uri": ""
+      },
+      "roleClaim": {
+        "uri": ""
+      },
+      "provisioningClaims": []
+    },
+    "roles": {
+      "mappings": [],
+      "outboundProvisioningRoles": []
+    },
     "federatedAuthenticators": {
       "defaultAuthenticatorId": "",
       "authenticators": [
         {
           "authenticatorId": "",
-          "isEnabled": false,
+          "isEnabled": true,
           "isDefault": false,
           "endpoint": {
             "uri": "",
@@ -26,10 +53,5 @@
         }
       ]
     }
-  },
-  "image": "",
-  "name": "External Custom Authentication",
-  "services": [],
-  "disabled": false,
-  "templateId": "external-custom-authentication"
+  }
 }
