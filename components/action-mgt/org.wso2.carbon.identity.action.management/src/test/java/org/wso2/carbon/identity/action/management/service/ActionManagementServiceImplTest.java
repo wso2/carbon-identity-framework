@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
+import org.wso2.carbon.identity.rule.management.model.Rule;
+import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
@@ -75,21 +77,29 @@ public class ActionManagementServiceImplTest {
 
     private ActionManagementService actionManagementService;
     private Action sampleAction;
+    private Rule sampleRule;
 
     @BeforeClass
     public void setUpClass() {
 
         actionManagementService = new ActionManagementServiceImpl();
+        sampleRule = TestUtil.buildMockRule("ruleId", true);
     }
 
     @BeforeMethod
-    public void setUp() throws SecretManagementException {
+    public void setUp() throws Exception {
 
         SecretManagerImpl secretManager = mock(SecretManagerImpl.class);
         SecretType secretType = mock(SecretType.class);
         ActionMgtServiceComponentHolder.getInstance().setSecretManager(secretManager);
         when(secretType.getId()).thenReturn(TestUtil.TEST_SECRET_TYPE_ID);
         when(secretManager.getSecretType(any())).thenReturn(secretType);
+
+        RuleManagementService ruleManagementService = mock(RuleManagementService.class);
+        ActionMgtServiceComponentHolder.getInstance().setRuleManagementService(ruleManagementService);
+        when(ruleManagementService.getRuleByRuleId(any(), any())).thenReturn(sampleRule);
+        when(ruleManagementService.addRule(any(), any())).thenReturn(sampleRule);
+        when(ruleManagementService.updateRule(any(), any())).thenReturn(sampleRule);
     }
 
     @Test(priority = 1)
@@ -124,6 +134,7 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 2, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithInvalidData() throws ActionMgtException {
+
         Action creatingAction = TestUtil.buildMockAction(
                 TEST_INVALID_ACTION_NAME,
                 TEST_ACTION_DESCRIPTION,
@@ -136,6 +147,7 @@ public class ActionManagementServiceImplTest {
     @Test(priority = 3, expectedExceptions = ActionMgtClientException.class,
             expectedExceptionsMessageRegExp = "Invalid request.")
     public void testAddActionWithEmptyData() throws ActionMgtException {
+
         Action creatingAction = TestUtil.buildMockAction(
                 StringUtils.EMPTY,
                 TEST_ACTION_DESCRIPTION,
@@ -259,7 +271,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNull(actionMap.get(Action.ActionTypes.PRE_UPDATE_PROFILE.getActionType()));
         Assert.assertNull(actionMap.get(Action.ActionTypes.PRE_REGISTRATION.getActionType()));
         Assert.assertNull(actionMap.get(Action.ActionTypes.AUTHENTICATION.getActionType()));
-        for (Map.Entry<String, Integer> entry: actionMap.entrySet()) {
+        for (Map.Entry<String, Integer> entry : actionMap.entrySet()) {
             Assert.assertEquals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType(), entry.getKey());
             Assert.assertEquals(entry.getValue().intValue(), 1);
         }
@@ -318,6 +330,101 @@ public class ActionManagementServiceImplTest {
         } catch (Exception e) {
             Assert.fail();
         }
+    }
+
+    @Test(priority = 15)
+    public void testAddActionWithRule() throws ActionMgtException, SecretManagementException {
+
+        Action creatingAction = TestUtil.buildMockActionWithRule(
+                TEST_ACTION_NAME,
+                TEST_ACTION_DESCRIPTION,
+                TEST_ACTION_URI,
+                TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD),
+                sampleRule);
+        sampleAction = actionManagementService.addAction(PRE_ISSUE_ACCESS_TOKEN_PATH, creatingAction, TENANT_DOMAIN);
+
+        Assert.assertNotNull(sampleAction.getId());
+        Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
+        Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
+        Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
+
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+        Authentication creatingActionAuth = creatingAction.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(creatingActionAuth, sampleAction.getId());
+
+        Assert.assertEquals(sampleActionAuth.getType(), creatingActionAuth.getType());
+        Assert.assertEquals(sampleActionAuth.getProperties().size(), creatingActionAuth.getProperties().size());
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                secretProperties.get(Authentication.Property.USERNAME.getName()));
+        Assert.assertEquals(sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                secretProperties.get(Authentication.Property.PASSWORD.getName()));
+
+        Assert.assertNotNull(sampleAction.getActionRule());
+        Assert.assertEquals(sampleAction.getActionRule().getId(), creatingAction.getActionRule().getId());
+        Assert.assertEquals(sampleAction.getActionRule().getRule(), creatingAction.getActionRule().getRule());
+    }
+
+    @Test(priority = 16)
+    public void testGetActionsWithRulesByActionType() throws ActionMgtException {
+
+        List<Action> actions = actionManagementService.getActionsByActionType(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                TENANT_DOMAIN);
+        Assert.assertEquals(actions.size(), 1);
+        Action result = actions.get(0);
+        Assert.assertEquals(result.getId(), sampleAction.getId());
+        Assert.assertEquals(result.getName(), sampleAction.getName());
+        Assert.assertEquals(result.getDescription(), sampleAction.getDescription());
+        Assert.assertEquals(result.getType().getActionType(), sampleAction.getType().getActionType());
+        Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getEndpoint().getUri(), sampleAction.getEndpoint().getUri());
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Authentication sampleActionAuth = sampleAction.getEndpoint().getAuthentication();
+
+        Assert.assertEquals(resultActionAuth.getType(), sampleActionAuth.getType());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.USERNAME).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.USERNAME).getValue());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.PASSWORD).getValue(),
+                sampleActionAuth.getProperty(Authentication.Property.PASSWORD).getValue());
+
+        Assert.assertNotNull(result.getActionRule());
+        Assert.assertEquals(result.getActionRule().getId(), sampleAction.getActionRule().getId());
+        Assert.assertEquals(result.getActionRule().getRule(), sampleAction.getActionRule().getRule());
+    }
+
+    @Test(priority = 17)
+    public void testUpdateActionWithRule() throws ActionMgtException, SecretManagementException {
+
+        Action updatingAction = TestUtil.buildMockActionWithRule(
+                TEST_ACTION_NAME_UPDATED,
+                TEST_ACTION_DESCRIPTION_UPDATED,
+                TEST_ACTION_URI,
+                TestUtil.buildMockAPIKeyAuthentication(TEST_API_KEY_HEADER, TEST_API_KEY_VALUE), sampleRule);
+        Action result = actionManagementService.updateAction(PRE_ISSUE_ACCESS_TOKEN_PATH, sampleAction.getId(),
+                updatingAction, TENANT_DOMAIN);
+
+        Assert.assertEquals(result.getId(), sampleAction.getId());
+        Assert.assertEquals(result.getName(), updatingAction.getName());
+        Assert.assertEquals(result.getDescription(), updatingAction.getDescription());
+        Assert.assertEquals(result.getType(), sampleAction.getType());
+        Assert.assertEquals(result.getStatus(), sampleAction.getStatus());
+        Assert.assertEquals(result.getEndpoint().getUri(), updatingAction.getEndpoint().getUri());
+
+        Authentication resultActionAuth = result.getEndpoint().getAuthentication();
+        Authentication updatingActionAuth = updatingAction.getEndpoint().getAuthentication();
+        Map<String, String> secretProperties = resolveAuthPropertiesMap(updatingActionAuth, sampleAction.getId());
+
+        Assert.assertEquals(resultActionAuth.getType(), updatingActionAuth.getType());
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.HEADER).getValue(),
+                secretProperties.get(Authentication.Property.HEADER.getName()));
+        Assert.assertEquals(resultActionAuth.getProperty(Authentication.Property.VALUE).getValue(),
+                secretProperties.get(Authentication.Property.VALUE.getName()));
+
+        Assert.assertNotNull(result.getActionRule());
+        Assert.assertEquals(result.getActionRule().getId(), sampleAction.getActionRule().getId());
+        Assert.assertEquals(result.getActionRule().getRule(), sampleAction.getActionRule().getRule());
     }
 
     private Map<String, String> resolveAuthPropertiesMap(Authentication authentication, String actionId)

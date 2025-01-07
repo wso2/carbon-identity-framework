@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
@@ -99,6 +100,11 @@ public class TestActionDTOModelResolver implements ActionDTOModelResolver {
         Map<String, Object> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
                 updatingActionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
+        if (updatingActionDTO.getProperty(CERTIFICATE_PROPERTY_NAME) != null &&
+                !StringUtils.EMPTY.equals(updatingActionDTO.getProperty(
+                        CERTIFICATE_PROPERTY_NAME).toString())) {
+            properties.put(CERTIFICATE_PROPERTY_NAME, TestUtil.CERTIFICATE_ID);
+        }
 
         return new ActionDTO.Builder(updatingActionDTO).properties(properties).build();
     }
