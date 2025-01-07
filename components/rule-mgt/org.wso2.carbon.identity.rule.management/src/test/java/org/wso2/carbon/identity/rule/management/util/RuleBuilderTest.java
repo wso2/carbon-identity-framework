@@ -28,17 +28,18 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementClientException;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementServerException;
 import org.wso2.carbon.identity.rule.management.internal.RuleManagementComponentServiceHolder;
+import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Expression;
 import org.wso2.carbon.identity.rule.management.model.FlowType;
+import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Rule;
 import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.management.model.internal.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.internal.ORCombinedRule;
 import org.wso2.carbon.identity.rule.metadata.config.OperatorConfig;
 import org.wso2.carbon.identity.rule.metadata.config.RuleMetadataConfigFactory;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.model.Field;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.model.InputValue;
 import org.wso2.carbon.identity.rule.metadata.model.Link;
 import org.wso2.carbon.identity.rule.metadata.model.Operator;
 import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
@@ -170,8 +171,7 @@ public class RuleBuilderTest {
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Building rule failed due to validation errors. " +
-                    "Error: Field invalid is not supported")
+            expectedExceptionsMessageRegExp = "Rule validation failed: Field invalid is not supported")
     public void testCreateRuleWithAnExpressionWithInvalidField() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -189,8 +189,8 @@ public class RuleBuilderTest {
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Building rule failed due to validation errors. " +
-                    "Error: Operator invalid is not supported for field application")
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Operator invalid is not supported for field application")
     public void testCreateRuleWithAnExpressionWithInvalidOperator() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -208,9 +208,9 @@ public class RuleBuilderTest {
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Building rule failed due to validation errors. " +
-                    "Error: Value invalid is not supported for field grantType")
-    public void testCreateRuleWithAnExpressionWithInvalidValue() throws Exception {
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Value invalid is not supported for field grantType")
+    public void testCreateRuleWithAnExpressionWithInvalidOptionsValue() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
@@ -219,16 +219,52 @@ public class RuleBuilderTest {
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
-        Expression expression = new Expression.Builder().field("grantType").operator("equals")
-                .value(new Value(Value.Type.STRING, "invalid")).build();
+        Expression expression = new Expression.Builder().field("grantType").operator("equals").value("invalid").build();
         ruleBuilder.addAndExpression(expression);
 
         ruleBuilder.build();
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Building rule failed due to validation errors. " +
-                    "Error: Value type STRING is not supported for field application")
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Value invalid is not a valid NUMBER.")
+    public void testCreateRuleWithAnExpressionWithInvalidNumberValue() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression =
+                new Expression.Builder().field("riskFactor").operator("equals").value("invalid").build();
+        ruleBuilder.addAndExpression(expression);
+
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Value invalid is not a valid BOOLEAN.")
+    public void testCreateRuleWithAnExpressionWithInvalidBooleanValue() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("status").operator("equals").value("invalid").build();
+        ruleBuilder.addAndExpression(expression);
+
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = RuleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Value type STRING is not supported for field application")
     public void testCreateRuleWithAnExpressionWithInvalidValueType() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -245,6 +281,57 @@ public class RuleBuilderTest {
         ruleBuilder.build();
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Field must be provided.")
+    public void testCreateRuleWithAnExpressionWithoutRequiredField() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().operator("equals").value("invalid").build();
+        ruleBuilder.addAndExpression(expression);
+
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Operator must be provided.")
+    public void testCreateRuleWithAnExpressionWithoutRequiredOperator() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("application").value("invalid").build();
+        ruleBuilder.addAndExpression(expression);
+
+        ruleBuilder.build();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class,
+            expectedExceptionsMessageRegExp = "Either primitive value or Value with type must be provided.")
+    public void testCreateRuleWithAnExpressionWithoutRequiredValue() throws Exception {
+
+        List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
+        when(ruleMetadataService.getExpressionMeta(
+                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
+
+        RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
+
+        Expression expression = new Expression.Builder().field("application").operator("equals").build();
+        ruleBuilder.addAndExpression(expression);
+
+        ruleBuilder.build();
+    }
+
     /**
      * This test case is to test the scenario where multiple validation failures occur when building a rule.
      * In this case, only the very first validation failure is expected to be thrown.
@@ -252,8 +339,7 @@ public class RuleBuilderTest {
      * @throws Exception Client exception when building the rule
      */
     @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Building rule failed due to validation errors. " +
-                    "Error: Field invalid is not supported")
+            expectedExceptionsMessageRegExp = "Rule validation failed: Field invalid is not supported")
     public void testCreateRuleWithMultipleValidationFailures() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -284,8 +370,8 @@ public class RuleBuilderTest {
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Building rule failed due to validation errors. " +
-                    "Error: Maximum number of expressions combined with AND exceeded. Maximum allowed: 5 Provided: 6")
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Maximum number of expressions combined with AND exceeded. Maximum allowed: 5 Provided: 6")
     public void testCreateRuleWithMaxAllowedExpressionsCombinedWithAND() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -305,8 +391,8 @@ public class RuleBuilderTest {
     }
 
     @Test(expectedExceptions = RuleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Building rule failed due to validation errors. " +
-                    "Error: Maximum number of rules combined with OR exceeded. Maximum allowed: 10 Provided: 11")
+            expectedExceptionsMessageRegExp = "Rule validation failed: " +
+                    "Maximum number of rules combined with OR exceeded. Maximum allowed: 10 Provided: 11")
     public void testCreateRuleWithMaxAllowedRulesCombinedWithOR() throws Exception {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
@@ -442,6 +528,18 @@ public class RuleBuilderTest {
                         optionsValues);
         fieldDefinitionList.add(new FieldDefinition(grantTypeField, operators, grantTypeValue));
 
+        Field riskFactorField = new Field("riskFactor", "riskFactor");
+        org.wso2.carbon.identity.rule.metadata.model.Value
+                riskFactorValue =
+                new InputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.NUMBER);
+        fieldDefinitionList.add(new FieldDefinition(riskFactorField, operators, riskFactorValue));
+
+        Field statusField = new Field("status", "status");
+        org.wso2.carbon.identity.rule.metadata.model.Value
+                statusValue =
+                new InputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.BOOLEAN);
+        fieldDefinitionList.add(new FieldDefinition(statusField, operators, statusValue));
+
         return fieldDefinitionList;
     }
 
@@ -449,7 +547,12 @@ public class RuleBuilderTest {
 
         assertEquals(andCombinedRule.getExpressions().size(), expressions.length);
         for (int i = 0; i < expressions.length; i++) {
-            assertEquals(andCombinedRule.getExpressions().get(i), expressions[i]);
+            assertEquals(andCombinedRule.getExpressions().get(i).getField(), expressions[i].getField());
+            assertEquals(andCombinedRule.getExpressions().get(i).getOperator(), expressions[i].getOperator());
+            assertEquals(andCombinedRule.getExpressions().get(i).getValue().getType(),
+                    expressions[i].getValue().getType());
+            assertEquals(andCombinedRule.getExpressions().get(i).getValue().getFieldValue(),
+                    expressions[i].getValue().getFieldValue());
         }
     }
 

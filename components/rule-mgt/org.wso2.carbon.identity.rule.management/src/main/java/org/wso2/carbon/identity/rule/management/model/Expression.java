@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.rule.management.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -36,7 +38,7 @@ public class Expression {
 
         this.field = builder.field;
         this.operator = builder.operator;
-        this.value = builder.value;
+        this.value = resolveValue(builder);
     }
 
     public String getField() {
@@ -54,6 +56,15 @@ public class Expression {
         return value;
     }
 
+    private Value resolveValue(Builder builder) {
+
+        if (builder.rawValue != null) {
+            return new Value(Value.Type.RAW, builder.rawValue);
+        } else {
+            return builder.value;
+        }
+    }
+
     /**
      * Builder for the Expression.
      */
@@ -63,6 +74,7 @@ public class Expression {
         private String field;
         private String operator;
         private Value value;
+        private String rawValue;
 
         public Builder field(String field) {
 
@@ -76,13 +88,38 @@ public class Expression {
             return this;
         }
 
+        @JsonProperty("value")
         public Builder value(Value value) {
 
             this.value = value;
             return this;
         }
 
+        /**
+         * '@JsonIgnore' annotation is used to ignore the invocation of this method when deserializing the object,
+         * from JSON from the database.
+         * {@link #value(Value)} method is expected to be invoked at deserialization.
+         */
+        @JsonIgnore
+        public Builder value(String value) {
+
+            this.rawValue = value;
+            return this;
+        }
+
         public Expression build() {
+
+            if (field == null || field.isEmpty()) {
+                throw new IllegalArgumentException("Field must be provided.");
+            }
+
+            if (operator == null || operator.isEmpty()) {
+                throw new IllegalArgumentException("Operator must be provided.");
+            }
+
+            if (value == null && rawValue == null) {
+                throw new IllegalArgumentException("Either primitive value or Value with type must be provided.");
+            }
 
             return new Expression(this);
         }

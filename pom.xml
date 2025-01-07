@@ -71,9 +71,9 @@
         <module>components/input-validation-mgt</module>
         <module>components/client-attestation-mgt</module>
         <module>components/trusted-app-mgt</module>
+        <module>components/rule-mgt</module>
         <module>components/action-mgt</module>
         <module>components/certificate-mgt</module>
-        <module>components/rule-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -107,9 +107,9 @@
         <module>features/api-resource-mgt</module>
         <module>features/client-attestation-mgt</module>
         <module>features/trusted-app-mgt</module>
+        <module>features/rule-mgt</module>
         <module>features/action-mgt</module>
         <module>features/certificate-mgt</module>
-        <module>features/rule-mgt</module>
     </modules>
 
 
@@ -315,6 +315,17 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.action.management</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -327,17 +338,6 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.rule.metadata</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
