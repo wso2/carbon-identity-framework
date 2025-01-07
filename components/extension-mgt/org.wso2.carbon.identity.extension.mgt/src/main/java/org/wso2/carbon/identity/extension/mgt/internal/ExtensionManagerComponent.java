@@ -213,7 +213,9 @@ public class ExtensionManagerComponent {
 
         Path templatePath = extensionResourcePath.resolve(TEMPLATE_FILE_NAME);
         if (Files.exists(templatePath) && Files.isRegularFile(templatePath)) {
-            return readJSONFile(templatePath);
+            JSONObject template = readJSONFile(templatePath);
+            ExtensionMgtUtils.resolveConnectionJITPrimaryDomainName(template);
+            return template;
         }
         return null;
     }
