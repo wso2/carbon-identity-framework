@@ -29,8 +29,10 @@ import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolv
 import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
+import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.model.ActionRule;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
@@ -40,6 +42,7 @@ import org.wso2.carbon.identity.action.management.util.ActionManagementException
 import org.wso2.carbon.identity.action.management.util.ActionSecretProcessor;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.util.List;
@@ -72,10 +75,11 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 ActionDTOBuilder actionDTOBuilder = new ActionDTOBuilder(actionDTO);
                 // Encrypt authentication secrets
                 encryptAddingAuthSecrets(actionDTOBuilder);
+                // Add action rule
+                addActionRule(actionDTOBuilder, IdentityTenantUtil.getTenantDomain(tenantId));
                 // Resolve action properties
                 ActionDTO resolvedActionDTO = getResolvedActionDTOForAddOperation(actionDTOBuilder.build(),
                         tenantId);
-
                 actionManagementDAO.addAction(resolvedActionDTO, tenantId);
                 return null;
             });
@@ -94,7 +98,6 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
         try {
             List<ActionDTO> actionDTOS = actionManagementDAO.getActionsByActionType(actionType, tenantId);
-
             return getResolvedActionDTOsForGetOperation(actionType, actionDTOS, tenantId);
         } catch (ActionMgtException | ActionDTOModelResolverException e) {
             throw ActionManagementExceptionHandler.handleServerException(
@@ -106,15 +109,23 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
     public ActionDTO getActionByActionId(String actionType, String actionId, Integer tenantId)
             throws ActionMgtException {
 
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            ActionDTO actionDTO = actionManagementDAO.getActionByActionId(actionType, actionId, tenantId);
-            if (actionDTO == null) {
-                return null;
-            }
+            return jdbcTemplate.withTransaction(template -> {
+                ActionDTO actionDTO = actionManagementDAO.getActionByActionId(actionType, actionId, tenantId);
+                if (actionDTO == null) {
+                    return null;
+                }
 
-            // Populate action properties
-            return getResolvedActionDTOForGetOperation(actionDTO, tenantId);
-        } catch (ActionMgtException | ActionDTOModelResolverException e) {
+                ActionDTOBuilder actionDTOBuilder = new ActionDTOBuilder(actionDTO);
+                // Load action rule
+                loadActionRule(actionDTOBuilder, IdentityTenantUtil.getTenantDomain(tenantId));
+                // Populate action properties
+                return getResolvedActionDTOForGetOperation(actionDTOBuilder.build(), tenantId);
+            });
+        } catch (TransactionException e) {
+            // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
+            handleActionPropertyResolverClientException(e.getCause());
             throw ActionManagementExceptionHandler.handleServerException(
                     ErrorMessage.ERROR_WHILE_RETRIEVING_ACTION_BY_ID, e);
         }
@@ -130,6 +141,9 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 ActionDTOBuilder updatingActionDTOBuilder = new ActionDTOBuilder(updatingActionDTO);
                 // Encrypt authentication secrets
                 encryptUpdatingAuthSecrets(updatingActionDTOBuilder, existingActionDTO);
+                // Update action rule
+                updateActionRule(updatingActionDTOBuilder, existingActionDTO,
+                        IdentityTenantUtil.getTenantDomain(tenantId));
                 // Resolve action properties
                 ActionDTO resolvedUpdatingActionDTO =
                         getResolvedActionDTOForUpdateOperation(updatingActionDTOBuilder.build(), existingActionDTO,
@@ -156,9 +170,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
                 actionManagementDAO.deleteAction(deletingActionDTO, tenantId);
-                // Encrypt authentication secrets
                 deleteAuthenticationSecrets(deletingActionDTO);
-                // Resolve action properties
+                deleteActionRule(deletingActionDTO, IdentityTenantUtil.getTenantDomain(tenantId));
                 deleteProperties(deletingActionDTO, tenantId);
 
                 return null;
@@ -292,6 +305,70 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                                 .properties(encryptedPropertyMap)
                                 .build())
                         .build());
+    }
+
+    private void addActionRule(ActionDTOBuilder actionDTOBuilder, String tenantDomain) throws ActionMgtException {
+
+        if (actionDTOBuilder.getActionRule() != null) {
+            try {
+                ActionMgtServiceComponentHolder.getInstance()
+                        .getRuleManagementService()
+                        .addRule(actionDTOBuilder.getActionRule().getRule(), tenantDomain);
+            } catch (RuleManagementException e) {
+                throw new ActionMgtServerException("Error while adding the Rule associated with the Action.", e);
+            }
+        }
+    }
+
+    private void loadActionRule(ActionDTOBuilder actionDTOBuilder, String tenantDomain)
+            throws ActionMgtServerException {
+
+        if (actionDTOBuilder.getActionRule() != null) {
+            try {
+                ActionRule actionRule = ActionRule.create(ActionMgtServiceComponentHolder.getInstance()
+                        .getRuleManagementService()
+                        .getRuleByRuleId(actionDTOBuilder.getActionRule().getId(), tenantDomain));
+                actionDTOBuilder.rule(actionRule);
+            } catch (RuleManagementException e) {
+                throw new ActionMgtServerException("Error while retrieving the Rule associated with the Action.", e);
+            }
+        }
+    }
+
+    private void updateActionRule(ActionDTOBuilder updatingActionDTOBuilder, ActionDTO existingActionDTO,
+                                  String tenantDomain)
+            throws ActionMgtException {
+
+        if (existingActionDTO.getActionRule() == null && updatingActionDTOBuilder.getActionRule() != null) {
+            // This means a new action rule is added when updating the action.
+            addActionRule(updatingActionDTOBuilder, tenantDomain);
+        } else if (existingActionDTO.getActionRule() != null && updatingActionDTOBuilder.getActionRule() == null) {
+            // This means the existing action rule is removed when updating the action.
+            deleteActionRule(existingActionDTO, tenantDomain);
+        } else if (existingActionDTO.getActionRule() != null && updatingActionDTOBuilder.getActionRule() !=
+                null) {  // This means the existing action rule is updated when updating the action.
+            try {
+                updatingActionDTOBuilder.getActionRule().getRule().setId(existingActionDTO.getActionRule().getId());
+                ActionMgtServiceComponentHolder.getInstance()
+                        .getRuleManagementService()
+                        .updateRule(updatingActionDTOBuilder.getActionRule().getRule(), tenantDomain);
+            } catch (RuleManagementException e) {
+                throw new ActionMgtServerException("Error while updating the Rule associated with the Action.", e);
+            }
+        }
+    }
+
+    private void deleteActionRule(ActionDTO actionDTO, String tenantDomain) throws ActionMgtServerException {
+
+        if (actionDTO.getActionRule() != null) {
+            try {
+                ActionMgtServiceComponentHolder.getInstance()
+                        .getRuleManagementService()
+                        .deleteRule(actionDTO.getActionRule().getId(), tenantDomain);
+            } catch (RuleManagementException e) {
+                throw new ActionMgtServerException("Error while deleting the Rule associated with the Action.", e);
+            }
+        }
     }
 
     /**

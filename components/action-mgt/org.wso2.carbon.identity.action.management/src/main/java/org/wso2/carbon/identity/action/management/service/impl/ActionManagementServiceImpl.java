@@ -437,6 +437,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
                 .endpoint(actionDTO.getEndpoint())
+                .rule(actionDTO.getActionRule())
                 .build();
     }
 }

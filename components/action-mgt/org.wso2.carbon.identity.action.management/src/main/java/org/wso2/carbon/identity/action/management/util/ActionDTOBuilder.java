@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.model.ActionRule;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
@@ -41,6 +42,7 @@ public class ActionDTOBuilder {
     private String description;
     private Action.Status status;
     private EndpointConfig endpoint;
+    private ActionRule rule;
     private Map<String, Object> properties;
 
     public ActionDTOBuilder() {
@@ -55,6 +57,7 @@ public class ActionDTOBuilder {
         this.description = actionDTO.getDescription();
         this.status = actionDTO.getStatus();
         this.endpoint = actionDTO.getEndpoint();
+        this.rule = actionDTO.getActionRule();
         this.properties = actionDTO.getProperties();
     }
 
@@ -66,6 +69,7 @@ public class ActionDTOBuilder {
         this.description = action.getDescription();
         this.status = action.getStatus();
         this.endpoint = action.getEndpoint();
+        this.rule = action.getActionRule();
     }
 
     public ActionDTOBuilder id(String id) {
@@ -132,6 +136,17 @@ public class ActionDTOBuilder {
     public EndpointConfig getEndpoint() {
 
         return this.endpoint;
+    }
+
+    public ActionDTOBuilder rule(ActionRule rule) {
+
+        this.rule = rule;
+        return this;
+    }
+
+    public ActionRule getActionRule() {
+
+        return rule;
     }
 
     public ActionDTOBuilder setEndpointAndProperties(Map<String, String> properties) throws
@@ -201,6 +216,7 @@ public class ActionDTOBuilder {
                 .description(this.description)
                 .status(this.status)
                 .endpoint(this.endpoint)
+                .rule(this.rule)
                 .build();
 
         return new ActionDTO.Builder(action).properties(this.properties).build();
