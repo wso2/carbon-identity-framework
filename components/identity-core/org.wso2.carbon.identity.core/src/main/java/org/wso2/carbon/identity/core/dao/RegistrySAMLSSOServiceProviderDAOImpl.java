@@ -215,6 +215,11 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
                     .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT);
             serviceProviderDO.setEnableAttributesByDefault(Boolean.valueOf(enableAttrByDefault));
         }
+        if (resource
+                .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIBUTE_NAME_FORMAT) != null) {
+            serviceProviderDO.setAttributeNameFormat(
+                    resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIBUTE_NAME_FORMAT));
+        }
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED) != null) {
             serviceProviderDO.setIdPInitSSOEnabled(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED).trim()));
@@ -418,6 +423,8 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
         String enableAttributesByDefault = String.valueOf(serviceProviderDO.isEnableAttributesByDefault());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT,
                 enableAttributesByDefault);
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIBUTE_NAME_FORMAT,
+                serviceProviderDO.getAttributeNameFormat());
         String idPInitSSOEnabled = String.valueOf(serviceProviderDO.isIdPInitSSOEnabled());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED,
                 idPInitSSOEnabled);

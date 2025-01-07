@@ -54,6 +54,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private String[] requestedRecipients;
     private List<String> requestedRecipientsList;
     private boolean enableAttributesByDefault;
+    private String attributeNameFormat;
     private String nameIdClaimUri;
     private String nameIDFormat;
     private boolean isIdPInitSSOEnabled;
@@ -166,6 +167,14 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     public void setEnableAttributesByDefault(boolean enableAttributesByDefault) {
         this.enableAttributesByDefault = enableAttributesByDefault;
+    }
+
+    public String getAttributeNameFormat() {
+        return attributeNameFormat;
+    }
+
+    public void setAttributeNameFormat(String attributeNameFormat) {
+        this.attributeNameFormat = attributeNameFormat;
     }
 
     public String getIssuer() {
