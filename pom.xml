@@ -110,7 +110,6 @@
         <module>features/rule-mgt</module>
         <module>features/action-mgt</module>
         <module>features/certificate-mgt</module>
-
     </modules>
 
 

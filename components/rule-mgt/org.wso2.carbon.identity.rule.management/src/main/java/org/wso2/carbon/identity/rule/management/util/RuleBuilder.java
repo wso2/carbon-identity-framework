@@ -71,7 +71,7 @@ public class RuleBuilder {
      */
     public RuleBuilder addAndExpression(Expression expression) {
 
-        Expression validatedExpression = validateExpression(expression);
+        Expression validatedExpression = validateExpressionAndResolveValue(expression);
         addExpressionForANDCombinedRule(validatedExpression);
         validateMaxAllowedANDCombinedExpressions();
         return this;
@@ -155,7 +155,7 @@ public class RuleBuilder {
         orRuleCount++;
     }
 
-    private Expression validateExpression(Expression expression) {
+    private Expression validateExpressionAndResolveValue(Expression expression) {
 
         FieldDefinition fieldDefinition = expressionMetadataFieldsMap.get(expression.getField());
 
@@ -176,17 +176,11 @@ public class RuleBuilder {
             return expression;
         }
 
-        Expression resolvedExpression = new Expression.Builder()
+        return new Expression.Builder()
                 .field(expression.getField())
                 .operator(expression.getOperator())
                 .value(resolvedValue)
                 .build();
-
-        if (!isValidOptionsInputValue(fieldDefinition, expression.getValue().getFieldValue())) {
-            return expression;
-        }
-
-        return resolvedExpression;
     }
 
     private boolean isValidFieldDefinition(FieldDefinition fieldDefinition, String field) {
