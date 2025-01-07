@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,12 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.management.model.internal;
+package org.wso2.carbon.identity.rule.management.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.wso2.carbon.identity.rule.management.model.Condition;
-import org.wso2.carbon.identity.rule.management.model.Rule;
 
 import java.util.ArrayList;
 import java.util.List;

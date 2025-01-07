@@ -27,12 +27,11 @@ import org.wso2.carbon.identity.rule.management.constant.RuleSQLConstants;
 import org.wso2.carbon.identity.rule.management.dao.RuleManagementDAO;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementServerException;
+import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Expression;
+import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Rule;
 import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.management.model.internal.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.internal.ORCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.internal.RuleData;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

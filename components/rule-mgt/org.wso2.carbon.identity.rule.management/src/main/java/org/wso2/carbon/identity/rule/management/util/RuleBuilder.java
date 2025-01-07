@@ -22,11 +22,12 @@ import org.wso2.carbon.identity.rule.management.exception.RuleManagementClientEx
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementServerException;
 import org.wso2.carbon.identity.rule.management.internal.RuleManagementComponentServiceHolder;
+import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Expression;
 import org.wso2.carbon.identity.rule.management.model.FlowType;
+import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.management.model.internal.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.internal.ORCombinedRule;
+import org.wso2.carbon.identity.rule.management.model.Value;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
@@ -70,8 +71,8 @@ public class RuleBuilder {
      */
     public RuleBuilder addAndExpression(Expression expression) {
 
-        validateExpression(expression);
-        addExpressionForANDCombinedRule(expression);
+        Expression validatedExpression = validateExpression(expression);
+        addExpressionForANDCombinedRule(validatedExpression);
         validateMaxAllowedANDCombinedExpressions();
         return this;
     }
@@ -100,7 +101,7 @@ public class RuleBuilder {
         if (isError) {
             // The very first validation error will be thrown as an exception.
             throw new RuleManagementClientException(
-                    "Building rule failed due to validation errors. Error: " + errorMessage);
+                    "Rule validation failed: " + errorMessage);
         }
 
         orCombinedRuleBuilder.addRule(andCombinedRuleBuilder.build());
@@ -154,37 +155,58 @@ public class RuleBuilder {
         orRuleCount++;
     }
 
-    private void validateExpression(Expression expression) {
+    private Expression validateExpression(Expression expression) {
 
         FieldDefinition fieldDefinition = expressionMetadataFieldsMap.get(expression.getField());
 
         if (isError) {
-            return;
+            return expression;
         }
+
+        if (!isValidFieldDefinition(fieldDefinition, expression.getField())) {
+            return expression;
+        }
+
+        if (!isValidOperator(fieldDefinition, expression.getOperator())) {
+            return expression;
+        }
+
+        Value resolvedValue = validateAndResolveValue(fieldDefinition, expression.getValue());
+        if (isError) {
+            return expression;
+        }
+
+        Expression resolvedExpression = new Expression.Builder()
+                .field(expression.getField())
+                .operator(expression.getOperator())
+                .value(resolvedValue)
+                .build();
+
+        if (!isValidOptionsInputValue(fieldDefinition, expression.getValue().getFieldValue())) {
+            return expression;
+        }
+
+        return resolvedExpression;
+    }
+
+    private boolean isValidFieldDefinition(FieldDefinition fieldDefinition, String field) {
 
         if (fieldDefinition == null) {
-            setValidationError("Field " + expression.getField() + " is not supported");
-            return;
+            setValidationError("Field " + field + " is not supported");
+            return false;
         }
+        return true;
+    }
+
+    private boolean isValidOperator(FieldDefinition fieldDefinition, String operator) {
 
         if (fieldDefinition.getOperators().stream()
-                .noneMatch(operator -> operator.getName().equals(expression.getOperator()))) {
-            setValidationError("Operator " + expression.getOperator() + " is not supported for field " +
-                    expression.getField());
-            return;
+                .noneMatch(op -> op.getName().equals(operator))) {
+            setValidationError(
+                    "Operator " + operator + " is not supported for field " + fieldDefinition.getField().getName());
+            return false;
         }
-
-        if (!fieldDefinition.getValue().getValueType().name().equals(expression.getValue().getType().name())) {
-            setValidationError("Value type " + expression.getValue().getType().name() + " is not supported for field "
-                    + expression.getField());
-        }
-
-        if (fieldDefinition.getValue() instanceof OptionsInputValue &&
-                ((OptionsInputValue) fieldDefinition.getValue()).getValues().stream().noneMatch(
-                        optionsValue -> optionsValue.getName().equals(expression.getValue().getFieldValue()))) {
-            setValidationError("Value " + expression.getValue().getFieldValue() + " is not supported for field " +
-                    expression.getField());
-        }
+        return true;
     }
 
     private void validateMaxAllowedANDCombinedExpressions() {
@@ -215,5 +237,92 @@ public class RuleBuilder {
 
         isError = true;
         errorMessage = message;
+    }
+
+    private Value validateAndResolveValue(FieldDefinition fieldDefinition, Value value) {
+
+        String rawValue = value.getFieldValue();
+
+        if (!isValidValueType(fieldDefinition, value)) {
+            return value;
+        }
+
+        if (!isValidOptionsInputValue(fieldDefinition, rawValue)) {
+            return value;
+        }
+
+        try {
+            return resolveValue(fieldDefinition, rawValue);
+        } catch (RuleManagementClientException e) {
+            setValidationError(e.getMessage());
+            return value;
+        }
+    }
+
+    private Value resolveValue(FieldDefinition fieldDefinition,
+                               String rawValue) throws RuleManagementClientException {
+
+        org.wso2.carbon.identity.rule.metadata.model.Value.ValueType
+                fieldDefinitionValueType = fieldDefinition.getValue().getValueType();
+
+        switch (fieldDefinitionValueType) {
+            case STRING:
+                return new Value(Value.Type.STRING, rawValue);
+            case NUMBER:
+                return validateNumberValue(rawValue);
+            case BOOLEAN:
+                return validateBooleanValue(rawValue);
+            case REFERENCE:
+                return new Value(Value.Type.REFERENCE, rawValue);
+            default:
+                throw new RuleManagementClientException(
+                        "Unsupported value type: " + fieldDefinitionValueType + " for field: " +
+                                fieldDefinition.getField().getName());
+        }
+    }
+
+    private boolean isValidValueType(FieldDefinition fieldDefinition, Value value) {
+
+        org.wso2.carbon.identity.rule.metadata.model.Value.ValueType fieldDefinitionValueType =
+                fieldDefinition.getValue().getValueType();
+        Value.Type valueType = value.getType();
+
+        if (valueType != Value.Type.RAW && !valueType.name().equals(fieldDefinitionValueType.name())) {
+            setValidationError(
+                    "Value type " + valueType + " is not supported for field " + fieldDefinition.getField().getName());
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isValidOptionsInputValue(FieldDefinition fieldDefinition, String fieldValue) {
+
+        if (fieldDefinition.getValue() instanceof OptionsInputValue &&
+                ((OptionsInputValue) fieldDefinition.getValue()).getValues().stream()
+                        .noneMatch(optionsValue -> optionsValue.getName().equals(fieldValue))) {
+            setValidationError(
+                    "Value " + fieldValue + " is not supported for field " + fieldDefinition.getField().getName());
+            return false;
+        }
+
+        return true;
+    }
+
+    private Value validateNumberValue(String rawValue) throws RuleManagementClientException {
+
+        try {
+            Double.parseDouble(rawValue);
+            return new Value(Value.Type.NUMBER, rawValue);
+        } catch (NumberFormatException e) {
+            throw new RuleManagementClientException("Value " + rawValue + " is not a valid NUMBER.");
+        }
+    }
+
+    private Value validateBooleanValue(String rawValue) throws RuleManagementClientException {
+
+        if (!rawValue.equalsIgnoreCase("true") && !rawValue.equalsIgnoreCase("false")) {
+            throw new RuleManagementClientException("Value " + rawValue + " is not a valid BOOLEAN.");
+        }
+        return new Value(Value.Type.BOOLEAN, rawValue);
     }
 }
