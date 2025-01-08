@@ -694,6 +694,9 @@
         <Resource context="(.*)/o/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_claim_meta_view</Scopes>
         </Resource>
+        <Resource context="(.*)/o/api/server/v1/claim-dialects/local/(.*)" secured="true" http-method="PUT">
+            <Scopes>internal_org_claim_meta_update</Scopes>
+        </Resource>
 
         <!-- Claim Management API -->
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
@@ -861,6 +864,18 @@
         <!-- [Organization] Userstore Management API -->
         <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="GET">
             <Scopes>internal_org_userstore_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
+            <Scopes>internal_org_userstore_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="POST">
+            <Scopes>internal_org_userstore_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="PUT, PATCH">
+            <Scopes>internal_org_userstore_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/o/api/server/v1/userstores/(.*)" secured="true" http-method="DELETE">
+            <Scopes>internal_org_userstore_delete</Scopes>
         </Resource>
 
         <!-- Userstore Management API -->
