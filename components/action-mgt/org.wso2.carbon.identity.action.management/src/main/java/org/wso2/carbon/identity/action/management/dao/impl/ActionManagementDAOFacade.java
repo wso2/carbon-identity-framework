@@ -87,8 +87,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
             // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
             handleActionPropertyResolverClientException(e.getCause());
             LOG.debug("Error while creating the Action of Action Type: " + actionDTO.getType().getDisplayName() +
-                            " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
-                            ". Rolling back created action information, authentication secrets and action properties.");
+                    " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
+                    ". Rolling back created action information, authentication secrets and action properties.");
             throw ActionManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
         }
     }
@@ -289,8 +289,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * Add the encrypted authentication secrets and replace the input authentication properties in the ActionDTOBuilder
      * object.
      *
-     * @param actionDTOBuilder     ActionDTOBuilder object.
-     * @param encryptedProperties  List of encrypted AuthProperty objects.
+     * @param actionDTOBuilder    ActionDTOBuilder object.
+     * @param encryptedProperties List of encrypted AuthProperty objects.
      */
     private void addEncryptedAuthSecretsToBuilder(ActionDTOBuilder actionDTOBuilder,
                                                   List<AuthProperty> encryptedProperties) {
@@ -299,39 +299,44 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 .collect(Collectors.toMap(AuthProperty::getName, AuthProperty::getValue));
 
         actionDTOBuilder.endpoint(new EndpointConfig.EndpointConfigBuilder()
-                        .uri(actionDTOBuilder.getEndpoint().getUri())
-                        .authentication(new Authentication.AuthenticationBuilder()
-                                .type(actionDTOBuilder.getEndpoint().getAuthentication().getType())
-                                .properties(encryptedPropertyMap)
-                                .build())
-                        .build());
+                .uri(actionDTOBuilder.getEndpoint().getUri())
+                .authentication(new Authentication.AuthenticationBuilder()
+                        .type(actionDTOBuilder.getEndpoint().getAuthentication().getType())
+                        .properties(encryptedPropertyMap)
+                        .build())
+                .build());
     }
 
     private void addActionRule(ActionDTOBuilder actionDTOBuilder, String tenantDomain) throws ActionMgtException {
 
-        if (actionDTOBuilder.getActionRule() != null) {
-            try {
-                ActionMgtServiceComponentHolder.getInstance()
-                        .getRuleManagementService()
-                        .addRule(actionDTOBuilder.getActionRule().getRule(), tenantDomain);
-            } catch (RuleManagementException e) {
-                throw new ActionMgtServerException("Error while adding the Rule associated with the Action.", e);
-            }
+        if (actionDTOBuilder.getActionRule() == null) {
+            return;
         }
+
+        try {
+            ActionMgtServiceComponentHolder.getInstance()
+                    .getRuleManagementService()
+                    .addRule(actionDTOBuilder.getActionRule().getRule(), tenantDomain);
+        } catch (RuleManagementException e) {
+            throw new ActionMgtServerException("Error while adding the Rule associated with the Action.", e);
+        }
+
     }
 
     private void loadActionRule(ActionDTOBuilder actionDTOBuilder, String tenantDomain)
             throws ActionMgtServerException {
 
-        if (actionDTOBuilder.getActionRule() != null) {
-            try {
-                ActionRule actionRule = ActionRule.create(ActionMgtServiceComponentHolder.getInstance()
-                        .getRuleManagementService()
-                        .getRuleByRuleId(actionDTOBuilder.getActionRule().getId(), tenantDomain));
-                actionDTOBuilder.rule(actionRule);
-            } catch (RuleManagementException e) {
-                throw new ActionMgtServerException("Error while retrieving the Rule associated with the Action.", e);
-            }
+        if (actionDTOBuilder.getActionRule() == null) {
+            return;
+        }
+
+        try {
+            ActionRule actionRule = ActionRule.create(ActionMgtServiceComponentHolder.getInstance()
+                    .getRuleManagementService()
+                    .getRuleByRuleId(actionDTOBuilder.getActionRule().getId(), tenantDomain));
+            actionDTOBuilder.rule(actionRule);
+        } catch (RuleManagementException e) {
+            throw new ActionMgtServerException("Error while retrieving the Rule associated with the Action.", e);
         }
     }
 
@@ -360,14 +365,16 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
 
     private void deleteActionRule(ActionDTO actionDTO, String tenantDomain) throws ActionMgtServerException {
 
-        if (actionDTO.getActionRule() != null) {
-            try {
-                ActionMgtServiceComponentHolder.getInstance()
-                        .getRuleManagementService()
-                        .deleteRule(actionDTO.getActionRule().getId(), tenantDomain);
-            } catch (RuleManagementException e) {
-                throw new ActionMgtServerException("Error while deleting the Rule associated with the Action.", e);
-            }
+        if (actionDTO.getActionRule() == null) {
+            return;
+        }
+
+        try {
+            ActionMgtServiceComponentHolder.getInstance()
+                    .getRuleManagementService()
+                    .deleteRule(actionDTO.getActionRule().getId(), tenantDomain);
+        } catch (RuleManagementException e) {
+            throw new ActionMgtServerException("Error while deleting the Rule associated with the Action.", e);
         }
     }
 

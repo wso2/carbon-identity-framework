@@ -102,8 +102,7 @@ public class ActionMgtServiceComponentHolder {
      *
      * @param ruleManagementService RuleManagementService instance.
      */
-    public void setRuleManagementService(
-            RuleManagementService ruleManagementService) {
+    public void setRuleManagementService(RuleManagementService ruleManagementService) {
 
         this.ruleManagementService = ruleManagementService;
     }
