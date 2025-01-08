@@ -35,7 +35,9 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Base64;
 import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
@@ -68,17 +70,18 @@ public class AIAccessTokenManagerTest {
     private AIAccessTokenManager tokenManager;
     private TestAccessTokenRequestHelper testHelper;
     private AIAccessTokenManager.AccessTokenRequestHelper helper;
-    private CountDownLatch latch;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws NoSuchFieldException, IllegalAccessException {
 
         MockitoAnnotations.openMocks(this);
         testHelper = new TestAccessTokenRequestHelper(mockHttpClient);
+        String key = Base64.getEncoder().encodeToString("testClientId:testClientSecret".getBytes());
+        assignAIKey(key);
         tokenManager = AIAccessTokenManager.getInstance();
         tokenManager.setAccessTokenRequestHelper(testHelper);
-        helper = new AIAccessTokenManager.AccessTokenRequestHelper("key", "endpoint", mockHttpClient);
-        latch = new CountDownLatch(1);
+
+        helper = new AIAccessTokenManager.AccessTokenRequestHelper(key, "endpoint", mockHttpClient);
     }
 
     @AfterMethod
@@ -210,6 +213,7 @@ public class AIAccessTokenManagerTest {
 
     @Test(expectedExceptions = AIServerException.class)
     public void testRequestAccessToken_IOException() throws Exception {
+
         CloseableHttpAsyncClient mockClient = mock(CloseableHttpAsyncClient.class);
         doThrow(new IOException("Test IOException")).when(mockClient).close();
 
@@ -249,5 +253,23 @@ public class AIAccessTokenManagerTest {
                 throw new AIServerException("Test exception", e);
             }
         }
+    }
+
+    private static void assignAIKey(String key) throws NoSuchFieldException, IllegalAccessException {
+
+        // Target class and field.
+        Class<?> targetClass = AIAccessTokenManager.class;
+        Field aiKeyField = targetClass.getDeclaredField("AI_KEY");
+
+        // Make the field accessible.
+        aiKeyField.setAccessible(true);
+
+        // Remove the "final" modifier.
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        modifiersField.setInt(aiKeyField, aiKeyField.getModifiers() & ~Modifier.FINAL);
+
+        // Set the new value.
+        aiKeyField.set(null, key); // null because it's a static field.
     }
 }

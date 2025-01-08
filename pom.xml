@@ -1753,6 +1753,13 @@
                 <version>${org.wso2.carbon.multitenancy.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.wiremock</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>${wiremock.version}</version>
+                <scope>test</scope>
+            </dependency>
+
             <!--Google Library for android attestation client-->
             <dependency>
                 <groupId>org.wso2.orbit.com.google.api-services-playintegrity</groupId>
@@ -2127,6 +2134,7 @@
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <mockito.version>5.3.1</mockito.version>
         <mockito-testng.version>0.5.2</mockito-testng.version>
+        <wiremock.version>3.9.1</wiremock.version>
 
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>

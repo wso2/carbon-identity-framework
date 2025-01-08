@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -42,6 +42,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -192,7 +193,8 @@ public class AIAccessTokenManager {
                     post.setHeader(AUTHORIZATION, HTTP_BASIC + " " + key);
                     post.setHeader(HEADER_CONTENT_TYPE, CONTENT_TYPE_FORM_URLENCODED);
 
-                    StringEntity entity = new StringEntity("grant_type=client_credentials");
+                    StringEntity entity = new StringEntity("grant_type=client_credentials&tokenBindingId=" +
+                            UUID.randomUUID());
                     entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, CONTENT_TYPE_FORM_URLENCODED));
                     post.setEntity(entity);
 
