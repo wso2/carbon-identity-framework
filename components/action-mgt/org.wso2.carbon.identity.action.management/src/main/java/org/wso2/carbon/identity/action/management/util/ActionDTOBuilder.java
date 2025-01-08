@@ -18,18 +18,13 @@
 
 package org.wso2.carbon.identity.action.management.util;
 
-import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.ActionRule;
-import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Internal Builder class for ActionDTO.
@@ -147,44 +142,6 @@ public class ActionDTOBuilder {
     public ActionRule getActionRule() {
 
         return rule;
-    }
-
-    public ActionDTOBuilder setEndpointAndProperties(Map<String, String> properties) throws
-            ActionMgtException {
-
-        Authentication authentication;
-        Authentication.Type authnType =
-                Authentication.Type.valueOf(properties.remove(ActionMgtConstants.AUTHN_TYPE_PROPERTY));
-        switch (authnType) {
-            case BASIC:
-                authentication = new Authentication.BasicAuthBuilder(
-                        properties.remove(Authentication.Property.USERNAME.getName()),
-                        properties.remove(Authentication.Property.PASSWORD.getName())).build();
-                break;
-            case BEARER:
-                authentication = new Authentication.BearerAuthBuilder(
-                        properties.remove(Authentication.Property.ACCESS_TOKEN.getName())).build();
-                break;
-            case API_KEY:
-                authentication = new Authentication.APIKeyAuthBuilder(
-                        properties.remove(Authentication.Property.HEADER.getName()),
-                        properties.remove(Authentication.Property.VALUE.getName())).build();
-                break;
-            case NONE:
-                authentication = new Authentication.NoneAuthBuilder().build();
-                break;
-            default:
-                throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
-        }
-
-        this.endpoint = new EndpointConfig.EndpointConfigBuilder()
-                .uri(properties.remove(ActionMgtConstants.URI_PROPERTY))
-                .authentication(authentication)
-                .build();
-        // Add remaining properties as action properties.
-        this.properties = properties.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        return this;
     }
 
     public ActionDTOBuilder properties(Map<String, Object> properties) {
