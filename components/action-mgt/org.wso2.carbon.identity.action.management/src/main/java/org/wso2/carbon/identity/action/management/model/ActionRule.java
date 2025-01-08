@@ -71,6 +71,16 @@ public class ActionRule {
 
     private Rule getRuleFromRuleManagementService() throws ActionMgtServerException {
 
+        if (StringUtils.isBlank(id) || StringUtils.isBlank(tenantDomain)) {
+            /*
+                This could happen if the ActionRule is created without the Rule object.
+                That means the rule value is explicitly set to null.
+                In such cases, loading the Rule from the Rule Management Service is not expected.
+                This scenario is used to let the user remove a Rule from an Action via the Action update API.
+             */
+            return null;
+        }
+
         try {
             return ActionMgtServiceComponentHolder.getInstance()
                     .getRuleManagementService()

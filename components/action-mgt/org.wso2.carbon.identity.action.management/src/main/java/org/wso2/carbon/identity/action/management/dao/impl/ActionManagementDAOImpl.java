@@ -481,12 +481,18 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void updateRuleReference(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
             throws ActionMgtServerException {
 
-        if (existingActionDTO.getActionRule() == null && updatingActionDTO.getActionRule() != null) {
-            // This means a new action rule is added when updating the action. Add the rule reference.
-            addRuleReference(updatingActionDTO, tenantId);
-        } else if (existingActionDTO.getActionRule() != null && updatingActionDTO.getActionRule() == null) {
-            // This means the existing action rule is removed when updating the action. Remove the rule reference.
-            deleteRuleReference(updatingActionDTO, tenantId);
+        try {
+            if (existingActionDTO.getActionRule() == null && updatingActionDTO.getActionRule() != null &&
+                    updatingActionDTO.getActionRule().getRule() != null) {
+                // This means a new action rule is added when updating the action. Add the rule reference.
+                addRuleReference(updatingActionDTO, tenantId);
+            } else if (existingActionDTO.getActionRule() != null && updatingActionDTO.getActionRule() != null &&
+                    updatingActionDTO.getActionRule().getRule() == null) {
+                // This means the existing action rule is removed when updating the action. Remove the rule reference.
+                deleteRuleReference(updatingActionDTO, tenantId);
+            }
+        } catch (ActionMgtException e) {
+            throw new ActionMgtServerException("Error while updating the reference for the Rule in Action.", e);
         }
     }
 

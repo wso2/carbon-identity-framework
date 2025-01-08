@@ -395,7 +395,7 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 17)
-    public void testUpdateActionWithRule() throws ActionMgtException, SecretManagementException {
+    public void testUpdateActionUpdatingRule() throws ActionMgtException, SecretManagementException {
 
         Action updatingAction = TestUtil.buildMockActionWithRule(
                 TEST_ACTION_NAME_UPDATED,

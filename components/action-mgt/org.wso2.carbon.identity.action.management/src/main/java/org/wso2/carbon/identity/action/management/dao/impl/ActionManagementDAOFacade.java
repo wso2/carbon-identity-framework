@@ -87,8 +87,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
             // Since exceptions thrown are wrapped with TransactionException, extracting the actual cause.
             handleActionPropertyResolverClientException(e.getCause());
             LOG.debug("Error while creating the Action of Action Type: " + actionDTO.getType().getDisplayName() +
-                    " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
-                    ". Rolling back created action information, authentication secrets and action properties.");
+                            " in Tenant Domain: " + IdentityTenantUtil.getTenantDomain(tenantId) +
+                            ". Rolling back created action information, authentication secrets and action properties.");
             throw ActionManagementExceptionHandler.handleServerException(ErrorMessage.ERROR_WHILE_ADDING_ACTION, e);
         }
     }
@@ -289,8 +289,8 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
      * Add the encrypted authentication secrets and replace the input authentication properties in the ActionDTOBuilder
      * object.
      *
-     * @param actionDTOBuilder    ActionDTOBuilder object.
-     * @param encryptedProperties List of encrypted AuthProperty objects.
+     * @param actionDTOBuilder     ActionDTOBuilder object.
+     * @param encryptedProperties  List of encrypted AuthProperty objects.
      */
     private void addEncryptedAuthSecretsToBuilder(ActionDTOBuilder actionDTOBuilder,
                                                   List<AuthProperty> encryptedProperties) {
@@ -299,17 +299,17 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
                 .collect(Collectors.toMap(AuthProperty::getName, AuthProperty::getValue));
 
         actionDTOBuilder.endpoint(new EndpointConfig.EndpointConfigBuilder()
-                .uri(actionDTOBuilder.getEndpoint().getUri())
-                .authentication(new Authentication.AuthenticationBuilder()
-                        .type(actionDTOBuilder.getEndpoint().getAuthentication().getType())
-                        .properties(encryptedPropertyMap)
-                        .build())
-                .build());
+                        .uri(actionDTOBuilder.getEndpoint().getUri())
+                        .authentication(new Authentication.AuthenticationBuilder()
+                                .type(actionDTOBuilder.getEndpoint().getAuthentication().getType())
+                                .properties(encryptedPropertyMap)
+                                .build())
+                        .build());
     }
 
     private void addActionRule(ActionDTOBuilder actionDTOBuilder, String tenantDomain) throws ActionMgtException {
 
-        if (actionDTOBuilder.getActionRule() == null) {
+        if (actionDTOBuilder.getActionRule() == null || actionDTOBuilder.getActionRule().getRule() == null) {
             return;
         }
 
@@ -341,25 +341,56 @@ public class ActionManagementDAOFacade implements ActionManagementDAO {
     }
 
     private void updateActionRule(ActionDTOBuilder updatingActionDTOBuilder, ActionDTO existingActionDTO,
-                                  String tenantDomain)
+                                  String tenantDomain) throws ActionMgtException {
+
+         /*
+             When updating an action, the action rule can be added, removed or updated.
+             When action rule is added, the Rule object is added to the ActionRule of the ActionDTO.
+             When action rule is removed, the Rule object is set as null in the ActionRule of the ActionDTO.
+             This happens as the API accepts the removal of the rule in an action update via an empty rule JSON object.
+             e.g., rule: {}. If rule is not present in the payload that means rule is not updated.
+             When action rule is updated, the Rule object is updated in the ActionRule of the ActionDTO.
+        */
+        if (isAddingNewActionRule(updatingActionDTOBuilder, existingActionDTO)) {
+            addActionRule(updatingActionDTOBuilder, tenantDomain);
+        } else if (isRemovingExistingActionRule(updatingActionDTOBuilder, existingActionDTO)) {
+            deleteActionRule(existingActionDTO, tenantDomain);
+        } else if (isUpdatingExistingActionRule(updatingActionDTOBuilder, existingActionDTO)) {
+            updateExistingActionRule(updatingActionDTOBuilder, existingActionDTO, tenantDomain);
+        }
+    }
+
+    private boolean isAddingNewActionRule(ActionDTOBuilder updatingActionDTOBuilder, ActionDTO existingActionDTO)
             throws ActionMgtException {
 
-        if (existingActionDTO.getActionRule() == null && updatingActionDTOBuilder.getActionRule() != null) {
-            // This means a new action rule is added when updating the action.
-            addActionRule(updatingActionDTOBuilder, tenantDomain);
-        } else if (existingActionDTO.getActionRule() != null && updatingActionDTOBuilder.getActionRule() == null) {
-            // This means the existing action rule is removed when updating the action.
-            deleteActionRule(existingActionDTO, tenantDomain);
-        } else if (existingActionDTO.getActionRule() != null && updatingActionDTOBuilder.getActionRule() !=
-                null) {  // This means the existing action rule is updated when updating the action.
-            try {
-                updatingActionDTOBuilder.getActionRule().getRule().setId(existingActionDTO.getActionRule().getId());
-                ActionMgtServiceComponentHolder.getInstance()
-                        .getRuleManagementService()
-                        .updateRule(updatingActionDTOBuilder.getActionRule().getRule(), tenantDomain);
-            } catch (RuleManagementException e) {
-                throw new ActionMgtServerException("Error while updating the Rule associated with the Action.", e);
-            }
+        return existingActionDTO.getActionRule() == null && updatingActionDTOBuilder.getActionRule() != null &&
+                updatingActionDTOBuilder.getActionRule().getRule() != null;
+    }
+
+    private boolean isRemovingExistingActionRule(ActionDTOBuilder updatingActionDTOBuilder,
+                                                 ActionDTO existingActionDTO) throws ActionMgtException {
+
+        return existingActionDTO.getActionRule() != null && updatingActionDTOBuilder.getActionRule() != null &&
+                updatingActionDTOBuilder.getActionRule().getRule() == null;
+    }
+
+    private boolean isUpdatingExistingActionRule(ActionDTOBuilder updatingActionDTOBuilder,
+                                                 ActionDTO existingActionDTO) throws ActionMgtException {
+
+        return existingActionDTO.getActionRule() != null && updatingActionDTOBuilder.getActionRule() != null &&
+                updatingActionDTOBuilder.getActionRule().getRule() != null;
+    }
+
+    private void updateExistingActionRule(ActionDTOBuilder updatingActionDTOBuilder, ActionDTO existingActionDTO,
+                                          String tenantDomain) throws ActionMgtException {
+
+        try {
+            updatingActionDTOBuilder.getActionRule().getRule().setId(existingActionDTO.getActionRule().getId());
+            ActionMgtServiceComponentHolder.getInstance()
+                    .getRuleManagementService()
+                    .updateRule(updatingActionDTOBuilder.getActionRule().getRule(), tenantDomain);
+        } catch (RuleManagementException e) {
+            throw new ActionMgtServerException("Error while updating the Rule associated with the Action.", e);
         }
     }
 

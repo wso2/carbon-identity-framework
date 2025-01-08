@@ -456,7 +456,8 @@ public class ActionManagementDAOFacadeTest {
     @Test(priority = 18)
     public void testUpdateActionRemovingRule() throws Exception {
 
-        ActionDTO updatingActionDTOWithoutRule = createActionDTOForPasswordUpdateAction();
+        // In order to remove the rule from ActionRule create an ActionRule with a null Rule reference.
+        ActionDTO updatingActionDTOWithoutRule = createActionDTOForPasswordUpdateActionWithRule(null);
         mockActionPropertyResolver(testActionPropertyResolver);
 
         daoFacade.updateAction(updatingActionDTOWithoutRule, actionDTORetrieved, TENANT_ID);
@@ -507,6 +508,24 @@ public class ActionManagementDAOFacadeTest {
     }
 
     @Test(priority = 21)
+    public void testUpdateActionWithRuleWithoutUpdatingRule() throws Exception {
+
+        Rule rule = mockRule();
+        mockRuleManagementService(rule);
+        ActionDTO updatingActionDTO = createActionDTOForPasswordUpdateAction();
+        ActionDTO expectedActionDTO = createActionDTOForPasswordUpdateActionWithRule(rule);
+        mockActionPropertyResolver(testActionPropertyResolver);
+
+        daoFacade.updateAction(updatingActionDTO, actionDTORetrieved, TENANT_ID);
+
+        actionDTORetrieved = daoFacade.getActionByActionId(PRE_UPDATE_PASSWORD_TYPE, PRE_UPDATE_PASSWORD_ACTION_ID,
+                TENANT_ID);
+
+        verifyActionDTO(actionDTORetrieved, expectedActionDTO);
+        verifyActionDTORule(actionDTORetrieved, expectedActionDTO);
+    }
+
+    @Test(priority = 22)
     public void testDeleteActionWithRule() throws ActionMgtException {
 
         mockActionPropertyResolver(testActionPropertyResolver);
