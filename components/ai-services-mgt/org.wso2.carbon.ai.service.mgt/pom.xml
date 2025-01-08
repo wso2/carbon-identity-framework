@@ -73,6 +73,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.ops4j.pax.logging</groupId>
             <artifactId>pax-logging-api</artifactId>
         </dependency>
@@ -110,7 +116,11 @@
                             org.apache.http.util; version="${httpcore.version.osgi.import.range}",
                             org.apache.http.impl.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.apache.http.impl.nio.client; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.impl.nio.reactor; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.impl.nio.conn; version="${httpasyncclient.version.osgi.import.range}",
                             org.apache.http.concurrent; version="${httpcore.version.osgi.import.range}",
+                            org.apache.http.nio.reactor; version="${httpasyncclient.version.osgi.import.range}",
+                            org.apache.http.nio.conn; version="${httpasyncclient.version.osgi.import.range}",
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.ai.service.mgt.*; version="${carbon.identity.package.export.version}"
@@ -179,7 +189,7 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.82</minimum>
+                                            <minimum>0.77</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

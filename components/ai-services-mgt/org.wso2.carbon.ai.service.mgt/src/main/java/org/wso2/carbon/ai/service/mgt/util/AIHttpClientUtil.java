@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,6 +30,10 @@ import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.ai.service.mgt.exceptions.AIClientException;
 import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
@@ -52,6 +56,7 @@ import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.ErrorMessages.UNABLE_TO_ACCESS_AI_SERVICE_WITH_RENEW_ACCESS_TOKEN;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.HTTP_BEARER;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME;
+import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.HTTP_CONNECTION_TIMEOUT_PROPERTY_NAME;
 import static org.wso2.carbon.ai.service.mgt.constants.AIConstants.TENANT_CONTEXT_PREFIX;
 
 /**
@@ -65,6 +70,9 @@ public class AIHttpClientUtil {
     private static final int HTTP_CONNECTION_POOL_SIZE = IdentityUtil.getProperty(
             HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME) != null ? Integer.parseInt(IdentityUtil.getProperty(
                     HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME)) : 20;
+    private static final int HTTP_CONNECTION_TIMEOUT = IdentityUtil.getProperty(
+            HTTP_CONNECTION_TIMEOUT_PROPERTY_NAME) != null ? Integer.parseInt(IdentityUtil.getProperty(
+            HTTP_CONNECTION_TIMEOUT_PROPERTY_NAME)) : 60000; // Making the default timeout 60 seconds.
 
 
     // Singleton instance of CloseableHttpAsyncClient with connection pooling.
@@ -74,6 +82,7 @@ public class AIHttpClientUtil {
         // Configure the IO reactor.
         IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setIoThreadCount(Runtime.getRuntime().availableProcessors())
+                .setConnectTimeout(HTTP_CONNECTION_TIMEOUT)
                 .build();
         ConnectingIOReactor ioReactor;
         try {
@@ -127,7 +136,7 @@ public class AIHttpClientUtil {
 
             HttpUriRequest request = createRequest(aiServiceEndpoint + TENANT_CONTEXT_PREFIX + orgName + path,
                     requestType, accessToken, requestBody);
-            HttpResponseWrapper aiServiceResponse = executeRequestWithRetry(httpClient, request);
+            HttpResponseWrapper aiServiceResponse = executeRequestWithRetry(request);
 
             int statusCode = aiServiceResponse.getStatusCode();
             String responseBody = aiServiceResponse.getResponseBody();
@@ -174,21 +183,19 @@ public class AIHttpClientUtil {
         return request;
     }
 
-    protected static HttpResponseWrapper executeRequestWithRetry(CloseableHttpAsyncClient client,
-                                                                 HttpUriRequest request)
+    protected static HttpResponseWrapper executeRequestWithRetry(HttpUriRequest request)
             throws InterruptedException, ExecutionException, IOException, AIServerException {
 
-        HttpResponseWrapper response = executeHttpRequest(client, request);
+        HttpResponseWrapper response = executeHttpRequest(request);
 
         if (response.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
             String newAccessToken = AIAccessTokenManager.getInstance().getAccessToken(true);
             if (newAccessToken == null) {
                 throw new AIServerException("Failed to renew access token.", ERROR_RETRIEVING_ACCESS_TOKEN.getCode());
             }
-            request.setHeader(AUTHORIZATION, "Bearer " + newAccessToken);
-            response = executeHttpRequest(client, request);
+            request.setHeader(AUTHORIZATION, HTTP_BEARER + " " + newAccessToken);
+            response = executeHttpRequest(request);
         }
-
         return response;
     }
 
@@ -219,10 +226,11 @@ public class AIHttpClientUtil {
         }
     }
 
-    protected static HttpResponseWrapper executeHttpRequest(CloseableHttpAsyncClient client, HttpUriRequest httpRequest)
+    protected static HttpResponseWrapper executeHttpRequest(HttpUriRequest httpRequest)
             throws InterruptedException, ExecutionException, IOException, AIServerException {
 
-        Future<HttpResponse> apiResponse = client.execute(httpRequest, new FutureCallback<HttpResponse>() {
+        Future<HttpResponse> apiResponse = AIHttpClientUtil.httpClient.execute(httpRequest,
+                new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse response) {
 
