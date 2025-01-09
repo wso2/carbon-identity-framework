@@ -238,6 +238,20 @@
     <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
     <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
 
+    <!-- OAuth DCR API in Tenant Perspective -->
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_dcr_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_dcr_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_dcr_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_dcr_view</Scopes>
+    </Resource>
+
     <!-- OAuth DCR API -->
     <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
         <Scopes>internal_dcr_create</Scopes>
