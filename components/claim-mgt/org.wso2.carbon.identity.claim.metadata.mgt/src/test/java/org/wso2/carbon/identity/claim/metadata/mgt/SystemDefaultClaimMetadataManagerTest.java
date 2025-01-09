@@ -341,6 +341,8 @@ public class SystemDefaultClaimMetadataManagerTest {
             properties.put("property" + (i * 2 + 1), "value" + (i * 2 + 1));
             properties.put("property" + (i * 2 + 2), "value" + (i * 2 + 2));
             properties.put(ClaimConstants.MAPPED_LOCAL_CLAIM_PROPERTY, claimKeys.get(i%5).getClaimUri());
+            properties.put(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                    ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
             propertyHolder.put(claimKeys.get(i), properties);
         }
         for (int i = 0; i < claimKeys.size(); i++) {

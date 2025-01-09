@@ -29,15 +29,16 @@ import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
  */
 public class SAMLSSOServiceProviderManager {
 
-    SAMLServiceProviderPersistenceManagerFactory
-            samlSSOPersistenceManagerFactory = new SAMLServiceProviderPersistenceManagerFactory();
-    SAMLSSOServiceProviderDAO serviceProviderDAO = samlSSOPersistenceManagerFactory.getSAMLServiceProviderPersistenceManager();
+    SAMLServiceProviderPersistenceManagerFactory samlSSOPersistenceManagerFactory =
+            new SAMLServiceProviderPersistenceManagerFactory();
+    SAMLSSOServiceProviderDAO serviceProviderDAO =
+            samlSSOPersistenceManagerFactory.getSAMLServiceProviderPersistenceManager();
 
     /**
      * Add a saml service provider.
      *
-     * @param serviceProviderDO     Service provider information object.
-     * @param tenantId              Tenant ID.
+     * @param serviceProviderDO Service provider information object.
+     * @param tenantId          Tenant ID.
      * @return True if success.
      * @throws IdentityException Error when adding the SAML service provider.
      */
@@ -50,9 +51,9 @@ public class SAMLSSOServiceProviderManager {
     /**
      * Update a saml service provider if already exists.
      *
-     * @param serviceProviderDO     Service provider information object.
-     * @param currentIssuer         Issuer of the service provider before the update.
-     * @param tenantId              Tenant ID.
+     * @param serviceProviderDO Service provider information object.
+     * @param currentIssuer     Issuer of the service provider before the update.
+     * @param tenantId          Tenant ID.
      * @return True if success.
      * @throws IdentityException Error when updating the SAML service provider.
      */
@@ -65,7 +66,7 @@ public class SAMLSSOServiceProviderManager {
     /**
      * Get all the saml service providers.
      *
-     * @param tenantId  Tenant ID.
+     * @param tenantId Tenant ID.
      * @return Array of SAMLSSOServiceProviderDO.
      * @throws IdentityException Error when getting the SAML service providers.
      */
@@ -77,8 +78,8 @@ public class SAMLSSOServiceProviderManager {
     /**
      * Get SAML issuer properties from service provider by saml issuer name.
      *
-     * @param issuer    SAML issuer name.
-     * @param tenantId  Tenant ID.
+     * @param issuer   SAML issuer name.
+     * @param tenantId Tenant ID.
      * @return SAMLSSOServiceProviderDO
      * @throws IdentityException Error when getting the SAML service provider.
      */
@@ -90,13 +91,12 @@ public class SAMLSSOServiceProviderManager {
     /**
      * Check whether SAML issuer exists by saml issuer name.
      *
-     * @param issuer    SAML issuer name.
-     * @param tenantId  Tenant ID.
+     * @param issuer   SAML issuer name.
+     * @param tenantId Tenant ID.
      * @return True if exists
      * @throws IdentityException Error when checking the SAML service provider.
      */
-    public boolean isServiceProviderExists(String issuer, int tenantId)
-            throws IdentityException {
+    public boolean isServiceProviderExists(String issuer, int tenantId) throws IdentityException {
 
         return serviceProviderDAO.isServiceProviderExists(issuer, tenantId);
     }
@@ -104,8 +104,8 @@ public class SAMLSSOServiceProviderManager {
     /**
      * Removes the SAML configuration related to the application, idenfied by the issuer.
      *
-     * @param issuer    Issuer of the SAML application.
-     * @param tenantId  Tenant ID.
+     * @param issuer   Issuer of the SAML application.
+     * @param tenantId Tenant ID.
      * @throws IdentityException Error when removing the SAML configuration.
      */
     public boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException {
@@ -116,8 +116,8 @@ public class SAMLSSOServiceProviderManager {
     /**
      * Upload the SAML configuration related to the application, using metadata.
      *
-     * @param samlssoServiceProviderDO  SAML service provider information object.
-     * @param tenantId                  Tenant ID.
+     * @param samlssoServiceProviderDO SAML service provider information object.
+     * @param tenantId                 Tenant ID.
      * @return SAML service provider information object.
      * @throws IdentityException Error when uploading the SAML configuration.
      */

@@ -1415,6 +1415,7 @@
         {% if saml.separate_multi_attributes_from_idp is defined %}
             <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
         {% endif %}
+        <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
     </SSOService>
 
     <Consent>
@@ -2019,6 +2020,7 @@
 
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
+        <AutofillUsernameFieldWithSubjectAttribute>{{authentication.jit_provisioning.autofill_username_field_with_subject_attribute}}</AutofillUsernameFieldWithSubjectAttribute>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
         <FailAuthnOnProvisionFailure>{{authentication.jit_provisioning.fail_authn_on_provision_failure}}</FailAuthnOnProvisionFailure>
         <SkipUsernamePatternValidation>{{authentication.jit_provisioning.skip_username_pattern_validation}}</SkipUsernamePatternValidation>
@@ -2391,6 +2393,13 @@
                        orderId="{{event.default_listener.basic_user_info_provider.priority}}"
                        enable="{{event.default_listener.basic_user_info_provider.enable}}">
         </EventListener>
+
+        <!-- User Identity Verification Event Listener -->
+        <EventListener id="identity_verification_event_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
+                       orderId="{{event.default_listener.identity_verification_event_listener.priority}}"
+                       enable="{{event.default_listener.identity_verification_event_listener.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}

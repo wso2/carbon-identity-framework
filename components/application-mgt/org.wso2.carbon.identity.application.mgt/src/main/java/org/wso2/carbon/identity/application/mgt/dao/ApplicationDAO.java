@@ -474,4 +474,33 @@ public interface ApplicationDAO {
 
         return new ArrayList<>();
     }
+
+    /**
+     * Retrieve the service provider resource IDs associated with the default federated IDP authenticator.
+     *
+     * @param idpName                  Name of the identity provider.
+     * @param defaultAuthenticatorName default authenticator name.
+     * @param tenantDomain             Tenant domain of Identity Provider.
+     * @return SPs resource ID list.
+     * @throws IdentityApplicationManagementException Error when getting SP resource IDs.
+     */
+    default String[] getSPsAssociatedWithFederatedIDPAuthenticator(String idpName,
+                                                                   String defaultAuthenticatorName,
+                                                                   String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return new String[0];
+    }
+
+    /**
+     * Update the local and outbound authentication configuration of a service provider.
+     *
+     * @param applicationDTO Updated service provider instance.
+     * @param tenantDomain   Tenant domain of Service Provider.
+     * @throws IdentityApplicationManagementException Error when updating local and outbound auth configs for the SP.
+     */
+    default void updateApplicationLocalAndOutboundAuthConfig(ServiceProvider applicationDTO, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+    }
 }

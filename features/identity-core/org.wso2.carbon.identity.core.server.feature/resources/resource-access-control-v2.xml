@@ -1111,11 +1111,17 @@
     </Resource>
 
     <!-- [Organization] Extension Management API -->
+    <Resource context="(.*)/o/api/server/v1/extensions/applications(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_application_mgt_view</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/extensions(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_extensions_view</Scopes>
     </Resource>
 
     <!-- Extension Management API -->
+    <Resource context="(.*)/api/server/v1/extensions/applications(.*)" secured="true" http-method="GET">
+        <Scopes>internal_application_mgt_view</Scopes>
+    </Resource>
     <Resource context="(.*)/api/server/v1/extensions(.*)" secured="true" http-method="GET">
         <Scopes>internal_extensions_view</Scopes>
     </Resource>

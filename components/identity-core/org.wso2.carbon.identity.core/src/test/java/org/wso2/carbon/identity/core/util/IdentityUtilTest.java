@@ -32,8 +32,10 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.SignatureUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -53,6 +55,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
@@ -79,6 +82,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -154,6 +158,8 @@ public class IdentityUtilTest {
     MockedStatic<IdentityKeyStoreResolver> identityKeyStoreResolver;
     MockedStatic<KeyStoreManager> keyStoreManager;
     private MockedStatic<KeystoreUtils> keystoreUtils;
+    private MockedStatic<AdminServicesUtil> adminServicesUtil;
+    private MockedStatic<UserCoreUtil> userCoreUtil;
 
 
     @BeforeMethod
@@ -169,6 +175,8 @@ public class IdentityUtilTest {
         identityKeyStoreResolver = mockStatic(IdentityKeyStoreResolver.class);
         keyStoreManager = mockStatic(KeyStoreManager.class);
         keystoreUtils = mockStatic(KeystoreUtils.class);
+        adminServicesUtil = mockStatic(AdminServicesUtil.class);
+        userCoreUtil = mockStatic(UserCoreUtil.class);
 
         serverConfiguration.when(ServerConfiguration::getInstance).thenReturn(mockServerConfiguration);
         identityCoreServiceComponent.when(
@@ -209,6 +217,8 @@ public class IdentityUtilTest {
         identityKeyStoreResolver.close();
         keyStoreManager.close();
         keystoreUtils.close();
+        adminServicesUtil.close();
+        userCoreUtil.close();
     }
 
     @Test(description = "Test converting a certificate to PEM format")
@@ -962,6 +972,33 @@ public class IdentityUtilTest {
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
         return field.get(null);
+    }
+
+    @Test
+    public void testIsShowLegacyRoleClaimOnGroupRoleSeparationEnabledWithNoUserRealm() {
+
+        adminServicesUtil.when(AdminServicesUtil::getUserRealm).thenReturn(null);
+        boolean result = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
+        assertFalse(result, "Expected false when user realm is null");
+    }
+
+    @Test
+    public void testIsShowLegacyRoleClaimOnGroupRoleSeparationEnabledWithConfig() {
+
+        org.wso2.carbon.user.core.UserRealm mockUserRealm = mock(org.wso2.carbon.user.core.UserRealm.class);
+        adminServicesUtil.when(AdminServicesUtil::getUserRealm).thenReturn(mockUserRealm);
+        userCoreUtil.when(() -> UserCoreUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled(any())).thenReturn(true);
+        boolean result = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
+        assertTrue(result, "Expected true when the config is enabled");
+
+    }
+
+    @Test
+    public void testIsShowLegacyRoleClaimOnGroupRoleSeparationEnabledWithException() {
+
+        adminServicesUtil.when(AdminServicesUtil::getUserRealm).thenThrow(new CarbonException("Error occurred"));
+        boolean result = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
+        assertFalse(result, "Expected false when an exception is thrown");
     }
 
     @Test(description = "Test getting system roles with APIResource collection config where the SystemRole config " +
