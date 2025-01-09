@@ -106,6 +106,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
+    @Override
     public ActionExecutionStatus<?> execute(ActionType actionType, Map<String, Object> eventContext,
                                             String tenantDomain) throws ActionExecutionException {
 
@@ -131,6 +132,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
+    @Override
     public ActionExecutionStatus<?> execute(ActionType actionType, String[] actionIdList,
                                             Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
