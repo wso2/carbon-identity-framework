@@ -10,6 +10,7 @@
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
   "identity_data_source.skip_claim_metadata_persistence": true,
+  "data_storage_type.notification_templates": "database",
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
@@ -310,6 +311,7 @@
   "saml.metadata.assertion_encrypt_with_app_cert": true,
   "saml.enable_saml_sp_certificate_expiry_validation": true,
   "saml.enable_saml_idp_init_logout_response_signing": true,
+  "saml.return_valid_name_id_format": false,
 
   "saml.endpoints.idp_url": "$ref{server.base_path}/samlsso",
   "saml.endpoints.logout": "$ref{server.base_path}/authenticationendpoint/samlsso_logout.do",
@@ -374,6 +376,7 @@
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
 
   "identity_mgt.password_policy.password_policy_validation_handler.enable": true,
+  "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": "${carbon.protocol}:\\/\\/${carbon.host}:${carbon.management.port}\\/.*",
@@ -525,6 +528,7 @@
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
+  "authentication.jit_provisioning.autofill_username_field_with_subject_attribute": true,
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
   "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
@@ -625,6 +629,9 @@
   "event.default_listener.role_management_v2_audit_logger.enable": true,
   "event.default_listener.group_management_v2_audit_logger.priority": "10",
   "event.default_listener.group_management_v2_audit_logger.enable": true,
+
+  "event.default_listener.identity_verification_event_listener.priority": "120",
+  "event.default_listener.identity_verification_event_listener.enable": true,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
@@ -1344,14 +1351,22 @@
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
   "console.login_and_registration.scopes.read": [
-    "internal_governance_view",
-    "internal_group_mgt_view",
-    "internal_role_mgt_view"
+    "internal_governance_view"
   ],
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
     "internal_validation_rule_mgt_update",
     "internal_config_update"
+  ],
+  "console.internal_notification_sending.enabled": true,
+  "console.internal_notification_sending.scopes.feature": [
+    "console:loginAndRegistration"
+  ],
+  "console.internal_notification_sending.scopes.read": [
+    "internal_governance_view"
+  ],
+  "console.internal_notification_sending.scopes.update": [
+    "internal_governance_update"
   ],
   "console.logs.enabled": false,
   "console.my_account.enabled": false,
@@ -1497,6 +1512,17 @@
     "internal_application_mgt_view"
   ],
   "console.resident_outbound_provisioning.scopes.update": ["internal_application_mgt_update"],
+  "console.rule_based_password_expiry.enabled": true,
+  "console.rule_based_password_expiry.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
+  ],
+  "console.rule_based_password_expiry.scopes.update": [
+    "internal_config_update",
+    "internal_governance_update",
+    "internal_validation_rule_mgt_update"
+  ],
   "console.console_settings.enabled": true,
   "console.console_settings.disabled_features": [
     "consoleSettings.invitedExternalAdmins",

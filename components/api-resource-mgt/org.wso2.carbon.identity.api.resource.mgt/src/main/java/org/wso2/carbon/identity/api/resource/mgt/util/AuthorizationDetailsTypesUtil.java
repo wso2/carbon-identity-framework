@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementC
 import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Map;
 
 /**

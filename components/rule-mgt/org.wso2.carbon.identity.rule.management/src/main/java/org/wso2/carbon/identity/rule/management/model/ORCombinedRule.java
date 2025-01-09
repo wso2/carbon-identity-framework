@@ -16,12 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.management.model.internal;
+package org.wso2.carbon.identity.rule.management.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.wso2.carbon.identity.rule.management.model.Condition;
-import org.wso2.carbon.identity.rule.management.model.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
