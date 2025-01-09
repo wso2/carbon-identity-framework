@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.organization.management.service.exception.Organi
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,7 +55,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.NO_EMAIL_ATTRIBUTE_FOUND;
 
 /**
- * This class is responsible for validating the email domain of the user during the authentication flow.
+ * Responsible for validating the email domain of the user during the authentication flow.
  */
 public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
 
@@ -137,25 +138,28 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
                     localClaimValues =
                             (Map<String, String>) context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
                 } else {
-                    // Need to validate even if this is not the subject attribute step since
-                    // jit provisioning will happen in both scenarios.
+                    /*
+                     * Need to validate even if this is not the subject attribute step since
+                     * jit provisioning will happen in both scenarios.
+                     */
                     localClaimValues =
                             FrameworkUtils.getLocalClaimValuesOfIDPInNonAttributeSelectionStep(context, stepConfig,
                                     context.getExternalIdP());
                 }
 
-                String emailDomain = extractEmailDomain(localClaimValues.get(FrameworkConstants.EMAIL_ADDRESS_CLAIM));
+                Optional<String> emailDomain =
+                        extractEmailDomain(localClaimValues.get(FrameworkConstants.EMAIL_ADDRESS_CLAIM));
 
-                if (emailDomain == null) {
+                if (!emailDomain.isPresent()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Email address not found or is not in the correct format." +
-                                " Email domain validation failed.");
+                                " Email domain validation failed for tenant: " + context.getTenantDomain());
                     }
                     throw new PostAuthenticationFailedException(NO_EMAIL_ATTRIBUTE_FOUND.getCode(),
                             NO_EMAIL_ATTRIBUTE_FOUND.getMessage());
                 }
 
-                if (!isValidEmailDomain(context, emailDomain)) {
+                if (!isValidEmailDomain(context, emailDomain.get())) {
                     throw new PostAuthenticationFailedException(INVALID_EMAIL_DOMAIN.getCode(),
                             String.format(INVALID_EMAIL_DOMAIN.getMessage(), context.getTenantDomain()));
                 }
@@ -217,16 +221,13 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
         return true;
     }
 
-    private String extractEmailDomain(String email) {
+    private Optional<String> extractEmailDomain(String email) {
 
         if (StringUtils.isBlank(email)) {
-            return null;
+            return Optional.empty();
         }
 
         String[] emailSplit = email.split("@");
-        if (emailSplit.length == 2) {
-            return emailSplit[1];
-        }
-        return null;
+        return emailSplit.length == 2 ? Optional.of(emailSplit[1]) : Optional.empty();
     }
 }

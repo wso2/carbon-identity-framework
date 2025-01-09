@@ -70,7 +70,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 /**
- * This class contains the unit tests for {@link EmailDomainValidationHandler}
+ * Unit tests for {@link EmailDomainValidationHandler}
  */
 @WithCarbonHome
 public class EmailDomainValidationHandlerTest extends AbstractFrameworkTest {
@@ -92,7 +92,7 @@ public class EmailDomainValidationHandlerTest extends AbstractFrameworkTest {
     @Mock
     private OrganizationConfigManager organizationConfigManager;
     @Mock
-    OrganizationManager organizationManager;
+    private OrganizationManager organizationManager;
     private CarbonContext carbonContext;
     private EmailDomainValidationHandler emailDomainValidationHandler;
     private HttpServletRequest request;

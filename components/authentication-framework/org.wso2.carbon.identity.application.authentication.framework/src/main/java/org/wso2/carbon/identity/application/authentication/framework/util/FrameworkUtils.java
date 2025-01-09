@@ -4299,7 +4299,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Uses to get local claim values of an authenticated user from an IDP in non attribute selection steps.
+     * Get local claim values of an authenticated user from an IDP in non attribute selection steps.
      *
      * @param context           Authentication Context.
      * @param stepConfig        Current step configuration.
