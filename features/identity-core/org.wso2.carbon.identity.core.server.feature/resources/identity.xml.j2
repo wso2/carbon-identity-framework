@@ -1336,6 +1336,13 @@
         </RestrictedQueryParameters>
 
         <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
+
+        <!--
+            When this configuration is enabled, the system supports the features defined in RFC9396,
+            allowing rich authorization requests to be processed.
+            Default value : false
+        -->
+        <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
     </OAuth>
 
     <RestApiAuthentication>

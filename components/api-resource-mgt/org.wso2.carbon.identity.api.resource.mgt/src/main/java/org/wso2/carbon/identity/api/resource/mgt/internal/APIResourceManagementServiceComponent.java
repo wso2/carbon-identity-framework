@@ -32,10 +32,10 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.AuthorizationDetailsTypeManager;
 import org.wso2.carbon.identity.api.resource.mgt.AuthorizationDetailsTypeManagerImpl;
+import org.wso2.carbon.identity.api.resource.mgt.constant.APIResourceManagementConstants;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
-import org.wso2.carbon.identity.api.resource.mgt.util.AuthorizationDetailsTypesUtil;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 
@@ -137,24 +137,13 @@ public class APIResourceManagementServiceComponent {
     }
 
     /**
-     * Checks if RAR is enabled by verifying the existence of required database tables.
-     * <p>
-     * This method iterates over a predefined list of database table names necessary for RAR functionality.
-     * If all tables exist, the method returns {@code true}.
-     * </p>
+     * Checks if RAR is enabled by verifying the OAuth.EnableRichAuthorizationRequests config at identity.xml.
      *
-     * @return {@code true} if all required tables for RAR are present in the database; {@code false} otherwise.
+     * @return {@code true} if RAR is enabled from the config; {@code false} otherwise.
      */
     private boolean isRichAuthorizationRequestsEnabled() {
 
-        for (final String tableName : AuthorizationDetailsTypesUtil.RICH_AUTHORIZATION_REQUESTS_TABLES) {
-            if (!IdentityDatabaseUtil.isTableExists(tableName)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Rich Authorization Requests disabled. '%s' table is missing.", tableName));
-                }
-                return false;
-            }
-        }
-        return true;
+        return Boolean.parseBoolean(IdentityUtil.getProperty(APIResourceManagementConstants
+                .APIResourceConfigBuilderConstants.RICH_AUTHORIZATION_REQUESTS_ENABLED));
     }
 }

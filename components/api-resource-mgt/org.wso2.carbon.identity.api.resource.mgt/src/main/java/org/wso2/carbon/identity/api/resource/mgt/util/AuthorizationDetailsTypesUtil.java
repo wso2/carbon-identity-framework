@@ -35,12 +35,6 @@ import java.util.Map;
  */
 public class AuthorizationDetailsTypesUtil {
 
-    public static final List<String> RICH_AUTHORIZATION_REQUESTS_TABLES = List.of(
-            "AUTHORIZATION_DETAILS_TYPES", "AUTHORIZED_AUTHORIZATION_DETAILS_TYPES",
-            "IDN_OAUTH2_ACCESS_TOKEN_AUTHORIZATION_DETAILS", "IDN_OAUTH2_USER_CONSENTED_AUTHORIZATION_DETAILS",
-            "IDN_OAUTH2_AUTHZ_CODE_AUTHORIZATION_DETAILS"
-    );
-
     private static final Log LOG = LogFactory.getLog(AuthorizationDetailsTypesUtil.class);
     private static final Gson GSON = new Gson();
     private static final Type SCHEMA_TYPE = new TypeToken<Map<String, Object>>() { }.getType();
@@ -68,7 +62,7 @@ public class AuthorizationDetailsTypesUtil {
     }
 
     /**
-     * Checks if the mandatory database tables for the rich authorization requests are created.
+     * Checks if the OAuth.EnableRichAuthorizationRequests configuration is enabled.
      * If not enabled, throws a client exception indicating that the authorization details type is unsupported.
      *
      * @throws APIResourceMgtException if rich authorization requests are disabled.
@@ -84,7 +78,7 @@ public class AuthorizationDetailsTypesUtil {
     }
 
     /**
-     * Checks if the mandatory database tables for the rich authorization requests are created.
+     * Checks if the OAuth.EnableRichAuthorizationRequests configuration is enabled.
      *
      * @return <code>true</code> if Rich Authorization Requests are not enabled, <code>false</code> otherwise
      */
@@ -94,7 +88,7 @@ public class AuthorizationDetailsTypesUtil {
     }
 
     /**
-     * Checks if the mandatory database tables for the rich authorization requests are created.
+     * Checks if the OAuth.EnableRichAuthorizationRequests configuration is enabled.
      *
      * @return <code>true</code> if Rich Authorization Requests are not enabled, <code>false</code> otherwise
      */
@@ -104,7 +98,7 @@ public class AuthorizationDetailsTypesUtil {
             return true;
         }
 
-        LOG.debug("Rich Authorization Requests are not enabled due to missing mandatory database tables.");
+        LOG.debug("Rich Authorization Requests are not enabled.");
         return false;
     }
 

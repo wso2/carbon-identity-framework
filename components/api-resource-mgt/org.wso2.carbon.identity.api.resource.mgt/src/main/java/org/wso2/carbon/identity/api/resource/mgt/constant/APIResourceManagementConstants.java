@@ -94,6 +94,7 @@ public class APIResourceManagementConstants {
         public static final String TYPE = "type";
         public static final String DISABLED = "disabled";
         public static final String TENANT_ADMIN_TYPE = "TENANT_ADMIN";
+        public static final String RICH_AUTHORIZATION_REQUESTS_ENABLED = "OAuth.EnableRichAuthorizationRequests";
 
     }
 
