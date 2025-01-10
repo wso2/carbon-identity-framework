@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.internal;
 
+import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
@@ -28,6 +29,7 @@ public class ActionMgtServiceComponentHolder {
 
     private SecretManager secretManager;
     private SecretResolveManager secretResolveManager;
+    private RuleManagementService ruleManagementService;
 
     public static final ActionMgtServiceComponentHolder INSTANCE = new ActionMgtServiceComponentHolder();
 
@@ -83,5 +85,25 @@ public class ActionMgtServiceComponentHolder {
     public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
 
         this.secretResolveManager = secretResolveManager;
+    }
+
+    /**
+     * Get the RuleManagementService.
+     *
+     * @return RuleManagementService instance.
+     */
+    public RuleManagementService getRuleManagementService() {
+
+        return ruleManagementService;
+    }
+
+    /**
+     * Set the RuleManagementService.
+     *
+     * @param ruleManagementService RuleManagementService instance.
+     */
+    public void setRuleManagementService(RuleManagementService ruleManagementService) {
+
+        this.ruleManagementService = ruleManagementService;
     }
 }

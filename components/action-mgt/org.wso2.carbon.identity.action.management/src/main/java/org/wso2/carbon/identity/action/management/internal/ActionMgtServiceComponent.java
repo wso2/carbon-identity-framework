@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 import org.wso2.carbon.identity.action.management.service.impl.ActionConverterFactory;
 import org.wso2.carbon.identity.action.management.service.impl.CacheBackedActionManagementService;
+import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
@@ -158,5 +159,24 @@ public class ActionMgtServiceComponent {
 
         ActionMgtServiceComponentHolder.getInstance().setSecretResolveManager(null);
         LOG.debug("SecretResolveManager unset in ActionMgtServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.rule.management.service.RuleManagementService",
+            service = RuleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRuleManagementService"
+    )
+    private void setRuleManagementService(RuleManagementService ruleManagementService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setRuleManagementService(ruleManagementService);
+        LOG.debug("RuleManagementService set in ActionMgtServiceComponentHolder bundle.");
+    }
+
+    private void unsetRuleManagementService(RuleManagementService ruleManagementService) {
+
+        ActionMgtServiceComponentHolder.getInstance().setRuleManagementService(null);
+        LOG.debug("RuleManagementService unset in ActionMgtServiceComponentHolder bundle.");
     }
 }
