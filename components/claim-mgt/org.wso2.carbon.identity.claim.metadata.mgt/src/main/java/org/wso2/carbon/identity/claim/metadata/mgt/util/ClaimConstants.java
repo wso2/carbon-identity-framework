@@ -41,7 +41,7 @@ public class ClaimConstants {
     public static final String PROFILES_CLAIM_PROPERTY_PREFIX = "Profiles.";
     public static final String UNIQUENESS_VALIDATION_SCOPE = "UserClaimUpdate.UniquenessValidation.ScopeWithinUserstore";
     public static final String ALLOWED_ATTRIBUTE_PROFILE_CONFIG = "UserClaimUpdate.AllowedAttributeProfiles";
-    public static final String CLAIM_PROFILE_DELIMITER = ",";
+    public static final String CLAIM_PROFILE_PROPERTY_DELIMITER = ".";
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";

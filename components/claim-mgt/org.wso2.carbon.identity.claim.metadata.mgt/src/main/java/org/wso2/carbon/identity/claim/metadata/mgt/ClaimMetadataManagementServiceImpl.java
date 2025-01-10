@@ -654,7 +654,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 continue;
             }
 
-           String[] profilePropertyKeyArray = entry.getKey().split(ClaimConstants.CLAIM_PROFILE_DELIMITER);
+           String[] profilePropertyKeyArray = entry.getKey().split("\\.");
            if (profilePropertyKeyArray.length < 2 || !allowedClaimProfiles.contains(profilePropertyKeyArray[1])) {
                throw new ClaimMetadataClientException(ERROR_CODE_INVALID_ATTRIBUTE_PROFILE);
            }
@@ -686,7 +686,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         String consistentProfileValue = null;
 
         for (String profileName : allowedClaimProfiles) {
-            String profilePropertyKey = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName + "." + propertyKey;
+            String profilePropertyKey = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName +
+                    ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
             String profilePropertyValue = claimProperties.get(profilePropertyKey);
 
             // Remove the profile property if it is the same as the global property.
@@ -718,7 +719,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
             // Remove the profile properties.
             allowedClaimProfiles.forEach(profile -> {
-                String key = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profile + "." + propertyKey;
+                String key = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profile +
+                        ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
                 claimProperties.remove(key);
             });
         }

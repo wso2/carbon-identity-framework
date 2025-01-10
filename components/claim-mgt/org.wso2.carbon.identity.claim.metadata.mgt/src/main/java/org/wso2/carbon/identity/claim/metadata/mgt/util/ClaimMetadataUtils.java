@@ -434,7 +434,7 @@ public class ClaimMetadataUtils {
 
         String serverWideClaimProfiles = IdentityUtil.getProperty(ClaimConstants.ALLOWED_ATTRIBUTE_PROFILE_CONFIG);
         if (StringUtils.isNotBlank(serverWideClaimProfiles)) {
-            String[] profiles = serverWideClaimProfiles.split(ClaimConstants.CLAIM_PROFILE_DELIMITER);
+            String[] profiles = serverWideClaimProfiles.split(",");
             Arrays.stream(profiles).map(String::trim).filter(StringUtils::isNotBlank)
                     .forEach(profile -> uniqueProfilesMap.putIfAbsent(profile.toLowerCase(), profile));
         }
