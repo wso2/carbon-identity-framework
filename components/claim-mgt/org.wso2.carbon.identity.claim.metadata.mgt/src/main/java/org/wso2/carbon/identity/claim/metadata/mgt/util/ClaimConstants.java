@@ -156,24 +156,4 @@ public class ClaimConstants {
             return profileName;
         }
     }
-
-    /**
-     * Enum for claim profile properties.
-     */
-    public enum ClaimProfileProperties {
-
-        SUPPORTED_BY_DEFAULT(SUPPORTED_BY_DEFAULT_PROPERTY),
-        REQUIRED(REQUIRED_PROPERTY),
-        READ_ONLY(READ_ONLY_PROPERTY);
-
-        private final String profileProperty;
-
-        ClaimProfileProperties(String profileProperty) {
-            this.profileProperty = profileProperty;
-        }
-
-        public String getProfileProperty() {
-            return profileProperty;
-        }
-    }
 }

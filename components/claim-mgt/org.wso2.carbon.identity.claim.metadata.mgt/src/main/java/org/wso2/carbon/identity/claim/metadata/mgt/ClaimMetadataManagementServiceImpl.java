@@ -59,6 +59,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_ATTRIBUTE_PROFILE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
@@ -69,6 +70,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getAllowedClaimProfiles;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
 
 /**
@@ -232,6 +234,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
 
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(), null);
+        validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
@@ -265,6 +268,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(),
                 existingLocalClaim.get().getClaimProperties());
+        validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
 
@@ -631,6 +635,93 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return this.unifiedClaimMetadataManager.getMappedExternalClaims(localClaimURI, tenantId);
+    }
+
+    /**
+     * Validate and sync the claim profile properties.
+     *
+     * @param claimProperties Map of claim properties to be updated.
+     * @throws ClaimMetadataClientException If an invalid profile name is found.
+     */
+    private void validateAndSyncAttributeProfileProperties(Map<String, String> claimProperties)
+            throws ClaimMetadataClientException {
+
+        Set<String> allowedClaimProfiles = getAllowedClaimProfiles();
+
+        // Validate profile names and throw an exception if an invalid profile name is found.
+        for (Map.Entry<String, String> entry : claimProperties.entrySet()) {
+            if (!entry.getKey().startsWith(ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX)) {
+                continue;
+            }
+
+           String[] profilePropertyKeyArray = entry.getKey().split(ClaimConstants.CLAIM_PROFILE_DELIMITER);
+           if (profilePropertyKeyArray.length < 2 || !allowedClaimProfiles.contains(profilePropertyKeyArray[1])) {
+               throw new ClaimMetadataClientException(ERROR_CODE_INVALID_ATTRIBUTE_PROFILE);
+           }
+        }
+
+        String[] allowedProfilePropertyKeys = {
+                ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY,
+                ClaimConstants.REQUIRED_PROPERTY,
+                ClaimConstants.READ_ONLY_PROPERTY
+        };
+        for (String propertyKey: allowedProfilePropertyKeys) {
+            syncAttributeProfileProperties(claimProperties, allowedClaimProfiles, propertyKey);
+        }
+    }
+
+    /**
+     * Remove the profile properties if the profile property value is the same as the global property value.
+     * If all the profile properties have the same value, change the global property value to the profile value.
+     *
+     * @param claimProperties      Map of claim properties to be updated.
+     * @param allowedClaimProfiles Set of allowed claim profiles.
+     * @param propertyKey          Property key to be updated.
+     */
+    private void syncAttributeProfileProperties(Map<String, String> claimProperties, Set<String> allowedClaimProfiles,
+                                                String propertyKey) {
+
+        String globalValue = claimProperties.get(propertyKey);
+        boolean allProfileValuesMatch = true;
+        String consistentProfileValue = null;
+
+        for (String profileName : allowedClaimProfiles) {
+            String profilePropertyKey = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName + "." + propertyKey;
+            String profilePropertyValue = claimProperties.get(profilePropertyKey);
+
+            // Remove the profile property if it is the same as the global property.
+            if (StringUtils.equals(globalValue, profilePropertyValue)) {
+                claimProperties.remove(profilePropertyKey);
+                allProfileValuesMatch = false;
+                continue;
+            }
+
+            // If a mismatch is already detected, no need to check further for consistency.
+            if (!allProfileValuesMatch) {
+                continue;
+            }
+
+            if (StringUtils.isBlank(profilePropertyValue)) {
+                allProfileValuesMatch = false;
+                continue;
+            }
+            if (consistentProfileValue == null) {
+                consistentProfileValue = profilePropertyValue;
+            } else if (!StringUtils.equals(consistentProfileValue, profilePropertyValue)) {
+                allProfileValuesMatch = false;
+            }
+        }
+
+        // If all the profiles have the same value change the global property value to the profile value.
+        if (allProfileValuesMatch && StringUtils.isNotBlank(consistentProfileValue)) {
+            claimProperties.put(propertyKey, consistentProfileValue);
+
+            // Remove the profile properties.
+            allowedClaimProfiles.forEach(profile -> {
+                String key = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profile + "." + propertyKey;
+                claimProperties.remove(key);
+            });
+        }
     }
 
     /**
