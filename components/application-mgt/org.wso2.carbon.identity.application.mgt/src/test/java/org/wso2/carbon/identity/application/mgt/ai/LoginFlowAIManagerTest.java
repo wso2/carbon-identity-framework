@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,9 +28,9 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.ai.service.mgt.exceptions.AIClientException;
-import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
-import org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil;
+import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIClientException;
+import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerException;
+import org.wso2.carbon.identity.ai.service.mgt.util.AIHttpClientUtil;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
@@ -48,6 +48,9 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 
+/**
+ * Test class for LoginFlowAIManager.
+ */
 public class LoginFlowAIManagerTest {
 
     private MockedStatic<AIHttpClientUtil> aiHttpClientUtilMockedStatic;

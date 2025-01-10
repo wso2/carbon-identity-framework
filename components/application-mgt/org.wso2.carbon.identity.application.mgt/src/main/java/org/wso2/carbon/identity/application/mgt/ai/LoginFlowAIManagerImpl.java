@@ -26,8 +26,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.wso2.carbon.ai.service.mgt.exceptions.AIClientException;
-import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
+import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIClientException;
+import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
@@ -35,9 +35,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.ai.service.mgt.util.AIHttpClientUtil.executeRequest;
+import static org.wso2.carbon.identity.ai.service.mgt.util.AIHttpClientUtil.executeRequest;
 import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.AUTHENTICATORS_PROPERTY;
-import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.ErrorMessages.SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE;
+import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.ErrorMessages.CLIENT_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE;
 import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.OPERATION_ID_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.USER_CLAIM_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ai.constant.LoginFlowAIConstants.USER_QUERY_PROPERTY;
@@ -55,7 +55,6 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
     private static final String LOGINFLOW_AI_RESULT_PATH = "/api/server/v1/applications/loginflow/result";
 
     private static final Log LOG = LogFactory.getLog(LoginFlowAIManagerImpl.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Generates an authentication sequence using the LoginFlow AI service.
@@ -88,7 +87,7 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
             requestBody.put(AUTHENTICATORS_PROPERTY, authenticatorsMap);
         } catch (JsonSyntaxException | IOException e) {
             throw new AIClientException("Error occurred while parsing the user claims or available " +
-                    "authenticators.", SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getCode(), e);
+                    "authenticators.", CLIENT_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE.getCode(), e);
         }
 
         Map<String, Object> stringObjectMap = executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_GENERATE_PATH,

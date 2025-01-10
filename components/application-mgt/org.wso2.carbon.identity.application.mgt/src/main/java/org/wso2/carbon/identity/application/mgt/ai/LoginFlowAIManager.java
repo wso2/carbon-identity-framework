@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.application.mgt.ai;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.wso2.carbon.ai.service.mgt.exceptions.AIClientException;
-import org.wso2.carbon.ai.service.mgt.exceptions.AIServerException;
+import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIClientException;
+import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerException;
 
 import java.util.Map;
 

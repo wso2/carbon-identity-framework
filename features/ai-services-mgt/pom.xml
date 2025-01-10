@@ -30,11 +30,11 @@
 
     <artifactId>ai-services-mgt-feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - AI Service Management Feature</name>
+    <name>WSO2 Identity - AI Service Management Feature</name>
     <url>http://wso2.org</url>
 
     <modules>
-        <module>org.wso2.carbon.ai.service.mgt.server.feature</module>
+        <module>org.wso2.carbon.identity.ai.service.mgt.server.feature</module>
     </modules>
 
 </project>

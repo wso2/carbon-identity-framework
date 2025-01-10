@@ -34,19 +34,9 @@ public class LoginFlowAIConstants {
      */
     public enum ErrorMessages {
 
-        MAXIMUM_RETRIES_EXCEEDED("AILF_10000", "Maximum retries exceeded to retrieve the access token."),
-        UNABLE_TO_ACCESS_AI_SERVICE_WITH_RENEW_ACCESS_TOKEN("AILF_10003", "Unable to access the " +
-                "AI service with the renewed access token."),
-        REQUEST_TIMEOUT("AILF_10004", "Request to the AI service timed out."),
-        ERROR_WHILE_GENERATING_AUTHENTICATION_SEQUENCE("AILF_10005", "Error occurred while " +
-                "generating the authentication sequence."),
-        ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE("AILF_10006", "Error occurred while" +
-                " connecting to the Loginflow AI service."),
-        ERROR_RETRIEVING_ACCESS_TOKEN("AILF_10007", "Error occurred while retrieving the " +
-                "access token."),
-        CLIENT_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE("AILF_10008", "Client error occurred " +
+        CLIENT_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE("AILF-10008", "Client error occurred " +
                 "for %s tenant while generating authentication sequence."),
-        SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE("AILF_10009", "Server error occurred " +
+        SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE("AILF-10009", "Server error occurred " +
                 "for %s tenant while generating authentication sequence.");
 
 
