@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.testng.Assert.assertEquals;
 
 /**
  * Test class that includes unit tests of Session Data Store.
@@ -52,6 +53,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class SessionDataStoreTest extends DataStoreBaseTest {
 
     private static final String DB_NAME = "SESSION_DATA_STORE";
+    private static final String OPERATION_STORE = "STORE";
+    private static final String OPERATION_DELETE = "DELETE";
 
     @Mock
     FrameworkServiceDataHolder mockFrameworkServiceDataHolder;
@@ -71,9 +74,12 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
 
     @DataProvider
     public Object[][] getSessionData() {
-        Object obj = mock(Object.class, withSettings().serializable());
+
+        Object obj1 = mock(Object.class, withSettings().serializable());
+        Object obj2 = mock(Object.class, withSettings().serializable());
         return new Object[][]{
-                {"00000001", "sessionType", obj, 30000, 1},
+                {"00000001", "sessionType", obj1, 30000, 1},
+                {"00000002", "sessionType", obj2, 30001, 1},
         };
     }
 
@@ -97,7 +103,68 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         }
     }
 
-    @Test(dependsOnMethods = "testPersistSessionData")
+    @DataProvider
+    public Object[][] getRemoveSessionData() {
+
+        return new Object[][]{
+                {"00000002", "sessionType"},
+        };
+    }
+
+    @Test(dataProvider = "getRemoveSessionData", dependsOnMethods = "testPersistSessionData")
+    public void testRemoveSessionData(String key, String type) throws Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+            Connection connection = getConnection(DB_NAME);
+            mockIdentityDataBaseUtilConnection(connection, true, identityDatabaseUtil);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            mockDataHolder(frameworkServiceDataHolder);
+            SessionDataStore.getInstance().removeSessionData(key, type, 30002);
+        }
+    }
+
+    @DataProvider
+    public Object[][] getIsSessionExistData() {
+
+        return new Object[][]{
+                {"00000001", "sessionType", OPERATION_STORE, true},
+                {"00000001", "sessionType", OPERATION_DELETE, false},
+                {"00000002", "sessionType", OPERATION_DELETE, true},
+                {"00000002", "sessionType", OPERATION_STORE, false},
+        };
+    }
+
+    @Test(dependsOnMethods = "testRemoveSessionData", dataProvider = "getIsSessionExistData")
+    public void testIsSessionExist(String key, String type, String operation, boolean isExist) throws
+            Exception {
+
+        try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<IdPManagementUtil> idPManagementUtil = mockStatic(IdPManagementUtil.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
+             MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
+
+            Connection connection = getConnection(DB_NAME);
+
+            mockIdentityDataBaseUtilConnection(connection, false, identityDatabaseUtil);
+            mockCarbonContext(carbonContext);
+            mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
+            mockDataHolder(frameworkServiceDataHolder);
+            boolean isSessionDataExist = SessionDataStore.getInstance().isSessionDataExist(key, type, operation);
+            assertEquals(isSessionDataExist, isExist);
+        }
+    }
+
+    @Test(dependsOnMethods = "testIsSessionExist")
     public void testRemoveExpiredSessionData() throws Exception {
 
         try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
