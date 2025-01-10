@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -316,7 +316,6 @@ public class SessionDataStore {
             sessionCleanUpService.activateCleanUp();
         }
 
-
         String checkExistingEntryForDeleteOperationInsertProperty = IdentityUtil.getProperty(
                 "JDBCPersistenceManager.SessionDataPersist.CheckExistingEntryForDeleteOperationInsert");
         if (StringUtils.isNotBlank(checkExistingEntryForDeleteOperationInsertProperty)) {
@@ -440,25 +439,25 @@ public class SessionDataStore {
 
     private String getSqlGetLastOperation(Connection connection) throws SQLException {
 
-        String sqlGetLastOperation;
+        String sqlGetLastOperationQuery;
         String driverName = connection.getMetaData().getDriverName();
         if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
                 || driverName.contains(H2_DATABASE)) {
-            sqlGetLastOperation = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MYSQL;
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MYSQL;
         } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
-            sqlGetLastOperation = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_DB2SQL;
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_DB2SQL;
         } else if (driverName.contains(MS_SQL_DATABASE)
                 || driverName.contains(MICROSOFT_DATABASE)) {
-            sqlGetLastOperation = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MSSQL;
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_MSSQL;
         } else if (driverName.contains(POSTGRESQL_DATABASE)) {
-            sqlGetLastOperation = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_POSTGRESQL;
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_POSTGRESQL;
         } else if (driverName.contains(INFORMIX_DATABASE)) {
             // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
-            sqlGetLastOperation = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_INFORMIX;
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_INFORMIX;
         } else {
-            sqlGetLastOperation = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_ORACLE;
+            sqlGetLastOperationQuery = SQL_RETRIEVE_LAST_SESSION_DATA_OPERATION_ORACLE;
         }
-        return sqlGetLastOperation;
+        return sqlGetLastOperationQuery;
     }
 
     public void storeSessionData(String key, String type, Object entry) {
