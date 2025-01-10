@@ -38,7 +38,10 @@ public class ClaimConstants {
     public static final String MASKING_REGULAR_EXPRESSION_PROPERTY = "MaskingRegEx";
     public static final String CLAIM_UNIQUENESS_SCOPE_PROPERTY = "UniquenessScope";
     public static final String IS_UNIQUE_CLAIM_PROPERTY = "isUnique";
+    public static final String PROFILES_CLAIM_PROPERTY_PREFIX = "Profiles.";
     public static final String UNIQUENESS_VALIDATION_SCOPE = "UserClaimUpdate.UniquenessValidation.ScopeWithinUserstore";
+    public static final String ALLOWED_ATTRIBUTE_PROFILE_CONFIG = "UserClaimUpdate.AllowedAttributeProfiles";
+    public static final String CLAIM_PROFILE_DELIMITER = ",";
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
@@ -99,6 +102,7 @@ public class ClaimConstants {
         ERROR_CODE_NON_EXISTING_EXTERNAL_CLAIM_URI("CMT-600010", "External claim URI: %s in dialect: %s does not exist."),
         ERROR_CODE_NON_EXISTING_LOCAL_CLAIM("CMT-600011", "Local claim URI: %s  does not exist."),
         ERROR_CODE_EXISTING_EXTERNAL_CLAIM("CMT-600012", "External claim URI: %s in dialect: %s already exists."),
+        ERROR_CODE_INVALID_ATTRIBUTE_PROFILE("CMT-600013", "Invalid attribute profile name."),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
@@ -131,5 +135,45 @@ public class ClaimConstants {
         NONE,
         WITHIN_USERSTORE,
         ACROSS_USERSTORES
+    }
+
+    /**
+     * Enum for default allowed claim profiles.
+     */
+    public enum DefaultAllowedClaimProfile {
+
+        CONSOLE("console"),
+        END_USER("endUser"),
+        SELF_REGISTRATION("selfRegistration");
+
+        private final String profileName;
+
+        DefaultAllowedClaimProfile(String profileName) {
+            this.profileName = profileName;
+        }
+
+        public String getProfileName() {
+            return profileName;
+        }
+    }
+
+    /**
+     * Enum for claim profile properties.
+     */
+    public enum ClaimProfileProperties {
+
+        SUPPORTED_BY_DEFAULT(SUPPORTED_BY_DEFAULT_PROPERTY),
+        REQUIRED(REQUIRED_PROPERTY),
+        READ_ONLY(READ_ONLY_PROPERTY);
+
+        private final String profileProperty;
+
+        ClaimProfileProperties(String profileProperty) {
+            this.profileProperty = profileProperty;
+        }
+
+        public String getProfileProperty() {
+            return profileProperty;
+        }
     }
 }
