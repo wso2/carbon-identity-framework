@@ -495,7 +495,7 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
             return true;
         } catch (RegistryException e) {
             isErrorOccurred = true;
-            throw new IdentityException("Error while adding SAML Service Provider.", e);
+            throw new IdentityException("Error while removing SAML Service Provider.", e);
         } finally {
             commitOrRollbackTransaction(isErrorOccurred, registry);
         }
