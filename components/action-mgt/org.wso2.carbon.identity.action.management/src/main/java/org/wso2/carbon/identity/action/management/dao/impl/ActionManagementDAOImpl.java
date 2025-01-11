@@ -21,17 +21,20 @@ package org.wso2.carbon.identity.action.management.dao.impl;
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.model.ActionRule;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -58,6 +61,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         addBasicInfo(actionDTO, tenantId);
         // Add action endpoint.
         addEndpoint(actionDTO, tenantId);
+        // Add action rule reference.
+        addRuleReference(actionDTO, tenantId);
         // Add action properties.
         addProperties(actionDTO, tenantId);
     }
@@ -76,6 +81,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
                     String actionId = rs.getString(ActionMgtSQLConstants.Column.ACTION_UUID);
+                    Map<String, String> properties = getActionPropertiesFromDB(actionId, tenantId);
                     ActionDTO actionDTO = new ActionDTOBuilder()
                             .id(actionId)
                             .type(org.wso2.carbon.identity.action.management.model.Action.ActionTypes.valueOf(
@@ -84,7 +90,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                             .description(rs.getString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION))
                             .status(org.wso2.carbon.identity.action.management.model.Action.Status.valueOf(
                                     rs.getString(ActionMgtSQLConstants.Column.ACTION_STATUS)))
-                            .setEndpointAndProperties(getActionPropertiesFromDB(actionId, tenantId))
+                            .endpoint(populateEndpoint(properties))
+                            .rule(populateRule(properties, tenantId))
+                            .properties(properties.entrySet().stream()
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
                             .build();
 
                     actionDTOS.add(actionDTO);
@@ -106,8 +115,12 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         if (actionBuilder == null) {
             return null;
         }
-        actionBuilder.setEndpointAndProperties(getActionPropertiesFromDB(actionId, tenantId));
 
+        Map<String, String> actionProperties = getActionPropertiesFromDB(actionId, tenantId);
+        actionBuilder.endpoint(populateEndpoint(actionProperties));
+        actionBuilder.rule(populateRule(actionProperties, tenantId));
+        actionBuilder.properties(actionProperties.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         return actionBuilder.build();
     }
 
@@ -119,6 +132,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         updateBasicInfo(updatingActionDTO, existingActionDTO, tenantId);
         // Update Action Endpoint.
         updateEndpoint(updatingActionDTO, existingActionDTO, tenantId);
+        // Update Rule Reference.
+        updateRuleReference(updatingActionDTO, existingActionDTO, tenantId);
         // Update Action Properties.
         updateProperties(updatingActionDTO, existingActionDTO, tenantId);
     }
@@ -329,6 +344,39 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
     }
 
+    private EndpointConfig populateEndpoint(Map<String, String> propertiesFromDB) throws ActionMgtException {
+
+        Authentication authentication;
+        Authentication.Type authnType =
+                Authentication.Type.valueOf(propertiesFromDB.remove(ActionMgtConstants.AUTHN_TYPE_PROPERTY));
+        switch (authnType) {
+            case BASIC:
+                authentication = new Authentication.BasicAuthBuilder(
+                        propertiesFromDB.remove(Authentication.Property.USERNAME.getName()),
+                        propertiesFromDB.remove(Authentication.Property.PASSWORD.getName())).build();
+                break;
+            case BEARER:
+                authentication = new Authentication.BearerAuthBuilder(
+                        propertiesFromDB.remove(Authentication.Property.ACCESS_TOKEN.getName())).build();
+                break;
+            case API_KEY:
+                authentication = new Authentication.APIKeyAuthBuilder(
+                        propertiesFromDB.remove(Authentication.Property.HEADER.getName()),
+                        propertiesFromDB.remove(Authentication.Property.VALUE.getName())).build();
+                break;
+            case NONE:
+                authentication = new Authentication.NoneAuthBuilder().build();
+                break;
+            default:
+                throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
+        }
+
+        return new EndpointConfig.EndpointConfigBuilder()
+                .uri(propertiesFromDB.remove(ActionMgtConstants.URI_PROPERTY))
+                .authentication(authentication)
+                .build();
+    }
+
     /**
      * Update Action Endpoint Authentication.
      *
@@ -415,6 +463,59 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         updateActionPropertiesInDB(actionId, nonSecretAuthenticationProperties, tenantId);
     }
 
+    private void addRuleReference(ActionDTO actionDTO, Integer tenantId) throws ActionMgtServerException {
+
+        if (actionDTO.getActionRule() == null) {
+            return;
+        }
+
+        Map<String, String> propertiesMap =
+                Collections.singletonMap(ActionMgtConstants.RULE_PROPERTY, actionDTO.getActionRule().getId());
+        try {
+            addActionPropertiesToDB(actionDTO.getId(), propertiesMap, tenantId);
+        } catch (TransactionException e) {
+            throw new ActionMgtServerException("Error while adding the reference for the Rule in Action.", e);
+        }
+    }
+
+    private void updateRuleReference(ActionDTO updatingActionDTO, ActionDTO existingActionDTO, Integer tenantId)
+            throws ActionMgtServerException {
+
+        try {
+            if (existingActionDTO.getActionRule() == null && updatingActionDTO.getActionRule() != null &&
+                    updatingActionDTO.getActionRule().getRule() != null) {
+                // This means a new action rule is added when updating the action. Add the rule reference.
+                addRuleReference(updatingActionDTO, tenantId);
+            } else if (existingActionDTO.getActionRule() != null && updatingActionDTO.getActionRule() != null &&
+                    updatingActionDTO.getActionRule().getRule() == null) {
+                // This means the existing action rule is removed when updating the action. Remove the rule reference.
+                deleteRuleReference(updatingActionDTO, tenantId);
+            }
+        } catch (ActionMgtException e) {
+            throw new ActionMgtServerException("Error while updating the reference for the Rule in Action.", e);
+        }
+    }
+
+    private void deleteRuleReference(ActionDTO actionDTO, Integer tenantId) throws ActionMgtServerException {
+
+        try {
+            deleteActionPropertiesInDB(actionDTO.getId(),
+                    Collections.singletonList(ActionMgtConstants.RULE_PROPERTY), tenantId);
+        } catch (TransactionException e) {
+            throw new ActionMgtServerException("Error while removing the reference for the Rule in Action.", e);
+        }
+    }
+
+    private ActionRule populateRule(Map<String, String> propertiesFromDB, Integer tenantId) {
+
+        if (!propertiesFromDB.containsKey(ActionMgtConstants.RULE_PROPERTY)) {
+            return null;
+        }
+
+        return ActionRule.create(propertiesFromDB.remove(ActionMgtConstants.RULE_PROPERTY),
+                IdentityTenantUtil.getTenantDomain(tenantId));
+    }
+
     /**
      * Add Action properties.
      *
@@ -480,9 +581,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         jdbcTemplate.withTransaction(template -> {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES
-                    : ActionMgtSQLConstants.Query.ADD_ACTION_ENDPOINT;
-            template.executeBatchInsert(query,
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.ADD_ACTION_PROPERTIES,
                     statement -> {
                         for (Map.Entry<String, String> property : actionProperties.entrySet()) {
                             statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
@@ -511,10 +610,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         Map<String, String> actionEndpointProperties = new HashMap<>();
         try {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID
-                    : ActionMgtSQLConstants.Query.GET_ACTION_ENDPOINT_INFO_BY_ID;
             jdbcTemplate.withTransaction(template ->
-                template.executeQuery(query,
+                template.executeQuery(ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID,
                     (resultSet, rowNumber) -> {
                         actionEndpointProperties.put(
                                 resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
@@ -527,7 +624,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                 }));
 
             return actionEndpointProperties;
-        } catch (SQLException | TransactionException e) {
+        } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while retrieving Action Properties from the system.", e);
         }
     }
@@ -544,22 +641,19 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                             Integer tenantId) throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template -> {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY
-                    : ActionMgtSQLConstants.Query.UPDATE_ACTION_ENDPOINT_PROPERTY;
-            return template.executeBatchInsert(query,
-                    statement -> {
-                        for (Map.Entry<String, String> property : updatingProperties.entrySet()) {
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE,
-                                    property.getValue());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
-                                    property.getKey());
-                            statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
-                            statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
-                            statement.addBatch();
-                        }
-                    }, null);
-        });
+        jdbcTemplate.withTransaction(template ->
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.UPDATE_ACTION_PROPERTY,
+                statement -> {
+                    for (Map.Entry<String, String> property : updatingProperties.entrySet()) {
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_VALUE,
+                                property.getValue());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
+                                property.getKey());
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_UUID, actionId);
+                        statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                        statement.addBatch();
+                    }
+                }, null));
     }
 
     /**
@@ -574,10 +668,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        jdbcTemplate.withTransaction(template -> {
-            String query = isPropertiesTableExists() ? ActionMgtSQLConstants.Query.DELETE_ACTION_PROPERTY
-                    : ActionMgtSQLConstants.Query.DELETE_ACTION_ENDPOINT_PROPERTY;
-            return template.executeBatchInsert(query,
+        jdbcTemplate.withTransaction(template ->
+            template.executeBatchInsert(ActionMgtSQLConstants.Query.DELETE_ACTION_PROPERTY,
                 statement -> {
                     for (String property : deletingProperties) {
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
@@ -586,8 +678,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                         statement.addBatch();
                     }
-                }, null);
-        });
+                }, null));
     }
 
     /**
@@ -620,22 +711,6 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             return getBasicInfo(actionType, actionId, tenantId).build();
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while updating Action Status to " + status, e);
-        }
-    }
-
-    /**
-     * Check whether the IDN_ACTION_PROPERTIES table exists in the database.
-     * TODO: Remove this temporary method once the table is created.
-     *
-     * @return True if the table exists, False otherwise.
-     * @throws SQLException If an error occurs while checking the table existence.
-     */
-    private boolean isPropertiesTableExists() throws SQLException {
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             ResultSet resultSet = connection.getMetaData().getTables(null, null,
-                     ActionMgtSQLConstants.IDN_ACTION_PROPERTIES_TABLE, null)) {
-            return resultSet.next();
         }
     }
 }

@@ -27,7 +27,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.core.util.CryptoUtil;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
@@ -262,10 +263,23 @@ public class IdentityProviderManagementServiceTest {
 
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
         when(actionManagementServiceForException.addAction(anyString(), any(), any()))
-                .thenThrow(ActionMgtException.class);
+                .thenThrow(ActionMgtServerException.class);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
 
-        assertThrows(IdentityProviderManagementException.class, () ->
+        assertThrows(IdentityProviderManagementServerException.class, () ->
+                identityProviderManagementService.addIdP(idpForErrorScenarios));
+        identityProviderManagementService.getIdPByName(idpForErrorScenarios.getIdentityProviderName());
+    }
+
+    @Test
+    public void testAddIdPActionClientException() throws Exception {
+
+        ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
+        when(actionManagementServiceForException.addAction(anyString(), any(), any()))
+                .thenThrow(ActionMgtClientException.class);
+        IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
+
+        assertThrows(IdentityProviderManagementClientException.class, () ->
                 identityProviderManagementService.addIdP(idpForErrorScenarios));
         identityProviderManagementService.getIdPByName(idpForErrorScenarios.getIdentityProviderName());
     }
@@ -625,13 +639,12 @@ public class IdentityProviderManagementServiceTest {
         identityProviderManagementService.addIdP(userDefinedIdP);
 
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
-        doThrow(ActionMgtException.class).when(actionManagementServiceForException).deleteAction(any(), any(), any());
+        doThrow(ActionMgtServerException.class).when(actionManagementServiceForException)
+                .deleteAction(any(), any(), any());
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
-
-        assertThrows(IdentityProviderManagementException.class, () ->
-                identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
-        Assert.assertNotNull(identityProviderManagementService.getIdPByName(userDefinedIdP
+        identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName());
+        Assert.assertNull(identityProviderManagementService.getIdPByName(userDefinedIdP
                 .getIdentityProviderName()));
     }
 
@@ -742,7 +755,7 @@ public class IdentityProviderManagementServiceTest {
 
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
         when(actionManagementServiceForException.updateAction(any(), any(), any(), any()))
-                .thenThrow(ActionMgtException.class);
+                .thenThrow(ActionMgtServerException.class);
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any())).thenReturn(action);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
 
@@ -900,11 +913,11 @@ public class IdentityProviderManagementServiceTest {
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
         when(actionManagementServiceForException.addAction(anyString(), any(), any())).thenReturn(action);
         when(actionManagementServiceForException.getActionByActionId(anyString(), any(), any()))
-                .thenThrow(ActionMgtException.class);
+                .thenThrow(ActionMgtServerException.class);
         IdpMgtServiceComponentHolder.getInstance().setActionManagementService(actionManagementServiceForException);
 
-        IdentityProviderManagementException error = assertThrows(IdentityProviderManagementException.class, () ->
-                identityProviderManagementService.addIdP(idpForErrorScenarios));
+        IdentityProviderManagementServerException error = assertThrows(IdentityProviderManagementServerException.class,
+                () -> identityProviderManagementService.addIdP(idpForErrorScenarios));
         assertEquals(error.getErrorCode(), ErrorMessage.ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG.getCode());
     }
 
@@ -1226,9 +1239,9 @@ public class IdentityProviderManagementServiceTest {
         assertThrows(IdentityProviderManagementException.class, () ->
                 identityProviderManagementService.deleteIdP(userDefinedIdP.getIdentityProviderName()));
 
-        /* check ActionManagementService actionManagementService.deleteAction() is called. Two time, when  creating idp
-         and rollback when idp deletion. */
-        verify(actionManagementService, times(2)).addAction(anyString(), any(), anyString());
+        /* check ActionManagementService actionManagementService.deleteAction() is called only once when creating the
+        user defined federated authenticator. */
+        verify(actionManagementService, times(1)).addAction(anyString(), any(), anyString());
     }
 
     private void addTestIdps() throws IdentityProviderManagementException {

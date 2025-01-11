@@ -78,7 +78,6 @@
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
 <!--        <SAMLConfigs>database</SAMLConfigs>-->
-<!--        <KeyStores>database</KeyStores>-->
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -1032,6 +1031,10 @@
         <!--<EnableErrorCodeForPasswordPolicyViolation>{{scim2.enable_error_code_for_password_policy_violations}}</EnableErrorCodeForPasswordPolicyViolation>-->
     </SCIM2>
 
+    <PasswordPolicy>
+        <MaxPasswordAllowedLength>64</MaxPasswordAllowedLength>
+    </PasswordPolicy>
+
     <!--Recovery>
         <EnableV1API>false</EnableV1API>
         <ReCaptcha>
@@ -1238,6 +1241,7 @@
 
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
+        <AutofillUsernameFieldWithSubjectAttribute>true</AutofillUsernameFieldWithSubjectAttribute>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
         <FailAuthnOnProvisionFailure>false</FailAuthnOnProvisionFailure>
         <EnableEnhancedFeature>false</EnableEnhancedFeature>
@@ -1402,6 +1406,12 @@
                        type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
                        name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener"
                        orderId="999" enable="true"/>
+        
+        <!-- User Identity Verification Event Listener -->
+        <EventListener id="identity_verification_event_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
+                       orderId="120" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV

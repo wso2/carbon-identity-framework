@@ -215,6 +215,7 @@ public class RoleDAOImpl implements RoleDAO {
     private static final String PERMISSIONS = "permissions";
     private static final String ASSOCIATED_APPLICATIONS = "associatedApplications";
     private static final String PROPERTIES = "properties";
+    private static final String IS_FRAGMENT_APP = "isFragmentApp";
 
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
@@ -1672,7 +1673,7 @@ public class RoleDAOImpl implements RoleDAO {
                 addRoleID(roleId, roleName, audienceRefId, tenantDomain, connection);
                 addPermissions(roleId, permissions, tenantDomain, connection);
 
-                if (APPLICATION.equals(audience) && !isOrganization(tenantDomain)) {
+                if (APPLICATION.equals(audience) && !isFragmentApp()) {
                     addAppRoleAssociation(roleId, audienceId, connection);
                 }
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -1686,6 +1687,23 @@ public class RoleDAOImpl implements RoleDAO {
             String errorMessage = "Error while adding role info for role : " + roleName;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
+    }
+
+    /**
+     * Check whether the corresponding application is a fragment application. This check is using a thread local
+     * property which is set from the default role management listener.
+     *
+     * @return True if the application is a fragment application.
+     */
+    private boolean isFragmentApp() {
+
+        if (IdentityUtil.threadLocalProperties.get().get(IS_FRAGMENT_APP) != null) {
+            boolean isFragmentApp = Boolean.parseBoolean(IdentityUtil.threadLocalProperties.get().
+                    get(IS_FRAGMENT_APP).toString());
+            IdentityUtil.threadLocalProperties.get().remove(IS_FRAGMENT_APP);
+            return isFragmentApp;
+        }
+        return false;
     }
 
     @Override
@@ -2219,8 +2237,7 @@ public class RoleDAOImpl implements RoleDAO {
                                             int tenantId, String primaryDomainName, Connection connection,
                                             String removeUserFromRoleSql) throws SQLException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, removeUserFromRoleSql,
-                RoleConstants.RoleTableColumns.UM_ID)) {
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, removeUserFromRoleSql)) {
             for (String userName : userNamesList) {
                 // Add domain if not set.
                 userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
@@ -2257,8 +2274,7 @@ public class RoleDAOImpl implements RoleDAO {
                                              int tenantId, String primaryDomainName, Connection connection, String sql)
             throws SQLException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql,
-                RoleConstants.RoleTableColumns.UM_ID)) {
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql)) {
             for (String groupName : groupNamesList) {
                 // Add domain if not set.
                 groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);

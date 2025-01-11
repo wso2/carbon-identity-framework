@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Authentication result.
@@ -36,6 +37,10 @@ public class AuthenticationResult implements Serializable {
     private boolean isSaaSApp;
     private boolean loggedOut;
     private Map<String, String> claimMapping;
+    /**
+     * Unfiltered remote claims that mapped to local claims.
+     */
+    private Map<String, String> mappedRemoteClaims;
     private Map<String, Object> properties = new HashMap<>();
 
     public AuthenticationResult() {
@@ -110,5 +115,15 @@ public class AuthenticationResult implements Serializable {
 
     public Object getProperty(String key) {
         return properties.get(key);
+    }
+
+    public Optional<Map<String, String>> getMappedRemoteClaims() {
+
+        return Optional.ofNullable(mappedRemoteClaims);
+    }
+
+    public void setMappedRemoteClaims(Map<String, String> mappedRemoteClaims) {
+
+        this.mappedRemoteClaims = mappedRemoteClaims;
     }
 }
