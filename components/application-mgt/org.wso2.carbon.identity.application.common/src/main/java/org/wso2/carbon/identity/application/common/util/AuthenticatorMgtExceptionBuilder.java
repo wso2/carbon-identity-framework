@@ -92,6 +92,8 @@ public class AuthenticatorMgtExceptionBuilder {
                 "The provided authenticator name %s is not in the expected format %s."),
         ERROR_BLANK_FIELD_VALUE("60015", "Invalid empty or blank value.",
                 "Value for %s should not be empty or blank."),
+        ERROR_INVALID_DISPLAY_NAME("60014", "Authenticator display name is invalid.",
+                "The provided authenticator name %s is not in the expected format %s."),
 
         // Server errors.
         ERROR_WHILE_ADDING_AUTHENTICATOR("65001", "Error while adding authenticator.",

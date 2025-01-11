@@ -38,7 +38,6 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildRuntimeServerException;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.DISPLAY_NAME;
 
 /**
  * Application authenticator service.
@@ -213,7 +212,7 @@ public class ApplicationAuthenticatorService {
                     authenticatorConfig.getName());
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
-        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
 
         return dao.addUserDefinedLocalAuthenticator(
                 authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -238,7 +237,7 @@ public class ApplicationAuthenticatorService {
                     authenticatorConfig.getName());
         }
 
-        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
 
         return dao.updateUserDefinedLocalAuthenticator(
                 existingConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -277,6 +276,12 @@ public class ApplicationAuthenticatorService {
 
         return dao.getUserDefinedLocalAuthenticator(
                 authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    public boolean isExistingAuthenticatorName(String authenticatorName, String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        return dao.isExistingAuthenticatorName(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     private UserDefinedLocalAuthenticatorConfig resolveExistingAuthenticator(String authenticatorName,
