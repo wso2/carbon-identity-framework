@@ -399,7 +399,15 @@ public class SessionDataStore {
         return null;
     }
 
-    public boolean isSessionDataExist(String key, String type, String requiredOperation) {
+    /**
+     * Validate last operation performed on the session data with given key and type.
+     *
+     * @param key               Session data key.
+     * @param type              Session data type.
+     * @param requiredOperation Required operation to validate.
+     * @return True if the last operation is same as the required operation.
+     */
+    public boolean validateLastOperationOnSessionData(String key, String type, String requiredOperation) {
 
         if (!enablePersist) {
             return false;
@@ -658,7 +666,8 @@ public class SessionDataStore {
             tempAuthnContextDataDeleteQueue.push(new SessionContextDO(key, type, null, nanoTime));
             return;
         }
-        if (checkExistingEntryForDeleteOperationInsert && isSessionDataExist(key, type, OPERATION_DELETE)) {
+        if (checkExistingEntryForDeleteOperationInsert &&
+                validateLastOperationOnSessionData(key, type, OPERATION_DELETE)) {
             return;
         }
 

@@ -131,7 +131,7 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
     }
 
     @DataProvider
-    public Object[][] getIsSessionExistData() {
+    public Object[][] getValidateLastOperationOnSessionData() {
 
         return new Object[][]{
                 {"00000001", "sessionType", OPERATION_STORE, true},
@@ -141,9 +141,9 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
         };
     }
 
-    @Test(dependsOnMethods = "testRemoveSessionData", dataProvider = "getIsSessionExistData")
-    public void testIsSessionExist(String key, String type, String operation, boolean isExist) throws
-            Exception {
+    @Test(dependsOnMethods = "testRemoveSessionData", dataProvider = "getValidateLastOperationOnSessionData")
+    public void testValidateLastOperationOnSessionData(String key, String type, String operation, boolean isExist)
+            throws Exception {
 
         try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
              MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class);
@@ -159,12 +159,13 @@ public class SessionDataStoreTest extends DataStoreBaseTest {
             mockCarbonContext(carbonContext);
             mockIdentityUtils(identityTenantUtil, idPManagementUtil, identityUtil);
             mockDataHolder(frameworkServiceDataHolder);
-            boolean isSessionDataExist = SessionDataStore.getInstance().isSessionDataExist(key, type, operation);
+            boolean isSessionDataExist = SessionDataStore.getInstance()
+                    .validateLastOperationOnSessionData(key, type, operation);
             assertEquals(isSessionDataExist, isExist);
         }
     }
 
-    @Test(dependsOnMethods = "testIsSessionExist")
+    @Test(dependsOnMethods = "testValidateLastOperationOnSessionData")
     public void testRemoveExpiredSessionData() throws Exception {
 
         try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class);
