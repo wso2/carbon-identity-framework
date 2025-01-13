@@ -45,14 +45,6 @@
 				<SupportedByDefault />
 			</Claim>
 			<Claim>
-				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
-				<DisplayName>Address</DisplayName>
-				<AttributeID>streetAddress</AttributeID>
-				<Description>Address</Description>
-				<DisplayOrder>4</DisplayOrder>
-				<SupportedByDefault />
-			</Claim>
-			<Claim>
 				<ClaimURI>http://wso2.org/claims/country</ClaimURI>
 				<DisplayName>Country</DisplayName>
 				<AttributeID>country</AttributeID>
