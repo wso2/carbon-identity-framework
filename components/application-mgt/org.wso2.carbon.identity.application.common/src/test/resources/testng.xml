@@ -24,6 +24,8 @@
             <class name="org.wso2.carbon.identity.application.common.model.test.ProvisioningConnectorConfigTest"/>
             <class name="org.wso2.carbon.identity.application.common.model.test.UserDefinedAuthenticatorTest"/>
             <class name="org.wso2.carbon.identity.application.common.model.test.ApplicationAuthenticatorServiceTest"/>
+            <class name="org.wso2.carbon.identity.application.common.model.test.model.DiscoverableGroupTest"/>
+            <class name="org.wso2.carbon.identity.application.common.model.test.model.ServiceProviderTest"/>
         </classes>
     </test>
 </suite>
