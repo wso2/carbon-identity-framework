@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.dao;
 
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -51,7 +52,9 @@ public interface IdentityProviderDAO {
      * Returns all the local authenticators available on the system.
      * @return
      * @throws IdentityApplicationManagementException
+     * @deprecated use {@link ApplicationAuthenticatorService#getInstance().getAllLocalAuthenticators(String)} instead.
      */
+    @Deprecated
     List<LocalAuthenticatorConfig> getAllLocalAuthenticators() throws IdentityApplicationManagementException;
 
     /**

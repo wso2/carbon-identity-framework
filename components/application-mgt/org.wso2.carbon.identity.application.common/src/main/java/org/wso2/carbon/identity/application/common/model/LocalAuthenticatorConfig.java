@@ -67,12 +67,6 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "DefinedBy")
     protected DefinedByType definedByType;
 
-    @XmlElement(name = "ImageUrl")
-    protected String imageUrl;
-
-    @XmlElement(name = "Description")
-    protected String description;
-
     public LocalAuthenticatorConfig() {
 
         definedByType = DefinedByType.SYSTEM;
@@ -100,10 +94,6 @@ public class LocalAuthenticatorConfig implements Serializable {
                 localAuthenticatorConfig.setName(member.getText());
             } else if ("DisplayName".equals(member.getLocalName())) {
                 localAuthenticatorConfig.setDisplayName(member.getText());
-            } else if ("ImageUrl".equals(member.getLocalName())) {
-                localAuthenticatorConfig.setImageUrl(member.getText());
-            } else if ("Description".equals(member.getLocalName())) {
-                localAuthenticatorConfig.setDescription(member.getText());
             } else if ("IsEnabled".equals(member.getLocalName())) {
                 if (member.getText() != null && member.getText().trim().length() > 0) {
                     localAuthenticatorConfig.setEnabled(Boolean.parseBoolean(member.getText()));
@@ -269,45 +259,5 @@ public class LocalAuthenticatorConfig implements Serializable {
     public void setDefinedByType(DefinedByType type) {
 
         definedByType = type;
-    }
-
-    /**
-     * Get the image of the Local authenticator config.
-     *
-     * @return Image
-     */
-    public String getImageUrl() {
-
-        return imageUrl;
-    }
-
-    /**
-     * Set the image of the Local authenticator config.
-     *
-     * @param imageUrl The image of the local authenticator config.
-     */
-    public void setImageUrl(String imageUrl) {
-
-        this.imageUrl = imageUrl;
-    }
-
-    /**
-     * Get the description of the Local authenticator config.
-     *
-     * @return Description
-     */
-    public String getDescription() {
-
-        return description;
-    }
-
-    /**
-     * Set the description of the Local authenticator config.
-     *
-     * @param description The description of the local authenticator config.
-     */
-    public void setDescription(String description) {
-
-        this.description = description;
     }
 }

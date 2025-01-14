@@ -476,7 +476,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
 
                     if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
                         List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
-                            .getInstance().getLocalAuthenticators();
+                            .getInstance().getAllSystemDefinedLocalAuthenticators();
                         for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
                             if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
                                 if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&

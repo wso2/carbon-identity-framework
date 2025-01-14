@@ -172,7 +172,7 @@ public class ApplicationAuthenticatorServiceTest {
 
     @Test(priority = 3, expectedExceptions = AuthenticatorMgtException.class,
             expectedExceptionsMessageRegExp = "Authenticator display name is invalid.")
-    public void testCreateUserDefinedLocalAuthenticatorWithBlankDisplayName() throws AuthenticatorMgtException {
+    public void testCreateUserDefinedLocalAuthenticatorWithInvalidDisplayName() throws AuthenticatorMgtException {
 
         UserDefinedLocalAuthenticatorConfig config = createUserDefinedAuthenticatorConfig(
                 "custom_withBlankDisplayName", AuthenticationType.IDENTIFICATION);
@@ -351,6 +351,22 @@ public class ApplicationAuthenticatorServiceTest {
     }
 
     @Test(priority = 16)
+    public void testIsExistingAuthenticatorName() throws AuthenticatorMgtException {
+
+        Assert.assertTrue(ApplicationCommonServiceDataHolder.getInstance().
+                getApplicationAuthenticatorService().isExistingAuthenticatorName(
+                authenticatorConfig1.getName(), tenantDomain));
+    }
+
+    @Test(priority = 17)
+    public void testIsExistingAuthenticatorNameForNonExistName() throws AuthenticatorMgtException {
+
+        Assert.assertFalse(ApplicationCommonServiceDataHolder.getInstance().
+                getApplicationAuthenticatorService().isExistingAuthenticatorName(
+                NON_EXIST_AUTHENTICATOR_NAME, tenantDomain));
+    }
+
+    @Test(priority = 18)
     public void testDeleteUserDefinedLocalAuthenticatorWithActionException() throws Exception {
 
         ActionManagementService actionManagementServiceForException = mock(ActionManagementService.class);
@@ -368,7 +384,7 @@ public class ApplicationAuthenticatorServiceTest {
                         authenticatorConfigForException.getName(), tenantDomain));
     }
 
-    @Test(priority = 17, dataProvider = "authenticatorConfigToModify")
+    @Test(priority = 19, dataProvider = "authenticatorConfigToModify")
     public void testDeleteUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -378,7 +394,7 @@ public class ApplicationAuthenticatorServiceTest {
                 .getLocalAuthenticatorByName(config.getName()));
     }
 
-    @Test(priority = 18)
+    @Test(priority = 20)
     public void testDeleteUserDefinedLocalAuthenticatorWithNonExistingAuthenticator() throws AuthenticatorMgtException {
 
         // Assert that no exception is thrown when trying to delete a non-existing authenticator.

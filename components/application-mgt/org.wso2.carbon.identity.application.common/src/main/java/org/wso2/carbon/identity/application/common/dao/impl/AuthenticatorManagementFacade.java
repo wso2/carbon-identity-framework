@@ -198,8 +198,8 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             return jdbcTemplate.withTransaction(
                     template -> dao.isExistingAuthenticatorName(authenticatorName, tenantId));
         } catch (TransactionException e) {
-            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST, e,
-                    authenticatorName);
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError
+                            .ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e, authenticatorName);
         }
     }
 

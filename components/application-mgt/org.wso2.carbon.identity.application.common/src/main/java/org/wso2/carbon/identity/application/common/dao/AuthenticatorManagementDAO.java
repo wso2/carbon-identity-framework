@@ -85,7 +85,7 @@ public interface AuthenticatorManagementDAO {
             authenticatorConfig, int tenantId) throws AuthenticatorMgtException;
 
     /**
-     * Check whether an authenticator with the given name exists.
+     * Check whether an any local of federated authenticator configuration with the given name exists.
      *
      * @param authenticatorName Name of the authenticator.
      * @param tenantId          Tenant Id.

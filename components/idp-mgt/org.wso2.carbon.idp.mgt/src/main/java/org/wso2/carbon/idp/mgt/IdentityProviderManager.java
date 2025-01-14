@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -2234,9 +2235,15 @@ public class IdentityProviderManager implements IdpManager {
                 }
             } else {
                 // Check if the given authenticator name is already taken.
-                if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) != null) {
-                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                            .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, config.getName());
+                try {
+                    if (ApplicationAuthenticatorService.getInstance()
+                            .isExistingAuthenticatorName(config.getName(), tenantDomain)) {
+                        throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                                .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, config.getName());
+                    }
+                } catch (AuthenticatorMgtException e) {
+                    throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_ADDING_FEDERATED_AUTHENTICATOR, config.getName());
                 }
                 // Check if the given authenticator name matches the regex pattern.
                 if (!userDefinedAuthNameRegexPattern.matcher(config.getName()).matches()) {

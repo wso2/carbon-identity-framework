@@ -172,7 +172,21 @@ public class AuthenticatorManagementDAOImplTest {
                 NON_EXIST_AUTHENTICATOR_NAME, tenantId));
     }
 
-    @Test(dataProvider = "authenticatorConfig", priority = 9)
+    @Test(priority = 9)
+    public void testIsExistingAuthenticatorName() throws AuthenticatorMgtException {
+
+        Assert.assertTrue(authenticatorManagementDAO.isExistingAuthenticatorName(
+                authenticatorConfig1.getName(), tenantId));
+    }
+
+    @Test(priority = 10)
+    public void testIsExistingAuthenticatorNameForNonExistName() throws AuthenticatorMgtException {
+
+        Assert.assertFalse(authenticatorManagementDAO.isExistingAuthenticatorName(
+                NON_EXIST_AUTHENTICATOR_NAME, tenantId));
+    }
+
+    @Test(dataProvider = "authenticatorConfig", priority = 11)
     public void testDeleteUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
