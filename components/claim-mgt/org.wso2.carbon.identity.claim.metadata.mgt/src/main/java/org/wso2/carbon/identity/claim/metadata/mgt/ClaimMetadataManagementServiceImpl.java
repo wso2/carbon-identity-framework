@@ -697,8 +697,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                                                 String propertyKey) {
 
         String globalValue = claimProperties.get(propertyKey);
-        boolean allProfileValuesMatch = true;
-        String consistentProfileValue = null;
+        boolean isAllProfilesHaveSameValue = true;
+        boolean isAtLeastOneProfileValueMatchingGlobal = false;
+        String commonProfileValue = null;
 
         for (String profileName : allowedClaimProfiles) {
             String profilePropertyKey = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName +
@@ -708,31 +709,31 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             // Remove the profile property if it is the same as the global property.
             if (StringUtils.equals(globalValue, profilePropertyValue)) {
                 claimProperties.remove(profilePropertyKey);
-                allProfileValuesMatch = false;
+                isAtLeastOneProfileValueMatchingGlobal = true;
                 continue;
             }
 
-            // If a mismatch is already detected, no need to check further for consistency.
-            if (!allProfileValuesMatch) {
+            // If we've already found at least one profile that matches the global, skip further consistency check.
+            if (isAtLeastOneProfileValueMatchingGlobal) {
                 continue;
             }
 
             if (StringUtils.isBlank(profilePropertyValue)) {
-                allProfileValuesMatch = false;
+                isAllProfilesHaveSameValue = false;
                 continue;
             }
-            if (consistentProfileValue == null) {
-                consistentProfileValue = profilePropertyValue;
-            } else if (!StringUtils.equals(consistentProfileValue, profilePropertyValue)) {
-                allProfileValuesMatch = false;
+            if (commonProfileValue == null) {
+                commonProfileValue = profilePropertyValue;
+            } else if (!StringUtils.equals(commonProfileValue, profilePropertyValue)) {
+                isAllProfilesHaveSameValue = false;
             }
         }
 
-        // If all the profiles have the same value change the global property value to the profile value.
-        if (allProfileValuesMatch && StringUtils.isNotBlank(consistentProfileValue)) {
-            claimProperties.put(propertyKey, consistentProfileValue);
+        // If we never found a profile value that matches the global value, and all profiles share a common non-blank
+        // value, then overwrite the global property with the common value and remove the profile-specific properties.
+        if (!isAtLeastOneProfileValueMatchingGlobal && isAllProfilesHaveSameValue) {
+            claimProperties.put(propertyKey, commonProfileValue);
 
-            // Remove the profile properties.
             allowedClaimProfiles.forEach(profile -> {
                 String key = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profile +
                         ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
