@@ -161,15 +161,15 @@ public class JsNashornGraphBuilderTest extends AbstractFrameworkTest {
     @DataProvider
     public Object[][] filterOptionsDataProvider() {
 
-        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().clear();
+        ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators().clear();
         LocalAuthenticatorConfig basic = new LocalAuthenticatorConfig();
         basic.setName("BasicAuthenticator");
         basic.setDisplayName("basic");
         LocalAuthenticatorConfig totp = new LocalAuthenticatorConfig();
         totp.setName("TOTPAuthenticator");
         totp.setDisplayName("totp");
-        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(basic);
-        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(totp);
+        ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators().add(basic);
+        ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators().add(totp);
 
         IdentityProvider localIdp = new IdentityProvider();
         localIdp.setId("LOCAL");
@@ -296,7 +296,7 @@ public class JsNashornGraphBuilderTest extends AbstractFrameworkTest {
     @DataProvider
     public Object[][] filterParamsDataProvider() {
 
-        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().clear();
+        ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators().clear();
         LocalAuthenticatorConfig basic = new LocalAuthenticatorConfig();
         basic.setName("BasicAuthenticator");
         basic.setDisplayName("basic");
@@ -305,8 +305,8 @@ public class JsNashornGraphBuilderTest extends AbstractFrameworkTest {
         totp.setName("TOTPAuthenticator");
         totp.setDisplayName("totp");
 
-        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(basic);
-        ApplicationAuthenticatorService.getInstance().getLocalAuthenticators().add(totp);
+        ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators().add(basic);
+        ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators().add(totp);
 
         FederatedAuthenticatorConfig twitterFederated = new FederatedAuthenticatorConfig();
         twitterFederated.setDisplayName("twitter");
