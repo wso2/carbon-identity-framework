@@ -19,11 +19,6 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
             <exclusions>
                 <exclusion>
@@ -60,6 +55,9 @@
                         <Export-Package>
                             org.wso2.carbon.identity.servlet.mgt.*; version="${carbon.identity.package.export.version}"
                         </Export-Package>
+                        <Import-Package>
+                            javax.servlet.*; version="${imp.pkg.version.javax.servlet}"
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
