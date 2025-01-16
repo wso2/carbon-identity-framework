@@ -729,11 +729,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             }
         }
 
-        // If we never found a profile value that matches the global value, and all profiles share a common non-blank
-        // value, then overwrite the global property with the common value and remove the profile-specific properties.
-        if (!isAtLeastOneProfileValueMatchingGlobal && isAllProfilesHaveSameValue) {
+        if (isAllProfilesHaveSameValue && !isAtLeastOneProfileValueMatchingGlobal) {
+            // All the profiles have same value and the global value is different value. Hence, update the global value.
             claimProperties.put(propertyKey, commonProfileValue);
 
+            //  Remove the profile-specific properties as the global value denotes all the profile properties.
             allowedClaimProfiles.forEach(profile -> {
                 String key = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profile +
                         ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
