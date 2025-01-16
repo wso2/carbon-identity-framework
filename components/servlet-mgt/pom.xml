@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
+        <artifactId>identity-framework</artifactId>
+        <version>7.7.88-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>servlet-mgt</artifactId>
+    <packaging>pom</packaging>
+    <name>WSO2 Carbon - Servlet Management</name>
+    <description>
+        This is a Carbon bundle that represent the Servlet Management Module.
+    </description>
+    <url>http://wso2.org</url>
+
+    <modules>
+        <module>org.wso2.carbon.identity.servlet.mgt</module>
+    </modules>
+
+</project>
