@@ -75,6 +75,8 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         int tenantId = getValidatedTenantId(user);
         validateUserExistence(user, tenantId);
         validateIfFederatedUserAccountAlreadyAssociated(user.getTenantDomain(), idpName, federatedUserId);
+        validateIdPExistence(user.getTenantDomain(), idpName);
+
         try {
             UserProfileMgtDAO.getInstance().createAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
@@ -439,6 +441,35 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                 log.debug(msg);
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_GETTING_THE_USER, e, true);
+        }
+    }
+
+    private void validateIdPExistence(String tenantDomain, String idpName) throws FederatedAssociationManagerException {
+
+        try {
+            IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
+            if (idpManager != null) {
+                IdentityProvider idp = idpManager.getIdPByName(idpName, tenantDomain);
+                if (idp.getId() == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Identity provider not found for the name: " + idpName + ", in the tenant domain: "
+                                + tenantDomain);
+                    }
+                    throw handleFederatedAssociationManagerClientException(INVALID_IDP_PROVIDED, null, true);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("The IdpManager service is not available in the runtime");
+                }
+                throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS,
+                        null, true);
+            }
+        } catch (IdentityProviderManagementException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while resolving the identity provider for the name: " + idpName + ", in the tenant " +
+                        "domain: " + tenantDomain);
+            }
+            throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS, e, true);
         }
     }
 
