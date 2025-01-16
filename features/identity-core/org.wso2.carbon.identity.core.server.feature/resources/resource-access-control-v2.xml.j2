@@ -1200,6 +1200,9 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/meta/api-resource-collections(.*)" secured="false" http-method="GET">
         </Resource>
+        <Resource context="(.*)/api/server/v1/authorization-details-types(.*)" secured="true" http-method="GET, HEAD">
+            <Scopes>internal_api_resource_view</Scopes>
+        </Resource>
 
         <!-- [Organization] Extension Management API -->
         <Resource context="(.*)/o/api/server/v1/extensions/applications(.*)" secured="true" http-method="GET">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -55,11 +55,15 @@ public class APIResourceManagementConstants {
     public static final String BEFORE_GT = "before gt ";
     public static final String AFTER_LT = "after lt ";
     public static final String ME_API = "Me API";
+    public static final String AUTHORIZATION_DETAILS_TYPES = "authorizationDetailsTypes";
     private static final Map<String, String> attributeColumnMap = new HashMap<>();
     private static final Map<String, String> scopeAttributeColumnMap = new HashMap<>();
     public static final Map<String, String> ATTRIBUTE_COLUMN_MAP = Collections.unmodifiableMap(attributeColumnMap);
     public static final Map<String, String> SCOPE_ATTRIBUTE_COLUMN_MAP =
             Collections.unmodifiableMap(scopeAttributeColumnMap);
+    private static final Map<String, String> authorizationDetailsTypesAttributeColumnMap = new HashMap<>();
+    public static final Map<String, String> AUTHORIZATION_DETAILS_TYPES_ATTRIBUTE_COLUMN_MAP =
+            Collections.unmodifiableMap(authorizationDetailsTypesAttributeColumnMap);
 
     static {
         attributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
@@ -69,6 +73,9 @@ public class APIResourceManagementConstants {
         attributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
 
         scopeAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
+
+        authorizationDetailsTypesAttributeColumnMap.put(NAME, SQLConstants.NAME_COLUMN_NAME);
+        authorizationDetailsTypesAttributeColumnMap.put(TYPE, SQLConstants.TYPE_COLUMN_NAME);
     }
 
     /**
@@ -87,6 +94,7 @@ public class APIResourceManagementConstants {
         public static final String TYPE = "type";
         public static final String DISABLED = "disabled";
         public static final String TENANT_ADMIN_TYPE = "TENANT_ADMIN";
+        public static final String RICH_AUTHORIZATION_REQUESTS_ENABLED = "OAuth.EnableRichAuthorizationRequests";
 
     }
 
@@ -110,6 +118,12 @@ public class APIResourceManagementConstants {
                 "API resource creation is restricted in organizations."),
         ERROR_CODE_INVALID_IDENTIFIER_VALUE("60007", "Unable to add API resources.",
                 "Invalid identifier value provided."),
+        ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EXISTS("60008", "Unable to add authorization details type.",
+                "The authorization details of type '%s' already exist for tenant."),
+        ERROR_CODE_AUTHORIZATION_DETAILS_TYPE_EMPTY("60009", "Unable to add authorization details type.",
+                "The value of the authorization details type must not be empty."),
+        ERROR_PARAM_NOT_SUPPORTED("60010", "Unsupported parameter.",
+                "The parameter '%s' is not recognized or supported by the system."),
 
         // Server errors.
         ERROR_CODE_ERROR_WHILE_RETRIEVING_API_RESOURCES("65001", "Error while retrieving API resources.",
@@ -151,7 +165,19 @@ public class APIResourceManagementConstants {
         ERROR_CODE_ADDING_SCOPES_NOT_SUPPORTED_FOR_ORGANIZATIONS("65019", "Unable to add scopes",
                 "Adding scope is not supported for organizations."),
         ERROR_CODE_DELETING_SCOPES_NOT_SUPPORTED_FOR_ORGANIZATIONS("65020", "Unable to add scopes",
-                "Deleting scope is not supported for organizations.");
+                "Deleting scope is not supported for organizations."),
+        ERROR_CODE_ERROR_WHILE_ADDING_AUTHORIZATION_DETAILS_TYPES("65021",
+                "Error while adding authorization details types.",
+                "Error while adding authorization details types to the database."),
+        ERROR_CODE_ERROR_WHILE_GETTING_AUTHORIZATION_DETAILS_TYPES("65022",
+                "Error while getting authorization details types.",
+                "Error while getting authorization details types from the database."),
+        ERROR_CODE_ERROR_WHILE_DELETING_AUTHORIZATION_DETAILS_TYPES("65023",
+                "Error while deleting authorization details types.",
+                "Error while deleting authorization details types from the database."),
+        ERROR_CODE_ERROR_WHILE_UPDATING_AUTHORIZATION_DETAILS_TYPES("65024",
+                "Error while updating authorization details types.",
+                "Error while updating authorization details types in the database.");
 
         private final String code;
         private final String message;

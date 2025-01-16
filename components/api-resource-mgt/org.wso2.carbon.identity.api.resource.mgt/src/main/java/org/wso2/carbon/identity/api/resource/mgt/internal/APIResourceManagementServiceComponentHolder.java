@@ -31,6 +31,7 @@ public class APIResourceManagementServiceComponentHolder {
 
     private static final APIResourceManagementServiceComponentHolder instance =
             new APIResourceManagementServiceComponentHolder();
+    private boolean isRichAuthorizationRequestsEnabled;
 
     private APIResourceManagementServiceComponentHolder() {
 
@@ -84,5 +85,21 @@ public class APIResourceManagementServiceComponentHolder {
     public void setOrganizationManager(OrganizationManager organizationManager) {
 
         this.organizationManager = organizationManager;
+    }
+
+    /**
+     * Checks if RAR support is enabled by verifying all required database tables for RAR functionality
+     * are available and configured in the system.
+     *
+     * @return {@code true} if RAR support is enabled; {@code false} otherwise.
+     */
+    public boolean isRichAuthorizationRequestsEnabled() {
+
+        return this.isRichAuthorizationRequestsEnabled;
+    }
+
+    public void setRichAuthorizationRequestsEnabled(final boolean isRichAuthorizationRequestsEnabled) {
+
+        this.isRichAuthorizationRequestsEnabled = isRichAuthorizationRequestsEnabled;
     }
 }
