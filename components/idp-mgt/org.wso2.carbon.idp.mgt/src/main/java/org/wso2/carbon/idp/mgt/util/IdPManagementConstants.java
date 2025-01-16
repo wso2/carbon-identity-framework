@@ -130,7 +130,7 @@ public class IdPManagementConstants {
             = "Recovery.Notification.Password.smsOtp.Enable";
 
     // User defined federated authenticator related constants.
-    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-_]*$";
+    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom_[a-zA-Z0-9-_]{3,}$";
 
     // Resident IDP Username Recovery Configs.
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
@@ -666,7 +666,9 @@ public class IdPManagementConstants {
         ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while retrieving" +
                 " endpoint configuration for authenticator: %s."),
         ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
-                " endpoint configuration for authenticator: %s.");
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_ADDING_FEDERATED_AUTHENTICATOR("IDP-6501",
+                "An error occurred while validating Federated authenticator name."),;
 
         private final String code;
         private final String message;

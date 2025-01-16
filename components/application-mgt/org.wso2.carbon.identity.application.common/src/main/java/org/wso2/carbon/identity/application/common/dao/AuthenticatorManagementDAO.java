@@ -83,4 +83,14 @@ public interface AuthenticatorManagementDAO {
      */
     void deleteUserDefinedLocalAuthenticator(String authenticatorConfigName, UserDefinedLocalAuthenticatorConfig
             authenticatorConfig, int tenantId) throws AuthenticatorMgtException;
+
+    /**
+     * Check whether an any local of federated authenticator configuration with the given name exists.
+     *
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantId          Tenant Id.
+     * @return True if an authenticator with the given name exists.
+     * @throws AuthenticatorMgtException If an error occurs while checking the existence of the authenticator.
+     */
+    boolean isExistingAuthenticatorName(String authenticatorName, int tenantId) throws AuthenticatorMgtException;
 }

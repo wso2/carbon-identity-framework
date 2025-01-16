@@ -65,7 +65,7 @@ public class ActionMgtTestUtil {
         UserDefinedFederatedAuthenticatorConfig userDefinedFederatedAuthenticatorConfig = new
                 UserDefinedFederatedAuthenticatorConfig();
         userDefinedFederatedAuthenticatorConfig.setDisplayName("DisplayName1");
-        userDefinedFederatedAuthenticatorConfig.setName("customFedAuthenticator");
+        userDefinedFederatedAuthenticatorConfig.setName("custom_FedAuthenticator");
         userDefinedFederatedAuthenticatorConfig.setEnabled(true);
         userDefinedFederatedAuthenticatorConfig.setEndpointConfig(
                 buildUserDefinedAuthenticatorEndpointConfig(endpointConfig));
