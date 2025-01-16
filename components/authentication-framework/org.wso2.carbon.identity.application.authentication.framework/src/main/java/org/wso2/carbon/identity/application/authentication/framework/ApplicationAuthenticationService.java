@@ -57,7 +57,7 @@ public class ApplicationAuthenticationService {
         return FrameworkServiceComponent.getAuthenticators();
     }
 
-    public List<ApplicationAuthenticator> getLocalAuthenticators() throws ApplicationAuthenticationException {
+    public List<ApplicationAuthenticator> getAllSystemDefinedLocalAuthenticators() {
 
         List<ApplicationAuthenticator> localAuthenticators = new ArrayList<ApplicationAuthenticator>();
 
