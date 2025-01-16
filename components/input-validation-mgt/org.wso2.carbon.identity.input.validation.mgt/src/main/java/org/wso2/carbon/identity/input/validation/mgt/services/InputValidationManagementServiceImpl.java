@@ -492,22 +492,6 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
     }
 
     /**
-     * Method to get password policy handler configuration names.
-     *
-     * @return  Password policy configuration.
-     * @throws InputValidationMgtServerException If an error occurred when getting password policy configuration.
-     */
-    public String[] getPropertyNames() {
-
-        List<String> properties = new ArrayList<>();
-        properties.add(PW_POLICY_ENABLE);
-        properties.add(PW_POLICY_MIN_LENGTH);
-        properties.add(PW_POLICY_MAX_LENGTH);
-        properties.add(PW_POLICY_PATTERN);
-        return properties.toArray(new String[0]);
-    }
-
-    /**
      * Method to get password policy handler configuration.
      *
      * @param tenantDomain  Tenant domain name.
