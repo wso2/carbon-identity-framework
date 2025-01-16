@@ -40,8 +40,6 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
-import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -467,11 +465,7 @@ public class SAMLSSOServiceProviderManagerTest {
     @Test
     public void testGetServiceProvider() throws Exception {
 
-        RealmService mockRealmService = mock(RealmService.class);
-        TenantManager mockTenantManager = mock(TenantManager.class);
-        identityTenantUtil.when(IdentityTenantUtil::getRealmService).thenReturn(mockRealmService);
-        when(mockRealmService.getTenantManager()).thenReturn(mockTenantManager);
-        when(mockTenantManager.getDomain(anyInt())).thenReturn("test.com");
+        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("test.com");
 
         Properties dummyResourceProperties = new Properties();
         dummyResourceProperties.putAll(dummyBasicProperties);
