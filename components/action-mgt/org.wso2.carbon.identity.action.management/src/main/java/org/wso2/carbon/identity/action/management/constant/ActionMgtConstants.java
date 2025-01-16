@@ -25,6 +25,7 @@ public class ActionMgtConstants {
 
     public static final String URI_PROPERTY = "uri";
     public static final String AUTHN_TYPE_PROPERTY = "authnType";
+    public static final String RULE_PROPERTY = "rule";
     public static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_API_ENDPOINT_AUTH_SECRETS";
 
     public static final String ACTION_NAME_FIELD = "Action name";

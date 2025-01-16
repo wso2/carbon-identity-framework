@@ -31,6 +31,7 @@ public class ActionDTO {
     private final String description;
     private final Action.Status status;
     private final EndpointConfig endpoint;
+    private final ActionRule rule;
     private final Map<String, Object> properties;
 
     public ActionDTO(Builder builder) {
@@ -41,6 +42,7 @@ public class ActionDTO {
         this.description = builder.description;
         this.status = builder.status;
         this.endpoint = builder.endpoint;
+        this.rule = builder.rule;
         this.properties = builder.properties;
     }
 
@@ -74,6 +76,11 @@ public class ActionDTO {
         return endpoint;
     }
 
+    public ActionRule getActionRule() {
+
+        return rule;
+    }
+
     public Map<String, Object> getProperties() {
 
         return properties;
@@ -99,6 +106,7 @@ public class ActionDTO {
         private final String description;
         private final Action.Status status;
         private final EndpointConfig endpoint;
+        private final ActionRule rule;
         private Map<String, Object> properties;
 
         public Builder(ActionDTO actionDTO) {
@@ -109,6 +117,7 @@ public class ActionDTO {
             this.description = actionDTO.getDescription();
             this.status = actionDTO.getStatus();
             this.endpoint = actionDTO.getEndpoint();
+            this.rule = actionDTO.getActionRule();
             this.properties = actionDTO.getProperties();
         }
 
@@ -120,6 +129,7 @@ public class ActionDTO {
             this.description = action.getDescription();
             this.status = action.getStatus();
             this.endpoint = action.getEndpoint();
+            this.rule = action.getActionRule();
         }
 
         public Builder properties(Map<String, Object> properties) {

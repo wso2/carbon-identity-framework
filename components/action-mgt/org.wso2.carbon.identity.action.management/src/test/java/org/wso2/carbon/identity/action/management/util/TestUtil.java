@@ -19,10 +19,15 @@
 package org.wso2.carbon.identity.action.management.util;
 
 import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.model.ActionRule;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.rule.management.model.Rule;
 
 import java.util.UUID;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Utility class for Action Management Tests.
@@ -92,6 +97,17 @@ public class TestUtil {
                 .build();
     }
 
+    public static Action buildMockActionWithRule(String name, String description, String uri,
+                                                 Authentication authentication, Rule rule) {
+
+        return new Action.ActionRequestBuilder()
+                .name(name)
+                .description(description)
+                .endpoint(buildMockEndpointConfig(uri, authentication))
+                .rule(ActionRule.create(rule))
+                .build();
+    }
+
     public static String buildSecretName(String actionId, Authentication.Type authType,
                                          Authentication.Property authProperty) {
 
@@ -123,5 +139,13 @@ public class TestUtil {
                 .uri(uri)
                 .authentication(authentication)
                 .build();
+    }
+
+    public static Rule buildMockRule(String ruleId, boolean isActive) {
+
+        Rule rule = mock(Rule.class);
+        when(rule.getId()).thenReturn(ruleId);
+        when(rule.isActive()).thenReturn(isActive);
+        return rule;
     }
 }

@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.core;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.SAMLServiceProviderPersistenceManagerFactory;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
@@ -33,6 +36,7 @@ public class SAMLSSOServiceProviderManager {
             new SAMLServiceProviderPersistenceManagerFactory();
     SAMLSSOServiceProviderDAO serviceProviderDAO =
             samlSSOPersistenceManagerFactory.getSAMLServiceProviderPersistenceManager();
+    private static Log LOG = LogFactory.getLog(SAMLSSOServiceProviderManager.class);
 
     /**
      * Add a saml service provider.
@@ -45,7 +49,22 @@ public class SAMLSSOServiceProviderManager {
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
             throws IdentityException {
 
-        return serviceProviderDAO.addServiceProvider(serviceProviderDO, tenantId);
+        validateServiceProvider(serviceProviderDO);
+        if (isServiceProviderExists(serviceProviderDO.getIssuer(), tenantId)) {
+            if (LOG.isDebugEnabled()){
+                LOG.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
+            }
+            return false;
+        }
+        try {
+            boolean isAdded = serviceProviderDAO.addServiceProvider(serviceProviderDO, tenantId);
+            if (isAdded && LOG.isDebugEnabled()) {
+                LOG.debug(serviceProviderInfo(serviceProviderDO) + " added successfully.");
+            }
+            return isAdded;
+        } catch (IdentityException e) {
+            throw new IdentityException("Error while adding " + serviceProviderInfo(serviceProviderDO), e);
+        }
     }
 
     /**
@@ -60,7 +79,24 @@ public class SAMLSSOServiceProviderManager {
     public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException {
 
-        return serviceProviderDAO.updateServiceProvider(serviceProviderDO, currentIssuer, tenantId);
+        validateServiceProvider(serviceProviderDO);
+        String newIssuer = serviceProviderDO.getIssuer();
+        boolean isIssuerUpdated = !StringUtils.equals(currentIssuer, newIssuer);
+        if (isIssuerUpdated && isServiceProviderExists(newIssuer, tenantId)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
+            }
+            return false;
+        }
+        try {
+            boolean isUpdated = serviceProviderDAO.updateServiceProvider(serviceProviderDO, currentIssuer, tenantId);
+            if (isUpdated && LOG.isDebugEnabled()) {
+                LOG.debug(serviceProviderInfo(serviceProviderDO) + " updated successfully.");
+            }
+            return isUpdated;
+        } catch (IdentityException e) {
+            throw new IdentityException("Error while updating " + serviceProviderInfo(serviceProviderDO), e);
+        }
     }
 
     /**
@@ -85,7 +121,10 @@ public class SAMLSSOServiceProviderManager {
      */
     public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
-        return serviceProviderDAO.getServiceProvider(issuer, tenantId);
+        if (isServiceProviderExists(issuer, tenantId)) {
+            return serviceProviderDAO.getServiceProvider(issuer, tenantId);
+        }
+        return null;
     }
 
     /**
@@ -110,20 +149,104 @@ public class SAMLSSOServiceProviderManager {
      */
     public boolean removeServiceProvider(String issuer, int tenantId) throws IdentityException {
 
-        return serviceProviderDAO.removeServiceProvider(issuer, tenantId);
+        if (issuer == null || StringUtils.isBlank(issuer)) {
+            throw new IllegalArgumentException("Trying to delete issuer \'" + issuer + "\'");
+        }
+        if (!isServiceProviderExists(issuer, tenantId)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Service Provider with issuer: " + issuer + " does not exist.");
+            }
+            return false;
+        }
+        try {
+            boolean isRemoved = serviceProviderDAO.removeServiceProvider(issuer, tenantId);
+            if (isRemoved && LOG.isDebugEnabled()) {
+                LOG.debug("Service Provider with issuer: " + issuer + " removed successfully.");
+            }
+            return isRemoved;
+        } catch (IdentityException e) {
+            throw new IdentityException("Error while removing Service Provider with " + issuer, e);
+        }
     }
 
     /**
      * Upload the SAML configuration related to the application, using metadata.
      *
-     * @param samlssoServiceProviderDO SAML service provider information object.
+     * @param serviceProviderDO SAML service provider information object.
      * @param tenantId                 Tenant ID.
      * @return SAML service provider information object.
      * @throws IdentityException Error when uploading the SAML configuration.
      */
-    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO samlssoServiceProviderDO,
+    public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO,
                                                           int tenantId) throws IdentityException {
 
-        return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO, tenantId);
+        validateServiceProvider(serviceProviderDO);
+        if (serviceProviderDO.getDefaultAssertionConsumerUrl() == null) {
+            throw new IdentityException("No default assertion consumer URL provided for service provider :" +
+                    serviceProviderDO.getIssuer());
+        }
+        if (isServiceProviderExists(serviceProviderDO.getIssuer(), tenantId)) {
+            if (LOG.isDebugEnabled()){
+                LOG.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
+            }
+            throw new IdentityException("A Service Provider already exists.");
+        }
+        try {
+            SAMLSSOServiceProviderDO uploadedServiceProvider = serviceProviderDAO.uploadServiceProvider(serviceProviderDO, tenantId);
+            if (!(uploadedServiceProvider==null) && LOG.isDebugEnabled()) {
+                LOG.debug(serviceProviderInfo(serviceProviderDO) + " uploaded successfully.");
+            }
+            return uploadedServiceProvider;
+        } catch (IdentityException e) {
+            throw new IdentityException("Error while uploading " + serviceProviderInfo(serviceProviderDO), e);
+        }
+    }
+
+    private void validateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO) throws IdentityException {
+
+        if (serviceProviderDO == null || serviceProviderDO.getIssuer() == null ||
+                StringUtils.isBlank(serviceProviderDO.getIssuer())) {
+            throw new IdentityException("Issuer cannot be found in the provided arguments.");
+        }
+
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier()) &&
+                !serviceProviderDO.getIssuer().contains(IdentityRegistryResources.QUALIFIER_ID)) {
+            serviceProviderDO.setIssuer(
+                    getIssuerWithQualifier(serviceProviderDO.getIssuer(), serviceProviderDO.getIssuerQualifier()));
+        }
+    }
+
+    private String serviceProviderInfo(SAMLSSOServiceProviderDO serviceProviderDO) {
+
+        if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
+            return "SAML2 Service Provider with issuer: " + getIssuerWithoutQualifier(serviceProviderDO.getIssuer()) +
+                    " and qualifier name " + serviceProviderDO.getIssuerQualifier();
+        } else {
+            return "SAML2 Service Provider with issuer: " + serviceProviderDO.getIssuer();
+        }
+    }
+
+    /**
+     * Get the issuer value to be added to registry by appending the qualifier.
+     *
+     * @param issuer value given as 'issuer' when configuring SAML SP.
+     * @return issuer value with qualifier appended.
+     */
+    private String getIssuerWithQualifier(String issuer, String qualifier) {
+
+        return issuer + IdentityRegistryResources.QUALIFIER_ID + qualifier;
+    }
+
+    /**
+     * Get the issuer value by removing the qualifier.
+     *
+     * @param issuerWithQualifier issuer value saved in the registry.
+     * @return issuer value given as 'issuer' when configuring SAML SP.
+     */
+    private String getIssuerWithoutQualifier(String issuerWithQualifier) {
+
+        String issuerWithoutQualifier = StringUtils.substringBeforeLast(issuerWithQualifier,
+                IdentityRegistryResources.QUALIFIER_ID);
+        return issuerWithoutQualifier;
     }
 }
