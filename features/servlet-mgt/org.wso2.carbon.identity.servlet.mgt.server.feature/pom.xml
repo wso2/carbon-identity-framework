@@ -53,7 +53,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.identity.api.resource.mgt.server</id>
+                            <id>org.wso2.carbon.identity.servlet.mgt.server</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
