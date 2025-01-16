@@ -75,6 +75,7 @@
         <module>components/action-mgt</module>
         <module>components/ai-services-mgt</module>
         <module>components/certificate-mgt</module>
+        <module>components/servlet-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -112,6 +113,7 @@
         <module>features/action-mgt</module>
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
+        <module>features/servlet-mgt</module>
     </modules>
 
 
@@ -1711,6 +1713,11 @@
                 <version>${apache.cxf-rt-rs-service-description.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${apache.cxf-rt-frontend-jaxrs.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.codehaus.jettison</groupId>
                 <artifactId>jettison</artifactId>
                 <version>${codehaus.jettison.version}</version>
@@ -1733,6 +1740,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.servlet.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1825,7 +1837,7 @@
 
     <properties>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
-        <apache.cxf-rt-frontend-jaxrs.version>2.7.16</apache.cxf-rt-frontend-jaxrs.version>
+        <apache.cxf-rt-frontend-jaxrs.version>3.6.4</apache.cxf-rt-frontend-jaxrs.version>
         <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
