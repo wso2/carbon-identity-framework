@@ -21,52 +21,23 @@ package org.wso2.carbon.identity.core.dao;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.CertificateRetriever;
-import org.wso2.carbon.identity.core.CertificateRetrievingException;
-import org.wso2.carbon.identity.core.DatabaseCertificateRetriever;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
-import org.wso2.carbon.identity.core.KeyStoreCertificateRetriever;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
-import org.wso2.carbon.registry.core.session.UserRegistry;
-import org.wso2.carbon.user.api.Tenant;
-import org.wso2.carbon.user.api.UserStoreException;
 
-import java.security.cert.X509Certificate;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
  * This class is used for managing SAML SSO service providers in the Registry.
  */
 public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
-
-    private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
-    private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
-            "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
-            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
-
-    private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 = "SELECT " +
-            "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
-            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
-
-    private static Log LOG = LogFactory.getLog(RegistrySAMLSSOServiceProviderDAOImpl.class);
 
     public RegistrySAMLSSOServiceProviderDAOImpl() {
 
@@ -408,19 +379,6 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
         return resource;
     }
 
-    /**
-     * Get the issuer value by removing the qualifier.
-     *
-     * @param issuerWithQualifier issuer value saved in the registry.
-     * @return issuer value given as 'issuer' when configuring SAML SP.
-     */
-    private String getIssuerWithoutQualifier(String issuerWithQualifier) {
-
-        String issuerWithoutQualifier = StringUtils.substringBeforeLast(issuerWithQualifier,
-                IdentityRegistryResources.QUALIFIER_ID);
-        return issuerWithoutQualifier;
-    }
-
     @Override
     public boolean updateServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, String currentIssuer, int tenantId)
             throws IdentityException {
@@ -495,7 +453,7 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
             return true;
         } catch (RegistryException e) {
             isErrorOccurred = true;
-            throw new IdentityException("Error while adding SAML Service Provider.", e);
+            throw new IdentityException("Error while removing SAML Service Provider.", e);
         } finally {
             commitOrRollbackTransaction(isErrorOccurred, registry);
         }
@@ -507,103 +465,13 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
         Registry registry = getRegistry(tenantId);
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         SAMLSSOServiceProviderDO serviceProviderDO = null;
-
-        UserRegistry userRegistry = null;
-        String tenantDomain = null;
         try {
-            userRegistry = (UserRegistry) registry;
-            tenantDomain = IdentityTenantUtil.getRealmService().getTenantManager().getDomain(userRegistry.
-                    getTenantId());
             serviceProviderDO = buildSAMLSSOServiceProviderDAO(registry.get(path));
-
-            // Load the certificate stored in the database, if signature validation is enabled..
-            if (serviceProviderDO.isDoValidateSignatureInRequests() ||
-                    serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
-                    serviceProviderDO.isDoEnableEncryptedAssertion()) {
-                Tenant tenant = new Tenant();
-                tenant.setDomain(tenantDomain);
-                tenant.setId(userRegistry.getTenantId());
-
-                serviceProviderDO.setX509Certificate(getApplicationCertificate(serviceProviderDO, tenant));
-            }
-            serviceProviderDO.setTenantDomain(tenantDomain);
-
         } catch (RegistryException e) {
-            throw IdentityException.error("Error occurred while checking if resource path \'" + path + "\' exists in " +
-                    "registry for tenant domain : " + tenantDomain, e);
-        } catch (UserStoreException e) {
-            throw IdentityException.error("Error occurred while getting tenant domain from tenant ID : " +
-                    userRegistry.getTenantId(), e);
-        } catch (SQLException e) {
-            throw IdentityException.error(String.format("An error occurred while getting the " +
-                    "application certificate id for validating the requests from the issuer '%s'", issuer), e);
-        } catch (CertificateRetrievingException e) {
-            throw IdentityException.error(String.format("An error occurred while getting the " +
-                    "application certificate for validating the requests from the issuer '%s'", issuer), e);
+            throw IdentityException.error(
+                    "Error occurred while checking if resource path \'" + path + "\' exists in " + "registry", e);
         }
         return serviceProviderDO;
-    }
-
-    /**
-     * Returns the {@link java.security.cert.Certificate} which should used to validate the requests
-     * for the given service provider.
-     *
-     * @param serviceProviderDO
-     * @param tenant
-     * @return
-     * @throws SQLException
-     * @throws CertificateRetrievingException
-     */
-    private X509Certificate getApplicationCertificate(SAMLSSOServiceProviderDO serviceProviderDO, Tenant tenant)
-            throws SQLException, CertificateRetrievingException {
-
-        // Check whether there is a certificate stored against the service provider (in the database)
-        int applicationCertificateId = getApplicationCertificateId(serviceProviderDO.getIssuer(), tenant.getId());
-
-        CertificateRetriever certificateRetriever;
-        String certificateIdentifier;
-        if (applicationCertificateId != -1) {
-            certificateRetriever = new DatabaseCertificateRetriever();
-            certificateIdentifier = Integer.toString(applicationCertificateId);
-        } else {
-            certificateRetriever = new KeyStoreCertificateRetriever();
-            certificateIdentifier = serviceProviderDO.getCertAlias();
-        }
-
-        return certificateRetriever.getCertificate(certificateIdentifier, tenant);
-    }
-
-    /**
-     * Returns the certificate reference ID for the given issuer (Service Provider) if there is one.
-     *
-     * @param issuer
-     * @return
-     * @throws SQLException
-     */
-    private int getApplicationCertificateId(String issuer, int tenantId) throws SQLException {
-
-        try {
-            String sqlStmt = isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 :
-                    QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
-            try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-                 PreparedStatement statementToGetApplicationCertificate =
-                         connection.prepareStatement(sqlStmt)) {
-                statementToGetApplicationCertificate.setString(1, CERTIFICATE_PROPERTY_NAME);
-                statementToGetApplicationCertificate.setString(2, issuer);
-                statementToGetApplicationCertificate.setInt(3, tenantId);
-
-                try (ResultSet queryResults = statementToGetApplicationCertificate.executeQuery()) {
-                    if (queryResults.next()) {
-                        return queryResults.getInt(1);
-                    }
-                }
-            }
-            return -1;
-        } catch (DataAccessException e) {
-            String errorMsg = "Error while retrieving application certificate data for issuer: " + issuer +
-                    " and tenant Id: " + tenantId;
-            throw new SQLException(errorMsg, e);
-        }
     }
 
     @Override
@@ -628,25 +496,10 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
     public SAMLSSOServiceProviderDO uploadServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO, int tenantId)
             throws IdentityException {
 
-        Registry registry = getRegistry(tenantId);
-        String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(serviceProviderDO.getIssuer());
-
-        boolean isTransactionStarted = Transaction.isStarted();
-        boolean isErrorOccurred = false;
-        try {
-            if (!isTransactionStarted) {
-                registry.beginTransaction();
-            }
-
-            Resource resource = createResource(serviceProviderDO, registry);
-            registry.put(path, resource);
+        if (addServiceProvider(serviceProviderDO, tenantId)) {
             return serviceProviderDO;
-        } catch (RegistryException e) {
-            isErrorOccurred = true;
-            throw IdentityException.error("Error while adding Service Provider.", e);
-        } finally {
-            commitOrRollbackTransaction(isErrorOccurred, registry);
         }
+        return null;
     }
 
     /**

@@ -21,16 +21,34 @@ package org.wso2.carbon.identity.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.SAMLServiceProviderPersistenceManagerFactory;
 import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.user.api.Tenant;
+
+import java.security.cert.X509Certificate;
+
+import static org.wso2.carbon.identity.core.util.JdbcUtils.isH2DB;
 
 /**
  * This class is used for managing SAML SSO providers. Adding, retrieving and removing service
  * providers are supported here.
  */
 public class SAMLSSOServiceProviderManager {
+
+    private static final String CERTIFICATE_PROPERTY_NAME = "CERTIFICATE";
+    private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID = "SELECT " +
+            "META.VALUE FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
+            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
+
+    private static final String QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 = "SELECT " +
+            "META.`VALUE` FROM SP_INBOUND_AUTH INBOUND, SP_APP SP, SP_METADATA META WHERE SP.ID = INBOUND.APP_ID AND " +
+            "SP.ID = META.SP_ID AND META.NAME = ? AND INBOUND.INBOUND_AUTH_KEY = ? AND META.TENANT_ID = ?";
 
     SAMLServiceProviderPersistenceManagerFactory samlSSOPersistenceManagerFactory =
             new SAMLServiceProviderPersistenceManagerFactory();
@@ -51,7 +69,7 @@ public class SAMLSSOServiceProviderManager {
 
         validateServiceProvider(serviceProviderDO);
         if (isServiceProviderExists(serviceProviderDO.getIssuer(), tenantId)) {
-            if (LOG.isDebugEnabled()){
+            if (LOG.isDebugEnabled()) {
                 LOG.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
             }
             return false;
@@ -121,10 +139,28 @@ public class SAMLSSOServiceProviderManager {
      */
     public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
+        SAMLSSOServiceProviderDO serviceProviderDO = null;
         if (isServiceProviderExists(issuer, tenantId)) {
-            return serviceProviderDAO.getServiceProvider(issuer, tenantId);
+            serviceProviderDO = serviceProviderDAO.getServiceProvider(issuer, tenantId);
         }
-        return null;
+        if (serviceProviderDO != null) {
+            try {
+                String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+                // Load the certificate stored in the database, if signature validation is enabled.
+                if (serviceProviderDO.isDoValidateSignatureInRequests() ||
+                        serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
+                        serviceProviderDO.isDoEnableEncryptedAssertion()) {
+
+                    Tenant tenant = IdentityTenantUtil.getTenant(tenantId);
+                    serviceProviderDO.setX509Certificate(getApplicationCertificate(serviceProviderDO, tenant));
+                }
+                serviceProviderDO.setTenantDomain(tenantDomain);
+            } catch (DataAccessException | CertificateRetrievingException e) {
+                throw new IdentityException(String.format("An error occurred while getting the " +
+                        "application certificate for validating the requests from the issuer '%s'", issuer), e);
+            }
+        }
+        return serviceProviderDO;
     }
 
     /**
@@ -173,7 +209,7 @@ public class SAMLSSOServiceProviderManager {
      * Upload the SAML configuration related to the application, using metadata.
      *
      * @param serviceProviderDO SAML service provider information object.
-     * @param tenantId                 Tenant ID.
+     * @param tenantId          Tenant ID.
      * @return SAML service provider information object.
      * @throws IdentityException Error when uploading the SAML configuration.
      */
@@ -186,14 +222,15 @@ public class SAMLSSOServiceProviderManager {
                     serviceProviderDO.getIssuer());
         }
         if (isServiceProviderExists(serviceProviderDO.getIssuer(), tenantId)) {
-            if (LOG.isDebugEnabled()){
+            if (LOG.isDebugEnabled()) {
                 LOG.debug(serviceProviderInfo(serviceProviderDO) + " already exists.");
             }
             throw new IdentityException("A Service Provider already exists.");
         }
         try {
-            SAMLSSOServiceProviderDO uploadedServiceProvider = serviceProviderDAO.uploadServiceProvider(serviceProviderDO, tenantId);
-            if (!(uploadedServiceProvider==null) && LOG.isDebugEnabled()) {
+            SAMLSSOServiceProviderDO uploadedServiceProvider =
+                    serviceProviderDAO.uploadServiceProvider(serviceProviderDO, tenantId);
+            if (!(uploadedServiceProvider == null) && LOG.isDebugEnabled()) {
                 LOG.debug(serviceProviderInfo(serviceProviderDO) + " uploaded successfully.");
             }
             return uploadedServiceProvider;
@@ -248,5 +285,58 @@ public class SAMLSSOServiceProviderManager {
         String issuerWithoutQualifier = StringUtils.substringBeforeLast(issuerWithQualifier,
                 IdentityRegistryResources.QUALIFIER_ID);
         return issuerWithoutQualifier;
+    }
+
+    /**
+     * Returns the {@link java.security.cert.Certificate} which should used to validate the requests
+     * for the given service provider.
+     *
+     * @param serviceProviderDO service provider information object.
+     * @param tenant            tenant Domain.
+     * @return The X509 certificate used to validate the requests.
+     * @throws DataAccessException            If an error occurs while retrieving the certificate ID.
+     * @throws CertificateRetrievingException If an error occurs while retrieving the certificate.
+     */
+    private X509Certificate getApplicationCertificate(SAMLSSOServiceProviderDO serviceProviderDO, Tenant tenant)
+            throws CertificateRetrievingException, DataAccessException {
+
+        // Check whether there is a certificate stored against the service provider (in the database).
+        int applicationCertificateId = getApplicationCertificateId(serviceProviderDO.getIssuer(), tenant.getId());
+
+        CertificateRetriever certificateRetriever;
+        String certificateIdentifier;
+        if (applicationCertificateId != -1) {
+            certificateRetriever = new DatabaseCertificateRetriever();
+            certificateIdentifier = Integer.toString(applicationCertificateId);
+        } else {
+            certificateRetriever = new KeyStoreCertificateRetriever();
+            certificateIdentifier = serviceProviderDO.getCertAlias();
+        }
+
+        return certificateRetriever.getCertificate(certificateIdentifier, tenant);
+    }
+
+    /**
+     * Returns the certificate reference ID for the given issuer (Service Provider) if there is one.
+     *
+     * @param issuer   the issuer of the service provider.
+     * @param tenantId the tenant ID.
+     * @return the certificate reference ID, or -1 if no certificate is found.
+     * @throws DataAccessException if an error occurs while retrieving the certificate ID.
+     */
+    private int getApplicationCertificateId(String issuer, int tenantId) throws DataAccessException {
+
+        NamedJdbcTemplate namedJdbcTemplate = JdbcUtils.getNewNamedJdbcTemplate();
+        String sqlStmt =
+                isH2DB() ? QUERY_TO_GET_APPLICATION_CERTIFICATE_ID_H2 : QUERY_TO_GET_APPLICATION_CERTIFICATE_ID;
+        Integer certificateId =
+                namedJdbcTemplate.fetchSingleRecord(sqlStmt, (resultSet, rowNumber) -> resultSet.getInt(1),
+                        namedPreparedStatement -> {
+                            namedPreparedStatement.setString(1, CERTIFICATE_PROPERTY_NAME);
+                            namedPreparedStatement.setString(2, issuer);
+                            namedPreparedStatement.setInt(3, tenantId);
+                        });
+
+        return certificateId != null ? certificateId : -1;
     }
 }
