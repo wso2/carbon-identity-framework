@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -26,13 +26,13 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>api-resource-management-feature</artifactId>
+    <artifactId>servlet-management-feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - API Resource Management Feature</name>
+    <name>WSO2 Carbon - Servlet Management Feature</name>
     <url>http://wso2.org</url>
 
     <modules>
-        <module>org.wso2.carbon.identity.api.resource.mgt.server.feature</module>
+        <module>org.wso2.carbon.identity.servlet.mgt.server.feature</module>
     </modules>
 
 </project>
