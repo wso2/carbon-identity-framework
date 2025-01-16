@@ -71,6 +71,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_LIST;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BLOCKED_USERSTORE_DOMAINS_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.EMAIL_ADDRESS_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.SHOW_AUTH_FAILURE_REASON_PAGE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE;
@@ -134,7 +135,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setSendToMultiOptionPage(sendToMultiOptionPage);
                     context.setRetrying(retryAuthenticationEnabled() && !skipPrompt);
-                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
+                    if (!redirectToAuthFailureReasonPage(context) &&
+                            (retryAuthenticationEnabled(context) && !sendToMultiOptionPage)) {
                         if (log.isDebugEnabled()) {
                             log.debug("Error occurred during the authentication process, hence retrying.", e);
                         }
@@ -176,6 +178,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     } else {
                         context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, getName());
+                        if (redirectToAuthFailureReasonPage()) {
+                            context.setRetrying(false);
+                        }
                         // By throwing this exception step handler will redirect to multi options page if
                         // multi-option are available in the step.
                         throw e;
@@ -200,6 +205,13 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
         }
+    }
+
+    private boolean redirectToAuthFailureReasonPage(AuthenticationContext context) {
+
+        boolean showAuthFailureReasonPage = context.getProperty(SHOW_AUTH_FAILURE_REASON_PAGE) != null
+                && (boolean) context.getProperty(SHOW_AUTH_FAILURE_REASON_PAGE);
+        return showAuthFailureReasonPage && redirectToAuthFailureReasonPage();
     }
 
     /**
@@ -391,6 +403,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     }
 
     protected boolean retryAuthenticationEnabled() {
+        return false;
+    }
+
+    protected boolean redirectToAuthFailureReasonPage() {
         return false;
     }
 

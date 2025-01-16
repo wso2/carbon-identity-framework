@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ShowAuthFailureReasonException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -449,6 +450,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     e.getErrorCode());
             FrameworkUtils.sendToRetryPage(request, responseWrapper, context, errorWrapper.getStatus(),
                     errorWrapper.getStatusMsg());
+        } catch (ShowAuthFailureReasonException e) {
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
+                    e.getErrorCode());
+            if (log.isDebugEnabled()) {
+                log.debug("User will be redirected to the error page provided by the authenticator.");
+            }
         } catch (Exception e) {
             if ((e instanceof FrameworkException)
                     && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {

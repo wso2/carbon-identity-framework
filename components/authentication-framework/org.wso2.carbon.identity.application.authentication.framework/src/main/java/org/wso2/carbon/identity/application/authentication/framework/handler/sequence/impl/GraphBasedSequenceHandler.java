@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ShowAuthFailureReasonException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
@@ -80,6 +81,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POLYGLOT_CLASS;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.SHOW_AUTH_FAILURE_REASON_PAGE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 /**
@@ -395,6 +397,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     params.put(LogConstants.InputKeys.APPLICATION_NAME,
                             applicationName));
             diagnosticLogBuilder.inputParams(params);
+        }
+        boolean showAuthFailureReason = context.getProperty(SHOW_AUTH_FAILURE_REASON_PAGE) != null &&
+                (boolean) context.getProperty(SHOW_AUTH_FAILURE_REASON_PAGE);
+        if (showAuthFailureReason) {
+            context.setRequestAuthenticated(false);
+            context.getSequenceConfig().setCompleted(true);
+            context.removeProperty(SHOW_AUTH_FAILURE_REASON_PAGE);
+            throw new ShowAuthFailureReasonException("Authentication failed reason page has to be displayed.");
         }
         if (node.isShowErrorPage()) {
             // Set parameters specific to sendError function to context if isShowErrorPage  is true

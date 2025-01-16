@@ -192,6 +192,8 @@ public abstract class FrameworkConstants {
     public static final String USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM =
             "UseIDPRoleClaimAsIDPGroupClaim";
 
+    public static final String SHOW_AUTH_FAILURE_REASON_PAGE = "ShowAuthFailureReasonPage";
+
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
     public static final String CURRENT_TOKEN_IDENTIFIER = "currentTokenIdentifier";
