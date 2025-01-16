@@ -20,11 +20,16 @@ package org.wso2.carbon.identity.ai.service.mgt.token;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Base64;
 
@@ -33,26 +38,39 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.AI_TOKEN_CONNECTION_REQUEST_TIMEOUT_PROPERTY_NAME;
 
+/**
+ * Test class for AIAccessTokenManager.
+ */
 public class AIAccessTokenManagerTest {
 
     private WireMockServer wireMockServer;
     private AIAccessTokenManager tokenManager;
+    private MockedStatic<IdentityUtil> mockedStatic;
+
+    @BeforeClass
+    public void init() {
+
+        mockedStatic = Mockito.mockStatic(IdentityUtil.class);
+        mockedStatic.when(() -> IdentityUtil.getProperty(AI_TOKEN_CONNECTION_REQUEST_TIMEOUT_PROPERTY_NAME))
+                .thenReturn("2000");
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
 
-        // Reset the singleton instance
+        // Reset the singleton instance.
         resetSingletonInstance(AIAccessTokenManager.class, "instance");
     }
 
     private void startWireMockServer() throws Exception {
 
-        // Start WireMock server
+        // Start WireMock server.
         wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
         wireMockServer.start();
 
-        // Set the AI_TOKEN_ENDPOINT to WireMock's base URL
+        // Set the AI_TOKEN_ENDPOINT to WireMock's base URL.
         setStaticField(AIAccessTokenManager.class, "AI_TOKEN_ENDPOINT", wireMockServer.baseUrl() + "/token");
     }
 
@@ -69,23 +87,14 @@ public class AIAccessTokenManagerTest {
         instanceField.set(null, null); // Reset the static field to null
     }
 
-    @AfterMethod
-    public void tearDown() {
-
-        if (wireMockServer != null) {
-            wireMockServer.stop();
-            wireMockServer = null;
-        }
-    }
-
     @Test
-    public void testGetAccessToken_Success() throws Exception {
+    public void testGetAccessTokenSuccess() throws Exception {
 
         startWireMockServer();
         setAiServiceKey("testClientId:testClientSecret");
         tokenManager = AIAccessTokenManager.getInstance();
 
-        // Arrange: Mock a successful token response
+        // Mock a successful token response
         String expectedAccessToken = "mockedAccessToken";
         wireMockServer.stubFor(post(urlEqualTo("/token"))
                 .willReturn(aResponse()
@@ -93,34 +102,30 @@ public class AIAccessTokenManagerTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"access_token\":\"" + expectedAccessToken + "\"}")));
 
-        // Act: Call getAccessToken
         String accessToken = tokenManager.getAccessToken(false);
 
-        // Assert: Verify the access token
         Assert.assertEquals(accessToken, expectedAccessToken, "Access token should match the mocked value.");
         Assert.assertEquals(tokenManager.getClientId(), "testClientId", "Client ID should match the mocked value.");
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testGetAccessToken_Unauthorized() throws Exception {
+    public void testGetAccessTokenUnauthorized() throws Exception {
 
         startWireMockServer();
         setAiServiceKey("testClientId:testClientSecret");
         tokenManager = AIAccessTokenManager.getInstance();
 
-        // Arrange: Mock a 401 Unauthorized response
         wireMockServer.stubFor(post(urlEqualTo("/token"))
                 .willReturn(aResponse()
                         .withStatus(401)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"error\":\"Unauthorized\"}")));
 
-        // Act: Call getAccessToken and expect an exception
         tokenManager.getAccessToken(false);
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testGetAccessToken_ServerError() throws Exception {
+    public void testGetAccessTokenServerError() throws Exception {
 
         startWireMockServer();
         setAiServiceKey("testClientId:testClientSecret");
@@ -133,12 +138,11 @@ public class AIAccessTokenManagerTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"error\":\"Internal Server Error\"}")));
 
-        // Act: Call getAccessToken and expect an exception
         tokenManager.getAccessToken(false);
     }
 
     @Test
-    public void testGetAccessToken_Renewal() throws Exception {
+    public void testGetAccessTokenRenewal() throws Exception {
 
         startWireMockServer();
         setAiServiceKey("testClientId:testClientSecret");
@@ -152,15 +156,13 @@ public class AIAccessTokenManagerTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"access_token\":\"" + newAccessToken + "\"}")));
 
-        // Act: Call getAccessToken with renewal.
         String accessToken = tokenManager.getAccessToken(true);
 
-        // Assert: Verify the new access token.
         Assert.assertEquals(accessToken, newAccessToken, "Access token should match the renewed mocked value.");
     }
 
     @Test
-    public void testGetAccessToken_ExistingTokenReturnsWithoutRenewal() throws Exception {
+    public void testGetAccessTokenExistingTokenReturnsWithoutRenewal() throws Exception {
 
         startWireMockServer();
         setAiServiceKey("testClientId:testClientSecret");
@@ -186,7 +188,6 @@ public class AIAccessTokenManagerTest {
         // This should NOT call the token endpoint again; it should return the cached token.
         String secondCallToken = tokenManager.getAccessToken(false);
 
-        // Assert
         Assert.assertEquals(secondCallToken, existingAccessToken,
                 "Second call should return the same token without making a new request.");
         // Verify that no new requests to the token endpoint were made after the first call.
@@ -195,7 +196,7 @@ public class AIAccessTokenManagerTest {
 
     @Test(expectedExceptions = AIServerException.class,
             expectedExceptionsMessageRegExp = "Failed to obtain access token after.*attempts.*")
-    public void testGetAccessToken_MaxRetriesExceeded() throws Exception {
+    public void testGetAccessTokenMaxRetriesExceeded() throws Exception {
 
         startWireMockServer();
         setAiServiceKey("testClientId:testClientSecret");
@@ -212,9 +213,8 @@ public class AIAccessTokenManagerTest {
 
     @Test(expectedExceptions = AIServerException.class,
             expectedExceptionsMessageRegExp = "Error executing token request:.*")
-    public void testGetAccessToken_IOException() throws Exception {
+    public void testGetAccessTokenIOException() throws Exception {
 
-        // Start WireMock & set fields as usual.
         startWireMockServer();
         setAiServiceKey("testClientId:testClientSecret");
         tokenManager = AIAccessTokenManager.getInstance();
@@ -240,37 +240,30 @@ public class AIAccessTokenManagerTest {
     }
 
     @Test
-    public void testGetInstance_FirstTimeCreation() throws Exception {
+    public void testGetInstanceFirstTimeCreation() throws Exception {
 
-        // 1) Reset the singleton to ensure it's null:
         setAiServiceKey("testClientId:testClientSecret");
         setStaticField(AIAccessTokenManager.class, "AI_TOKEN_ENDPOINT", "http://localhost.com/token");
-
-        // 2) Call getInstance() the first time.
         AIAccessTokenManager firstCallInstance = AIAccessTokenManager.getInstance();
-
-        // 3) Assert that the manager is created.
         Assert.assertNotNull(firstCallInstance, "First call to getInstance() should create a new instance.");
     }
 
     @Test
-    public void testGetInstance_SubsequentCallsReturnSameInstance() throws Exception {
+    public void testGetInstanceSubsequentCallsReturnSameInstance() throws Exception {
 
         setAiServiceKey("testClientId:testClientSecret");
         setStaticField(AIAccessTokenManager.class, "AI_TOKEN_ENDPOINT", "http://localhost.com/token");
 
-        // 1) Reset the singleton to ensure it's null, then create it once.
+        // Reset the singleton to ensure it's null, then create it once.
         AIAccessTokenManager firstCallInstance = AIAccessTokenManager.getInstance();
 
-        // 2) Call getInstance() again.
         AIAccessTokenManager secondCallInstance = AIAccessTokenManager.getInstance();
 
-        // 3) Verify that the second call did NOT re-create the object.
+        // Verify that the second call did NOT re-create the object.
         Assert.assertNotNull(secondCallInstance, "Second call should still return an instance.");
         Assert.assertEquals(secondCallInstance, firstCallInstance,
                 "Both calls should return the exact same singleton instance.");
     }
-
 
     private void setStaticField(Class<?> clazz, String fieldName, String value) throws Exception {
 
@@ -280,7 +273,21 @@ public class AIAccessTokenManagerTest {
         java.lang.reflect.Field modifiersField = java.lang.reflect.Field.class.getDeclaredField("modifiers");
         modifiersField.setAccessible(true);
         modifiersField.setInt(field, field.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
+        field.set(null, value);
+    }
 
-        field.set(null, value); // Set the static field
+    @AfterMethod
+    public void tearDown() {
+
+        if (wireMockServer != null) {
+            wireMockServer.stop();
+            wireMockServer = null;
+        }
+    }
+
+    @AfterClass
+    public void destroy() {
+
+        mockedStatic.close();
     }
 }

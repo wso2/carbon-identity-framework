@@ -85,6 +85,10 @@ public class AIHttpClientUtil {
                             .build()
             ).build();
 
+    private AIHttpClientUtil() {
+
+    }
+
     /**
      * Execute a request to the AI service.
      *
@@ -187,9 +191,10 @@ public class AIHttpClientUtil {
         }
     }
 
-    protected static HttpResponseWrapper executeHttpRequest(HttpUriRequest httpRequest)
+    private static HttpResponseWrapper executeHttpRequest(HttpUriRequest httpRequest)
             throws IOException {
 
+        // Here we don't close the client connection since we are using a connection pool.
         HttpResponse httpResponse = httpClient.execute(httpRequest);
         int status = httpResponse.getStatusLine().getStatusCode();
         String response = EntityUtils.toString(httpResponse.getEntity());
@@ -197,6 +202,7 @@ public class AIHttpClientUtil {
     }
 
     private static int readIntProperty(String key, int defaultValue) {
+
         String value = IdentityUtil.getProperty(key);
         return value != null ? Integer.parseInt(value) : defaultValue;
     }

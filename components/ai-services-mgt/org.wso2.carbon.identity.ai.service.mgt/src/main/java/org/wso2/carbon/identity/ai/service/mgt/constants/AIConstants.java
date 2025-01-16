@@ -23,13 +23,17 @@ package org.wso2.carbon.identity.ai.service.mgt.constants;
  */
 public class AIConstants {
 
+    private AIConstants () {
+
+    }
+
     public static final String AI_SERVICE_KEY_PROPERTY_NAME = "AIServices.Key";
     public static final String AI_TOKEN_ENDPOINT_PROPERTY_NAME = "AIServices.TokenEndpoint";
     public static final String AI_TOKEN_SERVICE_MAX_RETRIES_PROPERTY_NAME = "AIServices.TokenRequestMaxRetries";
     public static final String AI_TOKEN_CONNECTION_TIMEOUT_PROPERTY_NAME = "AIServices.TokenConnectionTimeout";
     public static final String AI_TOKEN_CONNECTION_REQUEST_TIMEOUT_PROPERTY_NAME = "AIServices" +
             ".TokenConnectionRequestTimeout";
-    public static final String AI_TOKEN_SOCKET_TIMEOUT_PROPERTY_NAME = "AIServices.TokenSocketTimeout";
+    public static final String AI_TOKEN_SOCKET_TIMEOUT_PROPERTY_NAME = "AIServices.TokenConnectionSocketTimeout";
 
     public static final String HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME = "AIServices.HTTPConnectionPoolSize";
     public static final String HTTP_CONNECTION_TIMEOUT_PROPERTY_NAME = "AIServices.HTTPConnectionTimeout";

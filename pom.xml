@@ -725,7 +725,7 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.identity.ai.service.mgt.server.feature</artifactId>
+                <artifactId>org.wso2.carbon.identity.ai.service.mgt.server.feature</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -21,44 +21,20 @@ package org.wso2.carbon.identity.ai.service.mgt.exceptions;
 /**
  * Client Exception class for AI service.
  */
-public class AIClientException extends Exception {
-
-    private final String errorCode;
-    private String serverMessage;
-    private int serverStatusCode;
+public class AIClientException extends AIException {
 
     public AIClientException(String message, String errorCode) {
 
-        super(message);
-        this.errorCode = errorCode;
+        super(message, errorCode);
     }
 
     public AIClientException(String message, String errorCode, int serverStatusCode, String serverMessage) {
 
-        super(message);
-        this.errorCode = errorCode;
-        this.serverStatusCode = serverStatusCode;
-        this.serverMessage = serverMessage;
+        super(message, errorCode, serverStatusCode, serverMessage);
     }
 
     public AIClientException(String message, String errorCode, Throwable cause) {
 
-        super(message, cause);
-        this.errorCode = errorCode;
-    }
-
-    public String getErrorCode() {
-
-        return errorCode;
-    }
-
-    public String getServerMessage() {
-
-        return serverMessage;
-    }
-
-    public int getServerStatusCode() {
-
-        return serverStatusCode;
+        super(message, errorCode, cause);
     }
 }

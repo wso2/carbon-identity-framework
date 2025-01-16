@@ -64,7 +64,7 @@ import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.getTenantDom
  */
 public class AIAccessTokenManager {
 
-    private static volatile AIAccessTokenManager instance;  // Volatile for thread safety.
+    private static volatile AIAccessTokenManager instance;
     private static final Object lock = new Object();  // Lock for synchronization.
 
     private static final Log LOG = LogFactory.getLog(AIAccessTokenManager.class);
@@ -83,7 +83,7 @@ public class AIAccessTokenManager {
         String decodedString = new String(decodedBytes, StandardCharsets.UTF_8);
         String[] parts = decodedString.split(":");
         if (parts.length == 2) {
-            this.clientId = parts[0]; // Extract clientId.
+            this.clientId = parts[0];
         } else {
             throw new IllegalArgumentException("Invalid AI service key.");
         }
@@ -208,6 +208,7 @@ public class AIAccessTokenManager {
         }
 
         private static int readIntProperty(String key, int defaultValue) {
+
             String value = IdentityUtil.getProperty(key);
             return value != null ? Integer.parseInt(value) : defaultValue;
         }

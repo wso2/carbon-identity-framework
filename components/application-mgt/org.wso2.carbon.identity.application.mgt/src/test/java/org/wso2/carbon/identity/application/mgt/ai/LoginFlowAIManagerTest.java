@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.mgt.ai;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mockito.InjectMocks;
@@ -30,8 +28,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIClientException;
-import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerException;
 import org.wso2.carbon.identity.ai.service.mgt.util.AIHttpClientUtil;
 import org.wso2.carbon.identity.common.testng.realm.InMemoryRealmService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -42,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -68,55 +63,49 @@ public class LoginFlowAIManagerTest {
     }
 
     @Test
-    public void testGenerateAuthenticationSequence_Success() throws Exception {
+    public void testGenerateAuthenticationSequenceSuccess() throws Exception {
 
         Map<String, Object> response = new HashMap<>();
         response.put("operation_id", "12345");
-        mockSuccessfulResponse(response, HttpPost.class);
+        mockSuccessfulResponse(response);
         String result = loginFlowAIManager.generateAuthenticationSequence("Need username and password as " +
                 "the first step", new JSONArray(), new JSONObject());
         Assert.assertEquals(result, "12345");
     }
 
     @Test
-    public void testGetAuthenticationSequenceGenerationStatus_Success() throws Exception {
+    public void testGetAuthenticationSequenceGenerationStatusSuccess() throws Exception {
+
         Map<String, Object> response = new HashMap<>();
         response.put("status", "COMPLETED");
-        mockSuccessfulResponse(response, HttpGet.class);
+        mockSuccessfulResponse(response);
         Object result = loginFlowAIManager.getAuthenticationSequenceGenerationStatus("operation123");
 
         Assert.assertTrue(result instanceof Map);
         Map<String, Object> resultMap = (Map<String, Object>) result;
-        Assert.assertEquals("COMPLETED", resultMap.get("status"));
+        Assert.assertEquals(resultMap.get("status"), "COMPLETED");
     }
 
     @Test
-    public void testGetAuthenticationSequenceGenerationResult_Success() throws Exception {
+    public void testGetAuthenticationSequenceGenerationResultSuccess() throws Exception {
 
         Map<String, Object> response = new HashMap<>();
         response.put("result", "SUCCESS");
-        mockSuccessfulResponse(response, HttpGet.class);
+        mockSuccessfulResponse(response);
         Object result = loginFlowAIManager.getAuthenticationSequenceGenerationResult("operation123");
 
         Assert.assertTrue(result instanceof Map);
         Map<String, Object> resultMap = (Map<String, Object>) result;
-        Assert.assertEquals("SUCCESS", resultMap.get("result"));
+        Assert.assertEquals(resultMap.get("result"), "SUCCESS");
     }
 
-    private void mockSuccessfulResponse(Map<String, Object> responseBody, Class<?> requestClass) throws Exception {
+    private void mockSuccessfulResponse(Map<String, Object> responseBody) {
 
         aiHttpClientUtilMockedStatic.when(() -> AIHttpClientUtil.executeRequest(
                 any(), any(), any(), any()
         )).thenReturn(responseBody);
     }
 
-    private void mockErrorResponse(int statusCode, String responseBody) throws Exception {
-
-        aiHttpClientUtilMockedStatic.when(() -> AIHttpClientUtil.executeRequest(
-                anyString(), anyString(), any(), any()
-        )).thenThrow(statusCode >= 500 ? new AIServerException(responseBody, "ERROR_CODE") : new AIClientException(
-                responseBody, "ERROR_CODE"));
-    }
 
     private void setCarbonHome() {
 

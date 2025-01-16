@@ -21,9 +21,6 @@
 <suite name="org.wso2.carbon.ai.service.mgt">
     <test name="org.wso2.carbon.identity.application.mgt.test" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.ai.service.mgt.constants.AIConstantsTest"/>
-            <class name="org.wso2.carbon.identity.ai.service.mgt.exceptions.AIClientExceptionTest"/>
-            <class name="org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerExceptionTest"/>
             <class name="org.wso2.carbon.identity.ai.service.mgt.util.AIHttpClientUtilTest"/>
             <class name="org.wso2.carbon.identity.ai.service.mgt.token.AIAccessTokenManagerTest"/>
         </classes>

@@ -25,8 +25,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
@@ -34,6 +37,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIClientException;
 import org.wso2.carbon.identity.ai.service.mgt.exceptions.AIServerException;
 import org.wso2.carbon.identity.ai.service.mgt.token.AIAccessTokenManager;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -54,6 +58,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
+import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME;
 import static org.wso2.carbon.identity.ai.service.mgt.constants.AIConstants.TENANT_CONTEXT_PREFIX;
 
 /**
@@ -68,6 +73,15 @@ public class AIHttpClientUtilTest {
     private AIAccessTokenManager mockTokenManager;
 
     private MockedStatic<AIAccessTokenManager> aiAccessTokenManagerMockedStatic;
+    private MockedStatic<IdentityUtil> identityUtilMockedStatic;
+
+    @BeforeClass
+    public void init() {
+
+        identityUtilMockedStatic = Mockito.mockStatic(IdentityUtil.class);
+        identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(HTTP_CONNECTION_POOL_SIZE_PROPERTY_NAME))
+                .thenReturn("10");
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -90,9 +104,8 @@ public class AIHttpClientUtilTest {
     }
 
     @Test
-    public void testExecuteRequest_Success() throws Exception {
+    public void testExecuteRequestSuccess() throws Exception {
 
-        // Arrange: Mock a successful response.
         String expectedResponse = "{\"result\":\"SUCCESS\"}";
         String path = "/test-endpoint";
         String fullPath = TENANT_CONTEXT_PREFIX + clientId + path; // This is the path that AIHttpClientUtil will use.
@@ -102,7 +115,6 @@ public class AIHttpClientUtilTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody(expectedResponse)));
 
-        // Act: Execute the HTTP request.
         String baseUrl = wireMockServer.baseUrl();
         Map<String, Object> resultMap = AIHttpClientUtil.executeRequest(
                 baseUrl,
@@ -111,20 +123,17 @@ public class AIHttpClientUtilTest {
                 null
         );
 
-        // Assert: Verify the response.
         Assert.assertEquals(resultMap.get("result"), "SUCCESS");
         wireMockServer.verify(getRequestedFor(urlEqualTo(fullPath)));
     }
 
     @Test
-    public void testExecuteRequest_PostSuccess() throws Exception {
+    public void testExecuteRequestPostSuccess() throws Exception {
 
-        // Arrange: Mock a successful response.
         String expectedResponse = "{\"result\":\"POST_SUCCESS\"}";
         String path = "/test-endpoint";
         String fullPath = TENANT_CONTEXT_PREFIX + clientId + path; // This is the path that AIHttpClientUtil will use.
 
-        // Define the request body.
         String requestBody = "{\"key\":\"value\"}";
 
         // Stub the POST request with the expected response.
@@ -136,7 +145,6 @@ public class AIHttpClientUtilTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody(expectedResponse)));
 
-        // Act: Execute the HTTP request.
         String baseUrl = wireMockServer.baseUrl();
         Map<String, String> requestBodyMap = new HashMap<>();
         requestBodyMap.put("key", "value");
@@ -144,10 +152,9 @@ public class AIHttpClientUtilTest {
                 baseUrl,
                 path,
                 HttpPost.class,
-                requestBodyMap // Pass the request body as a map.
+                requestBodyMap
         );
 
-        // Assert: Verify the response.
         Assert.assertEquals(resultMap.get("result"), "POST_SUCCESS");
 
         // Verify that the POST request was made with the correct path and body.
@@ -156,20 +163,17 @@ public class AIHttpClientUtilTest {
                 .withRequestBody(equalToJson(requestBody)));
     }
 
-
     @Test(expectedExceptions = AIClientException.class)
-    public void testExecuteRequest_ClientError() throws Exception {
+    public void testExecuteRequestClientError() throws Exception {
 
-        // Arrange: Mock a client error response
         String path = "/test-endpoint";
         String fullPath = TENANT_CONTEXT_PREFIX + clientId + path; // This is the path that AIHttpClientUtil will use.
         wireMockServer.stubFor(get(urlEqualTo(fullPath))
                 .willReturn(aResponse()
-                        .withStatus(400) // Client error status.
+                        .withStatus(400)
                         .withHeader("Content-Type", "application/json")
                         .withBody("Bad Request")));
 
-        // Act & Assert: Expect AIClientException.
         String baseUrl = wireMockServer.baseUrl();
         AIHttpClientUtil.executeRequest(
                 baseUrl,
@@ -180,14 +184,13 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testExecuteRequest_ServerError() throws Exception {
+    public void testExecuteRequestServerError() throws Exception {
 
-        // Arrange: Mock a server error response.
         String path = "/test-endpoint";
         String fullPath = TENANT_CONTEXT_PREFIX + clientId + path; // This is the path that AIHttpClientUtil will use.
         wireMockServer.stubFor(get(urlEqualTo(fullPath))
                 .willReturn(aResponse()
-                        .withStatus(500) // Simulate a server error.
+                        .withStatus(500)
                         .withHeader("Content-Type", "text/plain")
                         .withBody("Internal Server Error")));
 
@@ -202,7 +205,7 @@ public class AIHttpClientUtilTest {
     }
 
     @Test
-    public void testExecuteRequest_TokenRenewal() throws Exception {
+    public void testExecuteRequestTokenRenewal() throws Exception {
 
         // Mock the AccessTokenManager to simulate token renewal.
         when(mockTokenManager.getAccessToken(true)).thenReturn("newToken");
@@ -217,7 +220,7 @@ public class AIHttpClientUtilTest {
                 .inScenario("Token Renewal")
                 .whenScenarioStateIs(STARTED)
                 .willReturn(aResponse()
-                        .withStatus(401) // Unauthorized.
+                        .withStatus(401)
                         .withHeader("Content-Type", "application/json")
                         .withBody("Unauthorized"))
                 .willSetStateTo("Token Renewed")); // Transition to the next state.
@@ -227,7 +230,7 @@ public class AIHttpClientUtilTest {
                 .inScenario("Token Renewal")
                 .whenScenarioStateIs("Token Renewed")
                 .willReturn(aResponse()
-                        .withStatus(200) // Success
+                        .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(expectedResponse)));
 
@@ -251,7 +254,7 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = AIClientException.class)
-    public void testExecuteRequest_TokenRenewal_ErrorAfterRenewal() throws Exception {
+    public void testExecuteRequestTokenRenewalErrorAfterRenewal() throws Exception {
         // Mock the AccessTokenManager to simulate token renewal.
         when(mockTokenManager.getAccessToken(true)).thenReturn("newToken");
 
@@ -264,7 +267,7 @@ public class AIHttpClientUtilTest {
                 .inScenario("Token Renewal with Error")
                 .whenScenarioStateIs(STARTED)
                 .willReturn(aResponse()
-                        .withStatus(401) // Unauthorized.
+                        .withStatus(401)
                         .withHeader("Content-Type", "application/json")
                         .withBody("Unauthorized"))
                 .willSetStateTo("Token Renewed")); // Transition to the next state.
@@ -274,7 +277,7 @@ public class AIHttpClientUtilTest {
                 .inScenario("Token Renewal with Error")
                 .whenScenarioStateIs("Token Renewed")
                 .willReturn(aResponse()
-                        .withStatus(400) // Client-side error.
+                        .withStatus(400)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"error\":\"Bad Request\"}"))); // Error response body.
 
@@ -289,7 +292,7 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testExecuteRequest_IOException() throws Exception {
+    public void testExecuteRequestIOException() throws Exception {
 
         // Arrange: Mock a server that simulates a connection reset.
         String path = "/test-endpoint";
@@ -311,7 +314,7 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testExecuteRequest_ExecutionException() throws Exception {
+    public void testExecuteRequestExecutionException() throws Exception {
 
         // Arrange: Mock a server that simulates an unexpected response.
         String path = "/test-endpoint";
@@ -333,7 +336,7 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testExecuteRequest_UnsupportedRequestType() throws Exception {
+    public void testExecuteRequestUnsupportedRequestType() throws Exception {
 
         // Arrange: Define the path and base URL.
         String path = "/test-endpoint";
@@ -349,7 +352,7 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testExecuteRequest_UnauthorizedAfterTokenRenewal() throws Exception {
+    public void testExecuteRequestUnauthorizedAfterTokenRenewal() throws Exception {
 
         // Mock the AccessTokenManager for token renewal.
         when(mockTokenManager.getAccessToken(true)).thenReturn("newToken");
@@ -358,26 +361,25 @@ public class AIHttpClientUtilTest {
         String path = "/test-endpoint";
         String fullPath = TENANT_CONTEXT_PREFIX + clientId + path; // This is the path that AIHttpClientUtil will use.
 
-        // First response: 401 Unauthorized
+        // First response: 401 Unauthorized.
         wireMockServer.stubFor(get(urlEqualTo(fullPath))
                 .inScenario("Token Renewal Fails")
                 .whenScenarioStateIs(STARTED)
                 .willReturn(aResponse()
-                        .withStatus(401) // Unauthorized
+                        .withStatus(401)
                         .withHeader("Content-Type", "application/json")
                         .withBody("Unauthorized"))
                 .willSetStateTo("Retry"));
 
-        // Second response: 401 Unauthorized again
+        // Second response: 401 Unauthorized again.
         wireMockServer.stubFor(get(urlEqualTo(fullPath))
                 .inScenario("Token Renewal Fails")
                 .whenScenarioStateIs("Retry")
                 .willReturn(aResponse()
-                        .withStatus(401) // Still Unauthorized
+                        .withStatus(401) // Still Unauthorized.
                         .withHeader("Content-Type", "application/json")
                         .withBody("Still Unauthorized")));
 
-        // Act: Execute the HTTP request
         String baseUrl = wireMockServer.baseUrl();
         AIHttpClientUtil.executeRequest(
                 baseUrl,
@@ -388,16 +390,15 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testExecuteRequest_JsonParsingError() throws Exception {
+    public void testExecuteRequestJsonParsingError() throws Exception {
 
-        // Arrange: Define paths.
         String path = "/test-endpoint";
         String fullPath = TENANT_CONTEXT_PREFIX + clientId + path; // This is the path that AIHttpClientUtil will use.
 
         // Mock the server to return invalid JSON.
         wireMockServer.stubFor(get(urlEqualTo(fullPath))
                 .willReturn(aResponse()
-                        .withStatus(200) // Simulate a successful response.
+                        .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{ invalid json }"))); // Invalid JSON.
 
@@ -412,20 +413,19 @@ public class AIHttpClientUtilTest {
     }
 
     @Test(expectedExceptions = AIServerException.class)
-    public void testExecuteRequest_FailedTokenRenewal() throws Exception {
+    public void testExecuteRequestFailedTokenRenewal() throws Exception {
 
         // Mock the AccessTokenManager to simulate failed token renewal.
         when(mockTokenManager.getAccessToken(false)).thenReturn("oldToken");
         when(mockTokenManager.getAccessToken(true)).thenReturn(null); // Simulate failed token renewal.
 
-        // Arrange: Define paths.
         String path = "/test-endpoint";
         String fullPath = TENANT_CONTEXT_PREFIX + clientId + path; // This is the path that AIHttpClientUtil will use.
 
         // Mock the server to return 401 Unauthorized.
         wireMockServer.stubFor(get(urlEqualTo(fullPath))
                 .willReturn(aResponse()
-                        .withStatus(401) // Unauthorized
+                        .withStatus(401)
                         .withHeader("Content-Type", "application/json")
                         .withBody("Unauthorized")));
 
@@ -459,5 +459,11 @@ public class AIHttpClientUtilTest {
         aiAccessTokenManagerMockedStatic.close();
         PrivilegedCarbonContext.endTenantFlow();
         wireMockServer.stop();
+    }
+
+    @AfterClass
+    public void destroy() {
+
+        identityUtilMockedStatic.close();
     }
 }

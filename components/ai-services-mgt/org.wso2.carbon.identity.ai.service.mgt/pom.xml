@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>ai-services-mgt</artifactId>
-        <version>7.7.87-SNAPSHOT</version>
+        <version>7.7.93-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -85,7 +85,6 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -109,6 +108,7 @@
                             org.apache.http; version="${httpcore.version.osgi.import.range}",
                             org.apache.http.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
+                            org.apache.http.client.config; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.apache.http.entity; version="${httpcore.version.osgi.import.range}",
                             org.apache.http.message; version="${httpcore.version.osgi.import.range}",
                             org.apache.http.protocol; version="${httpcore.version.osgi.import.range}",
@@ -145,6 +145,12 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*Exception.class</exclude>
+                        <exclude>**/*Constants*.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>

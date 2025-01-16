@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,11 +23,14 @@ package org.wso2.carbon.identity.application.mgt.ai.constant;
  */
 public class LoginFlowAIConstants {
 
+    private LoginFlowAIConstants() {
+
+    }
+
     public static final String OPERATION_ID_PROPERTY = "operation_id";
     public static final String USER_CLAIM_PROPERTY = "user_claims";
     public static final String USER_QUERY_PROPERTY = "user_query";
     public static final String AUTHENTICATORS_PROPERTY = "available_authenticators";
-
 
     /**
      * Enums for error messages.
@@ -38,7 +41,6 @@ public class LoginFlowAIConstants {
                 "for %s tenant while generating authentication sequence."),
         SERVER_ERROR_WHILE_CONNECTING_TO_LOGINFLOW_AI_SERVICE("AILF-10009", "Server error occurred " +
                 "for %s tenant while generating authentication sequence.");
-
 
         private final String code;
         private final String message;

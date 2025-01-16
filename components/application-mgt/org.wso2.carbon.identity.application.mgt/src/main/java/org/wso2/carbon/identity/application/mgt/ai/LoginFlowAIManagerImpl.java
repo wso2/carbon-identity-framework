@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -56,20 +56,8 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
 
     private static final Log LOG = LogFactory.getLog(LoginFlowAIManagerImpl.class);
 
-    /**
-     * Generates an authentication sequence using the LoginFlow AI service.
-     *
-     * @param userQuery               The user query. This is a string that contain the requested authentication
-     *                                flow by the user.
-     * @param userClaims              The user claims. This is a JSON array that contains the user claims available
-     *                                for that organization.
-     * @param availableAuthenticators The available authenticators of the organization.
-     * @return Operation ID of the generated authentication sequence.
-     * @throws AIServerException When an error occurs while connecting to the LoginFlow AI service.
-     * @throws AIClientException When an error occurs while generating the authentication sequence.
-     */
     @Override
-    public String generateAuthenticationSequence(String userQuery, JSONArray userClaims,
+    public String generateAuthenticationSequence(String userQuery, JSONArray userClaimsMetaData,
                                                  JSONObject availableAuthenticators) throws AIServerException,
             AIClientException {
 
@@ -77,11 +65,8 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put(USER_QUERY_PROPERTY, userQuery);
         try {
-            // Convert JSONArray to List.
-            List<Object> userClaimsList = objectMapper.readValue(userClaims.toString(), List.class);
-            requestBody.put(USER_CLAIM_PROPERTY, userClaimsList);
-
-            // Convert JSONObject to Map.
+            List<Object> userClaimsMetadataList = objectMapper.readValue(userClaimsMetaData.toString(), List.class);
+            requestBody.put(USER_CLAIM_PROPERTY, userClaimsMetadataList);
             Map<String, Object> authenticatorsMap = objectMapper.readValue(availableAuthenticators.toString(),
                     Map.class);
             requestBody.put(AUTHENTICATORS_PROPERTY, authenticatorsMap);
@@ -95,32 +80,14 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
         return (String) stringObjectMap.get(OPERATION_ID_PROPERTY);
     }
 
-    /**
-     * Retrieves the status of the authentication sequence generation operation.
-     *
-     * @param operationId The operation ID of the authentication sequence generation operation.
-     * @return A Json representation of the status' that are completed, pending, or failed.
-     * @throws AIServerException When an error occurs while connecting to the LoginFlow AI service.
-     * @throws AIClientException When an error occurs while retrieving the authentication sequence
-     *                                    generation status.
-     */
     @Override
-    public Map<String, Object> getAuthenticationSequenceGenerationStatus(String operationId) throws AIServerException,
+    public Map<String, Object> getAuthenticationSequenceGenerationStatus(String operationId) throws  AIServerException,
             AIClientException {
 
         return executeRequest(LOGINFLOW_AI_ENDPOINT, LOGINFLOW_AI_STATUS_PATH + PATH_SEPARATOR + operationId,
                 HttpGet.class, null);
     }
 
-    /**
-     * Retrieves the result of the authentication sequence generation operation.
-     *
-     * @param operationId The operation ID of the authentication sequence generation operation.
-     * @return The result of the authentication sequence generation operation.
-     * @throws AIServerException When an error occurs while connecting to the LoginFlow AI service.
-     * @throws AIClientException When an error occurs while retrieving the authentication sequence
-     *                                    generation result.
-     */
     @Override
     public Map<String, Object> getAuthenticationSequenceGenerationResult(String operationId) throws AIServerException,
             AIClientException {

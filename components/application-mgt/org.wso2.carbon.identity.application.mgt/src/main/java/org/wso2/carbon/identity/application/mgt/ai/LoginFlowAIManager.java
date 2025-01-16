@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,12 +30,42 @@ import java.util.Map;
  */
 public interface LoginFlowAIManager {
 
-    String generateAuthenticationSequence(String userQuery, JSONArray userClaims, JSONObject availableAuthenticators)
+    /**
+     * Generates an authentication sequence using the LoginFlow AI service.
+     *
+     * @param userQuery               The user query. This is a string that contain the requested authentication
+     *                                flow by the user.
+     * @param userClaimsMetaData      The user claims metadata. This is a JSON array that contains the user
+     *                                claims available
+     *                                for that organization.
+     * @param availableAuthenticators The available authenticators of the organization.
+     * @return Operation ID of the generated authentication sequence.
+     * @throws AIServerException When a server error occurs while connecting to the LoginFlow AI service.
+     * @throws AIClientException When a client error occurs while generating the authentication sequence.
+     */
+    String generateAuthenticationSequence(String userQuery, JSONArray userClaimsMetaData,
+                                          JSONObject availableAuthenticators)
             throws AIServerException, AIClientException;
 
+    /**
+     * Retrieves the status of the authentication sequence generation operation.
+     *
+     * @param operationId The operation ID of the authentication sequence generation operation.
+     * @return A Json representation of the status' that are completed, pending, or failed.
+     * @throws AIServerException When a server error occurs while connecting to the LoginFlow AI service.
+     * @throws AIClientException When a client error occurs while retrieving the authentication sequence
+     */
     Map<String, Object> getAuthenticationSequenceGenerationStatus(String operationId) throws AIServerException,
             AIClientException;
 
+    /**
+     * Retrieves the result of the authentication sequence generation operation.
+     *
+     * @param operationId The operation ID of the authentication sequence generation operation.
+     * @return The result of the authentication sequence generation operation.
+     * @throws AIServerException When a server error occurs while connecting to the LoginFlow AI service.
+     * @throws AIClientException When a client error occurs while retrieving the authentication sequence
+     */
     Map<String, Object> getAuthenticationSequenceGenerationResult(String operationId) throws AIServerException,
             AIClientException;
 }
