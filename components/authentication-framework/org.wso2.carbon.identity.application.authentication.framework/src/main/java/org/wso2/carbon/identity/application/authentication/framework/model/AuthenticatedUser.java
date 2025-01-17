@@ -57,7 +57,6 @@ public class AuthenticatedUser extends User {
 
     private static final Log log = LogFactory.getLog(AuthenticatedUser.class);
 
-    protected String userId;
     private String authenticatedSubjectIdentifier;
     private String federatedIdPName;
     private boolean isFederatedUser;
@@ -320,11 +319,6 @@ public class AuthenticatedUser extends User {
     public boolean isUserIdExists() {
 
         return this.userId != null;
-    }
-
-    public void setUserId(String userId) {
-
-        this.userId = userId;
     }
 
     private String resolveUserIdInternal() {

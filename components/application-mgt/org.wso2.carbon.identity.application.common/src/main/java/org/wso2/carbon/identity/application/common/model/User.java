@@ -31,6 +31,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Representation of a user.
@@ -42,6 +43,7 @@ public class User implements Serializable {
     protected String tenantDomain;
     protected String userStoreDomain;
     protected String userName;
+    protected String userId = null;
     protected boolean isUsernameCaseSensitive = true;
 
     public User() {
@@ -62,6 +64,7 @@ public class User implements Serializable {
      * <TenantDomain></TenantDomain>
      * <UserStoreDomain></UserStoreDomain>
      * <UserName></UserName>
+     * <UserId></UserId>
      * </User>
      *
      * @param userOM OMElement to populate user
@@ -85,6 +88,10 @@ public class User implements Serializable {
                 user.setUserStoreDomain(member.getText());
             } else if ("UserName".equalsIgnoreCase(member.getLocalName())) {
                 user.setUserName(member.getText());
+            } else if ("UserId".equalsIgnoreCase(member.getLocalName())) {
+                if (StringUtils.isNotBlank(member.getText())) {
+                    user.setUserId(member.getText());
+                }
             }
         }
         return user;
@@ -150,6 +157,41 @@ public class User implements Serializable {
         this.userName = userName;
     }
 
+    /**
+     * Returns the userId of the user. This method may return null if the userId is not set.
+     *
+     * @return The userId of the user, or null if not set
+     */
+    public String getNullableUserId() {
+
+        return userId;
+    }
+
+    /**
+     * Retrieves the userId of the user.
+     *
+     * This method must be implemented by subclasses to ensure that the user ID is properly resolved.
+     * If not implemented, it throws an {@link UnsupportedOperationException}, indicating the method
+     * is not supported in the base {@link User} class.
+     *
+     * @return The userId of the user
+     * @throws Exception If there is an error retrieving the userId
+     */
+    public String getUserId() throws Exception {
+
+        throw new UnsupportedOperationException("getUserId is not implemented in base User class.");
+    }
+
+    /**
+     * Sets the userId of the user
+     *
+     * @param userId
+     */
+    public void setUserId(String userId) {
+
+        this.userId = userId;
+    }
+
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -178,6 +220,10 @@ public class User implements Serializable {
         }
 
         if (!userStoreDomain.equals(user.userStoreDomain)) {
+            return false;
+        }
+
+        if (!Objects.equals(userId, user.userId)) {
             return false;
         }
 
