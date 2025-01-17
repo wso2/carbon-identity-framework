@@ -36,9 +36,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column.DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildRuntimeServerException;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.DISPLAY_NAME;
 
 /**
  * Application authenticator service.

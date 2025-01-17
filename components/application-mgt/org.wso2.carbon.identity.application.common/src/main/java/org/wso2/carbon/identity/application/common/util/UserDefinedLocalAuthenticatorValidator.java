@@ -76,7 +76,7 @@ public class UserDefinedLocalAuthenticatorValidator {
 
         boolean isValidName = urlRegexPattern.matcher(url).matches();
         if (!isValidName) {
-            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AUTHENTICATOR_NAME,
+            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_URL,
                     url, URL_REGEX);
         }
     }

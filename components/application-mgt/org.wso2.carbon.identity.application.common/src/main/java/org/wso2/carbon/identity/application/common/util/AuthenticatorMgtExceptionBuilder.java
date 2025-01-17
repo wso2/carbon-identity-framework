@@ -92,7 +92,7 @@ public class AuthenticatorMgtExceptionBuilder {
                 "The provided authenticator name %s is not in the expected format %s."),
         ERROR_BLANK_FIELD_VALUE("60015", "Invalid empty or blank value.",
                 "Value for %s should not be empty or blank."),
-        ERROR_INVALID_URL_("60017", "Invalid URL.",
+        ERROR_INVALID_URL("60017", "Invalid URL.",
                 "The provided url %s is not in the expected format %s."),
 
         // Server errors.
