@@ -303,6 +303,7 @@ public class AuthenticatedUser extends User {
         this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
     }
 
+    @Override
     public String getUserId() throws UserIdNotFoundException {
 
         if (this.userId != null) {

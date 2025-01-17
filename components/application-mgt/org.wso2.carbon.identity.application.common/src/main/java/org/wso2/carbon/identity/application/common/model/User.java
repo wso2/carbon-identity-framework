@@ -88,10 +88,8 @@ public class User implements Serializable {
                 user.setUserStoreDomain(member.getText());
             } else if ("UserName".equalsIgnoreCase(member.getLocalName())) {
                 user.setUserName(member.getText());
-            } else if ("UserId".equalsIgnoreCase(member.getLocalName())) {
-                if (StringUtils.isNotBlank(member.getText())) {
-                    user.setUserId(member.getText());
-                }
+            } else if ("UserId".equalsIgnoreCase(member.getLocalName()) && StringUtils.isNotBlank(member.getText())) {
+                user.setUserId(member.getText());
             }
         }
         return user;
@@ -223,11 +221,7 @@ public class User implements Serializable {
             return false;
         }
 
-        if (!Objects.equals(userId, user.userId)) {
-            return false;
-        }
-
-        return true;
+        return Objects.equals(userId, user.userId);
     }
 
     /**
