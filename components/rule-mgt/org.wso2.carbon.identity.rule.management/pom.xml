@@ -17,13 +17,11 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>rule-mgt</artifactId>
-        <version>7.7.48-SNAPSHOT</version>
+        <version>7.7.96-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -99,14 +97,12 @@
                             org.wso2.carbon.identity.rule.management.internal,
                             org.wso2.carbon.identity.rule.management.constant,
                             org.wso2.carbon.identity.rule.management.dao.*,
-                            org.wso2.carbon.identity.rule.management.model.internal,
                             org.wso2.carbon.identity.rule.management.service.impl,
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.rule.management.internal,
                             !org.wso2.carbon.identity.rule.management.constant,
                             !org.wso2.carbon.identity.rule.management.dao.*,
-                            !org.wso2.carbon.identity.rule.management.model.internal,
                             !org.wso2.carbon.identity.rule.management.service.impl,
                             org.wso2.carbon.identity.rule.management.*;
                             version="${carbon.identity.package.export.version}",
@@ -130,6 +126,8 @@
                             org.wso2.carbon.database.utils.jdbc.exceptions;
                             version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.core.cache;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.metadata.*;
                             version="${carbon.identity.package.import.version.range}",

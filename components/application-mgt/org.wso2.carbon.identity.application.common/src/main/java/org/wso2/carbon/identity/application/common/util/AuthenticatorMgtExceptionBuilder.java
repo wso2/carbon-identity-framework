@@ -80,16 +80,20 @@ public class AuthenticatorMgtExceptionBuilder {
     public enum AuthenticatorMgtError {
 
         // Client errors.
-        ERROR_NOT_FOUND_AUTHENTICATOR("60001", "No Authenticator found.",
+        ERROR_NOT_FOUND_AUTHENTICATOR("60010", "No Authenticator found.",
                 "No Authenticator found by given authenticator name: %s."),
-        ERROR_OPERATION_ALLOWED_FOR_SYSTEM_AUTHENTICATOR("60002", "No operations allowed on system " +
-                "authenticators.", "Do not allow to perform any operation on system defined authenticator: %s."),
-        ERROR_AUTHENTICATOR_ALREADY_EXIST("60003", "The authenticator already exists.",
+        ERROR_CODE_INVALID_ENDPOINT_CONFIG("60011", "Invalid endpoint configuration provided.",
+                "Invalid endpoint configuration is provided for the authenticator %s."),
+        ERROR_CODE_ERROR_AUTHENTICATOR_NOT_FOUND("60012", "Authenticator not found.",
+                "Authenticator not found by the given name: %s."),
+        ERROR_AUTHENTICATOR_ALREADY_EXIST("60013", "The authenticator already exists.",
                 "The authenticator already exists for the given name: %s."),
-        ERROR_INVALID_AUTHENTICATOR_NAME("60004", "Authenticator name is invalid.",
+        ERROR_INVALID_AUTHENTICATOR_NAME("60014", "Authenticator name is invalid.",
                 "The provided authenticator name %s is not in the expected format %s."),
-        ERROR_BLANK_FIELD_VALUE("60004", "Invalid empty or blank value.",
+        ERROR_BLANK_FIELD_VALUE("60015", "Invalid empty or blank value.",
                 "Value for %s should not be empty or blank."),
+        ERROR_INVALID_URL("60017", "Invalid URL.",
+                "The provided url %s is not in the expected format %s."),
 
         // Server errors.
         ERROR_WHILE_ADDING_AUTHENTICATOR("65001", "Error while adding authenticator.",

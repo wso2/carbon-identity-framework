@@ -70,7 +70,6 @@
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_userstore_view"/>
                 <Scope name="internal_shared_application_view"/>
-                <Scope name="internal_extensions_view"/>
                 <Scope name="internal_secret_mgt_view"/>
             </Read>
         </Scopes>
@@ -726,7 +725,9 @@
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
             </Update>
-            <Delete/>
+            <Delete>
+                <Scope name="internal_org_role_mgt_delete"/>
+            </Delete>
             <Create>
                 <Scope name="internal_org_role_mgt_create"/>
             </Create>
@@ -783,7 +784,6 @@
                 <Scope name="internal_org_role_mgt_view"/>
                 <Scope name="internal_org_userstore_view"/>
                 <Scope name="internal_org_idp_view"/>
-                <Scope name="internal_org_extensions_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -856,6 +856,53 @@
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
             </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_apiResources" displayName="API Resources" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:apiResources"/>
+            </Feature>
+            <Read>
+                <Scope name="internal_org_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_userStores" displayName="User Stores" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:userstores"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_userstore_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_userstore_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_userstore_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_userstore_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_attributeDialects" displayName="Attribute Dialects" type="organization">
+        <Scopes>
+            <Feature>
+                <Scope name="console:org:attributes"/>
+            </Feature>
+            <Create>
+            </Create>
+            <Update>
+                <Scope name="internal_org_claim_meta_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+            </Read>
+            <Delete>
+            </Delete>
         </Scopes>
     </APIResourceCollection>
 </APIResourceCollections>

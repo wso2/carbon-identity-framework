@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.management.model.internal;
+package org.wso2.carbon.identity.rule.management.dao.impl;
 
 /**
  * Represents a rule in the data layer.

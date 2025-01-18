@@ -2184,11 +2184,13 @@ public class IdPManagementDAO {
                             String blobValue = getBlobValue(rs2.getBinaryStream("PROPERTY_BLOB_VALUE"));
 
                             String propertyType = rs2.getString("PROPERTY_TYPE");
+                            if (propertyType != null) {
+                                propertyType = propertyType.trim();
+                            }
                             String isSecret = rs2.getString("IS_SECRET");
 
                             property.setName(name);
-                            if (propertyType != null && IdentityApplicationConstants.ConfigElements.
-                                    PROPERTY_TYPE_BLOB.equals(propertyType.trim())) {
+                            if (IdentityApplicationConstants.ConfigElements.PROPERTY_TYPE_BLOB.equals(propertyType)) {
                                 property.setValue(blobValue);
                             } else {
                                 property.setValue(value);
@@ -4377,6 +4379,83 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, rsFedIdp, prepStmtFedIdp);
         }
         return isReffered;
+    }
+
+    /**
+     * Check whether the specified IDP authenticator is associated with any service providers.
+     *
+     * @param idpName           Name of the IDP.
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantId          ID of the tenant.
+     * @return Whether the specified IDP authenticator is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP authenticator associations.
+     */
+    public boolean isAuthenticatorReferredBySP(String idpName, String authenticatorName, int tenantId)
+            throws IdentityProviderManagementException {
+
+        boolean isReferred = false;
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmtFedAuth = null;
+        ResultSet rsFedAuth = null;
+
+        try {
+            prepStmtFedAuth = dbConnection.prepareStatement(
+                    IdPManagementConstants.SQLQueries.GET_SP_FEDERATED_IDP_AUTHENTICATOR_REF);
+            prepStmtFedAuth.setInt(1, tenantId);
+            prepStmtFedAuth.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
+            prepStmtFedAuth.setString(3, idpName);
+            prepStmtFedAuth.setString(4, authenticatorName);
+            rsFedAuth = prepStmtFedAuth.executeQuery();
+            if (rsFedAuth.next()) {
+                isReferred = rsFedAuth.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException(
+                    "Error occurred while searching for IDP Authenticator references in SP ",
+                    e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, rsFedAuth, prepStmtFedAuth);
+        }
+
+        return isReferred;
+    }
+
+    /**
+     * Check whether the specified IDP outbound connector is associated with any service providers.
+     *
+     * @param idpName       Name of the IDP.
+     * @param connectorName Name of the outbound connector.
+     * @param tenantId      ID of the tenant.
+     * @return Whether the specified IDP outbound connector is referenced by any service providers.
+     * @throws IdentityProviderManagementException Error when checking IDP outbound connector associations.
+     */
+    public boolean isOutboundConnectorReferredBySP(String idpName, String connectorName, int tenantId)
+            throws IdentityProviderManagementException {
+
+        boolean isReferred = false;
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+
+        try {
+            prepStmt = dbConnection.prepareStatement(
+                    IdPManagementConstants.SQLQueries.GET_SP_PROVISIONING_CONNECTOR_IDP_REFS);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, idpName);
+            prepStmt.setString(3, connectorName);
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                isReferred = resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException(
+                    "Error occurred while searching for IDP outbound connector references in SP ",
+                    e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
+
+        return isReferred;
     }
 
     /**

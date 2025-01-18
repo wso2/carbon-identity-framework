@@ -40,6 +40,11 @@ public abstract class Rule {
         return id;
     }
 
+    public void setId(String id) {
+
+        this.id = id;
+    }
+
     /**
      * @JsonIgnore annotation is used to ignore the active field when serializing and deserializing the object,
      * to and from JSON in order to store in the database.

@@ -693,7 +693,10 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             }
             uriBuilder.addParameter(FrameworkConstants.SERVICE_PROVIDER, context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName());
-            uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
+            if (!externalIdPConfig.isModifyUserNameAllowed() || (externalIdPConfig.isModifyUserNameAllowed() &&
+                    FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr())) {
+                uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
+            }
             uriBuilder.addParameter(FrameworkConstants.SKIP_SIGN_UP_ENABLE_CHECK, String.valueOf(true));
             uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
             addMissingClaims(uriBuilder, context);
