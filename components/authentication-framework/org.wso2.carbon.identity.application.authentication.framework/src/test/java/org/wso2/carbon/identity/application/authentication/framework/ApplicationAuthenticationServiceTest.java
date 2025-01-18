@@ -103,10 +103,9 @@ public class ApplicationAuthenticationServiceTest {
     }
 
     @Test
-    public void testGetLocalAuthenticators() {
+    public void testGetLocalAuthenticators() throws Exception {
 
-        List<ApplicationAuthenticator> localAuthenticators =
-                applicationAuthenticationService.getAllSystemDefinedLocalAuthenticators();
+        List<ApplicationAuthenticator> localAuthenticators = applicationAuthenticationService.getLocalAuthenticators();
         assertEquals(localAuthenticators.size(), 1);
         assertEquals(localAuthenticators.get(0).getName(), LOCAL_AUTHENTICATOR_NAME);
     }

@@ -32,8 +32,10 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
@@ -320,9 +322,7 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
                     removeOption = true;
 
                     if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
-                        List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
-                            .getInstance().getAllSystemDefinedLocalAuthenticators();
-                        for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
+                        for (LocalAuthenticatorConfig localAuthenticatorConfig : getLocalAuthenticatorConfigsList()) {
                             if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
                                 if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
                                         authenticators.contains(localAuthenticatorConfig.getName())) {
@@ -413,6 +413,20 @@ public abstract class JsGraphBuilder implements JsBaseGraphBuilder {
             }
         } else {
             log.warn("The filtered authenticator list is empty, hence proceeding without filtering");
+        }
+    }
+
+    /**
+     * Get all both SYSTEM and USER defined local authenticator configurations.
+     */
+    protected List<LocalAuthenticatorConfig> getLocalAuthenticatorConfigsList() {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        try {
+            return ApplicationAuthenticatorService.getInstance().getAllLocalAuthenticators(tenantDomain);
+        } catch (AuthenticatorMgtException e) {
+            throw new IdentityRuntimeException(String.format("Error while retrieving all local authenticator" +
+                    " configurations for tenant: %s", tenantDomain), e);
         }
     }
 
