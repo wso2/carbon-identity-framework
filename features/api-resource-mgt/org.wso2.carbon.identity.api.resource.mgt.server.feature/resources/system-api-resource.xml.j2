@@ -162,6 +162,8 @@
         <Scopes>
             <Scope displayName="View Claim" name="internal_org_claim_meta_view"
                    description="View claims and dialects in the organization"/>
+            <Scope displayName="Update Claim" name="internal_org_claim_meta_update"
+                   description="Update claims in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Configuration Management API" identifier="/api/server/v1/configs"
@@ -535,6 +537,12 @@
         <Scopes>
             <Scope displayName="View Userstore" name="internal_org_userstore_view"
                     description="View secondary userstores in the organization"/>
+            <Scope displayName="Create Userstore" name="internal_org_userstore_create"
+                    description="Add new secondary userstores to the organization"/>
+            <Scope displayName="Delete Userstore" name="internal_org_userstore_delete"
+                    description="Delete secondary userstores in the organization"/>
+            <Scope displayName="Update Userstore" name="internal_org_userstore_update"
+                    description="Update the configurations of secondary userstores in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Association Management API"
@@ -808,10 +816,16 @@
     <APIResource name="Email Template Management API v1/v2"
                  identifier="/o/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API"
-                 type="CONSOLE_ORG_LEVEL">
+                 type="ORGANIZATION">
         <Scopes>
-            <Scope displayName="View Email Template" name="internal_org_email_mgt_view" 
+            <Scope displayName="View Email Template" name="internal_org_email_mgt_view"
                     description="View email templates and types in the organization"/>
+            <Scope displayName="Create Email Template" name="internal_org_email_mgt_create"
+                    description="Create new email template and types in the organization"/>
+            <Scope displayName="Update Email Template" name="internal_org_email_mgt_update"
+                    description="Update email templates and types in the organization"/>
+            <Scope displayName="Delete Email Template" name="internal_org_email_mgt_delete"
+                    description="Delete email templates and types in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Template Management API"
@@ -831,10 +845,16 @@
     <APIResource name="Notification Template Management API"
                  identifier="/o/api/server/v(.*)/notification/(?:email|sms)/template-types" requiresAuthorization="true"
                  description="API representation of the Notification Template Management API"
-                 type="CONSOLE_ORG_LEVEL">
+                 type="ORGANIZATION">
         <Scopes>
             <Scope displayName="View Notification Template" name="internal_org_template_mgt_view"
                    description="View notification templates and types in the organization"/>
+            <Scope displayName="Create Notification Template" name="internal_org_template_mgt_create"
+                   description="Create notification templates and types in the organization"/>
+            <Scope displayName="Update Notification Template" name="internal_org_template_mgt_update"
+                   description="Update notification templates and types in the organization"/>
+            <Scope displayName="Delete Notification Template" name="internal_org_template_mgt_delete"
+                   description="Delete notification templates and types in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Entitlement Management API" identifier="/api/identity/entitlement/"
@@ -911,12 +931,30 @@
                     description="Manage user attributes from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Attribute Management Feature" identifier="console:org:attributes"
+                    requiresAuthorization="true"
+                    description="Resource representation of the Attribute Management Feature"
+                    type="CONSOLE_ORG_FEATURE">
+           <Scopes>
+               <Scope displayName="Attribute Feature" name="console:org:attributes"
+                       description="Manage user attributes from the Console"/>
+           </Scopes>
+    </APIResource>
     <APIResource name="User Store Management Feature" identifier="console:userstores"
                  requiresAuthorization="true"
                  description="Resource representation of the User Store Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="User Store Feature" name="console:userstores" 
+                    description="Manage user stores from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Store Management Feature" identifier="console:org:userstores"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Store Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="User Store Feature" name="console:org:userstores"
                     description="Manage user stores from the Console"/>
         </Scopes>
     </APIResource>
