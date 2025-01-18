@@ -71,7 +71,7 @@ public class ApplicationAuthenticatorService {
      * This method is used to get the list of SYSTEM defined local authenticator configurations.
      *
      * @deprecated It is recommended to use {@link #getAllSystemDefinedLocalAuthenticators()},
-     * which returning the SYSTEM defined local application authenticator configurations.
+     * which returning both SYSTEM and USER defined local application authenticator configurations.
      */
     @Deprecated
     public List<LocalAuthenticatorConfig> getLocalAuthenticators() {
