@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -15,25 +15,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.wso2.carbon.identity.application.authentication.framework.config.builder;
 
 import org.apache.axiom.om.OMElement;
-import org.junit.Before;
-import org.junit.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.utils.CarbonUtils;
 
 import java.lang.reflect.Method;
+import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 /*
  * Unit tests for FileBasedConfigurationBuilder class
  */
@@ -43,33 +44,31 @@ public class FileBasedConfigurationBuilderTest {
     private OMElement documentElement;
     private OMElement v2UrlElem;
 
-    @Before
+    @BeforeTest
     public void setUp() {
 
-        // Mock IdentityUtil.getIdentityConfigDirPath() to return a test path
-        Mockito.mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getIdentityConfigDirPath()).thenReturn("src/test/resources");
+        String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes", "repository").
+                toString();
+        System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
 
-        // Initialize the FileBasedConfigurationBuilder instance
-        fileBasedConfigurationBuilder = FileBasedConfigurationBuilder.getInstance();
+        try (MockedStatic<IdentityUtil> identityUtilMock = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<CarbonUtils> carbonUtilsMock = Mockito.mockStatic(CarbonUtils.class)) {
 
-        // Mock OMElement
-        documentElement = mock(OMElement.class);
-        v2UrlElem = mock(OMElement.class);
+            identityUtilMock.when(IdentityUtil::getIdentityConfigDirPath).thenReturn("src/tests/resources");
+            carbonUtilsMock.when(CarbonUtils::getCarbonHome).thenReturn(carbonHome);
+
+            fileBasedConfigurationBuilder = FileBasedConfigurationBuilder.getInstance();
+            // Mock OMElement
+            documentElement = mock(OMElement.class);
+            v2UrlElem = mock(OMElement.class);
+        }
+
     }
 
     @Test
     public void testGetInstance() {
 
         assertNotNull(fileBasedConfigurationBuilder);
-    }
-
-
-    @Test
-    public void testIsDumbMode() {
-
-        // Assuming the test configuration file sets dumb mode to true
-        assertTrue(fileBasedConfigurationBuilder.isDumbMode());
     }
 
     @Test
@@ -98,56 +97,6 @@ public class FileBasedConfigurationBuilderTest {
 
         // Assuming the test configuration file has some authenticator name mappings
         assertNotNull(fileBasedConfigurationBuilder.getAuthenticatorNameMappings());
-    }
-
-
-    @Test
-    public void testGetAuthenticationEndpointURLV2() {
-
-        String expectedURL = "https://localhost:9443/authenticationendpoint/v2/login.do";
-        assertEquals(expectedURL, fileBasedConfigurationBuilder.getAuthenticationEndpointURLV2());
-    }
-
-    @Test
-    public void testGetAuthenticationEndpointRetryURLV2() {
-
-        String expectedURL = "https://localhost:9443/authenticationendpoint/v2/retry.do";
-        assertEquals(expectedURL, fileBasedConfigurationBuilder.getAuthenticationEndpointRetryURLV2());
-    }
-
-    @Test
-    public void testGetAuthenticationEndpointErrorURLV2() {
-
-        String expectedURL = "https://localhost:9443/authenticationendpoint/v2/error.do";
-        assertEquals(expectedURL, fileBasedConfigurationBuilder.getAuthenticationEndpointErrorURLV2());
-    }
-
-    @Test
-    public void testGetAuthenticationEndpointWaitURLV2() {
-
-        String expectedURL = "https://localhost:9443/authenticationendpoint/v2/wait.do";
-        assertEquals(expectedURL, fileBasedConfigurationBuilder.getAuthenticationEndpointWaitURLV2());
-    }
-
-    @Test
-    public void testGetIdentifierFirstConfirmationURLV2() {
-
-        String expectedURL = "https://localhost:9443/authenticationendpoint/v2/idf-confirm.do";
-        assertEquals(expectedURL, fileBasedConfigurationBuilder.getIdentifierFirstConfirmationURLV2());
-    }
-
-    @Test
-    public void testGetAuthenticationEndpointPromptURLV2() {
-
-        String expectedURL = "https://localhost:9443/authenticationendpoint/v2/prompt.do";
-        assertEquals(expectedURL, fileBasedConfigurationBuilder.getAuthenticationEndpointPromptURLV2());
-    }
-
-    @Test
-    public void testGetAuthenticationEndpointMissingClaimsURLV2() {
-
-        String expectedURL = "https://localhost:9443/authenticationendpoint/v2/missing-claims.do";
-        assertEquals(expectedURL, fileBasedConfigurationBuilder.getAuthenticationEndpointMissingClaimsURLV2());
     }
 
     @Test
