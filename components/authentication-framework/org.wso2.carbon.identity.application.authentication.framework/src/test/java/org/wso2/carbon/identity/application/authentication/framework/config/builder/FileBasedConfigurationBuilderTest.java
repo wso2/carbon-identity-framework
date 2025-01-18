@@ -18,14 +18,20 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.builder;
 
+import org.apache.axiom.om.OMElement;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+
+import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /*
@@ -34,6 +40,8 @@ import static org.mockito.Mockito.when;
 public class FileBasedConfigurationBuilderTest {
 
     private FileBasedConfigurationBuilder fileBasedConfigurationBuilder;
+    private OMElement documentElement;
+    private OMElement v2UrlElem;
 
     @Before
     public void setUp() {
@@ -44,6 +52,10 @@ public class FileBasedConfigurationBuilderTest {
 
         // Initialize the FileBasedConfigurationBuilder instance
         fileBasedConfigurationBuilder = FileBasedConfigurationBuilder.getInstance();
+
+        // Mock OMElement
+        documentElement = mock(OMElement.class);
+        v2UrlElem = mock(OMElement.class);
     }
 
     @Test
@@ -137,4 +149,57 @@ public class FileBasedConfigurationBuilderTest {
         String expectedURL = "https://localhost:9443/authenticationendpoint/v2/missing-claims.do";
         assertEquals(expectedURL, fileBasedConfigurationBuilder.getAuthenticationEndpointMissingClaimsURLV2());
     }
+
+    @Test
+    public void testReadAuthenticationEndpointV2URL() throws Exception {
+        // Mock the getFirstChildWithName method to return v2UrlElem
+        when(documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.V2)))
+                .thenReturn(v2UrlElem);
+
+        // Use reflection to access the private method
+        Method method = FileBasedConfigurationBuilder.class.getDeclaredMethod("readAuthenticationEndpointV2URL",
+                OMElement.class);
+        method.setAccessible(true);
+
+        // Call the method to be tested
+        method.invoke(fileBasedConfigurationBuilder, documentElement);
+
+        // Use reflection to access and verify the private helper methods
+        Method readAuthenticationEndpointURLV2 = FileBasedConfigurationBuilder.class.getDeclaredMethod(
+                "readAuthenticationEndpointURLV2", OMElement.class);
+        readAuthenticationEndpointURLV2.setAccessible(true);
+        readAuthenticationEndpointURLV2.invoke(fileBasedConfigurationBuilder, v2UrlElem);
+
+        Method readAuthenticationEndpointRetryURLV2 = FileBasedConfigurationBuilder.class.getDeclaredMethod(
+                "readAuthenticationEndpointRetryURLV2", OMElement.class);
+        readAuthenticationEndpointRetryURLV2.setAccessible(true);
+        readAuthenticationEndpointRetryURLV2.invoke(fileBasedConfigurationBuilder, v2UrlElem);
+
+        Method readAuthenticationEndpointErrorURLV2 = FileBasedConfigurationBuilder.class.getDeclaredMethod(
+                "readAuthenticationEndpointErrorURLV2", OMElement.class);
+        readAuthenticationEndpointErrorURLV2.setAccessible(true);
+        readAuthenticationEndpointErrorURLV2.invoke(fileBasedConfigurationBuilder, v2UrlElem);
+
+        Method readAuthenticationEndpointWaitURLV2 = FileBasedConfigurationBuilder.class.getDeclaredMethod(
+                "readAuthenticationEndpointWaitURLV2", OMElement.class);
+        readAuthenticationEndpointWaitURLV2.setAccessible(true);
+        readAuthenticationEndpointWaitURLV2.invoke(fileBasedConfigurationBuilder, v2UrlElem);
+
+        Method readIdentifierFirstConfirmationURLV2 = FileBasedConfigurationBuilder.class.getDeclaredMethod(
+                "readIdentifierFirstConfirmationURLV2", OMElement.class);
+        readIdentifierFirstConfirmationURLV2.setAccessible(true);
+        readIdentifierFirstConfirmationURLV2.invoke(fileBasedConfigurationBuilder, v2UrlElem);
+
+        Method readAuthenticationEndpointPromptURLV2 = FileBasedConfigurationBuilder.class.getDeclaredMethod(
+                "readAuthenticationEndpointPromptURLV2", OMElement.class);
+        readAuthenticationEndpointPromptURLV2.setAccessible(true);
+        readAuthenticationEndpointPromptURLV2.invoke(fileBasedConfigurationBuilder, v2UrlElem);
+
+        Method readAuthenticationEndpointMissingClaimsURLV2 = FileBasedConfigurationBuilder.class.getDeclaredMethod(
+                "readAuthenticationEndpointMissingClaimsURLV2", OMElement.class);
+        readAuthenticationEndpointMissingClaimsURLV2.setAccessible(true);
+        readAuthenticationEndpointMissingClaimsURLV2.invoke(fileBasedConfigurationBuilder, v2UrlElem);
+    }
+
 }
