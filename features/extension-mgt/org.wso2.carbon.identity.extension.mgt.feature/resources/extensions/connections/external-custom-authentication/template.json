@@ -43,6 +43,7 @@
           "authenticatorId": "",
           "isEnabled": true,
           "isDefault": false,
+          "definedBy": "USER",
           "endpoint": {
             "uri": "",
             "authentication": {
