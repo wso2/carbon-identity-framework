@@ -34,6 +34,9 @@ public class UserDefinedLocalAuthenticatorValidator {
     private static final String AUTHENTICATOR_NAME_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-_]*$";
     private final Pattern authenticatorNameRegexPattern = Pattern.compile(AUTHENTICATOR_NAME_REGEX);
 
+    private static final String URL_REGEX = "^https?://.+";
+    private final Pattern urlRegexPattern = Pattern.compile(URL_REGEX);
+
     /**
      * Validate whether required fields exist.
      *
@@ -60,6 +63,21 @@ public class UserDefinedLocalAuthenticatorValidator {
         if (!isValidName) {
             throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AUTHENTICATOR_NAME,
                     name, AUTHENTICATOR_NAME_REGEX);
+        }
+    }
+
+    /**
+     * Validate the user defined local authenticator name.
+     *
+     * @param url  The url which need to be validated.
+     * @throws AuthenticatorMgtClientException   if the authenticator name is not valid.
+     */
+    public void validateUrl(String url) throws AuthenticatorMgtClientException {
+
+        boolean isValidName = urlRegexPattern.matcher(url).matches();
+        if (!isValidName) {
+            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_URL,
+                    url, URL_REGEX);
         }
     }
 }

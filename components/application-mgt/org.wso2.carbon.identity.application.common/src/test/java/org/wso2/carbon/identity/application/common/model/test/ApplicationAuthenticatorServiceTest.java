@@ -152,6 +152,8 @@ public class ApplicationAuthenticatorServiceTest {
         Assert.assertEquals(createdAuthenticator.getDisplayName(), config.getDisplayName());
         Assert.assertEquals(createdAuthenticator.isEnabled(), config.isEnabled());
         Assert.assertEquals(createdAuthenticator.getDefinedByType(), DefinedByType.USER);
+        Assert.assertEquals(createdAuthenticator.getImageUrl(), config.getImageUrl());
+        Assert.assertEquals(createdAuthenticator.getDescription(), config.getDescription());
         if (AuthenticationType.VERIFICATION == config.getAuthenticationType()) {
             Assert.assertTrue(Arrays.asList(createdAuthenticator.getTags()).contains("2FA"),
                     "Tag list does not contain 2FA tag for verification authentication type.");
@@ -288,6 +290,8 @@ public class ApplicationAuthenticatorServiceTest {
 
         Assert.assertEquals(updatedAuthenticator.getName(), config.getName());
         Assert.assertEquals(updatedAuthenticator.getDisplayName(), config.getDisplayName());
+        Assert.assertEquals(updatedAuthenticator.getImageUrl(), config.getImageUrl());
+        Assert.assertEquals(updatedAuthenticator.getDescription(), config.getDescription());
         Assert.assertEquals(updatedAuthenticator.isEnabled(), config.isEnabled());
         Assert.assertEquals(updatedAuthenticator.getDefinedByType(), DefinedByType.USER);
         Assert.assertEquals(updatedAuthenticator.getProperties().length, config.getProperties().length);
