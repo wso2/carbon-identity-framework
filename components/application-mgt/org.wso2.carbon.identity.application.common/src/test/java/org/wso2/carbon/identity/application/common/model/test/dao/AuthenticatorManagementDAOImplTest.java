@@ -50,8 +50,8 @@ public class AuthenticatorManagementDAOImplTest {
     private UserDefinedLocalAuthenticatorConfig authenticatorForUpdate;
     private UserDefinedLocalAuthenticatorConfig authenticatorForUpdateForException;
 
-    private static final String AUTHENTICATOR1_NAME = "custom_auth1";
-    private static final String AUTHENTICATOR2_NAME = "custom_auth2";
+    private static final String AUTHENTICATOR1_NAME = "custom-auth1";
+    private static final String AUTHENTICATOR2_NAME = "custom-auth2";
     private static final String AUTHENTICATOR_CONFIG_FOR_EXCEPTION_NAME = "exception_auth";
     private static final String NON_EXIST_AUTHENTICATOR_NAME = "non_exist_auth";
 

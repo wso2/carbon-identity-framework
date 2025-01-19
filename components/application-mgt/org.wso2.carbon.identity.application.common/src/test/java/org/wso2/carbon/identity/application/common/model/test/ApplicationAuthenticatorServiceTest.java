@@ -86,10 +86,10 @@ public class ApplicationAuthenticatorServiceTest {
     private static EndpointConfig endpointConfig;
     private static EndpointConfig endpointConfigToBeUpdated;
 
-    private static final String AUTHENTICATOR1_NAME = "custom_auth1";
-    private static final String AUTHENTICATOR2_NAME = "custom_auth2";
-    private static final String AUTHENTICATOR_CONFIG_FOR_EXCEPTION_NAME = "custom_exception_auth";
-    private static final String NON_EXIST_AUTHENTICATOR_NAME = "custom_non_exist_auth";
+    private static final String AUTHENTICATOR1_NAME = "custom-auth1";
+    private static final String AUTHENTICATOR2_NAME = "custom-auth2";
+    private static final String AUTHENTICATOR_CONFIG_FOR_EXCEPTION_NAME = "custom-exception_auth";
+    private static final String NON_EXIST_AUTHENTICATOR_NAME = "custom-non_exist_auth";
     private static final String SYSTEM_AUTHENTICATOR_NAME = "system_auth";
 
     @BeforeClass
@@ -173,7 +173,7 @@ public class ApplicationAuthenticatorServiceTest {
     public void testCreateUserDefinedLocalAuthenticatorWithBlankDisplayName() throws AuthenticatorMgtException {
 
         UserDefinedLocalAuthenticatorConfig config = createUserDefinedAuthenticatorConfig(
-                "custom_withBlankDisplayName", AuthenticationType.IDENTIFICATION);
+                "custom-withBlankDisplayName", AuthenticationType.IDENTIFICATION);
         config.setDisplayName("");
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                 .addUserDefinedLocalAuthenticator(config, tenantDomain);

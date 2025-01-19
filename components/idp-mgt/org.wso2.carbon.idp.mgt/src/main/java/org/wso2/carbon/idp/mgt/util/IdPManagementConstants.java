@@ -130,7 +130,7 @@ public class IdPManagementConstants {
             = "Recovery.Notification.Password.smsOtp.Enable";
 
     // User defined federated authenticator related constants.
-    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom_[a-zA-Z0-9-_]{3,}$";
+    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
 
     // Resident IDP Username Recovery Configs.
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
