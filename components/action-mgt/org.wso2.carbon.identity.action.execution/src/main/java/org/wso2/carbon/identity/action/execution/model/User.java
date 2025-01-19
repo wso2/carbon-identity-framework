@@ -28,7 +28,7 @@ import java.util.List;
 public class User {
 
     private String id;
-    private final List<UserClaim> userClaims =  new ArrayList<>();
+    private final List<UserClaim> claims =  new ArrayList<>();
 
     public User(String id) {
 
@@ -40,11 +40,11 @@ public class User {
         return id;
     }
 
-    public void setUserClaims(UserClaim userClaim) {
-        userClaims.add(userClaim);
+    public void setClaims(UserClaim userClaim) {
+        claims.add(userClaim);
     }
 
-    public List<UserClaim> getUserClaims() {
-        return userClaims;
+    public List<UserClaim> getClaims() {
+        return claims;
     }
 }

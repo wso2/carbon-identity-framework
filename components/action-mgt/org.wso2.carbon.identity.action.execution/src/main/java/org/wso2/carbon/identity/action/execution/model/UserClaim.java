@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.action.execution.model;
 
 /**
- * This class holds the user claims of the authenticated user, which are presented in the request and response to
- * the external authentication service.
+ * This class models the user claims.
+ * User claim is the entity that represents the user claims of the user for whom the action is triggered for.
  */
 public class UserClaim {
 
@@ -33,9 +33,9 @@ public class UserClaim {
     }
 
     /**
-     * Retrieve local claim uri of the user claim.
+     * Retrieve name of the user claim.
      *
-     * @return Local claim uri.
+     * @return Claim name.
      */
     public String getValue() {
         return value;
