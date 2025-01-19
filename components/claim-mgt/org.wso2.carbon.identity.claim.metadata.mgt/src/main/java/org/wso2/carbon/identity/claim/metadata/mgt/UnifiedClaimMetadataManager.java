@@ -225,10 +225,11 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
                 localClaimInDB.setClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
                         systemDefaultSharedProfileValueResolvingMethod);
             }
+        } else {
+            // For custom claims set the FromOrigin as the default value.
+            localClaimInDB.setClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                    ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
         }
-        // For custom claims set the FromOrigin as the default value.
-        localClaimInDB.setClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
-                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
     }
 
     /**
