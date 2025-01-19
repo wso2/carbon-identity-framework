@@ -212,6 +212,9 @@ public class ApplicationAuthenticatorService {
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
         authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
+        if (authenticatorConfig.getImageUrl() != null) {
+            authenticatorValidator.validateUrl(authenticatorConfig.getImageUrl());
+        }
 
         return dao.addUserDefinedLocalAuthenticator(
                 authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -235,8 +238,10 @@ public class ApplicationAuthenticatorService {
             throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR,
                     authenticatorConfig.getName());
         }
-
         authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
+        if (authenticatorConfig.getImageUrl() != null) {
+            authenticatorValidator.validateUrl(authenticatorConfig.getImageUrl());
+        }
 
         return dao.updateUserDefinedLocalAuthenticator(
                 existingConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));

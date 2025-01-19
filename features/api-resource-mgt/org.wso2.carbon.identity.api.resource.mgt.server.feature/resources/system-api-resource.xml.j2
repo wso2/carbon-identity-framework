@@ -162,6 +162,8 @@
         <Scopes>
             <Scope displayName="View Claim" name="internal_org_claim_meta_view"
                    description="View claims and dialects in the organization"/>
+            <Scope displayName="Update Claim" name="internal_org_claim_meta_update"
+                   description="Update claims in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Configuration Management API" identifier="/api/server/v1/configs"
@@ -535,6 +537,12 @@
         <Scopes>
             <Scope displayName="View Userstore" name="internal_org_userstore_view"
                     description="View secondary userstores in the organization"/>
+            <Scope displayName="Create Userstore" name="internal_org_userstore_create"
+                    description="Add new secondary userstores to the organization"/>
+            <Scope displayName="Delete Userstore" name="internal_org_userstore_delete"
+                    description="Delete secondary userstores in the organization"/>
+            <Scope displayName="Update Userstore" name="internal_org_userstore_update"
+                    description="Update the configurations of secondary userstores in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Association Management API"
@@ -923,12 +931,30 @@
                     description="Manage user attributes from the Console"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Attribute Management Feature" identifier="console:org:attributes"
+                    requiresAuthorization="true"
+                    description="Resource representation of the Attribute Management Feature"
+                    type="CONSOLE_ORG_FEATURE">
+           <Scopes>
+               <Scope displayName="Attribute Feature" name="console:org:attributes"
+                       description="Manage user attributes from the Console"/>
+           </Scopes>
+    </APIResource>
     <APIResource name="User Store Management Feature" identifier="console:userstores"
                  requiresAuthorization="true"
                  description="Resource representation of the User Store Management Feature"
                  type="CONSOLE_FEATURE">
         <Scopes>
             <Scope displayName="User Store Feature" name="console:userstores" 
+                    description="Manage user stores from the Console"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Store Management Feature" identifier="console:org:userstores"
+                 requiresAuthorization="true"
+                 description="Resource representation of the User Store Management Feature"
+                 type="CONSOLE_ORG_FEATURE">
+        <Scopes>
+            <Scope displayName="User Store Feature" name="console:org:userstores"
                     description="Manage user stores from the Console"/>
         </Scopes>
     </APIResource>

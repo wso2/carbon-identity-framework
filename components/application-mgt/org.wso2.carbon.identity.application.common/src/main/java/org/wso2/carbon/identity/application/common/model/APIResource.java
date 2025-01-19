@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -36,6 +36,7 @@ public class APIResource {
     private List<Scope> scopes;
     private List<ApplicationBasicInfo> subscribedApplications;
     private List<APIResourceProperty> properties;
+    private List<AuthorizationDetailsType> authorizationDetailsTypes;
 
     public APIResource() {
     }
@@ -53,6 +54,7 @@ public class APIResource {
         this.scopes = apiResourceBuilder.scopes;
         this.subscribedApplications = apiResourceBuilder.subscribedApplications;
         this.properties = apiResourceBuilder.properties;
+        this.authorizationDetailsTypes = apiResourceBuilder.authorizationDetailsTypes;
     }
 
     public String getId() {
@@ -125,6 +127,14 @@ public class APIResource {
         this.properties = properties;
     }
 
+    public List<AuthorizationDetailsType> getAuthorizationDetailsTypes() {
+        return authorizationDetailsTypes;
+    }
+
+    public void setAuthorizationDetailsTypes(List<AuthorizationDetailsType> authorizationDetailsTypes) {
+        this.authorizationDetailsTypes = authorizationDetailsTypes;
+    }
+
     /**
      * API resource builder.
      */
@@ -141,6 +151,7 @@ public class APIResource {
         private List<Scope> scopes;
         private List<ApplicationBasicInfo> subscribedApplications;
         private List<APIResourceProperty> properties;
+        private List<AuthorizationDetailsType> authorizationDetailsTypes;
 
         public APIResourceBuilder() {
         }
@@ -208,6 +219,12 @@ public class APIResource {
         public APIResourceBuilder properties(List<APIResourceProperty> properties) {
 
             this.properties = properties;
+            return this;
+        }
+
+        public APIResourceBuilder authorizationDetailsTypes(List<AuthorizationDetailsType> authorizationDetailsTypes) {
+
+            this.authorizationDetailsTypes = authorizationDetailsTypes;
             return this;
         }
 

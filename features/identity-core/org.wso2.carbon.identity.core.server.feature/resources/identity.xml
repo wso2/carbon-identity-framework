@@ -77,7 +77,7 @@
     -->
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
-<!--        <SAMLConfigs>database</SAMLConfigs>-->
+        <SAML>registry</SAML>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -775,6 +775,8 @@
             <Parameter>password</Parameter>
             <Parameter>client_secret</Parameter>
         </RestrictedQueryParameters>
+
+        <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
     </OAuth>
 
     <RestApiAuthentication>

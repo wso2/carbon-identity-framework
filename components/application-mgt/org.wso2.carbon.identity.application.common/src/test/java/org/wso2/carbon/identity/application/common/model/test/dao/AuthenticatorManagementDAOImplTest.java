@@ -92,6 +92,8 @@ public class AuthenticatorManagementDAOImplTest {
                 .addUserDefinedLocalAuthenticator(config, tenantId);
         Assert.assertNotNull(createdAuthenticator);
         Assert.assertEquals(createdAuthenticator.getName(), config.getName());
+        Assert.assertEquals(createdAuthenticator.getImageUrl(), config.getImageUrl());
+        Assert.assertEquals(createdAuthenticator.getDescription(), config.getDescription());
         Assert.assertEquals(createdAuthenticator.getDisplayName(), config.getDisplayName());
         Assert.assertEquals(createdAuthenticator.isEnabled(), config.isEnabled());
         Assert.assertEquals(createdAuthenticator.getDefinedByType(), config.getDefinedByType());
@@ -121,6 +123,8 @@ public class AuthenticatorManagementDAOImplTest {
                 .updateUserDefinedLocalAuthenticator(authenticatorConfig1, authenticatorForUpdate, tenantId);
         Assert.assertNotNull(updatedConfig);
         Assert.assertEquals(updatedConfig.getName(), authenticatorForUpdate.getName());
+        Assert.assertEquals(updatedConfig.getImageUrl(), authenticatorForUpdate.getImageUrl());
+        Assert.assertEquals(updatedConfig.getDescription(), authenticatorForUpdate.getDescription());
         Assert.assertEquals(updatedConfig.getDisplayName(), authenticatorForUpdate.getDisplayName());
         Assert.assertEquals(updatedConfig.isEnabled(), authenticatorForUpdate.isEnabled());
         Assert.assertEquals(updatedConfig.getDefinedByType(), authenticatorForUpdate.getDefinedByType());
@@ -145,6 +149,8 @@ public class AuthenticatorManagementDAOImplTest {
                 .getUserDefinedLocalAuthenticator(config.getName(), tenantId);
         Assert.assertNotNull(retrievedConfig);
         Assert.assertEquals(retrievedConfig.getName(), config.getName());
+        Assert.assertEquals(retrievedConfig.getImageUrl(), config.getImageUrl());
+        Assert.assertEquals(retrievedConfig.getDescription(), config.getDescription());
         Assert.assertEquals(retrievedConfig.getDisplayName(), config.getDisplayName());
         Assert.assertEquals(retrievedConfig.isEnabled(), config.isEnabled());
         Assert.assertEquals(retrievedConfig.getDefinedByType(), config.getDefinedByType());
