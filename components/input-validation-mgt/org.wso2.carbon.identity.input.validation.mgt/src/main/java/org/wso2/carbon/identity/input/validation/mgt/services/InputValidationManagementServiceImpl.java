@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.input.validation.mgt.model.ValidationConfigurati
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
 import org.wso2.carbon.identity.input.validation.mgt.model.ValidatorConfiguration;
 import org.wso2.carbon.identity.input.validation.mgt.model.validators.AbstractRegExValidator;
+import org.wso2.carbon.identity.input.validation.mgt.model.validators.LengthValidator;
 import org.wso2.carbon.identity.input.validation.mgt.utils.Constants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -182,6 +183,31 @@ public class InputValidationManagementServiceImpl implements InputValidationMana
 
     public ValidationConfiguration getConfigurationFromUserStore(String tenantDomain, String field)
             throws InputValidationMgtException {
+
+        if (StringUtils.equals(field, PASSWORD) && isPasswordPolicyHandlerEnabled()) {
+            Map<String, String> passwordPolicyConfig = getPasswordPolicyConfiguration(tenantDomain);
+            if (passwordPolicyConfig.containsKey(PW_POLICY_ENABLE) && Boolean.parseBoolean(
+                    passwordPolicyConfig.get(PW_POLICY_ENABLE))) {
+                ValidationConfiguration configuration = new ValidationConfiguration();
+                configuration.setField(PASSWORD);
+                List<RulesConfiguration> rules = new ArrayList<>();
+                RulesConfiguration rule = new RulesConfiguration();
+                rule.setValidatorName(LengthValidator.class.getSimpleName());
+                Map<String, String> properties = new HashMap<>();
+                for (Map.Entry<String, String> entry : passwordPolicyConfig.entrySet()) {
+                    String key = entry.getKey();
+                    if (StringUtils.equalsIgnoreCase(PW_POLICY_MIN_LENGTH, key)) {
+                        properties.put(MIN_LENGTH, entry.getValue());
+                    } else if (StringUtils.equalsIgnoreCase(PW_POLICY_MAX_LENGTH, key)) {
+                        properties.put(MAX_LENGTH, entry.getValue());
+                    }
+                }
+                rule.setProperties(properties);
+                rules.add(rule);
+                configuration.setRules(rules);
+                return configuration;
+            }
+        }
 
         for (FieldValidationConfigurationHandler handler : getFieldValidationConfigurationHandlers().values()) {
             if (handler.canHandle(field.toLowerCase())) {
