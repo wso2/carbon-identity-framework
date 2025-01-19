@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.action.execution.model;
 
 /**
- * This interface models the Incomplete status.
+ * This interface models the Incomplete response.
  * If the downstream extension needs to compose the responses with INCOMPLETE status and communicate it back,
  * this class can be used by consumers to implement the model for that incomplete response.
  */

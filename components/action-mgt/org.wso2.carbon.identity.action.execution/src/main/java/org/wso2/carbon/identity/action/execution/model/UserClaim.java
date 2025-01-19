@@ -24,21 +24,12 @@ package org.wso2.carbon.identity.action.execution.model;
  */
 public class UserClaim {
 
-    private final String name;
+    private final String uri;
     private final String value;
 
-    public UserClaim(String name, String value) {
-        this.name = name;
+    public UserClaim(String uri, String value) {
+        this.uri = uri;
         this.value = value;
-    }
-
-    /**
-     * Retrieve name of the user claim.
-     *
-     * @return Claim name.
-     */
-    public String getValue() {
-        return value;
     }
 
     /**
@@ -46,7 +37,16 @@ public class UserClaim {
      *
      * @return Claim value.
      */
-    public String getName() {
-        return name;
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * Retrieve URI of the user claim.
+     *
+     * @return Claim URI.
+     */
+    public String getUri() {
+        return uri;
     }
 }
