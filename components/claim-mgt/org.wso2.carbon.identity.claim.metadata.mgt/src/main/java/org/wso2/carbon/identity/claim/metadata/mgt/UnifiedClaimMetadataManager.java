@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
@@ -55,6 +57,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     private final ReadOnlyClaimMetadataManager systemDefaultClaimMetadataManager =
             new SystemDefaultClaimMetadataManager();
     private final ReadWriteClaimMetadataManager dbBasedClaimMetadataManager = new DBBasedClaimMetadataManager();
+    private static final Log LOG = LogFactory.getLog(UnifiedClaimMetadataManager.class);
 
     /**
      * Get all claim dialects.
@@ -222,8 +225,15 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             if (localClaimInSystem.isPresent()) {
                 String systemDefaultSharedProfileValueResolvingMethod = localClaimInSystem.get()
                         .getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
-                localClaimInDB.setClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
-                        systemDefaultSharedProfileValueResolvingMethod);
+                if (StringUtils.isNotBlank(systemDefaultSharedProfileValueResolvingMethod)) {
+                    localClaimInDB.setClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                            systemDefaultSharedProfileValueResolvingMethod);
+                } else {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("SharedProfileValueResolvingMethod is not defined for the system " +
+                                "claim: %s", localClaimURI));
+                    }
+                }
             }
         } else {
             // For custom claims set the FromOrigin as the default value.
