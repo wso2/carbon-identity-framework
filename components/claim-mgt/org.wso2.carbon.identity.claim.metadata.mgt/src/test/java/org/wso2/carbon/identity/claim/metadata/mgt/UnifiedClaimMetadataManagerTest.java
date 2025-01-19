@@ -233,7 +233,8 @@ public class UnifiedClaimMetadataManagerTest {
                 ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
         List<LocalClaim> localClaimsInSystem = new ArrayList<>();
         localClaimsInSystem.add(new LocalClaim(LOCAL_CLAIM_1, new ArrayList<>(), claimProperties));
-        localClaimsInSystem.add(new LocalClaim(LOCAL_CLAIM_2, new ArrayList<>(), claimProperties));
+        LocalClaim localClaim2InSystem = new LocalClaim(LOCAL_CLAIM_2, new ArrayList<>(), claimProperties);
+        localClaimsInSystem.add(localClaim2InSystem);
 
         Map<String, String> claimPropertiesForLocalClaimsInDB = new HashMap<>();
         claimPropertiesForLocalClaimsInDB.put(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
@@ -248,6 +249,8 @@ public class UnifiedClaimMetadataManagerTest {
 
         when(systemDefaultClaimMetadataManager.getLocalClaims(0)).thenReturn(localClaimsInSystem);
         when(dbBasedClaimMetadataManager.getLocalClaims(0)).thenReturn(localClaimsInDB);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(
+                Optional.of(localClaim2InSystem));
         List<LocalClaim> result = claimMetadataManager.getLocalClaims(0);
         assertNotNull(result);
         assertEquals(result.size(), 4);
