@@ -123,7 +123,7 @@ public class AuthenticatorMgtExceptionBuilder {
         ERROR_CODE_HAVING_MULTIPLE_PROP("65013", "Multiple properties found", "Only actionId " +
                 "property is allowed for authenticator: %s."),
         ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME("65014", "Error while retrieving " +
-                "authenticator.", "Error while check any authenticator exists by given name: %s.");
+                "authenticator.", "Error while checking if an authenticator exists with the given name: %s.");
 
         private final String code;
         private final String message;

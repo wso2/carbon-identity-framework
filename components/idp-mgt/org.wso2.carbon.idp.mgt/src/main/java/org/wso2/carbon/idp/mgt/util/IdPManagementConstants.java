@@ -668,7 +668,7 @@ public class IdPManagementConstants {
         ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
                 " endpoint configuration for authenticator: %s."),
         ERROR_CODE_ADDING_FEDERATED_AUTHENTICATOR("IDP-6501",
-                "An error occurred while validating Federated authenticator name."),;
+                "An error occurred while validating federated authenticator name."),;
 
         private final String code;
         private final String message;

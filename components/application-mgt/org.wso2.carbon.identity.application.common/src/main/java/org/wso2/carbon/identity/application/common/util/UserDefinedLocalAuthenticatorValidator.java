@@ -30,7 +30,7 @@ import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtE
  */
 public class UserDefinedLocalAuthenticatorValidator {
 
-    private static final String AUTHENTICATOR_NAME_REGEX = "^custom_[a-zA-Z0-9-_]{3,}$";
+    private static final String AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
     private final Pattern authenticatorNameRegexPattern = Pattern.compile(AUTHENTICATOR_NAME_REGEX);
 
     private static final String DISPLAY_NAME_REGEX = "^.{3,}$";

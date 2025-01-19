@@ -1408,7 +1408,7 @@ public class ApplicationBean {
                 if (!ArrayUtils.isEmpty(properties)) {
                     for (Property prop : properties) {
                         String propVal = request.getParameter(
-                                "custom-auth_prop_name_" + type + "_" + prop.getName());
+                                "custom_auth_prop_name_" + type + "_" + prop.getName());
                         prop.setValue(propVal);
                     }
                 }

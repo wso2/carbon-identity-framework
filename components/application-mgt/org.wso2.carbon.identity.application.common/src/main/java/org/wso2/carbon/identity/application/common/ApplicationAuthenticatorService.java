@@ -283,7 +283,7 @@ public class ApplicationAuthenticatorService {
     }
 
     /**
-     * Check whether an any local of federated authenticator configuration with the given name exists.
+     * Check whether any local or federated authenticator configuration exists with the given name.
      *
      * @param authenticatorName Name of the authenticator.
      * @param tenantDomain      Tenant domain.
