@@ -2397,8 +2397,8 @@ public class IdentityProviderManager implements IdpManager {
         return ApplicationAuthenticatorService.getInstance()
                 .isExistingAuthenticatorName(authenticatorName, tenantDomain);
         } catch (AuthenticatorMgtException e) {
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, authenticatorName);
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, authenticatorName);
         }
     }
 
