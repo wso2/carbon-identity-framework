@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.action.execution.model.Request;
 import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
+import org.wso2.carbon.identity.action.execution.model.UserClaim;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.action.execution.util.APIClient;
 import org.wso2.carbon.identity.action.execution.util.ActionExecutionDiagnosticLogger;
@@ -677,7 +678,9 @@ public class ActionExecutorServiceImplTest {
         setField(event, "request", request);
         setField(event, "tenant", new Tenant("45", "tenant-45"));
         setField(event, "organization", new Organization("9600e5d0-969d-46b4-a463-9fd5de97196a", "test-org-1"));
-        setField(event, "user", new User("8ebe008f-33c1-4d2d-97ee-eaacb17d8114"));
+        User user = new User("8ebe008f-33c1-4d2d-97ee-eaacb17d8114");
+        user.setClaims(new UserClaim("http://wso2.org/claims/username", "testuser"));
+        setField(event, "user", user);
         setField(event, "userStore", new UserStore("PRIMARY"));
         setField(event, "application", new Application("af82f304-ac9b-4d2b-b4da-17e01bd13d09", "test-app-1"));
 

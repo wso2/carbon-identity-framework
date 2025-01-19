@@ -532,9 +532,6 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         List<AllowedOperation> allowedOperations = request.getAllowedOperations();
 
-        if (operations == null) {
-            return new ArrayList<>();
-        }
         List<PerformableOperation> allowedPerformableOperations = operations.stream()
                 .filter(performableOperation -> allowedOperations.stream()
                         .anyMatch(allowedOperation -> OperationComparator.compare(allowedOperation,

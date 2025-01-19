@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
@@ -225,6 +226,35 @@ public class APIClientTest {
         });
         assertFalse(apiResponse.isRetry());
         assertNull(apiResponse.getErrorLog());
+    }
+
+    @DataProvider(name = "unexpectedIncompleteResponses")
+    public Object[][] unexpectedIncompleteResponses() {
+
+        return new Object[][]{
+                {"{\"operations\": [" + "{\"op\": \"redirect\",\"url\": \"https://dummy-url\"}]}"},
+                {"{\"actionStatus\": \"INCOMPLETE\"}"}
+        };
+    }
+
+    @Test(dataProvider = "unexpectedIncompleteResponses")
+    public void testCallAPIUnexpectedIncompleteResponse(String incompleteResponse) throws IOException {
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+
+        InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(incompleteResponse.getBytes(
+                StandardCharsets.UTF_8)));
+        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+
+        assertNotNull(apiResponse);
+        assertTrue(apiResponse.isError());
+        assertFalse(apiResponse.isRetry());
+        assertNotNull(apiResponse.getErrorLog());
     }
 
     @Test
