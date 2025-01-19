@@ -510,4 +510,22 @@ public interface RoleDAO {
 
         return false;
     }
+
+    /**
+     * Retrieve the list of permitted usernames that can be deleted in the given tenant domain for the specified role
+     * and permitted organization.
+     *
+     * @param roleId               The role ID associated with the users.
+     * @param deletedUserNamesList The list of usernames intended for deletion.
+     * @param tenantDomain         The tenant domain.
+     * @param permittedOrgId       The ID of the organization permitted for the operation.
+     * @return A list of usernames permitted to be deleted.
+     * @throws IdentityRoleManagementException If an error occurs while retrieving the permitted usernames.
+     */
+    default List<String> getPermittedUserNamesToBeDeleted(String roleId, List<String> deletedUserNamesList,
+                                                          String tenantDomain, String permittedOrgId)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getPermittedUserNamesToBeDeleted method is not implemented.");
+    }
 }

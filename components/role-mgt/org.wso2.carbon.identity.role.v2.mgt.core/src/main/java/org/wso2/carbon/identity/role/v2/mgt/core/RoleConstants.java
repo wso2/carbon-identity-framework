@@ -86,6 +86,12 @@ public class RoleConstants {
     // Role properties
     public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
 
+    // NamedPreparedStatement Params
+    public static final String ROLE_ID = "roleId";
+    public static final String TENANT_ID = "tenantId";
+    public static final String PERMITTED_ORG_ID = "permittedOrgId";
+    public static final String USERNAME = "username";
+
     /**
      * Grouping of constants related to database table names.
      */

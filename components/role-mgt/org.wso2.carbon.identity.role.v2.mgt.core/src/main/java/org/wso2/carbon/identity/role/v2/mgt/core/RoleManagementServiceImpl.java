@@ -31,10 +31,12 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.management.service.util.Utils;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.v2.mgt.core.dao.RoleMgtDAOFactory;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
@@ -422,6 +424,18 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public RoleBasicInfo updateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
                                               String tenantDomain) throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                deletedUserIDList = updateDeletedUserIDListBasedOnPermission(roleId, deletedUserIDList, tenantDomain,
+                        Utils.getOrganizationId());
+            }
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the organization id for the given tenantDomain: "
+                    + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
 
         List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
                 .getRoleManagementListenerList();
@@ -1244,5 +1258,42 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             throws IdentityRoleManagementException {
 
         return userIDResolver.getNamesByIDs(userIDs, tenantDomain);
+    }
+
+    /**
+     * Get user IDs by usernames.
+     *
+     * @param userNames   List of usernames.
+     * @param tenantDomain Tenant Domain.
+     * @return List of user IDs.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    private List<String> getUserIDsByNames(List<String> userNames, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return userIDResolver.getIDsByNames(userNames, tenantDomain);
+    }
+
+    /**
+     * Updates the list of user IDs intended for deletion based on the specified permissions for the given role
+     * and permitted organization in the tenant domain.
+     *
+     * @param roleId           The role ID associated with the users.
+     * @param deletedUserIDList The list of user IDs intended for deletion.
+     * @param tenantDomain     The tenant domain.
+     * @param permittedOrgId   The ID of the organization permitted for the operation.
+     * @return A modified list of user IDs that are permitted to be deleted.
+     * @throws IdentityRoleManagementException If an error occurs while updating the user ID list.
+     */
+    private List<String> updateDeletedUserIDListBasedOnPermission(String roleId, List<String> deletedUserIDList,
+                                                                  String tenantDomain, String permittedOrgId)
+            throws IdentityRoleManagementException {
+
+        List<String> deletedUserNamesList = getUserNamesByIDs(deletedUserIDList, tenantDomain);
+
+        List<String> modifiedDeletedUserNamesList =
+                roleDAO.getPermittedUserNamesToBeDeleted(roleId, deletedUserNamesList, tenantDomain, permittedOrgId);
+
+        return getUserIDsByNames(modifiedDeletedUserNamesList, tenantDomain);
     }
 }
