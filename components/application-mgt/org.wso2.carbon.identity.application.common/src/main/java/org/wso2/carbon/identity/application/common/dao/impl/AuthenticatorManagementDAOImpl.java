@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.Authenticati
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -171,6 +172,25 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             });
         } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_DELETING_AUTHENTICATOR, e);
+        }
+    }
+
+    public boolean isExistingAuthenticatorName(String authenticatorName, int tenantId)
+            throws AuthenticatorMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            ResultSet results = jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(Query.IS_AUTHENTICATOR_EXISTS_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet,
+                        statement -> {
+                            statement.setString(Column.NAME, authenticatorName);
+                            statement.setInt(Column.TENANT_ID, tenantId);
+                        }));
+            return results != null;
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e,
+                    authenticatorName);
         }
     }
 
