@@ -450,7 +450,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
                 IdentityProvider idp = idpManager.getIdPByName(idpName, tenantDomain);
-                if (idp.getId() == null) {
+                if (idp == null || idp.getId() == null) {
                     if (log.isDebugEnabled()) {
                         log.debug("Identity provider not found for the name: " + idpName + ", in the tenant domain: "
                                 + tenantDomain);
