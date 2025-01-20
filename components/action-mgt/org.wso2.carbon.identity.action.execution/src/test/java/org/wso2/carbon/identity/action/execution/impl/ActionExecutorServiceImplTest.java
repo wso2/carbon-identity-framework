@@ -344,8 +344,7 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
                 actionExecutionRequest);
 
-        ActionInvocationResponse actionInvocationResponse =
-                createSuccessActionInvocationResponse();
+        ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, eventContext, "tenantDomain");
@@ -377,8 +376,7 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
                 actionExecutionRequest);
 
-        ActionInvocationResponse actionInvocationResponse =
-                createSuccessActionInvocationResponse();
+        ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
 
         actionExecutorService.execute(actionType, eventContext, "tenantDomain");
