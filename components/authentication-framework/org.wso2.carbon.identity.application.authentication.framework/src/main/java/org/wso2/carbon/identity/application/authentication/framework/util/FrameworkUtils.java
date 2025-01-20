@@ -2711,6 +2711,7 @@ public class FrameworkUtils {
      */
     public static String getIdpGroupClaimUri(StepConfig stepConfig, AuthenticationContext context) {
 
+        String tenantDomain = context.getTenantDomain();
         String idpGroupMappingURI = FrameworkConstants.GROUPS_CLAIM;
 
         ExternalIdPConfig externalIdPConfig = context.getExternalIdP();
@@ -2726,44 +2727,7 @@ public class FrameworkUtils {
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
 
         boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
-        boolean useLocalClaimDialectForClaimMappings =
-                FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
-        boolean mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed = useLocalClaimDialectForClaimMappings &&
-                FileBasedConfigurationBuilder.getInstance()
-                        .isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
-
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
-
-        // Check whether to use the default dialect.
-        if (useDefaultIdpDialect || !useLocalClaimDialectForClaimMappings ||
-                mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed) {
-            String idPStandardDialect = authenticator.getClaimDialectURI();
-            try {
-                if (StringUtils.isNotBlank(idPStandardDialect)) {
-                    carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
-                            .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
-                                    context.getTenantDomain(), false);
-                }
-                for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                    if (StringUtils.isNotEmpty(idpGroupMappingURI) &&
-                            idpGroupMappingURI.equalsIgnoreCase(entry.getValue())) {
-                        idpGroupMappingURI = entry.getKey();
-                    }
-                }
-            } catch (ClaimMetadataException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error in getting the mapping between idps and standard dialect.Thus returning the " +
-                            "unmapped GroupClaimUri: " + idpGroupMappingURI, e);
-                }
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Custom claim mappings are enabled and no custom mapping configured for groups claim. " +
-                        "Thus setting GroupClaimUri to empty string.");
-            }
-            idpGroupMappingURI = StringUtils.EMPTY;
-        }
-        return idpGroupMappingURI;
+        return getMappedIdPGroupClaimFromDialect(authenticator, idpGroupMappingURI, tenantDomain, useDefaultIdpDialect);
     }
 
     /**
@@ -3038,50 +3002,14 @@ public class FrameworkUtils {
     public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
                                                   AuthenticationContext context) {
 
-        // Finally return the incoming idpClaimUri if it is in expected dialect.
-        String idpRoleMappingURI = idpRoleClaimUri;
-
+        String tenantDomain = context.getTenantDomain();
         ApplicationAuthenticator authenticator = stepConfig.
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
 
         // Read the value from management console.
         boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
 
-        // Read value from file based configuration.
-        boolean useLocalClaimDialectForClaimMappings =
-                FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
-        boolean mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed = useLocalClaimDialectForClaimMappings &&
-                FileBasedConfigurationBuilder.getInstance()
-                        .isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
-
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
-
-        // Check whether to use the default dialect.
-        if (useDefaultIdpDialect || !useLocalClaimDialectForClaimMappings ||
-                mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed) {
-            String idPStandardDialect = authenticator.getClaimDialectURI();
-            try {
-                if (StringUtils.isNotBlank(idPStandardDialect)) {
-                    // Maps the idps dialect to standard dialect.
-                    carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
-                            .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
-                                    context.getTenantDomain(), false);
-                }
-                // check for role claim uri in the idaps dialect.
-                for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                    if (StringUtils.isNotEmpty(idpRoleMappingURI) &&
-                        idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
-                        idpRoleMappingURI = entry.getKey();
-                    }
-                }
-            } catch (ClaimMetadataException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error in getting the mapping between idps and standard dialect.Thus returning the " +
-                            "unmapped RoleClaimUri: " + idpRoleMappingURI, e);
-                }
-            }
-        }
-        return idpRoleMappingURI;
+        return getMappedIdpRoleClaimUriFromDialect(authenticator, idpRoleClaimUri, tenantDomain, useDefaultIdpDialect);
     }
 
     /**
