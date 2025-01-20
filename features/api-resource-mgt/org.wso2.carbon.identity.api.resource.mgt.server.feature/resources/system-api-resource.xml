@@ -542,8 +542,22 @@
         <Scopes>
             <Scope displayName="View User Associations" name="internal_user_association_view" 
                     description="View the associated local/federated accounts of a user in the organization (root)"/>
+            <Scope displayName="Create User Associations" name="internal_user_association_create"
+                   description="Create the associated local/federated accounts of a user in the organization (root)"/>
             <Scope displayName="Delete User Associations" name="internal_user_association_delete" 
                     description="Delete the associated local/federated accounts  of a user in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Association Management API"
+                 identifier="/o/api/users/v1/(.*)/(.*)associations" requiresAuthorization="true"
+                 description="API representation of the Association Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View User Associations" name="internal_org_user_association_view"
+                   description="View the associated local/federated accounts of a user in the organization"/>
+            <Scope displayName="Create User Associations" name="internal_org_user_association_create"
+                   description="Create the associated local/federated accounts of a user in the organization"/>
+            <Scope displayName="Delete User Associations" name="internal_org_user_association_delete"
+                   description="Delete the associated local/federated accounts  of a user in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authorized Application Management V1/V2 API"
