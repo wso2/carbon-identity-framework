@@ -262,10 +262,16 @@ public class ApplicationConstants {
                 "Error occurred while retrieving user by userid: %s."),
         NON_EXISTING_USER_ID("60504", "User not found",
                 "No user found for the given user-id: %s."),
+        UNSUPPORTED_USER_STORE_MANAGER("65003", "Unsupported user store manager.",
+                "The underlying user store manager is not a unique ID user store manager for the tenant: %s."),
         ERROR_RETRIEVING_USERSTORE_MANAGER("65504", "Error retrieving userstore manager.",
-                "Error occurred while retrieving userstore manager."),
+                "Error occurred while retrieving userstore manager for the tenant: %s."),
         UNEXPECTED_ERROR("65006", "Unexpected processing error.",
-                "Server encountered an unexpected error when creating the application.");
+                "Server encountered an unexpected error when creating the application."),
+        ERROR_CHECKING_GROUP_EXISTENCE("65007", "Unexpected processing error.",
+                "Error occurred while checking the existence of the group: %s."),
+        ERROR_CHECKING_USER_STORE_EXISTENCE("65008", "Unexpected processing error.",
+                "Error occurred while checking the existence of the user store: %s.");
 
         private final String code;
 

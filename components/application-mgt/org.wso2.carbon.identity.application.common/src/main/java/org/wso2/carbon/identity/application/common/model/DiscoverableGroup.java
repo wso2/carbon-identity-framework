@@ -29,6 +29,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -38,14 +39,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "DiscoverableGroup")
 public class DiscoverableGroup implements Serializable {
 
+    private static final long serialVersionUID = -3030000000000000000L;
     private static final String USER_STORE = "UserStore";
+    private static final String GROUPS = "Groups";
     private static final String GROUP = "Group";
 
     @XmlElement(name = USER_STORE)
     private String userStore;
 
+    @XmlElementWrapper(name = GROUPS)
     @XmlElement(name = GROUP)
-    private String[] groups;
+    private GroupBasicInfo[] groups;
 
     /**
      * Creates an instance of the DiscoverableGroup class by parsing an OMElement.
@@ -57,7 +61,7 @@ public class DiscoverableGroup implements Serializable {
 
         DiscoverableGroup discoverableGroup = new DiscoverableGroup();
         Iterator<?> iter = discoverableGroupOM.getChildElements();
-        List<String> groupList = new ArrayList<>();
+        List<GroupBasicInfo> groupList = new ArrayList<>();
 
         while (iter.hasNext()) {
             OMElement element = (OMElement) iter.next();
@@ -65,8 +69,15 @@ public class DiscoverableGroup implements Serializable {
 
             if (USER_STORE.equals(elementName) && StringUtils.isNotBlank(element.getText())) {
                 discoverableGroup.setUserStore(element.getText());
-            } else if (GROUP.equals(elementName) && StringUtils.isNotBlank(element.getText())) {
-                groupList.add(element.getText());
+            } else if (GROUPS.equals(elementName)) {
+                Iterator<?> groupIter = element.getChildElements();
+                while (groupIter.hasNext()) {
+                    OMElement groupElement = (OMElement) groupIter.next();
+                    GroupBasicInfo groupBasicInfo = GroupBasicInfo.build(groupElement);
+                    if (groupBasicInfo != null) {
+                        groupList.add(groupBasicInfo);
+                    }
+                }
             }
         }
 
@@ -74,26 +85,26 @@ public class DiscoverableGroup implements Serializable {
             return null;
         }
 
-        discoverableGroup.setGroups(groupList.toArray(new String[0]));
+        discoverableGroup.setGroups(groupList.toArray(new GroupBasicInfo[0]));
         return discoverableGroup;
     }
 
     /**
-     * Get the list of discoverable group IDs from the current user store.
+     * Get the list of discoverable group basic info for the current user store.
      *
-     * @return The list of group IDs.
+     * @return The list of group basic info.
      */
-    public String[] getGroups() {
+    public GroupBasicInfo[] getGroups() {
 
         return groups;
     }
 
     /**
-     * Set the list of discoverable group IDs for the current user store.
+     * Set the list of discoverable group basic info for the current user store.
      *
-     * @param groups The list of group IDs.
+     * @param groups The list of group basic info.
      */
-    public void setGroups(String[] groups) {
+    public void setGroups(GroupBasicInfo[] groups) {
 
         this.groups = groups;
     }

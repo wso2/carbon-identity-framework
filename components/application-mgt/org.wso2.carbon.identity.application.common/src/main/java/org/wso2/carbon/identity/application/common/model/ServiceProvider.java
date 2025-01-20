@@ -317,7 +317,10 @@ public class ServiceProvider implements Serializable {
 
                 while (discoverableGroupIter.hasNext()) {
                     OMElement discoverableGroupElement = (OMElement) discoverableGroupIter.next();
-                    discoverableGroupList.add(DiscoverableGroup.build(discoverableGroupElement));
+                    DiscoverableGroup discoverableGroup = DiscoverableGroup.build(discoverableGroupElement);
+                    if (discoverableGroup != null) {
+                        discoverableGroupList.add(discoverableGroup);
+                    }
                 }
 
                 if (!discoverableGroupList.isEmpty()) {

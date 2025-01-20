@@ -57,11 +57,13 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -82,6 +84,8 @@ import javax.xml.bind.Unmarshaller;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
@@ -1265,5 +1269,40 @@ public class ApplicationMgtUtil {
                     .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
         }
         return inboundConfigType;
+    }
+
+    /**
+     * Get the AbstractUserStoreManager for the given tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return UserStoreManager.
+     * @throws IdentityApplicationManagementException If an error occurred while getting the AbstractUserStoreManager
+     *                                               instance of the tenant.
+     */
+    public static AbstractUserStoreManager getUserStoreManager(String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        RealmService realmService = ApplicationManagementServiceComponentHolder.getInstance().getRealmService();
+        UserStoreManager userStoreManager;
+        try {
+            userStoreManager =
+                    realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain))
+                            .getUserStoreManager();
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getMessage(),
+                    String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain), e);
+        }
+        if (userStoreManager == null) {
+            throw new IdentityApplicationManagementException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getMessage(),
+                    String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain));
+        }
+        if (!(userStoreManager instanceof AbstractUserStoreManager)) {
+            throw new IdentityApplicationManagementException(UNSUPPORTED_USER_STORE_MANAGER.getCode(),
+                    UNSUPPORTED_USER_STORE_MANAGER.getMessage(),
+                    String.format(UNSUPPORTED_USER_STORE_MANAGER.getDescription(), tenantDomain));
+        }
+        return (AbstractUserStoreManager) userStoreManager;
     }
 }

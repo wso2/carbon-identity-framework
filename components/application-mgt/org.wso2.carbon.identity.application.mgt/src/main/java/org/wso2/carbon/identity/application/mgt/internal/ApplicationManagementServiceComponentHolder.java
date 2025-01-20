@@ -29,9 +29,11 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationUserResidentResolverService;
+import org.wso2.carbon.identity.role.v2.mgt.core.GroupManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
+import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -69,6 +71,7 @@ public class ApplicationManagementServiceComponentHolder {
     private ApplicationPermissionProvider applicationPermissionProvider;
     private APIResourceManager apiResourceManager;
     private RoleManagementService roleManagementServiceV2;
+    private UserStoreConfigService userStoreConfigService;
     private OrganizationManager organizationManager;
 
     private boolean isOrganizationManagementEnable = false;
@@ -439,5 +442,25 @@ public class ApplicationManagementServiceComponentHolder {
             ApplicationCertificateManagementService applicationCertificateMgtService) {
 
         this.applicationCertificateMgtService = applicationCertificateMgtService;
+    }
+
+    /**
+     * Get UserStoreConfigService instance.
+     *
+     * @return UserStoreConfigService instance.
+     */
+    public UserStoreConfigService getUserStoreConfigService() {
+
+        return userStoreConfigService;
+    }
+
+    /**
+     * Set UserStoreConfigService instance.
+     *
+     * @param userStoreConfigService UserStoreConfigService instance.
+     */
+    public void setUserStoreConfigService(UserStoreConfigService userStoreConfigService) {
+
+        this.userStoreConfigService = userStoreConfigService;
     }
 }

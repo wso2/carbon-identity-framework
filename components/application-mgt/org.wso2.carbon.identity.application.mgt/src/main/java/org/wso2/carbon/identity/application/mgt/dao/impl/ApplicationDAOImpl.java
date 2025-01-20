@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
+import java.util.Locale;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -44,7 +45,9 @@ import org.wso2.carbon.identity.application.common.model.ClientAttestationMetaDa
 import org.wso2.carbon.identity.application.common.model.ConsentConfig;
 import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
 import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
+import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -105,6 +108,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -631,6 +635,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         updateOutboundProvisioningConfiguration(applicationId,
                 serviceProvider.getOutboundProvisioningConfig(), connection);
         updateSpTrustedAppMetadata(applicationId, serviceProvider.getTrustedAppMetadata(), connection, tenantID);
+        updateDiscoverableGroups(applicationId, serviceProvider.getDiscoverableGroups(), connection, tenantID);
 
         if (serviceProvider.getPermissionAndRoleConfig() != null) {
             updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
@@ -679,6 +684,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
         deleteAssociatedRolesConfigurations(connection, serviceProvider.getApplicationResourceId());
         deleteSpTrustedAppMetadata(applicationId, connection, tenantID);
+        deleteDiscoverableGroups(applicationId, connection);
     }
 
     private void deleteAssociatedRolesConfigurations(Connection connection, String applicationId) throws SQLException {
@@ -2002,6 +2008,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
+                serviceProvider.setDiscoverableGroups(getDiscoverableGroups(serviceProvider.getApplicationID(), connection, tenantDomain));
 
                 User owner = new User();
                 owner.setUserName(basicAppDataResultSet.getString(5));
@@ -2233,6 +2240,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (serviceProvider == null) {
                 return null;
             }
+            serviceProvider.setDiscoverableGroups(
+                    getDiscoverableGroups(applicationId, connection, serviceProvider.getTenantDomain()));
             int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
 
@@ -2674,6 +2683,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
 
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
+                serviceProvider.setDiscoverableGroups(getDiscoverableGroups(appId, connection, tenantDomain));
 
                 User owner = new User();
                 owner.setUserName(rs.getString(ApplicationTableColumns.USERNAME));
@@ -6736,6 +6746,125 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             deleteApplicationCertificate(application, tenantDomain);
         } catch (Exception e) {
             throw new IdentityApplicationManagementException("Error while rolling back the transaction.", e);
+        }
+    }
+
+    /**
+     * Retrieve the discoverable groups for the application.
+     *
+     * @param applicationId Application ID.
+     * @param connection    Database connection.
+     * @param tenantDomain  Tenant domain of the application.
+     * @return Discoverable groups list.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving discoverable groups.
+     */
+    private DiscoverableGroup[] getDiscoverableGroups(int applicationId, Connection connection, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving discoverable groups for application with ID: " + applicationId);
+        }
+
+        Map<String, List<GroupBasicInfo>> groupInfoMap = new HashMap<>();
+        try (PreparedStatement statement = connection.prepareStatement(
+                ApplicationMgtDBQueries.GET_GROUP_ASSOCIATIONS_BY_APP_ID)) {
+            statement.setInt(1, applicationId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                AbstractUserStoreManager userStoreManager =
+                        ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+                while (resultSet.next()) {
+                    String groupID = resultSet.getString(1);
+                    String domainName = resultSet.getString(2);
+                    GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
+                    groupBasicInfo.setId(groupID);
+                    try {
+                        String groupName = userStoreManager.getGroupNameByGroupId(
+                                UserCoreUtil.addDomainToName(groupID, domainName));
+                        groupBasicInfo.setName(UserCoreUtil.removeDomainFromName(groupName));
+                        if (groupInfoMap.containsKey(domainName)) {
+                            groupInfoMap.get(domainName).add(groupBasicInfo);
+                        } else {
+                            List<GroupBasicInfo> groupBasicInfoList = new ArrayList<>();
+                            groupBasicInfoList.add(groupBasicInfo);
+                            groupInfoMap.put(domainName, groupBasicInfoList);
+                        }
+                    } catch (UserStoreException e) {
+                        log.warn("Error while retrieving group name for group ID: " + groupID, e);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException(
+                    "Error while retrieving discoverable groups for the application", e);
+        }
+        List<DiscoverableGroup> discoverableGroups = new ArrayList<>();
+        for (String domainName : groupInfoMap.keySet()) {
+            DiscoverableGroup discoverableGroup = new DiscoverableGroup();
+            discoverableGroup.setUserStore(domainName);
+            discoverableGroup.setGroups(groupInfoMap.get(domainName).toArray(new GroupBasicInfo[0]));
+            discoverableGroups.add(discoverableGroup);
+        }
+        if (!discoverableGroups.isEmpty()) {
+            return discoverableGroups.toArray(new DiscoverableGroup[0]);
+        }
+        return null;
+    }
+
+    /**
+     * Update the discoverable groups for the application.
+     *
+     * @param applicationId      Application ID.
+     * @param discoverableGroups Discoverable groups.
+     * @param connection         Database connection.
+     * @param tenantId           Tenant ID.
+     * @throws IdentityApplicationManagementException If an error occurred while updating discoverable groups.
+     */
+    private void updateDiscoverableGroups(int applicationId, DiscoverableGroup[] discoverableGroups,
+                                          Connection connection, int tenantId)
+            throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Adding discoverable groups for application with ID: " + applicationId);
+        }
+
+        if (discoverableGroups == null) {
+            return;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                ApplicationMgtDBQueries.ADD_APP_GROUP_ASSOCIATION)) {
+            for (DiscoverableGroup discoverableGroup : discoverableGroups) {
+                for (GroupBasicInfo groupBasicInfo : discoverableGroup.getGroups()) {
+                    statement.setInt(1, applicationId);
+                    statement.setString(2, groupBasicInfo.getId());
+                    statement.setString(3, discoverableGroup.getUserStore().toUpperCase(Locale.ENGLISH));
+                    statement.addBatch();
+                }
+            }
+            statement.executeBatch();
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while adding discoverable groups for application",
+                    e);
+        }
+    }
+
+    /**
+     * Delete the discoverable groups for the application.
+     *
+     * @param applicationId Application ID.
+     * @param connection    Database connection.
+     * @throws SQLException If an error occurred while deleting discoverable groups.
+     */
+    private void deleteDiscoverableGroups(int applicationId, Connection connection) throws SQLException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting discoverable groups for application with ID: " + applicationId);
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                ApplicationMgtDBQueries.DELETE_APP_GROUP_ASSOCIATION_BY_APP_ID)) {
+            statement.setInt(1, applicationId);
+            statement.executeUpdate();
         }
     }
 }

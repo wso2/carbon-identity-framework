@@ -578,6 +578,14 @@ public class ApplicationMgtDBQueries {
     public static final String ADD_APPLICATION_ASSOC_ROLE = "INSERT INTO APP_ROLE_ASSOCIATION " +
             "(APP_ID, ROLE_ID) VALUES (?, ?)";
 
+    // App group association related database queries.
+    public static final String ADD_APP_GROUP_ASSOCIATION = "INSERT INTO APP_GROUP_ASSOCIATION (APP_ID, GROUP_ID, " +
+            "DOMAIN_NAME) VALUES (?, ?, ?)";
+    public static final String DELETE_APP_GROUP_ASSOCIATION_BY_APP_ID =
+            "DELETE FROM APP_GROUP_ASSOCIATION WHERE APP_ID = ?";
+    public static final String GET_GROUP_ASSOCIATIONS_BY_APP_ID =
+            "SELECT GROUP_ID, DOMAIN_NAME FROM APP_GROUP_ASSOCIATION WHERE APP_ID = ?";
+
     /**
      * SQL placeholders related to application management tables.
      */
