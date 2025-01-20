@@ -514,7 +514,7 @@ public interface RoleDAO {
     /**
      * Retrieve the list of usernames eligible to be removed from the specified role within the given tenant domain,
      * based on the permissions of the requesting organization.
-     *
+     * <p>
      * This method ensures that the requesting organization has the necessary permissions to remove the specified users
      * from the given role.
      *
@@ -523,7 +523,8 @@ public interface RoleDAO {
      * @param tenantDomain         The tenant domain where the operation is being performed.
      * @param requestingOrgId      The ID of the requesting organization performing the operation.
      * @return A list of usernames that the requesting organization is permitted to remove from the given role.
-     * @throws IdentityRoleManagementException If an error occurs while validating the permissions or retrieving eligible usernames.
+     * @throws IdentityRoleManagementException If an error occurs while validating the permissions or retrieving
+     *                                         eligible usernames.
      */
     default List<String> getEligibleUsernamesForUserRemovalFromRole(String roleId, List<String> usernamesToBeRemoved,
                                                                     String tenantDomain, String requestingOrgId)
