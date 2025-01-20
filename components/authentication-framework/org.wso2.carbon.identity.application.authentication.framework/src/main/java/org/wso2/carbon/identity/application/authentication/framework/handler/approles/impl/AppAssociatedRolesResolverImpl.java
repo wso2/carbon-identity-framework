@@ -107,7 +107,6 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
         return getAppAssociatedRolesForLocalUser(authenticatedUser, applicationId);
     }
 
-
     /**
      * Get app associated roles for local user for given app.
      *
@@ -189,9 +188,40 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
     private String[] getAppAssociatedRolesForFederatedUser(AuthenticatedUser authenticatedUser, String applicationId,
                                                            String idpGroupClaimURI) throws ApplicationRolesException {
 
-        Set<String> federatedUserRoleIds = getAllRolesOfFederatedUser(authenticatedUser, idpGroupClaimURI);
-        List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId,
-                authenticatedUser.getTenantDomain());
+        String tenantDomain = authenticatedUser.getTenantDomain();
+        String idpName = authenticatedUser.getFederatedIdPName();
+        IdentityProvider identityProvider = getIDP(idpName, tenantDomain);
+        Map<ClaimMapping, String> fedUserAttributes = authenticatedUser.getUserAttributes();
+
+        Set<String> federatedUserRoleIds =
+                getAllRolesOfFederatedUser(fedUserAttributes, identityProvider, idpGroupClaimURI, tenantDomain);
+        List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId, tenantDomain);
+
+        return rolesAssociatedWithApp.stream()
+                .filter(role -> federatedUserRoleIds.contains(role.getId()))
+                .map(role -> appendInternalDomain(role.getName()))
+                .toArray(String[]::new);
+    }
+
+    /**
+     * Get app associated roles for federated user for given app.
+     *
+     * @param fedUserAttributes Federated user attributes.
+     * @param identityProvider  Identity provider.
+     * @param applicationId     Application ID.
+     * @param idpGroupClaimURI  IDP group claim URI.
+     * @param tenantDomain      Tenant domain.
+     * @return App associated roles for federated user.
+     * @throws ApplicationRolesException If an error occurred while getting app associated roles for federated user.
+     */
+    private String[] getAppAssociatedRolesForFederatedUser(Map<ClaimMapping, String> fedUserAttributes,
+                                                           IdentityProvider identityProvider, String applicationId,
+                                                           String idpGroupClaimURI, String tenantDomain)
+            throws ApplicationRolesException {
+
+        Set<String> federatedUserRoleIds =
+                getAllRolesOfFederatedUser(fedUserAttributes, identityProvider, idpGroupClaimURI, tenantDomain);
+        List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId, tenantDomain);
 
         return rolesAssociatedWithApp.stream()
                 .filter(role -> federatedUserRoleIds.contains(role.getId()))
@@ -230,21 +260,23 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
     /**
      * Get all roles of the federated user.
      *
-     * @param authenticatedUser Authenticated user.
+     * @param fedUserAttributes Federated user attributes.
+     * @param identityProvider  Identity provider.
+     * @param idpGroupClaimURI  IDP group claim URI.
+     * @param tenantDomain      Tenant domain.
      * @return All the roles assigned to the federated user.
      * @throws ApplicationRolesException If an error occurred while getting all roles of a federated user.
      */
-    private Set<String> getAllRolesOfFederatedUser(AuthenticatedUser authenticatedUser, String idpGroupClaimURI)
+    private Set<String> getAllRolesOfFederatedUser(Map<ClaimMapping, String> fedUserAttributes,
+                                                   IdentityProvider identityProvider, String idpGroupClaimURI,
+                                                   String tenantDomain)
             throws ApplicationRolesException {
 
-        String tenantDomain = authenticatedUser.getTenantDomain();
-        String idpName = authenticatedUser.getFederatedIdPName();
-        IdentityProvider identityProvider = getIDP(idpName, tenantDomain);
         if (identityProvider == null) {
             return Collections.emptySet();
         }
         IdPGroup[] idpGroups = identityProvider.getIdPGroupConfig();
-        List<String> idpGroupNamesOfUser = getFederatedIdPGroupNamesOfUser(authenticatedUser, identityProvider,
+        List<String> idpGroupNamesOfUser = getFederatedIdPGroupNamesOfUser(fedUserAttributes, identityProvider,
                 idpGroupClaimURI);
         if (CollectionUtils.isEmpty(idpGroupNamesOfUser)) {
             return Collections.emptySet();
@@ -343,11 +375,12 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
     /**
      * Get federated user IDP groups.
      *
-     * @param authenticatedUser Authenticated user.
+     * @param fedUserAttributes Federated user attributes.
      * @param federatedIdP      Federated IDP.
+     * @param idpGroupClaimURI  IDP group claim URI.
      * @return Federated user IDP groups.
      */
-    private List<String> getFederatedIdPGroupNamesOfUser(AuthenticatedUser authenticatedUser,
+    private List<String> getFederatedIdPGroupNamesOfUser(Map<ClaimMapping, String> fedUserAttributes,
                                                          IdentityProvider federatedIdP, String idpGroupClaimURI) {
 
         if (federatedIdP != null) {
@@ -355,7 +388,7 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
                 idpGroupClaimURI = FrameworkUtils.getIdpGroupClaimUri(federatedIdP.getClaimConfig().getClaimMappings());
             }
             if (idpGroupClaimURI != null) {
-                String[] idpGroups = getIdPUserGroups(authenticatedUser, idpGroupClaimURI);
+                String[] idpGroups = getIdPUserGroups(fedUserAttributes, idpGroupClaimURI);
                 if (idpGroups != null && idpGroups.length > 0) {
                     return Arrays.asList(idpGroups);
                 }
@@ -445,15 +478,14 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
     /**
      * Get the IdP groups of the federated authenticated user.
      *
-     * @param authenticatedUser Authenticated federated user.
+     * @param fedUserAttributes Federated user attributes.
      * @param idpGroupClaimUri  IDP group claim URI.
      * @return IdP groups of the authenticated user.
      */
-    private String[] getIdPUserGroups(AuthenticatedUser authenticatedUser, String idpGroupClaimUri) {
+    private String[] getIdPUserGroups(Map<ClaimMapping, String> fedUserAttributes, String idpGroupClaimUri) {
 
         String idpGroupClaimValueSeparator = FrameworkUtils.getIdpGroupClaimValueSeparator();
-        Map<ClaimMapping, String> userAttributes = authenticatedUser.getUserAttributes();
-        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+        for (Map.Entry<ClaimMapping, String> entry : fedUserAttributes.entrySet()) {
             ClaimMapping claimMapping = entry.getKey();
             if (idpGroupClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
                 String idPGroupsClaim = entry.getValue();
