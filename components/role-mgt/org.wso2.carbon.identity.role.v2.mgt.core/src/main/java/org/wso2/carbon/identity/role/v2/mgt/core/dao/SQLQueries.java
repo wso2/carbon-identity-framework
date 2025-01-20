@@ -416,18 +416,18 @@ public class SQLQueries {
             "VALUES (:UM_SHARED_ROLE_ID;, :UM_MAIN_ROLE_ID;, :UM_SHARED_ROLE_TENANT_ID;, :UM_MAIN_ROLE_TENANT_ID;)";
 
     public static final String GET_NOT_RESTRICTED_USERNAMES_BY_ROLE_HEAD =
-            "SELECT UM_USER_NAME FROM UM_HYBRID_USER_ROLE WHERE UM_ROLE_ID = :roleId AND UM_USER_NAME IN (";
+            "SELECT UM_USER_NAME FROM UM_HYBRID_USER_ROLE WHERE UM_ROLE_ID = :roleId; AND UM_USER_NAME IN (";
 
     public static final String GET_NOT_RESTRICTED_USERNAMES_BY_ROLE_TAIL =
-            ") AND UM_TENANT_ID = :tenantId AND UM_EDIT_RESTRICTION = 'NOT_RESTRICTED'";
+            "); AND UM_TENANT_ID = :tenantId; AND UM_EDIT_RESTRICTION = 'NOT_RESTRICTED';";
 
     public static final String GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_HEAD =
             "SELECT r.UM_USER_NAME FROM UM_HYBRID_USER_ROLE r "
                     + "INNER JOIN UM_HYBRID_USER_ROLE_RESTRICTED_EDIT_PERMISSIONS p "
                     + "ON r.UM_ID = p.UM_HYBRID_USER_ROLE_ID AND r.UM_TENANT_ID = p.UM_HYBRID_USER_ROLE_TENANT_ID "
-                    + "WHERE r.UM_ROLE_ID = :roleId AND r.UM_USER_NAME IN (";
+                    + "WHERE r.UM_ROLE_ID = :roleId; AND r.UM_USER_NAME IN (";
 
     public static final String GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_TAIL =
-            ") AND r.UM_TENANT_ID = :tenantId AND p.UM_PERMITTED_ORG_ID = :permittedOrgId " +
-                    "AND r.UM_EDIT_OPERATION = 'DELETE' AND r.UM_EDIT_RESTRICTION = 'RESTRICTED'";
+            "); AND r.UM_TENANT_ID = :tenantId; AND p.UM_PERMITTED_ORG_ID = :permittedOrgId; " +
+                    "AND r.UM_EDIT_OPERATION = 'DELETE'; AND r.UM_EDIT_RESTRICTION = 'RESTRICTED';";
 }
