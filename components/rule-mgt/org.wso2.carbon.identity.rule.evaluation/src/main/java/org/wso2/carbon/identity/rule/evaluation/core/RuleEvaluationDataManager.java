@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvider;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -35,7 +35,8 @@ import java.util.Map;
 public class RuleEvaluationDataManager {
 
     private static final RuleEvaluationDataManager INSTANCE = new RuleEvaluationDataManager();
-    private final Map<FlowType, RuleEvaluationDataProvider> ruleEvaluationDataProviderMap = new HashMap<>();
+    private final Map<FlowType, RuleEvaluationDataProvider> ruleEvaluationDataProviderMap =
+            new EnumMap<>(FlowType.class);
 
     private RuleEvaluationDataManager() {
 
