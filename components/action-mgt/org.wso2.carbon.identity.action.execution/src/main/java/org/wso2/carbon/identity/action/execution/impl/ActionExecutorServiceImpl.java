@@ -307,7 +307,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         String apiEndpoint = action.getEndpoint().getUri();
         CompletableFuture<ActionInvocationResponse> actionExecutor = CompletableFuture.supplyAsync(
-                () -> apiClient.callAPI(apiEndpoint, authenticationMethod, payload), executorService);
+                () -> apiClient.callAPI(ActionType.valueOf(action.getType().getActionType()),
+                        apiEndpoint, authenticationMethod, payload), executorService);
         try {
             return actionExecutor.get();
         } catch (InterruptedException | ExecutionException e) {
