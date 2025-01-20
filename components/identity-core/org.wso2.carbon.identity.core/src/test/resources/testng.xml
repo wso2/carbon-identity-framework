@@ -25,12 +25,13 @@
             <class name="org.wso2.carbon.identity.core.util.IdentityUtilTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityConfigParserTest"/>
             <class name="org.wso2.carbon.identity.core.dao.SAMLServiceProviderPersistenceManagerFactoryTest"/>
+            <class name="org.wso2.carbon.identity.core.JDBCSAMLSSOServiceProviderManagerTest"/>
+            <class name="org.wso2.carbon.identity.core.RegistrySAMLSSOServiceProviderManagerTest"/>
             <class name="org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilderTest"/>
             <class name="org.wso2.carbon.identity.core.cache.BaseCacheTest"/>
             <class name="org.wso2.carbon.identity.core.ThreadLocalAwareThreadPoolExecutorTest"/>
             <class name="org.wso2.carbon.identity.core.IdentityKeyStoreResolverTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityKeyStoreResolverUtilTest"/>
-            <class name="org.wso2.carbon.identity.core.SAMLSSOServiceProviderManagerTest"/>
         </classes>
     </test>
 </suite>
