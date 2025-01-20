@@ -996,15 +996,16 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         String query = INSERT_OR_UPDATE_RESOURCE_MYSQL;
         try {
+            boolean isOracle = isOracleDB();
             if (isPostgreSQLDB()) {
                 query = INSERT_OR_UPDATE_RESOURCE_POSTGRESQL;
             } else if (isMSSqlDB() || isDB2DB()) {
                 query = INSERT_OR_UPDATE_RESOURCE_MSSQL_OR_DB2;
-            } else if (isOracleDB()) {
+            } else if (isOracle) {
                 query = INSERT_OR_UPDATE_RESOURCE_ORACLE;
             }
 
-            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            boolean isOracleOrMssql = isOracle || isMSSqlDB();
             JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
             final String finalQuery = query;
             jdbcTemplate.withTransaction(template ->
@@ -1014,6 +1015,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             preparedStatement -> {
                                 int initialParameterIndex = 1;
                                 preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                                if (isOracle) {
+                                    preparedStatement.setInt(++initialParameterIndex,
+                                            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                                    .getTenantId());
+                                    preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                                    preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                    preparedStatement.setInt(++initialParameterIndex, 0);
+                                    preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                                    preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
+                                }
                                 preparedStatement.setInt(++initialParameterIndex,
                                         PrivilegedCarbonContext.getThreadLocalCarbonContext()
                                                 .getTenantId());
