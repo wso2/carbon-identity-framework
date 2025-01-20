@@ -115,15 +115,14 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORACLE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.PERMITTED_ORG_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.POSTGRE_SQL;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ROLE_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.ROLE_NAME;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.UM_PERMITTED_ORG_ID;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.UM_ROLE_ID;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.UM_TENANT_ID;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.UM_USER_NAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.RoleTableColumns.USER_NOT_FOUND_ERROR_MESSAGE;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.SYSTEM;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.TENANT_ID;
-import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.USERNAME;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_APP_ROLE_ASSOCIATION_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.ADD_GROUP_TO_ROLE_SQL_MSSQL;
@@ -254,7 +253,7 @@ public class RoleDAOImpl implements RoleDAO {
                     try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                             ADD_ROLE_SQL, RoleConstants.RoleTableColumns.UM_ID)) {
                         statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-                        statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                        statement.setInt(UM_TENANT_ID, tenantId);
                         statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                         statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
                         statement.executeUpdate();
@@ -330,7 +329,7 @@ public class RoleDAOImpl implements RoleDAO {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                     getDBTypeSpecificRolesRetrievalQuery(databaseProductName), RoleConstants.RoleTableColumns.UM_ID)) {
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 roles = processListRolesQuery(limit, offset, statement, tenantDomain);
             }
         } catch (SQLException e) {
@@ -376,7 +375,7 @@ public class RoleDAOImpl implements RoleDAO {
                     filterQueryBuilder.getFilterQuery());
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query,
                     RoleConstants.RoleTableColumns.UM_ID)) {
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 if (filterAttributeValue != null) {
                     for (Map.Entry<String, String> entry : filterAttributeValue.entrySet()) {
                         statement.setString(entry.getKey(), entry.getValue());
@@ -415,7 +414,7 @@ public class RoleDAOImpl implements RoleDAO {
                     getDBTypeSpecificRolesRetrievalQueryByFilter(databaseProductName,
                             filterQueryBuilder.getFilterQuery()),
                     RoleConstants.RoleTableColumns.UM_ID)) {
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 if (filterAttributeValue != null) {
                     for (Map.Entry<String, String> entry : filterAttributeValue.entrySet()) {
                         statement.setString(entry.getKey(), entry.getValue());
@@ -657,7 +656,7 @@ public class RoleDAOImpl implements RoleDAO {
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_IDP_GROUPS_SQL)) {
 
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     groups.add(new IdpGroup(resultSet.getString(1)));
@@ -687,7 +686,7 @@ public class RoleDAOImpl implements RoleDAO {
                             DELETE_IDP_GROUPS_SQL)) {
                         statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, idpGroup.getGroupId());
                         statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-                        statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                        statement.setInt(UM_TENANT_ID, tenantId);
                         statement.executeUpdate();
                     } catch (SQLException e) {
                         IdentityDatabaseUtil.rollbackTransaction(connection);
@@ -739,7 +738,7 @@ public class RoleDAOImpl implements RoleDAO {
                 try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLE_SQL,
                         RoleConstants.RoleTableColumns.UM_ID)) {
                     statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    statement.setInt(UM_TENANT_ID, tenantId);
                     statement.executeUpdate();
                 }
 
@@ -855,7 +854,7 @@ public class RoleDAOImpl implements RoleDAO {
                         RoleConstants.RoleTableColumns.UM_ID)) {
                     statement.setString(RoleConstants.RoleTableColumns.NEW_UM_ROLE_NAME, newRoleName);
                     statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                    statement.setInt(UM_TENANT_ID, tenantId);
                     statement.executeUpdate();
                 }
                 // Update shared hybrid role names and return conflicting roles if there are any
@@ -907,7 +906,7 @@ public class RoleDAOImpl implements RoleDAO {
                         RoleConstants.RoleTableColumns.UM_ID)) {
                     statement.setString(RoleConstants.RoleTableColumns.NEW_UM_ROLE_NAME, newRoleName);
                     statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleDTO.getId());
-                    statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, roleDTO.getTenantId());
+                    statement.setInt(UM_TENANT_ID, roleDTO.getTenantId());
                     statement.executeUpdate();
                 } catch (SQLException e) {
                     IdentityDatabaseUtil.rollbackUserDBTransaction(connection);
@@ -962,7 +961,7 @@ public class RoleDAOImpl implements RoleDAO {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                     getDBTypeSpecificRolesCountQuery(databaseProductName))) {
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID,
+                statement.setInt(UM_TENANT_ID,
                         tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
@@ -1100,7 +1099,7 @@ public class RoleDAOImpl implements RoleDAO {
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_LIST_OF_USER_SQL)) {
 
             statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -1212,7 +1211,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 String nameWithoutDomain = UserCoreUtil.removeDomainFromName(groupName);
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_NAME, nameWithoutDomain);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
@@ -1250,7 +1249,7 @@ public class RoleDAOImpl implements RoleDAO {
                      GET_ROLE_LIST_OF_IDP_GROUPS_SQL)) {
             for (String groupId : groupIds) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, groupId);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         String roleName = resultSet.getString(1);
@@ -1297,7 +1296,7 @@ public class RoleDAOImpl implements RoleDAO {
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_ID_LIST_OF_USER_SQL)) {
 
             statement.setString(UM_USER_NAME, nameWithoutDomain);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -1340,7 +1339,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
                 String nameWithoutDomain = UserCoreUtil.removeDomainFromName(groupName);
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_NAME, nameWithoutDomain);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
@@ -1369,7 +1368,7 @@ public class RoleDAOImpl implements RoleDAO {
                      GET_ROLE_ID_LIST_OF_IDP_GROUPS_SQL)) {
             for (String groupId : groupIds) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, groupId);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         String roleId = resultSet.getString(1);
@@ -1394,7 +1393,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLES_BY_APP_ID_SQL)) {
             try {
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID,
+                statement.setInt(UM_TENANT_ID,
                         IdentityTenantUtil.getTenantId(tenantDomain));
                 statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, APPLICATION);
                 statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, applicationId);
@@ -1517,7 +1516,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLES_BY_APP_ID_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
+            statement.setInt(UM_TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, APPLICATION);
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, applicationId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -1617,7 +1616,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_IDP_GROUPS_SQL)) {
             for (IdpGroup group : groups) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID,
+                statement.setInt(UM_TENANT_ID,
                         IdentityTenantUtil.getTenantId(tenantDomain));
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_ID, group.getGroupId());
                 statement.addBatch();
@@ -1743,10 +1742,10 @@ public class RoleDAOImpl implements RoleDAO {
 
     @Override
     public List<String> getEligibleUsernamesForUserRemovalFromRole(String roleId, List<String> deletedUserNamesList,
-                                                         String tenantDomain, String permittedOrgId)
+                                                                   String tenantDomain, String permittedOrgId)
             throws IdentityRoleManagementException {
 
-        if (deletedUserNamesList == null || deletedUserNamesList.isEmpty()) {
+        if (CollectionUtils.isEmpty(deletedUserNamesList)) {
             return Collections.emptyList(); // Return early if no usernames are provided
         }
 
@@ -1755,55 +1754,57 @@ public class RoleDAOImpl implements RoleDAO {
 
         // Dynamically build placeholders for the IN clause
         String placeholders = deletedUserNamesList.stream()
-                .map(username -> ":username" + deletedUserNamesList.indexOf(username))
+                .map(username -> ":" + UM_USER_NAME + deletedUserNamesList.indexOf(username))
                 .collect(Collectors.joining(","));
 
         // Query 1: NOT_RESTRICTED usernames
-        String query1 =
+        String fetchNotRestrictedUsernamesQuery =
                 GET_NOT_RESTRICTED_USERNAMES_BY_ROLE_HEAD + placeholders + GET_NOT_RESTRICTED_USERNAMES_BY_ROLE_TAIL;
 
         // Query 2: RESTRICTED usernames with permitted deletion access
-        String query2 = GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_HEAD + placeholders +
-                GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_TAIL;
+        String fetchRestrictedUsernamesWithPermittedAccessQuery =
+                GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_HEAD + placeholders +
+                        GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_TAIL;
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
 
             // Execute Query 1
-            try (NamedPreparedStatement ps1 = new NamedPreparedStatement(connection, query1)) {
-                ps1.setString(ROLE_ID, roleId);
-                ps1.setInt(TENANT_ID, tenantId);
+            try (NamedPreparedStatement preparedStatement1 = new NamedPreparedStatement(connection,
+                    fetchNotRestrictedUsernamesQuery)) {
+                preparedStatement1.setString(UM_ROLE_ID, roleId);
+                preparedStatement1.setInt(UM_TENANT_ID, tenantId);
 
                 for (int i = 0; i < deletedUserNamesList.size(); i++) {
-                    ps1.setString(USERNAME + i, deletedUserNamesList.get(i));
+                    preparedStatement1.setString(UM_USER_NAME + i, deletedUserNamesList.get(i));
                 }
 
-                try (ResultSet rs1 = ps1.executeQuery()) {
-                    while (rs1.next()) {
-                        permittedUserNames.add(rs1.getString(UM_USER_NAME));
+                try (ResultSet resultSet1 = preparedStatement1.executeQuery()) {
+                    while (resultSet1.next()) {
+                        permittedUserNames.add(resultSet1.getString(UM_USER_NAME));
                     }
                 }
             }
 
             // Execute Query 2
-            try (NamedPreparedStatement ps2 = new NamedPreparedStatement(connection, query2)) {
-                ps2.setString(ROLE_ID, roleId);
-                ps2.setInt(TENANT_ID, tenantId);
-                ps2.setString(PERMITTED_ORG_ID, permittedOrgId);
+            try (NamedPreparedStatement preparedStatement2 = new NamedPreparedStatement(connection,
+                    fetchRestrictedUsernamesWithPermittedAccessQuery)) {
+                preparedStatement2.setString(UM_ROLE_ID, roleId);
+                preparedStatement2.setInt(UM_TENANT_ID, tenantId);
+                preparedStatement2.setString(UM_PERMITTED_ORG_ID, permittedOrgId);
 
                 for (int i = 0; i < deletedUserNamesList.size(); i++) {
-                    ps2.setString(USERNAME + i, deletedUserNamesList.get(i));
+                    preparedStatement2.setString(UM_USER_NAME + i, deletedUserNamesList.get(i));
                 }
 
-                try (ResultSet rs2 = ps2.executeQuery()) {
-                    while (rs2.next()) {
-                        String username = rs2.getString(UM_USER_NAME);
+                try (ResultSet resultSet2 = preparedStatement2.executeQuery()) {
+                    while (resultSet2.next()) {
+                        String username = resultSet2.getString(UM_USER_NAME);
                         if (!permittedUserNames.contains(username)) {
                             permittedUserNames.add(username);
                         }
                     }
                 }
             }
-
         } catch (SQLException e) {
             String errorMessage =
                     String.format("Error while retrieving permitted usernames for role ID: %s in tenant domain: %s",
@@ -1849,11 +1850,11 @@ public class RoleDAOImpl implements RoleDAO {
                      GET_SHARED_ROLE_MAIN_ROLE_ID_SQL)) {
 
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     mainRoleId = resultSet.getString(RoleConstants.RoleTableColumns.UM_UUID);
-                    mainTenantId = resultSet.getInt(RoleConstants.RoleTableColumns.UM_TENANT_ID);
+                    mainTenantId = resultSet.getInt(UM_TENANT_ID);
                 }
             }
             if (StringUtils.isNotEmpty(mainRoleId) && mainTenantId != -1) {
@@ -2256,7 +2257,7 @@ public class RoleDAOImpl implements RoleDAO {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL,
                     RoleConstants.RoleTableColumns.UM_ID)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
@@ -2331,7 +2332,7 @@ public class RoleDAOImpl implements RoleDAO {
                 String nameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
                 statement.setString(UM_USER_NAME, nameWithoutDomain);
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
                 statement.addBatch();
@@ -2368,7 +2369,7 @@ public class RoleDAOImpl implements RoleDAO {
                 String nameWithoutDomain = UserCoreUtil.removeDomainFromName(groupName);
                 statement.setString(RoleConstants.RoleTableColumns.UM_GROUP_NAME, nameWithoutDomain);
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
                 statement.addBatch();
@@ -2785,7 +2786,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_NAME_BY_ID_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             int count = 0;
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -2824,7 +2825,7 @@ public class RoleDAOImpl implements RoleDAO {
              NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                      GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL)) {
             statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE, audience);
             statement.setString(RoleConstants.RoleTableColumns.UM_AUDIENCE_ID, audienceId);
             int count = 0;
@@ -2905,7 +2906,7 @@ public class RoleDAOImpl implements RoleDAO {
              NamedPreparedStatement statement = new NamedPreparedStatement(
                      connection, GET_AUDIENCE_REF_BY_ID_FROM_UM_HYBRID_ROLE_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -2969,7 +2970,7 @@ public class RoleDAOImpl implements RoleDAO {
 
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
                 statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-                statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+                statement.setInt(UM_TENANT_ID, tenantId);
                 statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
                 statement.setInt(RoleConstants.LIMIT, limit);
                 statement.setInt(RoleConstants.OFFSET, offset);
@@ -3081,7 +3082,7 @@ public class RoleDAOImpl implements RoleDAO {
              NamedPreparedStatement statement = new NamedPreparedStatement(
                      connection, IS_ROLE_ID_EXIST_FROM_UM_HYBRID_ROLE_SQL)) {
 
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -3169,7 +3170,7 @@ public class RoleDAOImpl implements RoleDAO {
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_GROUP_LIST_OF_ROLE_SQL)) {
 
             statement.setString(RoleConstants.RoleTableColumns.UM_ROLE_NAME, roleName);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setInt(UM_TENANT_ID, tenantId);
             statement.setInt(RoleConstants.RoleTableColumns.UM_AUDIENCE_REF_ID, audienceRefId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -3485,7 +3486,7 @@ public class RoleDAOImpl implements RoleDAO {
         try {
             try (NamedPreparedStatement selectStatement =
                          new NamedPreparedStatement(connection, GET_SHARED_HYBRID_ROLE_WITH_MAIN_ROLE_SQL)) {
-                selectStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
+                selectStatement.setInt(UM_TENANT_ID, mainTenantId);
                 selectStatement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
 
                 List<Map.Entry<Integer, Integer>> idsToDelete = new ArrayList<>();
@@ -3500,7 +3501,7 @@ public class RoleDAOImpl implements RoleDAO {
                         DELETE_SHARED_ROLE)) {
                     for (Map.Entry<Integer, Integer> idPair : idsToDelete) {
                         deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_ID, idPair.getKey());
-                        deleteStatement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, idPair.getValue());
+                        deleteStatement.setInt(UM_TENANT_ID, idPair.getValue());
                         deleteStatement.addBatch();
                     }
                     deleteStatement.executeBatch();
@@ -3526,7 +3527,7 @@ public class RoleDAOImpl implements RoleDAO {
         List<RoleDTO> hybridRoles = new ArrayList<>();
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                 GET_SHARED_ROLES_SQL)) {
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
+            statement.setInt(UM_TENANT_ID, mainTenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -3756,7 +3757,7 @@ public class RoleDAOImpl implements RoleDAO {
         List<RoleDTO> hybridRoles = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_SHARED_ROLES_SQL)) {
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, mainTenantId);
+            statement.setInt(UM_TENANT_ID, mainTenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_UUID, roleId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {

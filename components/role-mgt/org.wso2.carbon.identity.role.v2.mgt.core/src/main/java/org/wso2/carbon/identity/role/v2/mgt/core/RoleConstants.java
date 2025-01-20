@@ -86,12 +86,6 @@ public class RoleConstants {
     // Role properties
     public static final String IS_SHARED_ROLE_PROP_NAME = "isSharedRole";
 
-    // NamedPreparedStatement Params
-    public static final String ROLE_ID = "roleId";
-    public static final String TENANT_ID = "tenantId";
-    public static final String PERMITTED_ORG_ID = "permittedOrgId";
-    public static final String USERNAME = "username";
-
     /**
      * Grouping of constants related to database table names.
      */
@@ -125,6 +119,7 @@ public class RoleConstants {
         public static final String UM_GROUP_ID = "UM_GROUP_ID";
         public static final String GROUP_NAME = "GROUP_NAME";
         public static final String ID = "ID";
+        public static final String UM_PERMITTED_ORG_ID = "UM_PERMITTED_ORG_ID";
 
         public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
         public static final String USER_NOT_FOUND_ERROR_MESSAGE = "A user doesn't exist with name: %s " +

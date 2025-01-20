@@ -1265,17 +1265,17 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     /**
-     * Updates the list of user IDs intended for deletion based on the specified permissions for the given role
-     * and permitted organization in the tenant domain.
+     * Retrieves the updated list of user IDs intended for deletion based on the specified permissions for the
+     * given role and permitted organization in the tenant domain.
      *
-     * @param roleId           The role ID associated with the users.
+     * @param roleId            The role ID associated with the users.
      * @param deletedUserIDList The list of user IDs intended for deletion.
-     * @param tenantDomain     The tenant domain.
-     * @param permittedOrgId   The ID of the organization permitted for the operation.
+     * @param tenantDomain      The tenant domain.
+     * @param permittedOrgId    The ID of the organization permitted for the operation.
      * @return A modified list of user IDs that are permitted to be deleted.
      * @throws IdentityRoleManagementException If an error occurs while updating the user ID list.
      */
-    private List<String> updateDeletedUserIDListBasedOnPermission(String roleId, List<String> deletedUserIDList,
+    private List<String> getUpdatedUserIDListToBeDeletedBasedOnPermission(String roleId, List<String> deletedUserIDList,
                                                                   String tenantDomain, String permittedOrgId)
             throws IdentityRoleManagementException {
 
@@ -1306,7 +1306,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
             if (OrganizationManagementUtil.isOrganization(tenantId)) {
-                return updateDeletedUserIDListBasedOnPermission(roleId, deletedUserIDList, tenantDomain,
+                return getUpdatedUserIDListToBeDeletedBasedOnPermission(roleId, deletedUserIDList, tenantDomain,
                         Utils.getOrganizationId());
             }
         } catch (OrganizationManagementException e) {
