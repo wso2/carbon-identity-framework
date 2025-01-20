@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
@@ -126,7 +127,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     /**
-     * Resolve the action by given the action id list and execute them.
+     * Resolve the action from given action id and execute it.
      *
      * @param actionType    Action Type.
      * @param actionId      The action Id of the action that need to be executed.
@@ -139,15 +140,15 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                             Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
-        if (actionId == null) {
-            throw new ActionExecutionException("No action Ids found for action type: " + actionType.name());
+        if (StringUtils.isBlank(actionId)) {
+            throw new ActionExecutionException("Action Id cannot be blank.");
         }
 
         Action action = getActionByActionId(actionType, actionId, tenantDomain);
         try {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
-            LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
+            LOG.debug("Skip executing action for action type: " + actionType.name(), e);
             // Skip executing actions when no action available is considered as action execution being successful.
             return new SuccessStatus.Builder().setResponseContext(eventContext).build();
         }

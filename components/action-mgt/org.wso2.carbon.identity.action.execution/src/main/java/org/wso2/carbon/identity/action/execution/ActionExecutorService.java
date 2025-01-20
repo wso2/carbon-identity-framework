@@ -52,7 +52,7 @@ public interface ActionExecutorService {
             ActionExecutionException;
 
     /**
-     * Resolve the action by given the action id and execute them.
+     * Resolve the action from given action id and execute it.
      *
      * @param actionType    Action Type.
      * @param actionId      The action Id of the action that need to be executed.
