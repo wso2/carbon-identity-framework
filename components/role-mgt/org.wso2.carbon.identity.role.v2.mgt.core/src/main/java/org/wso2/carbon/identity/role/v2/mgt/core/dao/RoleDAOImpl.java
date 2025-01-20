@@ -1811,7 +1811,6 @@ public class RoleDAOImpl implements RoleDAO {
                             roleId, tenantDomain);
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
-
         return permittedUserNames;
     }
 
