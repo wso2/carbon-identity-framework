@@ -1269,7 +1269,7 @@
   "console.email_templates.scopes.read": ["internal_email_mgt_view"],
   "console.email_templates.scopes.update": ["internal_email_mgt_update"],
   "console.email_templates.scopes.delete": ["internal_email_mgt_delete"],
-  "console.sms_templates.enabled": false,
+  "console.sms_templates.enabled": true,
   "console.sms_templates.scopes.feature": ["console:smsTemplates"],
   "console.sms_templates.scopes.create": ["internal_template_mgt_create"],
   "console.sms_templates.scopes.read": ["internal_template_mgt_view"],
