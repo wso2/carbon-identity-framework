@@ -425,17 +425,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     public RoleBasicInfo updateUserListOfRole(String roleId, List<String> newUserIDList, List<String> deletedUserIDList,
                                               String tenantDomain) throws IdentityRoleManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        try {
-            if (OrganizationManagementUtil.isOrganization(tenantId)) {
-                deletedUserIDList = updateDeletedUserIDListBasedOnPermission(roleId, deletedUserIDList, tenantDomain,
-                        Utils.getOrganizationId());
-            }
-        } catch (OrganizationManagementException e) {
-            String errorMessage = "Error while retrieving the organization id for the given tenantDomain: "
-                    + tenantDomain;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
-        }
+        deletedUserIDList = getEligibleUserIDsForUserRemovalFromRole(roleId, deletedUserIDList, tenantDomain);
 
         List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.getInstance()
                 .getRoleManagementListenerList();
@@ -1292,8 +1282,39 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         List<String> deletedUserNamesList = getUserNamesByIDs(deletedUserIDList, tenantDomain);
 
         List<String> modifiedDeletedUserNamesList =
-                roleDAO.getPermittedUserNamesToBeDeleted(roleId, deletedUserNamesList, tenantDomain, permittedOrgId);
+                roleDAO.getEligibleUsernamesForUserRemovalFromRole(roleId, deletedUserNamesList, tenantDomain,
+                        permittedOrgId);
 
         return getUserIDsByNames(modifiedDeletedUserNamesList, tenantDomain);
+    }
+
+    /**
+     * Retrieves the list of user IDs eligible for removal from the specified role in the given tenant domain,
+     * based on the permissions of the requesting organization.
+     *
+     * @param roleId            The role ID from which the users are to be removed.
+     * @param deletedUserIDList The list of user IDs intended for removal.
+     * @param tenantDomain      The tenant domain where the operation is being performed.
+     * @return A list of user IDs eligible for removal from the specified role.
+     * @throws IdentityRoleManagementException If an error occurs while validating permissions or retrieving the
+     *                                         organization ID.
+     */
+    private List<String> getEligibleUserIDsForUserRemovalFromRole(String roleId, List<String> deletedUserIDList,
+                                                                  String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantId)) {
+                return updateDeletedUserIDListBasedOnPermission(roleId, deletedUserIDList, tenantDomain,
+                        Utils.getOrganizationId());
+            }
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the organization id for the given tenantDomain: "
+                    + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+
+        return deletedUserIDList;
     }
 }

@@ -1099,7 +1099,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_LIST_OF_USER_SQL)) {
 
-            statement.setString(UM_USER_NAME, nameWithoutDomain);
+            statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
             statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
             statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -1742,7 +1742,7 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
-    public List<String> getPermittedUserNamesToBeDeleted(String roleId, List<String> deletedUserNamesList,
+    public List<String> getEligibleUsernamesForUserRemovalFromRole(String roleId, List<String> deletedUserNamesList,
                                                          String tenantDomain, String permittedOrgId)
             throws IdentityRoleManagementException {
 

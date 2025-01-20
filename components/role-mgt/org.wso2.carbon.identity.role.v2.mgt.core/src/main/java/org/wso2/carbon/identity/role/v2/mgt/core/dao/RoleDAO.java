@@ -512,20 +512,23 @@ public interface RoleDAO {
     }
 
     /**
-     * Retrieve the list of permitted usernames that can be deleted in the given tenant domain for the specified role
-     * and permitted organization.
+     * Retrieve the list of usernames eligible to be removed from the specified role within the given tenant domain,
+     * based on the permissions of the requesting organization.
      *
-     * @param roleId               The role ID associated with the users.
-     * @param deletedUserNamesList The list of usernames intended for deletion.
-     * @param tenantDomain         The tenant domain.
-     * @param permittedOrgId       The ID of the organization permitted for the operation.
-     * @return A list of usernames permitted to be deleted.
-     * @throws IdentityRoleManagementException If an error occurs while retrieving the permitted usernames.
+     * This method ensures that the requesting organization has the necessary permissions to remove the specified users
+     * from the given role.
+     *
+     * @param roleId               The role ID from which the users are to be removed.
+     * @param usernamesToBeRemoved The list of usernames intended for removal.
+     * @param tenantDomain         The tenant domain where the operation is being performed.
+     * @param requestingOrgId      The ID of the requesting organization performing the operation.
+     * @return A list of usernames that the requesting organization is permitted to remove from the given role.
+     * @throws IdentityRoleManagementException If an error occurs while validating the permissions or retrieving eligible usernames.
      */
-    default List<String> getPermittedUserNamesToBeDeleted(String roleId, List<String> deletedUserNamesList,
-                                                          String tenantDomain, String permittedOrgId)
+    default List<String> getEligibleUsernamesForUserRemovalFromRole(String roleId, List<String> usernamesToBeRemoved,
+                                                                    String tenantDomain, String requestingOrgId)
             throws IdentityRoleManagementException {
 
-        throw new NotImplementedException("getPermittedUserNamesToBeDeleted method is not implemented.");
+        throw new NotImplementedException("getEligibleUsernamesForUserRemovalFromRole method is not implemented.");
     }
 }
