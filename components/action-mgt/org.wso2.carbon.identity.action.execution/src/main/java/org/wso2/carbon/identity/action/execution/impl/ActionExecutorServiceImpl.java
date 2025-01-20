@@ -129,7 +129,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
      * Resolve the actions by given the action id list and execute them.
      *
      * @param actionType    Action Type.
-     * @param actionIdList     Lis of action Ids of the actions that need to be executed.
+     * @param actionIdList  List of action Ids of the actions that need to be executed.
      * @param eventContext  The event context of the corresponding flow.
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.

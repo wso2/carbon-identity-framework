@@ -32,7 +32,6 @@ import java.util.List;
 public class ActionInvocationIncompleteResponse implements ActionInvocationResponse.APIResponse {
 
     private final ActionInvocationResponse.Status actionStatus;
-
     private final List<PerformableOperation> operations;
 
     private ActionInvocationIncompleteResponse(Builder builder) {
