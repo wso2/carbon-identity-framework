@@ -107,6 +107,16 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
         return getAppAssociatedRolesForLocalUser(authenticatedUser, applicationId);
     }
 
+    @Override
+    public String[] getAppAssociatedRolesOfFederatedUser(Map<ClaimMapping, String> fedUserAttributes,
+                                                         IdentityProvider identityProvider, String applicationId,
+                                                         String idpGroupClaimURI, String tenantDomain)
+            throws ApplicationRolesException {
+
+        return getAppAssociatedRolesForFederatedUser(fedUserAttributes, identityProvider, applicationId,
+                idpGroupClaimURI, tenantDomain);
+    }
+
     /**
      * Get app associated roles for local user for given app.
      *
