@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
@@ -40,6 +41,8 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResp
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.Context;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -75,13 +78,13 @@ public class APIClient {
                 .build();
     }
 
-    public ActionInvocationResponse callAPI(String url, AuthMethods.AuthMethod authMethod,
+    public ActionInvocationResponse callAPI(ActionType actionType, String url, AuthMethods.AuthMethod authMethod,
                                             String payload) {
 
         HttpPost httpPost = new HttpPost(url);
         setRequestEntity(httpPost, payload, authMethod);
 
-        return executeRequest(httpPost);
+        return executeRequest(actionType, httpPost);
     }
 
     private void setRequestEntity(HttpPost httpPost, String jsonRequest, AuthMethods.AuthMethod authMethod) {
@@ -95,7 +98,7 @@ public class APIClient {
         httpPost.setHeader("Content-type", "application/json");
     }
 
-    private ActionInvocationResponse executeRequest(HttpPost request) {
+    private ActionInvocationResponse executeRequest(ActionType actionType, HttpPost request) {
 
         int attempts = 0;
         int retryCount = ActionExecutorConfig.getInstance().getHttpRequestRetryCount();
@@ -103,7 +106,7 @@ public class APIClient {
 
         while (attempts < retryCount) {
             try (CloseableHttpResponse response = httpClient.execute(request)) {
-                actionInvocationResponse = handleResponse(response);
+                actionInvocationResponse = handleResponse(actionType, response);
                 if (!actionInvocationResponse.isError() || !actionInvocationResponse.isRetry()) {
                     return actionInvocationResponse;
                 }
@@ -129,7 +132,7 @@ public class APIClient {
                 .errorLog("Failed to execute the action request or maximum retry attempts reached.").build();
     }
 
-    private ActionInvocationResponse handleResponse(HttpResponse response) {
+    private ActionInvocationResponse handleResponse(ActionType actionType, HttpResponse response) {
 
         int statusCode = response.getStatusLine().getStatusCode();
         HttpEntity responseEntity = response.getEntity();
@@ -138,7 +141,7 @@ public class APIClient {
 
         switch (statusCode) {
             case HttpStatus.SC_OK:
-                handleSuccessOrFailure(actionInvocationResponseBuilder, responseEntity, statusCode);
+                handleSuccessOrFailure(actionType, actionInvocationResponseBuilder, responseEntity, statusCode);
                 break;
             case HttpStatus.SC_BAD_REQUEST:
             case HttpStatus.SC_UNAUTHORIZED:
@@ -162,10 +165,11 @@ public class APIClient {
         return actionInvocationResponseBuilder.build();
     }
 
-    private void handleSuccessOrFailure(ActionInvocationResponse.Builder builder, HttpEntity entity, int statusCode) {
+    private void handleSuccessOrFailure(ActionType actionType, ActionInvocationResponse.Builder builder,
+                                        HttpEntity entity, int statusCode) {
 
         try {
-            builder.response(handleSuccessOrFailureResponse(entity));
+            builder.response(handleSuccessOrFailureResponse(actionType, entity));
         } catch (ActionInvocationException e) {
             builder.errorLog("Unexpected response for status code: " + statusCode + ". " + e.getMessage());
         }
@@ -207,10 +211,11 @@ public class APIClient {
         }
     }
 
-    private ActionInvocationResponse.APIResponse handleSuccessOrFailureResponse(HttpEntity responseEntity)
+    private ActionInvocationResponse.APIResponse handleSuccessOrFailureResponse(ActionType actionType,
+                                                                                HttpEntity responseEntity)
             throws ActionInvocationException {
 
-        return deserializeSuccessOrFailureResponse(responseEntity);
+        return deserializeSuccessOrFailureResponse(actionType, responseEntity);
     }
 
     private ActionInvocationResponse.APIResponse handleErrorResponse(HttpEntity responseEntity)
@@ -236,7 +241,8 @@ public class APIClient {
         }
     }
 
-    private ActionInvocationResponse.APIResponse deserializeSuccessOrFailureResponse(HttpEntity responseEntity)
+    private ActionInvocationResponse.APIResponse deserializeSuccessOrFailureResponse(ActionType actionType,
+                                                                                     HttpEntity responseEntity)
             throws ActionInvocationException {
 
         try {
@@ -248,6 +254,9 @@ public class APIClient {
                 throw new ActionInvocationException("Reading JSON response failed.");
             }
             if (actionStatus.equals(ActionExecutionStatus.Status.SUCCESS.name())) {
+                SimpleModule module = new SimpleModule();
+                module.addDeserializer(Context.class, new Context.ContextDeserializer(actionType));
+                objectMapper.registerModule(module);
                 return objectMapper.readValue(jsonResponse, ActionInvocationSuccessResponse.class);
             } else {
                 return objectMapper.readValue(jsonResponse, ActionInvocationFailureResponse.class);

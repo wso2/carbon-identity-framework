@@ -32,13 +32,14 @@ import java.util.List;
 public class ActionInvocationSuccessResponse implements ActionInvocationResponse.APIResponse {
 
     private final ActionInvocationResponse.Status actionStatus;
-
     private final List<PerformableOperation> operations;
+    private final Context data;
 
     private ActionInvocationSuccessResponse(Builder builder) {
 
         this.actionStatus = builder.actionStatus;
         this.operations = builder.operations;
+        this.data = builder.data;
     }
 
     @Override
@@ -52,6 +53,11 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
         return operations;
     }
 
+    public Context getData() {
+
+        return data;
+    }
+
     /**
      * This class is used to build the {@link ActionInvocationSuccessResponse}.
      */
@@ -60,6 +66,7 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
 
         private ActionInvocationResponse.Status actionStatus;
         private List<PerformableOperation> operations;
+        private Context data;
 
         @JsonProperty("actionStatus")
         public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
@@ -72,6 +79,14 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
         public Builder operations(@JsonProperty("operations") List<PerformableOperation> operations) {
 
             this.operations = operations;
+            return this;
+        }
+
+        @JsonDeserialize(using = Context.ContextDeserializer.class)
+        @JsonProperty("data")
+        public Builder context(@JsonProperty("data")Context data) {
+
+            this.data = data;
             return this;
         }
 

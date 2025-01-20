@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImpl;
+import org.wso2.carbon.identity.action.execution.impl.InvocationSuccessResponseContextFactory;
+import org.wso2.carbon.identity.action.execution.model.Context;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 
 /**
@@ -153,5 +155,26 @@ public class ActionExecutionServiceComponent {
         }
         ActionExecutionResponseProcessorFactory.unregisterActionExecutionResponseProcessor(
                 actionExecutionResponseProcessor);
+    }
+
+    @Reference(
+            name = "Context",
+            service = Context.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetInvocationSuccessResponseContextClass"
+    )
+    protected void setInvocationSuccessResponseContextClass(Class<? extends Context> invocationSuccessResponse)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        InvocationSuccessResponseContextFactory.registerInvocationSuccessResponseContextClass(
+                invocationSuccessResponse);
+    }
+
+    protected void unsetInvocationSuccessResponseContextClass(Class<? extends Context> invocationSuccessResponse)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(
+                invocationSuccessResponse);
     }
 }
