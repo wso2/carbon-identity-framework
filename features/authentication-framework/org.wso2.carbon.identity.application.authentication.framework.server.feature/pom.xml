@@ -44,24 +44,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.graalvm.sdk</groupId>
+            <groupId>org.wso2.orbit.graalvm.sdk</groupId>
             <artifactId>graal-sdk</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.js</groupId>
-            <artifactId>js</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.truffle</groupId>
-            <artifactId>truffle-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ibm.icu</groupId>
-            <artifactId>icu4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.regex</groupId>
-            <artifactId>regex</artifactId>
         </dependency>
     </dependencies>
 
@@ -89,41 +73,9 @@
                                     <outputDirectory>${basedir}/src/main/resources/runtimes/cxf3</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>org.graalvm.sdk</groupId>
+                                    <groupId>org.wso2.orbit.graalvm.sdk</groupId>
                                     <artifactId>graal-sdk</artifactId>
-                                    <version>${graalvm.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.graalvm.js</groupId>
-                                    <artifactId>js</artifactId>
-                                    <version>${graalvm.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.graalvm.truffle</groupId>
-                                    <artifactId>truffle-api</artifactId>
-                                    <version>${graalvm.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>com.ibm.icu</groupId>
-                                    <artifactId>icu4j</artifactId>
-                                    <version>${icu.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.graalvm.regex</groupId>
-                                    <artifactId>regex</artifactId>
-                                    <version>${graalvm.version}</version>
+                                    <version>${graalvm.wso2.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
