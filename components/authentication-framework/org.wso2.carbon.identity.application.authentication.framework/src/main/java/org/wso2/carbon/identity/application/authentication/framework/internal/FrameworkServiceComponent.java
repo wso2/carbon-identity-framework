@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -1108,5 +1109,25 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setRoleManagementServiceV2(null);
         log.debug("RoleManagementServiceV2 unset in FrameworkServiceComponent bundle.");
+    }
+
+    /* TODO: The cardinality is set to OPTIONAL until AuthenticatorAdapterService implements. Update it to MANDATORY,
+        one adapter service implementation done. */
+    @Reference(
+            name = "org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService",
+            service = org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAuthenticatorAdapterService")
+    protected void setAuthenticatorAdapterService(AuthenticatorAdapterService adapterService) {
+
+        FrameworkServiceDataHolder.getInstance().setAuthenticatorAdapterService(adapterService);
+        log.debug("AuthenticatorAdapterService set in FrameworkServiceComponent bundle.");
+    }
+
+    protected void unsetAuthenticatorAdapterService(AuthenticatorAdapterService adapterService) {
+
+        FrameworkServiceDataHolder.getInstance().setAuthenticatorAdapterService(adapterService);
+        log.debug("AuthenticatorAdapterService unset in FrameworkServiceComponent bundle.");
     }
 }

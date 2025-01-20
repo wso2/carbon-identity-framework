@@ -26,6 +26,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
@@ -102,6 +103,7 @@ public class FrameworkServiceDataHolder {
     private String requireCode = "";
     private String secretsCode = StringUtils.EMPTY;
     private boolean userSessionMappingEnabled;
+    private AuthenticatorAdapterService authenticatorAdapterService;
 
     /*
     This property restricts unnecessary user local search during federated authentication flow for authentication
@@ -827,4 +829,25 @@ public class FrameworkServiceDataHolder {
 
         this.roleManagementServiceV2 = roleManagementServiceV2;
     }
+
+    /**
+     * Set {@link AuthenticatorAdapterService}.
+     *
+     * @param authenticatorAdapterService   Instance of {@link AuthenticatorAdapterService}.
+     */
+    public void setAuthenticatorAdapterService(AuthenticatorAdapterService authenticatorAdapterService) {
+
+        this.authenticatorAdapterService = authenticatorAdapterService;
+    }
+
+    /**
+     * Get {@link AuthenticatorAdapterService}.
+     *
+     * @return Instance of {@link AuthenticatorAdapterService}.
+     */
+    public AuthenticatorAdapterService getAuthenticatorAdapterService() {
+
+        return authenticatorAdapterService;
+    }
+
 }
