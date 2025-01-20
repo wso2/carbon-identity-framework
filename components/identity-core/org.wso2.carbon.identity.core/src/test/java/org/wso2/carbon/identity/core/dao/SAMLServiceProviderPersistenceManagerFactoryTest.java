@@ -74,10 +74,9 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
     @Test
     public void testGetSAMLServiceProviderPersistenceManagerWithHybridStorage() throws Exception {
 
-        //TODO : Change test to check for HybridSAMLSSOServiceProviderDAOImpl once implemented.
         setPrivateStaticField(SAMLServiceProviderPersistenceManagerFactory.class, "SAML_STORAGE_TYPE", "hybrid");
         SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = factory.getSAMLServiceProviderPersistenceManager();
-        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
+        assertTrue(samlSSOServiceProviderDAO instanceof HybridSAMLSSOServiceProviderDAOImpl);
     }
 
     private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)
