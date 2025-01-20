@@ -81,6 +81,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -197,7 +198,7 @@ public class ActionExecutorServiceImplTest {
             expectedExceptionsMessageRegExp = "No action Ids found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteWithActionIdsFailureWhenActionIdListIsEmpty() throws Exception {
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{}, new HashMap<>(),
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, null, new HashMap<>(),
                 "tenantDomain");
     }
 
@@ -219,7 +220,7 @@ public class ActionExecutorServiceImplTest {
         Action action = createAction();
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, anyString(), any(), any());
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
@@ -229,7 +230,7 @@ public class ActionExecutorServiceImplTest {
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenThrow(
                 new ActionMgtException("Error occurred while retrieving action by action Id."));
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, anyString(), any(), any());
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
@@ -261,7 +262,7 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenThrow(
                 new ActionExecutionRequestBuilderException("Error while executing request builder."));
 
-        actionExecutorService.execute(actionType, new String[]{"actionId"}, Collections.emptyMap(),
+        actionExecutorService.execute(actionType, "actionId", Collections.emptyMap(),
                 "tenantDomain");
     }
 
@@ -285,7 +286,7 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actionExecutionStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any(), any());
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), ActionExecutionStatus.Status.FAILED);
     }
 
@@ -323,7 +324,7 @@ public class ActionExecutorServiceImplTest {
                         () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
                 .thenReturn(actionExecutionRequestBuilder);
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new String[]{any()}, any(), any());
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, anyString(), any(), any());
     }
 
     @Test
@@ -431,7 +432,7 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+                actionType, action.getId(), eventContext, "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
@@ -472,7 +473,7 @@ public class ActionExecutorServiceImplTest {
         assertEquals(((FailedStatus) actualStatus).getResponse().getFailureDescription(), "Error_description");
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+                actionType, action.getId(), eventContext, "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
@@ -510,7 +511,7 @@ public class ActionExecutorServiceImplTest {
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+                actionType, action.getId(), eventContext, "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 
@@ -584,7 +585,7 @@ public class ActionExecutorServiceImplTest {
         assertEquals(((ErrorStatus) actualStatus).getResponse().getErrorDescription(), "Error_description");
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                actionType, new String[]{action.getId()}, eventContext, "tenantDomain");
+                actionType, action.getId(), eventContext, "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), expectedStatus.getStatus());
     }
 

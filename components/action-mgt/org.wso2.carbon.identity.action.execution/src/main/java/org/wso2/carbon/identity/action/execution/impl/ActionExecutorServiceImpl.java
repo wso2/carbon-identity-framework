@@ -126,39 +126,30 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     }
 
     /**
-     * Resolve the actions by given the action id list and execute them.
+     * Resolve the action by given the action id list and execute them.
      *
      * @param actionType    Action Type.
-     * @param actionIdList  List of action Ids of the actions that need to be executed.
+     * @param actionId      The action Id of the action that need to be executed.
      * @param eventContext  The event context of the corresponding flow.
      * @param tenantDomain  Tenant domain.
      * @return Action execution status.
      */
     @Override
-    public ActionExecutionStatus<?> execute(ActionType actionType, String[] actionIdList,
+    public ActionExecutionStatus<?> execute(ActionType actionType, String actionId,
                                             Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
-        validateActionIdList(actionType, actionIdList);
-        Action action = getActionByActionId(actionType, actionIdList[0], tenantDomain);
+        if (actionId == null) {
+            throw new ActionExecutionException("No action Ids found for action type: " + actionType.name());
+        }
+
+        Action action = getActionByActionId(actionType, actionId, tenantDomain);
         try {
             return execute(action, eventContext);
         } catch (ActionExecutionRuntimeException e) {
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             // Skip executing actions when no action available is considered as action execution being successful.
             return new SuccessStatus.Builder().setResponseContext(eventContext).build();
-        }
-    }
-
-    private void validateActionIdList(ActionType actionType, String[] actionIdList) throws ActionExecutionException {
-
-        // As of now only one action is allowed.
-        if (actionIdList == null || actionIdList.length == 0) {
-            throw new ActionExecutionException("No action Ids found for action type: " + actionType.name());
-        }
-        if (actionIdList.length > 1) {
-            throw new ActionExecutionException("Multiple actions found for action type: " + actionType.name() +
-                    ". Current implementation doesn't support multiple actions for a single action type.");
         }
     }
 
