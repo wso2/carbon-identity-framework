@@ -18,7 +18,7 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.action.execution">
+<suite name="org.wso2.carbon.identity.rule.management">
     <test name="rule-management-service-test">
         <classes>
             <class name="org.wso2.carbon.identity.rule.management.service.RuleManagementServiceImplTest"/>
