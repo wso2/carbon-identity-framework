@@ -419,7 +419,6 @@ public interface RoleDAO {
      * @param tenantDomain Tenant domain.
      * @return The list of role IDs.
      * @throws IdentityRoleManagementException If an error occurs while retrieving the role IDs.
-     * @throws NotImplementedException         If the method is not implemented.
      */
     default List<String> getRoleIdListOfSharedUser(String userId, String tenantDomain)
             throws IdentityRoleManagementException {

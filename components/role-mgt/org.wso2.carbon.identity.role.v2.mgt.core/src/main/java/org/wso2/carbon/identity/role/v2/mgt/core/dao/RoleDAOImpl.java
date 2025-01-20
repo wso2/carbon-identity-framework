@@ -3643,7 +3643,8 @@ public class RoleDAOImpl implements RoleDAO {
         return convertedGroup;
     }
 
-    private List<String> getRoleIdsOfUser(String userId, String tenantDomain, boolean isSharedUser) throws IdentityRoleManagementException{
+    private List<String> getRoleIdsOfUser(String userId, String tenantDomain, boolean isSharedUser)
+            throws IdentityRoleManagementException {
 
         String userName = getUsernameByUserID(userId, tenantDomain);
         String primaryDomainName = IdentityUtil.getPrimaryDomainName();
