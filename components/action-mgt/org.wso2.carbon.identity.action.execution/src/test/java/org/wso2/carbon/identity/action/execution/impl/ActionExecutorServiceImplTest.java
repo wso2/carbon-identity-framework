@@ -81,7 +81,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -195,8 +194,8 @@ public class ActionExecutorServiceImplTest {
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
-            expectedExceptionsMessageRegExp = "No action Ids found for action type: PRE_ISSUE_ACCESS_TOKEN")
-    public void testActionExecuteWithActionIdsFailureWhenActionIdListIsEmpty() throws Exception {
+            expectedExceptionsMessageRegExp = "Action Id cannot be blank.")
+    public void testActionExecuteWithActionIdsFailureWheNullActionId() throws Exception {
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, null, new HashMap<>(),
                 "tenantDomain");
@@ -205,22 +204,12 @@ public class ActionExecutorServiceImplTest {
     @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "No request builder found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenNoRegisteredRequestBuilderForActionType() throws Exception {
-        
+
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
 
         actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
-    }
-
-    @Test(expectedExceptions = ActionExecutionException.class,
-            expectedExceptionsMessageRegExp = "No request builder found for action type: PRE_ISSUE_ACCESS_TOKEN")
-    public void testActionExecuteWithActionIdFailureWhenMultipleActionsAvailableForActionType() throws Exception {
-
-        Action action = createAction();
-        when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
-
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, anyString(), any(), any());
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
@@ -230,7 +219,8 @@ public class ActionExecutorServiceImplTest {
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenThrow(
                 new ActionMgtException("Error occurred while retrieving action by action Id."));
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, anyString(), any(), any());
+        actionExecutorService.execute(
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, "actionId", new HashMap<>(), "tenantDomain");
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
@@ -268,7 +258,7 @@ public class ActionExecutorServiceImplTest {
 
     @Test(expectedExceptions = ActionExecutionException.class)
     public void testActionExecuteFailureAtExceptionFromRequestBuilderForActionType() throws Exception {
-        
+
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
@@ -293,7 +283,7 @@ public class ActionExecutorServiceImplTest {
     @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "No response processor found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteFailureWhenNoRegisteredResponseProcessorForActionType() throws Exception {
-        
+
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
@@ -312,7 +302,7 @@ public class ActionExecutorServiceImplTest {
     @Test(expectedExceptions = ActionExecutionException.class,
             expectedExceptionsMessageRegExp = "No response processor found for action type: PRE_ISSUE_ACCESS_TOKEN")
     public void testActionExecuteWithActionIdsFailureWhenNoRegisteredResponseProcessorForActionType() throws Exception {
-        
+
         Action action = createAction();
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
@@ -324,7 +314,8 @@ public class ActionExecutorServiceImplTest {
                         () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
                 .thenReturn(actionExecutionRequestBuilder);
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, anyString(), any(), any());
+        actionExecutorService.execute(
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, action.getId(), new HashMap<>(), "tenantDomain");
     }
 
     @Test
@@ -333,7 +324,7 @@ public class ActionExecutorServiceImplTest {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
         Map<String, Object> eventContext = Collections.emptyMap();
-        
+
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
@@ -343,7 +334,7 @@ public class ActionExecutorServiceImplTest {
         actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
-        
+
         requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new ArrayList<Header>());
         requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new ArrayList<Param>());
 
@@ -352,11 +343,11 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
                 actionExecutionRequest);
-        
+
         ActionInvocationResponse actionInvocationResponse =
                 createSuccessActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
-        
+
         actionExecutorService.execute(actionType, eventContext, "tenantDomain");
 
         String payload = getJSONRequestPayload(actionExecutionRequest);
@@ -385,11 +376,11 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
                 actionExecutionRequest);
-        
+
         ActionInvocationResponse actionInvocationResponse =
                 createSuccessActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
-        
+
         actionExecutorService.execute(actionType, eventContext, "tenantDomain");
 
         String payload = getJSONRequestPayload(actionExecutionRequest);
@@ -399,7 +390,7 @@ public class ActionExecutorServiceImplTest {
 
     @Test
     public void testExecuteSuccess() throws Exception {
-        
+
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
         Map<String, Object> eventContext = Collections.emptyMap();
 
@@ -438,7 +429,7 @@ public class ActionExecutorServiceImplTest {
 
     @Test
     public void testExecuteFailure() throws Exception {
-        
+
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
         Map<String, Object> eventContext = Collections.emptyMap();
 
@@ -482,7 +473,7 @@ public class ActionExecutorServiceImplTest {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
         Map<String, Object> eventContext = Collections.emptyMap();
-        
+
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
@@ -492,20 +483,20 @@ public class ActionExecutorServiceImplTest {
         actionExecutionResponseProcessorFactory.when(() -> ActionExecutionResponseProcessorFactory
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
-        
+
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
                 mock(ActionExecutionRequest.class));
-        
+
         ActionInvocationResponse actionInvocationResponse = createIncompleteActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
-        
+
         ActionExecutionStatus expectedStatus = new IncompleteStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionResponseProcessor.processIncompleteResponse(any(), any(), any())).thenReturn(
                 expectedStatus);
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
-        
+
         ActionExecutionStatus actualStatus =
                 actionExecutorService.execute(actionType, eventContext, "tenantDomain");
         assertEquals(actualStatus.getStatus(), expectedStatus.getStatus());
@@ -520,7 +511,7 @@ public class ActionExecutorServiceImplTest {
                     "PRE_ISSUE_ACCESS_TOKEN action ID: actionId")
     public void testActionExecuteFailureForUnexpectedAPIResponse() throws Exception {
 
-        
+
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
         Map<String, Object> eventContext = Collections.emptyMap();
 
@@ -551,9 +542,9 @@ public class ActionExecutorServiceImplTest {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
         Map<String, Object> eventContext = Collections.emptyMap();
-        
+
         Action action = createAction();
-        
+
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
                 Collections.singletonList(action));
         actionExecutionRequestBuilderFactory.when(
