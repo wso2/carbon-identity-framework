@@ -82,7 +82,7 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     default List<Role> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain,
-                                 List<String> requiredAttributes) throws IdentityRoleManagementException {
+                                List<String> requiredAttributes) throws IdentityRoleManagementException {
 
         throw new NotImplementedException("getRoles method is not implemented");
 
@@ -118,7 +118,7 @@ public interface RoleDAO {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     default List<Role> getRoles(List<ExpressionNode> expressionNodes, Integer limit, Integer offset, String sortBy,
-                                 String sortOrder, String tenantDomain, List<String> requiredAttributes)
+                                String sortOrder, String tenantDomain, List<String> requiredAttributes)
             throws IdentityRoleManagementException {
 
         throw new NotImplementedException("getRoles method is not implemented");
@@ -137,7 +137,7 @@ public interface RoleDAO {
     /**
      * Retrieve the given role.
      *
-     * @param roleId       Role ID.
+     * @param roleId Role ID.
      * @return The role object.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
