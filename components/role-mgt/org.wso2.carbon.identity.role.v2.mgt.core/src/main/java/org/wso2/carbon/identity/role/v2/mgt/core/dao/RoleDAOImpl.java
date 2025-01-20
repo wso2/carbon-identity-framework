@@ -178,6 +178,7 @@ import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_BY_NAME_AND_AUDIENCE_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_GROUP_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_IDP_GROUPS_SQL;
+import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_SHARED_USER_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_ID_LIST_OF_USER_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_GROUP_SQL;
 import static org.wso2.carbon.identity.role.v2.mgt.core.dao.SQLQueries.GET_ROLE_LIST_OF_IDP_GROUPS_SQL;
@@ -1268,43 +1269,17 @@ public class RoleDAOImpl implements RoleDAO {
     }
 
     @Override
-    public List<String> getRoleIdListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException {
+    public List<String> getRoleIdListOfUser(String userId, String tenantDomain)
+            throws IdentityRoleManagementException {
 
-        String userName = getUsernameByUserID(userId, tenantDomain);
-        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
-        if (primaryDomainName != null) {
-            primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
-        }
-        userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
-        // Get domain from name.
-        String domainName = UserCoreUtil.extractDomainFromName(userName);
-        if (domainName != null) {
-            domainName = domainName.toUpperCase(Locale.ENGLISH);
-        }
-        String nameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        List<String> roleIds = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
-             NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_ROLE_ID_LIST_OF_USER_SQL)) {
+        return getRoleIdsOfUser(userId, tenantDomain, false);
+    }
 
-            statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
-            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
-            statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    String roleId = resultSet.getString(1);
-                    roleIds.add(roleId);
-                }
-            }
-            if (!isOrganization(tenantDomain)) {
-                roleIds.add(getEveryOneRoleId(tenantDomain));
-            }
-        } catch (SQLException e) {
-            String errorMessage = "Error while retrieving role id list of user by id: " + userId + " and " +
-                    "tenantDomain : " + tenantDomain;
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
-        }
-        return roleIds;
+    @Override
+    public List<String> getRoleIdListOfSharedUser(String userId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return getRoleIdsOfUser(userId, tenantDomain, true);
     }
 
     @Override
@@ -3666,6 +3641,48 @@ public class RoleDAOImpl implements RoleDAO {
         IdpGroup convertedGroup = new IdpGroup(idpGroup.getIdpGroupId(), idpGroup.getIdpId());
         convertedGroup.setGroupName(idpGroup.getIdpGroupName());
         return convertedGroup;
+    }
+
+    private List<String> getRoleIdsOfUser(String userId, String tenantDomain, boolean isSharedUser) throws IdentityRoleManagementException{
+
+        String userName = getUsernameByUserID(userId, tenantDomain);
+        String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+        if (primaryDomainName != null) {
+            primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
+        }
+        userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
+        // Get domain from name.
+        String domainName = UserCoreUtil.extractDomainFromName(userName);
+        if (domainName != null) {
+            domainName = domainName.toUpperCase(Locale.ENGLISH);
+        }
+        String nameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<String> roleIds = new ArrayList<>();
+
+        String query = isSharedUser ? GET_ROLE_ID_LIST_OF_SHARED_USER_SQL : GET_ROLE_ID_LIST_OF_USER_SQL;
+
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, query)) {
+
+            statement.setString(RoleConstants.RoleTableColumns.UM_USER_NAME, nameWithoutDomain);
+            statement.setInt(RoleConstants.RoleTableColumns.UM_TENANT_ID, tenantId);
+            statement.setString(RoleConstants.RoleTableColumns.UM_DOMAIN_NAME, domainName);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String roleId = resultSet.getString(1);
+                    roleIds.add(roleId);
+                }
+            }
+            if (!isOrganization(tenantDomain)) {
+                roleIds.add(getEveryOneRoleId(tenantDomain));
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error while retrieving role id list of user by id: " + userId + " and " +
+                    "tenantDomain : " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return roleIds;
     }
 
     @Override

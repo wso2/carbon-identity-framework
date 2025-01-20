@@ -860,6 +860,13 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
+    public List<String> getRoleIdListOfSharedUser(String userId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        return roleDAO.getRoleIdListOfSharedUser(userId, tenantDomain);
+    }
+
+    @Override
     public List<String> getRoleIdListOfGroups(List<String> groupIds, String tenantDomain)
             throws IdentityRoleManagementException {
 

@@ -407,6 +407,24 @@ public interface RoleManagementService {
     List<String> getRoleIdListOfUser(String userId, String tenantDomain) throws IdentityRoleManagementException;
 
     /**
+     * Get role ID list of a shared user.
+     * <p>
+     * This default implementation throws a {@link NotImplementedException}.
+     * Subclasses should override this method to provide their own implementation.
+     *
+     * @param userId       User ID.
+     * @param tenantDomain Tenant domain.
+     * @return The list of role IDs.
+     * @throws IdentityRoleManagementException If an error occurs while retrieving the role IDs.
+     * @throws NotImplementedException         If the method is not implemented.
+     */
+    default List<String> getRoleIdListOfSharedUser(String userId, String tenantDomain)
+            throws IdentityRoleManagementException {
+
+        throw new NotImplementedException("getRoleIdListOfSharedUser method is not implemented");
+    }
+
+    /**
      * Get role id list of groups.
      *
      * @param groupIds     Group IDs.
