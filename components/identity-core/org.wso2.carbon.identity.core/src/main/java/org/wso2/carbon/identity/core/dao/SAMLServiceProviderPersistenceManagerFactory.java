@@ -37,7 +37,7 @@ public class SAMLServiceProviderPersistenceManagerFactory {
 
     public SAMLSSOServiceProviderDAO getSAMLServiceProviderPersistenceManager() {
 
-        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = new JDBCSAMLSSOServiceProviderDAOImpl();
+        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = CacheBackedSAMLSSOServiceProviderDAO.getInstance();
         if (StringUtils.isNotBlank(SAML_STORAGE_TYPE)) {
             switch (SAML_STORAGE_TYPE) {
                 case HYBRID:

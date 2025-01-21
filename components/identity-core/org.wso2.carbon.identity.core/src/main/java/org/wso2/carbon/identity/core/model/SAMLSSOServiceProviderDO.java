@@ -82,6 +82,66 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean doFrontChannelLogout;
     private String frontChannelLogoutBinding;
 
+    public SAMLSSOServiceProviderDO(SAMLSSOServiceProviderDO samlSSOServiceProviderDO) {
+
+        this.tenantDomain = samlSSOServiceProviderDO.tenantDomain;
+        this.issuer = samlSSOServiceProviderDO.issuer;
+        this.issuerQualifier = samlSSOServiceProviderDO.issuerQualifier;
+        this.assertionConsumerUrl = samlSSOServiceProviderDO.assertionConsumerUrl;
+        this.assertionConsumerUrls = samlSSOServiceProviderDO.assertionConsumerUrls != null ?
+                samlSSOServiceProviderDO.assertionConsumerUrls.clone() : null;
+        this.assertionConsumerUrlList = samlSSOServiceProviderDO.assertionConsumerUrlList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.assertionConsumerUrlList) : null;
+        this.defaultAssertionConsumerUrl = samlSSOServiceProviderDO.defaultAssertionConsumerUrl;
+        this.certAlias = samlSSOServiceProviderDO.certAlias;
+        this.sloResponseURL = samlSSOServiceProviderDO.sloResponseURL;
+        this.sloRequestURL = samlSSOServiceProviderDO.sloRequestURL;
+        this.doSingleLogout = samlSSOServiceProviderDO.doSingleLogout;
+        this.loginPageURL = samlSSOServiceProviderDO.loginPageURL;
+        this.doSignResponse = samlSSOServiceProviderDO.doSignResponse;
+        this.doSignAssertions = samlSSOServiceProviderDO.doSignAssertions;
+        this.attributeConsumingServiceIndex = samlSSOServiceProviderDO.attributeConsumingServiceIndex;
+        this.requestedClaims =
+                samlSSOServiceProviderDO.requestedClaims != null ? samlSSOServiceProviderDO.requestedClaims.clone() :
+                        null;
+        this.requestedClaimsList = samlSSOServiceProviderDO.requestedClaimsList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.requestedClaimsList) : null;
+        this.requestedAudiences = samlSSOServiceProviderDO.requestedAudiences != null ?
+                samlSSOServiceProviderDO.requestedAudiences.clone() : null;
+        this.requestedAudiencesList = samlSSOServiceProviderDO.requestedAudiencesList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.requestedAudiencesList) : null;
+        this.requestedRecipients = samlSSOServiceProviderDO.requestedRecipients != null ?
+                samlSSOServiceProviderDO.requestedRecipients.clone() : null;
+        this.requestedRecipientsList = samlSSOServiceProviderDO.requestedRecipientsList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.requestedRecipientsList) : null;
+        this.enableAttributesByDefault = samlSSOServiceProviderDO.enableAttributesByDefault;
+        this.nameIdClaimUri = samlSSOServiceProviderDO.nameIdClaimUri;
+        this.nameIDFormat = samlSSOServiceProviderDO.nameIDFormat;
+        this.isIdPInitSSOEnabled = samlSSOServiceProviderDO.isIdPInitSSOEnabled;
+        this.idPInitSLOEnabled = samlSSOServiceProviderDO.idPInitSLOEnabled;
+        this.idpInitSLOReturnToURLs = samlSSOServiceProviderDO.idpInitSLOReturnToURLs != null ?
+                samlSSOServiceProviderDO.idpInitSLOReturnToURLs.clone() : null;
+        this.idpInitSLOReturnToURLList = samlSSOServiceProviderDO.idpInitSLOReturnToURLList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.idpInitSLOReturnToURLList) : null;
+        this.doEnableEncryptedAssertion = samlSSOServiceProviderDO.doEnableEncryptedAssertion;
+        this.doValidateSignatureInRequests = samlSSOServiceProviderDO.doValidateSignatureInRequests;
+        this.doValidateSignatureInArtifactResolve = samlSSOServiceProviderDO.doValidateSignatureInArtifactResolve;
+        this.signingAlgorithmUri = samlSSOServiceProviderDO.signingAlgorithmUri;
+        this.digestAlgorithmUri = samlSSOServiceProviderDO.digestAlgorithmUri;
+        this.assertionEncryptionAlgorithmUri = samlSSOServiceProviderDO.assertionEncryptionAlgorithmUri;
+        this.keyEncryptionAlgorithmUri = samlSSOServiceProviderDO.keyEncryptionAlgorithmUri;
+        this.signingCertificate = samlSSOServiceProviderDO.signingCertificate;
+        this.encryptionCertificate = samlSSOServiceProviderDO.encryptionCertificate;
+        this.x509Certificate = samlSSOServiceProviderDO.x509Certificate;
+        this.isAssertionQueryRequestProfileEnabled = samlSSOServiceProviderDO.isAssertionQueryRequestProfileEnabled;
+        this.supportedAssertionQueryRequestTypes = samlSSOServiceProviderDO.supportedAssertionQueryRequestTypes;
+        this.enableSAML2ArtifactBinding = samlSSOServiceProviderDO.enableSAML2ArtifactBinding;
+        this.samlECP = samlSSOServiceProviderDO.samlECP;
+        this.idpEntityIDAlias = samlSSOServiceProviderDO.idpEntityIDAlias;
+        this.doFrontChannelLogout = samlSSOServiceProviderDO.doFrontChannelLogout;
+        this.frontChannelLogoutBinding = samlSSOServiceProviderDO.frontChannelLogoutBinding;
+    }
+
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
         this.doValidateSignatureInArtifactResolve = doValidateSignatureInArtifactResolve;

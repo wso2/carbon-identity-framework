@@ -22,7 +22,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URL;
 
 import static org.testng.Assert.assertTrue;
 
@@ -36,8 +38,10 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
     @BeforeMethod
     public void setUp() {
 
+        URL root = this.getClass().getClassLoader().getResource(".");
+        File file = new File(root.getPath());
+        System.setProperty("carbon.home", file.getAbsolutePath());
         factory = new SAMLServiceProviderPersistenceManagerFactory();
-
     }
 
     @AfterMethod
@@ -50,17 +54,9 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
     @Test
     public void testGetSAMLServiceProviderPersistenceManagerWithDefaultStorage() throws Exception {
 
-        setPrivateStaticField(SAMLServiceProviderPersistenceManagerFactory.class, "SAML_STORAGE_TYPE", null);
-        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = factory.getSAMLServiceProviderPersistenceManager();
-        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
-    }
-
-    @Test
-    public void testGetSAMLServiceProviderPersistenceManagerWithJDBCStorage() throws Exception {
-
         setPrivateStaticField(SAMLServiceProviderPersistenceManagerFactory.class, "SAML_STORAGE_TYPE", "database");
         SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = factory.getSAMLServiceProviderPersistenceManager();
-        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
+        assertTrue(samlSSOServiceProviderDAO instanceof CacheBackedSAMLSSOServiceProviderDAO);
     }
 
     @Test
