@@ -33,21 +33,22 @@ public class SAMLServiceProviderPersistenceManagerFactory {
     private static final Log LOG = LogFactory.getLog(SAMLServiceProviderPersistenceManagerFactory.class);
     private static String SAML_STORAGE_TYPE = IdentityUtil.getProperty(SAML_STORAGE_CONFIG);
     private static final String HYBRID = "hybrid";
-    private static final String DATABASE = "database";
+    private static final String REGISTRY = "registry";
 
     public SAMLSSOServiceProviderDAO getSAMLServiceProviderPersistenceManager() {
 
-        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();
+        SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = new JDBCSAMLSSOServiceProviderDAOImpl();
         if (StringUtils.isNotBlank(SAML_STORAGE_TYPE)) {
             switch (SAML_STORAGE_TYPE) {
                 case HYBRID:
                     // Initialize Hybrid SAML storage.
+                    samlSSOServiceProviderDAO = new HybridSAMLSSOServiceProviderDAOImpl();
                     LOG.info("Hybrid SAML storage initialized.");
                     break;
-                case DATABASE:
-                    // Initialize JDBC SAML storage.
-                    samlSSOServiceProviderDAO = new JDBCSAMLSSOServiceProviderDAOImpl();
-                    LOG.info("JDBC based SAML storage initialized.");
+                case REGISTRY:
+                    // Initialize Registry SAML storage.
+                    samlSSOServiceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();
+                    LOG.warn("Registry based SAML storage initialized.");
                     break;
             }
         }
