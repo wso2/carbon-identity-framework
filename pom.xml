@@ -1823,7 +1823,7 @@
         <orbit.version.neethi>2.0.4.wso2v5</orbit.version.neethi>
         <axis2-transports.version>2.0.0-wso2v42</axis2-transports.version>
         <axis2-transports.version.range>[2.0.0-wso2v38,3.0.0)</axis2-transports.version.range>
-        <org.apache.axis2.transport.mail.version.range>[0.0.0,1.0.0)</org.apache.axis2.transport.mail.version.range>
+        <org.apache.axis2.transport.mail.version.range>[2.0.0,3.0.0)</org.apache.axis2.transport.mail.version.range>
 
         <!-- Axiom Version -->
         <axiom.version>1.2.11-wso2v16</axiom.version>
