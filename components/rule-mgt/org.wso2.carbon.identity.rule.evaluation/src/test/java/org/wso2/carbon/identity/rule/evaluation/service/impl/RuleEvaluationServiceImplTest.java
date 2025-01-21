@@ -55,9 +55,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -65,6 +63,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -139,6 +138,26 @@ public class RuleEvaluationServiceImplTest {
         assertTrue(result.isRuleSatisfied());
     }
 
+    @Test
+    public void testEvaluateInactiveRule() throws Exception {
+
+        String tenantDomain = "tenant1";
+        String ruleId = "rule1";
+
+        Rule mockRule = mock(Rule.class);
+        when(mockRule.getId()).thenReturn(ruleId);
+        when(mockRule.isActive()).thenReturn(false);
+        when(ruleManagementService.getRuleByRuleId(ruleId, tenantDomain)).thenReturn(mockRule);
+
+        FlowContext flowContext = new FlowContext(FlowType.PRE_ISSUE_ACCESS_TOKEN, Collections.emptyMap());
+
+        RuleEvaluationResult result = ruleEvaluationService.evaluate(ruleId, flowContext, tenantDomain);
+
+        assertNotNull(result);
+        assertEquals(result.getRuleId(), ruleId);
+        assertFalse(result.isRuleSatisfied());
+    }
+
     @Test(dependsOnMethods = "testEvaluateRuleSuccess",
             expectedExceptions = RuleEvaluationException.class,
             expectedExceptionsMessageRegExp = "Rule not found for the given ruleId: rule1")
@@ -178,6 +197,7 @@ public class RuleEvaluationServiceImplTest {
 
         Rule rule = mock(Rule.class);
         when(rule.getId()).thenReturn(ruleId);
+        when(rule.isActive()).thenReturn(true);
         when(ruleManagementService.getRuleByRuleId(ruleId, tenantDomain)).thenReturn(rule);
 
         when(ruleMetadataService.getExpressionMeta(any(), any())).thenReturn(null);
@@ -196,6 +216,7 @@ public class RuleEvaluationServiceImplTest {
 
         Rule rule = mock(Rule.class);
         when(rule.getId()).thenReturn(ruleId);
+        when(rule.isActive()).thenReturn(true);
 
         when(ruleManagementService.getRuleByRuleId(ruleId, tenantDomain)).thenReturn(rule);
         when(ruleMetadataService.getExpressionMeta(any(), any())).thenThrow(
@@ -264,11 +285,11 @@ public class RuleEvaluationServiceImplTest {
         return fieldDefinitionList;
     }
 
-    private Map<String, FieldValue> getMockedFieldValues() {
+    private List<FieldValue> getMockedFieldValues() {
 
-        Map<String, FieldValue> fieldValues = new HashMap<>();
-        fieldValues.put("application", new FieldValue("application", "testapp", ValueType.REFERENCE));
-        fieldValues.put("grantType", new FieldValue("grantType", "authorization_code", ValueType.STRING));
+        List<FieldValue> fieldValues = new ArrayList<>();
+        fieldValues.add(new FieldValue("application", "testapp", ValueType.REFERENCE));
+        fieldValues.add(new FieldValue("grantType", "authorization_code", ValueType.STRING));
         return fieldValues;
     }
 }

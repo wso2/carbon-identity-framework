@@ -37,8 +37,10 @@ import org.wso2.carbon.identity.rule.management.model.Rule;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of RuleEvaluationService.
@@ -53,16 +55,19 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
 
         Rule rule = getRuleFromRuleManagementService(ruleId, tenantDomain);
 
+        if (!rule.isActive()) {
+            LOG.debug("Rule: " + rule.getId() + " is inactive. Skip evaluation of rule.");
+            return new RuleEvaluationResult(ruleId, false);
+        }
+
         LOG.debug("Starting to evaluate rule: " + rule.getId() + ".");
 
         FieldExtractor fieldExtractor =
                 new FieldExtractor(getRuleMetaFromRuleMetadataService(flowContext.getFlowType(), tenantDomain));
         List<Field> fieldsInRule = fieldExtractor.extractFields(rule);
 
-        RuleEvaluationDataManager ruleEvaluationDataProviderManager = RuleEvaluationDataManager.getInstance();
         Map<String, FieldValue> evaluationData =
-                ruleEvaluationDataProviderManager.getEvaluationData(new RuleEvaluationContext(ruleId, fieldsInRule),
-                        flowContext, tenantDomain);
+                getEvaluationData(ruleId, flowContext, tenantDomain, fieldsInRule);
 
         RuleEvaluator ruleEvaluator = new RuleEvaluator(RuleEvaluationComponentServiceHolder.getInstance()
                 .getOperatorRegistry());
@@ -70,6 +75,20 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
         LOG.debug("Evaluated rule: " + rule.getId() + " to: " + evaluationStatus + ".");
 
         return new RuleEvaluationResult(ruleId, evaluationStatus);
+    }
+
+    private Map<String, FieldValue> getEvaluationData(String ruleId, FlowContext flowContext,
+                                                      String tenantDomain, List<Field> fieldsInRule)
+            throws RuleEvaluationException {
+
+        RuleEvaluationDataManager ruleEvaluationDataProviderManager = RuleEvaluationDataManager.getInstance();
+
+        List<FieldValue> evaluationDataList = ruleEvaluationDataProviderManager.getEvaluationData(
+                new RuleEvaluationContext(ruleId, fieldsInRule), flowContext, tenantDomain);
+
+        return (evaluationDataList == null || evaluationDataList.isEmpty())
+                ? Collections.emptyMap()
+                : evaluationDataList.stream().collect(Collectors.toMap(FieldValue::getName, fieldValue -> fieldValue));
     }
 
     private Rule getRuleFromRuleManagementService(String ruleId, String tenantDomain)

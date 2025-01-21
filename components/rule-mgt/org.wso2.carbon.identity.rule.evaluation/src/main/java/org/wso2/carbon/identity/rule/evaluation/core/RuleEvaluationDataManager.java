@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvider;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,12 +59,12 @@ public class RuleEvaluationDataManager {
      * @param ruleEvaluationContext Rule evaluation context.
      * @param flowContext           Flow context.
      * @param tenantDomain          Tenant domain.
-     * @return Evaluation data.
+     * @return List of field values.
      * @throws RuleEvaluationException If an error occurs while getting evaluation data.
      */
-    public Map<String, FieldValue> getEvaluationData(RuleEvaluationContext ruleEvaluationContext,
-                                                     FlowContext flowContext,
-                                                     String tenantDomain) throws RuleEvaluationException {
+    public List<FieldValue> getEvaluationData(RuleEvaluationContext ruleEvaluationContext,
+                                              FlowContext flowContext,
+                                              String tenantDomain) throws RuleEvaluationException {
 
         RuleEvaluationDataProvider ruleEvaluationDataProvider =
                 ruleEvaluationDataProviderMap.get(flowContext.getFlowType());

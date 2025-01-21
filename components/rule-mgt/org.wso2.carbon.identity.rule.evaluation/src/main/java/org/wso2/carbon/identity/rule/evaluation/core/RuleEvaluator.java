@@ -60,11 +60,6 @@ public class RuleEvaluator {
      */
     public boolean evaluate(Rule rule, Map<String, FieldValue> evaluationData) throws RuleEvaluationException {
 
-        if (!rule.isActive()) {
-            LOG.debug("Rule: " + rule.getId() + " is inactive. Skipping evaluation.");
-            return false;
-        }
-
         ORCombinedRule orRule = (ORCombinedRule) rule;
         return evaluateORCombinedRule(orRule, evaluationData);
     }

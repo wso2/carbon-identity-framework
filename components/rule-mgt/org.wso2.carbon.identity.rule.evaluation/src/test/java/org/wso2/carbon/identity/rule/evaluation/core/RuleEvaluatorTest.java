@@ -135,16 +135,6 @@ public class RuleEvaluatorTest {
         }
     }
 
-    @Test
-    public void testEvaluateInactiveRule() throws RuleEvaluationException {
-
-        Rule mockRule = mock(Rule.class);
-        when(mockRule.isActive()).thenReturn(false);
-
-        boolean result = ruleEvaluator.evaluate(mockRule, Collections.emptyMap());
-        assertFalse(result);
-    }
-
     @Test(expectedExceptions = RuleEvaluationException.class,
             expectedExceptionsMessageRegExp = "Field value not found for the field: application")
     public void testEvaluateFieldValueNotFound() throws Exception {

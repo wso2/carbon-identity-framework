@@ -29,7 +29,8 @@ import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
 import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvider;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;
@@ -81,16 +82,16 @@ public class RuleEvaluationDataManagerTest {
         when(mockProvider.getEvaluationData(mockRuleEvaluationContext, mockFlowContext, "tenantDomain"))
                 .thenReturn(getMockedFieldValues());
 
-        Map<String, FieldValue> evaluationData =
+        List<FieldValue> evaluationData =
                 ruleEvaluationDataManager.getEvaluationData(mockRuleEvaluationContext, mockFlowContext, "tenantDomain");
         assertNotNull(evaluationData);
         assertEquals(evaluationData.size(), 2);
-        assertTrue(evaluationData.containsKey("application"));
-        assertEquals(evaluationData.get("application").getValueType(), ValueType.REFERENCE);
-        assertEquals(evaluationData.get("application").getValue(), "testApp");
-        assertTrue(evaluationData.containsKey("grantType"));
-        assertEquals(evaluationData.get("grantType").getValueType(), ValueType.STRING);
-        assertEquals(evaluationData.get("grantType").getValue(), "client-credentials");
+        assertEquals(evaluationData.get(0).getName(), "application");
+        assertEquals(evaluationData.get(0).getValueType(), ValueType.REFERENCE);
+        assertEquals(evaluationData.get(0).getValue(), "testApp");
+        assertEquals(evaluationData.get(1).getName(), "grantType");
+        assertEquals(evaluationData.get(1).getValueType(), ValueType.STRING);
+        assertEquals(evaluationData.get(1).getValue(), "client-credentials");
     }
 
     @Test(dependsOnMethods = "testGetEvaluationData")
@@ -103,11 +104,11 @@ public class RuleEvaluationDataManagerTest {
         assertFalse(evaluationDataProviders.containsKey(FlowType.PRE_ISSUE_ACCESS_TOKEN));
     }
 
-    private Map<String, FieldValue> getMockedFieldValues() {
+    private List<FieldValue> getMockedFieldValues() {
 
-        Map<String, FieldValue> fieldValues = new HashMap<>();
-        fieldValues.put("application", new FieldValue("application", "testApp", ValueType.REFERENCE));
-        fieldValues.put("grantType", new FieldValue("grantType", "client-credentials", ValueType.STRING));
+        List<FieldValue> fieldValues = new ArrayList<>();
+        fieldValues.add(new FieldValue("application", "testApp", ValueType.REFERENCE));
+        fieldValues.add(new FieldValue("grantType", "client-credentials", ValueType.STRING));
         return fieldValues;
     }
 

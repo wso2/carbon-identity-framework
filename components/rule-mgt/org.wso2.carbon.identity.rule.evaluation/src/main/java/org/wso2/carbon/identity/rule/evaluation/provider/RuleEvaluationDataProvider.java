@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Rule evaluation data provider interface.
@@ -32,9 +32,24 @@ import java.util.Map;
  */
 public interface RuleEvaluationDataProvider {
 
+    /**
+     * Get the supported flow type.
+     * This method should return the flow type that this data provider supports.
+     *
+     * @return Supported flow type.
+     */
     FlowType getSupportedFlowType();
 
-    Map<String, FieldValue> getEvaluationData(RuleEvaluationContext ruleEvaluationContext, FlowContext flowContext,
-                                              String tenantDomain) throws RuleEvaluationDataProviderException;
+    /**
+     * Get evaluation data for a given rule evaluation context and flow context.
+     *
+     * @param ruleEvaluationContext Rule evaluation context.
+     * @param flowContext           Flow context.
+     * @param tenantDomain          Tenant domain.
+     * @return List of field values.
+     * @throws RuleEvaluationDataProviderException If an error occurred while getting the evaluation data.
+     */
+    List<FieldValue> getEvaluationData(RuleEvaluationContext ruleEvaluationContext, FlowContext flowContext,
+                                       String tenantDomain) throws RuleEvaluationDataProviderException;
 
 }
