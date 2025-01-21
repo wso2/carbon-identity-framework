@@ -615,6 +615,8 @@
   "event.default_listener.organization_discovery_user_operation_listener.enable": true,
   "event.default_listener.organization_user_association_listener.priority": "128",
   "event.default_listener.organization_user_association_listener.enable": true,
+  "event.default_listener.shared_user_profile_update_governance_listener.priority": "8",
+  "event.default_listener.shared_user_profile_update_governance_listener.enable": false,
 
   "event.default_listener.provisioning_role_mgt_listener.enable": true,
   "event.default_listener.provisioning_role_mgt_listener.priority": "999",
