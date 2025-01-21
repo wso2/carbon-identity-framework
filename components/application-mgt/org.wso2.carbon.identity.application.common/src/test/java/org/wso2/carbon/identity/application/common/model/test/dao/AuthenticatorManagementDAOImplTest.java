@@ -50,8 +50,8 @@ public class AuthenticatorManagementDAOImplTest {
     private UserDefinedLocalAuthenticatorConfig authenticatorForUpdate;
     private UserDefinedLocalAuthenticatorConfig authenticatorForUpdateForException;
 
-    private static final String AUTHENTICATOR1_NAME = "auth1";
-    private static final String AUTHENTICATOR2_NAME = "auth2";
+    private static final String AUTHENTICATOR1_NAME = "custom-auth1";
+    private static final String AUTHENTICATOR2_NAME = "custom-auth2";
     private static final String AUTHENTICATOR_CONFIG_FOR_EXCEPTION_NAME = "exception_auth";
     private static final String NON_EXIST_AUTHENTICATOR_NAME = "non_exist_auth";
 
@@ -172,7 +172,21 @@ public class AuthenticatorManagementDAOImplTest {
                 NON_EXIST_AUTHENTICATOR_NAME, tenantId));
     }
 
-    @Test(dataProvider = "authenticatorConfig", priority = 9)
+    @Test(priority = 9)
+    public void testIsExistingAuthenticatorName() throws AuthenticatorMgtException {
+
+        Assert.assertTrue(authenticatorManagementDAO.isExistingAuthenticatorName(
+                authenticatorConfig1.getName(), tenantId));
+    }
+
+    @Test(priority = 10)
+    public void testIsExistingAuthenticatorNameForNonExistName() throws AuthenticatorMgtException {
+
+        Assert.assertFalse(authenticatorManagementDAO.isExistingAuthenticatorName(
+                NON_EXIST_AUTHENTICATOR_NAME, tenantId));
+    }
+
+    @Test(dataProvider = "authenticatorConfig", priority = 11)
     public void testDeleteUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 

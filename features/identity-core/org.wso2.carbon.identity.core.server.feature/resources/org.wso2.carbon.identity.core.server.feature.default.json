@@ -11,7 +11,7 @@
   "identity_data_source.skip_db_schema_creation": false,
   "identity_data_source.skip_claim_metadata_persistence": true,
   "data_storage_type.notification_templates": "database",
-  "data_storage_type.saml": "registry",
+  "data_storage_type.saml": "database",
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
@@ -253,6 +253,7 @@
   "oauth.oidc.extensions.user_info_request_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator",
   "oauth.oidc.extensions.user_info_access_token_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator",
   "oauth.oidc.user_info.enable_multi_value_support": true,
+  "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
@@ -1175,6 +1176,7 @@
     "userStores",
     "users"
   ],
+  "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,

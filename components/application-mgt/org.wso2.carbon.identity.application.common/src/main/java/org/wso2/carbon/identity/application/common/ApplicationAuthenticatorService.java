@@ -38,7 +38,6 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildRuntimeServerException;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.DISPLAY_NAME;
 
 /**
  * Application authenticator service.
@@ -207,13 +206,12 @@ public class ApplicationAuthenticatorService {
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
-        LocalAuthenticatorConfig config = getLocalAuthenticatorByName(authenticatorConfig.getName(), tenantDomain);
-        if (config != null) {
+        if (isExistingAuthenticatorName(authenticatorConfig.getName(), tenantDomain)) {
             throw buildClientException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST,
                     authenticatorConfig.getName());
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
-        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
         if (authenticatorConfig.getImageUrl() != null) {
             authenticatorValidator.validateUrl(authenticatorConfig.getImageUrl());
         }
@@ -240,7 +238,7 @@ public class ApplicationAuthenticatorService {
             throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR,
                     authenticatorConfig.getName());
         }
-        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
         if (authenticatorConfig.getImageUrl() != null) {
             authenticatorValidator.validateUrl(authenticatorConfig.getImageUrl());
         }
@@ -282,6 +280,40 @@ public class ApplicationAuthenticatorService {
 
         return dao.getUserDefinedLocalAuthenticator(
                 authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * Check whether any local or federated authenticator configuration exists with the given name.
+     *
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantDomain      Tenant domain.
+     * @return True if an authenticator with the given name exists.
+     * @throws AuthenticatorMgtException If an error occurs while checking the existence of the authenticator.
+     */
+    public boolean isExistingAuthenticatorName(String authenticatorName, String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        // Check whether an authenticator with the given name exists in the database.
+        if (dao.isExistingAuthenticatorName(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain))) {
+            return true;
+        }
+
+        /* Check whether an authenticator with the given name exists in the system defined authenticators
+        which are not saved in database. */
+        for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
+            if (localAuthenticator.getName().equals(authenticatorName)) {
+                return true;
+            }
+        }
+
+        /* Check whether an authenticator with the given name exists in the federated defined authenticators
+        which are not saved in database. */
+        for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
+            if (federatedAuthenticator.getName().equals(authenticatorName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private UserDefinedLocalAuthenticatorConfig resolveExistingAuthenticator(String authenticatorName,
