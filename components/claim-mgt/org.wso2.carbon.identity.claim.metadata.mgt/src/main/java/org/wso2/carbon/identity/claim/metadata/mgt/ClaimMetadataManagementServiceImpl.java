@@ -62,6 +62,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_ATTRIBUTE_PROFILE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
@@ -74,6 +75,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getAllowedClaimProfiles;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
 
 /**
@@ -248,6 +250,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
 
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(), null);
+        validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
 
         validateSharedProfileValueResolvingMethodValue(localClaim);
 
@@ -283,6 +286,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(),
                 existingLocalClaim.get().getClaimProperties());
+        validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
 
         validateSharedProfileValueResolvingMethodChange(localClaim, existingLocalClaim.get(), tenantId);
 
@@ -649,6 +653,96 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     }
 
     /**
+     * Validate and sync the claim profile properties.
+     *
+     * @param claimProperties Map of claim properties to be updated.
+     * @throws ClaimMetadataClientException If an invalid profile name is found.
+     */
+    private void validateAndSyncAttributeProfileProperties(Map<String, String> claimProperties)
+            throws ClaimMetadataClientException {
+
+        Set<String> allowedClaimProfiles = getAllowedClaimProfiles();
+
+        // Validate profile names and throw an exception if an invalid profile name is found.
+        for (Map.Entry<String, String> entry : claimProperties.entrySet()) {
+            if (!entry.getKey().startsWith(ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX)) {
+                continue;
+            }
+
+           String[] profilePropertyKeyArray = entry.getKey().split("\\.");
+           if (profilePropertyKeyArray.length < 2 || !allowedClaimProfiles.contains(profilePropertyKeyArray[1])) {
+               throw new ClaimMetadataClientException(ERROR_CODE_INVALID_ATTRIBUTE_PROFILE);
+           }
+        }
+
+        String[] allowedProfilePropertyKeys = {
+                ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY,
+                ClaimConstants.REQUIRED_PROPERTY,
+                ClaimConstants.READ_ONLY_PROPERTY
+        };
+        for (String propertyKey: allowedProfilePropertyKeys) {
+            syncAttributeProfileProperties(claimProperties, allowedClaimProfiles, propertyKey);
+        }
+    }
+
+    /**
+     * Remove the profile properties if the profile property value is the same as the global property value.
+     * If all the profile properties have the same value, change the global property value to the profile value.
+     *
+     * @param claimProperties      Map of claim properties to be updated.
+     * @param allowedClaimProfiles Set of allowed claim profiles.
+     * @param propertyKey          Property key to be updated.
+     */
+    private void syncAttributeProfileProperties(Map<String, String> claimProperties, Set<String> allowedClaimProfiles,
+                                                String propertyKey) {
+
+        String globalValue = claimProperties.get(propertyKey);
+        boolean isAllProfilesHaveSameValue = true;
+        boolean isAtLeastOneProfileValueMatchingGlobal = false;
+        String commonProfileValue = null;
+
+        for (String profileName : allowedClaimProfiles) {
+            String profilePropertyKey = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName +
+                    ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
+            String profilePropertyValue = claimProperties.get(profilePropertyKey);
+
+            // Remove the profile property if it is the same as the global property.
+            if (StringUtils.equals(globalValue, profilePropertyValue)) {
+                claimProperties.remove(profilePropertyKey);
+                isAtLeastOneProfileValueMatchingGlobal = true;
+                continue;
+            }
+
+            // If we've already found at least one profile that matches the global, skip further consistency check.
+            if (isAtLeastOneProfileValueMatchingGlobal) {
+                continue;
+            }
+
+            if (StringUtils.isBlank(profilePropertyValue)) {
+                isAllProfilesHaveSameValue = false;
+                continue;
+            }
+            if (commonProfileValue == null) {
+                commonProfileValue = profilePropertyValue;
+            } else if (!StringUtils.equals(commonProfileValue, profilePropertyValue)) {
+                isAllProfilesHaveSameValue = false;
+            }
+        }
+
+        if (isAllProfilesHaveSameValue && !isAtLeastOneProfileValueMatchingGlobal) {
+            // All the profiles have same value and the global value is different value. Hence, update the global value.
+            claimProperties.put(propertyKey, commonProfileValue);
+
+            //  Remove the profile-specific properties as the global value denotes all the profile properties.
+            allowedClaimProfiles.forEach(profile -> {
+                String key = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profile +
+                        ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
+                claimProperties.remove(key);
+            });
+        }
+    }
+
+    /**
      * Updates and synchronizes the claim uniqueness properties in the properties map.
      * Manages the relationship between the legacy 'isUnique' property and the newer 'UniquenessScope' property,
      * ensuring consistency between both properties based on their values.
@@ -739,7 +833,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         validateSharedProfileValueResolvingMethodValue(updatedLocalClaim);
         /*
-        If the existing local claim is non system claim, shared profile value resolving method can be changed 
+        If the existing local claim is non system claim, shared profile value resolving method can be changed
         if the updating value is valid.
          */
         if (!Boolean.parseBoolean(existingLocalClaim.getClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM))) {
