@@ -25,7 +25,7 @@ package org.wso2.carbon.identity.rule.evaluation.model;
 public class RuleEvaluationResult {
 
     private final String ruleId;
-    boolean ruleSatisfied;
+    private final boolean ruleSatisfied;
 
     public RuleEvaluationResult(String ruleId, boolean ruleSatisfied) {
 

@@ -34,6 +34,11 @@ public class OperatorRegistry {
 
     private static final Map<String, Operator> operators = new HashMap<>();
 
+    // Operators
+    private static final String EQUALS = "equals";
+    private static final String NOT_EQUALS = "notEquals";
+    private static final String CONTAINS = "contains";
+
     private OperatorRegistry() {
 
     }
@@ -62,14 +67,14 @@ public class OperatorRegistry {
         ruleMetadataService.getApplicableOperatorsInExpressions()
                 .forEach(operator -> {
                     switch (operator.getName()) {
-                        case "equals":
-                            operators.put(operator.getName(), new Operator("equals", (a, b) -> a.equals(b)));
+                        case EQUALS:
+                            operators.put(operator.getName(), new Operator(EQUALS, (a, b) -> a.equals(b)));
                             break;
-                        case "notEquals":
-                            operators.put(operator.getName(), new Operator("notEquals", (a, b) -> !a.equals(b)));
+                        case NOT_EQUALS:
+                            operators.put(operator.getName(), new Operator(NOT_EQUALS, (a, b) -> !a.equals(b)));
                             break;
-                        case "contains":
-                            operators.put(operator.getName(), new Operator("contains", (a, b) -> {
+                        case CONTAINS:
+                            operators.put(operator.getName(), new Operator(CONTAINS, (a, b) -> {
                                 if (a instanceof String && b instanceof String) {
                                     return ((String) a).contains((String) b);
                                 }

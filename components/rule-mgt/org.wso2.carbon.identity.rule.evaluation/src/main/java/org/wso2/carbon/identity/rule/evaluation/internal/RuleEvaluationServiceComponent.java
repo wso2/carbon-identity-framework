@@ -79,19 +79,13 @@ public class RuleEvaluationServiceComponent {
     )
     protected void setRuleMetadataService(RuleMetadataService ruleMetadataService) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering a reference for RuleMetadataService in the rule evaluation service component.");
-        }
-
+        LOG.debug("Registering a reference for RuleMetadataService in the rule evaluation service component.");
         RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(ruleMetadataService);
     }
 
     protected void unsetRuleMetadataService(RuleMetadataService ruleMetadataService) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering reference for RuleMetadataService in the rule evaluation service component.");
-        }
-
+        LOG.debug("Unregistering reference for RuleMetadataService in the rule evaluation service component.");
         RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(null);
     }
 
@@ -104,19 +98,13 @@ public class RuleEvaluationServiceComponent {
     )
     protected void setRuleManagementService(RuleManagementService ruleManagementService) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering a reference for RuleManagementService in the rule evaluation service component.");
-        }
-
+        LOG.debug("Registering a reference for RuleManagementService in the rule evaluation service component.");
         RuleEvaluationComponentServiceHolder.getInstance().setRuleManagementService(ruleManagementService);
     }
 
     protected void unsetRuleManagementService(RuleManagementService ruleManagementService) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering reference for RuleManagementService in the rule evaluation service component.");
-        }
-
+        LOG.debug("Unregistering reference for RuleManagementService in the rule evaluation service component.");
         RuleEvaluationComponentServiceHolder.getInstance().setRuleManagementService(null);
     }
 
@@ -129,19 +117,15 @@ public class RuleEvaluationServiceComponent {
     )
     protected void setRuleEvaluationProvider(RuleEvaluationDataProvider ruleEvaluationDataProvider) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering RuleEvaluationDataProvider: " + ruleEvaluationDataProvider.getClass().getName() +
-                    " in rule evaluation service component.");
-        }
+        LOG.debug("Registering RuleEvaluationDataProvider: " + ruleEvaluationDataProvider.getClass().getName() +
+                " in rule evaluation service component.");
         RuleEvaluationDataManager.getInstance().registerRuleEvaluationDataProvider(ruleEvaluationDataProvider);
     }
 
     protected void unsetRuleEvaluationDataProvider(RuleEvaluationDataProvider ruleEvaluationDataProvider) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering RuleEvaluationDataProvider: " + ruleEvaluationDataProvider.getClass().getName() +
-                    " in rule evaluation service component.");
-        }
+        LOG.debug("Unregistering RuleEvaluationDataProvider: " + ruleEvaluationDataProvider.getClass().getName() +
+                " in rule evaluation service component.");
         RuleEvaluationDataManager.getInstance().unregisterRuleEvaluationDataProvider(ruleEvaluationDataProvider);
     }
 }
