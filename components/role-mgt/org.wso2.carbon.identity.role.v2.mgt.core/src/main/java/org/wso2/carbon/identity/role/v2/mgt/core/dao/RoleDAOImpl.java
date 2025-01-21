@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -1746,29 +1746,29 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         if (CollectionUtils.isEmpty(deletedUserNamesList)) {
-            return Collections.emptyList(); // Return early if no usernames are provided
+            return Collections.emptyList(); // Return early if no usernames are provided.
         }
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<String> permittedUserNames = new ArrayList<>();
 
-        // Dynamically build placeholders for the IN clause
+        // Dynamically build placeholders for the IN clause.
         String placeholders = deletedUserNamesList.stream()
                 .map(username -> ":" + UM_USER_NAME + deletedUserNamesList.indexOf(username))
                 .collect(Collectors.joining(","));
 
-        // Query 1: NOT_RESTRICTED usernames
+        // Query 1: NOT_RESTRICTED usernames.
         String fetchNotRestrictedUsernamesQuery =
                 GET_NOT_RESTRICTED_USERNAMES_BY_ROLE_HEAD + placeholders + GET_NOT_RESTRICTED_USERNAMES_BY_ROLE_TAIL;
 
-        // Query 2: RESTRICTED usernames with permitted deletion access
+        // Query 2: RESTRICTED usernames with permitted deletion access.
         String fetchRestrictedUsernamesWithPermittedAccessQuery =
                 GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_HEAD + placeholders +
                         GET_RESTRICTED_USERNAMES_BY_ROLE_AND_ORG_TAIL;
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
 
-            // Execute Query 1
+            // Execute Query 1.
             try (NamedPreparedStatement preparedStatement1 = new NamedPreparedStatement(connection,
                     fetchNotRestrictedUsernamesQuery)) {
                 preparedStatement1.setString(UM_ROLE_ID, roleId);
@@ -1785,7 +1785,7 @@ public class RoleDAOImpl implements RoleDAO {
                 }
             }
 
-            // Execute Query 2
+            // Execute Query 2.
             try (NamedPreparedStatement preparedStatement2 = new NamedPreparedStatement(connection,
                     fetchRestrictedUsernamesWithPermittedAccessQuery)) {
                 preparedStatement2.setString(UM_ROLE_ID, roleId);
@@ -1807,7 +1807,7 @@ public class RoleDAOImpl implements RoleDAO {
             }
         } catch (SQLException e) {
             String errorMessage =
-                    String.format("Error while retrieving permitted usernames for role ID: %s in tenant domain: %s",
+                    String.format("Error while retrieving permitted usernames for role ID: %s in tenant domain: %s.",
                             roleId, tenantDomain);
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }

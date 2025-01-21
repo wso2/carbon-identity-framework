@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -514,19 +514,16 @@ public interface RoleDAO {
     /**
      * Retrieve the list of usernames eligible to be removed from the specified role within the given tenant domain,
      * based on the permissions of the requesting organization.
-     * <p>
-     * This method ensures that the requesting organization has the necessary permissions to remove the specified users
-     * from the given role.
      *
      * @param roleId               The role ID from which the users are to be removed.
-     * @param usernamesToBeRemoved The list of usernames intended for removal.
+     * @param deletedUserNamesList The list of usernames intended for removal.
      * @param tenantDomain         The tenant domain where the operation is being performed.
      * @param requestingOrgId      The ID of the requesting organization performing the operation.
      * @return A list of usernames that the requesting organization is permitted to remove from the given role.
      * @throws IdentityRoleManagementException If an error occurs while validating the permissions or retrieving
      *                                         eligible usernames.
      */
-    default List<String> getEligibleUsernamesForUserRemovalFromRole(String roleId, List<String> usernamesToBeRemoved,
+    default List<String> getEligibleUsernamesForUserRemovalFromRole(String roleId, List<String> deletedUserNamesList,
                                                                     String tenantDomain, String requestingOrgId)
             throws IdentityRoleManagementException {
 
