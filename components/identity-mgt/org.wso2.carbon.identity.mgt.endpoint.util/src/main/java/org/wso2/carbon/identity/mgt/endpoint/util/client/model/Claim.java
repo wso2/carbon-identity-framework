@@ -22,8 +22,8 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
 import java.util.Objects;
-
 
 /**
  * Claim
@@ -37,7 +37,9 @@ public class Claim {
     private String dialect = null;
     private Boolean required = null;
     private Boolean readOnly = null;
+    private Boolean supportedByDefault = null;
     private String validationRegex = null;
+    private Map<String, ClaimProfileProperty> profiles = null;
 
 
     /**
@@ -176,6 +178,88 @@ public class Claim {
         this.validationRegex = validationRegex;
     }
 
+    /**
+     * Claim profiles property.
+     **/
+    @JsonProperty("profiles")
+    public Map<String, ClaimProfileProperty> getProfiles() {
+
+        return profiles;
+    }
+
+    public void setProfiles(Map<String, ClaimProfileProperty> profiles) {
+
+        this.profiles = profiles;
+    }
+
+    /**
+     * Supported by default property.
+     */
+    @JsonProperty("supported-by-default")
+    public Boolean getSupportedByDefault() {
+
+        return supportedByDefault;
+    }
+
+    public void setSupportedByDefault(Boolean supportedByDefault) {
+
+        this.supportedByDefault = supportedByDefault;
+    }
+
+    /**
+     * Checks if the claim is required for a given profile.
+     * Returns the profile-specific value if set, otherwise falls back to the global value.
+     *
+     * @param profileName The profile to check.
+     * @return True if required; false if explicitly false; null if unspecified.
+     */
+    public Boolean getRequiredPropertyForProfile(String profileName) {
+
+        if (profiles != null) {
+            ClaimProfileProperty claimProfileProperty = profiles.get(profileName);
+            if (claimProfileProperty != null && claimProfileProperty.getRequired() != null) {
+                return claimProfileProperty.getRequired();
+            }
+        }
+        return required;
+    }
+
+    /**
+     * Checks if the claim is read-only for a given profile.
+     * Returns the profile-specific value if set, otherwise falls back to the global value.
+     *
+     * @param profileName The profile to check.
+     * @return True if read-only; false if explicitly false; null if unspecified.
+     */
+    public Boolean getReadOnlyPropertyForProfile(String profileName) {
+
+        if (profiles != null) {
+            ClaimProfileProperty claimProfileProperty = profiles.get(profileName);
+            if (claimProfileProperty != null && claimProfileProperty.getReadOnly() != null) {
+                return claimProfileProperty.getReadOnly();
+            }
+        }
+        return readOnly;
+    }
+
+    /**
+     * Checks if the claim is supported-by-default for a given profile.
+     * Returns the profile-specific value if set, otherwise falls back to the global value.
+     *
+     * @param profileName The profile to check.
+     * @return True if supported-by-default; false if explicitly false; null if unspecified.
+     */
+    public Boolean getSupportedByDefaultPropertyForProfile(String profileName) {
+
+        if (profiles != null) {
+            ClaimProfileProperty claimProfileProperty = profiles.get(profileName);
+            if (claimProfileProperty != null && claimProfileProperty.getReadOnly() != null) {
+                return claimProfileProperty.getReadOnly();
+            }
+        }
+        return readOnly;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -191,7 +275,9 @@ public class Claim {
                 Objects.equals(this.displayName, claim.displayName) &&
                 Objects.equals(this.dialect, claim.dialect) &&
                 Objects.equals(this.required, claim.required) &&
-                Objects.equals(this.readOnly, claim.readOnly);
+                Objects.equals(this.readOnly, claim.readOnly) &&
+                Objects.equals(this.supportedByDefault, claim.supportedByDefault) &&
+                Objects.equals(profiles, claim.profiles);
     }
 
     @Override
@@ -211,6 +297,8 @@ public class Claim {
         sb.append("    dialect: ").append(toIndentedString(dialect)).append("\n");
         sb.append("    required: ").append(toIndentedString(required)).append("\n");
         sb.append("    readOnly: ").append(toIndentedString(readOnly)).append("\n");
+        sb.append("    supportedByDefault: ").append(toIndentedString(supportedByDefault)).append("\n");
+        sb.append("    profiles: ").append(toIndentedString(profiles)).append("\n");
         sb.append("}");
         return sb.toString();
     }
