@@ -2628,6 +2628,46 @@ public class FrameworkUtils {
     }
 
     /**
+     * Get app associated roles from federated user attributes.
+     *
+     * @param fedUserAttributes Federated user attributes.
+     * @param identityProvider  Identity provider.
+     * @param applicationId     Application ID.
+     * @param idpGroupClaimURI  IDP group claim URI.
+     * @param tenantDomain      Tenant domain.
+     * @return List of app associated roles of federated user.
+     * @throws FrameworkException If an error occurred while getting app associated roles of federated user.
+     */
+    public static List<String> getAppAssociatedRolesFromFederatedUserAttributes(Map<String, String> fedUserAttributes,
+                                                                                IdentityProvider identityProvider,
+                                                                                String applicationId,
+                                                                                String idpGroupClaimURI,
+                                                                                String tenantDomain)
+            throws FrameworkException {
+
+        ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
+                .getHighestPriorityApplicationRolesResolver();
+        if (appRolesResolver == null) {
+            log.debug("No app associated roles resolver found.");
+            // Return empty list if no app associated roles resolver is available.
+            return new ArrayList<>();
+        }
+        String[] appAssociatedRolesOfFedUser;
+        try {
+            Map<ClaimMapping, String> attributes = buildClaimMappings(fedUserAttributes);
+            appAssociatedRolesOfFedUser = appRolesResolver.getAppAssociatedRolesOfFederatedUser(attributes,
+                    identityProvider, applicationId, idpGroupClaimURI, tenantDomain);
+            if (appAssociatedRolesOfFedUser == null) {
+                return new ArrayList<>();
+            }
+            return Arrays.asList(appAssociatedRolesOfFedUser);
+        } catch (ApplicationRolesException e) {
+            throw new FrameworkException("Error while resolving app associated roles from federated user attributes.",
+                    e);
+        }
+    }
+
+    /**
      * To get the role claim uri of an IDP.
      *
      * @param externalIdPConfig Relevant external IDP Config.
