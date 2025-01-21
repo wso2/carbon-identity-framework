@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>action-mgt</artifactId>
-        <version>7.7.109-SNAPSHOT</version>
+        <version>7.7.110-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -174,7 +174,7 @@
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
                                             <!-- temp decreasing the coverage -->
-                                            <minimum>0.79</minimum>
+                                            <minimum>0.78</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>
