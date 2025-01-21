@@ -57,7 +57,6 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
-import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -1290,17 +1289,14 @@ public class ApplicationMgtUtil {
                             .getUserStoreManager();
         } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
-                    ERROR_RETRIEVING_USERSTORE_MANAGER.getMessage(),
                     String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain), e);
         }
         if (userStoreManager == null) {
             throw new IdentityApplicationManagementException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
-                    ERROR_RETRIEVING_USERSTORE_MANAGER.getMessage(),
                     String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain));
         }
         if (!(userStoreManager instanceof AbstractUserStoreManager)) {
             throw new IdentityApplicationManagementException(UNSUPPORTED_USER_STORE_MANAGER.getCode(),
-                    UNSUPPORTED_USER_STORE_MANAGER.getMessage(),
                     String.format(UNSUPPORTED_USER_STORE_MANAGER.getDescription(), tenantDomain));
         }
         return (AbstractUserStoreManager) userStoreManager;

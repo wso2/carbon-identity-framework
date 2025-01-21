@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
-import java.util.Locale;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -130,6 +129,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.OptionalInt;
@@ -2008,7 +2008,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
-                serviceProvider.setDiscoverableGroups(getDiscoverableGroups(serviceProvider.getApplicationID(), connection, tenantDomain));
+                serviceProvider.setDiscoverableGroups(
+                        getDiscoverableGroups(serviceProvider.getApplicationID(), connection, tenantDomain));
 
                 User owner = new User();
                 owner.setUserName(basicAppDataResultSet.getString(5));

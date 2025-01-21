@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.application.mgt.validator;
 
-import java.util.Objects;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -58,7 +57,6 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -66,6 +64,9 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreClientException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,9 +76,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.wso2.carbon.user.core.UserStoreClientException;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_CHECKING_GROUP_EXISTENCE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_CHECKING_USER_STORE_EXISTENCE;
@@ -201,7 +199,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
      * @param validationErrors List of validation errors.
      * @param serviceProvider  Service provider configuration.
      * @param tenantDomain     Tenant domain of the application.
-     * @throws IdentityApplicationManagementException If an error occurs while validating the discoverability configurations.
+     * @throws IdentityApplicationManagementException If an error occurs while validating the discoverability
+     *                                                configurations.
      */
     private void validateDiscoverabilityConfigs(List<String> validationErrors, ServiceProvider serviceProvider,
                                                 String tenantDomain) throws IdentityApplicationManagementException {
@@ -245,14 +244,13 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 }
                 try {
                     ApplicationManagementServiceComponentHolder.getInstance().getUserStoreConfigService()
-                                    .getUserStore(discoverableGroup.getUserStore());
+                            .getUserStore(discoverableGroup.getUserStore());
                 } catch (IdentityUserStoreMgtException e) {
                     if (e instanceof IdentityUserStoreClientException) {
                         validationErrors.add(String.format(USER_STORE_NOT_FOUND, i));
                         continue;
                     }
                     throw new IdentityApplicationManagementException(ERROR_CHECKING_USER_STORE_EXISTENCE.getCode(),
-                            ERROR_CHECKING_USER_STORE_EXISTENCE.getMessage(),
                             String.format(ERROR_CHECKING_USER_STORE_EXISTENCE.getDescription(),
                                     discoverableGroup.getUserStore()), e);
                 }
@@ -271,10 +269,11 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                             ApplicationMgtUtil.getUserStoreManager(tenantDomain);
                     try {
                         String groupName = userStoreManager.getGroupNameByGroupId(
-                                UserCoreUtil.addDomainToName(groupBasicInfo.getId(), discoverableGroup.getUserStore()));
+                                UserCoreUtil.addDomainToName(
+                                        groupBasicInfo.getId(), discoverableGroup.getUserStore()));
                         String groupNameWithoutDomain = UserCoreUtil.removeDomainFromName(groupName);
-                        if (!Objects.equals(groupNameWithoutDomain, groupBasicInfo.getName()) &&
-                                !Objects.equals(groupName, groupBasicInfo.getName())) {
+                        if (!StringUtils.equals(groupNameWithoutDomain, groupBasicInfo.getName()) &&
+                                !StringUtils.equals(groupName, groupBasicInfo.getName())) {
                             log.warn(String.format(GROUP_NAME_NOT_MATCH_WITH_GROUP_ID, groupBasicInfo.getName(),
                                     groupBasicInfo.getId()));
                         }
@@ -284,7 +283,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                             continue;
                         }
                         throw new IdentityApplicationManagementException(ERROR_CHECKING_GROUP_EXISTENCE.getCode(),
-                                ERROR_CHECKING_GROUP_EXISTENCE.getMessage(),
                                 String.format(ERROR_CHECKING_GROUP_EXISTENCE.getDescription(), groupBasicInfo.getId()),
                                 e);
                     }

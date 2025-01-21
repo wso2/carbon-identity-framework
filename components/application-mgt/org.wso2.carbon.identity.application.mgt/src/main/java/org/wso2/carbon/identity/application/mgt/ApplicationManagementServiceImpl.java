@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -84,6 +85,8 @@ import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorMa
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -107,6 +110,10 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
+import org.wso2.carbon.user.core.model.Condition;
+import org.wso2.carbon.user.core.model.ExpressionCondition;
+import org.wso2.carbon.user.core.model.ExpressionOperation;
 import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -162,7 +169,12 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_GROUP_LIST;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.INVALID_GROUP_FILTER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.FILTER_SW;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildSPData;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
@@ -3258,6 +3270,39 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     resourceId, LoggerUtils.Target.Application.name(),
                     LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
+        }
+    }
+
+    @Override
+    public List<GroupBasicInfo> getGroups(String tenantDomain, String domainName, Node filter)
+            throws IdentityApplicationManagementException {
+
+        Condition filterCondition = null;
+        if (filter != null) {
+            if (!(filter instanceof ExpressionNode) ||
+                    !StringUtils.equals(((ExpressionNode) filter).getAttributeValue(), NAME) ||
+                    !StringUtils.equals(((ExpressionNode) filter).getOperation(), FILTER_SW)) {
+                throw new IdentityApplicationManagementClientException(INVALID_GROUP_FILTER.getCode(),
+                        INVALID_GROUP_FILTER.getDescription());
+            }
+            filterCondition = new ExpressionCondition(ExpressionOperation.SW.toString(), DISPLAY_NAME,
+                    ((ExpressionNode) filter).getValue());
+        }
+        AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+        try {
+            List<GroupBasicInfo> groupBasicInfos = new ArrayList<>();
+            // Group endpoint does not support pagination.
+            List<Group> groups = userStoreManager.listGroups(filterCondition, domainName, 0, 0, null, null);
+            for (Group group : groups) {
+                GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
+                groupBasicInfo.setId(group.getGroupID());
+                groupBasicInfo.setName(group.getGroupName());
+                groupBasicInfos.add(groupBasicInfo);
+            }
+            return groupBasicInfos;
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_GROUP_LIST.getCode(),
+                    String.format(ERROR_RETRIEVING_GROUP_LIST.getDescription(), domainName), e);
         }
     }
 
