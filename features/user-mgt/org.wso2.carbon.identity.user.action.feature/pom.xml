@@ -24,16 +24,16 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt-feature</artifactId>
-        <version>7.7.88-SNAPSHOT</version>
+        <version>7.7.109-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.user.pre.update.password.action.feature</artifactId>
+    <artifactId>org.wso2.carbon.identity.user.action.feature</artifactId>
     <packaging>pom</packaging>
-    <name>Pre Update Password Action Feature</name>
+    <name>User Action Feature</name>
     <url>http://wso2.org</url>
-    <description>This feature contains the core bundles required for Pre Update Password Action Framework</description>
+    <description>This feature contains the core bundles required for User Action Framework</description>
 
     <dependencies>
         <dependency>
@@ -56,7 +56,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.identity.user.pre.update.password.action</id>
+                            <id>org.wso2.carbon.identity.user.action</id>
                             <propertiesFile>../../etc/feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
