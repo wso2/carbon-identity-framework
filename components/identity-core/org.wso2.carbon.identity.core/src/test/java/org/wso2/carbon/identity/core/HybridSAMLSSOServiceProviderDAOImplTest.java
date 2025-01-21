@@ -34,7 +34,9 @@ import org.wso2.carbon.identity.core.dao.RegistrySAMLSSOServiceProviderDAOImpl;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URL;
 
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
@@ -101,6 +103,10 @@ public class HybridSAMLSSOServiceProviderDAOImplTest {
                 HybridSAMLSSOServiceProviderDAOImpl.class.getDeclaredField("registrySAMLSSOServiceProviderDAOImpl");
         registryField.setAccessible(true);
         registryField.set(hybridSAMLSSOServiceProviderDAOImpl, registrySAMLSSOServiceProviderDAOImpl);
+
+        URL root = this.getClass().getClassLoader().getResource(".");
+        File file = new File(root.getPath());
+        System.setProperty("carbon.home", file.getAbsolutePath());
 
         samlSSOServiceProviderManager = new SAMLSSOServiceProviderManager();
         samlSSOServiceProviderManager.serviceProviderDAO = hybridSAMLSSOServiceProviderDAOImpl;
