@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,33 +18,22 @@
 
 package org.wso2.carbon.identity.action.execution.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * This class models the User.
- * User is the entity that represents the user for whom the action is triggered for.
+ * This class models the Incomplete response.
+ * If the downstream extension needs to compose the responses with INCOMPLETE status and communicate it back,
+ * this class can be used by consumers to implement the model for that incomplete response.
  */
-public class User {
+public class Incomplete {
 
-    private String id;
-    private final List<UserClaim> claims =  new ArrayList<>();
+    private final String url;
 
-    public User(String id) {
+    public Incomplete(String url) {
 
-        this.id = id;
+        this.url = url;
     }
 
-    public String getId() {
+    public String getUrl() {
 
-        return id;
-    }
-
-    public void setClaims(UserClaim userClaim) {
-        claims.add(userClaim);
-    }
-
-    public List<UserClaim> getClaims() {
-        return claims;
+        return url;
     }
 }

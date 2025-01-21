@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,33 +18,35 @@
 
 package org.wso2.carbon.identity.action.execution.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * This class models the User.
- * User is the entity that represents the user for whom the action is triggered for.
+ * This class models the user claims.
+ * User claim is the entity that represents the user claims of the user for whom the action is triggered for.
  */
-public class User {
+public class UserClaim {
 
-    private String id;
-    private final List<UserClaim> claims =  new ArrayList<>();
+    private final String uri;
+    private final String value;
 
-    public User(String id) {
-
-        this.id = id;
+    public UserClaim(String uri, String value) {
+        this.uri = uri;
+        this.value = value;
     }
 
-    public String getId() {
-
-        return id;
+    /**
+     * Retrieve value of the user claim.
+     *
+     * @return Claim value.
+     */
+    public String getValue() {
+        return value;
     }
 
-    public void setClaims(UserClaim userClaim) {
-        claims.add(userClaim);
-    }
-
-    public List<UserClaim> getClaims() {
-        return claims;
+    /**
+     * Retrieve URI of the user claim.
+     *
+     * @return Claim URI.
+     */
+    public String getUri() {
+        return uri;
     }
 }

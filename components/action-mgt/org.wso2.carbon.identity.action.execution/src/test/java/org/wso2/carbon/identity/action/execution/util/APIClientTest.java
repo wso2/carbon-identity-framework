@@ -39,6 +39,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.Operation;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
@@ -178,6 +180,7 @@ public class APIClientTest {
         ((ActionInvocationSuccessResponse) apiResponse.getResponse()).getOperations().forEach(operation -> {
             assertEquals(operation.getOp(), Operation.ADD);
             assertEquals(operation.getPath(), "/accessToken/claims/-");
+            assertNull(operation.getUrl());
             assertTrue(operation.getValue() instanceof HashMap);
             ((HashMap<String, String>) operation.getValue()).forEach((key, value) -> {
                 if ("name".equals(key)) {
@@ -189,6 +192,69 @@ public class APIClientTest {
         });
         assertFalse(apiResponse.isRetry());
         assertNull(apiResponse.getErrorLog());
+    }
+
+    @Test
+    public void testCallAPIAcceptablePayloadForIncompleteResponse() throws Exception {
+
+        String incompleteResponse =
+                "{\"actionStatus\": \"INCOMPLETE\", \"operations\": [" +
+                        "{\"op\": \"redirect\",\"url\": \"https://dummy-url\"}]}";
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+
+        InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(incompleteResponse.getBytes(
+                StandardCharsets.UTF_8)));
+        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+
+        assertNotNull(apiResponse);
+        assertNotNull(apiResponse.getResponse());
+        assertTrue(apiResponse.getResponse() instanceof ActionInvocationIncompleteResponse);
+        ActionInvocationIncompleteResponse response =
+                ((ActionInvocationIncompleteResponse) apiResponse.getResponse());
+        assertEquals(response.getActionStatus(), ActionInvocationResponse.Status.INCOMPLETE);
+        response.getOperations().forEach(operation -> {
+            assertEquals(operation.getOp(), Operation.REDIRECT);
+            assertEquals(operation.getUrl(), "https://dummy-url");
+            assertNull(operation.getPath());
+            assertNull(operation.getValue());
+        });
+        assertFalse(apiResponse.isRetry());
+        assertNull(apiResponse.getErrorLog());
+    }
+
+    @DataProvider(name = "unexpectedIncompleteResponses")
+    public Object[][] unexpectedIncompleteResponses() {
+
+        return new Object[][]{
+                {"{\"operations\": [" + "{\"op\": \"redirect\",\"url\": \"https://dummy-url\"}]}"},
+                {"{\"actionStatus\": \"INCOMPLETE\"}"}
+        };
+    }
+
+    @Test(dataProvider = "unexpectedIncompleteResponses")
+    public void testCallAPIUnexpectedIncompleteResponse(String incompleteResponse) throws IOException {
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+
+        InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(incompleteResponse.getBytes(
+                StandardCharsets.UTF_8)));
+        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+
+        assertNotNull(apiResponse);
+        assertTrue(apiResponse.isError());
+        assertFalse(apiResponse.isRetry());
+        assertNotNull(apiResponse.getErrorLog());
     }
 
     @Test
