@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetada
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -44,6 +45,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -186,6 +188,89 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         this.unifiedClaimMetadataManager.removeClaimDialect(claimDialect, tenantId);
         ClaimMetadataEventPublisherProxy.getInstance().publishPostDeleteClaimDialect(tenantId, claimDialect);
 
+    }
+
+    /**
+     * Retrieves the list of local claims supported by the specified profile for a given tenant.
+     *
+     * @param tenantDomain The tenant domain.
+     * @param profileName  The profile name.
+     * @return A list of local claims supported by the profile for the given tenant.
+     * @throws ClaimMetadataException If an error occurs while retrieving claims.
+     */
+    @Override
+    public List<LocalClaim> getSupportedLocalClaimsForProfile(String tenantDomain, String profileName)
+            throws ClaimMetadataException {
+
+        // Validate profile name.
+        if (!getAllowedClaimProfiles().contains(profileName)) {
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_ATTRIBUTE_PROFILE);
+        }
+
+        String profileSupportedProperty =
+                buildAttributeProfilePropertyKey(profileName, ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
+        return getLocalClaims(tenantDomain).stream().filter(localClaim ->
+                isClaimSupportedByProfile(localClaim, profileName, profileSupportedProperty))
+                .map(localClaim -> updateClaimPropertiesForProfile(localClaim, profileName))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Determines if the given claim is supported by the specified profile.
+     * If the profile-specific value exists, it takes precedence over the global value.
+     *
+     * @param claim                        The local claim to check.
+     * @param profileName                  The profile name to evaluate against.
+     * @param profileSupportedByDefaultProperty The profile-specific property key.
+     * @return True if the claim is supported by the profile; False otherwise.
+     */
+    private boolean isClaimSupportedByProfile(LocalClaim claim, String profileName,
+                                              String profileSupportedByDefaultProperty) {
+
+        Map<String, String> claimProperties = claim.getClaimProperties();
+        if (claimProperties.containsKey(profileSupportedByDefaultProperty)) {
+            return Boolean.parseBoolean(claimProperties.get(profileSupportedByDefaultProperty));
+        }
+        return Boolean.parseBoolean(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY));
+    }
+
+    /**
+     * Updates the global claim properties with profile-specific properties, if available.
+     *
+     * @param claim       The local claim to update.
+     * @param profileName The profile name to apply the specific properties from.
+     */
+    private LocalClaim updateClaimPropertiesForProfile(LocalClaim claim, String profileName) {
+
+        LocalClaim claimCopy = copyLocalClaim(claim);
+        Map<String, String> claimProperties = claimCopy.getClaimProperties();
+        for (String propertyKey: ClaimConstants.ALLOWED_PROFILE_PROPERTY_KEYS) {
+            String profilePropertyKey = buildAttributeProfilePropertyKey(profileName, propertyKey);
+            String profilePropertyValue = claimProperties.get(profilePropertyKey);
+
+            if (StringUtils.isNotBlank(profilePropertyValue)) {
+                claimProperties.put(propertyKey, profilePropertyValue);
+            }
+        }
+        return claimCopy;
+    }
+
+    /**
+     * Creates a deep copy of the given LocalClaim object.
+     *
+     * @param originalClaim The original LocalClaim to copy.
+     * @return A deep copy of the original LocalClaim.
+     */
+    private LocalClaim copyLocalClaim(LocalClaim originalClaim) {
+
+        Map<String, String> claimPropertiesCopy = originalClaim.getClaimProperties() != null
+                ? new HashMap<>(originalClaim.getClaimProperties())
+                : new HashMap<>();
+        List<AttributeMapping> mappedAttributesCopy = originalClaim.getMappedAttributes() != null
+                ? new ArrayList<>(originalClaim.getMappedAttributes())
+                : new ArrayList<>();
+
+        return new LocalClaim(originalClaim.getClaimURI(), mappedAttributesCopy, claimPropertiesCopy);
     }
 
     @Override
@@ -674,13 +759,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                throw new ClaimMetadataClientException(ERROR_CODE_INVALID_ATTRIBUTE_PROFILE);
            }
         }
-
-        String[] allowedProfilePropertyKeys = {
-                ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY,
-                ClaimConstants.REQUIRED_PROPERTY,
-                ClaimConstants.READ_ONLY_PROPERTY
-        };
-        for (String propertyKey: allowedProfilePropertyKeys) {
+        for (String propertyKey: ClaimConstants.ALLOWED_PROFILE_PROPERTY_KEYS) {
             syncAttributeProfileProperties(claimProperties, allowedClaimProfiles, propertyKey);
         }
     }
@@ -702,8 +781,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         String commonProfileValue = null;
 
         for (String profileName : allowedClaimProfiles) {
-            String profilePropertyKey = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName +
-                    ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
+            String profilePropertyKey = buildAttributeProfilePropertyKey(profileName, propertyKey);
             String profilePropertyValue = claimProperties.get(profilePropertyKey);
 
             // Remove the profile property if it is the same as the global property.
@@ -740,6 +818,19 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 claimProperties.remove(key);
             });
         }
+    }
+
+    /**
+     * Constructs the attribute profile property key for a given profile and property.
+     *
+     * @param profileName  Profile name (e.g., "console").
+     * @param propertyKey  The property key associated with the profile (e.g., "Required").
+     * @return A fully qualified profile property key (e.g., "Profiles.console.Required").
+     */
+    private String buildAttributeProfilePropertyKey(String profileName, String propertyKey) {
+
+        return ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName +
+                ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
     }
 
     /**
