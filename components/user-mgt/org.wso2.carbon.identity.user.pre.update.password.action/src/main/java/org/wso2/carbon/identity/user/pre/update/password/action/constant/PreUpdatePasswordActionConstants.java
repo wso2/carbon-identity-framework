@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,21 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.model;
-
-import org.wso2.carbon.identity.action.management.model.Action;
+package org.wso2.carbon.identity.user.pre.update.password.action.constant;
 
 /**
- * This class models the Action Type.
- * Action Type is the type of the action that is executed by the Action Executor Service.
+ * This class holds the constants used in Pre Update Password extension.
  */
-public enum ActionType {
-    PRE_ISSUE_ACCESS_TOKEN,
-    PRE_UPDATE_PASSWORD,
-    AUTHENTICATION;
+public class PreUpdatePasswordActionConstants {
 
-    public String getDisplayName() {
+    public static final String PASSWORD_SHARING_FORMAT = "passwordSharingFormat";
+    public static final String CERTIFICATE = "certificate";
 
-        return Action.ActionTypes.valueOf(this.name()).getDisplayName();
-    }
+    // Event Context constants for pre update password action
+    public static final String USER_ACTION_CONTEXT = "userActionContext";
 }

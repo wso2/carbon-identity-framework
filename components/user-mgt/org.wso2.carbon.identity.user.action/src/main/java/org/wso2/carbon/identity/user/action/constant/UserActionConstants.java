@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,21 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.model;
-
-import org.wso2.carbon.identity.action.management.model.Action;
+package org.wso2.carbon.identity.user.action.constant;
 
 /**
- * This class models the Action Type.
- * Action Type is the type of the action that is executed by the Action Executor Service.
+ * This class holds the constants used in User Actions.
  */
-public enum ActionType {
-    PRE_ISSUE_ACCESS_TOKEN,
-    PRE_UPDATE_PASSWORD,
-    AUTHENTICATION;
+public class UserActionConstants {
 
-    public String getDisplayName() {
-
-        return Action.ActionTypes.valueOf(this.name()).getDisplayName();
-    }
+    // Action Error Code for pre update password action
+    public static final String PRE_UPDATE_PASSWORD_ACTION_ERROR_CODE = "preUpdatePasswordActionError";
 }
