@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.action.execution.exception.ActionInvocationExcep
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
@@ -258,6 +259,8 @@ public class APIClient {
                 module.addDeserializer(Context.class, new Context.ContextDeserializer(actionType));
                 objectMapper.registerModule(module);
                 return objectMapper.readValue(jsonResponse, ActionInvocationSuccessResponse.class);
+            } else if (actionStatus.equals(ActionExecutionStatus.Status.INCOMPLETE.name())) {
+                return objectMapper.readValue(jsonResponse, ActionInvocationIncompleteResponse.class);
             } else {
                 return objectMapper.readValue(jsonResponse, ActionInvocationFailureResponse.class);
             }
