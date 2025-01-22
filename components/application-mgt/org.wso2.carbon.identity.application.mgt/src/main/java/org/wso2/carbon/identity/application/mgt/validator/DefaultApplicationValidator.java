@@ -52,13 +52,10 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
-import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -78,7 +75,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_CHECKING_GROUP_EXISTENCE;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_CHECKING_USER_STORE_EXISTENCE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
@@ -119,14 +115,10 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String EMPTY_DISCOVERABLE_GROUPS = "The list of discoverable groups is empty.";
     private static final String NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP =
             "No user store defined for the discoverable groups indexed at %d.";
-    private static final String USER_STORE_NOT_FOUND =
-            "The provided user store is not found for the discoverable groups indexed at %d.";
     private static final String NO_GROUPS_FOR_THE_DISCOVERABLE_GROUP =
             "No groups defined for the user store: '%s' in the discoverable groups configuration.";
     private static final String NO_GROUP_ID = "Group ID is not defined for the group indexed at %d for the user " +
             "store: '%s' in the discoverable groups configuration.";
-    private static final String GROUP_NAME_NOT_MATCH_WITH_GROUP_ID = "Group name '%s' does not match with the user " +
-            "store group name for the group ID '%s' in the discoverable groups configuration.";
     private static final String NO_GROUP_WITH_GIVEN_ID = "No group found for the given group ID: '%s'.";
     public static final String IS_HANDLER = "IS_HANDLER";
     private static Pattern loopPattern;
@@ -238,21 +230,9 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             for (int i = 0; i < discoverableGroups.length; i++) {
                 DiscoverableGroup discoverableGroup = discoverableGroups[i];
                 GroupBasicInfo[] groupBasicInfos = discoverableGroup.getGroups();
-                if (discoverableGroup.getUserStore() == null) {
+                if (StringUtils.isBlank(discoverableGroup.getUserStore())) {
                     validationErrors.add(String.format(NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP, i));
                     continue;
-                }
-                try {
-                    ApplicationManagementServiceComponentHolder.getInstance().getUserStoreConfigService()
-                            .getUserStore(discoverableGroup.getUserStore());
-                } catch (IdentityUserStoreMgtException e) {
-                    if (e instanceof IdentityUserStoreClientException) {
-                        validationErrors.add(String.format(USER_STORE_NOT_FOUND, i));
-                        continue;
-                    }
-                    throw new IdentityApplicationManagementException(ERROR_CHECKING_USER_STORE_EXISTENCE.getCode(),
-                            String.format(ERROR_CHECKING_USER_STORE_EXISTENCE.getDescription(),
-                                    discoverableGroup.getUserStore()), e);
                 }
                 if (groupBasicInfos == null || groupBasicInfos.length == 0) {
                     validationErrors.add(
@@ -261,22 +241,16 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 }
                 for (int j = 0; j < groupBasicInfos.length; j++) {
                     GroupBasicInfo groupBasicInfo = groupBasicInfos[j];
-                    if (groupBasicInfo.getId() == null) {
+                    if (StringUtils.isBlank(groupBasicInfo.getId())) {
                         validationErrors.add(String.format(NO_GROUP_ID, j, discoverableGroup.getUserStore()));
                         continue;
                     }
                     AbstractUserStoreManager userStoreManager =
                             ApplicationMgtUtil.getUserStoreManager(tenantDomain);
                     try {
-                        String groupName = userStoreManager.getGroupNameByGroupId(
+                        userStoreManager.getGroupNameByGroupId(
                                 UserCoreUtil.addDomainToName(
                                         groupBasicInfo.getId(), discoverableGroup.getUserStore()));
-                        String groupNameWithoutDomain = UserCoreUtil.removeDomainFromName(groupName);
-                        if (!StringUtils.equals(groupNameWithoutDomain, groupBasicInfo.getName()) &&
-                                !StringUtils.equals(groupName, groupBasicInfo.getName())) {
-                            log.warn(String.format(GROUP_NAME_NOT_MATCH_WITH_GROUP_ID, groupBasicInfo.getName(),
-                                    groupBasicInfo.getId()));
-                        }
                     } catch (UserStoreException e) {
                         if (e instanceof UserStoreClientException) {
                             validationErrors.add(String.format(NO_GROUP_WITH_GIVEN_ID, groupBasicInfo.getId()));

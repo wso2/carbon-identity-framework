@@ -283,8 +283,6 @@ public class ApplicationConstants {
                 "Server encountered an unexpected error when creating the application."),
         ERROR_CHECKING_GROUP_EXISTENCE(UNEXPECTED_SERVER_ERROR.getCode(), "Unexpected processing error.",
                 "Error occurred while checking the existence of the group: %s."),
-        ERROR_CHECKING_USER_STORE_EXISTENCE(UNEXPECTED_SERVER_ERROR.getCode(), "Unexpected processing error.",
-                "Error occurred while checking the existence of the user store: %s."),
         INVALID_GROUP_FILTER(INVALID_FILTER.getCode(), "Invalid filter query.",
                 "Filtering is only supported with 'name' attribute and 'sw' operation. Eg: name+sw+group1"),
         ERROR_RETRIEVING_GROUP_LIST(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving group list.",
