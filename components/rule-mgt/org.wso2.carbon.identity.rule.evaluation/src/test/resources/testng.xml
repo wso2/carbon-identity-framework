@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -18,21 +18,17 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.rule.management">
-    <test name="rule-management-service-test">
+<suite name="org.wso2.carbon.identity.rule.evaluation">
+    <test name="rule-evaluation-core-test">
         <classes>
-            <class name="org.wso2.carbon.identity.rule.management.service.RuleManagementServiceImplTest"/>
+            <class name="org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluationDataManagerTest"/>
+            <class name="org.wso2.carbon.identity.rule.evaluation.core.FieldExtractorTest"/>
+            <class name="org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluatorTest"/>
         </classes>
     </test>
-    <test name="rule-management-util-test">
+    <test name="rule-evaluation-service-test">
         <classes>
-            <class name="org.wso2.carbon.identity.rule.management.util.RuleBuilderTest"/>
-        </classes>
-    </test>
-    <test name="rule-management-dao-test">
-        <classes>
-            <class name="org.wso2.carbon.identity.rule.management.dao.RuleManagementDAOImplTest"/>
-            <class name="org.wso2.carbon.identity.rule.management.dao.CacheBackedRuleManagementDAOTest"/>
+            <class name="org.wso2.carbon.identity.rule.evaluation.service.impl.RuleEvaluationServiceImplTest"/>
         </classes>
     </test>
 </suite>

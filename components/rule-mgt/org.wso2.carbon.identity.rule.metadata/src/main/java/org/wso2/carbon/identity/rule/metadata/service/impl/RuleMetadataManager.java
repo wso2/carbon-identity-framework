@@ -20,14 +20,17 @@ package org.wso2.carbon.identity.rule.metadata.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.rule.metadata.config.RuleMetadataConfigFactory;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataServerException;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.model.FlowType;
+import org.wso2.carbon.identity.rule.metadata.model.Operator;
 import org.wso2.carbon.identity.rule.metadata.provider.RuleMetadataProvider;
 import org.wso2.carbon.identity.rule.metadata.util.RuleMetadataExceptionBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -80,6 +83,12 @@ public class RuleMetadataManager {
             addFieldDefinitions(metadataProvider, fieldDefinitionsFromProvider, addedFieldNames, addedFieldDefinitions);
         }
         return addedFieldDefinitions;
+    }
+
+    public List<Operator> getApplicableOperatorsInExpressions() {
+
+        return Collections.unmodifiableList(
+                new ArrayList<>(RuleMetadataConfigFactory.getOperatorConfig().getOperatorsMap().values()));
     }
 
     private void addFieldDefinitions(RuleMetadataProvider metadataProvider,
