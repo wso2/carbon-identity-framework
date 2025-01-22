@@ -2241,8 +2241,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (serviceProvider == null) {
                 return null;
             }
-            serviceProvider.setDiscoverableGroups(
-                    getDiscoverableGroups(applicationId, connection, serviceProvider.getTenantDomain()));
             int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getTenantDomain());
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
 
