@@ -255,8 +255,11 @@ public class APIClient {
                 throw new ActionInvocationException("Reading JSON response failed.");
             }
             if (actionStatus.equals(ActionExecutionStatus.Status.SUCCESS.name())) {
+                // Configure dynamic deserializer for the context based on the action type.
                 SimpleModule module = new SimpleModule();
-                module.addDeserializer(Context.class, new Context.ContextDeserializer(actionType));
+                module.addDeserializer(Context.class, new Context.ContextDeserializer());
+                objectMapper.setConfig(objectMapper.getDeserializationConfig()
+                        .withAttribute(Context.ContextDeserializer.ACTION_TYPE_ATTR_NAME, actionType));
                 objectMapper.registerModule(module);
                 return objectMapper.readValue(jsonResponse, ActionInvocationSuccessResponse.class);
             } else if (actionStatus.equals(ActionExecutionStatus.Status.INCOMPLETE.name())) {

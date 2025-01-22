@@ -27,31 +27,44 @@ import java.io.IOException;
 
 import static org.wso2.carbon.identity.action.execution.impl.InvocationSuccessResponseContextFactory.getInvocationSuccessResponseContextClass;
 
+/**
+ * This interface defines the Context for Action Invocation Success Response.
+ * Context is the class that is responsible for defining structure of the additional data coming from the
+ * success invocation response received from the action execution.
+ */
 public interface Context {
 
-    public static final ActionType ACTION_TYPE = null;
+    ActionType ACTION_TYPE = null;
 
-    public static ActionType getActionType() {
+    static ActionType getActionType() {
         return ACTION_TYPE;
     }
 
-    public static class DefaultContext implements Context {
+    /**
+     * Default context implementation, which can be used when there are no extended Context class for the action type.
+     */
+    class DefaultContext implements Context {
     }
 
-    public static class ContextDeserializer extends StdDeserializer<Context> {
+    /**
+     * Dynamic deserializer for Context interface determined at runtime based on the action type.
+     */
+    class ContextDeserializer extends StdDeserializer<Context> {
 
-        private final ActionType actionType;
+        private static final long serialVersionUID = 6529685098267757690L;
 
-        public ContextDeserializer(ActionType actionType) {
+        public static final String ACTION_TYPE_ATTR_NAME = "actionType";
+
+        public ContextDeserializer() {
 
             super(Context.class);
-            this.actionType = actionType;
         }
 
         @Override
         public Context deserialize(JsonParser p, com.fasterxml.jackson.databind.DeserializationContext ctxt)
                 throws IOException {
 
+            ActionType actionType = (ActionType) ctxt.getAttribute(ACTION_TYPE_ATTR_NAME);
             JsonNode node = p.getCodec().readTree(p);
             ObjectMapper mapper = (ObjectMapper) p.getCodec();
             return mapper.treeToValue(node, getInvocationSuccessResponseContextClass(actionType));
