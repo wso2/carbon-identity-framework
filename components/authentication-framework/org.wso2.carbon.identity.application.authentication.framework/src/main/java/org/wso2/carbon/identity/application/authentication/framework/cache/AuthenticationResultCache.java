@@ -27,8 +27,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * This cache keeps the information about the authentication result from the framework.
  */
@@ -102,22 +100,26 @@ public class AuthenticationResultCache extends
         if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationResultCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getResultId(), CACHE_NAME);
-            if (entry != null) {
-                String createdTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP)
-                        .toString();
-                if (createdTimestamp != null) {
-                    long cacheTimeoutNano = TimeUnit.SECONDS.toNanos(super.getCacheTimeout());
-                    if (FrameworkUtils.getCurrentStandardNano() >
-                            cacheTimeoutNano + Long.parseLong(createdTimestamp) * 1000000) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Authentication result cache is expired for the key: " + key.getResultId());
-                        }
-                        return null;
-                    }
-                }
+            if (entry != null && isCacheEntryExpired(entry)) {
+                return null;
             }
         }
         return entry;
+    }
+
+    private boolean isCacheEntryExpired(AuthenticationResultCacheEntry entry) {
+
+        String createdTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString();
+        if (createdTimestamp != null) {
+            if (FrameworkUtils.getCurrentStandardNano() >
+                    entry.getValidityPeriod() + Long.parseLong(createdTimestamp) * 1000000) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication result cache is expired");
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
