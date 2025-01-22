@@ -61,6 +61,11 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
             // Certificate is an optional attribute.
             properties.put(CERTIFICATE, addCertificate(certToBeAdded, tenantDomain));
         }
+
+        if (actionDTO.getProperty(PASSWORD_SHARING_FORMAT) == null) {
+            throw new ActionDTOModelResolverClientException("Invalid Request",
+                    "Password sharing format is a required field.");
+        }
         properties.put(PASSWORD_SHARING_FORMAT, actionDTO.getProperty(PASSWORD_SHARING_FORMAT));
 
         return new ActionDTO.Builder(actionDTO)
