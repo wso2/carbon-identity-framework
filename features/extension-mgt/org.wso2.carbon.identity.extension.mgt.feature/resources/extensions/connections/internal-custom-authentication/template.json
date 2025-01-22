@@ -11,7 +11,7 @@
   "displayOrder": -1,
   "services": [],
   "tags": [ "Custom" ],
-  "localAuthenticator": {
+  "customLocalAuthenticator": {
     "name": "",
     "displayName": "",
     "isEnabled": true,

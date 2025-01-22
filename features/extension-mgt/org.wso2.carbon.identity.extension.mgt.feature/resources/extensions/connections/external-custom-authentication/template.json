@@ -13,8 +13,8 @@
   "tags": [ "Custom" ],
   "idp": {
     "name": "",
-    "description": "",
-    "image": "",
+    "description": "Authenticate and provision federated users.",
+    "image": "assets/images/logos/custom-authentication.svg",
     "isPrimary": false,
     "isFederationHub": false,
     "homeRealmIdentifier": "",
