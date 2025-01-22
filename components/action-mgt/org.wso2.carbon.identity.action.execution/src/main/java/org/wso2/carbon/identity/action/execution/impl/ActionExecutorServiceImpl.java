@@ -280,25 +280,25 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     private boolean evaluateActionRule(Action action, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
-        if (action.getActionRule() != null && action.getActionRule().getId() != null) {
-            try {
-                RuleEvaluationResult ruleEvaluationResult =
-                        ActionExecutionServiceComponentHolder.getInstance().getRuleEvaluationService()
-                                .evaluate(action.getActionRule().getId(),
-                                        new FlowContext(FlowType.valueOf(action.getType().getActionType()),
-                                                eventContext), tenantDomain);
-
-                logActionRuleEvaluation(action, ruleEvaluationResult);
-
-                return ruleEvaluationResult.isRuleSatisfied();
-            } catch (RuleEvaluationException e) {
-                throw new ActionExecutionException(
-                        "Error occurred while evaluating the rule for action: " + action.getId(), e);
-            }
+        if (action.getActionRule() == null || action.getActionRule().getId() == null) {
+            logNoRuleConfiguredForAction(action);
+            return true; // If no action rule available, consider the rule as satisfied and execute action.
         }
 
-        logNoRuleConfiguredForAction(action);
-        return true; // If no action rule available, consider the rule as satisfied and execute action.
+        try {
+            RuleEvaluationResult ruleEvaluationResult =
+                    ActionExecutionServiceComponentHolder.getInstance().getRuleEvaluationService()
+                            .evaluate(action.getActionRule().getId(),
+                                    new FlowContext(FlowType.valueOf(action.getType().getActionType()),
+                                            eventContext), tenantDomain);
+
+            logActionRuleEvaluation(action, ruleEvaluationResult);
+
+            return ruleEvaluationResult.isRuleSatisfied();
+        } catch (RuleEvaluationException e) {
+            throw new ActionExecutionException(
+                    "Error occurred while evaluating the rule for action: " + action.getId(), e);
+        }
     }
 
     private ActionInvocationResponse executeActionAsynchronously(Action action,
