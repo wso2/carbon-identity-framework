@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -140,7 +141,10 @@ public class AuthenticationContextLoader {
                 List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
                 for (AuthenticatorConfig authenticatorConfig : authenticatorList) {
                     authenticatorConfig.setIdPResourceIds(Collections.emptyList());
-                    authenticatorConfig.setApplicationAuthenticator(null);
+                    if (AuthenticatorPropertyConstants.DefinedByType.SYSTEM.equals(
+                            authenticatorConfig.getApplicationAuthenticator().getDefinedByType())) {
+                        authenticatorConfig.setApplicationAuthenticator(null);
+                    }
                     List<String> idPResourceId = new ArrayList<>();
                     if (authenticatorConfig.getIdps() != null) {
                         for (Map.Entry<String, IdentityProvider> entry : authenticatorConfig.getIdps().entrySet()) {
