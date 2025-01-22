@@ -123,4 +123,11 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         authenticatorMgtFacade.deleteUserDefinedLocalAuthenticator(authenticatorConfigName, authenticatorConfig,
                 tenantId);
     }
+
+    @Override
+    public boolean isExistingAuthenticatorName(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtException {
+
+        return authenticatorMgtFacade.isExistingAuthenticatorName(authenticatorConfigName, tenantId);
+    }
 }

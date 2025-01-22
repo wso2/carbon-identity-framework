@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.action.execution.exception.ActionInvocationExcep
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 
@@ -249,6 +250,8 @@ public class APIClient {
             }
             if (actionStatus.equals(ActionExecutionStatus.Status.SUCCESS.name())) {
                 return objectMapper.readValue(jsonResponse, ActionInvocationSuccessResponse.class);
+            } else if (actionStatus.equals(ActionExecutionStatus.Status.INCOMPLETE.name())) {
+                return objectMapper.readValue(jsonResponse, ActionInvocationIncompleteResponse.class);
             } else {
                 return objectMapper.readValue(jsonResponse, ActionInvocationFailureResponse.class);
             }

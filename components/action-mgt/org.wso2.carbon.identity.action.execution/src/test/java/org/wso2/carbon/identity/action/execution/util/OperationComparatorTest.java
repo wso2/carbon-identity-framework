@@ -46,6 +46,19 @@ public class OperationComparatorTest {
     }
 
     @Test
+    public void testCompareMatchingOperationAndBasePathForRedirectOperation() {
+
+        AllowedOperation allowedOp = new AllowedOperation();
+        allowedOp.setOp(Operation.REDIRECT);
+
+        PerformableOperation performableOp = new PerformableOperation();
+        performableOp.setOp(Operation.REDIRECT);
+        performableOp.setUrl("https://test.com");
+
+        assertTrue(OperationComparator.compare(allowedOp, performableOp));
+    }
+
+    @Test
     public void testCompareMatchingOperationAndPathForPrimitiveTypeClaims() {
 
         AllowedOperation allowedOp = new AllowedOperation();

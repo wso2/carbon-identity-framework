@@ -18,6 +18,11 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_ID;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_SCHEMA;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns.AUTHORIZATION_DETAILS_TYPE;
+
 /**
  * This class contains default SQL queries
  * <p/>
@@ -585,6 +590,53 @@ public class ApplicationMgtDBQueries {
             "DELETE FROM APP_GROUP_ASSOCIATION WHERE APP_ID = ?";
     public static final String GET_GROUP_ASSOCIATIONS_BY_APP_ID =
             "SELECT GROUP_ID, DOMAIN_NAME FROM APP_GROUP_ASSOCIATION WHERE APP_ID = ?";
+  
+    // Authorized authorization details types API queries.
+    private static final String GET_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES_ID =
+            "SELECT ID FROM AUTHORIZATION_DETAILS_TYPES WHERE TYPE=? AND (TENANT_ID=? OR TENANT_ID IS NULL)";
+
+    public static final String ADD_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES =
+            "INSERT INTO AUTHORIZED_AUTHORIZATION_DETAILS_TYPES (APP_ID, API_ID, TYPE_ID) " +
+            "VALUES (?, ?, (" + GET_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES_ID + "))";
+
+    public static final String DELETE_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES =
+            "DELETE FROM AUTHORIZED_AUTHORIZATION_DETAILS_TYPES " +
+            "WHERE APP_ID = ? AND API_ID = ? AND TYPE_ID IN (" + GET_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES_ID + ")";
+
+    public static final String GET_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES =
+            "SELECT ADT.ID AS " + AUTHORIZATION_DETAILS_ID + ", ADT.TYPE AS " + AUTHORIZATION_DETAILS_TYPE +
+                ", ADT.NAME AS " + AUTHORIZATION_DETAILS_NAME + ", ADT.JSON_SCHEMA AS " + AUTHORIZATION_DETAILS_SCHEMA +
+            " FROM AUTHORIZED_API " +
+            "LEFT JOIN AUTHORIZED_AUTHORIZATION_DETAILS_TYPES AADT ON AUTHORIZED_API.APP_ID = AADT.APP_ID " +
+                "AND AUTHORIZED_API.API_ID = AADT.API_ID " +
+            "LEFT JOIN AUTHORIZATION_DETAILS_TYPES ADT ON AADT.TYPE_ID = ADT.ID " +
+            "WHERE AUTHORIZED_API.APP_ID = ?";
+
+    public static final String GET_AUTHORIZED_APIS_WITH_AUTHORIZATION_DETAILS =
+            "SELECT AUTHORIZED_API.APP_ID, AUTHORIZED_API.API_ID, POLICY_ID, SCOPE.NAME AS SCOPE_NAME, " +
+                    "ADT.ID AS " + AUTHORIZATION_DETAILS_ID + ", ADT.TYPE AS " + AUTHORIZATION_DETAILS_TYPE +
+                    ", ADT.NAME AS " + AUTHORIZATION_DETAILS_NAME +
+                    " FROM AUTHORIZED_API " +
+                    "LEFT JOIN AUTHORIZED_SCOPE ON AUTHORIZED_API.APP_ID = AUTHORIZED_SCOPE.APP_ID " +
+                    "AND AUTHORIZED_API.API_ID = AUTHORIZED_SCOPE.API_ID " +
+                    "LEFT JOIN SCOPE ON AUTHORIZED_SCOPE.SCOPE_ID = SCOPE.ID " +
+                    "LEFT JOIN AUTHORIZED_AUTHORIZATION_DETAILS_TYPES AADT ON AUTHORIZED_API.APP_ID = AADT.APP_ID " +
+                    "AND AUTHORIZED_API.API_ID = AADT.API_ID " +
+                    "LEFT JOIN AUTHORIZATION_DETAILS_TYPES ADT ON AADT.TYPE_ID = ADT.ID " +
+                    "WHERE AUTHORIZED_API.APP_ID = ?";
+
+    public static final String GET_AUTHORIZED_API_WITH_AUTHORIZATION_DETAILS =
+            "SELECT AUTHORIZED_API.APP_ID, AUTHORIZED_API.API_ID, POLICY_ID, SCOPE.NAME AS SCOPE_NAME, " +
+                    "ADT.ID AS " + AUTHORIZATION_DETAILS_ID + ", ADT.TYPE AS " + AUTHORIZATION_DETAILS_TYPE +
+                    ", ADT.NAME AS " + AUTHORIZATION_DETAILS_NAME +
+                    " FROM AUTHORIZED_API " +
+                    "LEFT JOIN AUTHORIZED_SCOPE ON AUTHORIZED_API.APP_ID = AUTHORIZED_SCOPE.APP_ID " +
+                    "AND AUTHORIZED_API.API_ID = AUTHORIZED_SCOPE.API_ID " +
+                    "LEFT JOIN AUTHORIZED_AUTHORIZATION_DETAILS_TYPES AADT ON AUTHORIZED_API.APP_ID = AADT.APP_ID " +
+                    "AND AUTHORIZED_API.API_ID = AADT.API_ID " +
+                    "LEFT JOIN AUTHORIZATION_DETAILS_TYPES ADT ON AADT.TYPE_ID = ADT.ID " +
+                    "LEFT JOIN SCOPE ON AUTHORIZED_SCOPE.SCOPE_ID = SCOPE.ID " +
+                    "WHERE AUTHORIZED_API.APP_ID = ? AND AUTHORIZED_API.API_ID = ?";
 
     /**
      * SQL placeholders related to application management tables.

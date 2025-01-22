@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementService;
 import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImpl;
 import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
+import org.wso2.carbon.identity.application.mgt.ai.LoginFlowAIManager;
+import org.wso2.carbon.identity.application.mgt.ai.LoginFlowAIManagerImpl;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
@@ -143,6 +145,8 @@ public class ApplicationManagementServiceComponent {
 
             bundleContext.registerService(AuthorizedAPIManagementService.class,
                     new AuthorizedAPIManagementServiceImpl(), null);
+
+            bundleContext.registerService(LoginFlowAIManager.class, new LoginFlowAIManagerImpl(), null);
 
             bundleContext.registerService(RoleManagementListener.class, new DefaultRoleManagementListener(), null);
             bundleContext.registerService(ApplicationMgtListener.class, new DefaultRoleManagementListener(), null);

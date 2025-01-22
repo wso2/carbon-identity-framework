@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2011-2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2011-2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -77,7 +77,7 @@
     -->
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
-<!--        <SAMLConfigs>database</SAMLConfigs>-->
+        <SAML>database</SAML>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -586,6 +586,7 @@
             <UserInfoEndpointClaimRetriever>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoUserStoreClaimRetriever</UserInfoEndpointClaimRetriever>
             <UserInfoEndpointRequestValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator</UserInfoEndpointAccessTokenValidator>
+            <UserInfoRemoveInternalPrefixFromRoles>false</UserInfoRemoveInternalPrefixFromRoles>
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             <SkipUserConsent>false</SkipUserConsent>
             <SkipLoginConsent>false</SkipLoginConsent>
@@ -775,6 +776,8 @@
             <Parameter>password</Parameter>
             <Parameter>client_secret</Parameter>
         </RestrictedQueryParameters>
+
+        <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1400,6 +1403,10 @@
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="128" enable="true"/>
+        <EventListener id="shared_user_profile_update_governance_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserProfileUpdateGovernanceEventListener"
+                       orderId="8" enable="true"/>
 
         <!-- Role based outbound provision management Event Listener -->
         <EventListener id="provisioning_role_mgt_listener"

@@ -289,6 +289,10 @@ public class Constants {
                 "invalid_request_invalid.response.type.for.query.jwt";
         public static final String INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY =
                 "invalid.response.type.for.query.jwt";
+        public static final String INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION =
+                "invalid_client_invalid.response.type.for.hybrid.flow";
+        public static final String INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION_I18N_KEY =
+                "invalid.response.type.for.hybrid.flow";
 
         public static final Map<String, String> ERROR_TO_I18N_MAP = new HashMap<>();
 
@@ -393,6 +397,8 @@ public class Constants {
                     Constants.ErrorToi18nMappingConstants.AUTHENTICATION_FLOW_TIMEOUT_AUTHENTICATION_FLOW_TIMEOUT_DESCRIPTION_I18N_KEY);
             ERROR_TO_I18N_MAP.put(Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION,
                     Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_QUERY_JWT_DESCRIPTION_I18N_KEY);
+            ERROR_TO_I18N_MAP.put(ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION,
+                    Constants.ErrorToi18nMappingConstants.INVALID_RESPONSE_TYPE_FOR_HYBRID_FLOW_DESCRIPTION_I18N_KEY);
         }
 
         private ErrorToi18nMappingConstants() {

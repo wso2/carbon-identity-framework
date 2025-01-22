@@ -22,10 +22,15 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URL;
 
 import static org.testng.Assert.assertTrue;
 
+/**
+ * This class tests the methods of the SAMLServiceProviderPersistenceManagerFactory class.
+ */
 public class SAMLServiceProviderPersistenceManagerFactoryTest {
 
     private SAMLServiceProviderPersistenceManagerFactory factory;
@@ -33,8 +38,10 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
     @BeforeMethod
     public void setUp() {
 
+        URL root = this.getClass().getClassLoader().getResource(".");
+        File file = new File(root.getPath());
+        System.setProperty("carbon.home", file.getAbsolutePath());
         factory = new SAMLServiceProviderPersistenceManagerFactory();
-
     }
 
     @AfterMethod
@@ -49,7 +56,7 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
 
         setPrivateStaticField(SAMLServiceProviderPersistenceManagerFactory.class, "SAML_STORAGE_TYPE", "database");
         SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = factory.getSAMLServiceProviderPersistenceManager();
-//        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
+        assertTrue(samlSSOServiceProviderDAO instanceof CacheBackedSAMLSSOServiceProviderDAO);
     }
 
     @Test
@@ -65,7 +72,7 @@ public class SAMLServiceProviderPersistenceManagerFactoryTest {
 
         setPrivateStaticField(SAMLServiceProviderPersistenceManagerFactory.class, "SAML_STORAGE_TYPE", "hybrid");
         SAMLSSOServiceProviderDAO samlSSOServiceProviderDAO = factory.getSAMLServiceProviderPersistenceManager();
-//        assertTrue(samlSSOServiceProviderDAO instanceof JDBCSAMLSSOServiceProviderDAOImpl);
+        assertTrue(samlSSOServiceProviderDAO instanceof HybridSAMLSSOServiceProviderDAOImpl);
     }
 
     private void setPrivateStaticField(Class<?> clazz, String fieldName, Object newValue)

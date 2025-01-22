@@ -52,6 +52,8 @@ public class UserDefinedLocalAuthenticatorDataUtil {
         authenticatorConfig.setProperties(buildAuthenticatorProperties());
         UserDefinedAuthenticatorEndpointConfigBuilder endpointConfigBuilder = buildAuthenticatorEndpointConfig();
         authenticatorConfig.setEndpointConfig(endpointConfigBuilder.build());
+        authenticatorConfig.setImageUrl("https://localhost:8080/test/image");
+        authenticatorConfig.setDescription("Description for " + uniqueIdentifier);
 
         return authenticatorConfig;
     }
@@ -129,6 +131,8 @@ public class UserDefinedLocalAuthenticatorDataUtil {
         UserDefinedLocalAuthenticatorConfig updatingConfig = gson.fromJson(gson.toJson(authenticatorConfig),
                 UserDefinedLocalAuthenticatorConfig.class);
         updatingConfig.setName(authenticatorConfig.getName());
+        updatingConfig.setImageUrl("https://localhost:8080/test/imageUpdated");
+        updatingConfig.setDescription("Updated description");
         updatingConfig.setDisplayName("UpdatedDisplayName");
         updatingConfig.setEnabled(false);
 
