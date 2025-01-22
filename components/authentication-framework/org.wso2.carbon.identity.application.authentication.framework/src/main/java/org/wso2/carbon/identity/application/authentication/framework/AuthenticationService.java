@@ -25,6 +25,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.auth.service.AuthServiceErrorInfo;
@@ -140,7 +141,7 @@ public class AuthenticationService {
         List<AuthenticatorData> authenticatorDataList;
         if (isMultiOptionsResponse) {
             responseData.setAuthenticatorSelectionRequired(true);
-            authenticatorDataList = getAuthenticatorBasicData(response.getAuthenticators(),
+            authenticatorDataList = getAuthenticatorBasicData(request, response.getAuthenticators(),
                     request.getAuthInitiationData());
         } else {
             authenticatorDataList = request.getAuthInitiationData();
@@ -274,9 +275,8 @@ public class AuthenticationService {
         return queryParams.get(AuthServiceConstants.AUTH_FAILURE_MSG_PARAM);
     }
 
-    private List<AuthenticatorData> getAuthenticatorBasicData(String authenticatorList,
-                                                              List<AuthenticatorData> authInitiationData)
-            throws AuthServiceException {
+    private List<AuthenticatorData> getAuthenticatorBasicData(AuthServiceRequestWrapper request,
+            String authenticatorList, List<AuthenticatorData> authInitiationData) throws AuthServiceException {
 
         List<AuthenticatorData> authenticatorDataList = new ArrayList<>();
         String[] authenticatorAndIdpsArr = StringUtils.split(authenticatorList,
@@ -293,7 +293,8 @@ public class AuthenticationService {
                 continue;
             }
 
-            ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(name);
+            ApplicationAuthenticator authenticator = ApplicationAuthenticatorManager.getInstance()
+                    .getAppAuthenticatorByName(name, getTenantDomain((HttpServletRequest) request.getRequest()));
             if (authenticator == null) {
                 throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.code(),
                         String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.description(),
@@ -413,7 +414,7 @@ public class AuthenticationService {
         }
 
         // Validate all configured authenticators support API based authentication.
-        Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(serviceProvider);
+        Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(serviceProvider, tenantDomain);
         for (ApplicationAuthenticator authenticator : authenticators) {
             if (!authenticator.isAPIBasedAuthenticationSupported()) {
                 throw new AuthServiceClientException(
@@ -425,7 +426,8 @@ public class AuthenticationService {
 
     }
 
-    private Set<ApplicationAuthenticator> getConfiguredAuthenticators(ServiceProvider serviceProvider) {
+    private Set<ApplicationAuthenticator> getConfiguredAuthenticators(ServiceProvider serviceProvider,
+                                                                      String tenantDomain) {
 
         LocalAndOutboundAuthenticationConfig authenticationConfig = serviceProvider
                 .getLocalAndOutBoundAuthenticationConfig();
@@ -435,40 +437,42 @@ public class AuthenticationService {
 
         Set<ApplicationAuthenticator> authenticators = new HashSet<>();
         for (AuthenticationStep authenticationStep : authenticationConfig.getAuthenticationSteps()) {
-            processLocalAuthenticators(authenticationStep, authenticators);
-            processFederatedAuthenticators(authenticationStep, authenticators);
+            processLocalAuthenticators(authenticationStep, authenticators, tenantDomain);
+            processFederatedAuthenticators(authenticationStep, authenticators, tenantDomain);
         }
 
         return authenticators;
     }
 
     private void processLocalAuthenticators(AuthenticationStep authenticationStep,
-                                            Set<ApplicationAuthenticator> authenticators) {
+                                            Set<ApplicationAuthenticator> authenticators, String tenantDomain) {
 
         if (authenticationStep.getLocalAuthenticatorConfigs() != null) {
             for (LocalAuthenticatorConfig localAuthenticatorConfig :
                     authenticationStep.getLocalAuthenticatorConfigs()) {
-                addAuthenticator(authenticators, localAuthenticatorConfig.getName());
+                addAuthenticator(authenticators, localAuthenticatorConfig.getName(), tenantDomain);
             }
         }
     }
 
     private void processFederatedAuthenticators(AuthenticationStep authenticationStep,
-                                                Set<ApplicationAuthenticator> authenticators) {
+                                                Set<ApplicationAuthenticator> authenticators, String tenantDomain) {
 
         if (authenticationStep.getFederatedIdentityProviders() != null) {
             for (IdentityProvider federatedIdP : authenticationStep.getFederatedIdentityProviders()) {
                 FederatedAuthenticatorConfig fedAuthenticatorConfig = federatedIdP.getDefaultAuthenticatorConfig();
                 if (fedAuthenticatorConfig != null) {
-                    addAuthenticator(authenticators, fedAuthenticatorConfig.getName());
+                    addAuthenticator(authenticators, fedAuthenticatorConfig.getName(), tenantDomain);
                 }
             }
         }
     }
 
-    private void addAuthenticator(Set<ApplicationAuthenticator> authenticators, String authenticatorName) {
+    private void addAuthenticator(Set<ApplicationAuthenticator> authenticators, String authenticatorName,
+                                  String tenantDomain) {
 
-        ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(authenticatorName);
+        ApplicationAuthenticator authenticator = ApplicationAuthenticatorManager.getInstance()
+                .getAppAuthenticatorByName(authenticatorName, tenantDomain);
         if (authenticator != null) {
             authenticators.add(authenticator);
         }

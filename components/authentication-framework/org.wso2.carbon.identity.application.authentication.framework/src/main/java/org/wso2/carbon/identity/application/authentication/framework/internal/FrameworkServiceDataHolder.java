@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService;
@@ -78,7 +77,6 @@ public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private List<ApplicationRolesResolver> applicationRolesResolvers = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
@@ -164,11 +162,6 @@ public class FrameworkServiceDataHolder {
     public void setBundleContext(BundleContext bundleContext) {
 
         this.bundleContext = bundleContext;
-    }
-
-    public List<ApplicationAuthenticator> getAuthenticators() {
-
-        return authenticators;
     }
 
     /**

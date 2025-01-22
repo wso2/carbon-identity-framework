@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.central.log.mgt.internal.CentralLogMgtServiceComponentHolder;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -180,8 +181,8 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     public void testHandleDynamicOnFail() throws Exception {
 
         LoggerUtils.isLogMaskingEnable = false;
-        FrameworkServiceDataHolder.getInstance().getAuthenticators()
-                .add(new MockFailingAuthenticator("BasicFailingMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator
+                (new MockFailingAuthenticator("BasicFailingMockAuthenticator"));
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
@@ -214,8 +215,8 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
     public void testHandleDynamicOnFallback() throws Exception {
 
         LoggerUtils.isLogMaskingEnable = false;
-        FrameworkServiceDataHolder.getInstance().getAuthenticators()
-                .add(new MockFallbackAuthenticator("MockFallbackAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockFallbackAuthenticator("MockFallbackAuthenticator"));
 
         JsFunctionRegistryImpl jsFunctionRegistrar = new JsFunctionRegistryImpl();
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);

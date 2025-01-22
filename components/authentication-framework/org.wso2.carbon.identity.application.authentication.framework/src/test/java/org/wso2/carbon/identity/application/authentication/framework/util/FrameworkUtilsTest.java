@@ -57,8 +57,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -152,9 +152,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @BeforeClass
     public void setFrameworkServiceComponent() {
 
-        FrameworkServiceComponent.getAuthenticators().clear();
-        FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("BasicAuthenticator"));
-        FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockAuthenticator("BasicAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockAuthenticator("HwkMockAuthenticator"));
         authenticationContext.setTenantDomain("abc");
     }
 
@@ -162,7 +163,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAppAuthenticatorByNameExistingAuthenticator() {
 
         ApplicationAuthenticator applicationAuthenticator;
-        applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator");
+        applicationAuthenticator = ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticatorByName("BasicAuthenticator");
         assert applicationAuthenticator != null;
         assertEquals(applicationAuthenticator.getName(), "BasicAuthenticator");
     }
@@ -171,7 +173,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAppAuthenticatorByNameNonExistingAuthenticator() {
 
         ApplicationAuthenticator applicationAuthenticator;
-        applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("NonExistingAuthenticator");
+        applicationAuthenticator = ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticatorByName("NonExistingAuthenticator");
         assertNull(applicationAuthenticator);
     }
 

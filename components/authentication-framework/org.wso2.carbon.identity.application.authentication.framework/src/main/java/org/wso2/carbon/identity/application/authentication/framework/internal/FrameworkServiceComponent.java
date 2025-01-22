@@ -75,6 +75,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
@@ -191,11 +192,6 @@ public class FrameworkServiceComponent {
         }
 
         return bundleContext;
-    }
-
-    public static List<ApplicationAuthenticator> getAuthenticators() {
-
-        return FrameworkServiceDataHolder.getInstance().getAuthenticators();
     }
 
     @SuppressWarnings("unchecked")
@@ -483,7 +479,7 @@ public class FrameworkServiceComponent {
     )
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(authenticator);
 
         Property[] configProperties = null;
 
@@ -583,7 +579,7 @@ public class FrameworkServiceComponent {
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().remove(authenticator);
+        ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         String authenticatorName = authenticator.getName();
         ApplicationAuthenticatorService appAuthenticatorService = ApplicationAuthenticatorService.getInstance();
 
@@ -1116,7 +1112,7 @@ public class FrameworkServiceComponent {
     @Reference(
             name = "org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService",
             service = org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
+            cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetAuthenticatorAdapterService")
     protected void setAuthenticatorAdapterService(AuthenticatorAdapterService adapterService) {

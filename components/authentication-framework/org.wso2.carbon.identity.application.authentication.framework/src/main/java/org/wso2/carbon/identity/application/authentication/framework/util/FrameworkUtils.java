@@ -99,6 +99,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
@@ -260,6 +261,9 @@ public class FrameworkUtils {
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
 
+    private static final ApplicationAuthenticatorManager applicationAuthenticatorManager =
+            ApplicationAuthenticatorManager.getInstance();
+
     private FrameworkUtils() {
     }
 
@@ -371,13 +375,16 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param name
-     * @return
+     * Get system defined application authenticator by name.
+     *
+     * @param name  Name of the authenticator.
+     * @return ApplicationAuthenticator.
      */
+    @Deprecated
     public static ApplicationAuthenticator getAppAuthenticatorByName(String name) {
 
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
-
+        for (ApplicationAuthenticator authenticator :
+                applicationAuthenticatorManager.getSystemDefinedAuthenticators()) {
             if (name.equals(authenticator.getName())) {
                 return authenticator;
             }
@@ -401,7 +408,8 @@ public class FrameworkUtils {
                 return context;
             }
         }
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+        for (ApplicationAuthenticator authenticator : ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticators()) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
 
@@ -411,6 +419,8 @@ public class FrameworkUtils {
                         break;
                     }
                 }
+                contextIdentifier = request.getParameter("sessionDataKey");
+                context = FrameworkUtils.getAuthenticationContextFromCache(contextIdentifier);
             } catch (UnsupportedOperationException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Ignore UnsupportedOperationException.", e);
