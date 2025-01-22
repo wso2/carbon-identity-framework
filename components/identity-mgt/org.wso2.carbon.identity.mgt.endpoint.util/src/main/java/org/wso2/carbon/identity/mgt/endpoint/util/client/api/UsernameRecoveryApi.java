@@ -90,7 +90,7 @@ public class UsernameRecoveryApi {
   /**
    * Return the recovery supported claims in the given tenant for a given profile.
    *
-   * @param tenantDomain          tenant domain. Default &#x60;carbon.super&#x60; (optional)
+   * @param tenantDomain          tenant domain Default carbon.super (optional).
    * @param isEndpointTenantAware Is tenant aware endpoint.
    * @param profileName           Profile name (eg. selfRegistration).
    * @return List<Claim> List of claims.
