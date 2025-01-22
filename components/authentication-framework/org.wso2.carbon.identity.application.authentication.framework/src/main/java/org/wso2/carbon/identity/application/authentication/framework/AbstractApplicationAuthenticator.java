@@ -84,6 +84,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     private static final long serialVersionUID = -4406878411547612129L;
     private static final Log log = LogFactory.getLog(AbstractApplicationAuthenticator.class);
     public static final String ENABLE_RETRY_FROM_AUTHENTICATOR = "enableRetryFromAuthenticator";
+    public static final String SKIP_RETRY_FROM_AUTHENTICATOR = "skipRetryFromAuthenticator";
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -133,8 +134,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setSendToMultiOptionPage(sendToMultiOptionPage);
-                    context.setRetrying(retryAuthenticationEnabled() && !skipPrompt);
-                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
+                    boolean skipRetryFromAuthenticator = context.getProperty(SKIP_RETRY_FROM_AUTHENTICATOR) != null
+                            && (Boolean) context.getProperty(SKIP_RETRY_FROM_AUTHENTICATOR);
+                    context.setRetrying(retryAuthenticationEnabled() && !skipPrompt && !skipRetryFromAuthenticator);
+                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage && !skipRetryFromAuthenticator) {
                         if (log.isDebugEnabled()) {
                             log.debug("Error occurred during the authentication process, hence retrying.", e);
                         }
