@@ -18,25 +18,43 @@
 
 package org.wso2.carbon.identity.action.execution.impl;
 
-import org.wso2.carbon.identity.action.execution.model.Context;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.Context;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class defines the Context class for Action Invocation Success Response.
+ * Action Invocation Success Response Context Factory is the component that is responsible for providing the
+ * {@link Context} based on the action type.
+ */
 public class InvocationSuccessResponseContextFactory {
 
     private static final Map<ActionType, Class<? extends Context>> contextClassMap = new HashMap<>();
 
+    /**
+     * Get the Context class for the given action type.
+     *
+     * @param actionType Action type.
+     * @return Context class.
+     */
     public static Class<? extends Context> getInvocationSuccessResponseContextClass(ActionType actionType) {
 
         Class<? extends Context> responseClass = contextClassMap.get(actionType);
         if (responseClass != null) {
             return responseClass;
         }
-        return Context.class;
+        return Context.DefaultContext.class;
     }
 
+    /**
+     * Register the Context class for the given action type.
+     *
+     * @param invocationSuccessResponse Context class.
+     * @throws NoSuchFieldException If ACTION_TYPE is not defined in the extended Context class.
+     * @throws IllegalAccessException If any error occurred while accessing the field in the extended Context class.
+     */
     public static void registerInvocationSuccessResponseContextClass(
             Class<? extends Context> invocationSuccessResponse) throws NoSuchFieldException, IllegalAccessException {
 
@@ -44,6 +62,13 @@ public class InvocationSuccessResponseContextFactory {
         contextClassMap.put(type, invocationSuccessResponse);
     }
 
+    /**
+     * Unregister the Context class for the given action type.
+     *
+     * @param invocationSuccessResponse Context class.
+     * @throws NoSuchFieldException If ACTION_TYPE is not defined in the extended Context class.
+     * @throws IllegalAccessException If any error occurred while accessing the field in the extended Context class.
+     */
     public static void unregisterInvocationSuccessResponse(Class<? extends Context> invocationSuccessResponse)
             throws NoSuchFieldException, IllegalAccessException {
 

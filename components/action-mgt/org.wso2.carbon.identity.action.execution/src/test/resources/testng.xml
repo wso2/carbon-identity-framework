@@ -33,6 +33,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactoryTest"/>
             <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactoryTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.impl.InvocationSuccessResponseContextFactory"/>
         </classes>
     </test>
     <test name="action-execution-service-test">

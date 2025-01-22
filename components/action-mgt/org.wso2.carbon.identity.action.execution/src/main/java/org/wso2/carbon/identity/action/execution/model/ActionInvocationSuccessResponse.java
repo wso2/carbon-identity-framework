@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,7 +66,7 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
     public static class Builder {
 
         private ActionInvocationResponse.Status actionStatus;
-        private List<PerformableOperation> operations;
+        private List<PerformableOperation> operations = new ArrayList<>();
         private Context data;
 
         @JsonProperty("actionStatus")
@@ -98,10 +99,6 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
 
             if (!ActionInvocationResponse.Status.SUCCESS.equals(actionStatus)) {
                 throw new IllegalArgumentException("actionStatus must be SUCCESS.");
-            }
-
-            if (this.operations == null) {
-                throw new IllegalArgumentException("operations must not be null.");
             }
 
             return new ActionInvocationSuccessResponse(this);

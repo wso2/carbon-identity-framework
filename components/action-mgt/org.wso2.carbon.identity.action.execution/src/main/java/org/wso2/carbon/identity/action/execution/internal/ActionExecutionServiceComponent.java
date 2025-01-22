@@ -158,8 +158,8 @@ public class ActionExecutionServiceComponent {
     }
 
     @Reference(
-            name = "Context",
-            service = Context.class,
+            name = "action.execution.response.context",
+            service = Class.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetInvocationSuccessResponseContextClass"
@@ -167,6 +167,11 @@ public class ActionExecutionServiceComponent {
     protected void setInvocationSuccessResponseContextClass(Class<? extends Context> invocationSuccessResponse)
             throws NoSuchFieldException, IllegalAccessException {
 
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Registering extended Context class: " +
+                    invocationSuccessResponse.getName() + " in the ActionExecutionServiceComponent.");
+        }
         InvocationSuccessResponseContextFactory.registerInvocationSuccessResponseContextClass(
                 invocationSuccessResponse);
     }
@@ -174,7 +179,10 @@ public class ActionExecutionServiceComponent {
     protected void unsetInvocationSuccessResponseContextClass(Class<? extends Context> invocationSuccessResponse)
             throws NoSuchFieldException, IllegalAccessException {
 
-        InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(
-                invocationSuccessResponse);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Unregistering extended Context class: " +
+                    invocationSuccessResponse.getName() + " in the ActionExecutionServiceComponent.");
+        }
+        InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(invocationSuccessResponse);
     }
 }
