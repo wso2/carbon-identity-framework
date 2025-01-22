@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetada
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -44,6 +45,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -209,7 +211,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 buildAttributeProfilePropertyKey(profileName, ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
         return getLocalClaims(tenantDomain).stream().filter(localClaim ->
                 isClaimSupportedByProfile(localClaim, profileName, profileSupportedProperty))
-                .peek(localClaim -> updateClaimPropertiesForProfile(localClaim, profileName))
+                .map(localClaim -> updateClaimPropertiesForProfile(localClaim, profileName))
                 .collect(Collectors.toList());
     }
 
@@ -238,9 +240,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
      * @param claim       The local claim to update.
      * @param profileName The profile name to apply the specific properties from.
      */
-    private void updateClaimPropertiesForProfile(LocalClaim claim, String profileName) {
+    private LocalClaim updateClaimPropertiesForProfile(LocalClaim claim, String profileName) {
 
-        Map<String, String> claimProperties = claim.getClaimProperties();
+        LocalClaim claimCopy = copyLocalClaim(claim);
+        Map<String, String> claimProperties = claimCopy.getClaimProperties();
         for (String propertyKey: ClaimConstants.ALLOWED_PROFILE_PROPERTY_KEYS) {
             String profilePropertyKey = buildAttributeProfilePropertyKey(profileName, propertyKey);
             String profilePropertyValue = claimProperties.get(profilePropertyKey);
@@ -249,6 +252,25 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 claimProperties.put(propertyKey, profilePropertyValue);
             }
         }
+        return claimCopy;
+    }
+
+    /**
+     * Creates a deep copy of the given LocalClaim object.
+     *
+     * @param originalClaim The original LocalClaim to copy.
+     * @return A deep copy of the original LocalClaim.
+     */
+    private LocalClaim copyLocalClaim(LocalClaim originalClaim) {
+
+        Map<String, String> claimPropertiesCopy = originalClaim.getClaimProperties() != null
+                ? new HashMap<>(originalClaim.getClaimProperties())
+                : new HashMap<>();
+        List<AttributeMapping> mappedAttributesCopy = originalClaim.getMappedAttributes() != null
+                ? new ArrayList<>(originalClaim.getMappedAttributes())
+                : new ArrayList<>();
+
+        return new LocalClaim(originalClaim.getClaimURI(), mappedAttributesCopy, claimPropertiesCopy);
     }
 
     @Override

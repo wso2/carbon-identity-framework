@@ -80,7 +80,7 @@ public interface ClaimMetadataManagementService {
     List<LocalClaim> getLocalClaims(String tenantDomain) throws ClaimMetadataException;
 
     /**
-     * Get local claim list for specified tenant
+     * Get local claim list for a specified profile for a given tenant.
      *
      * @param tenantDomain Tenant domain.
      * @param profileName  Profile Name.
