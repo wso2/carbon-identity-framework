@@ -18,6 +18,10 @@ package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
 import org.wso2.carbon.user.core.UserCoreConstants;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Holds the claim metadata related constants.
  */
@@ -198,4 +202,9 @@ public class ClaimConstants {
             return profileName;
         }
     }
+
+    public static final List<String> ALLOWED_PROFILE_PROPERTY_KEYS = Collections.unmodifiableList(Arrays.asList(
+            ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY,
+            ClaimConstants.REQUIRED_PROPERTY,
+            ClaimConstants.READ_ONLY_PROPERTY));
 }
