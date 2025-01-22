@@ -1591,7 +1591,7 @@
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
   "console.super_tenant_proxy_name": "",
-  "myaccount.app_base_name": "myaccount",
+  "myaccount.app_base_name": "/myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
   "myaccount.login_callback_path": "",
   "myaccount.logout_callback_path": "",
