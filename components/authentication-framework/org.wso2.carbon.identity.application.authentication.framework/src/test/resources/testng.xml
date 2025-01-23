@@ -21,6 +21,7 @@
         <!--<parameter name="log-level" value="debug"/>-->
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationServiceTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticatorTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
