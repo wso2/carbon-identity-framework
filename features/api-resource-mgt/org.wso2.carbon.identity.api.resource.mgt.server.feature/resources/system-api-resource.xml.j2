@@ -88,10 +88,14 @@
                  description="API representation of the Application Management API"
                  type="ORGANIZATION">
         <Scopes>
+            <Scope displayName="Create Application" name="internal_org_application_mgt_create"
+                    description="Create applications in the organization"/>
             <Scope displayName="View Application" name="internal_org_application_mgt_view"
                     description="View applications in the organization"/>
             <Scope displayName="Update Application" name="internal_org_application_mgt_update"
                    description="Update applications in the organization"/>
+            <Scope displayName="Delete Application" name="internal_org_application_mgt_delete"
+                   description="Delete applications in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"
