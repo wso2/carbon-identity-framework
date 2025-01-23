@@ -61,6 +61,10 @@ import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
+import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +122,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             validateActions(actions, actionType);
             // As of now only one action is allowed.
             Action action = actions.get(0);
-            return execute(action, eventContext);
+            return execute(action, eventContext, tenantDomain);
         } catch (ActionExecutionRuntimeException e) {
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             // Skip executing actions when no action available is considered as action execution being successful.
@@ -129,10 +133,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
     /**
      * Resolve the action from given action id and execute it.
      *
-     * @param actionType    Action Type.
-     * @param actionId      The action Id of the action that need to be executed.
-     * @param eventContext  The event context of the corresponding flow.
-     * @param tenantDomain  Tenant domain.
+     * @param actionType   Action Type.
+     * @param actionId     The action id of the action that need to be executed.
+     * @param eventContext The event context of the corresponding flow.
+     * @param tenantDomain Tenant domain.
      * @return Action execution status.
      */
     @Override
@@ -146,7 +150,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         Action action = getActionByActionId(actionType, actionId, tenantDomain);
         try {
-            return execute(action, eventContext);
+            return execute(action, eventContext, tenantDomain);
         } catch (ActionExecutionRuntimeException e) {
             LOG.debug("Skip executing action for action type: " + actionType.name(), e);
             // Skip executing actions when no action available is considered as action execution being successful.
@@ -154,20 +158,28 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
-    private ActionExecutionStatus<?> execute(Action action, Map<String, Object> eventContext)
+    private ActionExecutionStatus<?> execute(Action action, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
+
+        if (action.getStatus() != Action.Status.ACTIVE) {
+            // If no active actions are detected, it is regarded as the action execution being successful.
+            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
+        }
+
+        DIAGNOSTIC_LOGGER.logActionInitiation(action);
+
+        if (!evaluateActionRule(action, eventContext, tenantDomain)) {
+            // If the action rule is not satisfied, it is regarded as the action execution being successful.
+            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
+        }
+
+        DIAGNOSTIC_LOGGER.logActionExecution(action);
 
         ActionType actionType = ActionType.valueOf(action.getType().getActionType());
         ActionExecutionRequest actionRequest = buildActionExecutionRequest(actionType, eventContext);
         ActionExecutionResponseProcessor actionExecutionResponseProcessor = getResponseProcessor(actionType);
 
-        if (action.getStatus() == Action.Status.ACTIVE) {
-            DIAGNOSTIC_LOGGER.logActionInitiation(action);
-            return executeAction(action, actionRequest, eventContext, actionExecutionResponseProcessor);
-        } else {
-            // If no active actions are detected, it is regarded as the action execution being successful.
-            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
-        }
+        return executeAction(action, actionRequest, eventContext, actionExecutionResponseProcessor);
     }
 
     private Action getActionByActionId(ActionType actionType, String actionId, String tenantDomain)
@@ -262,6 +274,30 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                     actionExecutionResponseProcessor);
         } catch (ActionMgtException | JsonProcessingException | ActionExecutionResponseProcessorException e) {
             throw new ActionExecutionException("Error occurred while executing action: " + action.getId(), e);
+        }
+    }
+
+    private boolean evaluateActionRule(Action action, Map<String, Object> eventContext, String tenantDomain)
+            throws ActionExecutionException {
+
+        if (action.getActionRule() == null || action.getActionRule().getId() == null) {
+            logNoRuleConfiguredForAction(action);
+            return true; // If no action rule available, consider the rule as satisfied and execute action.
+        }
+
+        try {
+            RuleEvaluationResult ruleEvaluationResult =
+                    ActionExecutionServiceComponentHolder.getInstance().getRuleEvaluationService()
+                            .evaluate(action.getActionRule().getId(),
+                                    new FlowContext(FlowType.valueOf(action.getType().getActionType()),
+                                            eventContext), tenantDomain);
+
+            logActionRuleEvaluation(action, ruleEvaluationResult);
+
+            return ruleEvaluationResult.isRuleSatisfied();
+        } catch (RuleEvaluationException e) {
+            throw new ActionExecutionException(
+                    "Error occurred while evaluating the rule for action: " + action.getId(), e);
         }
     }
 
@@ -385,6 +421,19 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         logFailureResponse(action, failureResponse);
         return actionExecutionResponseProcessor.processFailureResponse(eventContext, actionRequest.getEvent(),
                 failureResponse);
+    }
+
+    private void logActionRuleEvaluation(Action action, RuleEvaluationResult ruleEvaluationResult) {
+
+        DIAGNOSTIC_LOGGER.logActionRuleEvaluation(action, ruleEvaluationResult.isRuleSatisfied());
+        LOG.debug("Rule of action: " + action.getId() + " evaluated to: " +
+                ruleEvaluationResult.isRuleSatisfied());
+    }
+
+    private void logNoRuleConfiguredForAction(Action action) {
+
+        DIAGNOSTIC_LOGGER.logNoRuleConfiguredForAction(action);
+        LOG.debug("No rule configured for action " + action.getId() + ". Proceed executing the action.");
     }
 
     private void logSuccessResponse(Action action, ActionInvocationSuccessResponse successResponse) {

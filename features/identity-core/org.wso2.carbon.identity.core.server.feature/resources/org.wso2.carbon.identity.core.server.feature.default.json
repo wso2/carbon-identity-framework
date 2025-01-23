@@ -498,7 +498,7 @@
   "identity_mgt.user_claim_update.otp.use_numeric_in_otp": true,
   "identity_mgt.user_claim_update.otp.otp_length": "6",
   "identity_mgt.user_claim_update.use_verify_claim": false,
-  "identity_mgt.user_claim_update.uniqueness.enable": false,
+  "identity_mgt.user_claim_update.uniqueness.enable": true,
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
@@ -1371,6 +1371,9 @@
   ],
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
+  "console.identity_providers.disabled_features": [
+    "identityProviders.customAuthentication"
+  ],
   "console.identity_provider_groups.enabled": true,
   "console.identity_verification_providers.enabled": true,
   "console.identity_verification_providers.scopes.feature": ["console:idvps"],

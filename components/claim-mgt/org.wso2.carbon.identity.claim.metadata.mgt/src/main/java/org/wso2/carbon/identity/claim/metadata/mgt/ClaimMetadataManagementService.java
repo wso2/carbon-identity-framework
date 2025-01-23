@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,6 +78,20 @@ public interface ClaimMetadataManagementService {
      * @throws ClaimMetadataException
      */
     List<LocalClaim> getLocalClaims(String tenantDomain) throws ClaimMetadataException;
+
+    /**
+     * Get local claim list for a specified profile for a given tenant.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param profileName  Profile Name.
+     * @return List of local claims that are supported by given profile.
+     * @throws ClaimMetadataException If an error occurred while retrieving local claims.
+     */
+    default List<LocalClaim> getSupportedLocalClaimsForProfile(String tenantDomain, String profileName)
+            throws ClaimMetadataException {
+
+        return Collections.emptyList();
+    }
 
     /**
      * Get local claim for specified claim URI and tenant.
