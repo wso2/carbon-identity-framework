@@ -4493,9 +4493,20 @@
         <TokenConnectionSocketTimeout>{{ai_services.token_connection_socket_timeout}}</TokenConnectionSocketTimeout>
         <HTTPConnectionPoolSize>{{ai_services.http_connection_pool_size}}</HTTPConnectionPoolSize>
         <HTTPConnectionTimeout>{{ai_services.http_connection_timeout}}</HTTPConnectionTimeout>
+        <HTTPConnectionRequestTimeout>{{ai_services.http_connection_request_timeout}}</HTTPConnectionRequestTimeout>
+        <HTTPSocketTimeout>{{ai_services.http_socket_timeout}}</HTTPSocketTimeout>
         <LoginFlowAI>
             <LoginFlowAIEndpoint>{{ai_services.login_flow_ai.endpoint}}</LoginFlowAIEndpoint>
+            <LoginFlowAIGenerateRequestPath>{{ai_services.login_flow_ai.generate_request_path}}</LoginFlowAIGenerateRequestPath>
+            <LoginFlowAIStatusRequestPath>{{ai_services.login_flow_ai.status_request_path}}</LoginFlowAIStatusRequestPath>
+            <LoginFlowAIResultRequestPath>{{ai_services.login_flow_ai.result_request_path}}</LoginFlowAIResultRequestPath>
         </LoginFlowAI>
+        <BrandingAI>
+            <BrandingAIEndpoint>{{ai_services.branding_ai.endpoint}}</BrandingAIEndpoint>
+            <BrandingAIGenerateRequestPath>{{ai_services.branding_ai.generate_request_path}}</BrandingAIGenerateRequestPath>
+            <BrandingAIStatusRequestPath>{{ai_services.branding_ai.status_request_path}}</BrandingAIStatusRequestPath>
+            <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
+        </BrandingAI>
     </AIServices>
 
 </Server>
