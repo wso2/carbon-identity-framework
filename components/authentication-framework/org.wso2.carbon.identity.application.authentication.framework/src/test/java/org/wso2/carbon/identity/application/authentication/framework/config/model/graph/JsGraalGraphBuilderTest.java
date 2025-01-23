@@ -38,12 +38,15 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
@@ -65,7 +68,7 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
     private FederatedApplicationAuthenticator federatedApplicationAuthenticator;
 
     @BeforeTest
-    public void setUp() {
+    public void setUp() throws Exception {
 
         initMocks(this);
         jsGraphBuilderFactory = new JsGraalGraphBuilderFactory();
@@ -156,7 +159,7 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     @DataProvider
-    public Object[][] filterOptionsDataProvider() {
+    public Object[][] filterOptionsDataProvider() throws Exception {
 
         ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators().clear();
         LocalAuthenticatorConfig basic = new LocalAuthenticatorConfig();
@@ -256,6 +259,13 @@ public class JsGraalGraphBuilderTest extends AbstractFrameworkTest {
 
         Map<String, Map<String, String>> singleInvalidOptionConfig = new HashMap<>();
         singleInvalidOptionConfig.put("0", invalidOption);
+
+        ApplicationAuthenticatorService authenticatorService = mock(ApplicationAuthenticatorService.class);
+        Field instanceField = ApplicationAuthenticatorService.class.getDeclaredField("instance");
+        instanceField.setAccessible(true);
+        instanceField.set(null, authenticatorService);
+        when(authenticatorService.getAllLocalAuthenticators(any()))
+                .thenReturn(new ArrayList<>(Arrays.asList(basic, totp)));
 
         return new Object[][]{{singleOptionConfig, duplicateStepConfig(stepWithSingleOption), 1},
                 {singleOptionConfig, duplicateStepConfig(stepWithMultipleOptions), 1},
