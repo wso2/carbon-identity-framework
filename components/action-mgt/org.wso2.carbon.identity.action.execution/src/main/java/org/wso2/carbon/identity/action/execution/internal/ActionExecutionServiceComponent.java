@@ -31,11 +31,11 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.ActionExecutorService;
+import org.wso2.carbon.identity.action.execution.ActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImpl;
-import org.wso2.carbon.identity.action.execution.impl.InvocationSuccessResponseContextFactory;
-import org.wso2.carbon.identity.action.execution.model.Context;
+import org.wso2.carbon.identity.action.execution.impl.ActionInvocationResponseClassFactory;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
 
 /**
@@ -158,29 +158,28 @@ public class ActionExecutionServiceComponent {
     }
 
     @Reference(
-            name = "action.execution.response.context",
-            service = Class.class,
+            name = "action.execution.response.ActionInvocationResponseClassProvider",
+            service = ActionInvocationResponseClassProvider.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetInvocationSuccessResponseContextClass"
     )
-    protected void setInvocationSuccessResponseContextClass(Class<? extends Context> extendedContextClass) {
-
+    protected void setInvocationSuccessResponseContextClass(ActionInvocationResponseClassProvider classProvider) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering extended Context class: " +
-                    extendedContextClass.getName() + " in the ActionExecutionServiceComponent.");
+            LOG.debug("Registering ActionInvocationResponseClassProvider: " +
+                    classProvider.getClass().getName() + " in the ActionExecutionServiceComponent.");
         }
-        InvocationSuccessResponseContextFactory.registerInvocationSuccessResponseContextClass(
-                extendedContextClass);
+        ActionInvocationResponseClassFactory.registerActionInvocationResponseClassProvider(
+                classProvider);
     }
 
-    protected void unsetInvocationSuccessResponseContextClass(Class<? extends Context> extendedContextClass) {
+    protected void unsetInvocationSuccessResponseContextClass(ActionInvocationResponseClassProvider classProvider) {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering extended Context class: " +
-                    extendedContextClass.getName() + " in the ActionExecutionServiceComponent.");
+            LOG.debug("Unregistering ActionInvocationResponseClassProvider: " +
+                    classProvider.getClass().getName() + " in the ActionExecutionServiceComponent.");
         }
-        InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(extendedContextClass);
+        ActionInvocationResponseClassFactory.unregisterActionInvocationResponseClassProvider(classProvider);
     }
 }

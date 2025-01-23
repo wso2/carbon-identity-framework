@@ -43,7 +43,7 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncomplet
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Context;
+import org.wso2.carbon.identity.action.execution.model.ResponseData;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -257,9 +257,9 @@ public class APIClient {
             if (actionStatus.equals(ActionExecutionStatus.Status.SUCCESS.name())) {
                 // Configure dynamic deserializer for the context based on the action type.
                 SimpleModule module = new SimpleModule();
-                module.addDeserializer(Context.class, new Context.ContextDeserializer());
+                module.addDeserializer(ResponseData.class, new ResponseData.ResponseDataDeserializer());
                 objectMapper.setConfig(objectMapper.getDeserializationConfig()
-                        .withAttribute(Context.ContextDeserializer.ACTION_TYPE_ATTR_NAME, actionType));
+                        .withAttribute(ResponseData.ResponseDataDeserializer.ACTION_TYPE_ATTR_NAME, actionType));
                 objectMapper.registerModule(module);
                 return objectMapper.readValue(jsonResponse, ActionInvocationSuccessResponse.class);
             } else if (actionStatus.equals(ActionExecutionStatus.Status.INCOMPLETE.name())) {
