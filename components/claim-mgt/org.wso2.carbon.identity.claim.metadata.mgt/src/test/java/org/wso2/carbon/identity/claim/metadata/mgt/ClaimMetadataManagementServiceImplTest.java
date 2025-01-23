@@ -56,12 +56,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.IS_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.READ_ONLY_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.REQUIRED_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY;
@@ -1112,6 +1114,81 @@ public class ClaimMetadataManagementServiceImplTest {
         assertThrows(ClaimMetadataClientException.class, () -> {
             service.updateLocalClaim(localClaimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
         });
+    }
+
+    @Test
+    public void testGetSupportedLocalClaimsForProfile() throws Exception {
+
+        String profileName = "selfRegistration";
+        // Create test claims with different property combinations.
+        List<LocalClaim> mockClaims = new ArrayList<>();
+
+        // Claim with global supported by default enabled.
+        LocalClaim emailClaim = new LocalClaim("http://wso2.org/claims/emailaddress");
+        Map<String, String> emailProps = new HashMap<>();
+        emailProps.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        emailProps.put(REQUIRED_PROPERTY, "true");
+        emailProps.put(READ_ONLY_PROPERTY, "false");
+        emailProps.put(buildProfilePropertyKey(profileName, READ_ONLY_PROPERTY), "true");
+        emailProps.put(buildProfilePropertyKey(profileName, REQUIRED_PROPERTY), "false");
+        emailClaim.setClaimProperties(emailProps);
+        mockClaims.add(emailClaim);
+
+        // Claim with global supported by default disabled, profile specific one enabled.
+        LocalClaim countryClaim = new LocalClaim("http://wso2.org/claims/country");
+        Map<String, String> countryProps = new HashMap<>();
+        countryProps.put(SUPPORTED_BY_DEFAULT_PROPERTY, "false");
+        countryProps.put(REQUIRED_PROPERTY, "false");
+        countryProps.put(READ_ONLY_PROPERTY, "false");
+        countryProps.put(buildProfilePropertyKey(profileName, SUPPORTED_BY_DEFAULT_PROPERTY), "true");
+        countryProps.put(buildProfilePropertyKey(profileName, REQUIRED_PROPERTY), "true");
+        countryClaim.setClaimProperties(countryProps);
+        mockClaims.add(countryClaim);
+
+        // Claim with global supported by default enabled, profile specific one disabled.
+        LocalClaim testClaim = new LocalClaim("http://wso2.org/claims/test");
+        Map<String, String> testProps = new HashMap<>();
+        testProps.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        testProps.put(REQUIRED_PROPERTY, "true");
+        testProps.put(buildProfilePropertyKey(profileName, SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+        testProps.put(buildProfilePropertyKey(profileName, REQUIRED_PROPERTY), "false");
+        testClaim.setClaimProperties(testProps);
+        mockClaims.add(testClaim);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(mockClaims);
+        identityUtilStaticMock.when(IdentityUtil::isGroupsVsRolesSeparationImprovementsEnabled).thenReturn(false);
+
+        List<LocalClaim> resultClaims =
+                service.getSupportedLocalClaimsForProfile(SUPER_TENANT_DOMAIN_NAME, profileName);
+
+        // Verify results.
+        assertEquals(resultClaims.size(), 2);
+
+        LocalClaim resultEmailClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/emailaddress");
+        Map<String, String> resultEmailProps = resultEmailClaim.getClaimProperties();
+        assertEquals(resultEmailProps.get(READ_ONLY_PROPERTY), "true");
+        assertEquals(resultEmailProps.get(REQUIRED_PROPERTY), "false");
+
+        LocalClaim resultCountryClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/country");
+        Map<String, String> resultCountryProps = resultCountryClaim.getClaimProperties();
+        assertEquals(resultCountryProps.get(READ_ONLY_PROPERTY), "false");
+        assertEquals(resultCountryProps.get(REQUIRED_PROPERTY), "true");
+
+        assertNull(findClaimByUri(resultClaims,"http://wso2.org/claims/test"));
+    }
+
+    @Test
+    public void testGetSupportedLocalClaimsForProfileWithInvalidProfile() throws Exception {
+
+        String profileName = "invalid";
+        List<LocalClaim> mockClaims = new ArrayList<>();
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(mockClaims);
+        identityUtilStaticMock.when(IdentityUtil::isGroupsVsRolesSeparationImprovementsEnabled).thenReturn(false);
+
+        assertThrows(ClaimMetadataClientException.class, () ->
+                service.getSupportedLocalClaimsForProfile(SUPER_TENANT_DOMAIN_NAME, profileName));
     }
 
     private String buildProfilePropertyKey(String profileName, String property) {

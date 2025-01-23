@@ -79,10 +79,14 @@
                  description="API representation of the Application Management API"
                  type="ORGANIZATION">
         <Scopes>
+            <Scope displayName="Create Application" name="internal_org_application_mgt_create"
+                   description="Create applications in the organization"/>
             <Scope displayName="View Application" name="internal_org_application_mgt_view"
                     description="View applications in the organization"/>
             <Scope displayName="Update Application" name="internal_org_application_mgt_update"
                    description="Update applications in the organization"/>
+            <Scope displayName="Delete Application" name="internal_org_application_mgt_delete"
+                   description="Delete applications in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API" identifier="/api/server/v1/authenticators"
@@ -542,8 +546,22 @@
         <Scopes>
             <Scope displayName="View User Associations" name="internal_user_association_view" 
                     description="View the associated local/federated accounts of a user in the organization (root)"/>
+            <Scope displayName="Create User Associations" name="internal_user_association_create"
+                   description="Create the associated local/federated accounts of a user in the organization (root)"/>
             <Scope displayName="Delete User Associations" name="internal_user_association_delete" 
                     description="Delete the associated local/federated accounts  of a user in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Association Management API"
+                 identifier="/o/api/users/v1/(.*)/(.*)associations" requiresAuthorization="true"
+                 description="API representation of the Association Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View User Associations" name="internal_org_user_association_view"
+                   description="View the associated local/federated accounts of a user in the organization"/>
+            <Scope displayName="Create User Associations" name="internal_org_user_association_create"
+                   description="Create the associated local/federated accounts of a user in the organization"/>
+            <Scope displayName="Delete User Associations" name="internal_org_user_association_delete"
+                   description="Delete the associated local/federated accounts  of a user in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authorized Application Management V1/V2 API"
@@ -774,6 +792,20 @@
                     description="Update OAuth2 applications in the organization"/>
             <Scope displayName="Delete DCR" name="internal_dcr_delete" 
                     description="Delete OAuth2 applications in the organization"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="OAuth DCR API" identifier="/o/api/identity/oauth2/dcr/v1.1/register"
+                 requiresAuthorization="true"
+                 description="API representation of the OAuth DCR (Dynamic Client Registration) API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View DCR" name="internal_org_dcr_view"
+                   description="View OAuth2 applications in the organization"/>
+            <Scope displayName="Create DCR" name="internal_org_dcr_create"
+                   description="Create new OAuth2 applications in the organization"/>
+            <Scope displayName="Update DCR" name="internal_org_dcr_update"
+                   description="Update OAuth2 applications in the organization"/>
+            <Scope displayName="Delete DCR" name="internal_org_dcr_delete"
+                   description="Delete OAuth2 applications in the organization"/>
         </Scopes>
     </APIResource>
     <APIResource name="OAuth2.0 Scope Management API" identifier="/api/identity/oauth2/v1.0/scopes"

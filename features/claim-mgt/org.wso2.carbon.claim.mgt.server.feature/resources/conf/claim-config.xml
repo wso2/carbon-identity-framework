@@ -1,20 +1,20 @@
 <!--
- ~ Copyright (c) 2005-2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- ~
- ~ WSO2 Inc. licenses this file to you under the Apache License,
- ~ Version 2.0 (the "License"); you may not use this file except
- ~ in compliance with the License.
- ~ You may obtain a copy of the License at
- ~
- ~    http://www.apache.org/licenses/LICENSE-2.0
- ~
- ~ Unless required by applicable law or agreed to in writing,
- ~ software distributed under the License is distributed on an
- ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- ~ KIND, either express or implied.  See the License for the
- ~ specific language governing permissions and limitations
- ~ under the License.
- -->
+  ~ Copyright (c) 2005-2025, WSO2 LLC. (http://www.wso2.com).
+  ~
+  ~ WSO2 LLC. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
 <ClaimConfig>
 	<Dialects>
 		<Dialect dialectURI="http://wso2.org/claims">
@@ -26,6 +26,7 @@
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/lastname</ClaimURI>
@@ -35,6 +36,7 @@
 				<Required />
 				<DisplayOrder>2</DisplayOrder>
 				<SupportedByDefault />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/organization</ClaimURI>
@@ -43,6 +45,7 @@
 				<Description>Organization</Description>
 				<DisplayOrder>3</DisplayOrder>
 				<SupportedByDefault />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
@@ -51,6 +54,7 @@
 				<Description>Address</Description>
 				<DisplayOrder>4</DisplayOrder>
 				<SupportedByDefault />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/country</ClaimURI>
@@ -59,6 +63,7 @@
 				<Description>Country</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/emailaddress</ClaimURI>
@@ -68,7 +73,8 @@
 				<Required />
 				<DisplayOrder>6</DisplayOrder>
 				<SupportedByDefault />
-                <RegEx>^([a-zA-Z0-9!#$'\+=^_\.{|}~\-&amp;])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,10})+$</RegEx>
+				<RegEx>^([a-zA-Z0-9!#$'\+=^_\.{|}~\-&amp;])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,10})+$</RegEx>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/telephone</ClaimURI>
@@ -77,6 +83,7 @@
 				<Description>Telephone</Description>
 				<DisplayOrder>7</DisplayOrder>
 				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/mobile</ClaimURI>
@@ -86,6 +93,7 @@
 				<DisplayOrder>8</DisplayOrder>
 				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<SupportedByDefault />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/im</ClaimURI>
@@ -93,6 +101,7 @@
 				<AttributeID>im</AttributeID>
 				<Description>IM</Description>
 				<DisplayOrder>9</DisplayOrder>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/url</ClaimURI>
@@ -101,18 +110,21 @@
 				<Description>URL</Description>
 				<DisplayOrder>10</DisplayOrder>
 				<SupportedByDefault />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/gender</ClaimURI>
 				<DisplayName>Gender</DisplayName>
 				<AttributeID>gender</AttributeID>
 				<Description>Gender</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/title</ClaimURI>
 				<DisplayName>Title</DisplayName>
 				<AttributeID>title</AttributeID>
 				<Description>Title</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/role</ClaimURI>
@@ -120,6 +132,7 @@
 				<AttributeID>role</AttributeID>
 				<Description>Include both userstore groups and internal roles</Description>
 				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/roles</ClaimURI>
@@ -128,6 +141,7 @@
 				<Description>Roles</Description>
 				<SupportedByDefault/>
 				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/department</ClaimURI>
@@ -136,24 +150,28 @@
 				<Description>Department</Description>
 				<SupportedByDefault />
 				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/postalcode</ClaimURI>
 				<DisplayName>Postal Code</DisplayName>
 				<AttributeID>postalcode</AttributeID>
 				<Description>Postal Code</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/locality</ClaimURI>
 				<DisplayName>Locality</DisplayName>
 				<AttributeID>localityAddress</AttributeID>
 				<Description>Locality</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/region</ClaimURI>
 				<DisplayName>Region</DisplayName>
 				<AttributeID>region</AttributeID>
 				<Description>Region</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/dob</ClaimURI>
@@ -162,42 +180,49 @@
 				<Description>Birth Date</Description>
 				<RegEx>^\d{4}-\d{2}-\d{2}$</RegEx>
 				<RegExValidationError>Date of Birth is not in the correct format of YYYY-MM-DD</RegExValidationError>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/nickname</ClaimURI>
 				<DisplayName>Nick Name</DisplayName>
 				<AttributeID>nickName</AttributeID>
 				<Description>Nick Name</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/stateorprovince</ClaimURI>
 				<DisplayName>State</DisplayName>
 				<AttributeID>stateOrProvinceName</AttributeID>
 				<Description>State</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/otherphone</ClaimURI>
 				<DisplayName>Other Phone</DisplayName>
 				<AttributeID>otherPhone</AttributeID>
 				<Description>Other Phone</Description>
-		    </Claim>
-		    <Claim>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/fullname</ClaimURI>
 				<DisplayName>Full Name</DisplayName>
 				<AttributeID>cn</AttributeID>
 				<Description>Full Name</Description>
-		    </Claim>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/username</ClaimURI>
 				<DisplayName>Username</DisplayName>
 				<AttributeID>uid</AttributeID>
 				<Description>Username</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/userprincipal</ClaimURI>
 				<DisplayName>User Principal</DisplayName>
 				<AttributeID>uid</AttributeID>
 				<Description>User Principal</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/userid</ClaimURI>
@@ -205,6 +230,7 @@
 				<AttributeID>scimId</AttributeID>
 				<Description>Unique ID of the user</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/externalid</ClaimURI>
@@ -212,6 +238,7 @@
 				<AttributeID>externalId</AttributeID>
 				<Description>Unique ID of the user used in external systems</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/created</ClaimURI>
@@ -219,6 +246,7 @@
 				<AttributeID>createdDate</AttributeID>
 				<Description>Created timestamp of the user</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/modified</ClaimURI>
@@ -226,6 +254,7 @@
 				<AttributeID>lastModifiedDate</AttributeID>
 				<Description>Last Modified timestamp of the user</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/metadata.version</ClaimURI>
@@ -233,12 +262,14 @@
 				<AttributeID>meta.version</AttributeID>
 				<Description>User Account Metadata - Version</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/location</ClaimURI>
 				<DisplayName>Location</DisplayName>
 				<AttributeID>location</AttributeID>
 				<Description>Location</Description>
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 
 			<Claim>
@@ -246,54 +277,63 @@
 				<DisplayName>Name - Formatted Name</DisplayName>
 				<AttributeID>formattedName</AttributeID>
 				<Description>Formatted Name</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/middleName</ClaimURI>
 				<DisplayName>Middle Name</DisplayName>
 				<AttributeID>middleName</AttributeID>
 				<Description>Middle Name</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/honorificPrefix</ClaimURI>
 				<DisplayName>Name - Honoric Prefix</DisplayName>
 				<AttributeID>honoricPrefix</AttributeID>
 				<Description>Honoric Prefix</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/honorificSuffix</ClaimURI>
 				<DisplayName>Name - Honoric Suffix</DisplayName>
 				<AttributeID>honoricSuffix</AttributeID>
 				<Description>Honoric Suffix</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/resourceType</ClaimURI>
 				<DisplayName>Resource Type</DisplayName>
 				<AttributeID>resourceType</AttributeID>
 				<Description>Resource Type</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/userType</ClaimURI>
 				<DisplayName>User Type</DisplayName>
 				<AttributeID>userType</AttributeID>
 				<Description>User Type</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/preferredLanguage</ClaimURI>
 				<DisplayName>Preferred Language</DisplayName>
 				<AttributeID>preferredLanguage</AttributeID>
 				<Description>Preferred Language</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/local</ClaimURI>
 				<DisplayName>Local</DisplayName>
 				<AttributeID>local</AttributeID>
 				<Description>Local</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/timeZone</ClaimURI>
 				<DisplayName>Time Zone</DisplayName>
 				<AttributeID>timeZone</AttributeID>
 				<Description>Time Zone</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 
 			<Claim>
@@ -301,18 +341,21 @@
 				<DisplayName>Emails - Work Email</DisplayName>
 				<AttributeID>workEmail</AttributeID>
 				<Description>Work Email</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/emails.home</ClaimURI>
 				<DisplayName>Emails - Home Email</DisplayName>
 				<AttributeID>homeEmail</AttributeID>
 				<Description>Home Email</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/emails.other</ClaimURI>
 				<DisplayName>Emails - Other Email</DisplayName>
 				<AttributeID>otherEmail</AttributeID>
 				<Description>Other Email</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/phoneNumbers</ClaimURI>
@@ -320,84 +363,98 @@
 				<AttributeID>phoneNumbers</AttributeID>
 				<Description>Phone Numbers</Description>
 				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/phoneNumbers.home</ClaimURI>
 				<DisplayName>Phone Numbers - Home Phone Number</DisplayName>
 				<AttributeID>homePhone</AttributeID>
 				<Description>Home Phone</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/phoneNumbers.work</ClaimURI>
 				<DisplayName>Phone Numbers - Work Phone Number</DisplayName>
 				<AttributeID>workPhone</AttributeID>
 				<Description>Work Phone</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/phoneNumbers.fax</ClaimURI>
 				<DisplayName>Phone Numbers - Fax Number</DisplayName>
 				<AttributeID>fax</AttributeID>
 				<Description>Fax Number</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/phoneNumbers.pager</ClaimURI>
 				<DisplayName>Phone Numbers - Pager Number</DisplayName>
 				<AttributeID>pager</AttributeID>
 				<Description>Pager Number</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/phoneNumbers.other</ClaimURI>
 				<DisplayName>Phone Numbers - Other</DisplayName>
 				<AttributeID>otherPhoneNumber</AttributeID>
 				<Description>Other Phone Number</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/gtalk</ClaimURI>
 				<DisplayName>IM - Gtalk</DisplayName>
 				<AttributeID>imGtalk</AttributeID>
 				<Description>IM - Gtalk</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/skype</ClaimURI>
 				<DisplayName>IM - Skype</DisplayName>
 				<AttributeID>imSkype</AttributeID>
 				<Description>IM - Skype</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/photos</ClaimURI>
 				<DisplayName>Photo</DisplayName>
 				<AttributeID>photos</AttributeID>
 				<Description>Photo</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/photourl</ClaimURI>
 				<DisplayName>Photo URIL</DisplayName>
 				<AttributeID>photoUrl</AttributeID>
 				<Description>Photo URL</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/websiteurl</ClaimURI>
 				<DisplayName>Website URL</DisplayName>
 				<AttributeID>websiteUrl</AttributeID>
 				<Description>Website URL</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/thumbnail</ClaimURI>
 				<DisplayName>Photo - Thumbnail</DisplayName>
 				<AttributeID>thumbnail</AttributeID>
 				<Description>Photo - Thumbnail</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/addresses</ClaimURI>
 				<DisplayName>Address</DisplayName>
 				<AttributeID>addresses</AttributeID>
 				<Description>Address</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/addresses.formatted</ClaimURI>
 				<DisplayName>Address - Formatted</DisplayName>
 				<AttributeID>formattedAddress</AttributeID>
 				<Description>Address - Formatted</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/streetaddress</ClaimURI>
@@ -405,12 +462,14 @@
 				<AttributeID>streetAddress</AttributeID>
 				<Description>Address - Street</Description>
 				<DisplayOrder>5</DisplayOrder>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/addresses.locality</ClaimURI>
 				<DisplayName>Address - Locality</DisplayName>
 				<AttributeID>localityAddress</AttributeID>
 				<Description>Address - Locality</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/groups</ClaimURI>
@@ -419,6 +478,7 @@
 				<Description>Groups</Description>
 				<SupportedByDefault />
 				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifyEmail</ClaimURI>
@@ -427,6 +487,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>verifyEmail</AttributeID>
 				<Description>Temporary claim to invoke email verified feature</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/askPassword</ClaimURI>
@@ -435,6 +496,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>askPassword</AttributeID>
 				<Description>Temporary claim to invoke email ask Password feature</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/tenantAdminAskPassword</ClaimURI>
@@ -443,6 +505,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>tenantAdminAskPassword</AttributeID>
 				<Description>Temporary claim to invoke email tenant admin ask Password feature</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/adminForcedPasswordReset</ClaimURI>
@@ -451,12 +514,14 @@
 				in your user store must be configured for this. -->
 				<AttributeID>forcePasswordReset</AttributeID>
 				<Description>Temporary claim to invoke email force password feature</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/entitlements</ClaimURI>
 				<DisplayName>Entitlements</DisplayName>
 				<AttributeID>entitlements</AttributeID>
 				<Description>Entitlements</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lockedReason</ClaimURI>
@@ -465,12 +530,14 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lockedReason</AttributeID>
 				<Description>Locked Reason</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/x509Certificates</ClaimURI>
 				<DisplayName>X509Certificates</DisplayName>
 				<AttributeID>x509Certificates</AttributeID>
 				<Description>X509Certificates</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</ClaimURI>
@@ -479,21 +546,24 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedRecoveryAttempts</AttributeID>
 				<Description>Number of consecutive failed attempts done for password recovery</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 
-		        <Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/oneTimePassword</ClaimURI>
 				<DisplayName>One Time Password</DisplayName>
-			<!-- Proper attribute Id in your user store must be configured for this -->
+				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>oneTimePassword</AttributeID>
 				<Description>One Time Password</Description>
-		        </Claim>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/extendedRef</ClaimURI>
 				<DisplayName>Extended Ref</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>extendedRef</AttributeID>
 				<Description>Extended Ref</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/extendedDisplayName</ClaimURI>
@@ -501,6 +571,7 @@
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>extendedDisplayName</AttributeID>
 				<Description>Extended Display Name</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/costCenter</ClaimURI>
@@ -508,6 +579,7 @@
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>costCenter</AttributeID>
 				<Description>Cost Center</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/extendedExternalId</ClaimURI>
@@ -515,15 +587,17 @@
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>extendedExternalId</AttributeID>
 				<Description>Extended External ID</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
-		    <Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountLocked</ClaimURI>
 				<DisplayName>Account Locked</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
 				in your user store must be configured for this. -->
 				<AttributeID>accountLock</AttributeID>
 				<Description>Account Locked</Description>
-		    </Claim>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountState</ClaimURI>
 				<DisplayName>Account State</DisplayName>
@@ -532,6 +606,7 @@
 				<AttributeID>accountState</AttributeID>
 				<Description>Account State</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailVerified</ClaimURI>
@@ -540,6 +615,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>emailVerified</AttributeID>
 				<Description>Email Verified</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/phoneVerified</ClaimURI>
@@ -548,6 +624,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>phoneVerified</AttributeID>
 				<Description>Phone Verified</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/preferredChannel</ClaimURI>
@@ -556,6 +633,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>preferredChannel</AttributeID>
 				<Description>Preferred Notification Channel</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountConfirmedTime</ClaimURI>
@@ -564,6 +642,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>confirmedTime</AttributeID>
 				<Description>Account confirmed timestamp of the user</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountDisabled</ClaimURI>
@@ -572,6 +651,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>accountDisabled</AttributeID>
 				<Description>Account Disabled</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginAttempts</ClaimURI>
@@ -580,6 +660,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedLoginAttempts</AttributeID>
 				<Description>Failed Login Attempts</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess</ClaimURI>
@@ -588,6 +669,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedLoginAttemptsBeforeSuccess</AttributeID>
 				<Description>Failed Attempts Before Success</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedSmsOtpAttempts</ClaimURI>
@@ -596,6 +678,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedSmsOtpAttempts</AttributeID>
 				<Description>Failed SMS OTP Attempts</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedEmailOtpAttempts</ClaimURI>
@@ -604,6 +687,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedEmailOtpAttempts</AttributeID>
 				<Description>Failed Email OTP Attempts</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedTotpAttempts</ClaimURI>
@@ -612,6 +696,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedTotpAttempts</AttributeID>
 				<Description>Failed TOTP Attempts</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginLockoutCount</ClaimURI>
@@ -620,6 +705,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedLockoutCount</AttributeID>
 				<Description>Failed Lockout Count</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/unlockTime</ClaimURI>
@@ -628,6 +714,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>unlockTime</AttributeID>
 				<Description>Unlock Time</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastLoginTime</ClaimURI>
@@ -635,6 +722,7 @@
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>lastLoginTime</AttributeID>
 				<Description>Last Login Time</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastLogonTime</ClaimURI>
@@ -643,6 +731,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastLogonTime</AttributeID>
 				<Description>Last Logon Time</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastPasswordUpdateTime</ClaimURI>
@@ -651,18 +740,21 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastPasswordUpdate</AttributeID>
 				<Description>Last Password Update Time</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/displayName</ClaimURI>
 				<DisplayName>Display Name</DisplayName>
 				<AttributeID>displayName</AttributeID>
 				<Description>Display Name</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/active</ClaimURI>
 				<DisplayName>Active</DisplayName>
 				<AttributeID>active</AttributeID>
 				<Description>Status of the account</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/secretkey</ClaimURI>
@@ -671,6 +763,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>totpSecretkey</AttributeID>
 				<Description>Claim to store the secret key</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailotp_disabled</ClaimURI>
@@ -679,6 +772,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>emailOTPDisabled</AttributeID>
 				<Description>Claim to disable EmailOTP</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/smsotp_disabled</ClaimURI>
@@ -687,6 +781,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>smsOTPDisabled</AttributeID>
 				<Description>Claim to disable SMSOTP</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailaddress.pendingValue</ClaimURI>
@@ -696,6 +791,7 @@
 				<AttributeID>pendingEmailAddress</AttributeID>
 				<Description>Claim to store newly updated email address until the new email address is verified.</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifySecretkey</ClaimURI>
@@ -704,6 +800,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>verifySecretkey</AttributeID>
 				<Description>Claim to store the secret key until verified</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/isLiteUser</ClaimURI>
@@ -712,6 +809,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>isLiteUser</AttributeID>
 				<Description>Claim to store if this is a lite user account.</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/isReadOnlyUser</ClaimURI>
@@ -720,6 +818,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>isReadOnlyUser</AttributeID>
 				<Description>Claim to store if the user is read only</Description>
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/mobileNumber.pendingValue</ClaimURI>
@@ -729,6 +828,7 @@
 				<AttributeID>pendingMobileNumber</AttributeID>
 				<Description>To store newly updated mobile number until it is verified.</Description>
 				<ReadOnly/>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifyMobile</ClaimURI>
@@ -737,6 +837,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>verifyMobile</AttributeID>
 				<Description>Temporary claim to invoke mobile verification feature</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/userSourceId</ClaimURI>
@@ -745,6 +846,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>userSourceId</AttributeID>
 				<Description>Claim to represent the provisioned IDP ID of the user.</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/totpEnabled</ClaimURI>
@@ -753,6 +855,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>totpEnabled</AttributeID>
 				<Description>Claim to represent whether user has configured TOTP Authenticator</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/backupCodeEnabled</ClaimURI>
@@ -761,6 +864,7 @@
                 in your user store must be configured for this. -->
 				<AttributeID>backupCodeEnabled</AttributeID>
 				<Description>Claim to represent whether user has configured Backup Code authenticator</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/enabledAuthenticators</ClaimURI>
@@ -769,6 +873,7 @@
                 in your user store must be configured for this. -->
 				<AttributeID>enabledAuthenticators</AttributeID>
 				<Description>Claim to represent enabled second factor authenticators in My Account.</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/backupCodes</ClaimURI>
@@ -777,6 +882,7 @@
                 in your user store must be configured for this. -->
 				<AttributeID>backupCodes</AttributeID>
 				<Description>Claim to store Backup Codes of the user</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedBackupCodeAttempts</ClaimURI>
@@ -785,6 +891,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>failedBackupCodeAttempts</AttributeID>
 				<Description>Claim to store failed Backup Code Attempts</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/managedOrg</ClaimURI>
@@ -792,6 +899,7 @@
 				<AttributeID>managedOrg</AttributeID>
 				<Description>Claim to store the organization which the user is stored</Description>
 				<ReadOnly />
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/preferredMFAOption</ClaimURI>
@@ -803,6 +911,7 @@
 				<RegEx>^\\s*(\\{[\\s\\S]*\\}|\\[[\\s\\S]*\\])\\s*$</RegEx>
 				<ReadOnly>true</ReadOnly>
 				<Description>Set the user preferred MFA option</Description>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/emailAddresses</ClaimURI>
@@ -813,6 +922,7 @@
 				<DisplayOrder>11</DisplayOrder>
 				<SupportedByDefault />
 				<multiValued>true</multiValued>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/verifiedEmailAddresses</ClaimURI>
@@ -823,6 +933,7 @@
 				<DisplayOrder>12</DisplayOrder>
 				<SupportedByDefault />
 				<multiValued>true</multiValued>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/mobileNumbers</ClaimURI>
@@ -833,6 +944,7 @@
 				<DisplayOrder>13</DisplayOrder>
 				<SupportedByDefault />
 				<multiValued>true</multiValued>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/verifiedMobileNumbers</ClaimURI>
@@ -843,6 +955,7 @@
 				<DisplayOrder>14</DisplayOrder>
 				<SupportedByDefault />
 				<multiValued>true</multiValued>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/passwordExpiryTime</ClaimURI>
@@ -851,6 +964,7 @@
 				<Description>Claim to dynamically calculate password expiry time of user</Description>
 				<ReadOnly>true</ReadOnly>
 				<Returned>request</Returned>
+				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
 			</Claim>
 		</Dialect>
 
@@ -887,7 +1001,7 @@
 				<Description>Email Address</Description>
 				<Required />
 				<SupportedByDefault />
-                <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -1002,7 +1116,7 @@
 				<DisplayOrder>3</DisplayOrder>
 				<Required />
 				<SupportedByDefault />
-                <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -1055,13 +1169,13 @@
 				<DisplayName>Language</DisplayName>
 				<AttributeID>prefferedLanguage</AttributeID>
 				<Description>Language</Description>
-                <DisplayOrder>7</DisplayOrder>
+				<DisplayOrder>7</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 
-        <Dialect dialectURI="urn:scim:schemas:core:1.0"
+		<Dialect dialectURI="urn:scim:schemas:core:1.0"
 				 claimURIRegex="urn:scim:schemas:core:1.0:[a-zA-Z0-9$\-_\.]*$">
 			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:id</ClaimURI>
@@ -1069,7 +1183,7 @@
 				<AttributeID>scimId</AttributeID>
 				<Description>Id</Description>
 				<Required />
-                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/userid</MappedLocalClaim>
 			</Claim>
@@ -1079,7 +1193,7 @@
 				<AttributeID>externalId</AttributeID>
 				<Description>External Id</Description>
 				<Required />
-                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/externalid</MappedLocalClaim>
 			</Claim>
@@ -1089,7 +1203,7 @@
 				<AttributeID>createdDate</AttributeID>
 				<Description>Meta - Created</Description>
 				<Required />
-                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/created</MappedLocalClaim>
 			</Claim>
@@ -1099,7 +1213,7 @@
 				<AttributeID>lastModifiedDate</AttributeID>
 				<Description>Meta - Last Modified</Description>
 				<Required />
-                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/modified</MappedLocalClaim>
 			</Claim>
@@ -1109,11 +1223,11 @@
 				<AttributeID>location</AttributeID>
 				<Description>Meta - Location</Description>
 				<Required />
-                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/location</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:userName</ClaimURI>
 				<DisplayName>User Name</DisplayName>
 				<AttributeID>uid</AttributeID>
@@ -1129,7 +1243,7 @@
 				<AttributeID>givenName</AttributeID>
 				<Description>Given Name</Description>
 				<Required />
-                <DisplayOrder>1</DisplayOrder>
+				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/givenname</MappedLocalClaim>
 			</Claim>
@@ -1143,7 +1257,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/lastname</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:name.formatted</ClaimURI>
 				<DisplayName>Name - Formatted Name</DisplayName>
 				<AttributeID>formattedName</AttributeID>
@@ -1153,7 +1267,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/formattedName</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:name.middleName</ClaimURI>
 				<DisplayName>Name - Middle Name</DisplayName>
 				<AttributeID>middleName</AttributeID>
@@ -1163,7 +1277,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/middleName</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:name.honorificPrefix</ClaimURI>
 				<DisplayName>Name - Honoric Prefix</DisplayName>
 				<AttributeID>honoricPrefix</AttributeID>
@@ -1173,7 +1287,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/honorificPrefix</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:name.honorificSuffix</ClaimURI>
 				<DisplayName>Name - Honoric Suffix</DisplayName>
 				<AttributeID>honoricSuffix</AttributeID>
@@ -1193,7 +1307,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:nickName</ClaimURI>
 				<DisplayName>Nick Name</DisplayName>
 				<AttributeID>nickName</AttributeID>
@@ -1203,7 +1317,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/nickname</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:profileUrl</ClaimURI>
 				<DisplayName>Profile URL</DisplayName>
 				<AttributeID>url</AttributeID>
@@ -1213,7 +1327,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/url</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:title</ClaimURI>
 				<DisplayName>Title</DisplayName>
 				<AttributeID>title</AttributeID>
@@ -1223,7 +1337,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/title</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:userType</ClaimURI>
 				<DisplayName>User Type</DisplayName>
 				<AttributeID>userType</AttributeID>
@@ -1233,7 +1347,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:preferredLanguage</ClaimURI>
 				<DisplayName>Preferred Language</DisplayName>
 				<AttributeID>preferredLanguage</AttributeID>
@@ -1243,17 +1357,17 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
-            <Claim>
-                <ClaimURI>urn:scim:schemas:core:1.0:locale</ClaimURI>
-                <DisplayName>Locality</DisplayName>
-                <AttributeID>localityName</AttributeID>
-                <Description>Locality</Description>
+			<Claim>
+				<ClaimURI>urn:scim:schemas:core:1.0:locale</ClaimURI>
+				<DisplayName>Locality</DisplayName>
+				<AttributeID>localityName</AttributeID>
+				<Description>Locality</Description>
 				<DisplayOrder>2</DisplayOrder>
 				<Required />
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/local</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:timeZone</ClaimURI>
 				<DisplayName>Time Zone</DisplayName>
 				<AttributeID>timeZone</AttributeID>
@@ -1263,7 +1377,7 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:active</ClaimURI>
 				<DisplayName>Active</DisplayName>
 				<AttributeID>active</AttributeID>
@@ -1278,10 +1392,10 @@
 				<DisplayName>Emails</DisplayName>
 				<AttributeID>mail</AttributeID>
 				<Description>Email Addresses</Description>
-                <DisplayOrder>3</DisplayOrder>
+				<DisplayOrder>3</DisplayOrder>
 				<Required />
 				<SupportedByDefault />
-                <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
+				<RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -1289,7 +1403,7 @@
 				<DisplayName>Emails - Work Email</DisplayName>
 				<AttributeID>workEmail</AttributeID>
 				<Description>Work Email</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/emails.work</MappedLocalClaim>
 			</Claim>
@@ -1298,16 +1412,16 @@
 				<DisplayName>Emails - Home Email</DisplayName>
 				<AttributeID>homeEmail</AttributeID>
 				<Description>Home Email</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/emails.home</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:emails.other</ClaimURI>
 				<DisplayName>Emails - Other Email</DisplayName>
 				<AttributeID>otherEmail</AttributeID>
 				<Description>Other Email</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/emails.other</MappedLocalClaim>
 			</Claim>
@@ -1316,10 +1430,10 @@
 				<DisplayName>Phone Numbers</DisplayName>
 				<AttributeID>phoneNumbers</AttributeID>
 				<Description>Phone Numbers</Description>
-                <DisplayOrder>3</DisplayOrder>
+				<DisplayOrder>3</DisplayOrder>
 				<Required />
 				<SupportedByDefault />
-                <RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers</MappedLocalClaim>
 			</Claim>
 			<Claim>
@@ -1327,7 +1441,7 @@
 				<DisplayName>Phone Numbers - Mobile Number</DisplayName>
 				<AttributeID>mobile</AttributeID>
 				<Description>Mobile Number</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/mobile</MappedLocalClaim>
 			</Claim>
@@ -1336,43 +1450,43 @@
 				<DisplayName>Phone Numbers - Home Phone Number</DisplayName>
 				<AttributeID>homePhone</AttributeID>
 				<Description>Home Phone</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.home</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:phoneNumbers.work</ClaimURI>
 				<DisplayName>Phone Numbers - Work Phone Number</DisplayName>
 				<AttributeID>workPhone</AttributeID>
 				<Description>Work Phone</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.work</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:phoneNumbers.fax</ClaimURI>
 				<DisplayName>Phone Numbers - Fax Number</DisplayName>
 				<AttributeID>fax</AttributeID>
 				<Description>Fax Number</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.fax</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:phoneNumbers.pager</ClaimURI>
 				<DisplayName>Phone Numbers - Pager Number</DisplayName>
 				<AttributeID>pager</AttributeID>
 				<Description>Pager Number</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.pager</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:phoneNumbers.other</ClaimURI>
 				<DisplayName>Phone Numbers - Other</DisplayName>
 				<AttributeID>otherPhoneNumber</AttributeID>
 				<Description>Other Phone Number</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.other</MappedLocalClaim>
 			</Claim>
@@ -1381,151 +1495,151 @@
 				<DisplayName>IMS</DisplayName>
 				<AttributeID>im</AttributeID>
 				<Description>IM</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/im</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:ims.gtalk</ClaimURI>
 				<DisplayName>IM - Gtalk</DisplayName>
 				<AttributeID>imGtalk</AttributeID>
 				<Description>IM - Gtalk</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/gtalk</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:ims.skype</ClaimURI>
 				<DisplayName>IM - Skype</DisplayName>
 				<AttributeID>imSkype</AttributeID>
 				<Description>IM - Skype</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/skype</MappedLocalClaim>
 			</Claim>
-	    	<Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:photos</ClaimURI>
 				<DisplayName>Photo</DisplayName>
 				<AttributeID>photos</AttributeID>
 				<Description>Photo</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/photos</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:photos.photo</ClaimURI>
 				<DisplayName>Photo</DisplayName>
 				<AttributeID>photoUrl</AttributeID>
 				<Description>Photo</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/photourl</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:photos.thumbnail</ClaimURI>
 				<DisplayName>Photo - Thumbnail</DisplayName>
 				<AttributeID>thumbnail</AttributeID>
 				<Description>Photo - Thumbnail</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/thumbnail</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:addresses</ClaimURI>
 				<DisplayName>Address</DisplayName>
 				<AttributeID>addresses</AttributeID>
 				<Description>Address</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/addresses</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:addresses.formatted</ClaimURI>
 				<DisplayName>Address - Formatted</DisplayName>
 				<AttributeID>formattedAddress</AttributeID>
 				<Description>Address - Formatted</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/addresses.formatted</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:addresses.streetAddress</ClaimURI>
 				<DisplayName>Address - Street</DisplayName>
 				<AttributeID>streetAddress</AttributeID>
 				<Description>Address - Street</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/streetaddress</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:addresses.locality</ClaimURI>
 				<DisplayName>Address - Locality</DisplayName>
 				<AttributeID>localityAddress</AttributeID>
 				<Description>Address - Locality</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/addresses.locality</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:addresses.region</ClaimURI>
 				<DisplayName>Address - Region</DisplayName>
 				<AttributeID>region</AttributeID>
 				<Description>Address - Region</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/region</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:addresses.postalCode</ClaimURI>
 				<DisplayName>Address - Postal Code</DisplayName>
 				<AttributeID>postalCode</AttributeID>
 				<Description>Address - Postal Code</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/postalcode</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:addresses.country</ClaimURI>
 				<DisplayName>Address - Country</DisplayName>
 				<AttributeID>country</AttributeID>
 				<Description>Address - Country</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:groups</ClaimURI>
 				<DisplayName>Groups</DisplayName>
 				<AttributeID>groups</AttributeID>
 				<Description>Groups</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:entitlements</ClaimURI>
 				<DisplayName>Entitlements</DisplayName>
 				<AttributeID>entitlements</AttributeID>
 				<Description>Entitlements</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/entitlements</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:roles</ClaimURI>
 				<DisplayName>Roles</DisplayName>
 				<AttributeID>roles</AttributeID>
 				<Description>Roles</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
 			</Claim>
-            <Claim>
+			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:x509Certificates</ClaimURI>
 				<DisplayName>X509Certificates</DisplayName>
 				<AttributeID>x509Certificates</AttributeID>
 				<Description>X509Certificates</Description>
-                <DisplayOrder>5</DisplayOrder>
+				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/x509Certificates</MappedLocalClaim>
 			</Claim>
@@ -1677,7 +1791,7 @@
 				<DisplayName>Gender</DisplayName>
 				<AttributeID>gender</AttributeID>
 				<Description>End-User's gender. Values defined by this specification are female and male. Other values MAY be used when neither of the defined values are applicable.</Description>
-	            		<SupportedByDefault />
+				<SupportedByDefault />
 				<ReadOnly />
 				<MappedLocalClaim>http://wso2.org/claims/gender</MappedLocalClaim>
 			</Claim>
@@ -1729,49 +1843,49 @@
 				<AttributeID>updated</AttributeID>
 				<Description>Time the End-User's information was last updated. Its value is a JSON number representing the number of seconds from 1970-01-01T0:0:0Z as measured in UTC until the date/time.</Description>
 				<MappedLocalClaim>http://wso2.org/claims/modified</MappedLocalClaim>
-		    </Claim>
-		    <Claim>
+			</Claim>
+			<Claim>
 				<ClaimURI>formatted</ClaimURI>
 				<DisplayName>Address Formatted</DisplayName>
 				<AttributeID>formatted</AttributeID>
 				<Description>Full mailing address, formatted for display or use on a mailing label. This field MAY contain multiple lines, separated by newlines.</Description>
 				<MappedLocalClaim>http://wso2.org/claims/addresses.formatted</MappedLocalClaim>
-		    </Claim>
-		    <Claim>
+			</Claim>
+			<Claim>
 				<ClaimURI>street_address</ClaimURI>
 				<DisplayName>Street Address</DisplayName>
 				<AttributeID>street</AttributeID>
 				<Description>Full street address component, which MAY include house number, street name, Post Office Box, and multi-line extended street address information.</Description>
 				<MappedLocalClaim>http://wso2.org/claims/streetaddress</MappedLocalClaim>
-		    </Claim>
-		    <Claim>
+			</Claim>
+			<Claim>
 				<ClaimURI>locality</ClaimURI>
 				<DisplayName>Locality</DisplayName>
 				<AttributeID>localityName</AttributeID>
 				<Description>City or locality component.</Description>
 				<MappedLocalClaim>http://wso2.org/claims/locality</MappedLocalClaim>
-		    </Claim>
-		    <Claim>
+			</Claim>
+			<Claim>
 				<ClaimURI>region</ClaimURI>
 				<DisplayName>One Time Password</DisplayName>
 				<AttributeID>region</AttributeID>
 				<Description>State, province, prefecture, or region component.</Description>
 				<MappedLocalClaim>http://wso2.org/claims/region</MappedLocalClaim>
-		    </Claim>
-		    <Claim>
+			</Claim>
+			<Claim>
 				<ClaimURI>postal_code</ClaimURI>
 				<DisplayName>Postal Code</DisplayName>
 				<AttributeID>postalcode</AttributeID>
 				<Description>Zip code or postal code component.</Description>
 				<MappedLocalClaim>http://wso2.org/claims/postalcode</MappedLocalClaim>
-		    </Claim>
-		    <Claim>
+			</Claim>
+			<Claim>
 				<ClaimURI>country</ClaimURI>
 				<DisplayName>Country</DisplayName>
 				<AttributeID>country</AttributeID>
 				<Description>Country name component</Description>
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
-		    </Claim>
+			</Claim>
 			<Claim>
 				<ClaimURI>preferredMFAOption</ClaimURI>
 				<DisplayName>PreferredMFAOption</DisplayName>
@@ -2338,16 +2452,16 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/verifyEmail</MappedLocalClaim>
 			</Claim>
-            <Claim>
-                <ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value</ClaimURI>
-                <DisplayName>Verification Pending Email</DisplayName>
-                <AttributeID>pendingEmailAddress</AttributeID>
-                <Description>Claim to store newly updated email address until the new email address is verified</Description>
-                <Required />
-                <DisplayOrder>1</DisplayOrder>
-                <SupportedByDefault />
-                <MappedLocalClaim>http://wso2.org/claims/identity/emailaddress.pendingValue</MappedLocalClaim>
-            </Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value</ClaimURI>
+				<DisplayName>Verification Pending Email</DisplayName>
+				<AttributeID>pendingEmailAddress</AttributeID>
+				<Description>Claim to store newly updated email address until the new email address is verified</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/emailaddress.pendingValue</MappedLocalClaim>
+			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountLocked</ClaimURI>
 				<DisplayName>Account Locked</DisplayName>

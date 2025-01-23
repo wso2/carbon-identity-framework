@@ -55,8 +55,7 @@ public class ActionExecutionServiceComponentHolder {
         return ruleEvaluationService;
     }
 
-    public void setRuleEvaluationService(
-            RuleEvaluationService ruleEvaluationService) {
+    public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
 
         this.ruleEvaluationService = ruleEvaluationService;
     }
