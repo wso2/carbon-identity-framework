@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.execution.impl;
 
+import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRuntimeException;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Context;
 
@@ -51,28 +52,36 @@ public class InvocationSuccessResponseContextFactory {
     /**
      * Register the Context class for the given action type.
      *
-     * @param invocationSuccessResponse Context class.
-     * @throws NoSuchFieldException If ACTION_TYPE is not defined in the extended Context class.
-     * @throws IllegalAccessException If any error occurred while accessing the field in the extended Context class.
+     * @param extendedClass Context class.
+     * @throws ActionExecutionRuntimeException If any error occurs when registering extended context class.
      */
     public static void registerInvocationSuccessResponseContextClass(
-            Class<? extends Context> invocationSuccessResponse) throws NoSuchFieldException, IllegalAccessException {
+            Class<? extends Context> extendedClass) throws ActionExecutionRuntimeException {
 
-        ActionType type = (ActionType) invocationSuccessResponse.getDeclaredField("ACTION_TYPE").get(null);
-        contextClassMap.put(type, invocationSuccessResponse);
+        try {
+            ActionType type = (ActionType) extendedClass.getDeclaredField("ACTION_TYPE").get(null);
+            contextClassMap.put(type, extendedClass);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new ActionExecutionRuntimeException(String.format("An error occurred while registering extended " +
+                    "context class: %s", extendedClass),  e);
+        }
     }
 
     /**
      * Unregister the Context class for the given action type.
      *
-     * @param invocationSuccessResponse Context class.
-     * @throws NoSuchFieldException If ACTION_TYPE is not defined in the extended Context class.
-     * @throws IllegalAccessException If any error occurred while accessing the field in the extended Context class.
+     * @param extendedClass Context class.
+     * @throws ActionExecutionRuntimeException If any error occurs when unregistering extended context class.
      */
-    public static void unregisterInvocationSuccessResponse(Class<? extends Context> invocationSuccessResponse)
-            throws NoSuchFieldException, IllegalAccessException {
+    public static void unregisterInvocationSuccessResponse(Class<? extends Context> extendedClass)
+            throws ActionExecutionRuntimeException {
 
-        ActionType type = (ActionType) invocationSuccessResponse.getDeclaredField("ACTION_TYPE").get(null);
-        contextClassMap.remove(type);
+        try {
+            ActionType type = (ActionType) extendedClass.getDeclaredField("ACTION_TYPE").get(null);
+            contextClassMap.remove(type);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new ActionExecutionRuntimeException(String.format("An error occurred while registering extended " +
+                    "context class: %s", extendedClass),  e);
+        }
     }
 }
