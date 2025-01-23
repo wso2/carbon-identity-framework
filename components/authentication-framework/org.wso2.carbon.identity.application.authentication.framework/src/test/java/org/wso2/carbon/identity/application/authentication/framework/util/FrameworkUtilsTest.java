@@ -546,6 +546,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             when(mockedSessionDataStore.getSessionData(anyString(), anyString()))
                     .thenReturn(mockedAuthenticationResultCacheEntry);
             when(mockedAuthenticationResultCacheEntry.getResult()).thenReturn(mockedAuthenticationResult);
+            when(mockedAuthenticationResultCacheEntry.getValidityPeriod()).thenReturn(-60000000L);
             when(mockedAuthenticationResult.getProperty(anyString())).thenReturn(System.currentTimeMillis());
 
             AuthenticationResultCacheEntry result = authenticationCacheSpy.getValueFromCache(key);
