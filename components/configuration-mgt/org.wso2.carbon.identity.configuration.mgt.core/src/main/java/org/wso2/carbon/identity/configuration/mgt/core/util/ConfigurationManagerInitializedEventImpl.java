@@ -26,5 +26,5 @@ package org.wso2.carbon.identity.configuration.mgt.core.util;
  * before that.
  */
 
-public interface ConfigurationManagerInitializedEventImpl implements ConfigurationManagerInitializedEvent {
+public class ConfigurationManagerInitializedEventImpl implements ConfigurationManagerInitializedEvent {
 }
