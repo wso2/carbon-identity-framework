@@ -2432,8 +2432,10 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/extendedDisplayName</MappedLocalClaim>
 			</Claim>
+		</Dialect>
+		<Dialect dialectURI="urn:scim:wso2:schema">
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:askPassword</ClaimURI>
 				<DisplayName>Ask Password</DisplayName>
 				<AttributeID>askPassword</AttributeID>
 				<Description>Temporary claim to invoke email ask Password feature</Description>
@@ -2443,7 +2445,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/askPassword</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:verifyEmail</ClaimURI>
 				<DisplayName>Verify Email</DisplayName>
 				<AttributeID>verifyEmail</AttributeID>
 				<Description>Temporary claim to invoke email verified feature</Description>
@@ -2453,7 +2455,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/verifyEmail</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:pendingEmails.value</ClaimURI>
 				<DisplayName>Verification Pending Email</DisplayName>
 				<AttributeID>pendingEmailAddress</AttributeID>
 				<Description>Claim to store newly updated email address until the new email address is verified</Description>
@@ -2463,7 +2465,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/emailaddress.pendingValue</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountLocked</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:accountLocked</ClaimURI>
 				<DisplayName>Account Locked</DisplayName>
 				<AttributeID>accountLocked</AttributeID>
 				<Description>Account locked</Description>
@@ -2473,7 +2475,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/accountLocked</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountState</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:accountState</ClaimURI>
 				<DisplayName>Account State</DisplayName>
 				<AttributeID>accountState</AttributeID>
 				<Description>Account state</Description>
@@ -2483,7 +2485,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/accountState</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:emailOTPDisabled</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:emailOTPDisabled</ClaimURI>
 				<DisplayName>Disable email OTP</DisplayName>
 				<AttributeID>emailOTPDisabled</AttributeID>
 				<Description>Store whether email OTP is enabled or disabled</Description>
@@ -2493,7 +2495,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/emailotp_disabled</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:emailVerified</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:emailVerified</ClaimURI>
 				<DisplayName>Email Verified</DisplayName>
 				<AttributeID>emailVerified</AttributeID>
 				<Description>True if the End-User's e-mail address has been verified; otherwise false</Description>
@@ -2503,7 +2505,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/emailVerified</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedEmailOTPAttempts</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedEmailOTPAttempts</ClaimURI>
 				<DisplayName>Account State</DisplayName>
 				<AttributeID>failedEmailOTPAttempts</AttributeID>
 				<Description>Number of failed email OTP attempts</Description>
@@ -2513,7 +2515,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedEmailOtpAttempts</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttempts</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedLoginAttempts</ClaimURI>
 				<DisplayName>Faliled Login Attempts</DisplayName>
 				<AttributeID>failedLoginAttempts</AttributeID>
 				<Description>Number of failed login attempts</Description>
@@ -2523,7 +2525,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedLoginAttempts</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttemptsBeforeSuccess</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedLoginAttemptsBeforeSuccess</ClaimURI>
 				<DisplayName>Faliled Login Attempts Before Success</DisplayName>
 				<AttributeID>failedLoginAttemptsBeforeSuccess</AttributeID>
 				<Description>Number of failed attempts before a success login</Description>
@@ -2533,7 +2535,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginLockoutCount</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedLoginLockoutCount</ClaimURI>
 				<DisplayName>Failed Lockout Count</DisplayName>
 				<AttributeID>failedLoginLockoutCount</AttributeID>
 				<Description>Failed lockout count</Description>
@@ -2543,7 +2545,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedLoginLockoutCount</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedPasswordRecoveryAttempts</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedPasswordRecoveryAttempts</ClaimURI>
 				<DisplayName>Failed Password Recovery Attempts</DisplayName>
 				<AttributeID>failedPasswordRecoveryAttempts</AttributeID>
 				<Description>Number of consecutive failed attempts done for password recovery</Description>
@@ -2553,7 +2555,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedSMSOTPAttempts</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedSMSOTPAttempts</ClaimURI>
 				<DisplayName>Failed SMS OTP attempts</DisplayName>
 				<AttributeID>failedSMSOTPAttempts</AttributeID>
 				<Description>Number of failed SMS OTP attempts</Description>
@@ -2563,7 +2565,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedSmsOtpAttempts</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedTOTPAttempts</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedTOTPAttempts</ClaimURI>
 				<DisplayName>Failed TOTP Attempts</DisplayName>
 				<AttributeID>failedTOTPAttempts</AttributeID>
 				<Description>Number of failed TOTP attempts</Description>
@@ -2573,7 +2575,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedTotpAttempts</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:isLiteUser</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:isLiteUser</ClaimURI>
 				<DisplayName>Lite User</DisplayName>
 				<AttributeID>isLiteUser</AttributeID>
 				<Description>Store whether the account is a lite user account</Description>
@@ -2583,7 +2585,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/isLiteUser</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastLoginTime</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:lastLoginTime</ClaimURI>
 				<DisplayName>Last Login Time</DisplayName>
 				<AttributeID>lastLoginTime</AttributeID>
 				<Description>Last login time</Description>
@@ -2593,7 +2595,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/lastLoginTime</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastLogonTime</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:lastLogonTime</ClaimURI>
 				<DisplayName>Last Logon Time</DisplayName>
 				<AttributeID>lastLogonTime</AttributeID>
 				<Description>Last logon time</Description>
@@ -2603,7 +2605,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/lastLogonTime</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastPasswordUpdateTime</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:lastPasswordUpdateTime</ClaimURI>
 				<DisplayName>Last Password Update Time</DisplayName>
 				<AttributeID>lastPasswordUpdateTime</AttributeID>
 				<Description>Last password update time</Description>
@@ -2613,7 +2615,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/lastPasswordUpdateTime</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lockedReason</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:lockedReason</ClaimURI>
 				<DisplayName>Locked Reason</DisplayName>
 				<AttributeID>lockedReason</AttributeID>
 				<Description>The reason why the user account is locked</Description>
@@ -2623,7 +2625,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/lockedReason</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:phoneVerified</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:phoneVerified</ClaimURI>
 				<DisplayName>Phone Verified</DisplayName>
 				<AttributeID>phoneVerified</AttributeID>
 				<Description>True if the End-User's phone number has been verified; otherwise false</Description>
@@ -2633,7 +2635,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/phoneVerified</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:preferredChannel</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:preferredChannel</ClaimURI>
 				<DisplayName>Preferred Channel</DisplayName>
 				<AttributeID>preferredChannel</AttributeID>
 				<Description>Preferred Notification Channel</Description>
@@ -2643,7 +2645,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/preferredChannel</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:smsOTPDisabled</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:smsOTPDisabled</ClaimURI>
 				<DisplayName>Disable SMS OTP</DisplayName>
 				<AttributeID>smsOTPDisabled</AttributeID>
 				<Description>Store whether SMS OTP is enabled or disabled</Description>
@@ -2653,7 +2655,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/smsotp_disabled</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:tenantAdminAskPassword</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:tenantAdminAskPassword</ClaimURI>
 				<DisplayName>Tenant Admin Ask Password</DisplayName>
 				<AttributeID>tenantAdminAskPassword</AttributeID>
 				<Description>Temporary claim to invoke email tenant admin ask Password feature</Description>
@@ -2663,7 +2665,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/tenantAdminAskPassword</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:unlockTime</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:unlockTime</ClaimURI>
 				<DisplayName>Unlock Time</DisplayName>
 				<AttributeID>unlockTime</AttributeID>
 				<Description>Unlock time</Description>
@@ -2673,7 +2675,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/unlockTime</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountDisabled</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:accountDisabled</ClaimURI>
 				<DisplayName>Account Disabled</DisplayName>
 				<AttributeID>accountDisabled</AttributeID>
 				<Description>Store whether the user account is disabled or not</Description>
@@ -2683,7 +2685,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/accountDisabled</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:dateOfBirth</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:dateOfBirth</ClaimURI>
 				<DisplayName>Date Of Birth</DisplayName>
 				<AttributeID>dateOfBirth</AttributeID>
 				<Description>Date of birth</Description>
@@ -2693,7 +2695,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/dob</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:isReadOnlyUser</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:isReadOnlyUser</ClaimURI>
 				<DisplayName>Read Only User</DisplayName>
 				<AttributeID>isReadOnlyUser</AttributeID>
 				<Description>Claim to store if the user is read only</Description>
@@ -2703,7 +2705,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/isReadOnlyUser</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingMobileNumber</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:pendingMobileNumber</ClaimURI>
 				<DisplayName>Verification Pending Mobile</DisplayName>
 				<AttributeID>pendingMobileNumber</AttributeID>
 				<Description>To store newly updated mobile number until it is verified</Description>
@@ -2713,7 +2715,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/mobileNumber.pendingValue</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:forcePasswordReset</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:forcePasswordReset</ClaimURI>
 				<DisplayName>Force Password Reset</DisplayName>
 				<AttributeID>forcePasswordReset</AttributeID>
 				<Description>Temporary claim to invoke forced password reset feature</Description>
@@ -2723,7 +2725,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/adminForcedPasswordReset</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:oneTimePassword</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:oneTimePassword</ClaimURI>
 				<DisplayName>One Time Password</DisplayName>
 				<AttributeID>oneTimePassword</AttributeID>
 				<Description>One Time Password</Description>
@@ -2733,7 +2735,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/oneTimePassword</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:verifyMobile</ClaimURI>
 				<DisplayName>Verify Mobile</DisplayName>
 				<AttributeID>verifyMobile</AttributeID>
 				<Description>Temporary claim to invoke mobile verification feature</Description>
@@ -2743,7 +2745,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/verifyMobile</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:country</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:country</ClaimURI>
 				<DisplayName>Country</DisplayName>
 				<AttributeID>country</AttributeID>
 				<Description>Country</Description>
@@ -2753,7 +2755,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:userSourceId</ClaimURI>
 				<DisplayName>User Source ID</DisplayName>
 				<AttributeID>userSourceId</AttributeID>
 				<Description>User Provisioned IDP ID</Description>
@@ -2763,7 +2765,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/userSourceId</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:totpEnabled</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:totpEnabled</ClaimURI>
 				<DisplayName>TOTP Enabled</DisplayName>
 				<AttributeID>totpEnabled</AttributeID>
 				<Description>TOTP Authenticator Enabled</Description>
@@ -2773,7 +2775,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/totpEnabled</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:backupCodeEnabled</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:backupCodeEnabled</ClaimURI>
 				<DisplayName>Backup Code Enabled</DisplayName>
 				<AttributeID>backupCodeEnable</AttributeID>
 				<Description>Whether user has configured backup code authenticator or not.</Description>
@@ -2783,7 +2785,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/backupCodeEnabled</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedBackupCodeAttempts</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:failedBackupCodeAttempts</ClaimURI>
 				<DisplayName>Failed Backup Code Attempts</DisplayName>
 				<AttributeID>failedBackupCodeAttempts</AttributeID>
 				<Description>Number of failed backup code attempts</Description>
@@ -2793,7 +2795,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/failedBackupCodeAttempts</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:managedOrg</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:managedOrg</ClaimURI>
 				<DisplayName>Managed Organization</DisplayName>
 				<AttributeID>managedOrg</AttributeID>
 				<Description>Organization where the user is managed</Description>
@@ -2802,7 +2804,7 @@
 				<MappedLocalClaim>http://wso2.org/claims/identity/managedOrg</MappedLocalClaim>
 			</Claim>
 			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:preferredMFAOption</ClaimURI>
+				<ClaimURI>urn:scim:wso2:schema:preferredMFAOption</ClaimURI>
 				<DisplayName>PreferredMFAOption</DisplayName>
 				<AttributeID>preferredMFAOption</AttributeID>
 				<Description>Preferred MFA option</Description>
@@ -2811,8 +2813,6 @@
 				<SupportedByDefault/>
 				<MappedLocalClaim>http://wso2.org/claims/identity/preferredMFAOption</MappedLocalClaim>
 			</Claim>
-		</Dialect>
-		<Dialect dialectURI="urn:scim:wso2:schema">
 			<Claim>
 				<ClaimURI>urn:scim:wso2:schema:emailAddresses</ClaimURI>
 				<DisplayName>Email Addresses</DisplayName>
