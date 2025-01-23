@@ -113,9 +113,7 @@ public class AuthenticationResultCache extends
         if (createdTimestamp != null) {
             if (FrameworkUtils.getCurrentStandardNano() >
                     entry.getValidityPeriod() + Long.parseLong(createdTimestamp) * 1000000) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Authentication result cache is expired");
-                }
+                log.debug("Authentication result cache is expired");
                 return true;
             }
         }
