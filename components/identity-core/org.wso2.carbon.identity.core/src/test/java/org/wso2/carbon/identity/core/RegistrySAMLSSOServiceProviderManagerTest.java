@@ -42,6 +42,8 @@ import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -105,6 +107,10 @@ public class RegistrySAMLSSOServiceProviderManagerTest {
                 return null;
             }
         }).when(mockRegistry).beginTransaction();
+
+        URL root = this.getClass().getClassLoader().getResource(".");
+        File file = new File(root.getPath());
+        System.setProperty("carbon.home", file.getAbsolutePath());
 
         samlSSOServiceProviderManager = new SAMLSSOServiceProviderManager();
         samlSSOServiceProviderManager.serviceProviderDAO = new RegistrySAMLSSOServiceProviderDAOImpl();

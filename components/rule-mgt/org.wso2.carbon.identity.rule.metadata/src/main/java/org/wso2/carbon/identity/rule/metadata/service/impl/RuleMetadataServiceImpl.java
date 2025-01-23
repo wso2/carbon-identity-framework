@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.rule.metadata.service.impl;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.model.FlowType;
+import org.wso2.carbon.identity.rule.metadata.model.Operator;
 import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
 
 import java.util.List;
@@ -43,5 +44,11 @@ public class RuleMetadataServiceImpl implements RuleMetadataService {
             throws RuleMetadataException {
 
         return ruleMetadataManager.getExpressionMetaForFlow(flowType, tenantDomain);
+    }
+
+    @Override
+    public List<Operator> getApplicableOperatorsInExpressions() {
+
+        return ruleMetadataManager.getApplicableOperatorsInExpressions();
     }
 }

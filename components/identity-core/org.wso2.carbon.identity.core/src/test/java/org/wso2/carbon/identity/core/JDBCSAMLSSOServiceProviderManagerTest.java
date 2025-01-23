@@ -37,6 +37,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.TestUtils;
 
+import java.io.File;
+import java.net.URL;
 import java.sql.Connection;
 
 import javax.sql.DataSource;
@@ -72,6 +74,10 @@ public class JDBCSAMLSSOServiceProviderManagerTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
+
+        URL root = this.getClass().getClassLoader().getResource(".");
+        File file = new File(root.getPath());
+        System.setProperty("carbon.home", file.getAbsolutePath());
 
         samlSSOServiceProviderManager = new SAMLSSOServiceProviderManager();
         samlSSOServiceProviderManager.serviceProviderDAO = new JDBCSAMLSSOServiceProviderDAOImpl();
