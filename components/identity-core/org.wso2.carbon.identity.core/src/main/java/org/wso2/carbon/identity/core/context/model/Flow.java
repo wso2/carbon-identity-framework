@@ -35,8 +35,12 @@ public class Flow {
     }
 
     /**
-     * Enum for Initiator persona.
-     * Specifies the type of entity responsible for initiating the Flow
+     * Enum for Initiator Persona.
+     * Specifies the type of entity responsible for initiating the Flow.
+     * ADMIN : Represents a management flow initiated by an administrator or an authorized user who has
+     * management privileges within the organization.
+     * APPLICATION: Represents a flow initiated by an application.
+     * USER: Represents a self-service flow initiated by an end-user(consumer).
      */
     public enum InitiatingPersona {
         ADMIN,

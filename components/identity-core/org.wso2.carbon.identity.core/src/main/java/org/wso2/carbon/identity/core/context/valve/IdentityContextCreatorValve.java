@@ -34,7 +34,7 @@ public class IdentityContextCreatorValve extends ValveBase {
     private static Log LOG = LogFactory.getLog(IdentityContextCreatorValve.class);
 
     public IdentityContextCreatorValve() {
-        //enable async support
+        // Enable async support to handle asynchronous requests, allowing non-blocking operations
         super(true);
     }
 

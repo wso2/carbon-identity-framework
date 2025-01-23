@@ -25,14 +25,44 @@ package org.wso2.carbon.identity.core.context.model;
 public class UserActor implements Actor {
 
     private final String userId;
+    private final String username;
 
-    private UserActor(String userId) {
+    public UserActor(Builder builder) {
 
-        this.userId = userId;
+        this.userId = builder.userId;
+        this.username = builder.username;
     }
 
     public String getUserId() {
 
         return userId;
+    }
+
+    public String getUsername() {
+
+        return username;
+    }
+
+    /**
+     * Builder for the UserActor.
+     */
+    public static class Builder {
+
+        private String userId;
+        private String username;
+
+        public Builder userId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public UserActor build() {
+            return new UserActor(this);
+        }
     }
 }
