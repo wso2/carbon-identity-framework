@@ -5,6 +5,7 @@ batchSize int;
 chunkSize int;
 checkCount int;
 backupTables boolean;
+safePeriod int;
 sleepTime float;
 enableLog boolean;
 logLevel VARCHAR(10);
@@ -31,6 +32,7 @@ batchSize := 10000; -- SET BATCH SIZE FOR AVOID TABLE LOCKS    [DEFAULT : 10000]
 chunkSize := 500000; -- CHUNK WISE DELETE FOR LARGE TABLES     [DEFAULT : 500000]
 checkCount := 100; -- SET CHECK COUNT FOR FINISH CLEANUP SCRIPT (CLEANUP ELIGIBLE TOKENS COUNT SHOULD BE HIGHER THAN checkCount TO CONTINUE) [DEFAULT : 100]
 backupTables := FALSE;   -- SET IF TOKEN TABLE NEEDS TO BACKUP BEFORE DELETE  [DEFAULT : FALSE] , WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+safePeriod := 24; -- SET SAFE PERIOD FOR DELETE EXPIRED CODE [DEFAULT : 24]
 sleepTime := 2; -- SET SLEEP TIME FOR AVOID TABLE LOCKS     [DEFAULT : 2]
 enableLog := TRUE; -- ENABLE LOGGING [DEFAULT : TRUE]
 logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
@@ -128,7 +130,8 @@ IF (enableLog) THEN
     END IF;
 
     IF (enableLog AND logLevel IN ('TRACE')) THEN
-    SELECT COUNT(1) INTO cleanupCount FROM idn_oauth2_device_flow WHERE STATUS IN ('EXPIRED');
+    SELECT COUNT(1) INTO cleanupCount FROM idn_oauth2_device_flow WHERE STATUS IN ('EXPIRED')
+    OR timezone('UTC'::text, now()) >  (EXPIRY_TIME  + (INTERVAL '1hour' * safePeriod));
     RAISE NOTICE 'TOTAL DEVICE CODES SHOULD BE DELETED FROM IDN_OAUTH2_DEVICE_FLOW: %',cleanupCount;
     END IF;
 
@@ -162,7 +165,8 @@ LOOP
 
     CREATE TABLE chunk_idn_oauth2_device_flow (CODE_ID VARCHAR);
 
-    INSERT INTO chunk_idn_oauth2_device_flow (CODE_ID) SELECT CODE_ID FROM idn_oauth2_device_flow WHERE STATUS IN ('EXPIRED') LIMIT chunkSize;
+    INSERT INTO chunk_idn_oauth2_device_flow (CODE_ID) SELECT CODE_ID FROM idn_oauth2_device_flow WHERE STATUS IN ('EXPIRED')
+    OR timezone('UTC'::text, now()) >  (EXPIRY_TIME  + (INTERVAL '1hour' * safePeriod)) LIMIT chunkSize;
     GET diagnostics chunkCount := ROW_COUNT;
 
     IF (chunkCount < checkCount)
