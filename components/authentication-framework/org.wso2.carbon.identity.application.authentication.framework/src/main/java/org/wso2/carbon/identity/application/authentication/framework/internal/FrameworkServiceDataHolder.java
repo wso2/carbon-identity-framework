@@ -797,8 +797,7 @@ public class FrameworkServiceDataHolder {
      *
      * @param organizationDiscoveryManager Instance of {@link OrganizationDiscoveryManager}.
      */
-    public void setOrganizationDiscoveryManager(
-            OrganizationDiscoveryManager organizationDiscoveryManager) {
+    public void setOrganizationDiscoveryManager(OrganizationDiscoveryManager organizationDiscoveryManager) {
 
         this.organizationDiscoveryManager = organizationDiscoveryManager;
     }
@@ -818,8 +817,7 @@ public class FrameworkServiceDataHolder {
      *
      * @param organizationConfigManager Instance of {@link OrganizationConfigManager}.
      */
-    public void setOrganizationConfigManager(
-            OrganizationConfigManager organizationConfigManager) {
+    public void setOrganizationConfigManager(OrganizationConfigManager organizationConfigManager) {
 
         this.organizationConfigManager = organizationConfigManager;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -178,7 +178,7 @@ public class EmailDomainValidationHandlerTest extends AbstractFrameworkTest {
 
     @Test(description = "Test whether the email domain validation handler is disabled for sub organizations when " +
             "email domain discovery is disabled.")
-    public void testISDisabledWhenNoDiscoveryConfigsForOrganization() throws Exception {
+    public void testIsDisabledWhenNoDiscoveryConfigsForOrganization() throws Exception {
 
         when(carbonContext.getTenantDomain()).thenReturn(SUB_ORG_TENANT_DOMAIN);
         when(organizationManager.resolveOrganizationId(SUB_ORG_TENANT_DOMAIN)).thenReturn(SUB_ORG_ID);

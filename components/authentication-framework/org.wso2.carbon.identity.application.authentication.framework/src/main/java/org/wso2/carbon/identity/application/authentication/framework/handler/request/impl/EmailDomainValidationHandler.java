@@ -59,7 +59,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
  */
 public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
 
-    private static final Log log = LogFactory.getLog(EmailDomainValidationHandler.class);
+    private static final Log LOG = LogFactory.getLog(EmailDomainValidationHandler.class);
     private static final String EMAIL_DOMAIN_ENABLE = "emailDomain.enable";
     public static final String EMAIL_DOMAIN = "emailDomain";
 
@@ -92,19 +92,18 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
             if (organizationManager.isPrimaryOrganization(organizationId)) {
                 // Skip email domain validation since email domains cannot be mapped to primary organizations.
                 return false;
-            } else {
-                organizationId = organizationManager.getPrimaryOrganizationId(organizationId);
             }
+            organizationId = organizationManager.getPrimaryOrganizationId(organizationId);
 
             return isEmailDomainDiscoveryEnabled(organizationId);
         } catch (OrganizationConfigClientException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("No organization discovery configurations found for organization: " + CarbonContext
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No organization discovery configurations found for tenant domain: " + CarbonContext
                         .getThreadLocalCarbonContext().getTenantDomain());
             }
             return false;
         } catch (OrganizationManagementException | OrganizationConfigException e) {
-            log.error("Error while retrieving organization discovery configuration.", e);
+            LOG.error("Error while retrieving organization discovery configuration.", e);
             return false;
         }
     }
@@ -151,8 +150,8 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
                         extractEmailDomain(localClaimValues.get(FrameworkConstants.EMAIL_ADDRESS_CLAIM));
 
                 if (!emailDomain.isPresent()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Email address not found or is not in the correct format." +
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Email address not found or is not in the correct format." +
                                 " Email domain validation failed for tenant: " + context.getTenantDomain());
                     }
                     throw new PostAuthenticationFailedException(NO_EMAIL_ATTRIBUTE_FOUND.getCode(),
@@ -179,7 +178,7 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
                         .getDiscoveryConfigurationByTenantId(IdentityTenantUtil.getTenantId(tenantDomain));
         List<ConfigProperty> configProperties = discoveryConfiguration.getConfigProperties();
         for (ConfigProperty configProperty : configProperties) {
-            if (configProperty.getKey().equals(EMAIL_DOMAIN_ENABLE)) {
+            if (EMAIL_DOMAIN_ENABLE.equals(configProperty.getKey())) {
                 return Boolean.parseBoolean(configProperty.getValue());
             }
         }
@@ -195,7 +194,7 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
                             .getOrganizationDiscoveryAttributes(context.getTenantDomain(), false);
 
             if (organizationDiscoveryAttributes.isEmpty()) {
-                log.debug("No email domains are mapped to the organization. Skipping email domain validation.");
+                LOG.debug("No email domains are mapped to the organization. Skipping email domain validation.");
                 return true;
             }
 
@@ -209,9 +208,8 @@ public class EmailDomainValidationHandler extends AbstractPostAuthnHandler {
                     return false;
                 }
             }
-
         } catch (OrganizationManagementException e) {
-            log.error(
+            LOG.error(
                     "Error while retrieving organization discovery attributes for tenant: " + context.getTenantDomain(),
                     e);
             throw new PostAuthenticationFailedException(ERROR_WHILE_RETRIEVING_ORG_DISCOVERY_ATTRIBUTES.getCode(),
