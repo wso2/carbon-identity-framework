@@ -164,25 +164,23 @@ public class ActionExecutionServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetInvocationSuccessResponseContextClass"
     )
-    protected void setInvocationSuccessResponseContextClass(Class<? extends Context> invocationSuccessResponse)
-            throws NoSuchFieldException, IllegalAccessException {
+    protected void setInvocationSuccessResponseContextClass(Class<? extends Context> extendedContextClass) {
 
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Registering extended Context class: " +
-                    invocationSuccessResponse.getName() + " in the ActionExecutionServiceComponent.");
+                    extendedContextClass.getName() + " in the ActionExecutionServiceComponent.");
         }
         InvocationSuccessResponseContextFactory.registerInvocationSuccessResponseContextClass(
-                invocationSuccessResponse);
+                extendedContextClass);
     }
 
-    protected void unsetInvocationSuccessResponseContextClass(Class<? extends Context> invocationSuccessResponse)
-            throws NoSuchFieldException, IllegalAccessException {
+    protected void unsetInvocationSuccessResponseContextClass(Class<? extends Context> extendedContextClass) {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Unregistering extended Context class: " +
-                    invocationSuccessResponse.getName() + " in the ActionExecutionServiceComponent.");
+                    extendedContextClass.getName() + " in the ActionExecutionServiceComponent.");
         }
-        InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(invocationSuccessResponse);
+        InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(extendedContextClass);
     }
 }
