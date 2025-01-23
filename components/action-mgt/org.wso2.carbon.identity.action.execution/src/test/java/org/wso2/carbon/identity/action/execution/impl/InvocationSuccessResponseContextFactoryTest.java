@@ -28,8 +28,7 @@ import static org.testng.Assert.assertEquals;
 public class InvocationSuccessResponseContextFactoryTest {
 
     @Test
-    public void testRegisterInvocationSuccessResponseContextClass()
-            throws NoSuchFieldException, IllegalAccessException {
+    public void testRegisterInvocationSuccessResponseContextClass() {
 
         InvocationSuccessResponseContextFactory.registerInvocationSuccessResponseContextClass(UserContext.class);
         Class<? extends Context> registeredResult = InvocationSuccessResponseContextFactory
@@ -46,8 +45,7 @@ public class InvocationSuccessResponseContextFactoryTest {
     }
 
     @Test(dependsOnMethods = {"testGetInvocationSuccessResponseContextClass"})
-    public void testUnregisterInvocationSuccessResponseContextClass()
-            throws NoSuchFieldException, IllegalAccessException {
+    public void testUnregisterInvocationSuccessResponseContextClass() {
 
         InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(UserContext.class);
         Class<? extends Context> unregisteredResult = InvocationSuccessResponseContextFactory
