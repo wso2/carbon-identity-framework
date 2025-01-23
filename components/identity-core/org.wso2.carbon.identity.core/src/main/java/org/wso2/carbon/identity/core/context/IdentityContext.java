@@ -19,9 +19,12 @@
 package org.wso2.carbon.identity.core.context;
 
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.core.context.model.Actor;
+import org.wso2.carbon.identity.core.context.model.ApplicationActor;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.core.context.model.Initiator;
+import org.wso2.carbon.identity.core.context.model.UserActor;
 import org.wso2.carbon.identity.core.internal.IdentityContextDataHolder;
+import org.wso2.carbon.utils.CarbonUtils;
 
 /**
  * This class is used to store the identity context information of the current thread.
@@ -53,6 +56,9 @@ public class IdentityContext extends CarbonContext {
      */
     public void setFlow(Flow flow) {
 
+        if (identityContextDataHolder.getFlow() != null) {
+            throw new IllegalStateException("Flow is already set in the IdentityContext.");
+        }
         identityContextDataHolder.setFlow(flow);
     }
 
@@ -67,22 +73,77 @@ public class IdentityContext extends CarbonContext {
     }
 
     /**
-     * Set the initiator of the request.
+     * Set the actor of the request.
      *
-     * @param initiator initiator of the request.
+     * @param actor actor of the request.
      */
-    public void setInitiator(Initiator initiator) {
+    public void setActor(Actor actor) {
 
-        identityContextDataHolder.setInitiator(initiator);
+        if (identityContextDataHolder.getActor() != null) {
+            throw new IllegalStateException("Actor is already set in the IdentityContext.");
+        }
+        identityContextDataHolder.setActor(actor);
     }
 
     /**
-     * Get the initiator of the request.
+     * Get the actor of the request.
      *
-     * @return Initiator of the request.
+     * @return Actor of the request.
      */
-    public Initiator getInitiator() {
+    public Actor getActor() {
 
-        return identityContextDataHolder.getInitiator();
+        return identityContextDataHolder.getActor();
+    }
+
+    /**
+     * Get the User actor of the request.
+     *
+     * @return UserActor of the request.
+     */
+    public UserActor getUserActor() {
+
+        if (isUserActor()) {
+            return (UserActor) identityContextDataHolder.getActor();
+        }
+        return null;
+    }
+
+    /**
+     * Check whether the actor is a User actor.
+     *
+     * @return true if the actor is a User actor.
+     */
+    public boolean isUserActor() {
+
+        return identityContextDataHolder.getActor() instanceof UserActor;
+    }
+
+    /**
+     * Get the Application actor of the request.
+     *
+     * @return ApplicationActor of the request.
+     */
+    public ApplicationActor getApplicationActor() {
+
+        if (isApplicationActor()) {
+            return (ApplicationActor) identityContextDataHolder.getActor();
+        }
+        return null;
+    }
+
+    /**
+     * Check whether the actor is an Application actor.
+     *
+     * @return true if the actor is an Application actor.
+     */
+    public boolean isApplicationActor() {
+
+        return identityContextDataHolder.getActor() instanceof ApplicationActor;
+    }
+
+    public static void destroyCurrentContext() {
+
+        CarbonUtils.checkSecurity();
+        IdentityContextDataHolder.destroyCurrentIdentityContextDataHolder();
     }
 }

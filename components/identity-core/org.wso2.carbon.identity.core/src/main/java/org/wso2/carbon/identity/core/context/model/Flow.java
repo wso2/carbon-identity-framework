@@ -18,63 +18,48 @@
 
 package org.wso2.carbon.identity.core.context.model;
 
-import java.util.EnumSet;
-
 /**
- * Enum for flows.
- * This enum holds the flow type and the action that is being executed.
+ * A Flow represents the complete journey of a particular process in the identity system.
+ * It can contain multiple requests and is initiated by a specific entity.
  */
 public class Flow {
 
     /**
-     * Enum for types.
+     * Enum for names.
+     * Identifies the flow.
      */
-    public enum Type {
-
-        PASSWORD_RECOVERY(EnumSet.of(Action.INVITE, Action.UPDATE, Action.RESET));
-
-        private final EnumSet<Action> states;
-
-        Type(EnumSet<Action> states) {
-            this.states = states;
-        }
-
-        public boolean isValidAction(Action action) {
-            return states.contains(action);
-        }
-
-        public EnumSet<Action> getActions() {
-            return states;
-        }
+    public enum Name {
+        PASSWORD_UPDATE,
+        PASSWORD_RESET,
+        USER_REGISTRATION_INVITE_WITH_PASSWORD
     }
 
     /**
-     * Enum for actions.
+     * Enum for Initiator persona.
+     * Specifies the type of entity responsible for initiating the Flow
      */
-    public enum Action {
-        INVITE,
-        UPDATE,
-        RESET
+    public enum InitiatingPersona {
+        ADMIN,
+        APPLICATION,
+        USER
     }
 
-    private final Type type;
-    private final Action action;
+    private final Name name;
+    private final InitiatingPersona initiatingPersona;
 
-    public Flow(Type type, Action action) {
+    public Flow(Name name, InitiatingPersona initiatingPersona) {
 
-        if (type.isValidAction(action)) {
-            this.type = type;
-            this.action = action;
-            return;
-        }
-        throw new IllegalArgumentException("Invalid action or the flow type provided.");
+        this.name = name;
+        this.initiatingPersona = initiatingPersona;
     }
 
-    public Type getType() {
-        return type;
+    public Name getName() {
+
+        return name;
     }
 
-    public Action getAction() {
-        return action;
+    public InitiatingPersona getInitiatingPersona() {
+
+        return initiatingPersona;
     }
 }

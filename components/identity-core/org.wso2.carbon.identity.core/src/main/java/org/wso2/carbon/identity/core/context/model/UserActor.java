@@ -19,9 +19,20 @@
 package org.wso2.carbon.identity.core.context.model;
 
 /**
- * Interface for Initiating Entity.
- * This interface is implemented by the entities that initiate a flow.
+ * Actor class for User.
+ * This class holds the authenticated user actor details for a given flow.
  */
-public interface InitiatingEntity {
+public class UserActor implements Actor {
 
+    private final String userId;
+
+    private UserActor(String userId) {
+
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+
+        return userId;
+    }
 }
