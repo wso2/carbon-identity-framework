@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.CachedBackedConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
+import org.wso2.carbon.identity.core.util.ConfigurationManagerInitializedEvent;
+import org.wso2.carbon.identity.core.util.ConfigurationManagerInitializedEventImpl;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -90,6 +92,11 @@ public class ConfigurationManagerComponent {
             ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled
                     (isConfigurationManagementEnabled());
             setUseCreatedTime();
+
+            // Register initialize service To guarantee the activation order. Component which is referring this
+            // service will wait until this component activated.
+            ctxt.getBundleContext().registerService(ConfigurationManagerInitializedEvent.class.getName(),
+                    new ConfigurationManagerInitializedEventImpl(), null);
         } catch (Throwable e) {
             log.error("Error while activating ConfigurationManagerComponent.", e);
         }
