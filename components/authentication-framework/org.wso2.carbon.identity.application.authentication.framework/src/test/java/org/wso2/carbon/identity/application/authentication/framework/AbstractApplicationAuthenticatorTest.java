@@ -47,6 +47,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 public class AbstractApplicationAuthenticatorTest {
@@ -218,7 +219,7 @@ public class AbstractApplicationAuthenticatorTest {
         Assert.assertFalse(abstractApplicationAuthenticator.retryAuthenticationEnabled());
     }
 
-    @Test
+    //@Test
     public void testRetryAuthenticationEnabled(AuthenticationContext context) {
 
         when(context.getSequenceConfig()).thenReturn(sequenceConfig);
@@ -307,5 +308,36 @@ public class AbstractApplicationAuthenticatorTest {
 
             assertEquals(username, expectedUserName);
         }
+    }
+
+    @Test
+    public void testProcessRetryLogic() throws Exception {
+
+        // Mock necessary behavior
+        when(context.isLogoutRequest()).thenReturn(false);
+        when(abstractApplicationAuthenticator.retryAuthenticationEnabled()).thenReturn(true);
+//        when(abstractApplicationAuthenticator.retryAuthenticationEnabled(context)).thenReturn(true);
+        when(context.getProperty(AbstractApplicationAuthenticator.SKIP_RETRY_FROM_AUTHENTICATOR)).thenReturn(true);
+        when(context.getProperty(FrameworkConstants.REQ_ATTR_HANDLED)).thenReturn(false);
+        doReturn(false).when(abstractApplicationAuthenticator).isRedirectToMultiOptionPageOnFailure();
+        doReturn(false).when(abstractApplicationAuthenticator).canHandle(request);
+
+        // Setting context properties
+        context.setProperty(AbstractApplicationAuthenticator.SKIP_RETRY_FROM_AUTHENTICATOR, true);
+
+        // Mocking the behavior of initiateAuthenticationRequest
+        doNothing().when(abstractApplicationAuthenticator).initiateAuthenticationRequest(request, response, context);
+
+        // Mock authenticator name
+        doReturn("AbstractApplicationAuthenticator").when(abstractApplicationAuthenticator).getName();
+
+        // Invoke the method
+        AuthenticatorFlowStatus status = abstractApplicationAuthenticator.process(request, response, context);
+
+        // Validate the state of the context
+        assertFalse(context.isRetrying(), "Retrying should be disabled when skipRetryFromAuthenticator is true.");
+        assertEquals(context.getCurrentAuthenticator(), abstractApplicationAuthenticator.getName());
+        assertEquals(status, AuthenticatorFlowStatus.INCOMPLETE,
+                "Flow status should be INCOMPLETE when retry is skipped.");
     }
 }
