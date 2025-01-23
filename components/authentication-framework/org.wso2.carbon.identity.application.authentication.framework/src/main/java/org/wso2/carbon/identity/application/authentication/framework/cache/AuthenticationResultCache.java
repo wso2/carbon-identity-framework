@@ -110,12 +110,11 @@ public class AuthenticationResultCache extends
     private boolean isCacheEntryExpired(AuthenticationResultCacheEntry entry) {
 
         String createdTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString();
-        if (createdTimestamp != null) {
-            if (FrameworkUtils.getCurrentStandardNano() >
-                    entry.getValidityPeriod() + Long.parseLong(createdTimestamp) * 1000000) {
-                log.debug("Authentication result cache is expired");
-                return true;
-            }
+        if (createdTimestamp != null &&
+                (FrameworkUtils.getCurrentStandardNano() >
+                    entry.getValidityPeriod() + Long.parseLong(createdTimestamp) * 1000000)) {
+            log.debug("Authentication result cache is expired");
+            return true;
         }
         return false;
     }
