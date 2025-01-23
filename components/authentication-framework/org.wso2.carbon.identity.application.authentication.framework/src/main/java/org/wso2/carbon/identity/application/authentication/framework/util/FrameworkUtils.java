@@ -1193,7 +1193,7 @@ public class FrameworkUtils {
         AuthenticationResultCacheKey cacheKey = new AuthenticationResultCacheKey(key);
         AuthenticationResultCacheEntry cacheEntry = new AuthenticationResultCacheEntry();
         cacheEntry.setResult(authenticationResult);
-        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout()));
+        cacheEntry.setValidityPeriod(TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout()));
         AuthenticationResultCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
 
