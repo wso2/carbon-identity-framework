@@ -274,6 +274,11 @@
         <Scopes>internal_dcr_create</Scopes>
     </Resource>
 
+    <!-- OAuth2 Introspection API in Tenant Perspective -->
+    <Resource context="(.*)/t/(.*)/o/(.*)/oauth2/introspect(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_oauth2_introspect</Scopes>
+    </Resource>
+
     <!-- OAuth2 Introspection API -->
     <Resource context="(.*)/oauth2/introspect(.*)" secured="{{resource_access_control.introspect.secured}}"
               http-method="all">
