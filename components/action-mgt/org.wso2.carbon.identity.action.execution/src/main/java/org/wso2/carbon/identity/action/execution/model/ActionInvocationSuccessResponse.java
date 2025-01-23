@@ -34,7 +34,7 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
 
     private final ActionInvocationResponse.Status actionStatus;
     private final List<PerformableOperation> operations;
-    private final Context data;
+    private final ResponseData data;
 
     private ActionInvocationSuccessResponse(Builder builder) {
 
@@ -54,7 +54,7 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
         return operations;
     }
 
-    public Context getData() {
+    public ResponseData getData() {
 
         return data;
     }
@@ -67,7 +67,7 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
 
         private ActionInvocationResponse.Status actionStatus;
         private List<PerformableOperation> operations = new ArrayList<>();
-        private Context data;
+        private ResponseData data;
 
         @JsonProperty("actionStatus")
         public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
@@ -83,9 +83,9 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
             return this;
         }
 
-        @JsonDeserialize(using = Context.ContextDeserializer.class)
+        @JsonDeserialize(using = ResponseData.ResponseDataDeserializer.class)
         @JsonProperty("data")
-        public Builder context(@JsonProperty("data")Context data) {
+        public Builder context(@JsonProperty("data") ResponseData data) {
 
             this.data = data;
             return this;

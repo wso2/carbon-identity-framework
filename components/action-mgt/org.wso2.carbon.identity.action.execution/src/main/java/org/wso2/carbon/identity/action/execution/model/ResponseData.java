@@ -19,55 +19,44 @@
 package org.wso2.carbon.identity.action.execution.model;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.wso2.carbon.identity.action.execution.impl.ActionInvocationResponseClassFactory;
 
 import java.io.IOException;
 
-import static org.wso2.carbon.identity.action.execution.impl.InvocationSuccessResponseContextFactory.getInvocationSuccessResponseContextClass;
-
 /**
- * This interface defines the Context for Action Invocation Success Response.
+ * This interface defines the ResponseData for Action Invocation Success Response.
  * Context is the class that is responsible for defining structure of the additional data coming from the
  * success invocation response received from the action execution.
  */
-public interface Context {
+public interface ResponseData {
 
-    ActionType ACTION_TYPE = null;
-
-    static ActionType getActionType() {
-        return ACTION_TYPE;
+    /**
+     * Default ResponseData implementation, which can be used when there are no extended ResponseData class for
+     * the action type.
+     */
+    class DefaultResponseData implements ResponseData {
     }
 
     /**
-     * Default context implementation, which can be used when there are no extended Context class for the action type.
+     * Default deserializer for the ResponseData class.
      */
-    class DefaultContext implements Context {
-    }
-
-    /**
-     * Dynamic deserializer for Context interface determined at runtime based on the action type.
-     */
-    class ContextDeserializer extends StdDeserializer<Context> {
-
-        private static final long serialVersionUID = 6529685098267757690L;
+    class ResponseDataDeserializer extends JsonDeserializer<ResponseData> {
 
         public static final String ACTION_TYPE_ATTR_NAME = "actionType";
 
-        public ContextDeserializer() {
-
-            super(Context.class);
-        }
-
         @Override
-        public Context deserialize(JsonParser p, com.fasterxml.jackson.databind.DeserializationContext ctxt)
+        public ResponseData deserialize(JsonParser p, DeserializationContext ctxt)
                 throws IOException {
 
             ActionType actionType = (ActionType) ctxt.getAttribute(ACTION_TYPE_ATTR_NAME);
             JsonNode node = p.getCodec().readTree(p);
             ObjectMapper mapper = (ObjectMapper) p.getCodec();
-            return mapper.treeToValue(node, getInvocationSuccessResponseContextClass(actionType));
+            return mapper.treeToValue(node,
+                    ActionInvocationResponseClassFactory.getInvocationSuccessResponseContextClass(actionType));
         }
     }
 }

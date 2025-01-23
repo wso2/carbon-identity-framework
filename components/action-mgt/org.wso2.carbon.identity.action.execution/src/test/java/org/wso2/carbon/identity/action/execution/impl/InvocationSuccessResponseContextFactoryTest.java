@@ -20,8 +20,9 @@ package org.wso2.carbon.identity.action.execution.impl;
 
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Context;
-import org.wso2.carbon.identity.action.execution.util.UserContext;
+import org.wso2.carbon.identity.action.execution.model.ResponseData;
+import org.wso2.carbon.identity.action.execution.util.TestActionInvocationResponseClassProvider;
+import org.wso2.carbon.identity.action.execution.util.UserData;
 
 import static org.testng.Assert.assertEquals;
 
@@ -30,26 +31,36 @@ public class InvocationSuccessResponseContextFactoryTest {
     @Test
     public void testRegisterInvocationSuccessResponseContextClass() {
 
-        InvocationSuccessResponseContextFactory.registerInvocationSuccessResponseContextClass(UserContext.class);
-        Class<? extends Context> registeredResult = InvocationSuccessResponseContextFactory
+        ActionInvocationResponseClassFactory.registerActionInvocationResponseClassProvider(
+                new TestActionInvocationResponseClassProvider());
+        Class<? extends ResponseData> registeredResult = ActionInvocationResponseClassFactory
                 .getInvocationSuccessResponseContextClass(ActionType.AUTHENTICATION);
-        assertEquals(registeredResult, UserContext.class);
+        assertEquals(registeredResult, UserData.class);
+    }
+
+    @Test(dependsOnMethods = {"testRegisterInvocationSuccessResponseContextClass"})
+    public void testGetInvocationSuccessResponseContextClassWithDefault() {
+
+        Class<? extends ResponseData> extendedClass = ActionInvocationResponseClassFactory
+                .getInvocationSuccessResponseContextClass(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(extendedClass, ResponseData.DefaultResponseData.class);
     }
 
     @Test(dependsOnMethods = {"testRegisterInvocationSuccessResponseContextClass"})
     public void testGetInvocationSuccessResponseContextClass() {
 
-        Class<? extends Context> extendedClass = InvocationSuccessResponseContextFactory
+        Class<? extends ResponseData> extendedClass = ActionInvocationResponseClassFactory
                 .getInvocationSuccessResponseContextClass(ActionType.AUTHENTICATION);
-        assertEquals(extendedClass, UserContext.class);
+        assertEquals(extendedClass, UserData.class);
     }
 
     @Test(dependsOnMethods = {"testGetInvocationSuccessResponseContextClass"})
     public void testUnregisterInvocationSuccessResponseContextClass() {
 
-        InvocationSuccessResponseContextFactory.unregisterInvocationSuccessResponse(UserContext.class);
-        Class<? extends Context> unregisteredResult = InvocationSuccessResponseContextFactory
+        ActionInvocationResponseClassFactory.unregisterActionInvocationResponseClassProvider(
+                new TestActionInvocationResponseClassProvider());
+        Class<? extends ResponseData> unregisteredResult = ActionInvocationResponseClassFactory
                 .getInvocationSuccessResponseContextClass(ActionType.AUTHENTICATION);
-        assertEquals(unregisteredResult, Context.DefaultContext.class);
+        assertEquals(unregisteredResult, ResponseData.DefaultResponseData.class);
     }
 }
