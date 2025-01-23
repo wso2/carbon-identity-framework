@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.core.internal;
 
+import org.wso2.carbon.identity.core.context.model.Actor;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.core.context.model.Initiator;
 import org.wso2.carbon.utils.CarbonUtils;
-
-import java.util.Stack;
 
 /**
  * This class is used to store the identity context information of the current thread.
@@ -30,7 +28,7 @@ import java.util.Stack;
 public class IdentityContextDataHolder {
 
     private Flow flow;
-    private Initiator initiator;
+    private Actor actor;
 
     private static final ThreadLocal<IdentityContextDataHolder> currentContextHolder =
             new ThreadLocal<IdentityContextDataHolder>() {
@@ -38,9 +36,6 @@ public class IdentityContextDataHolder {
             return new IdentityContextDataHolder();
         }
     };
-
-    private static final ThreadLocal<Stack<IdentityContextDataHolder>> parentContextHolderStack =
-            new ThreadLocal<Stack<IdentityContextDataHolder>>();
 
     /**
      * Default constructor to disallow creation of the CarbonContext.
@@ -82,14 +77,14 @@ public class IdentityContextDataHolder {
     }
 
     /**
-     * Set the initiator of the request.
+     * Set the actor who is authenticating in the request.
      *
-     * @param initiator initiator of the request.
+     * @param actor actor of the request.
      */
-    public void setInitiator(Initiator initiator) {
+    public void setActor(Actor actor) {
 
         CarbonUtils.checkSecurity();
-        this.initiator = initiator;
+        this.actor = actor;
     }
 
     /**
@@ -97,45 +92,16 @@ public class IdentityContextDataHolder {
      *
      * @return Initiator of the request.
      */
-    public Initiator getInitiator() {
+    public Actor getActor() {
 
-        return initiator;
+        return actor;
     }
 
     /**
-     * Starts a tenant flow. This will stack the current IdentityContext and begin
-     * a new nested flow which can have an entirely different context. This is
-     * ideal for scenarios where multiple super-tenant and sub-tenant phases are
-     * required within as a single block of execution.
+     * This method will destroy the current IdentityContext holder.
      */
-    public void startTenantFlow() {
-
-        Stack<IdentityContextDataHolder> identityContextDataHolders = parentContextHolderStack.get();
-        if (identityContextDataHolders == null) {
-            identityContextDataHolders = new Stack<IdentityContextDataHolder>();
-            parentContextHolderStack.set(identityContextDataHolders);
-        }
-        identityContextDataHolders.push(currentContextHolder.get());
-        currentContextHolder.remove();
-    }
-
-    /**
-     * This will end the tenant flow and restore the previous IdentityContext.
-     */
-    public void endTenantFlow() {
-
-        Stack<IdentityContextDataHolder> carbonContextDataHolders = parentContextHolderStack.get();
-        if (carbonContextDataHolders != null) {
-            currentContextHolder.set(carbonContextDataHolders.pop());
-        }
-    }
-
-    /**
-     * This method will destroy the current CarbonContext holder.
-     */
-    public static void destroyCurrentCarbonContextHolder() {
+    public static void destroyCurrentIdentityContextDataHolder() {
 
         currentContextHolder.remove();
-        parentContextHolderStack.remove();
     }
 }
