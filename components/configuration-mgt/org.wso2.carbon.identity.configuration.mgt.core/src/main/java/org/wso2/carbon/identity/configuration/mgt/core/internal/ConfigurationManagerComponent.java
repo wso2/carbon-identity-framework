@@ -85,11 +85,11 @@ public class ConfigurationManagerComponent {
                     new ConfigurationManagerConfigurationHolder();
             configurationManagerConfigurationHolder.setConfigurationDAOS(configurationDAOs);
 
-            bundleContext.registerService(ConfigurationManager.class.getName(),
-                    new ConfigurationManagerImpl(configurationManagerConfigurationHolder), null);
             ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled
                     (isConfigurationManagementEnabled());
             setUseCreatedTime();
+            bundleContext.registerService(ConfigurationManager.class.getName(),
+                    new ConfigurationManagerImpl(configurationManagerConfigurationHolder), null);
         } catch (Throwable e) {
             log.error("Error while activating ConfigurationManagerComponent.", e);
         }
