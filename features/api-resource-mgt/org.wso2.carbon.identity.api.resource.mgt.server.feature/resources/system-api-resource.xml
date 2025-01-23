@@ -794,6 +794,20 @@
                     description="Delete OAuth2 applications in the organization"/>
         </Scopes>
     </APIResource>
+    <APIResource name="OAuth DCR API" identifier="/o/api/identity/oauth2/dcr/v1.1/register"
+                 requiresAuthorization="true"
+                 description="API representation of the OAuth DCR (Dynamic Client Registration) API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View DCR" name="internal_org_dcr_view"
+                   description="View OAuth2 applications in the organization"/>
+            <Scope displayName="Create DCR" name="internal_org_dcr_create"
+                   description="Create new OAuth2 applications in the organization"/>
+            <Scope displayName="Update DCR" name="internal_org_dcr_update"
+                   description="Update OAuth2 applications in the organization"/>
+            <Scope displayName="Delete DCR" name="internal_org_dcr_delete"
+                   description="Delete OAuth2 applications in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="OAuth2.0 Scope Management API" identifier="/api/identity/oauth2/v1.0/scopes"
                  requiresAuthorization="true"
                  description="API representation of the OAuth2.0 Scope Management API" type="TENANT">
