@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.api.resource.collection.mgt.internal;
 
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 
 /**
  * API Resource Collection Management Service Data Holder.
@@ -26,6 +27,7 @@ import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 public class APIResourceCollectionMgtServiceDataHolder {
 
     private APIResourceManager apiResourceManagementService = null;
+    private RoleManagementService roleManagementServiceV2 = null;
     private static final APIResourceCollectionMgtServiceDataHolder INSTANCE =
             new APIResourceCollectionMgtServiceDataHolder();
 
@@ -42,5 +44,25 @@ public class APIResourceCollectionMgtServiceDataHolder {
     public void setAPIResourceManagementService(APIResourceManager apiResourceManagementService) {
 
         this.apiResourceManagementService = apiResourceManagementService;
+    }
+
+    /**
+     * Get {@link RoleManagementService}.
+     *
+     * @return Instance of {@link RoleManagementService}.
+     */
+    public RoleManagementService getRoleManagementServiceV2() {
+
+        return roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link RoleManagementService}.
+     *
+     * @param roleManagementServiceV2 Instance of {@link RoleManagementService}.
+     */
+    public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
+
+        this.roleManagementServiceV2 = roleManagementServiceV2;
     }
 }

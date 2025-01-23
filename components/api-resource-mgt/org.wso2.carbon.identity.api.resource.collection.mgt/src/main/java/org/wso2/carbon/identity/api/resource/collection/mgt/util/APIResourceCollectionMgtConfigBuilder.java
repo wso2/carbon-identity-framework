@@ -39,13 +39,18 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
+import static org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants.APIResourceCollectionConfigBuilderConstants.EDIT_ACTION;
+import static org.wso2.carbon.identity.api.resource.collection.mgt.constant.APIResourceCollectionManagementConstants.APIResourceCollectionConfigBuilderConstants.VIEW_ACTION;
 
 /**
  * Config builder class for application resource collection configs in api-resource-collection.xml file.
@@ -126,6 +131,8 @@ public class APIResourceCollectionMgtConfigBuilder {
             if (scopesElement != null) {
                 Set<String> readScopeSet = new HashSet<>();
                 Set<String> writeScopeSet = new HashSet<>();
+                Map<String, Set<String>> newReadScopeMap = new HashMap<>();
+                Map<String, Set<String>> newWriteScopeMap = new HashMap<>();
                 Iterator<?> actionElements = scopesElement.getChildElements();
                 while (actionElements.hasNext()) {
                     OMElement actionElement = (OMElement) actionElements.next();
@@ -138,18 +145,52 @@ public class APIResourceCollectionMgtConfigBuilder {
                         OMElement scope = scopes.next();
                         String scopeName = scope.getAttributeValue(
                                 new QName(APIResourceCollectionConfigBuilderConstants.NAME));
-                        // Read, Feature scopes are considered as read scopes.
-                        if (APIResourceCollectionConfigBuilderConstants.READ.equals(actionElement.getLocalName()) ||
-                                APIResourceCollectionConfigBuilderConstants.FEATURE.equals(
-                                        actionElement.getLocalName())) {
+                        String scopeVersion = scope.getAttributeValue(
+                                new QName(APIResourceCollectionConfigBuilderConstants.VERSION));
+                        // All the collections have specifically defined two feature scopes (view, edit) for each
+                        // action. These two will be assigned to console roles. Based on the feature scope, we will
+                        // assign the read and write scopes to the console roles. This help to introduce new scopes
+                        // without migrating the console roles.
+                        String scopeAction = scope.getAttributeValue(
+                                new QName(APIResourceCollectionConfigBuilderConstants.ACTION));
+                        // Read and old Feature scope are considered as read scopes.
+                        boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
+                                .equals(actionElement.getLocalName());
+                        boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
+                                equals(actionElement.getLocalName());
+                        if (isReadAction) {
+                            if (StringUtils.isNotBlank(scopeVersion)) {
+                                newReadScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
+                            }
                             readScopeSet.add(scopeName);
+                        } else if (isFeatureAction) {
+                            if (StringUtils.isNotBlank(scopeVersion)) {
+                                if (VIEW_ACTION.equals(scopeAction)) {
+                                    apiResourceCollectionObj.setViewFeatureScope(scopeName);
+                                    readScopeSet.add(scopeName);
+                                    newReadScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
+                                } else if (EDIT_ACTION.equals(scopeAction)) {
+                                    apiResourceCollectionObj.setEditFeatureScope(scopeName);
+                                    writeScopeSet.add(scopeName);
+                                    newWriteScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
+                                }
+                            } else {
+                                readScopeSet.add(scopeName);
+                            }
                         } else {
+                            if (StringUtils.isNotBlank(scopeVersion)) {
+                                newWriteScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
+                            }
                             writeScopeSet.add(scopeName);
                         }
                     }
                 }
+                Map<String, List<String>> convertedNewReadScopeMap = convertMapSetToList(newReadScopeMap);
+                Map<String, List<String>> convertedNewWriteScopeMap = convertMapSetToList(newWriteScopeMap);
                 apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
                 apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
+                apiResourceCollectionObj.setNewReadScopes(convertedNewReadScopeMap);
+                apiResourceCollectionObj.setNewWriteScopes(convertedNewWriteScopeMap);
             }
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
         }
@@ -173,4 +214,13 @@ public class APIResourceCollectionMgtConfigBuilder {
                 .type(element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.TYPE)))
                 .build();
     }
+
+    private Map<String, List<String>> convertMapSetToList(Map<String, Set<String>> map) {
+
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
+    }
+
 }
+
+

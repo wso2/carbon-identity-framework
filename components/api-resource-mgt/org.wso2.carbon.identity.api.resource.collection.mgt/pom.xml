@@ -71,6 +71,11 @@
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -113,7 +118,9 @@
                             org.wso2.carbon.identity.api.resource.mgt;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service.exception;
-                            version="${org.wso2.carbon.identity.organization.management.core.version.range}"
+                            version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.role.v2.mgt.core.*;
+                            version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

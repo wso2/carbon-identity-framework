@@ -192,6 +192,10 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
                 .readScopes(apiResourceCollection.getReadScopes())
                 .writeScopes(apiResourceCollection.getWriteScopes())
                 .apiResources(apiResourceCollection.getApiResources())
+                .newReadScopes(apiResourceCollection.getNewReadScopes())
+                .newWriteScopes(apiResourceCollection.getNewWriteScopes())
+                .viewFeatureScope(apiResourceCollection.getViewFeatureScope())
+                .editFeatureScope(apiResourceCollection.getEditFeatureScope())
                 .build();
     }
 }
