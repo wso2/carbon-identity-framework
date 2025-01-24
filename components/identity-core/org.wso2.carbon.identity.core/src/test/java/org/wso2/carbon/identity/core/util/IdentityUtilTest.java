@@ -166,6 +166,7 @@ public class IdentityUtilTest {
     public void setUp() throws Exception {
 
         carbonUtils = mockStatic(CarbonUtils.class);
+        carbonUtils.when(CarbonUtils::getServerConfiguration).thenReturn(this.mockServerConfiguration);
         serverConfiguration = mockStatic(ServerConfiguration.class);
         networkUtils = mockStatic(NetworkUtils.class);
         identityCoreServiceComponent = mockStatic(IdentityCoreServiceComponent.class);
