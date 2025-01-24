@@ -134,11 +134,13 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setSendToMultiOptionPage(sendToMultiOptionPage);
-                    // Certain authenticators require to fail the flow when there is an error or when the user
-                    // aborts the authentication flow. When retry is enabled for the authenticator, the flow won't fail
-                    // hence it retries and shows the error in it. SKIP_RETRY_FROM_AUTHENTICATOR is introduced to
-                    // forcefully skip the retry and fail the flow which ends up in the client application. This logic
-                    // can be further improved to handle the retry logic with user abort scenarios.
+                    /*
+                     Certain authenticators require to fail the flow when there is an error or when the user
+                     aborts the authentication flow. When retry is enabled for the authenticator, the flow won't fail
+                     hence it retries and shows the error in it. SKIP_RETRY_FROM_AUTHENTICATOR is introduced to
+                     forcefully skip the retry and fail the flow which ends up in the client application. This logic
+                     can be further improved to handle the retry logic with user abort scenarios.
+                     */
                     boolean skipRetryFromAuthenticator = context.getProperty(SKIP_RETRY_FROM_AUTHENTICATOR) != null
                             && (Boolean) context.getProperty(SKIP_RETRY_FROM_AUTHENTICATOR);
                     context.setRetrying(retryAuthenticationEnabled() && !skipPrompt && !skipRetryFromAuthenticator);
