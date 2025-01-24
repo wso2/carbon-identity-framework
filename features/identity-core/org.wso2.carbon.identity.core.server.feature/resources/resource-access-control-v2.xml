@@ -574,6 +574,22 @@
     <Resource context="(.*)/api/users/v1/me/totp(.*)" secured="true" http-method="GET">
         <Scopes>internal_login</Scopes>
     </Resource>
+    <!-- Push Device Management API -->
+    <Resource context="(.*)/api/users/v1/me/push/devices(.*)" secured="false" http-method="POST"/>
+    <Resource context="(.*)/api/users/v1/me/push/devices(.*)" secured="true" http-method="GET, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/me/push/discovery-data(.*)" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <!-- [Organization] Push Device Management API -->
+    <Resource context="(.*)/o/api/users/v1/me/push/devices(.*)" secured="false" http-method="POST"/>
+    <Resource context="(.*)/o/api/users/v1/me/push/devices(.*)" secured="true" http-method="GET, DELETE">
+        <Scopes>internal_login</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/users/v1/me/push/discovery-data(.*)" secured="true" http-method="GET">
+        <Scopes>internal_login</Scopes>
+    </Resource>
     <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
         <Scopes>internal_login</Scopes>
     </Resource>
@@ -1385,6 +1401,8 @@
     <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
+    <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
 
     <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
     <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
