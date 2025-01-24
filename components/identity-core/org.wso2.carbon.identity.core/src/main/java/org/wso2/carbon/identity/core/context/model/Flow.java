@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.context.model;
 
+import java.util.EnumSet;
+
 /**
  * A Flow represents the complete journey of a particular process in the identity system.
  * It can contain multiple requests and is initiated by a specific entity.
@@ -29,9 +31,27 @@ public class Flow {
      * Identifies the flow.
      */
     public enum Name {
-        PASSWORD_UPDATE,
-        PASSWORD_RESET,
-        USER_REGISTRATION_INVITE_WITH_PASSWORD
+
+        PASSWORD_UPDATE(EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER)),
+        PASSWORD_RESET(EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER)),
+        USER_REGISTRATION_INVITE_WITH_PASSWORD(EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+
+        private final EnumSet<InitiatingPersona> applicableInitiatingPersonas;
+
+        Name(EnumSet<InitiatingPersona> applicableInitiatingPersonas) {
+
+            this.applicableInitiatingPersonas = applicableInitiatingPersonas;
+        }
+
+        public boolean isApplicablePersona(InitiatingPersona initiatingPersona) {
+
+            return applicableInitiatingPersonas.contains(initiatingPersona);
+        }
+
+        public EnumSet<InitiatingPersona> getApplicableInitiatingPersonas() {
+
+            return applicableInitiatingPersonas;
+        }
     }
 
     /**
@@ -53,8 +73,13 @@ public class Flow {
 
     public Flow(Name name, InitiatingPersona initiatingPersona) {
 
-        this.name = name;
-        this.initiatingPersona = initiatingPersona;
+
+        if (name.isApplicablePersona(initiatingPersona)) {
+            this.name = name;
+            this.initiatingPersona = initiatingPersona;
+            return;
+        }
+        throw new IllegalArgumentException("Provided initiating persona is not applicable for the given flow.");
     }
 
     public Name getName() {
