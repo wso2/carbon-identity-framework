@@ -716,6 +716,12 @@
   "cache.private_key_jwt.enable": true,
   "cache.private_key_jwt.timeout": "300",
   "cache.private_key_jwt.capacity": "5000",
+  "cache.push_auth_context_cache.enable": true,
+  "cache.push_auth_context_cache.timeout": "$ref{cache.default_timeout}",
+  "cache.push_auth_context_cache.capacity": "$ref{cache.default_capacity}",
+  "cache.push_auth_status_cache.enable": true,
+  "cache.push_auth_status_cache.timeout": "$ref{cache.default_timeout}",
+  "cache.push_auth_status_cache.capacity": "$ref{cache.default_capacity}",
 
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,

@@ -2608,6 +2608,16 @@
                    timeout="{{cache.private_key_jwt.timeout}}"
                    capacity="{{cache.private_key_jwt.capacity}}"
                    isDistributed="false"/>
+            <Cache id="push_auth_context_cache" name="PushAuthContextCache"
+                   enable="{{cache.push_auth_context_cache.enable}}"
+                   timeout="{{cache.push_auth_context_cache.timeout}}"
+                   capacity="{{cache.push_auth_context_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_auth_status_cache" name="PushAuthStatusCache"
+                   enable="{{cache.push_auth_status_cache.enable}}"
+                   timeout="{{cache.push_auth_status_cache_cache.timeout}}"
+                   capacity="{{cache.push_auth_status_cache_cache.capacity}}"
+                   isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
                     enable="true"
