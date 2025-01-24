@@ -19,6 +19,9 @@
 package org.wso2.carbon.identity.core.context.model;
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * A Flow represents the complete journey of a particular process in the identity system.
@@ -26,32 +29,27 @@ import java.util.EnumSet;
  */
 public class Flow {
 
+    // Map to hold the flow definitions and its applicable initiating personas.
+    private static final Map<Name, EnumSet<InitiatingPersona>> FLOW_DEFINITIONS = new HashMap<>();
+
+    static {
+        FLOW_DEFINITIONS.put(Name.PASSWORD_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.PASSWORD_RESET,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
+        FLOW_DEFINITIONS.put(Name.USER_REGISTRATION_INVITE_WITH_PASSWORD,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+    }
+
     /**
-     * Enum representing the name of a flow along with the applicable initiating personas.
+     * Enum representing the name of a flow.
      * Each name identifies a specific flow and defines the set of initiating personas allowed to trigger it.
      */
     public enum Name {
 
-        PASSWORD_UPDATE(EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER)),
-        PASSWORD_RESET(EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER)),
-        USER_REGISTRATION_INVITE_WITH_PASSWORD(EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
-
-        private final EnumSet<InitiatingPersona> applicableInitiatingPersonas;
-
-        Name(EnumSet<InitiatingPersona> applicableInitiatingPersonas) {
-
-            this.applicableInitiatingPersonas = applicableInitiatingPersonas;
-        }
-
-        public boolean isApplicablePersona(InitiatingPersona initiatingPersona) {
-
-            return applicableInitiatingPersonas.contains(initiatingPersona);
-        }
-
-        public EnumSet<InitiatingPersona> getApplicableInitiatingPersonas() {
-
-            return EnumSet.copyOf(applicableInitiatingPersonas);
-        }
+        PASSWORD_UPDATE,
+        PASSWORD_RESET,
+        USER_REGISTRATION_INVITE_WITH_PASSWORD
     }
 
     /**
@@ -72,15 +70,10 @@ public class Flow {
     private final Name name;
     private final InitiatingPersona initiatingPersona;
 
-    public Flow(Name name, InitiatingPersona initiatingPersona) {
+    private Flow(Builder builder) {
 
-        if (name.isApplicablePersona(initiatingPersona)) {
-            this.name = name;
-            this.initiatingPersona = initiatingPersona;
-            return;
-        }
-        throw new IllegalArgumentException("Provided initiating persona: " + initiatingPersona.name() +
-                " is not applicable for the given flow: " + name.name());
+        this.name = builder.name;
+        this.initiatingPersona = builder.initiatingPersona;
     }
 
     public Name getName() {
@@ -91,5 +84,46 @@ public class Flow {
     public InitiatingPersona getInitiatingPersona() {
 
         return initiatingPersona;
+    }
+
+    /**
+     * Builder class for Flow.
+     */
+    public static class Builder {
+
+        private Name name;
+        private InitiatingPersona initiatingPersona;
+
+        public Builder name(Name name) {
+
+            this.name = name;
+            return this;
+        }
+
+        public Builder initiatingPersona(InitiatingPersona initiatingPersona) {
+
+            this.initiatingPersona = initiatingPersona;
+            return this;
+        }
+
+        public Flow build() {
+
+            validate();
+            return new Flow(this);
+        }
+
+        private void validate() {
+
+            if (name == null) {
+                throw new IllegalArgumentException("Flow name cannot be null.");
+            }
+            if (initiatingPersona == null) {
+                throw new IllegalArgumentException("Initiating persona cannot be null.");
+            }
+            if (!FLOW_DEFINITIONS.get(name).contains(initiatingPersona)) {
+                throw new IllegalArgumentException("Provided initiating persona: " + initiatingPersona.name() +
+                        " is not applicable for the given flow: " + name.name());
+            }
+        }
     }
 }
