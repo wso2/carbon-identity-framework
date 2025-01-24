@@ -1534,7 +1534,10 @@
     "internal_organization_config_view",
     "internal_organization_view"
   ],
-  "console.organization_discovery.scopes.update": ["internal_organization_discovery_update"],
+  "console.organization_discovery.scopes.update": [
+    "internal_organization_config_update",
+    "internal_organization_discovery_update"
+  ],
   "console.organization_discovery.scopes.delete": [
     "internal_organization_discovery_delete",
     "internal_organization_config_delete"
