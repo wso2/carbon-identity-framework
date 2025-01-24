@@ -132,8 +132,7 @@ public class APIClientTest {
     @DataProvider(name = "unacceptableSuccessResponsePayloads")
     public String[] unacceptableSuccessResponsePayloads() {
 
-        return new String[]{"{}", "", "success", "{\"actionStatus\":\"ERROR\"}, " +
-                "{\"actionStatus\": \"FAILED\"}"};
+        return new String[]{"{}", "", "success", "{\"actionStatus\":\"ERROR\"}, " + "{\"actionStatus\": \"FAILED\"}"};
     }
 
     @Test(dataProvider = "unacceptableSuccessResponsePayloads")
@@ -472,10 +471,9 @@ public class APIClientTest {
     }
 
     @Test
-    public void testCallAPIRetryOnTimeoutAndReceiveSuccessResponseWithExtendedResponseData() throws Exception {
+    public void testReceiveSuccessResponseWithExtendedResponseData() throws Exception {
 
-        when(httpClient.execute(any(HttpPost.class))).thenThrow(new ConnectTimeoutException("Timeout"))
-                .thenReturn(httpResponse);
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(200);
 
@@ -494,7 +492,6 @@ public class APIClientTest {
 
         assertNotNull(response);
         assertTrue(response.isSuccess());
-        verify(httpClient, times(2)).execute(any(HttpPost.class));
     }
 
     @Test

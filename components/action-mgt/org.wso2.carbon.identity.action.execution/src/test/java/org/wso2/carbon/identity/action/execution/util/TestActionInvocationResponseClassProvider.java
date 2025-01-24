@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.action.execution.util;
 
-import org.wso2.carbon.identity.action.execution.DefaultActionInvocationResponseClassProvider;
+import org.wso2.carbon.identity.action.execution.impl.DefaultActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 

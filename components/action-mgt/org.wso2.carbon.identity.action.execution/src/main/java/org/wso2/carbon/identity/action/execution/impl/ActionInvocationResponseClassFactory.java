@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.action.execution.impl;
 
 import org.wso2.carbon.identity.action.execution.ActionInvocationResponseClassProvider;
-import org.wso2.carbon.identity.action.execution.DefaultActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 
@@ -27,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class defines the classes for extended implementations of action invocation responses for
+ * This class manages ActionInvocationResponseClassProvider implementations that extends action invocation responses for
  * different action types.
  * The ActionInvocationResponseClassFactory is the component that is responsible for providing the classes
  * defined by the downstream component based on the action type.

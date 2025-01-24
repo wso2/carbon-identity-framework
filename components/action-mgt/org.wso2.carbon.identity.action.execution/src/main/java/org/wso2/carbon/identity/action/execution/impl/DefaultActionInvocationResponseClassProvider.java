@@ -16,11 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution;
+package org.wso2.carbon.identity.action.execution.impl;
 
+import org.wso2.carbon.identity.action.execution.ActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.DefaultResponseData;
-import org.wso2.carbon.identity.action.execution.model.ResponseData;
 
 /**
  * Default implementation of the ActionInvocationResponseClassProvider. The downStream components need to extend
@@ -37,17 +36,7 @@ public class DefaultActionInvocationResponseClassProvider implements ActionInvoc
     @Override
     public ActionType getSupportedActionType() {
 
-        throw new UnsupportedOperationException("This method should not called for default implementation.");
-    }
-
-    /**
-     * Get the default ResponseData class for action invocation success response.
-     *
-     * @return The default ResponseData class.
-     */
-    @Override
-    public Class<? extends ResponseData> getSuccessResponseDataClass() {
-
-        return DefaultResponseData.class;
+        throw new UnsupportedOperationException(
+                "This method is not allowed for DefaultActionInvocationResponseClassProvider.");
     }
 }
