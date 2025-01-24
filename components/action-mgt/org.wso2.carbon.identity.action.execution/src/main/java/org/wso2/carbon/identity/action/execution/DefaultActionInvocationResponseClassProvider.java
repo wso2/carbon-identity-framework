@@ -39,6 +39,11 @@ public class DefaultActionInvocationResponseClassProvider implements ActionInvoc
         return null;
     }
 
+    /**
+     * Get the default ResponseData class for action invocation success response.
+     *
+     * @return The default ResponseData class.
+     */
     @Override
     public Class<? extends ResponseData> getSuccessResponseContextClass() {
 

@@ -22,19 +22,20 @@ import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 
 /**
- * This interface is used to provide classes for the action invocation response from the downStream component.
+ * This interface is used to provide the classes for the action invocation responses defined by the downStream
+ * component.
  */
 public interface ActionInvocationResponseClassProvider {
 
     /**
-     * Get the supported action type for the public interface ActionInvocationResponseDeserializer.
+     * Get the supported action type for the public interface ActionInvocationResponseClassProvider.
      *
      * @return Supported action type.
      */
     ActionType getSupportedActionType();
 
     /**
-     * Get the extended ResponseData class for invocation success response from the downstream component.
+     * Get the extended ResponseData class for action invocation success response defined by the downstream component.
      *
      * @return The extended ResponseData class.
      */

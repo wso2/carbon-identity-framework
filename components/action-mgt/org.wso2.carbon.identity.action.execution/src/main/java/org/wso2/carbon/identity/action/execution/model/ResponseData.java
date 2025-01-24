@@ -28,8 +28,8 @@ import org.wso2.carbon.identity.action.execution.impl.ActionInvocationResponseCl
 import java.io.IOException;
 
 /**
- * This interface defines the ResponseData for Action Invocation Success Response.
- * Context is the class that is responsible for defining structure of the additional data coming from the
+ * This interface defines the ResponseData for action invocation success response.
+ * The ResponseData is the class that is responsible for defining structure of the additional data coming from the
  * success invocation response received from the action execution.
  */
 public interface ResponseData {
@@ -42,7 +42,7 @@ public interface ResponseData {
     }
 
     /**
-     * Default deserializer for the ResponseData class.
+     * Dynamic deserializer for the ResponseData class.
      */
     class ResponseDataDeserializer extends JsonDeserializer<ResponseData> {
 

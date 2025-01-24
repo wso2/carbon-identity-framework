@@ -27,28 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class defines the class for Action Invocation Responses for different action types.
- * The ActionInvocationResponseClassFactory is the component that is responsible for providing the
- * classes from the downstream component based on the action type.
+ * This class defines the classes for action invocation responses for different action types.
+ * The ActionInvocationResponseClassFactory is the component that is responsible for providing the classes
+ * defined by the downstream component based on the action type.
  */
 public class ActionInvocationResponseClassFactory {
 
     private static final Map<ActionType, ActionInvocationResponseClassProvider> classProviders = new HashMap<>();
-
-    /**
-     * Get the extended ResponseData class for invocation success response based on the action type.
-     *
-     * @param actionType Action type.
-     * @return The extended ResponseData class.
-     */
-    public static Class<? extends ResponseData> getInvocationSuccessResponseContextClass(ActionType actionType) {
-
-        ActionInvocationResponseClassProvider classProvider = classProviders.get(actionType);
-        if (classProvider != null) {
-            return classProvider.getSuccessResponseContextClass();
-        }
-        return DefaultActionInvocationResponseClassProvider.getInstance().getSuccessResponseContextClass();
-    }
 
     /**
      * Register the ActionInvocationResponseClassProvider based on the action type.
@@ -70,5 +55,20 @@ public class ActionInvocationResponseClassFactory {
             ActionInvocationResponseClassProvider provider) {
 
         classProviders.remove(provider.getSupportedActionType());
+    }
+
+    /**
+     * Get the extended ResponseData class for invocation success response based on the action type.
+     *
+     * @param actionType Action type.
+     * @return The extended ResponseData class.
+     */
+    public static Class<? extends ResponseData> getInvocationSuccessResponseContextClass(ActionType actionType) {
+
+        ActionInvocationResponseClassProvider classProvider = classProviders.get(actionType);
+        if (classProvider != null) {
+            return classProvider.getSuccessResponseContextClass();
+        }
+        return DefaultActionInvocationResponseClassProvider.getInstance().getSuccessResponseContextClass();
     }
 }

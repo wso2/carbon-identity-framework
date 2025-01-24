@@ -255,7 +255,7 @@ public class APIClient {
                 throw new ActionInvocationException("Reading JSON response failed.");
             }
             if (actionStatus.equals(ActionExecutionStatus.Status.SUCCESS.name())) {
-                // Configure dynamic deserializer for the context based on the action type.
+                // Configure dynamic deserializer for the extended ResponseData class based on the action type.
                 SimpleModule module = new SimpleModule();
                 module.addDeserializer(ResponseData.class, new ResponseData.ResponseDataDeserializer());
                 objectMapper.setConfig(objectMapper.getDeserializationConfig()
