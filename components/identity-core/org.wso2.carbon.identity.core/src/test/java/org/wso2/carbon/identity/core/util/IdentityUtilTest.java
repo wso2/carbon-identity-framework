@@ -144,8 +144,6 @@ public class IdentityUtilTest {
     @Mock
     private Certificate mockCertificate;
 
-
-
     private KeyStore primaryKeyStore;
 
     MockedStatic<CarbonUtils> carbonUtils;
