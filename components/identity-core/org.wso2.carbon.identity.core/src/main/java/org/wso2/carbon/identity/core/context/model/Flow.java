@@ -27,8 +27,8 @@ import java.util.EnumSet;
 public class Flow {
 
     /**
-     * Enum for names.
-     * Identifies the flow.
+     * Enum representing the name of a flow along with the applicable initiating personas.
+     * Each name identifies a specific flow and defines the set of initiating personas allowed to trigger it.
      */
     public enum Name {
 
@@ -50,7 +50,7 @@ public class Flow {
 
         public EnumSet<InitiatingPersona> getApplicableInitiatingPersonas() {
 
-            return applicableInitiatingPersonas;
+            return EnumSet.copyOf(applicableInitiatingPersonas);
         }
     }
 
@@ -79,7 +79,8 @@ public class Flow {
             this.initiatingPersona = initiatingPersona;
             return;
         }
-        throw new IllegalArgumentException("Provided initiating persona is not applicable for the given flow.");
+        throw new IllegalArgumentException("Provided initiating persona: " + initiatingPersona.name() +
+                " is not applicable for the given flow: " + name.name());
     }
 
     public Name getName() {
