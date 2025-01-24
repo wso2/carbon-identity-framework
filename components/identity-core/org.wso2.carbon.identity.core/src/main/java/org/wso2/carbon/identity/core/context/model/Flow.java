@@ -120,7 +120,7 @@ public class Flow {
             if (initiatingPersona == null) {
                 throw new IllegalArgumentException("Initiating persona cannot be null.");
             }
-            if (!FLOW_DEFINITIONS.get(name).contains(initiatingPersona)) {
+            if (FLOW_DEFINITIONS.get(name) == null || !FLOW_DEFINITIONS.get(name).contains(initiatingPersona)) {
                 throw new IllegalArgumentException("Provided initiating persona: " + initiatingPersona.name() +
                         " is not applicable for the given flow: " + name.name());
             }
