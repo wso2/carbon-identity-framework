@@ -1244,7 +1244,6 @@
   "console.applications.scopes.update": ["internal_application_mgt_update"],
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
-    "applications.loginFlow.ai",
     "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
@@ -1276,7 +1275,6 @@
   "console.branding.enabled": true,
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
-    "branding.ai",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
