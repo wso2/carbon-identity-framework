@@ -16,7 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.model;
+package org.wso2.carbon.identity.action.execution.impl;
+
+import org.wso2.carbon.identity.action.execution.model.ResponseData;
 
 /**
  * Default ResponseData implementation, which can be used when there are no extended ResponseData class for

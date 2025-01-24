@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.execution;
 
+import org.wso2.carbon.identity.action.execution.impl.DefaultResponseData;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 
@@ -38,5 +39,8 @@ public interface ActionInvocationResponseClassProvider {
      *
      * @return The extended ResponseData class.
      */
-    Class<? extends ResponseData> getSuccessResponseDataClass();
+    default Class<? extends ResponseData> getSuccessResponseDataClass() {
+
+        return DefaultResponseData.class;
+    }
 }

@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.action.execution.model.IncompleteStatus;
 import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.execution.model.Organization;
 import org.wso2.carbon.identity.action.execution.model.Param;
+import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.model.Request;
 import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.model.Tenant;
@@ -447,9 +448,13 @@ public class ActionExecutorServiceImplTest {
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
 
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new ArrayList<Header>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new ArrayList<Param>());
+
+        ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
-                mock(ActionExecutionRequest.class));
+                actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse =
                 createSuccessActionInvocationResponse();
@@ -491,9 +496,13 @@ public class ActionExecutorServiceImplTest {
                         .getActionExecutionResponseProcessor(any()))
                 .thenReturn(actionExecutionResponseProcessor);
 
+        requestFilter.when(() -> RequestFilter.getFilteredHeaders(any(), any())).thenReturn(new ArrayList<Header>());
+        requestFilter.when(() -> RequestFilter.getFilteredParams(any(), any())).thenReturn(new ArrayList<Param>());
+
+        ActionExecutionRequest actionExecutionRequest = createActionExecutionRequest(actionType);
         when(actionExecutionRequestBuilder.getSupportedActionType()).thenReturn(actionType);
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(eventContext)).thenReturn(
-                mock(ActionExecutionRequest.class));
+                actionExecutionRequest);
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
         when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
@@ -675,9 +684,14 @@ public class ActionExecutorServiceImplTest {
 
     private ActionInvocationResponse createSuccessActionInvocationResponse() throws Exception {
 
+        PerformableOperation performableOp = new PerformableOperation();
+        performableOp.setOp(Operation.ADD);
+        performableOp.setPath("/accessToken/claims/-");
+        performableOp.setValue("testValue");
+
         ActionInvocationSuccessResponse successResponse = mock(ActionInvocationSuccessResponse.class);
         when(successResponse.getActionStatus()).thenReturn(ActionInvocationResponse.Status.SUCCESS);
-        when(successResponse.getOperations()).thenReturn(Collections.emptyList());
+        when(successResponse.getOperations()).thenReturn(new ArrayList<>(Collections.singletonList(performableOp)));
 
         ActionInvocationResponse actionInvocationResponse = mock(ActionInvocationResponse.class);
         setField(actionInvocationResponse, "actionStatus", ActionInvocationResponse.Status.SUCCESS);

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.wso2.carbon.identity.action.execution.impl.ResponseDataDeserializer;
 
 import java.util.ArrayList;
 import java.util.List;
