@@ -19,8 +19,10 @@
 package org.wso2.carbon.identity.user.action.factory;
 
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.user.action.UserActionExecutor;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +31,11 @@ import java.util.Map;
  */
 public class UserActionExecutorFactory {
 
-    private static final Map<ActionType, UserActionExecutor> userActionExecutors = new HashMap<>();
+    private static final Map<ActionType, UserActionExecutor> userActionExecutors = new EnumMap<>(ActionType.class);
+
+    private UserActionExecutorFactory() {
+
+    }
 
     public static UserActionExecutor getUserActionExecutor(ActionType actionType) {
 

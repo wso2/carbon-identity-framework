@@ -25,4 +25,8 @@ public class UserActionConstants {
 
     // Action Error Code for pre update password action
     public static final String PRE_UPDATE_PASSWORD_ACTION_ERROR_CODE = "preUpdatePasswordActionError";
+
+    private UserActionConstants() {
+
+    }
 }
