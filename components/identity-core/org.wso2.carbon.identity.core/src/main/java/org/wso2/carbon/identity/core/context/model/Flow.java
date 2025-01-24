@@ -63,6 +63,7 @@ public class Flow {
      * USER: Represents a self-service flow initiated by an end-user(consumer).
      */
     public enum InitiatingPersona {
+
         ADMIN,
         APPLICATION,
         USER
@@ -72,7 +73,6 @@ public class Flow {
     private final InitiatingPersona initiatingPersona;
 
     public Flow(Name name, InitiatingPersona initiatingPersona) {
-
 
         if (name.isApplicablePersona(initiatingPersona)) {
             this.name = name;
