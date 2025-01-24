@@ -19,9 +19,8 @@
 package org.wso2.carbon.identity.action.execution.model;
 
 /**
- * This interface defines the ResponseData for action invocation success response.
- * The ResponseData is the class that is responsible for defining structure of the additional data coming from the
- * success invocation response received from the action execution.
+ * Default ResponseData implementation, which can be used when there are no extended ResponseData class for
+ * the action type.
  */
-public interface ResponseData {
+public class DefaultResponseData implements ResponseData {
 }

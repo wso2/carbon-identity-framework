@@ -31,7 +31,7 @@ public class TestActionInvocationResponseClassProvider extends DefaultActionInvo
     }
 
     @Override
-    public Class<? extends ResponseData> getSuccessResponseContextClass() {
+    public Class<? extends ResponseData> getSuccessResponseDataClass() {
 
         return UserData.class;
     }

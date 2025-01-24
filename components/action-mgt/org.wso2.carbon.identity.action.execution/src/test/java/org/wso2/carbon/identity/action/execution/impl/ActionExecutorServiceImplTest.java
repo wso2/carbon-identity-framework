@@ -496,7 +496,7 @@ public class ActionExecutorServiceImplTest {
                 mock(ActionExecutionRequest.class));
 
         ActionInvocationResponse actionInvocationResponse = createSuccessActionInvocationResponse();
-        when(apiClient.callAPI(any(), any(), any())).thenReturn(actionInvocationResponse);
+        when(apiClient.callAPI(any(), any(), any(), any())).thenReturn(actionInvocationResponse);
 
         ActionExecutionStatus expectedStatus = new SuccessStatus.Builder().build();
         when(actionExecutionResponseProcessor.getSupportedActionType()).thenReturn(actionType);

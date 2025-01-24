@@ -39,5 +39,5 @@ public interface ActionInvocationResponseClassProvider {
      *
      * @return The extended ResponseData class.
      */
-    Class<? extends ResponseData> getSuccessResponseContextClass();
+    Class<? extends ResponseData> getSuccessResponseDataClass();
 }

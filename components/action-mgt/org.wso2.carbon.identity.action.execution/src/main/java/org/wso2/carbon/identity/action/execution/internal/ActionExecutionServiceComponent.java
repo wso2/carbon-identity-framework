@@ -174,20 +174,16 @@ public class ActionExecutionServiceComponent {
     )
     protected void setInvocationSuccessResponseContextClass(ActionInvocationResponseClassProvider classProvider) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering ActionInvocationResponseClassProvider: " +
-                    classProvider.getClass().getName() + " in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug("Registering ActionInvocationResponseClassProvider: " + classProvider.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
         ActionInvocationResponseClassFactory.registerActionInvocationResponseClassProvider(
                 classProvider);
     }
 
     protected void unsetInvocationSuccessResponseContextClass(ActionInvocationResponseClassProvider classProvider) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering ActionInvocationResponseClassProvider: " +
-                    classProvider.getClass().getName() + " in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug("Unregistering ActionInvocationResponseClassProvider: " + classProvider.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
         ActionInvocationResponseClassFactory.unregisterActionInvocationResponseClassProvider(classProvider);
     }
 }

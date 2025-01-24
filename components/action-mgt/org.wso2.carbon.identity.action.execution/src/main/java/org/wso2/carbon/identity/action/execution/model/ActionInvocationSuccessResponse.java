@@ -83,9 +83,9 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
             return this;
         }
 
-        @JsonDeserialize(using = ResponseData.ResponseDataDeserializer.class)
+        @JsonDeserialize(using = ResponseDataDeserializer.class)
         @JsonProperty("data")
-        public Builder context(@JsonProperty("data") ResponseData data) {
+        public Builder responseData(@JsonProperty("data") ResponseData data) {
 
             this.data = data;
             return this;

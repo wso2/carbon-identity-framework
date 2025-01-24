@@ -37,6 +37,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.execution.impl.ActionInvocationResponseClassFactory;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
@@ -463,6 +464,32 @@ public class APIClientTest {
         when(httpResponse.getEntity()).thenReturn(entity);
 
         ActionInvocationResponse response = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
+
+        assertNotNull(response);
+        assertTrue(response.isSuccess());
+        verify(httpClient, times(2)).execute(any(HttpPost.class));
+    }
+
+    @Test
+    public void testCallAPIRetryOnTimeoutAndReceiveSuccessResponseWithExtendedResponseData() throws Exception {
+
+        when(httpClient.execute(any(HttpPost.class))).thenThrow(new ConnectTimeoutException("Timeout"))
+                .thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+
+        ActionInvocationResponseClassFactory.registerActionInvocationResponseClassProvider(
+                new TestActionInvocationResponseClassProvider());
+
+        String successResponse =
+                "{\"actionStatus\":\"SUCCESS\", \"data\": {\"id\":\"test-123-id\"}}";
+        InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(successResponse.getBytes(
+                StandardCharsets.UTF_8)));
+        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        ActionInvocationResponse response = apiClient.callAPI(ActionType.AUTHENTICATION,
                 "http://example.com", null, "{}");
 
         assertNotNull(response);

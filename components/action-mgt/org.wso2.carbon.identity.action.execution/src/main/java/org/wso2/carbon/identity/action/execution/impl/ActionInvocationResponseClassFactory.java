@@ -27,7 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class defines the classes for action invocation responses for different action types.
+ * This class defines the classes for extended implementations of action invocation responses for
+ * different action types.
  * The ActionInvocationResponseClassFactory is the component that is responsible for providing the classes
  * defined by the downstream component based on the action type.
  */
@@ -58,17 +59,18 @@ public class ActionInvocationResponseClassFactory {
     }
 
     /**
-     * Get the extended ResponseData class for invocation success response based on the action type.
+     * Get the extended ResponseData class for extended implementations of action invocation responses based on the
+     * action type.
      *
      * @param actionType Action type.
      * @return The extended ResponseData class.
      */
-    public static Class<? extends ResponseData> getInvocationSuccessResponseContextClass(ActionType actionType) {
+    public static Class<? extends ResponseData> getInvocationSuccessResponseDataClass(ActionType actionType) {
 
         ActionInvocationResponseClassProvider classProvider = classProviders.get(actionType);
         if (classProvider != null) {
-            return classProvider.getSuccessResponseContextClass();
+            return classProvider.getSuccessResponseDataClass();
         }
-        return DefaultActionInvocationResponseClassProvider.getInstance().getSuccessResponseContextClass();
+        return DefaultActionInvocationResponseClassProvider.getInstance().getSuccessResponseDataClass();
     }
 }
