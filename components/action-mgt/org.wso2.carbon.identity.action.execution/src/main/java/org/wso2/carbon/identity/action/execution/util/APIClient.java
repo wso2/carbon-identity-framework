@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
+import org.wso2.carbon.identity.action.execution.model.ResponseDataDeserializer;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
