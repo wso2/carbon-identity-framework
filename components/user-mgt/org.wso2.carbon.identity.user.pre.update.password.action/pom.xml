@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.7.112-SNAPSHOT</version>
+        <version>7.7.128-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -115,6 +115,7 @@
 
                             org.wso2.carbon.identity.core; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.context; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.context.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.model; version="${carbon.identity.package.import.version.range}",
@@ -123,7 +124,9 @@
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.user.action; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.user.action.constant; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.user.action.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.listener; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",

@@ -34,9 +34,6 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * This class is responsible for handling the action invocation related to user flows.
  */
@@ -63,7 +60,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         try {
             UserActionContext userActionContext = new UserActionContext.Builder()
                     .userId(userName)
-                    .password(credential.toString())
+                    .password((StringBuffer) credential)
                     .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
                     .build();
 

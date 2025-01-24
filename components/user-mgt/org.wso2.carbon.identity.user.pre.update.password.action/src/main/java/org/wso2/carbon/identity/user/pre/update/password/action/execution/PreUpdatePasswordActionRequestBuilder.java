@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.core.context.model.Initiator;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.action.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.password.action.constant.PreUpdatePasswordActionConstants;
@@ -81,19 +80,20 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
             throws ActionExecutionRequestBuilderException {
 
         Object action = eventContext.get(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT);
-        if (action instanceof UserActionContext) {
-            userActionContext = (UserActionContext) action;
+        if (!(action instanceof UserActionContext)) {
+            throw new ActionExecutionRequestBuilderException("User Action Context cannot be null.");
         }
-        throw new ActionExecutionRequestBuilderException("User Action Context cannot be null.");
+        userActionContext = (UserActionContext) action;
     }
 
     private void resolveAction(Map<String, Object> eventContext) throws ActionExecutionRequestBuilderException {
 
         Object action = eventContext.get("action");
-        if (action instanceof PreUpdatePasswordAction) {
-            preUpdatePasswordAction = (PreUpdatePasswordAction) action;
+        if (!(action instanceof PreUpdatePasswordAction)) {
+            throw new ActionExecutionRequestBuilderException("Pre Update Password Action cannot be null.");
+
         }
-        throw new ActionExecutionRequestBuilderException("Pre Update Password Action cannot be null.");
+        preUpdatePasswordAction = (PreUpdatePasswordAction) action;
     }
 
     private Event getEvent() throws ActionExecutionRequestBuilderException {
@@ -109,21 +109,19 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
 
     private PreUpdatePasswordEvent.FlowInitiator getInitiator() throws ActionExecutionRequestBuilderException {
 
-        Initiator initiator = IdentityContext.getThreadLocalIdentityContext().getInitiator();
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        if (flow == null) {
+            throw new ActionExecutionRequestBuilderException("Flow is null in the Identity Context.");
+        }
 
-        switch(initiator.getInitiatorFlow()) {
+        switch(flow.getInitiatingPersona()) {
             case ADMIN:
-                if (initiator.isUserEntity()) {
-                    return PreUpdatePasswordEvent.FlowInitiator.ADMIN;
-                }
-                if (initiator.isApplicationEntity()) {
-                    return PreUpdatePasswordEvent.FlowInitiator.APPLICATION;
-                }
-                break;
+                return PreUpdatePasswordEvent.FlowInitiator.ADMIN;
+            case APPLICATION:
+                return PreUpdatePasswordEvent.FlowInitiator.APPLICATION;
             case USER:
-                if (initiator.isUserEntity()) {
-                    return PreUpdatePasswordEvent.FlowInitiator.USER;
-                }
+                return PreUpdatePasswordEvent.FlowInitiator.USER;
+            default:
                 break;
         }
         throw new ActionExecutionRequestBuilderException("Invalid initiator flow.");
@@ -135,7 +133,20 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
         if (flow == null) {
             throw new ActionExecutionRequestBuilderException("Flow is null in the Identity Context.");
         }
-        return PreUpdatePasswordEvent.Action.valueOf(flow.getAction().name());
+
+        switch (flow.getName()) {
+            case PASSWORD_UPDATE:
+                return PreUpdatePasswordEvent.Action.UPDATE;
+            case PASSWORD_RESET:
+                return PreUpdatePasswordEvent.Action.RESET;
+            case USER_REGISTRATION_INVITE_WITH_PASSWORD:
+                if (flow.getInitiatingPersona().equals(Flow.InitiatingPersona.ADMIN)) {
+                    return PreUpdatePasswordEvent.Action.INVITE;
+                }
+            default:
+                break;
+        }
+        throw new ActionExecutionRequestBuilderException("Invalid action flow.");
     }
 
     private static Tenant getTenant() {
@@ -194,7 +205,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
             return new Credential.Builder()
                     .type(Credential.Type.PASSWORD)
                     .format(Credential.Format.PLAIN_TEXT)
-                    .value(userActionContext.getPassword())
+                    .value(new String(userActionContext.getPassword()))
                     .build();
         }
 

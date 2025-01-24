@@ -25,13 +25,13 @@ package org.wso2.carbon.identity.user.action.model;
 public class UserActionContext {
 
     private final String userId;
-    private final String password;
+    private final char[] password;
     private final String userStoreDomain;
 
     private UserActionContext(Builder builder) {
 
         this.userId = builder.userId;
-        this.password = builder.password;
+        this.password = builder.password != null ? builder.password.toString().toCharArray() : null;
         this.userStoreDomain = builder.userStoreDomain;
     }
 
@@ -40,7 +40,7 @@ public class UserActionContext {
         return userId;
     }
 
-    public String getPassword() {
+    public char[] getPassword() {
 
         return password;
     }
@@ -56,7 +56,7 @@ public class UserActionContext {
     public static class Builder {
 
         private String userId;
-        private String password;
+        private StringBuffer password;
         private String userStoreDomain;
 
         public Builder userId(String userId) {
@@ -65,7 +65,7 @@ public class UserActionContext {
             return this;
         }
 
-        public Builder password(String password) {
+        public Builder password(StringBuffer password) {
 
             this.password = password;
             return this;
