@@ -31,7 +31,7 @@ import javax.servlet.ServletException;
 
 public class IdentityContextCreatorValve extends ValveBase {
 
-    private static Log LOG = LogFactory.getLog(IdentityContextCreatorValve.class);
+    private static final Log LOG = LogFactory.getLog(IdentityContextCreatorValve.class);
 
     public IdentityContextCreatorValve() {
         // Enable async support to handle asynchronous requests, allowing non-blocking operations

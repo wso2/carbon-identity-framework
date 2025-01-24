@@ -32,6 +32,7 @@ public class IdentityContextDataHolder {
 
     private static final ThreadLocal<IdentityContextDataHolder> currentContextHolder =
             new ThreadLocal<IdentityContextDataHolder>() {
+        @Override
         protected IdentityContextDataHolder initialValue() {
             return new IdentityContextDataHolder();
         }
