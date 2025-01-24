@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.action.execution.impl;
 
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.DefaultResponseData;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 import org.wso2.carbon.identity.action.execution.util.TestActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.util.UserData;

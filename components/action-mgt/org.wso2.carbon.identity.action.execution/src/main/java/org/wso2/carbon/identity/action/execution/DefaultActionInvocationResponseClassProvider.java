@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution;
 
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.DefaultResponseData;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 
 /**
@@ -36,12 +37,12 @@ public class DefaultActionInvocationResponseClassProvider implements ActionInvoc
     @Override
     public ActionType getSupportedActionType() {
 
-        return null;
+        throw new UnsupportedOperationException("This method should not called for default implementation.");
     }
 
     @Override
-    public Class<? extends ResponseData> getSuccessResponseContextClass() {
+    public Class<? extends ResponseData> getSuccessResponseDataClass() {
 
-        return ResponseData.DefaultResponseData.class;
+        return DefaultResponseData.class;
     }
 }
