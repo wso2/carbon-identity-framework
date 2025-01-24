@@ -33,6 +33,7 @@ public class ActionExecutionLogConstants {
     public static class ActionIDs {
 
         public static final String EXECUTE_ACTION = "execute-action";
+        public static final String EVALUATE_RULE = "evaluate-rule";
         public static final String PROCESS_ACTION_REQUEST = "process-action-request";
         public static final String SEND_ACTION_REQUEST = "send-action-request";
         public static final String RECEIVE_ACTION_RESPONSE = "receive-action-response";
