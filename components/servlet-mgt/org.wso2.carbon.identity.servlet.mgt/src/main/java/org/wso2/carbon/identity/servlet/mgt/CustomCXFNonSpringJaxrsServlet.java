@@ -91,7 +91,9 @@ public class CustomCXFNonSpringJaxrsServlet extends CXFNonSpringServlet {
    private static final String JAXRS_APPLICATION_PARAM = "javax.ws.rs.Application";
 
    private ClassLoader classLoader;
-   private final Application application;
+   private Application application;
+
+    public CustomCXFNonSpringJaxrsServlet() {}
 
    public CustomCXFNonSpringJaxrsServlet(Application app) {
 
@@ -104,7 +106,6 @@ public class CustomCXFNonSpringJaxrsServlet extends CXFNonSpringServlet {
        this.application = app;
    }
 
-   @Override
    public void init(ServletConfig servletConfig) throws ServletException {
 
        super.init(servletConfig);
