@@ -39,7 +39,7 @@ public class IdentityContextDataHolder {
     };
 
     /**
-     * Default constructor to disallow creation of the CarbonContext.
+     * Default constructor to disallow creation of the IdentityContextDataHolder.
      */
     private IdentityContextDataHolder() {
 
@@ -49,7 +49,7 @@ public class IdentityContextDataHolder {
      * This method will always attempt to obtain an instance of the current IdentityContext from the
      * thread-local copy.
      *
-     * @return the IdentityContext holder.
+     * @return the IdentityContextDataHolder.
      */
     public static IdentityContextDataHolder getThreadLocalIdentityContextHolder() {
 
@@ -99,7 +99,7 @@ public class IdentityContextDataHolder {
     }
 
     /**
-     * This method will destroy the current IdentityContext holder.
+     * This method will destroy the current IdentityContextDataHolder.
      */
     public static void destroyCurrentIdentityContextDataHolder() {
 
