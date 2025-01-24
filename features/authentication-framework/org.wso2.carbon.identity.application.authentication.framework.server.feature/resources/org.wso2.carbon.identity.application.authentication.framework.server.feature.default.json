@@ -243,6 +243,12 @@
   "authentication.authenticator.sms_otp_local.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.sms_otp_local.parameters.enableRetryFromAuthenticator": true,
 
+  "authentication.authenticator.push_local.name": "push-notification-authenticator",
+  "authentication.authenticator.push_local.enable": true,
+  "authentication.authenticator.push_local.parameters.Tags": "Passwordless,MFA",
+  "authentication.authenticator.push_local.parameters.redirectToMultiOptionPageOnFailure": false,
+  "authentication.authenticator.push_local.parameters.enableRetryFromAuthenticator": true,
+
   "account_recovery.endpoint.auth.name":"dashboard",
   "account_recovery.endpoint.auth.hash":"66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262",
 
