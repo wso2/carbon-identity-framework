@@ -574,22 +574,14 @@
     <Resource context="(.*)/api/users/v1/me/totp(.*)" secured="true" http-method="GET">
         <Scopes>internal_login</Scopes>
     </Resource>
-    <!-- Push Device Management API -->
-    <Resource context="(.*)/api/users/v1/me/push/devices(.*)" secured="false" http-method="POST"/>
-    <Resource context="(.*)/api/users/v1/me/push/devices(.*)" secured="true" http-method="GET, DELETE">
-        <Scopes>internal_login</Scopes>
-    </Resource>
-    <Resource context="(.*)/api/users/v1/me/push/discovery-data(.*)" secured="true" http-method="GET">
-        <Scopes>internal_login</Scopes>
-    </Resource>
+
     <!-- [Organization] Push Device Management API -->
-    <Resource context="(.*)/o/api/users/v1/me/push/devices(.*)" secured="false" http-method="POST"/>
-    <Resource context="(.*)/o/api/users/v1/me/push/devices(.*)" secured="true" http-method="GET, DELETE">
-        <Scopes>internal_login</Scopes>
-    </Resource>
-    <Resource context="(.*)/o/api/users/v1/me/push/discovery-data(.*)" secured="true" http-method="GET">
-        <Scopes>internal_login</Scopes>
-    </Resource>
+    <Resource context="(.*)/o/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
+    <Resource context="(.*)/o/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+    <!-- Push Device Management API -->
+    <Resource context="(.*)/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
+    <Resource context="(.*)/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+
     <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
         <Scopes>internal_login</Scopes>
     </Resource>
