@@ -18,10 +18,9 @@
 
 package org.wso2.carbon.identity.core.context.model;
 
+import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * A Flow represents the complete journey of a particular process in the identity system.
@@ -30,7 +29,7 @@ import java.util.Objects;
 public class Flow {
 
     // Map to hold the flow definitions and its applicable initiating personas.
-    private static final Map<Name, EnumSet<InitiatingPersona>> FLOW_DEFINITIONS = new HashMap<>();
+    private static final Map<Name, EnumSet<InitiatingPersona>> FLOW_DEFINITIONS = new EnumMap<>(Name.class);
 
     static {
         FLOW_DEFINITIONS.put(Name.PASSWORD_UPDATE,
