@@ -70,7 +70,7 @@ public class PreUpdatePasswordActionServiceComponent {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.ungetService(bundleCtx.getServiceReference(PreUpdatePasswordActionConverter.class));
             bundleCtx.ungetService(bundleCtx.getServiceReference(PreUpdatePasswordActionDTOModelResolver.class));
-            LOG.debug("Action management bundle is deactivated");
+            LOG.debug("Pre Update Password Action bundle is deactivated");
         } catch (Throwable e) {
             LOG.error("Error while deactivating Pre Update Password Action service component.", e);
         }
@@ -87,12 +87,12 @@ public class PreUpdatePasswordActionServiceComponent {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance()
                 .setCertificateManagementService(certificateManagementService);
-        LOG.debug("CertificateManagementService set in PreUpdatePasswordActionServiceComponentHolder bundle.");
+        LOG.debug("CertificateManagementService set in Pre Update Password Action bundle.");
     }
 
     private void unsetCertificateManagementService(CertificateManagementService certificateManagementService) {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setCertificateManagementService(null);
-        LOG.debug("CertificateManagementService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
+        LOG.debug("CertificateManagementService unset in Pre Update Password Action bundle.");
     }
 }
