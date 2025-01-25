@@ -94,6 +94,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
         MockitoAnnotations.initMocks(this);
 
+        removeAllSystemDefinedAuthenticators();
         configurationFacade = mockStatic(ConfigurationFacade.class);
         ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
         configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);

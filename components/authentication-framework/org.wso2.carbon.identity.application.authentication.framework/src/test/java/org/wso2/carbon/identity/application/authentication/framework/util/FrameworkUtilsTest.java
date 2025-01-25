@@ -76,6 +76,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +166,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @BeforeClass
     public void setFrameworkServiceComponent() {
 
-        ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator();
+        removeAllSystemDefinedAuthenticators();
         ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
                 new MockAuthenticator("BasicAuthenticator"));
         ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
@@ -992,6 +993,15 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                                     eq("JITProvisioning.AutofillUsernameFieldWithSubjectAttribute")))
                     .thenReturn("false");
             assertFalse(FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr());
+        }
+    }
+
+    private void removeAllSystemDefinedAuthenticators() {
+
+        List<ApplicationAuthenticator> authenticatorList = new ArrayList<>(
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators());
+        for (ApplicationAuthenticator authenticator : authenticatorList) {
+            ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         }
     }
 }

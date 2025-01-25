@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.loader;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -31,12 +30,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
-import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -44,8 +41,6 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -227,8 +222,10 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 authConfig.setName(authenticatorName);
                 authConfig.setEnabled(true);
 
-                // iterate through each system authentication config
-                for (ApplicationAuthenticator appAuthenticator : FrameworkServiceComponent.getAuthenticators()) {
+                /* iterate through each only system authentication config as this is to load request path
+                 authenticators. */
+                for (ApplicationAuthenticator appAuthenticator :
+                        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()) {
 
                     if (authenticatorName.equalsIgnoreCase(appAuthenticator.getName())) {
                         authConfig.setApplicationAuthenticator(appAuthenticator);
@@ -307,16 +304,10 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             authenticatorConfig = new AuthenticatorConfig();
             authenticatorConfig.setName(authenticatorName);
 
-            ApplicationAuthenticator appAuthenticatorForConfig = null;
-            for (ApplicationAuthenticator appAuthenticator : FrameworkServiceComponent.getAuthenticators()) {
-
-                if (authenticatorName.equalsIgnoreCase(appAuthenticator.getName())) {
-                    appAuthenticatorForConfig = appAuthenticator;
-                    break;
-                }
-            }
+            ApplicationAuthenticator appAuthenticatorForConfig = ApplicationAuthenticatorManager.getInstance()
+                    .getAppAuthenticatorByName(authenticatorName, tenantDomain);
             if (appAuthenticatorForConfig == null) {
-                appAuthenticatorForConfig = resolveUserDefinedAuthenticator(authenticatorName, idp, tenantDomain);
+                throw new FrameworkException("No authenticator found by the name: " + authenticatorName);
             }
             authenticatorConfig.setApplicationAuthenticator(appAuthenticatorForConfig);
             stepConfig.getAuthenticatorList().add(authenticatorConfig);
@@ -330,37 +321,6 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         if (!stepConfig.isMultiOption() && (stepConfig.getAuthenticatorList().size() > 1
                 || authenticatorConfig.getIdps().size() > 1)) {
             stepConfig.setMultiOption(true);
-        }
-    }
-
-    private ApplicationAuthenticator resolveUserDefinedAuthenticator(
-            String authenticatorName, IdentityProvider idp, String tenantDomain) throws FrameworkException {
-
-        try {
-            if (StringUtils.equals(idp.getIdentityProviderName(), FrameworkConstants.LOCAL_IDP_NAME)) {
-
-                UserDefinedLocalAuthenticatorConfig config = ApplicationAuthenticatorService.getInstance()
-                        .getUserDefinedLocalAuthenticator(authenticatorName, tenantDomain);
-                if (config != null) {
-                    return FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
-                            .getLocalAuthenticatorAdapter(config);
-                }
-            } else {
-                UserDefinedFederatedAuthenticatorConfig config = (UserDefinedFederatedAuthenticatorConfig)
-                        IdentityProviderManager.getInstance().getIdPByName(idp.getIdentityProviderName(), tenantDomain)
-                                .getDefaultAuthenticatorConfig();
-
-                if (config != null) {
-                    return FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
-                            .getFederatedAuthenticatorAdapter(config);
-                }
-            }
-
-            throw new FrameworkException(String.format(
-                    "No user defined authenticator config found by the given name: %s.", authenticatorName));
-        } catch (AuthenticatorMgtException | IdentityProviderManagementException e) {
-            throw new FrameworkException(String.format(
-                    "An error occurred when retrieving user defined authenticator: %s", authenticatorName), e);
         }
     }
 }

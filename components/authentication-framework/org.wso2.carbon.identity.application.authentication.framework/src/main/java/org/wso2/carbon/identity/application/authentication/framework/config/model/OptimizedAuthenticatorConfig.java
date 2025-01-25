@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -80,7 +80,8 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
         authenticatorConfig.setName(this.name);
         authenticatorConfig.setEnabled(this.enabled);
-        authenticatorConfig.setApplicationAuthenticator(FrameworkUtils.getAppAuthenticatorByName(this.name));
+        authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
+                .getAppAuthenticatorByName(this.name, tenantDomain));
         authenticatorConfig.setAuthenticatorStateInfo(this.authenticatorStateInfo);
         authenticatorConfig.setParameterMap(this.parameterMap);
         Map<String, IdentityProvider> idps = new HashMap<>();
