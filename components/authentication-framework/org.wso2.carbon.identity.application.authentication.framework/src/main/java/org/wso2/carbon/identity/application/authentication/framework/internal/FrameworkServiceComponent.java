@@ -589,7 +589,7 @@ public class FrameworkServiceComponent {
             appAuthenticatorService.removeLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = appAuthenticatorService
-                    .getFederatedAuthenticatorByName(authenticatorName);
+                    .getSystemDefinedFederatedAuthenticatorByName(authenticatorName);
             appAuthenticatorService.removeFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = appAuthenticatorService

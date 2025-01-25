@@ -343,7 +343,8 @@ public class ConfigurationFacade {
         String applicationName = PrivilegedCarbonContext.getThreadLocalCarbonContext().getApplicationName();
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             try {
-                if (StringUtils.isNotBlank(getV2VaueFromFileBasedConfig.get())) {
+                if (getV2VaueFromFileBasedConfig != null &&
+                        StringUtils.isNotBlank(getV2VaueFromFileBasedConfig.get())) {
                     return getV2VaueFromFileBasedConfig.get();
                 }
                 String organizationId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getOrganizationId();
