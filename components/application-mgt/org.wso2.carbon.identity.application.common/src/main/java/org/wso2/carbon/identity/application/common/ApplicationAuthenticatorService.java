@@ -168,9 +168,9 @@ public class ApplicationAuthenticatorService {
      * @return Retrieved FederatedAuthenticatorConfig.
      *
      * @deprecated It is recommended to use getFederatedAuthenticatorByName(String, String) in
-     * org.wso2.carbon.idp.mgt.IdentityProviderManager class, or getSystemFederatedAuthenticatorByName(String)
+     * org.wso2.carbon.idp.mgt.IdentityProviderManager class which supports retrieving both USER and SYSTEM defined
+     * federated application authenticator configuration by name, or getSystemFederatedAuthenticatorByName(String)
      * to retrieve only SYSTEM defined federated application authenticator configuration by name.
-     * which supports retrieving both USER and SYSTEM defined federated application authenticator configuration by name.
      */
     @Deprecated
     public FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String name) {
@@ -182,16 +182,6 @@ public class ApplicationAuthenticatorService {
         return null;
     }
 
-    /**
-     * This returns only SYSTEM defined federated authenticator by name.
-     *
-     * @param name  The name of the federated application authenticator configuration.
-     * @return Retrieved FederatedAuthenticatorConfig.
-     *
-     * @deprecated It is recommended to use getFederatedAuthenticatorByName(String, String) in
-     * org.wso2.carbon.idp.mgt.IdentityProviderManager class.
-     * which supports retrieving both USER and SYSTEM defined federated application authenticator configuration by name.
-     */
     public FederatedAuthenticatorConfig getSystemDefinedFederatedAuthenticatorByName(String name) {
 
         for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
