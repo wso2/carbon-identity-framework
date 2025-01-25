@@ -1136,7 +1136,8 @@ INSERT INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('c508ca28-60c0-4493-a758-77e4173ffdb9', 'IDP_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to identity providers'),
 ('433df096-62b7-4a36-b3eb-1bed9150ed35', 'IDVP_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to identity verification providers'),
 ('29d0c37d-139a-4b1e-a343-7b8d26f0a2a9', 'ANDROID_ATTESTATION_CREDENTIALS', 'Secret type to uniquely identify secrets relevant to android client attestation credentials'),
-('33f0a41b-569d-4ea5-a891-6c0e78a1c3b0', 'ACTION_API_ENDPOINT_AUTH_SECRETS', 'Secret type to uniquely identify secrets relevant to action endpoint authentication properties');
+('33f0a41b-569d-4ea5-a891-6c0e78a1c3b0', 'ACTION_API_ENDPOINT_AUTH_SECRETS', 'Secret type to uniquely identify secrets relevant to action endpoint authentication properties'),
+('b411dafd-e2c4-4d2f-afba-3900d802725a', 'PUSH_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to push provider properties');
 
 CREATE TABLE IF NOT EXISTS IDN_SECRET (
   ID            VARCHAR(255) NOT NULL,
@@ -1523,6 +1524,20 @@ CREATE TABLE IF NOT EXISTS IDN_OAUTH2_AUTHZ_CODE_AUTHORIZATION_DETAILS (
     PRIMARY KEY (ID, CODE_ID, TYPE_ID),
     FOREIGN KEY (TYPE_ID) REFERENCES AUTHORIZATION_DETAILS_TYPES(ID) ON DELETE CASCADE,
     FOREIGN KEY (CODE_ID) REFERENCES IDN_OAUTH2_AUTHORIZATION_CODE(CODE_ID) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS IDN_PUSH_DEVICE_STORE (
+    ID VARCHAR(255) NOT NULL,
+    USER_ID VARCHAR(255) NOT NULL,
+    DEVICE_NAME VARCHAR(45) NOT NULL,
+    DEVICE_MODEL VARCHAR(45) NOT NULL,
+    DEVICE_TOKEN VARCHAR(255) NOT NULL,
+    DEVICE_HANDLE VARCHAR(255),
+    PUBLIC_KEY VARCHAR(2048) NOT NULL,
+    PROVIDER VARCHAR(45) NOT NULL,
+    TENANT_ID INTEGER NOT NULL,
+    PRIMARY KEY (ID),
+    UNIQUE (USER_ID)
 );
 
 -- --------------------------- INDEX CREATION -----------------------------

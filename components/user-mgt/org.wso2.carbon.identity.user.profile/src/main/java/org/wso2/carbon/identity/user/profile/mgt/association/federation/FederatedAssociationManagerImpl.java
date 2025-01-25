@@ -25,8 +25,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.UserProfileUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerClientException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -42,11 +45,13 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_GETTING_THE_USER;
@@ -62,6 +67,7 @@ import static org.wso2.carbon.identity.user.profile.mgt.association.federation.c
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_ID_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_IDENTIFIER_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_STORE_DOMAIN_PROVIDED;
+import static org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils.getInitiatorId;
 
 public class FederatedAssociationManagerImpl implements FederatedAssociationManager {
 
@@ -80,6 +86,14 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserProfileMgtDAO.getInstance().createAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
+
+            if (UserProfileUtil.isEnableV2AuditLogs()) {
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                        LoggerUtils.getInitiatorType(getInitiatorId()),
+                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                        LogConstants.UserManagement.CREATE_FEDERATED_USER_ASSOCIATION);
+                triggerAuditLogEvent(auditLogBuilder, true);
+            }
         } catch (UserProfileException e) {
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER
                     , e, false);
@@ -212,6 +226,14 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserProfileMgtDAO.getInstance().deleteAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
+
+            if (UserProfileUtil.isEnableV2AuditLogs()) {
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                        LoggerUtils.getInitiatorType(getInitiatorId()),
+                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                        LogConstants.UserManagement.DELETE_USER_CLAIM_VALUE_ACTION);
+                triggerAuditLogEvent(auditLogBuilder, true);
+            }
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association with idpId: " + idpName + ", and " +
@@ -232,6 +254,14 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(user.getUserStoreDomain(), user.getUserName(),
                     federatedAssociationId);
+
+            if (UserProfileUtil.isEnableV2AuditLogs()) {
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                        LoggerUtils.getInitiatorType(getInitiatorId()),
+                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                        LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
+                triggerAuditLogEvent(auditLogBuilder, true);
+            }
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association: " + federatedAssociationId
@@ -252,6 +282,14 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(tenantId, user.getUserStoreDomain(),
                     user.getUserName());
+
+            if (UserProfileUtil.isEnableV2AuditLogs()) {
+                AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(getInitiatorId(),
+                        LoggerUtils.getInitiatorType(getInitiatorId()),
+                        user.getLoggableMaskedUserId(), LoggerUtils.Target.User.name(),
+                        LogConstants.UserManagement.DELETE_FEDERATED_USER_ASSOCIATION);
+                triggerAuditLogEvent(auditLogBuilder, true);
+            }
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated associations of user: "
