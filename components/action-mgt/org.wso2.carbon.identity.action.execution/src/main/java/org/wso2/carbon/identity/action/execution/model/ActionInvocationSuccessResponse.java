@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.action.execution.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.wso2.carbon.identity.action.execution.impl.ResponseDataDeserializer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,13 +34,14 @@ import java.util.List;
 public class ActionInvocationSuccessResponse implements ActionInvocationResponse.APIResponse {
 
     private final ActionInvocationResponse.Status actionStatus;
-
     private final List<PerformableOperation> operations;
+    private final ResponseData data;
 
     private ActionInvocationSuccessResponse(Builder builder) {
 
         this.actionStatus = builder.actionStatus;
         this.operations = builder.operations;
+        this.data = builder.data;
     }
 
     @Override
@@ -52,6 +55,11 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
         return operations;
     }
 
+    public ResponseData getData() {
+
+        return data;
+    }
+
     /**
      * This class is used to build the {@link ActionInvocationSuccessResponse}.
      */
@@ -59,7 +67,8 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
     public static class Builder {
 
         private ActionInvocationResponse.Status actionStatus;
-        private List<PerformableOperation> operations;
+        private List<PerformableOperation> operations = new ArrayList<>();
+        private ResponseData data;
 
         @JsonProperty("actionStatus")
         public Builder actionStatus(ActionInvocationResponse.Status actionStatus) {
@@ -75,6 +84,14 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
             return this;
         }
 
+        @JsonDeserialize(using = ResponseDataDeserializer.class)
+        @JsonProperty("data")
+        public Builder responseData(@JsonProperty("data") ResponseData data) {
+
+            this.data = data;
+            return this;
+        }
+
         public ActionInvocationSuccessResponse build() {
 
             if (this.actionStatus == null) {
@@ -83,10 +100,6 @@ public class ActionInvocationSuccessResponse implements ActionInvocationResponse
 
             if (!ActionInvocationResponse.Status.SUCCESS.equals(actionStatus)) {
                 throw new IllegalArgumentException("actionStatus must be SUCCESS.");
-            }
-
-            if (this.operations == null) {
-                throw new IllegalArgumentException("operations must not be null.");
             }
 
             return new ActionInvocationSuccessResponse(this);

@@ -50,9 +50,12 @@ public class LoginFlowAIManagerImpl implements LoginFlowAIManager {
 
     private static final String LOGINFLOW_AI_ENDPOINT = IdentityUtil.getProperty(
             "AIServices.LoginFlowAI.LoginFlowAIEndpoint");
-    private static final String LOGINFLOW_AI_GENERATE_PATH = "/api/server/v1/applications/loginflow/generate";
-    private static final String LOGINFLOW_AI_STATUS_PATH = "/api/server/v1/applications/loginflow/status";
-    private static final String LOGINFLOW_AI_RESULT_PATH = "/api/server/v1/applications/loginflow/result";
+    private static final String LOGINFLOW_AI_GENERATE_PATH = IdentityUtil.getProperty(
+            "AIServices.LoginFlowAI.LoginFlowAIGenerateRequestPath");
+    private static final String LOGINFLOW_AI_STATUS_PATH = IdentityUtil.getProperty(
+            "AIServices.LoginFlowAI.LoginFlowAIStatusRequestPath");
+    private static final String LOGINFLOW_AI_RESULT_PATH = IdentityUtil.getProperty(
+            "AIServices.LoginFlowAI.LoginFlowAIResultRequestPath");
 
     private static final Log LOG = LogFactory.getLog(LoginFlowAIManagerImpl.class);
 
