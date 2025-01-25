@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2013-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -2628,6 +2628,46 @@ public class FrameworkUtils {
     }
 
     /**
+     * Get app associated roles from federated user attributes.
+     *
+     * @param fedUserAttributes Federated user attributes.
+     * @param identityProvider  Identity provider.
+     * @param applicationId     Application ID.
+     * @param idpGroupClaimURI  IDP group claim URI.
+     * @param tenantDomain      Tenant domain.
+     * @return List of app associated roles of federated user.
+     * @throws FrameworkException If an error occurred while getting app associated roles of federated user.
+     */
+    public static List<String> getAppAssociatedRolesFromFederatedUserAttributes(Map<String, String> fedUserAttributes,
+                                                                                IdentityProvider identityProvider,
+                                                                                String applicationId,
+                                                                                String idpGroupClaimURI,
+                                                                                String tenantDomain)
+            throws FrameworkException {
+
+        ApplicationRolesResolver appRolesResolver = FrameworkServiceDataHolder.getInstance()
+                .getHighestPriorityApplicationRolesResolver();
+        if (appRolesResolver == null) {
+            log.debug("No app associated roles resolver found.");
+            // Return empty list if no app associated roles resolver is available.
+            return new ArrayList<>();
+        }
+        String[] appAssociatedRolesOfFedUser;
+        try {
+            Map<ClaimMapping, String> attributes = buildClaimMappings(fedUserAttributes);
+            appAssociatedRolesOfFedUser = appRolesResolver.getAppAssociatedRolesOfFederatedUser(attributes,
+                    identityProvider, applicationId, idpGroupClaimURI, tenantDomain);
+            if (appAssociatedRolesOfFedUser == null) {
+                return new ArrayList<>();
+            }
+            return Arrays.asList(appAssociatedRolesOfFedUser);
+        } catch (ApplicationRolesException e) {
+            throw new FrameworkException("Error while resolving app associated roles from federated user attributes.",
+                    e);
+        }
+    }
+
+    /**
      * To get the role claim uri of an IDP.
      *
      * @param externalIdPConfig Relevant external IDP Config.
@@ -2691,12 +2731,15 @@ public class FrameworkUtils {
      */
     public static String getIdpGroupClaimUri(ClaimMapping[] claimMappings) {
 
-        return Arrays.stream(claimMappings)
-                .filter(claimMap ->
-                        FrameworkConstants.GROUPS_CLAIM.equals(claimMap.getLocalClaim().getClaimUri()))
-                .map(claimMap -> claimMap.getRemoteClaim().getClaimUri())
-                .findFirst()
-                .orElse(null);
+        if (claimMappings != null && claimMappings.length > 0) {
+            return Arrays.stream(claimMappings)
+                    .filter(claimMap ->
+                            FrameworkConstants.GROUPS_CLAIM.equals(claimMap.getLocalClaim().getClaimUri()))
+                    .map(claimMap -> claimMap.getRemoteClaim().getClaimUri())
+                    .findFirst()
+                    .orElse(null);
+        }
+        return null;
     }
 
     /**
@@ -2708,63 +2751,23 @@ public class FrameworkUtils {
      */
     public static String getIdpGroupClaimUri(StepConfig stepConfig, AuthenticationContext context) {
 
+        String tenantDomain = context.getTenantDomain();
         String idpGroupMappingURI = FrameworkConstants.GROUPS_CLAIM;
 
         ExternalIdPConfig externalIdPConfig = context.getExternalIdP();
         ClaimMapping[] claimMappings = externalIdPConfig.getClaimMappings();
 
-        // Return the IDP group claim uri if claim mapping is available for groups claim.
-        if (claimMappings != null && claimMappings.length > 0) {
-            for (ClaimMapping mapping : claimMappings) {
-                if (FrameworkConstants.GROUPS_CLAIM.equals(mapping.getLocalClaim().getClaimUri())
-                        && mapping.getRemoteClaim() != null) {
-                    return mapping.getRemoteClaim().getClaimUri();
-                }
-            }
+        String mappedIdPGroupClaim = getIdpGroupClaimUri(claimMappings);
+        if (StringUtils.isNotEmpty(mappedIdPGroupClaim)) {
+            // Return the IDP group claim uri if claim mapping is available for groups claim.
+            return mappedIdPGroupClaim;
         }
 
         ApplicationAuthenticator authenticator = stepConfig.
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
 
         boolean useDefaultIdpDialect = externalIdPConfig.useDefaultLocalIdpDialect();
-        boolean useLocalClaimDialectForClaimMappings =
-                FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
-        boolean mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed = useLocalClaimDialectForClaimMappings &&
-                FileBasedConfigurationBuilder.getInstance()
-                        .isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
-
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
-
-        // Check whether to use the default dialect.
-        if (useDefaultIdpDialect || !useLocalClaimDialectForClaimMappings ||
-                mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed) {
-            String idPStandardDialect = authenticator.getClaimDialectURI();
-            try {
-                if (StringUtils.isNotBlank(idPStandardDialect)) {
-                    carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
-                            .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
-                                    context.getTenantDomain(), false);
-                }
-                for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                    if (StringUtils.isNotEmpty(idpGroupMappingURI) &&
-                            idpGroupMappingURI.equalsIgnoreCase(entry.getValue())) {
-                        idpGroupMappingURI = entry.getKey();
-                    }
-                }
-            } catch (ClaimMetadataException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error in getting the mapping between idps and standard dialect.Thus returning the " +
-                            "unmapped GroupClaimUri: " + idpGroupMappingURI, e);
-                }
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Custom claim mappings are enabled and no custom mapping configured for groups claim. " +
-                        "Thus setting GroupClaimUri to empty string.");
-            }
-            idpGroupMappingURI = StringUtils.EMPTY;
-        }
-        return idpGroupMappingURI;
+        return getMappedIdPGroupClaimFromDialect(authenticator, idpGroupMappingURI, tenantDomain, useDefaultIdpDialect);
     }
 
     /**
@@ -2789,23 +2792,208 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the mapped URI for the IDP role mapping.
-     * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
-     * @param stepConfig Relevant stepConfig
-     * @param context Relevant authentication context
-     * @return idpRole claim uri in IDPs dialect or Custom dialect
+     * Returns effective IDP group claim uri.
+     * If USE_LOCAL_ROLE_CLAIM_FOR_IDP_GROUP_CLAIM_MAPPING is true, returns the IDP role claim uri.
+     * Otherwise, returns the IDP group claim uri.
+     *
+     * @param identityProvider Identity provider.
+     * @param tenantDomain     Tenant domain.
+     * @return Effective IDP group claim uri.
      */
-    public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
-                                                  AuthenticationContext context) {
+    public static String getEffectiveIdpGroupClaimUri(IdentityProvider identityProvider, String tenantDomain) {
+
+        boolean useLocalRoleClaimForIDPGroupMapping = Boolean.parseBoolean(
+                IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM));
+        if (useLocalRoleClaimForIDPGroupMapping) {
+            return getIdpRoleClaimUri(identityProvider, tenantDomain);
+        }
+        return getIdpGroupClaimUri(identityProvider, tenantDomain);
+    }
+
+    /**
+     * Return IdP group claim uri.
+     *
+     * @param identityProvider Identity Provider.
+     * @param tenantDomain     Tenant domain.
+     * @return IdP group claim uri.
+     */
+    public static String getIdpGroupClaimUri(IdentityProvider identityProvider, String tenantDomain) {
+
+        /*
+            Setting the initial default idp group claim uri to local groups claim. This will be used if no custom claim
+            mapping or no claim mapping in authenticator claim dialect is available for local groups claim.
+         */
+        String idpGroupMappingURI = FrameworkConstants.GROUPS_CLAIM;
+
+        if (identityProvider == null) {
+            return idpGroupMappingURI;
+        }
+
+        ClaimConfig idpClaimConfig = identityProvider.getClaimConfig();
+        ClaimMapping[] claimMappings = idpClaimConfig.getClaimMappings();
+
+        String mappedIdPGroupClaim = getIdpGroupClaimUri(claimMappings);
+        if (StringUtils.isNotEmpty(mappedIdPGroupClaim)) {
+            // Return the IDP group claim uri if claim mapping is available for groups claim.
+            return mappedIdPGroupClaim;
+        }
+
+        // If custom claim mapping is not available, try to get the claim mapping from the authenticator claim dialect.
+        if (identityProvider.getDefaultAuthenticatorConfig() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No default authenticator is configured for the identity provider: "
+                        + identityProvider.getIdentityProviderName());
+            }
+            // Return local group claim since no authenticator is configured.
+            return idpGroupMappingURI;
+        }
+        String appAuthenticatorName = identityProvider.getDefaultAuthenticatorConfig().getName();
+        ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(appAuthenticatorName);
+        if (authenticator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticator is found for the authenticator name: " + appAuthenticatorName);
+            }
+            // Return local group claim since authenticator is not found.
+            return idpGroupMappingURI;
+        }
+        boolean useDefaultIdpDialect = idpClaimConfig.isLocalClaimDialect();
+        return getMappedIdPGroupClaimFromDialect(authenticator, idpGroupMappingURI, tenantDomain, useDefaultIdpDialect);
+    }
+
+    private static String getMappedIdPGroupClaimFromDialect(ApplicationAuthenticator authenticator,
+                                                            String idpGroupMappingURI, String tenantDomain,
+                                                            boolean useDefaultIdpDialect) {
+
+        boolean useLocalClaimDialectForClaimMappings =
+                FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
+        boolean mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed = useLocalClaimDialectForClaimMappings &&
+                FileBasedConfigurationBuilder.getInstance()
+                        .isMergingCustomClaimMappingsWithDefaultClaimMappingsAllowed();
+
+        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
+
+        // Check whether to use the default dialect.
+        if (useDefaultIdpDialect || !useLocalClaimDialectForClaimMappings ||
+                mergingCustomClaimMappingsWithDefaultClaimMappingsAllowed) {
+            String idPStandardDialect = authenticator.getClaimDialectURI();
+            try {
+                if (StringUtils.isNotBlank(idPStandardDialect)) {
+                    carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
+                            .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
+                                    tenantDomain, false);
+                }
+                for (Map.Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
+                    if (StringUtils.isNotEmpty(idpGroupMappingURI) &&
+                            idpGroupMappingURI.equalsIgnoreCase(entry.getValue())) {
+                        return entry.getKey();
+                    }
+                }
+            } catch (ClaimMetadataException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error in getting the mapping between idps and standard dialect.Thus returning the " +
+                            "unmapped GroupClaimUri: " + idpGroupMappingURI, e);
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Custom claim mappings are enabled and no custom mapping configured for groups claim. " +
+                        "Thus setting GroupClaimUri to empty string.");
+            }
+            return StringUtils.EMPTY;
+        }
+        return idpGroupMappingURI;
+    }
+
+    /**
+     * Return IdP Role Claim Uri.
+     *
+     * @param identityProvider Identity provider.
+     * @param tenantDomain     Tenant domain.
+     * @return IdP Role Claim Uri.
+     */
+    private static String getIdpRoleClaimUri(IdentityProvider identityProvider, String tenantDomain) {
+
+        if (identityProvider == null) {
+            return getLocalGroupsClaimURI();
+        }
+        ClaimConfig idPClaimConfig = identityProvider.getClaimConfig();
+        ClaimMapping[] idPClaimMappings = idPClaimConfig.getClaimMappings();
+        String idpRoleClaimUri = idPClaimConfig.getRoleClaimURI();
+        idpRoleClaimUri = getIdpRoleClaimUri(idPClaimMappings, idpRoleClaimUri);
+        return getMappedIdpRoleClaimUri(idpRoleClaimUri, identityProvider, tenantDomain);
+    }
+
+    /**
+     * Return role claim uri from IdP configurations.
+     *
+     * @param idPClaimMappings IdP claim mappings.
+     * @param idpRoleClaimUri  IdP role claim uri.
+     * @return role claim uri from IdP configurations.
+     */
+    private static String getIdpRoleClaimUri(ClaimMapping[] idPClaimMappings, String idpRoleClaimUri) {
+
+        if (idpRoleClaimUri == null || idpRoleClaimUri.isEmpty()) {
+            // If role claim URI is not configured in IdP configuration, get it from custom claim mappings.
+            if (idPClaimMappings != null && idPClaimMappings.length > 0) {
+                for (ClaimMapping mapping : idPClaimMappings) {
+                    if (getLocalGroupsClaimURI().equals(mapping.getLocalClaim().getClaimUri())
+                            && mapping.getRemoteClaim() != null) {
+                        return mapping.getRemoteClaim().getClaimUri();
+                    }
+                }
+            } else {
+                // Setting the default role claim uri.
+                idpRoleClaimUri = getLocalGroupsClaimURI();
+            }
+        }
+        return idpRoleClaimUri;
+    }
+
+    /**
+     * Get the mapped IdP role claim uri.
+     *
+     * @param idpRoleClaimUri  IdP role claim uri.
+     * @param identityProvider Identity provider.
+     * @param tenantDomain     Tenant domain.
+     * @return Mapped IdP role claim uri.
+     */
+    private static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, IdentityProvider identityProvider,
+                                                   String tenantDomain) {
 
         // Finally return the incoming idpClaimUri if it is in expected dialect.
         String idpRoleMappingURI = idpRoleClaimUri;
 
-        ApplicationAuthenticator authenticator = stepConfig.
-                getAuthenticatedAutenticator().getApplicationAuthenticator();
+        if (identityProvider == null) {
+            return idpRoleMappingURI;
+        }
+        ClaimConfig idpClaimConfig = identityProvider.getClaimConfig();
+
+        // If custom claim mapping is not available, try to get the claim mapping from the authenticator claim dialect.
+        if (identityProvider.getDefaultAuthenticatorConfig() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No default authenticator is configured for the identity provider: "
+                        + identityProvider.getIdentityProviderName());
+            }
+            return idpRoleMappingURI;
+        }
+        String appAuthenticatorName = identityProvider.getDefaultAuthenticatorConfig().getName();
+        ApplicationAuthenticator authenticator = FrameworkUtils.getAppAuthenticatorByName(appAuthenticatorName);
+        if (authenticator == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No authenticator is found for the authenticator name: " + appAuthenticatorName);
+            }
+            return idpRoleMappingURI;
+        }
 
         // Read the value from management console.
-        boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+        boolean useDefaultIdpDialect = idpClaimConfig.isLocalClaimDialect();
+        return getMappedIdpRoleClaimUriFromDialect(authenticator, idpRoleMappingURI, tenantDomain,
+                useDefaultIdpDialect);
+    }
+
+    private static String getMappedIdpRoleClaimUriFromDialect(ApplicationAuthenticator authenticator,
+                                                             String idpRoleMappingURI, String tenantDomain,
+                                                             boolean useDefaultIdpDialect) {
 
         // Read value from file based configuration.
         boolean useLocalClaimDialectForClaimMappings =
@@ -2825,12 +3013,12 @@ public class FrameworkUtils {
                     // Maps the idps dialect to standard dialect.
                     carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
                             .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
-                                    context.getTenantDomain(), false);
+                                    tenantDomain, false);
                 }
                 // check for role claim uri in the idaps dialect.
-                for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
+                for (Map.Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
                     if (StringUtils.isNotEmpty(idpRoleMappingURI) &&
-                        idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
+                            idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
                         idpRoleMappingURI = entry.getKey();
                     }
                 }
@@ -2842,6 +3030,26 @@ public class FrameworkUtils {
             }
         }
         return idpRoleMappingURI;
+    }
+
+    /**
+     * Get the mapped URI for the IDP role mapping.
+     * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
+     * @param stepConfig Relevant stepConfig
+     * @param context Relevant authentication context
+     * @return idpRole claim uri in IDPs dialect or Custom dialect
+     */
+    public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
+                                                  AuthenticationContext context) {
+
+        String tenantDomain = context.getTenantDomain();
+        ApplicationAuthenticator authenticator = stepConfig.
+                getAuthenticatedAutenticator().getApplicationAuthenticator();
+
+        // Read the value from management console.
+        boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+
+        return getMappedIdpRoleClaimUriFromDialect(authenticator, idpRoleClaimUri, tenantDomain, useDefaultIdpDialect);
     }
 
     /**
