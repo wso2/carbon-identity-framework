@@ -72,6 +72,22 @@ public class ApplicationAuthenticatorManager {
     }
 
     /**
+     * Get the ApplicationAuthenticator for the given system defined authenticator configuration name.
+     *
+     * @param authenticatorName Authenticator name.
+     * @return  ApplicationAuthenticator instance.
+     */
+    public ApplicationAuthenticator getSystemDefinedAuthenticatorByName(String authenticatorName) {
+
+        for (ApplicationAuthenticator authenticator : systemDefinedAuthenticators) {
+            if (authenticator.getName().equals(authenticatorName)) {
+                return authenticator;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get the ApplicationAuthenticator for the given user defined federated authenticator config.
      *
      * @param config    Federated Authenticator Config.

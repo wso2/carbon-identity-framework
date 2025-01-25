@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -295,7 +296,7 @@ public class OptimizedApplicationConfig implements Serializable {
             AuthenticationStep authenticationStep = new AuthenticationStep();
             authenticationStep.setStepOrder(authStep.getStepOrder());
             authenticationStep.setLocalAuthenticatorConfigs(
-                    getLocalAuthenticatorConfigs(authStep.getLocalAuthenticatorConfigNames()));
+                    getLocalAuthenticatorConfigs(authStep.getLocalAuthenticatorConfigNames(), tenantDomain));
             if (authStep.federatedIdPResourceIds == null || authStep.federatedIdPResourceIds.isEmpty()) {
                 // For new caches federatedIdPResourceIds will be null. But will have optimized federated IdPs.
                 authenticationStep.setFederatedIdentityProviders(getIdPsFromOptimizedFederatedIdPs(
@@ -315,15 +316,21 @@ public class OptimizedApplicationConfig implements Serializable {
         return authenticationSteps;
     }
 
-    private LocalAuthenticatorConfig[] getLocalAuthenticatorConfigs(List<String> localAuthConfigNames) {
+    private LocalAuthenticatorConfig[] getLocalAuthenticatorConfigs(List<String> localAuthConfigNames,
+                                                                    String tenantDomain) throws FrameworkException {
 
-        LocalAuthenticatorConfig[] localAuthenticatorConfigs = new
-                LocalAuthenticatorConfig[localAuthConfigNames.size()];
-        for (int i = 0; i < localAuthConfigNames.size(); i++) {
-            localAuthenticatorConfigs[i] = ApplicationAuthenticatorService.getInstance().
-                    getLocalAuthenticatorByName(localAuthConfigNames.get(i));
+        try {
+            LocalAuthenticatorConfig[] localAuthenticatorConfigs = new
+                    LocalAuthenticatorConfig[localAuthConfigNames.size()];
+            for (int i = 0; i < localAuthConfigNames.size(); i++) {
+                localAuthenticatorConfigs[i] = ApplicationAuthenticatorService.getInstance()
+                        .getLocalAuthenticatorByName(localAuthConfigNames.get(i), tenantDomain);
+            }
+            return localAuthenticatorConfigs;
+        } catch (AuthenticatorMgtException e) {
+            throw new SessionDataStorageOptimizationException(String.format("Error while getting local authenticator " +
+                    "configs by name for tenant domain: %s", tenantDomain), e);
         }
-        return localAuthenticatorConfigs;
     }
 
     private IdentityProvider[] getFederatedIdPs(List<String> federatedIdPResourceIds, String tenantDomain)
