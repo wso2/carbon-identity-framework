@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.7.128-SNAPSHOT</version>
+        <version>7.7.141-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -34,11 +34,6 @@
     <description>User Action Management backend component</description>
     <url>http://wso2.org</url>
 
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -55,10 +50,6 @@
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.user.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
@@ -91,11 +82,13 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
+                            org.wso2.carbon.identity.user.action.core.*,
                             org.wso2.carbon.identity.user.action.internal
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.user.action.internal,
-                            org.wso2.carbon.identity.user.action.*;
+                            !org.wso2.carbon.identity.user.action.core.*,
+                            !org.wso2.carbon.identity.user.action.internal
+                            org.wso2.carbon.identity.user.action.service.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>

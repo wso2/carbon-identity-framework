@@ -16,20 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.constant;
+package org.wso2.carbon.identity.user.pre.update.password.action.execution;
 
 /**
- * This class holds the constants used in Pre Update Password extension.
+ * Represents an unencrypted credential.
  */
-public class PreUpdatePasswordActionConstants {
-    
-    public static final String PASSWORD_SHARING_FORMAT = "passwordSharingFormat";
-    public static final String CERTIFICATE = "certificate";
+public class PreUpdatePasswordActionRequestBuilderTest {
 
-    // Event Context constants for pre update password action
-    public static final String USER_ACTION_CONTEXT = "userActionContext";
-
-    PreUpdatePasswordActionConstants() {
-
-    }
 }

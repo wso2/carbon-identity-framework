@@ -16,14 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action.factory;
+package org.wso2.carbon.identity.user.action.core.factory;
 
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.user.action.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
 
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 /**

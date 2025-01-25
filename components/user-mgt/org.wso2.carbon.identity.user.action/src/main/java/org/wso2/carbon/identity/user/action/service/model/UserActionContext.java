@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action.model;
+package org.wso2.carbon.identity.user.action.service.model;
 
 /**
  * Model class for User Action Context.
@@ -31,7 +31,7 @@ public class UserActionContext {
     private UserActionContext(Builder builder) {
 
         this.userId = builder.userId;
-        this.password = builder.password != null ? builder.password.toString().toCharArray() : null;
+        this.password = builder.password;
         this.userStoreDomain = builder.userStoreDomain;
     }
 
@@ -56,7 +56,7 @@ public class UserActionContext {
     public static class Builder {
 
         private String userId;
-        private StringBuffer password;
+        private char[] password;
         private String userStoreDomain;
 
         public Builder userId(String userId) {
@@ -65,7 +65,7 @@ public class UserActionContext {
             return this;
         }
 
-        public Builder password(StringBuffer password) {
+        public Builder password(char[] password) {
 
             this.password = password;
             return this;

@@ -16,17 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action.constant;
+package org.wso2.carbon.identity.user.action.service.exception;
+
+import org.wso2.carbon.user.core.UserStoreException;
 
 /**
- * This class holds the constants used in User Actions.
+ * User Action Execution Server Exception.
  */
-public class UserActionConstants {
+public class UserActionExecutionServerException extends UserStoreException {
 
-    // Action Error Code for pre update password action
-    public static final String PRE_UPDATE_PASSWORD_ACTION_ERROR_CODE = "preUpdatePasswordActionError";
+    public UserActionExecutionServerException(String message) {
 
-    private UserActionConstants() {
-
+        super(message);
     }
 }

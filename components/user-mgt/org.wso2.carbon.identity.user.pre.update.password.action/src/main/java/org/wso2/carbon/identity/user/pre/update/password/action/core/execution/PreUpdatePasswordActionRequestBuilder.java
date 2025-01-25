@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.execution;
+package org.wso2.carbon.identity.user.pre.update.password.action.core.execution;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -32,13 +32,13 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.action.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.constant.PreUpdatePasswordActionConstants;
-import org.wso2.carbon.identity.user.pre.update.password.action.model.Credential;
-import org.wso2.carbon.identity.user.pre.update.password.action.model.PasswordSharing;
-import org.wso2.carbon.identity.user.pre.update.password.action.model.PasswordUpdatingUser;
-import org.wso2.carbon.identity.user.pre.update.password.action.model.PreUpdatePasswordAction;
-import org.wso2.carbon.identity.user.pre.update.password.action.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.identity.user.action.service.model.UserActionContext;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.Credential;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordSharing;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordUpdatingUser;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordEvent;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.UnsupportedSecretTypeException;
 
@@ -140,9 +140,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
             case PASSWORD_RESET:
                 return PreUpdatePasswordEvent.Action.RESET;
             case USER_REGISTRATION_INVITE_WITH_PASSWORD:
-                if (flow.getInitiatingPersona().equals(Flow.InitiatingPersona.ADMIN)) {
-                    return PreUpdatePasswordEvent.Action.INVITE;
-                }
+                return PreUpdatePasswordEvent.Action.INVITE;
             default:
                 break;
         }
@@ -194,7 +192,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
                 return new Credential.Builder()
                         .type(Credential.Type.PASSWORD)
                         .format(Credential.Format.HASH)
-                        .value(passwordHash)
+                        .value(passwordHash.toCharArray())
                         .algorithm(Credential.Algorithm.SHA256)
                         .build();
             } catch (NoSuchAlgorithmException | UnsupportedSecretTypeException e) {
@@ -205,7 +203,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
             return new Credential.Builder()
                     .type(Credential.Type.PASSWORD)
                     .format(Credential.Format.PLAIN_TEXT)
-                    .value(new String(userActionContext.getPassword()))
+                    .value(userActionContext.getPassword())
                     .build();
         }
 

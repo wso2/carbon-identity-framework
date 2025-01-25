@@ -37,6 +37,24 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.action.management</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.action</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -87,6 +105,8 @@
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.user.action.service; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.user.action.service.model; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

@@ -34,12 +34,12 @@ import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
-import org.wso2.carbon.identity.user.action.UserActionExecutor;
-import org.wso2.carbon.identity.user.pre.update.password.action.execution.PreUpdatePasswordActionRequestBuilder;
-import org.wso2.carbon.identity.user.pre.update.password.action.execution.PreUpdatePasswordResponseProcessor;
-import org.wso2.carbon.identity.user.pre.update.password.action.execution.UserPreUpdatePasswordActionExecutor;
-import org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionConverter;
-import org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionDTOModelResolver;
+import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordActionRequestBuilder;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordResponseProcessor;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.UserPreUpdatePasswordActionExecutor;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionConverter;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionDTOModelResolver;
 
 /**
  * Service component for the Pre Update Password Action.

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.model;
+package org.wso2.carbon.identity.user.pre.update.password.action.service.model;
 
 /**
  * Represents an unencrypted credential.
@@ -50,7 +50,7 @@ public class Credential {
 
     private final Type type;
     private final Format format;
-    private final String value;
+    private final char[] value;
     private final AdditionalData additionalData;
 
     private Credential(Builder builder) {
@@ -68,7 +68,7 @@ public class Credential {
         return format;
     }
 
-    public String getValue() {
+    public char[] getValue() {
         return value;
     }
 
@@ -100,7 +100,7 @@ public class Credential {
 
         private Type type;
         private Format format;
-        private String value;
+        private char[] value;
         private Algorithm algorithm;
 
         public Builder() {
@@ -117,7 +117,7 @@ public class Credential {
             return this;
         }
 
-        public Builder value(String value) {
+        public Builder value(char[] value) {
             this.value = value;
             return this;
         }

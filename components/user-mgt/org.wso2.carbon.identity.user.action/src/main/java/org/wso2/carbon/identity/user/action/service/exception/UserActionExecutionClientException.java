@@ -16,20 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.core.constant;
+package org.wso2.carbon.identity.user.action.service.exception;
+
+import org.wso2.carbon.user.core.UserStoreClientException;
 
 /**
- * This class holds the constants used in Pre Update Password extension.
+ * User Action Execution Client Exception.
  */
-public class PreUpdatePasswordActionConstants {
+public class UserActionExecutionClientException extends UserStoreClientException {
 
-    public static final String PASSWORD_SHARING_FORMAT = "passwordSharingFormat";
-    public static final String CERTIFICATE = "certificate";
+    public UserActionExecutionClientException(String message) {
 
-    // Event Context constants for pre update password action
-    public static final String USER_ACTION_CONTEXT = "userActionContext";
-
-    private PreUpdatePasswordActionConstants() {
-
+        super(message);
     }
 }

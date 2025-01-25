@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.execution;
+package org.wso2.carbon.identity.user.pre.update.password.action.core.execution;
 
 import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;

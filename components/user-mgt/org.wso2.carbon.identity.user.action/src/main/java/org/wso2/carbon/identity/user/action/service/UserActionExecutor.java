@@ -16,12 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action;
+package org.wso2.carbon.identity.user.action.service;
 
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.user.action.model.UserActionContext;
+import org.wso2.carbon.identity.user.action.service.model.UserActionContext;
 
 /**
  * Interface for User Action Executor.

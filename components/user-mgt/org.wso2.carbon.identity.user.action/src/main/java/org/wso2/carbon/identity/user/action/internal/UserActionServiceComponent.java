@@ -28,9 +28,9 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.user.action.UserActionExecutor;
-import org.wso2.carbon.identity.user.action.factory.UserActionExecutorFactory;
-import org.wso2.carbon.identity.user.action.listener.ActionUserOperationEventListener;
+import org.wso2.carbon.identity.user.action.core.factory.UserActionExecutorFactory;
+import org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener;
+import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
 /**
