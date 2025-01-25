@@ -177,6 +177,26 @@ public class RuleMetadataManagerTest {
         assertEquals(result, fieldDefinitionsForMetadataProvider1);
     }
 
+    @Test(dependsOnMethods = {"testRegisterMetadataProvider"})
+    public void testGetApplicableOperatorsInExpressions() {
+
+        List<Operator> applicableOperators = ruleMetadataManager.getApplicableOperatorsInExpressions();
+        assertNotNull(applicableOperators);
+        assertEquals(applicableOperators.size(), 3);
+
+        Operator equalsOperator = applicableOperators.get(0);
+        assertEquals(equalsOperator.getName(), "equals");
+        assertEquals(equalsOperator.getDisplayName(), "equals");
+
+        Operator notEqualsOperator = applicableOperators.get(1);
+        assertEquals(notEqualsOperator.getName(), "notEquals");
+        assertEquals(notEqualsOperator.getDisplayName(), "not equals");
+
+        Operator containsOperator = applicableOperators.get(2);
+        assertEquals(containsOperator.getName(), "contains");
+        assertEquals(containsOperator.getDisplayName(), "contains");
+    }
+
     @Test(dependsOnMethods = {"testRegisterMetadataProvider",
             "testGetExpressionMetaForFlowWhenNoDuplicatingFieldDefinitionsFoundAcrossProviders",
             "testGetExpressionMetaForFlowWhenDuplicatingFieldDefinitionsFoundAcrossProviders",

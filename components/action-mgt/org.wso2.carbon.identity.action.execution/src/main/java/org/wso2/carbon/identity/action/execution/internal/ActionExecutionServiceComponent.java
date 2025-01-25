@@ -31,10 +31,13 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.ActionExecutorService;
+import org.wso2.carbon.identity.action.execution.ActionInvocationResponseClassProvider;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImpl;
+import org.wso2.carbon.identity.action.execution.impl.ActionInvocationResponseClassFactory;
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
 
 /**
  * OSGI service component for the Action execution.
@@ -81,18 +84,14 @@ public class ActionExecutionServiceComponent {
     )
     protected void setActionManagementService(ActionManagementService actionManagementService) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering a reference for ActionManagementService in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug("Registering a reference for ActionManagementService in the ActionExecutionServiceComponent.");
         ActionExecutionServiceComponentHolder.getInstance().setActionManagementService(actionManagementService);
     }
 
     protected void unsetActionManagementService(ActionManagementService actionManagementService) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(
-                    "Unregistering the reference for ActionManagementService in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug(
+                "Unregistering the reference for ActionManagementService in the ActionExecutionServiceComponent.");
         if (ActionExecutionServiceComponentHolder.getInstance().getActionManagementService()
                 .equals(actionManagementService)) {
             ActionExecutionServiceComponentHolder.getInstance().setActionManagementService(null);
@@ -108,20 +107,16 @@ public class ActionExecutionServiceComponent {
     )
     protected void setActionExecutionRequestBuilder(ActionExecutionRequestBuilder actionExecutionRequestBuilder) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering ActionExecutionRequestBuilder: " +
-                            actionExecutionRequestBuilder.getClass().getName() +
-                            " in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug("Registering ActionExecutionRequestBuilder: " +
+                actionExecutionRequestBuilder.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
         ActionExecutionRequestBuilderFactory.registerActionExecutionRequestBuilder(actionExecutionRequestBuilder);
     }
 
     protected void unsetActionExecutionRequestBuilder(ActionExecutionRequestBuilder actionExecutionRequestBuilder) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering ActionExecutionRequestBuilder: " +
-                    actionExecutionRequestBuilder.getClass().getName() + " in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug("Unregistering ActionExecutionRequestBuilder: " +
+                actionExecutionRequestBuilder.getClass().getName() + " in the ActionExecutionServiceComponent.");
         ActionExecutionRequestBuilderFactory.unregisterActionExecutionRequestBuilder(actionExecutionRequestBuilder);
     }
 
@@ -135,11 +130,9 @@ public class ActionExecutionServiceComponent {
     protected void setActionExecutionResponseProcessor(
             ActionExecutionResponseProcessor actionExecutionResponseProcessor) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Registering ActionExecutionResponseProcessor: " +
-                            actionExecutionResponseProcessor.getClass().getName() +
-                            " in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug("Registering ActionExecutionResponseProcessor: " +
+                actionExecutionResponseProcessor.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
         ActionExecutionResponseProcessorFactory.registerActionExecutionResponseProcessor(
                 actionExecutionResponseProcessor);
     }
@@ -147,11 +140,50 @@ public class ActionExecutionServiceComponent {
     protected void unsetActionExecutionResponseProcessor(
             ActionExecutionResponseProcessor actionExecutionResponseProcessor) {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Unregistering ActionExecutionResponseProcessor: " +
-                    actionExecutionResponseProcessor.getClass().getName() + " in the ActionExecutionServiceComponent.");
-        }
+        LOG.debug("Unregistering ActionExecutionResponseProcessor: " +
+                actionExecutionResponseProcessor.getClass().getName() + " in the ActionExecutionServiceComponent.");
         ActionExecutionResponseProcessorFactory.unregisterActionExecutionResponseProcessor(
                 actionExecutionResponseProcessor);
+    }
+
+    @Reference(
+            name = "rule.evaluation.service.component",
+            service = RuleEvaluationService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRuleEvaluationService"
+    )
+    protected void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        LOG.debug("Registering a reference for RuleEvaluationService in the ActionExecutionServiceComponent.");
+        ActionExecutionServiceComponentHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
+    }
+
+    protected void unsetRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        LOG.debug("Unregistering reference for RuleEvaluationService in the ActionExecutionServiceComponent.");
+        ActionExecutionServiceComponentHolder.getInstance().setRuleEvaluationService(ruleEvaluationService);
+    }
+  
+    @Reference(
+            name = "action.execution.response.ActionInvocationResponseClassProvider",
+            service = ActionInvocationResponseClassProvider.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetInvocationSuccessResponseContextClass"
+    )
+    protected void setInvocationSuccessResponseContextClass(ActionInvocationResponseClassProvider classProvider) {
+
+        LOG.debug("Registering ActionInvocationResponseClassProvider: " + classProvider.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
+        ActionInvocationResponseClassFactory.registerActionInvocationResponseClassProvider(
+                classProvider);
+    }
+
+    protected void unsetInvocationSuccessResponseContextClass(ActionInvocationResponseClassProvider classProvider) {
+
+        LOG.debug("Unregistering ActionInvocationResponseClassProvider: " + classProvider.getClass().getName() +
+                " in the ActionExecutionServiceComponent.");
+        ActionInvocationResponseClassFactory.unregisterActionInvocationResponseClassProvider(classProvider);
     }
 }

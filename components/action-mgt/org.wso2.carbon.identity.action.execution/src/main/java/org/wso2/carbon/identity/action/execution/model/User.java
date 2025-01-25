@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.action.execution.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class models the User.
  * User is the entity that represents the user for whom the action is triggered for.
@@ -25,6 +28,7 @@ package org.wso2.carbon.identity.action.execution.model;
 public class User {
 
     private String id;
+    private final List<UserClaim> claims =  new ArrayList<>();
 
     public User(String id) {
 
@@ -34,5 +38,13 @@ public class User {
     public String getId() {
 
         return id;
+    }
+
+    public void setClaims(UserClaim userClaim) {
+        claims.add(userClaim);
+    }
+
+    public List<UserClaim> getClaims() {
+        return claims;
     }
 }

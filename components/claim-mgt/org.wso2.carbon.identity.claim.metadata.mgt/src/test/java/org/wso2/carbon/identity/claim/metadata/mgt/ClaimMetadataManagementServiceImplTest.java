@@ -48,6 +48,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -55,13 +56,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.IS_SYSTEM_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.READ_ONLY_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.REQUIRED_PROPERTY;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY;
 import static org.wso2.carbon.identity.testutil.Whitebox.setInternalState;
 
 @WithCarbonHome
@@ -959,6 +964,237 @@ public class ClaimMetadataManagementServiceImplTest {
                 {"true", ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString(), "false",
                         ClaimConstants.ClaimUniquenessScope.NONE.toString(),
                         ClaimConstants.ClaimUniquenessScope.NONE.toString(), "false"}};
+    }
+
+    @Test
+    public void testAddLocalClaimWithAttributeProfiles() throws ClaimMetadataException {
+
+        LocalClaim localClaimToBeAdded = new LocalClaim(LOCAL_CLAIM_1);
+        localClaimToBeAdded.setMappedAttributes(new ArrayList<>());
+        localClaimToBeAdded.getMappedAttributes()
+                .add(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE));
+
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(REQUIRED_PROPERTY, "true");
+        claimProperties.put(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.CONSOLE.getProfileName(),
+                        REQUIRED_PROPERTY), "true");
+        claimProperties.put(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.END_USER.getProfileName(),
+                        REQUIRED_PROPERTY), "false");
+        localClaimToBeAdded.setClaimProperties(claimProperties);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(new ArrayList<>());
+
+        service.addLocalClaim(localClaimToBeAdded, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> captor = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1)).addLocalClaim(captor.capture(), anyInt());
+
+        Map<String, String> captureLocalClaimProperties = captor.getValue().getClaimProperties();
+        assertFalse(captureLocalClaimProperties.containsKey(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.CONSOLE.getProfileName(),
+                SUPPORTED_BY_DEFAULT_PROPERTY)));
+    }
+
+    @Test
+    public void testUpdateLocalClaimRemoveAttributeProfilePropertiesEqualToGlobalProperties()
+            throws ClaimMetadataException {
+
+        LocalClaim existingLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim localClaimToBeUpdated = new LocalClaim(LOCAL_CLAIM_1);
+        localClaimToBeUpdated.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        claimProperties.put(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.CONSOLE.getProfileName(),
+                        SUPPORTED_BY_DEFAULT_PROPERTY), "true");
+        claimProperties.put(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.END_USER.getProfileName(),
+                        SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+        localClaimToBeUpdated.setClaimProperties(claimProperties);
+
+        service.updateLocalClaim(localClaimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedClaimProperties = capturedLocalClaim.getValue().getClaimProperties();
+        assertFalse(capturedClaimProperties.containsKey(
+                buildProfilePropertyKey(
+                        ClaimConstants.DefaultAllowedClaimProfile.CONSOLE.getProfileName(),
+                        SUPPORTED_BY_DEFAULT_PROPERTY)));
+    }
+
+    @Test
+    public void testUpdateLocalClaimChangeGlobalPropertyFromProfileProperties()
+            throws ClaimMetadataException {
+
+        LocalClaim existingLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim localClaimToBeUpdated = new LocalClaim(LOCAL_CLAIM_1);
+        localClaimToBeUpdated.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+
+        identityUtilStaticMock.when(() -> IdentityUtil.getProperty(
+                        eq(ClaimConstants.ALLOWED_ATTRIBUTE_PROFILE_CONFIG))).thenReturn("profile1");
+
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        claimProperties.put(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.CONSOLE.getProfileName(),
+                        SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+        claimProperties.put(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.END_USER.getProfileName(),
+                        SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+        claimProperties.put(
+                buildProfilePropertyKey(ClaimConstants.DefaultAllowedClaimProfile.SELF_REGISTRATION.getProfileName(),
+                        SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+        claimProperties.put(
+                buildProfilePropertyKey("profile1", SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+        localClaimToBeUpdated.setClaimProperties(claimProperties);
+
+        service.updateLocalClaim(localClaimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
+
+        ArgumentCaptor<LocalClaim> capturedLocalClaim = ArgumentCaptor.forClass(LocalClaim.class);
+        verify(unifiedClaimMetadataManager, times(1))
+                .updateLocalClaim(capturedLocalClaim.capture(), anyInt());
+
+        Map<String, String> capturedClaimProperties = capturedLocalClaim.getValue().getClaimProperties();
+        assertFalse(capturedClaimProperties.containsKey(
+                buildProfilePropertyKey(
+                        ClaimConstants.DefaultAllowedClaimProfile.CONSOLE.getProfileName(),
+                        SUPPORTED_BY_DEFAULT_PROPERTY)));
+        assertFalse(capturedClaimProperties.containsKey(
+                buildProfilePropertyKey("profile1", SUPPORTED_BY_DEFAULT_PROPERTY)));
+        assertEquals(capturedClaimProperties.get(SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+    }
+
+    @Test
+    public void testUpdateLocalClaimWithInvalidAttributeProfile() throws ClaimMetadataException {
+
+        LocalClaim existingLocalClaim = new LocalClaim(LOCAL_CLAIM_1);
+        existingLocalClaim.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+        when(unifiedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, SUPER_TENANT_ID))
+                .thenReturn(Optional.of(existingLocalClaim));
+
+        LocalClaim localClaimToBeUpdated = new LocalClaim(LOCAL_CLAIM_1);
+        localClaimToBeUpdated.setMappedAttributes(
+                Collections.singletonList(new AttributeMapping(PRIMARY_DOMAIN, USERNAME_ATTRIBUTE)));
+
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        claimProperties.put(
+                buildProfilePropertyKey("invalid", SUPPORTED_BY_DEFAULT_PROPERTY), "true");
+        localClaimToBeUpdated.setClaimProperties(claimProperties);
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.updateLocalClaim(localClaimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
+        });
+
+        // Case 2: Invalid profile property.
+        Map<String, String> claimProperties2 = new HashMap<>();
+        claimProperties2.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        claimProperties2.put("Profiles.SupportedByDefault", "true");
+        localClaimToBeUpdated.setClaimProperties(claimProperties2);
+
+        assertThrows(ClaimMetadataClientException.class, () -> {
+            service.updateLocalClaim(localClaimToBeUpdated, SUPER_TENANT_DOMAIN_NAME);
+        });
+    }
+
+    @Test
+    public void testGetSupportedLocalClaimsForProfile() throws Exception {
+
+        String profileName = "selfRegistration";
+        // Create test claims with different property combinations.
+        List<LocalClaim> mockClaims = new ArrayList<>();
+
+        // Claim with global supported by default enabled.
+        LocalClaim emailClaim = new LocalClaim("http://wso2.org/claims/emailaddress");
+        Map<String, String> emailProps = new HashMap<>();
+        emailProps.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        emailProps.put(REQUIRED_PROPERTY, "true");
+        emailProps.put(READ_ONLY_PROPERTY, "false");
+        emailProps.put(buildProfilePropertyKey(profileName, READ_ONLY_PROPERTY), "true");
+        emailProps.put(buildProfilePropertyKey(profileName, REQUIRED_PROPERTY), "false");
+        emailClaim.setClaimProperties(emailProps);
+        mockClaims.add(emailClaim);
+
+        // Claim with global supported by default disabled, profile specific one enabled.
+        LocalClaim countryClaim = new LocalClaim("http://wso2.org/claims/country");
+        Map<String, String> countryProps = new HashMap<>();
+        countryProps.put(SUPPORTED_BY_DEFAULT_PROPERTY, "false");
+        countryProps.put(REQUIRED_PROPERTY, "false");
+        countryProps.put(READ_ONLY_PROPERTY, "false");
+        countryProps.put(buildProfilePropertyKey(profileName, SUPPORTED_BY_DEFAULT_PROPERTY), "true");
+        countryProps.put(buildProfilePropertyKey(profileName, REQUIRED_PROPERTY), "true");
+        countryClaim.setClaimProperties(countryProps);
+        mockClaims.add(countryClaim);
+
+        // Claim with global supported by default enabled, profile specific one disabled.
+        LocalClaim testClaim = new LocalClaim("http://wso2.org/claims/test");
+        Map<String, String> testProps = new HashMap<>();
+        testProps.put(SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+        testProps.put(REQUIRED_PROPERTY, "true");
+        testProps.put(buildProfilePropertyKey(profileName, SUPPORTED_BY_DEFAULT_PROPERTY), "false");
+        testProps.put(buildProfilePropertyKey(profileName, REQUIRED_PROPERTY), "false");
+        testClaim.setClaimProperties(testProps);
+        mockClaims.add(testClaim);
+
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(mockClaims);
+        identityUtilStaticMock.when(IdentityUtil::isGroupsVsRolesSeparationImprovementsEnabled).thenReturn(false);
+
+        List<LocalClaim> resultClaims =
+                service.getSupportedLocalClaimsForProfile(SUPER_TENANT_DOMAIN_NAME, profileName);
+
+        // Verify results.
+        assertEquals(resultClaims.size(), 2);
+
+        LocalClaim resultEmailClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/emailaddress");
+        Map<String, String> resultEmailProps = resultEmailClaim.getClaimProperties();
+        assertEquals(resultEmailProps.get(READ_ONLY_PROPERTY), "true");
+        assertEquals(resultEmailProps.get(REQUIRED_PROPERTY), "false");
+
+        LocalClaim resultCountryClaim = findClaimByUri(resultClaims,
+                "http://wso2.org/claims/country");
+        Map<String, String> resultCountryProps = resultCountryClaim.getClaimProperties();
+        assertEquals(resultCountryProps.get(READ_ONLY_PROPERTY), "false");
+        assertEquals(resultCountryProps.get(REQUIRED_PROPERTY), "true");
+
+        assertNull(findClaimByUri(resultClaims,"http://wso2.org/claims/test"));
+    }
+
+    @Test
+    public void testGetSupportedLocalClaimsForProfileWithInvalidProfile() throws Exception {
+
+        String profileName = "invalid";
+        List<LocalClaim> mockClaims = new ArrayList<>();
+        when(unifiedClaimMetadataManager.getLocalClaims(anyInt())).thenReturn(mockClaims);
+        identityUtilStaticMock.when(IdentityUtil::isGroupsVsRolesSeparationImprovementsEnabled).thenReturn(false);
+
+        assertThrows(ClaimMetadataClientException.class, () ->
+                service.getSupportedLocalClaimsForProfile(SUPER_TENANT_DOMAIN_NAME, profileName));
+    }
+
+    private String buildProfilePropertyKey(String profileName, String property) {
+
+        return ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName +
+                ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + property;
     }
 
     @AfterMethod

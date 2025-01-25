@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.common.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
 
@@ -31,20 +30,27 @@ import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtE
  */
 public class UserDefinedLocalAuthenticatorValidator {
 
-    private static final String AUTHENTICATOR_NAME_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-_]*$";
+    private static final String AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
     private final Pattern authenticatorNameRegexPattern = Pattern.compile(AUTHENTICATOR_NAME_REGEX);
 
-    /**
-     * Validate whether required fields exist.
-     *
-     * @param fieldName     Field name.
-     * @param fieldValue    Field value.
-     * @throws AuthenticatorMgtClientException if the provided field is empty.
-     */
-    public void validateForBlank(String fieldName, String fieldValue) throws AuthenticatorMgtClientException {
+    private static final String DISPLAY_NAME_REGEX = "^.{3,}$";
+    private final Pattern disaplayNameRegexPattern = Pattern.compile(DISPLAY_NAME_REGEX);
 
-        if (StringUtils.isBlank(fieldValue)) {
-            throw buildClientException(AuthenticatorMgtError.ERROR_BLANK_FIELD_VALUE, fieldName);
+    private static final String URL_REGEX = "^https?://.+";
+    private final Pattern urlRegexPattern = Pattern.compile(URL_REGEX);
+
+    /**
+     * Validate the user defined local authenticator display name.
+     *
+     * @param displayName   The display name.
+     * @throws AuthenticatorMgtClientException   if the display name is not valid.
+     */
+    public void validateDisplayName(String displayName) throws AuthenticatorMgtClientException {
+
+        boolean isValidDisplayName = disaplayNameRegexPattern.matcher(displayName).matches();
+        if (!isValidDisplayName) {
+            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_DISPLAY_NAME,
+                    displayName, DISPLAY_NAME_REGEX);
         }
     }
 
@@ -60,6 +66,21 @@ public class UserDefinedLocalAuthenticatorValidator {
         if (!isValidName) {
             throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AUTHENTICATOR_NAME,
                     name, AUTHENTICATOR_NAME_REGEX);
+        }
+    }
+
+    /**
+     * Validate the user defined local authenticator name.
+     *
+     * @param url  The url which need to be validated.
+     * @throws AuthenticatorMgtClientException   if the authenticator name is not valid.
+     */
+    public void validateUrl(String url) throws AuthenticatorMgtClientException {
+
+        boolean isValidName = urlRegexPattern.matcher(url).matches();
+        if (!isValidName) {
+            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_URL,
+                    url, URL_REGEX);
         }
     }
 }
