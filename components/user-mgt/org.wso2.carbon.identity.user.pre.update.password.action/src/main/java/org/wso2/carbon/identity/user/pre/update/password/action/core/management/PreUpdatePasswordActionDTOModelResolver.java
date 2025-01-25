@@ -61,7 +61,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         if (certificate != null) {
             if (!(certificate instanceof Certificate)) {
                 throw new ActionDTOModelResolverClientException("Invalid Certificate.",
-                        "Certificate should be an instance of Certificate.");
+                        "Unsupported certificate provided.");
             }
 
             Certificate certToBeAdded = buildCertificate(actionDTO.getId(), (Certificate) certificate);
@@ -76,7 +76,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         }
         if (!(actionDTO.getProperty(PASSWORD_SHARING_FORMAT) instanceof PasswordSharing.Format)) {
             throw new ActionDTOModelResolverClientException("Invalid Password Sharing Format.",
-                    "Password sharing format should be an instance of PasswordSharing.Format.");
+                    "Unsupported Password sharing format.");
         }
         properties.put(PASSWORD_SHARING_FORMAT,
                 ((PasswordSharing.Format) actionDTO.getProperty(PASSWORD_SHARING_FORMAT)).name());
@@ -186,13 +186,13 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         Certificate updatingCertificate = (Certificate) updatingActionDTO.getProperty(CERTIFICATE);
         Certificate existingCertificate = (Certificate) existingActionDTO.getProperty(CERTIFICATE);
 
-        if (isNewCertificateAdding(updatingCertificate, existingCertificate)) {
+        if (isAddingNewCertificate(updatingCertificate, existingCertificate)) {
             Certificate certToBeAdded = buildCertificate(updatingActionDTO.getId(), updatingCertificate);
             String certificateId = addCertificate(certToBeAdded, tenantDomain);
             properties.put(CERTIFICATE, certificateId);
-        } else if (isExistingCertificateDeleting(updatingCertificate, existingCertificate)) {
+        } else if (isDeletingExistingCertificate(updatingCertificate, existingCertificate)) {
             deleteCertificate(existingCertificate.getId(), tenantDomain);
-        } else if (isExistingCertificateUpdating(updatingCertificate, existingCertificate)) {
+        } else if (isUpdatingExistingCertificate(updatingCertificate, existingCertificate)) {
             updateCertificate(existingCertificate.getId(), updatingCertificate.getCertificateContent(), tenantDomain);
             properties.put(CERTIFICATE, existingCertificate.getId());
         } else if (existingCertificate != null) {
@@ -247,20 +247,20 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         }
     }
 
-    private boolean isNewCertificateAdding(Certificate updatingCertificate, Certificate existingCertificate) {
+    private boolean isAddingNewCertificate(Certificate updatingCertificate, Certificate existingCertificate) {
 
         return existingCertificate == null && updatingCertificate != null &&
                 updatingCertificate.getCertificateContent() != null;
     }
 
-    private boolean isExistingCertificateDeleting(Certificate updatingCertificate, Certificate existingCertificate) {
+    private boolean isDeletingExistingCertificate(Certificate updatingCertificate, Certificate existingCertificate) {
 
         return existingCertificate != null && updatingCertificate != null &&
                 updatingCertificate.getCertificateContent() != null &&
                 updatingCertificate.getCertificateContent().equals(StringUtils.EMPTY);
     }
 
-    private boolean isExistingCertificateUpdating(Certificate updatingCertificate, Certificate existingCertificate) {
+    private boolean isUpdatingExistingCertificate(Certificate updatingCertificate, Certificate existingCertificate) {
 
         return existingCertificate != null && updatingCertificate != null &&
                 updatingCertificate.getCertificateContent() != null &&
