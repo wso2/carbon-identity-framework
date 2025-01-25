@@ -61,6 +61,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -96,11 +97,13 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.GROUPS_CLAIM;
@@ -160,6 +163,15 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     private FederatedAuthenticatorConfig mockedFederatedAuthenticatorConfig;
     @Mock
     private ClaimMetadataHandler mockedClaimMetadataHandler;
+
+    @Mock
+    private SessionDataStore mockedSessionDataStore;
+
+    @Mock
+    private AuthenticationResultCacheEntry mockedAuthenticationResultCacheEntry;
+
+    @Mock
+    private AuthenticationResult mockedAuthenticationResult;
 
     @Captor
     ArgumentCaptor<Cookie> cookieCaptor;
@@ -501,6 +513,60 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             AuthenticationResultCacheEntry cacheEntry =
                     FrameworkUtils.getAuthenticationResultFromCache(DUMMY_CACHE_KEY);
             assertEquals(cacheEntry, authenticationCacheEntry);
+        }
+    }
+
+    @Test
+    public void testGetAuthenticationResultFromSessionDataStore() {
+
+        try (MockedStatic<SessionDataStore> sessionDataStore = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
+            identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
+                    .thenReturn("true");
+
+            AuthenticationResultCache authenticationCacheSpy = spy(AuthenticationResultCache.getInstance());
+
+            AuthenticationResultCacheKey key = new AuthenticationResultCacheKey(DUMMY_CACHE_KEY);
+
+            when(authenticationCacheSpy.getValueFromCache(eq(key), anyString())).thenReturn(null);
+
+            when(mockedSessionDataStore.getSessionData(anyString(), anyString()))
+                    .thenReturn(mockedAuthenticationResultCacheEntry);
+            when(mockedAuthenticationResultCacheEntry.getResult()).thenReturn(mockedAuthenticationResult);
+            when(mockedAuthenticationResultCacheEntry.getValidityPeriod()).thenReturn(60000000L);
+            when(mockedAuthenticationResult.getProperty(anyString())).thenReturn(System.currentTimeMillis());
+
+            AuthenticationResultCacheEntry result = authenticationCacheSpy.getValueFromCache(key);
+            assertNotNull(result);
+        }
+    }
+
+    @Test
+    public void testGetAuthenticationResultFromSessionDataStoreExpired() {
+
+        try (MockedStatic<SessionDataStore> sessionDataStore = mockStatic(SessionDataStore.class);
+            MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+                sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
+                identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
+                        .thenReturn("true");
+
+            AuthenticationResultCache authenticationCacheSpy = spy(AuthenticationResultCache.getInstance());
+
+            AuthenticationResultCacheKey key = new AuthenticationResultCacheKey(DUMMY_CACHE_KEY);
+
+            when(authenticationCacheSpy.getValueFromCache(eq(key), anyString())).thenReturn(null);
+
+            when(mockedSessionDataStore.getSessionData(anyString(), anyString()))
+                    .thenReturn(mockedAuthenticationResultCacheEntry);
+            when(mockedAuthenticationResultCacheEntry.getResult()).thenReturn(mockedAuthenticationResult);
+            when(mockedAuthenticationResultCacheEntry.getValidityPeriod()).thenReturn(-60000000L);
+            when(mockedAuthenticationResult.getProperty(anyString())).thenReturn(System.currentTimeMillis());
+
+            AuthenticationResultCacheEntry result = authenticationCacheSpy.getValueFromCache(key);
+            assertNull(result);
         }
     }
 

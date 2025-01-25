@@ -238,6 +238,20 @@
     <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
     <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
 
+    <!-- OAuth DCR API in Tenant Perspective -->
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_dcr_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_dcr_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_dcr_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_dcr_view</Scopes>
+    </Resource>
+
     <!-- OAuth DCR API -->
     <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
         <Scopes>internal_dcr_create</Scopes>
@@ -258,6 +272,11 @@
     </Resource>
     <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
         <Scopes>internal_dcr_create</Scopes>
+    </Resource>
+
+    <!-- OAuth2 Introspection API in Tenant Perspective -->
+    <Resource context="(.*)/t/(.*)/o/(.*)/oauth2/introspect(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_oauth2_introspect</Scopes>
     </Resource>
 
     <!-- OAuth2 Introspection API -->
@@ -555,6 +574,14 @@
     <Resource context="(.*)/api/users/v1/me/totp(.*)" secured="true" http-method="GET">
         <Scopes>internal_login</Scopes>
     </Resource>
+
+    <!-- [Organization] Push Device Management API -->
+    <Resource context="(.*)/o/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
+    <Resource context="(.*)/o/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+    <!-- Push Device Management API -->
+    <Resource context="(.*)/api/users/v1/me/push/devices" secured="false" http-method="POST"/>
+    <Resource context="(.*)/api/users/v1/me/push/devices/(.*)/remove" secured="false" http-method="POST"/>
+
     <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
         <Scopes>internal_login</Scopes>
     </Resource>
@@ -563,6 +590,17 @@
     </Resource>
     <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
     <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+
+    <!-- [Organization] Association Management API -->
+    <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations" secured="true" http-method="GET">
+        <Scopes>internal_org_user_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations" secured="true" http-method="POST">
+        <Scopes>internal_org_user_association_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_user_association_delete</Scopes>
+    </Resource>
 
     <!-- Association Management API -->
     <Resource context="(.*)/api/users/v1/(.*)/associations" secured="true" http-method="GET">
@@ -573,6 +611,9 @@
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/federated-associations" secured="true" http-method="GET">
         <Scopes>internal_user_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/federated-associations" secured="true" http-method="POST">
+        <Scopes>internal_user_association_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_user_association_delete</Scopes>
@@ -644,6 +685,9 @@
     <!-- [Organization] Claim Management API -->
     <Resource context="(.*)/o/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_claim_meta_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/claim-dialects/local/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_claim_meta_update</Scopes>
     </Resource>
 
     <!-- Claim Management API -->
@@ -770,8 +814,14 @@
     </Resource>
 
     <!-- [Organization] Application Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_create</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_org_application_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_application_mgt_delete</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_application_mgt_view</Scopes>
@@ -833,6 +883,18 @@
     <!-- [Organization] Userstore Management API -->
     <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_userstore_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
+        <Scopes>internal_org_userstore_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_userstore_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores(.*)" secured="true" http-method="PUT, PATCH">
+        <Scopes>internal_org_userstore_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/userstores/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_userstore_delete</Scopes>
     </Resource>
 
     <!-- Userstore Management API -->
@@ -1136,6 +1198,9 @@
     </Resource>
     <Resource context="(.*)/api/server/v1/meta/api-resource-collections(.*)" secured="false" http-method="GET">
     </Resource>
+    <Resource context="(.*)/api/server/v1/authorization-details-types(.*)" secured="true" http-method="GET, HEAD">
+        <Scopes>internal_api_resource_view</Scopes>
+    </Resource>
 
     <!-- [Organization] Extension Management API -->
     <Resource context="(.*)/o/api/server/v1/extensions/applications(.*)" secured="true" http-method="GET">
@@ -1328,6 +1393,8 @@
     <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
     <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
     <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
+    <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
+    <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
 
     <!-- Wild Cards; These scopes are not avaiable in the V2 runtime, therefore any other API will be blocked. -->
     <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">

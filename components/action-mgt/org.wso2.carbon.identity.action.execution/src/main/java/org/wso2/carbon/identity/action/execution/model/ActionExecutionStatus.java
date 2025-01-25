@@ -25,7 +25,8 @@ import java.util.Map;
  * Action Execution Status is the status object that is returned by the Action Executor Service after executing an
  * action. It contains the status of the action execution and the response context.
  *
- * @param <T> Status type (i.e. SUCCESS {@link Success}, FAILED {@link Failure}, ERROR {@link Error})
+ * @param <T> Status type (i.e. SUCCESS {@link Success}, FAILED {@link Failure}, ERROR {@link Error},
+ *           INCOMPLETE {@link Incomplete})
  */
 public abstract class ActionExecutionStatus<T> {
 

@@ -39,9 +39,13 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
@@ -414,5 +418,27 @@ public class ClaimMetadataUtils {
 
         return isScopeWithinUserstore ? ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE :
                 ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES;
+    }
+
+    /**
+     * Retrieves the allowed claim profiles.
+     *
+     * @return Set of allowed claim profiles.
+     */
+    public static Set<String> getAllowedClaimProfiles() {
+
+        Map<String, String> uniqueProfilesMap = new HashMap<>();
+        Arrays.stream(ClaimConstants.DefaultAllowedClaimProfile.values())
+                .map(ClaimConstants.DefaultAllowedClaimProfile::getProfileName)
+                .forEach(profile -> uniqueProfilesMap.put(profile.toLowerCase(), profile));
+
+        String serverWideClaimProfiles = IdentityUtil.getProperty(ClaimConstants.ALLOWED_ATTRIBUTE_PROFILE_CONFIG);
+        if (StringUtils.isNotBlank(serverWideClaimProfiles)) {
+            String[] profiles = serverWideClaimProfiles.split(",");
+            Arrays.stream(profiles).map(String::trim).filter(StringUtils::isNotBlank)
+                    .forEach(profile -> uniqueProfilesMap.putIfAbsent(profile.toLowerCase(), profile));
+        }
+
+        return Collections.unmodifiableSet(new HashSet<>(uniqueProfilesMap.values()));
     }
 }

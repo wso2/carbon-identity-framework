@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
-~ Copyright (c) 2019-2024, WSO2 LLC. (http://www.wso2.com).
+~ Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
 ~
 ~ WSO2 LLC. licenses this file to you under the Apache License,
 ~ Version 2.0 (the "License"); you may not use this file except
@@ -66,6 +66,7 @@
             <UserSessionMapping>
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
+            <CheckExistingEntryForDeleteOperationInsert>{{session_data.session_data_persist.check_existing_entry_for_delete_operation_insert}}</CheckExistingEntryForDeleteOperationInsert>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
@@ -86,6 +87,7 @@
     -->
     <DataStorageType>
         <NotificationTemplates>{{data_storage_type.notification_templates}}</NotificationTemplates>
+        <SAML>{{data_storage_type.saml}}</SAML>
         <XACML>{{data_storage_type.xacml}}</XACML>
     </DataStorageType>
 
@@ -965,6 +967,7 @@
             <UserInfoEndpointRequestValidator>{{oauth.oidc.extensions.user_info_request_validator}}</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>{{oauth.oidc.extensions.user_info_access_token_validator}}</UserInfoEndpointAccessTokenValidator>
             <UserInfoMultiValueSupportEnabled>{{oauth.oidc.user_info.enable_multi_value_support}}</UserInfoMultiValueSupportEnabled>
+            <UserInfoRemoveInternalPrefixFromRoles>{{oauth.oidc.user_info.remove_internal_prefix_from_roles}}</UserInfoRemoveInternalPrefixFromRoles>
             {% if oauth.oidc.extensions.user_info_response_builder is defined %}
             <UserInfoEndpointResponseBuilder>{{oauth.oidc.extensions.user_info_response_builder}}</UserInfoEndpointResponseBuilder>
             {% else %}
@@ -1334,6 +1337,13 @@
         </RestrictedQueryParameters>
 
         <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
+
+        <!--
+            When this configuration is enabled, the system supports the features defined in RFC9396,
+            allowing rich authorization requests to be processed.
+            Default value : false
+        -->
+        <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1910,6 +1920,7 @@
         <UniquenessValidation>
             <ScopeWithinUserstore>{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</ScopeWithinUserstore>
         </UniquenessValidation>
+        <AllowedAttributeProfiles>{{identity_mgt.user_claim_update.allowed_attribute_profiles}}</AllowedAttributeProfiles>
     </UserClaimUpdate>
 
      <AccountSuspension>
@@ -2364,6 +2375,11 @@
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="{{event.default_listener.organization_user_association_listener.priority}}"
                        enable="{{event.default_listener.organization_user_association_listener.enable}}"/>
+        <EventListener id="shared_user_profile_update_governance_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserProfileUpdateGovernanceEventListener"
+                       orderId="{{event.default_listener.shared_user_profile_update_governance_listener.priority}}"
+                       enable="{{event.default_listener.shared_user_profile_update_governance_listener.enable}}"/>
 
         <!-- Role based outbound provision management Event Listener -->
                 <EventListener id="provisioning_role_mgt_listener"
@@ -2591,6 +2607,16 @@
                    enable="{{cache.private_key_jwt.enable}}"
                    timeout="{{cache.private_key_jwt.timeout}}"
                    capacity="{{cache.private_key_jwt.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_auth_context_cache" name="PushAuthContextCache"
+                   enable="{{cache.push_auth_context_cache.enable}}"
+                   timeout="{{cache.push_auth_context_cache.timeout}}"
+                   capacity="{{cache.push_auth_context_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_auth_status_cache" name="PushAuthStatusCache"
+                   enable="{{cache.push_auth_status_cache.enable}}"
+                   timeout="{{cache.push_auth_status_cache_cache.timeout}}"
+                   capacity="{{cache.push_auth_status_cache_cache.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
@@ -4467,5 +4493,30 @@
         </PolicyEditorService>
         {% endif %}
     </AdminServices>
+
+    <AIServices>
+        <TokenEndpoint>{{ai_services.token_endpoint}}</TokenEndpoint>
+        <Key>{{ai_services.key}}</Key>
+        <TokenRequestRetryCount>{{ai_services.token_request_retry_count}}</TokenRequestRetryCount>
+        <TokenConnectionTimeout>{{ai_services.token_connection_timeout}}</TokenConnectionTimeout>
+        <TokenConnectionRequestTimeout>{{ai_services.token_connection_request_timeout}}</TokenConnectionRequestTimeout>
+        <TokenConnectionSocketTimeout>{{ai_services.token_connection_socket_timeout}}</TokenConnectionSocketTimeout>
+        <HTTPConnectionPoolSize>{{ai_services.http_connection_pool_size}}</HTTPConnectionPoolSize>
+        <HTTPConnectionTimeout>{{ai_services.http_connection_timeout}}</HTTPConnectionTimeout>
+        <HTTPConnectionRequestTimeout>{{ai_services.http_connection_request_timeout}}</HTTPConnectionRequestTimeout>
+        <HTTPSocketTimeout>{{ai_services.http_socket_timeout}}</HTTPSocketTimeout>
+        <LoginFlowAI>
+            <LoginFlowAIEndpoint>{{ai_services.login_flow_ai.endpoint}}</LoginFlowAIEndpoint>
+            <LoginFlowAIGenerateRequestPath>{{ai_services.login_flow_ai.generate_request_path}}</LoginFlowAIGenerateRequestPath>
+            <LoginFlowAIStatusRequestPath>{{ai_services.login_flow_ai.status_request_path}}</LoginFlowAIStatusRequestPath>
+            <LoginFlowAIResultRequestPath>{{ai_services.login_flow_ai.result_request_path}}</LoginFlowAIResultRequestPath>
+        </LoginFlowAI>
+        <BrandingAI>
+            <BrandingAIEndpoint>{{ai_services.branding_ai.endpoint}}</BrandingAIEndpoint>
+            <BrandingAIGenerateRequestPath>{{ai_services.branding_ai.generate_request_path}}</BrandingAIGenerateRequestPath>
+            <BrandingAIStatusRequestPath>{{ai_services.branding_ai.status_request_path}}</BrandingAIStatusRequestPath>
+            <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
+        </BrandingAI>
+    </AIServices>
 
 </Server>
