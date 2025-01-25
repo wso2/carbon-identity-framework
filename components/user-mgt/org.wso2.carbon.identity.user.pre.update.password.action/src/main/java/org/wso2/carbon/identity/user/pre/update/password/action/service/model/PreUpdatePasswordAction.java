@@ -52,9 +52,6 @@ public class PreUpdatePasswordAction extends Action {
 
         private PasswordSharing passwordSharing;
 
-        public ResponseBuilder() {
-        }
-
         @Override
         public ResponseBuilder id(String id) {
 

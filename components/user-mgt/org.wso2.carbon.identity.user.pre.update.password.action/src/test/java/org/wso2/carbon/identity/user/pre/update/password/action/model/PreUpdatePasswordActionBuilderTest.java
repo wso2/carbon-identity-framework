@@ -52,7 +52,6 @@ public class PreUpdatePasswordActionBuilderTest {
                         .authentication(new Authentication.BasicAuthBuilder(TEST_USERNAME, TEST_PASSWORD).build())
                         .build())
                 .build();
-
         PreUpdatePasswordAction.RequestBuilder requestBuilder = new PreUpdatePasswordAction.RequestBuilder(action)
                 .passwordSharing(new PasswordSharing.Builder()
                         .format(PasswordSharing.Format.SHA256_HASHED)
@@ -60,7 +59,7 @@ public class PreUpdatePasswordActionBuilderTest {
                                 .certificateContent(TEST_CERTIFICATE)
                                 .build())
                         .build());
-                ;
+
         PreUpdatePasswordAction preUpdatePasswordAction = requestBuilder.build();
         
         assertNotNull(preUpdatePasswordAction);
@@ -99,7 +98,7 @@ public class PreUpdatePasswordActionBuilderTest {
                                 .certificateContent(TEST_CERTIFICATE)
                                 .build())
                         .build());
-        ;
+
         PreUpdatePasswordAction preUpdatePasswordAction = responseBuilder.build();
 
         assertNotNull(preUpdatePasswordAction);

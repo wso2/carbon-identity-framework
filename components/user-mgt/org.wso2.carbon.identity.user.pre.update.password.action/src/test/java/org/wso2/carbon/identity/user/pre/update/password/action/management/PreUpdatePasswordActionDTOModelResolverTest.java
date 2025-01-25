@@ -161,7 +161,7 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid Request")
+            expectedExceptionsMessageRegExp = "Invalid Password Sharing Format.")
     public void testResolveForAddOperationWithInvalidPasswordSharingFormat() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -173,7 +173,7 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid Request")
+            expectedExceptionsMessageRegExp = "Invalid Certificate.")
     public void testResolveForAddOperationWithInvalidCertificateObject() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
