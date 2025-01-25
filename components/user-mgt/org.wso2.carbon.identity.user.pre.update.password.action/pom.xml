@@ -30,8 +30,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Pre Update Password Action Management</name>
-    <description>The Pre Update Password Action Management backend component</description>
+    <name>WSO2 Carbon - Pre Update Password Action Service</name>
+    <description>The Pre Update Password Action Service backend component</description>
     <url>http://wso2.org</url>
 
     <properties>
