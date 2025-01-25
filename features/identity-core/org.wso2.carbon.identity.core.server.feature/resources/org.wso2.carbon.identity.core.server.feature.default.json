@@ -718,6 +718,12 @@
   "cache.private_key_jwt.enable": true,
   "cache.private_key_jwt.timeout": "300",
   "cache.private_key_jwt.capacity": "5000",
+  "cache.push_auth_context_cache.enable": true,
+  "cache.push_auth_context_cache.timeout": "300",
+  "cache.push_auth_context_cache.capacity": "$ref{cache.default_capacity}",
+  "cache.push_auth_status_cache.enable": true,
+  "cache.push_auth_status_cache.timeout": "300",
+  "cache.push_auth_status_cache.capacity": "$ref{cache.default_capacity}",
 
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
@@ -1246,7 +1252,6 @@
   "console.applications.scopes.update": ["internal_application_mgt_update"],
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
-    "applications.loginFlow.ai",
     "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
@@ -1278,7 +1283,6 @@
   "console.branding.enabled": true,
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
-    "branding.ai",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
@@ -1536,7 +1540,10 @@
     "internal_organization_config_view",
     "internal_organization_view"
   ],
-  "console.organization_discovery.scopes.update": ["internal_organization_discovery_update"],
+  "console.organization_discovery.scopes.update": [
+    "internal_organization_config_update",
+    "internal_organization_discovery_update"
+  ],
   "console.organization_discovery.scopes.delete": [
     "internal_organization_discovery_delete",
     "internal_organization_config_delete"

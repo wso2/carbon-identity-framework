@@ -88,8 +88,6 @@ public class PreUpdatePasswordActionServiceComponent {
         LOG.debug("Pre Update Password Action bundle is deactivated");
     }
 
-
-
     @Reference(
             name = "org.wso2.carbon.identity.certificate.management",
             service = CertificateManagementService.class,
@@ -101,7 +99,7 @@ public class PreUpdatePasswordActionServiceComponent {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance()
                 .setCertificateManagementService(certificateManagementService);
-        LOG.debug("CertificateManagementService set in PreUpdatePasswordActionServiceComponentHolder bundle.");
+        LOG.debug("CertificateManagementService set in Pre Update Password Action bundle.");
     }
 
     private void unsetCertificateManagementService(CertificateManagementService certificateManagementService) {

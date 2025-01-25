@@ -309,7 +309,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
 
         String apiEndpoint = action.getEndpoint().getUri();
         CompletableFuture<ActionInvocationResponse> actionExecutor = CompletableFuture.supplyAsync(
-                () -> apiClient.callAPI(apiEndpoint, authenticationMethod, payload), executorService);
+                () -> apiClient.callAPI(ActionType.valueOf(action.getType().getActionType()),
+                        apiEndpoint, authenticationMethod, payload), executorService);
         try {
             return actionExecutor.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -374,7 +375,8 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                 validatePerformableOperations(actionRequest, successResponse.getOperations(), action);
         ActionInvocationSuccessResponse.Builder successResponseBuilder =
                 new ActionInvocationSuccessResponse.Builder().actionStatus(ActionInvocationResponse.Status.SUCCESS)
-                        .operations(allowedPerformableOperations);
+                        .operations(allowedPerformableOperations)
+                        .responseData(successResponse.getData());
         return actionExecutionResponseProcessor.processSuccessResponse(eventContext,
                 actionRequest.getEvent(), successResponseBuilder.build());
     }
