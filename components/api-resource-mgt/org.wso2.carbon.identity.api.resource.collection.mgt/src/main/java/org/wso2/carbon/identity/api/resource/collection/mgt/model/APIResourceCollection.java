@@ -34,8 +34,8 @@ public class APIResourceCollection {
     private String type;
     private List<String> readScopes;
     private List<String> writeScopes;
-    private Map<String, List<String>> newReadScopes;
-    private Map<String, List<String>> newWriteScopes;
+    private List<String> legacyReadScopes;
+    private List<String> legacyWriteScopes;
     private String viewFeatureScope;
     private String editFeatureScope;
     private Map<String, List<APIResource>> apiResources;
@@ -52,8 +52,8 @@ public class APIResourceCollection {
             this.apiResources = apiResourceCollectionBuilder.apiResources;
             this.readScopes = apiResourceCollectionBuilder.readScopes;
             this.writeScopes = apiResourceCollectionBuilder.writeScopes;
-            this.newReadScopes = apiResourceCollectionBuilder.newReadScopes;
-            this.newWriteScopes = apiResourceCollectionBuilder.newWriteScopes;
+            this.legacyReadScopes = apiResourceCollectionBuilder.legacyReadScopes;
+            this.legacyWriteScopes = apiResourceCollectionBuilder.legacyWriteScopes;
             this.viewFeatureScope = apiResourceCollectionBuilder.viewFeatureScope;
             this.editFeatureScope = apiResourceCollectionBuilder.editFeatureScope;
     }
@@ -108,24 +108,24 @@ public class APIResourceCollection {
         this.writeScopes = writeScopes;
     }
 
-    public Map<String, List<String>> getNewReadScopes() {
+    public List<String> getLegacyReadScopes() {
 
-        return newReadScopes;
+        return legacyReadScopes;
     }
 
-    public void setNewReadScopes(Map<String, List<String>> newReadScopes) {
+    public void setLegacyReadScopes(List<String> legacyReadScopes) {
 
-        this.newReadScopes = newReadScopes;
+        this.legacyReadScopes = legacyReadScopes;
     }
 
-    public Map<String, List<String>> getNewWriteScopes() {
+    public List<String> getLegacyWriteScopes() {
 
-        return newWriteScopes;
+        return legacyWriteScopes;
     }
 
-    public void setNewWriteScopes(Map<String, List<String>> newWriteScopes) {
+    public void setLegacyWriteScopes(List<String> legacyWriteScopes) {
 
-        this.newWriteScopes = newWriteScopes;
+        this.legacyWriteScopes = legacyWriteScopes;
     }
 
     public String getViewFeatureScope() {
@@ -159,8 +159,8 @@ public class APIResourceCollection {
         private String type;
         private List<String> readScopes;
         private List<String> writeScopes;
-        private Map<String, List<String>> newReadScopes;
-        private Map<String, List<String>> newWriteScopes;
+        private List<String> legacyReadScopes;
+        private List<String> legacyWriteScopes;
         private String viewFeatureScope;
         private String editFeatureScope;
         private Map<String, List<APIResource>> apiResources;
@@ -204,15 +204,15 @@ public class APIResourceCollection {
             return this;
         }
 
-        public APIResourceCollectionBuilder newReadScopes(Map<String, List<String>> newReadScopes) {
+        public APIResourceCollectionBuilder legacyReadScopes(List<String> legacyReadScopes) {
 
-            this.newReadScopes = newReadScopes;
+            this.legacyReadScopes = legacyReadScopes;
             return this;
         }
 
-        public APIResourceCollectionBuilder newWriteScopes(Map<String, List<String>> newWriteScopes) {
+        public APIResourceCollectionBuilder legacyWriteScopes(List<String> legacyWriteScopes) {
 
-            this.newWriteScopes = newWriteScopes;
+            this.legacyWriteScopes = legacyWriteScopes;
             return this;
         }
 

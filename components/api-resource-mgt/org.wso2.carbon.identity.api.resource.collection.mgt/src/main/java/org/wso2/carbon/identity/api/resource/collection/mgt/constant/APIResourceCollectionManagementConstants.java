@@ -58,6 +58,8 @@ public class APIResourceCollectionManagementConstants {
         public static final String FEATURE = "Feature";
         public static final String VIEW_ACTION = "view";
         public static final String EDIT_ACTION = "edit";
+        public static final String SCOPE_COLLECTION_VERSION_V0 = "v0";
+        public static final String SCOPE_COLLECTION_VERSION_V1 = "v1";
     }
 
     /**

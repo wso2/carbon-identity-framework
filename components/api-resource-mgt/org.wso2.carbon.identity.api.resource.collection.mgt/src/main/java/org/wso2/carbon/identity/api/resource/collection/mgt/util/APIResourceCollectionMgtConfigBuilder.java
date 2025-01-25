@@ -126,72 +126,90 @@ public class APIResourceCollectionMgtConfigBuilder {
                 continue;
             }
             // Fetch scopes.
-            OMElement scopesElement = apiResourceCollection.getFirstChildWithName(
+            Iterator<OMElement> scopesElements = apiResourceCollection.getChildrenWithName(
                     new QName(APIResourceCollectionConfigBuilderConstants.SCOPES_ELEMENT));
-            if (scopesElement != null) {
-                Set<String> readScopeSet = new HashSet<>();
-                Set<String> writeScopeSet = new HashSet<>();
-                Map<String, Set<String>> newReadScopeMap = new HashMap<>();
-                Map<String, Set<String>> newWriteScopeMap = new HashMap<>();
-                Iterator<?> actionElements = scopesElement.getChildElements();
-                while (actionElements.hasNext()) {
-                    OMElement actionElement = (OMElement) actionElements.next();
-                    if (actionElement == null) {
-                        continue;
-                    }
-                    Iterator<OMElement> scopes = actionElement.getChildrenWithName(
-                            new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
-                    while (scopes.hasNext()) {
-                        OMElement scope = scopes.next();
-                        String scopeName = scope.getAttributeValue(
-                                new QName(APIResourceCollectionConfigBuilderConstants.NAME));
-                        String scopeVersion = scope.getAttributeValue(
-                                new QName(APIResourceCollectionConfigBuilderConstants.VERSION));
-                        // All the collections have specifically defined two feature scopes (view, edit) for each
-                        // action. These two will be assigned to console roles. Based on the feature scope, we will
-                        // assign the read and write scopes to the console roles. This help to introduce new scopes
-                        // without migrating the console roles.
-                        String scopeAction = scope.getAttributeValue(
-                                new QName(APIResourceCollectionConfigBuilderConstants.ACTION));
-                        // Read and old Feature scope are considered as read scopes.
-                        boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
-                                .equals(actionElement.getLocalName());
-                        boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
-                                equals(actionElement.getLocalName());
-                        if (isReadAction) {
-                            if (StringUtils.isNotBlank(scopeVersion)) {
-                                newReadScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
+            Set<String> readScopeSet = new HashSet<>();
+            Set<String> writeScopeSet = new HashSet<>();
+            Set<String> legacyReadScopeSet = new HashSet<>();
+            Set<String> legacyWriteScopeSet = new HashSet<>();
+            while (scopesElements.hasNext()) {
+                OMElement scopesCollection = scopesElements.next();
+                String scopesCollectionVersion = scopesCollection.getAttributeValue(
+                        new QName(APIResourceCollectionConfigBuilderConstants.VERSION));
+                Iterator<?> actionElements = scopesCollection.getChildElements();
+                switch (scopesCollectionVersion) {
+                    case APIResourceCollectionConfigBuilderConstants.SCOPE_COLLECTION_VERSION_V0:
+                        while (actionElements.hasNext()) {
+                            OMElement actionElement = (OMElement) actionElements.next();
+                            if (actionElement == null) {
+                                continue;
                             }
-                            readScopeSet.add(scopeName);
-                        } else if (isFeatureAction) {
-                            if (StringUtils.isNotBlank(scopeVersion)) {
-                                if (VIEW_ACTION.equals(scopeAction)) {
-                                    apiResourceCollectionObj.setViewFeatureScope(scopeName);
-                                    readScopeSet.add(scopeName);
-                                    newReadScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
-                                } else if (EDIT_ACTION.equals(scopeAction)) {
-                                    apiResourceCollectionObj.setEditFeatureScope(scopeName);
-                                    writeScopeSet.add(scopeName);
-                                    newWriteScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
+                            Iterator<OMElement> scopes = actionElement.getChildrenWithName(
+                                    new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
+                            while (scopes.hasNext()) {
+                                OMElement scope = scopes.next();
+                                String scopeName = scope.getAttributeValue(
+                                        new QName(APIResourceCollectionConfigBuilderConstants.NAME));
+                                // Read and old Feature scope are considered as read scopes.
+                                boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
+                                        .equals(actionElement.getLocalName());
+                                boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
+                                        equals(actionElement.getLocalName());
+                                if (isReadAction || isFeatureAction) {
+                                    legacyReadScopeSet.add(scopeName);
+                                } else {
+                                    legacyWriteScopeSet.add(scopeName);
                                 }
-                            } else {
-                                readScopeSet.add(scopeName);
                             }
-                        } else {
-                            if (StringUtils.isNotBlank(scopeVersion)) {
-                                newWriteScopeMap.computeIfAbsent(scopeVersion, v -> new HashSet<>()).add(scopeName);
-                            }
-                            writeScopeSet.add(scopeName);
                         }
-                    }
+                        break;
+                    case APIResourceCollectionConfigBuilderConstants.SCOPE_COLLECTION_VERSION_V1:
+                        while (actionElements.hasNext()) {
+                            OMElement actionElement = (OMElement) actionElements.next();
+                            if (actionElement == null) {
+                                continue;
+                            }
+                            Iterator<OMElement> scopes = actionElement.getChildrenWithName(
+                                    new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
+                            while (scopes.hasNext()) {
+                                OMElement scope = scopes.next();
+                                String scopeName = scope.getAttributeValue(
+                                        new QName(APIResourceCollectionConfigBuilderConstants.NAME));
+                                // All the collections have specifically defined two feature scopes (view, edit)
+                                // for each action. These two will be assigned to console roles. Based on the
+                                // feature scope, we will assign the read and write scopes to the console roles.
+                                // This help to introduce new scopes without migrating the console roles.
+                                String scopeAction = scope.getAttributeValue(
+                                        new QName(APIResourceCollectionConfigBuilderConstants.ACTION));
+                                // Read and old Feature scope are considered as read scopes.
+                                boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
+                                        .equals(actionElement.getLocalName());
+                                boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
+                                        equals(actionElement.getLocalName());
+                                if (isReadAction) {
+                                    readScopeSet.add(scopeName);
+                                } else if (isFeatureAction) {
+                                    if (VIEW_ACTION.equals(scopeAction)) {
+                                        apiResourceCollectionObj.setViewFeatureScope(scopeName);
+                                        readScopeSet.add(scopeName);
+                                    } else if (EDIT_ACTION.equals(scopeAction)) {
+                                        apiResourceCollectionObj.setEditFeatureScope(scopeName);
+                                        writeScopeSet.add(scopeName);
+                                    } else {
+                                        readScopeSet.add(scopeName);
+                                    }
+                                } else {
+                                    writeScopeSet.add(scopeName);
+                                }
+                            }
+                        }
+                        break;
                 }
-                Map<String, List<String>> convertedNewReadScopeMap = convertMapSetToList(newReadScopeMap);
-                Map<String, List<String>> convertedNewWriteScopeMap = convertMapSetToList(newWriteScopeMap);
-                apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
-                apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
-                apiResourceCollectionObj.setNewReadScopes(convertedNewReadScopeMap);
-                apiResourceCollectionObj.setNewWriteScopes(convertedNewWriteScopeMap);
             }
+            apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
+            apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
+            apiResourceCollectionObj.setLegacyReadScopes(new ArrayList<>(legacyReadScopeSet));
+            apiResourceCollectionObj.setLegacyWriteScopes(new ArrayList<>(legacyWriteScopeSet));
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
         }
     }
