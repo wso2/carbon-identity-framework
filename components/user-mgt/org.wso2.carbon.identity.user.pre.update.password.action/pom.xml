@@ -34,11 +34,6 @@
     <description>The Pre Update Password Action Service backend component</description>
     <url>http://wso2.org</url>
 
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -75,12 +70,11 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.user.pre.update.password.action.core,
+                            org.wso2.carbon.identity.user.pre.update.password.action.core.constant,
+                            org.wso2.carbon.identity.user.pre.update.password.action.core.management,
                             org.wso2.carbon.identity.user.pre.update.password.action.internal
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.user.pre.update.password.action.core,
-                            !org.wso2.carbon.identity.user.pre.update.password.action.internal,
                             org.wso2.carbon.identity.user.pre.update.password.action.service.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
