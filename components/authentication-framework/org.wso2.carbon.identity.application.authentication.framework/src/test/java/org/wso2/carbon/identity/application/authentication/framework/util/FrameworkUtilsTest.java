@@ -62,7 +62,9 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -85,7 +87,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -96,7 +101,11 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.GROUPS_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ROLES_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -145,6 +154,10 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
     @Mock
     private ClaimMapping mockedClaimMapping;
+    @Mock
+    private FederatedAuthenticatorConfig mockedFederatedAuthenticatorConfig;
+    @Mock
+    private ClaimMetadataHandler mockedClaimMetadataHandler;
 
     @Captor
     ArgumentCaptor<Cookie> cookieCaptor;
@@ -155,6 +168,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
         FrameworkServiceComponent.getAuthenticators().clear();
         FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("BasicAuthenticator"));
         FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
+        FrameworkServiceComponent.getAuthenticators().add(
+                new MockAuthenticator("FederatedAuthenticator", null, "sampleClaimDialectURI"));
         authenticationContext.setTenantDomain("abc");
     }
 
@@ -921,6 +936,106 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                                     eq("JITProvisioning.AutofillUsernameFieldWithSubjectAttribute")))
                     .thenReturn("false");
             assertFalse(FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr());
+        }
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriDefaultBehaviourForCustomGroupClaimMapping() {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        ClaimMapping[] claimMappings = new ClaimMapping[3];
+        claimMappings[0] = ClaimMapping.build(USERNAME_CLAIM, "idpUsernameAttribute", null, false);
+        claimMappings[1] = ClaimMapping.build(GROUPS_CLAIM, "idpGroupAttribute", null, false);
+        claimMappings[2] = ClaimMapping.build(ROLES_CLAIM, "idpRoleAttribute", null, false);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(claimMappings);
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(false));
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "idpGroupAttribute");
+        }
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriLegacyBehaviourForCustomGroupClaimMapping() {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        ClaimMapping[] claimMappings = new ClaimMapping[3];
+        claimMappings[0] = ClaimMapping.build(USERNAME_CLAIM, "idpUsernameAttribute", null, false);
+        claimMappings[1] = ClaimMapping.build(GROUPS_CLAIM, "idpGroupAttribute", null, false);
+        claimMappings[2] = ClaimMapping.build(ROLES_CLAIM, "idpRoleAttribute", null, false);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(claimMappings);
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(true));
+            identityUtilMockedStatic.when(IdentityUtil::getLocalGroupsClaimURI)
+                    .thenReturn(UserCoreConstants.INTERNAL_ROLES_CLAIM);
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "idpRoleAttribute");
+        }
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriDefaultBehaviourWithNoCustomClaimMappings() throws Exception {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(null);
+        when(mockedClaimConfig.isLocalClaimDialect()).thenReturn(true);
+        when(mockedIdentityProvider.getDefaultAuthenticatorConfig()).thenReturn(mockedFederatedAuthenticatorConfig);
+        when(mockedFederatedAuthenticatorConfig.getName()).thenReturn("FederatedAuthenticator");
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<ClaimMetadataHandler> claimMetadataHandlerMockedStatic = mockStatic(
+                     ClaimMetadataHandler.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(false));
+
+            claimMetadataHandlerMockedStatic.when(() -> ClaimMetadataHandler.getInstance())
+                    .thenReturn(mockedClaimMetadataHandler);
+            Map<String, String> otherClaimDialectToCarbonMapping = new HashMap<>();
+            otherClaimDialectToCarbonMapping.put("groupsClaimInDialect", "http://wso2.org/claims/groups");
+            when(mockedClaimMetadataHandler.getMappingsMapFromOtherDialectToCarbon(anyString(),
+                    isNull(), anyString(), anyBoolean())).thenReturn(otherClaimDialectToCarbonMapping);
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "groupsClaimInDialect");
+        }
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriLegacyBehaviourWithNoCustomClaimMappings() throws Exception {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(new ClaimMapping[0]);
+        when(mockedClaimConfig.isLocalClaimDialect()).thenReturn(true);
+        when(mockedIdentityProvider.getDefaultAuthenticatorConfig()).thenReturn(mockedFederatedAuthenticatorConfig);
+        when(mockedFederatedAuthenticatorConfig.getName()).thenReturn("FederatedAuthenticator");
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<ClaimMetadataHandler> claimMetadataHandlerMockedStatic = mockStatic(
+                     ClaimMetadataHandler.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(true));
+            identityUtilMockedStatic.when(IdentityUtil::getLocalGroupsClaimURI)
+                    .thenReturn(UserCoreConstants.INTERNAL_ROLES_CLAIM);
+
+            claimMetadataHandlerMockedStatic.when(() -> ClaimMetadataHandler.getInstance())
+                    .thenReturn(mockedClaimMetadataHandler);
+            Map<String, String> otherClaimDialectToCarbonMapping = new HashMap<>();
+            otherClaimDialectToCarbonMapping.put("rolesClaimInDialect", "http://wso2.org/claims/roles");
+            when(mockedClaimMetadataHandler.getMappingsMapFromOtherDialectToCarbon(anyString(),
+                    isNull(), anyString(), anyBoolean())).thenReturn(otherClaimDialectToCarbonMapping);
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "rolesClaimInDialect");
         }
     }
 }
