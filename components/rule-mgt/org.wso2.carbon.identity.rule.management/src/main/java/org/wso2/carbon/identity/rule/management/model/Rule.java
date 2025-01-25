@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.rule.management.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.List;
+
 /**
  * Represents a rule in Rule Management.
  * This class has an id, a condition and a status.
@@ -54,4 +56,7 @@ public abstract class Rule {
 
         return isActive;
     }
+
+
+    public abstract List<Expression> getExpressions();
 }

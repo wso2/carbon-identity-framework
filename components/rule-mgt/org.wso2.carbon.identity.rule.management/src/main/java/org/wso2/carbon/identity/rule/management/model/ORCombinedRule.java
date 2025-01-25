@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.rule.management.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents an OR combined rule.
@@ -32,7 +35,8 @@ import java.util.UUID;
 @JsonDeserialize(builder = ORCombinedRule.Builder.class)
 public class ORCombinedRule extends Rule {
 
-    private List<ANDCombinedRule> rules;
+    private final List<ANDCombinedRule> rules;
+    private final ConcurrentMap<String, List<Expression>> expressionsCache = new ConcurrentHashMap<>();
 
     /**
      * Builder for the ORCombinedRule.
@@ -53,6 +57,23 @@ public class ORCombinedRule extends Rule {
     public List<ANDCombinedRule> getRules() {
 
         return rules;
+    }
+
+    /**
+     * @JsonIgnore annotation is used to ignore the expressions field when serializing and deserializing the object,
+     * to and from JSON in order to store in the database.
+     */
+    @JsonIgnore
+    @Override
+    public List<Expression> getExpressions() {
+
+        return expressionsCache.computeIfAbsent(id, k -> {
+            List<Expression> expressions = new ArrayList<>();
+            for (ANDCombinedRule rule : rules) {
+                expressions.addAll(rule.getExpressions());
+            }
+            return expressions;
+        });
     }
 
     /**

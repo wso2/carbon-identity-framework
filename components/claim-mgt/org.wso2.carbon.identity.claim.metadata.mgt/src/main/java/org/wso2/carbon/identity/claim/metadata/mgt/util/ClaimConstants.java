@@ -18,6 +18,10 @@ package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
 import org.wso2.carbon.user.core.UserCoreConstants;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Holds the claim metadata related constants.
  */
@@ -38,7 +42,10 @@ public class ClaimConstants {
     public static final String MASKING_REGULAR_EXPRESSION_PROPERTY = "MaskingRegEx";
     public static final String CLAIM_UNIQUENESS_SCOPE_PROPERTY = "UniquenessScope";
     public static final String IS_UNIQUE_CLAIM_PROPERTY = "isUnique";
+    public static final String PROFILES_CLAIM_PROPERTY_PREFIX = "Profiles.";
     public static final String UNIQUENESS_VALIDATION_SCOPE = "UserClaimUpdate.UniquenessValidation.ScopeWithinUserstore";
+    public static final String ALLOWED_ATTRIBUTE_PROFILE_CONFIG = "UserClaimUpdate.AllowedAttributeProfiles";
+    public static final String CLAIM_PROFILE_PROPERTY_DELIMITER = ".";
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
@@ -104,6 +111,8 @@ public class ClaimConstants {
                 "Cannot change the shared profile value resolving method of the system claim: %s"),
         ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD("CMT-60014",
                 "Invalid shared profile value resolving method: %s"),
+        ERROR_CODE_INVALID_ATTRIBUTE_PROFILE("CMT-600015", "Invalid attribute profile name."),
+
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
                 "mapped attributes for domain : %s with tenant Id : %s from table : IDN_CLAIM_MAPPED_ATTRIBUTE"),
@@ -173,4 +182,29 @@ public class ClaimConstants {
             throw new IllegalArgumentException("Invalid value: " + name);
         }
     }
+
+    /**
+     * Enum for default allowed claim profiles.
+     */
+    public enum DefaultAllowedClaimProfile {
+
+        CONSOLE("console"),
+        END_USER("endUser"),
+        SELF_REGISTRATION("selfRegistration");
+
+        private final String profileName;
+
+        DefaultAllowedClaimProfile(String profileName) {
+            this.profileName = profileName;
+        }
+
+        public String getProfileName() {
+            return profileName;
+        }
+    }
+
+    public static final List<String> ALLOWED_PROFILE_PROPERTY_KEYS = Collections.unmodifiableList(Arrays.asList(
+            ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY,
+            ClaimConstants.REQUIRED_PROPERTY,
+            ClaimConstants.READ_ONLY_PROPERTY));
 }

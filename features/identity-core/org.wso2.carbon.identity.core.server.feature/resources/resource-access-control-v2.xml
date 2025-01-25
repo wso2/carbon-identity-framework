@@ -238,6 +238,20 @@
     <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
     <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
 
+    <!-- OAuth DCR API in Tenant Perspective -->
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_dcr_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_dcr_delete</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_dcr_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/t/(.*)/o/(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_dcr_view</Scopes>
+    </Resource>
+
     <!-- OAuth DCR API -->
     <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="POST">
         <Scopes>internal_dcr_create</Scopes>
@@ -258,6 +272,11 @@
     </Resource>
     <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
         <Scopes>internal_dcr_create</Scopes>
+    </Resource>
+
+    <!-- OAuth2 Introspection API in Tenant Perspective -->
+    <Resource context="(.*)/t/(.*)/o/(.*)/oauth2/introspect(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_oauth2_introspect</Scopes>
     </Resource>
 
     <!-- OAuth2 Introspection API -->
@@ -564,6 +583,17 @@
     <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
     <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
 
+    <!-- [Organization] Association Management API -->
+    <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations" secured="true" http-method="GET">
+        <Scopes>internal_org_user_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations" secured="true" http-method="POST">
+        <Scopes>internal_org_user_association_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_user_association_delete</Scopes>
+    </Resource>
+
     <!-- Association Management API -->
     <Resource context="(.*)/api/users/v1/(.*)/associations" secured="true" http-method="GET">
         <Scopes>internal_user_association_view</Scopes>
@@ -573,6 +603,9 @@
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/federated-associations" secured="true" http-method="GET">
         <Scopes>internal_user_association_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/users/v1/(.*)/federated-associations" secured="true" http-method="POST">
+        <Scopes>internal_user_association_create</Scopes>
     </Resource>
     <Resource context="(.*)/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
         <Scopes>internal_user_association_delete</Scopes>
@@ -773,8 +806,14 @@
     </Resource>
 
     <!-- [Organization] Application Management API -->
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_application_mgt_create</Scopes>
+    </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="PATCH, PUT">
         <Scopes>internal_org_application_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_application_mgt_delete</Scopes>
     </Resource>
     <Resource context="(.*)/o/api/server/v1/applications(.*)" secured="true" http-method="GET">
         <Scopes>internal_org_application_mgt_view</Scopes>

@@ -205,16 +205,16 @@
                 <Scope name="console:smsTemplates"/>
             </Feature>
             <Update>
-                <Scope name="internal_notification_mgt_update"/>
+                <Scope name="internal_template_mgt_update"/>
             </Update>
             <Delete>
-                <Scope name="internal_notification_mgt_delete"/>
+                <Scope name="internal_template_mgt_delete"/>
             </Delete>
             <Create>
-                <Scope name="internal_notification_mgt_create"/>
+                <Scope name="internal_template_mgt_create"/>
             </Create>
             <Read>
-                <Scope name="internal_notification_mgt_view"/>
+                <Scope name="internal_template_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -425,25 +425,6 @@
             <Read>
                 <Scope name="internal_idp_view"/>
                 <Scope name="internal_application_mgt_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="secretsManagement" displayName="Secrets Management" type="tenant">
-        <Scopes>
-            <Feature>
-                <Scope name="console:secretsManagement"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_secret_mgt_update"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_secret_mgt_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_secret_mgt_add"/>
-            </Create>
-            <Read>
-                <Scope name="internal_secret_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

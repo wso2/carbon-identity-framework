@@ -46,6 +46,46 @@ public class ActionExecutionDiagnosticLogger {
                         DiagnosticLog.ResultStatus.SUCCESS));
     }
 
+    public void logActionExecution(Action action) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
+                        ActionExecutionLogConstants.ActionIDs.EXECUTE_ACTION,
+                        action.getType().getDisplayName() + " action execution started.",
+                        DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
+    public void logActionRuleEvaluation(Action action, boolean ruleEvaluationResult) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
+                        ActionExecutionLogConstants.ActionIDs.EVALUATE_RULE,
+                        "Rule of " + action.getType().getDisplayName() + " action evaluated to " +
+                                ruleEvaluationResult, DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
+    public void logNoRuleConfiguredForAction(Action action) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+
+        triggerLogEvent(
+                initializeDiagnosticLogBuilder(
+                        ActionExecutionLogConstants.ActionIDs.EVALUATE_RULE,
+                        "No rule configured for action " + action.getType().getDisplayName() +
+                                ". Proceed executing the action."
+                        , DiagnosticLog.ResultStatus.SUCCESS));
+    }
+
     public void logActionRequest(Action action) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -69,6 +109,20 @@ public class ActionExecutionDiagnosticLogger {
         DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
                 ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE,
                 "Received success response from external endpoint " +
+                        action.getEndpoint().getUri() + " for " +
+                        action.getType().getDisplayName() + " action.",
+                DiagnosticLog.ResultStatus.SUCCESS);
+        triggerLogEvent(addActionConfigParams(diagnosticLogBuilder, action));
+    }
+
+    public void logIncompleteResponse(Action action) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = initializeDiagnosticLogBuilder(
+                ActionExecutionLogConstants.ActionIDs.RECEIVE_ACTION_RESPONSE,
+                "Received response with INCOMPLETE status from external endpoint " +
                         action.getEndpoint().getUri() + " for " +
                         action.getType().getDisplayName() + " action.",
                 DiagnosticLog.ResultStatus.SUCCESS);
