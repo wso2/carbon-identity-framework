@@ -161,7 +161,29 @@ public class ApplicationAuthenticatorService {
         return getUserDefinedLocalAuthenticator(name, tenantDomain);
     }
 
+    /**
+     * This returns only SYSTEM defined federated authenticator by name.
+     *
+     * @param name  The name of the federated application authenticator configuration.
+     * @return Retrieved FederatedAuthenticatorConfig.
+     *
+     * @deprecated It is recommended to use getFederatedAuthenticatorByName(String, String) in
+     * org.wso2.carbon.idp.mgt.IdentityProviderManager class which supports retrieving both USER and SYSTEM defined
+     * federated application authenticator configuration by name, or getSystemFederatedAuthenticatorByName(String)
+     * to retrieve only SYSTEM defined federated application authenticator configuration by name.
+     */
+    @Deprecated
     public FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String name) {
+        for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
+            if (federatedAuthenticator.getName().equals(name)) {
+                return federatedAuthenticator;
+            }
+        }
+        return null;
+    }
+
+    public FederatedAuthenticatorConfig getSystemDefinedFederatedAuthenticatorByName(String name) {
+
         for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
             if (federatedAuthenticator.getName().equals(name)) {
                 return federatedAuthenticator;
