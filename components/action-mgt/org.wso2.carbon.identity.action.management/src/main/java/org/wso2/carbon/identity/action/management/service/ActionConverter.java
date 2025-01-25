@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 
 /**
- * This interface defines the Action ActionConverter.
+ * This interface defines the Action ActionConverter executed in the Action management service layer.
  * Action ActionConverter is the component that is responsible for the conversions between Action and ExtendedAction
  * objects.
  */

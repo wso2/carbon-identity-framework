@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import java.util.List;
 
 /**
- * This interface defines the Action Property Resolver.
+ * This interface defines the Action Property Resolver executed in the Action management dao facade layer.
  * Action Property Resolver is the component that is responsible for handling action type specific operations.
  */
 public interface ActionDTOModelResolver {

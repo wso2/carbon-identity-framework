@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.management;
+package org.wso2.carbon.identity.user.pre.update.password.action.core.management;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverClientException;
@@ -30,14 +30,15 @@ import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtE
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.PreUpdatePasswordActionServiceComponentHolder;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordSharing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.user.pre.update.password.action.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
-import static org.wso2.carbon.identity.user.pre.update.password.action.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
+import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
+import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
 
 /**
  * This class implements the methods required to resolve ActionDTO objects in Pre Update Password extension.
@@ -55,18 +56,30 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
             throws ActionDTOModelResolverException {
 
         Map<String, Object> properties = new HashMap<>();
-        Certificate certificate = (Certificate) actionDTO.getProperty(CERTIFICATE);
-        if (certificate != null && certificate.getCertificateContent() != null) {
-            Certificate certToBeAdded = buildCertificate(actionDTO.getId(), certificate);
-            // Certificate is an optional attribute.
-            properties.put(CERTIFICATE, addCertificate(certToBeAdded, tenantDomain));
+        // Certificate is an optional field.
+        Object certificate = actionDTO.getProperty(CERTIFICATE);
+        if (certificate != null) {
+            if (!(certificate instanceof Certificate)) {
+                throw new ActionDTOModelResolverClientException("Invalid Request",
+                        "Certificate should be an instance of Certificate.");
+            }
+
+            Certificate certToBeAdded = buildCertificate(actionDTO.getId(), (Certificate) certificate);
+            String certificateId = addCertificate(certToBeAdded, tenantDomain);
+            properties.put(CERTIFICATE, certificateId);
         }
 
+        // Password sharing format is a required field.
         if (actionDTO.getProperty(PASSWORD_SHARING_FORMAT) == null) {
             throw new ActionDTOModelResolverClientException("Invalid Request",
                     "Password sharing format is a required field.");
         }
-        properties.put(PASSWORD_SHARING_FORMAT, actionDTO.getProperty(PASSWORD_SHARING_FORMAT));
+        if (!(actionDTO.getProperty(PASSWORD_SHARING_FORMAT) instanceof PasswordSharing.Format)) {
+            throw new ActionDTOModelResolverClientException("Invalid Request",
+                    "Password sharing format should be an instance of PasswordSharing.Format.");
+        }
+        properties.put(PASSWORD_SHARING_FORMAT,
+                ((PasswordSharing.Format) actionDTO.getProperty(PASSWORD_SHARING_FORMAT)).name());
 
         return new ActionDTO.Builder(actionDTO)
                 .properties(properties)
@@ -78,12 +91,22 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
             throws ActionDTOModelResolverException {
 
         Map<String, Object> properties = new HashMap<>();
-        String certificateId = (String) actionDTO.getProperty(CERTIFICATE);
-        if (certificateId != null) {
-            // Certificate is an optional attribute.
-            properties.put(CERTIFICATE, getCertificate(certificateId, tenantDomain));
+        // Certificate is an optional field.
+        if (actionDTO.getProperty(CERTIFICATE) != null) {
+            if (!(actionDTO.getProperty(CERTIFICATE) instanceof String)) {
+                throw new ActionDTOModelResolverServerException("Unable to retrieve the certificate.",
+                        "Invalid certificate property provided to retrieve the certificate.");
+            }
+            Certificate certificate = getCertificate((String) actionDTO.getProperty(CERTIFICATE), tenantDomain);
+            properties.put(CERTIFICATE, certificate);
         }
-        properties.put(PASSWORD_SHARING_FORMAT, actionDTO.getProperty(PASSWORD_SHARING_FORMAT));
+
+        if (!(actionDTO.getProperty(PASSWORD_SHARING_FORMAT) instanceof String)) {
+            throw new ActionDTOModelResolverServerException("Error while retrieving the password sharing format.",
+                    "Unable to retrieve the password sharing format from the system");
+        }
+        properties.put(PASSWORD_SHARING_FORMAT,
+                PasswordSharing.Format.valueOf((String) actionDTO.getProperty(PASSWORD_SHARING_FORMAT)));
 
         return new ActionDTO.Builder(actionDTO)
                 .properties(properties)
@@ -130,8 +153,8 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
     public void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        Certificate certificate = (Certificate) deletingActionDTO.getProperty(CERTIFICATE);
-        if (certificate != null && certificate.getId() != null) {
+        if (deletingActionDTO.getProperty(CERTIFICATE) instanceof Certificate) {
+            Certificate certificate = (Certificate) deletingActionDTO.getProperty(CERTIFICATE);
             deleteCertificate(certificate.getId(), tenantDomain);
         }
     }
@@ -142,6 +165,39 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
                 .name("ACTIONS:" + actionId)
                 .certificateContent(updatingCertificate.getCertificateContent())
                 .build();
+    }
+
+    private void resolvePasswordSharingFormatUpdate(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
+                                                    Map<String, Object> properties) {
+
+        if (updatingActionDTO.getProperty(PASSWORD_SHARING_FORMAT) != null) {
+            properties.put(PASSWORD_SHARING_FORMAT,
+                    ((PasswordSharing.Format) updatingActionDTO.getProperty(PASSWORD_SHARING_FORMAT)).name());
+        } else {
+            properties.put(PASSWORD_SHARING_FORMAT,
+                    ((PasswordSharing.Format) existingActionDTO.getProperty(PASSWORD_SHARING_FORMAT)).name());
+        }
+    }
+
+    private void resolveCertificateUpdate(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
+                                          Map<String, Object> properties, String tenantDomain)
+            throws ActionDTOModelResolverException {
+
+        Certificate updatingCertificate = (Certificate) updatingActionDTO.getProperty(CERTIFICATE);
+        Certificate existingCertificate = (Certificate) existingActionDTO.getProperty(CERTIFICATE);
+
+        if (isNewCertificateAdding(updatingCertificate, existingCertificate)) {
+            Certificate certToBeAdded = buildCertificate(updatingActionDTO.getId(), updatingCertificate);
+            String certificateId = addCertificate(certToBeAdded, tenantDomain);
+            properties.put(CERTIFICATE, certificateId);
+        } else if (isExistingCertificateDeleting(updatingCertificate, existingCertificate)) {
+            deleteCertificate(existingCertificate.getId(), tenantDomain);
+        } else if (isExistingCertificateUpdating(updatingCertificate, existingCertificate)) {
+            updateCertificate(existingCertificate.getId(), updatingCertificate.getCertificateContent(), tenantDomain);
+            properties.put(CERTIFICATE, existingCertificate.getId());
+        } else if (existingCertificate != null) {
+            properties.put(CERTIFICATE, existingCertificate.getId());
+        }
     }
 
     private String addCertificate(Certificate certificate, String tenantDomain) throws ActionDTOModelResolverException {
@@ -167,54 +223,6 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         }
     }
 
-    private void resolveCertificateUpdate(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
-                                          Map<String, Object> properties, String tenantDomain)
-            throws ActionDTOModelResolverException {
-
-        Certificate updatingCertificate = (Certificate) updatingActionDTO.getProperty(CERTIFICATE);
-        Certificate existingCertificate = (Certificate) existingActionDTO.getProperty(CERTIFICATE);
-
-        if (updatingCertificate != null && updatingCertificate.getCertificateContent() != null) {
-            updateActionCertificate(updatingCertificate, existingCertificate, properties, tenantDomain);
-        } else if (existingCertificate != null && existingCertificate.getId() != null) {
-            // If a certificate is configured, and it is not updated; use the existing certificateId.
-            properties.put(CERTIFICATE, existingCertificate.getId());
-        }
-    }
-
-    private void updateActionCertificate(Certificate updatingCertificate, Certificate existingCertificate,
-                                         Map<String, Object> properties, String tenantDomain)
-            throws ActionDTOModelResolverException {
-
-        if (existingCertificate != null && existingCertificate.getId() != null) {
-            if (updatingCertificate.getCertificateContent().equals(StringUtils.EMPTY)) {
-                deleteCertificate(existingCertificate.getId(), tenantDomain);
-            } else {
-                updateCertificate(existingCertificate.getId(), updatingCertificate.getCertificateContent(),
-                        tenantDomain);
-
-                properties.put(CERTIFICATE, existingCertificate.getId());
-            }
-        } else {
-            Certificate certToBeAdded = buildCertificate(updatingCertificate.getId(), updatingCertificate);
-            properties.put(CERTIFICATE, addCertificate(certToBeAdded, tenantDomain));
-        }
-    }
-
-    private void updateCertificate(String certificateId, String updatingContent, String tenantDomain)
-            throws ActionDTOModelResolverException {
-
-        try {
-             getCertificateManagementService().updateCertificateContent(certificateId, updatingContent, tenantDomain);
-        } catch (CertificateMgtClientException e) {
-            throw new ActionDTOModelResolverClientException("Error while updating the certificate.",
-                    e.getDescription());
-        } catch (CertificateMgtException e) {
-            throw new ActionDTOModelResolverServerException("Error while updating the certificate.", e.getDescription(),
-                    e);
-        }
-    }
-
     private void deleteCertificate(String certificateId, String tenantDomain) throws ActionDTOModelResolverException {
 
         try {
@@ -225,18 +233,42 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         }
     }
 
+    private void updateCertificate(String certificateId, String updatingContent, String tenantDomain)
+            throws ActionDTOModelResolverException {
+
+        try {
+            getCertificateManagementService().updateCertificateContent(certificateId, updatingContent, tenantDomain);
+        } catch (CertificateMgtClientException e) {
+            throw new ActionDTOModelResolverClientException("Error while updating the certificate.",
+                    e.getDescription());
+        } catch (CertificateMgtException e) {
+            throw new ActionDTOModelResolverServerException("Error while updating the certificate.", e.getDescription(),
+                    e);
+        }
+    }
+
+    private boolean isNewCertificateAdding(Certificate updatingCertificate, Certificate existingCertificate) {
+
+        return existingCertificate == null && updatingCertificate != null &&
+                updatingCertificate.getCertificateContent() != null;
+    }
+
+    private boolean isExistingCertificateDeleting(Certificate updatingCertificate, Certificate existingCertificate) {
+
+        return existingCertificate != null && updatingCertificate != null &&
+                updatingCertificate.getCertificateContent() != null &&
+                updatingCertificate.getCertificateContent().equals(StringUtils.EMPTY);
+    }
+
+    private boolean isExistingCertificateUpdating(Certificate updatingCertificate, Certificate existingCertificate) {
+
+        return existingCertificate != null && updatingCertificate != null &&
+                updatingCertificate.getCertificateContent() != null &&
+                !updatingCertificate.getCertificateContent().equals(StringUtils.EMPTY);
+    }
+
     private CertificateManagementService getCertificateManagementService() {
 
         return PreUpdatePasswordActionServiceComponentHolder.getInstance().getCertificateManagementService();
-    }
-
-    private void resolvePasswordSharingFormatUpdate(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
-                                                    Map<String, Object> properties) {
-
-        if (updatingActionDTO.getProperty(PASSWORD_SHARING_FORMAT) != null) {
-            properties.put(PASSWORD_SHARING_FORMAT, updatingActionDTO.getProperty(PASSWORD_SHARING_FORMAT));
-        } else {
-            properties.put(PASSWORD_SHARING_FORMAT, existingActionDTO.getProperty(PASSWORD_SHARING_FORMAT));
-        }
     }
 }

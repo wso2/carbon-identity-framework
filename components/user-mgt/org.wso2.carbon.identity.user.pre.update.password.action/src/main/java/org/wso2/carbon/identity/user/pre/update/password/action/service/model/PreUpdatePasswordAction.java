@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.model;
+package org.wso2.carbon.identity.user.pre.update.password.action.service.model;
 
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;

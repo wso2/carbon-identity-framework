@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.constant;
+package org.wso2.carbon.identity.user.pre.update.password.action.core.constant;
 
 /**
  * This class holds the constants used in Pre Update Password extension.
