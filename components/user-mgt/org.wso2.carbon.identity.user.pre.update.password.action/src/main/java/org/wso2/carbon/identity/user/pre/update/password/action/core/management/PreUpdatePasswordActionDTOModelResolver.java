@@ -61,7 +61,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         if (certificate != null) {
             if (!(certificate instanceof Certificate)) {
                 throw new ActionDTOModelResolverClientException("Invalid Certificate.",
-                        "Unsupported certificate provided.");
+                        "Provided certificate is unsupported.");
             }
 
             Certificate certToBeAdded = buildCertificate(actionDTO.getId(), (Certificate) certificate);
@@ -76,7 +76,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         }
         if (!(actionDTO.getProperty(PASSWORD_SHARING_FORMAT) instanceof PasswordSharing.Format)) {
             throw new ActionDTOModelResolverClientException("Invalid Password Sharing Format.",
-                    "Unsupported Password sharing format.");
+                    "Provided Password sharing format is unsupported.");
         }
         properties.put(PASSWORD_SHARING_FORMAT,
                 ((PasswordSharing.Format) actionDTO.getProperty(PASSWORD_SHARING_FORMAT)).name());
