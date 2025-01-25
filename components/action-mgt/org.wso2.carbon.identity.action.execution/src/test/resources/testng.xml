@@ -26,12 +26,14 @@
             <class name="org.wso2.carbon.identity.action.execution.util.APIClientTest"/>
             <class name="org.wso2.carbon.identity.action.execution.util.ActionExecutorConfigTest"/>
             <class name="org.wso2.carbon.identity.action.execution.util.RequestFilterTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.util.PerformableOperationBuilderTest"/>
         </classes>
     </test>
     <test name="action-execution-configuration-test">
         <classes>
             <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuilderFactoryTest"/>
             <class name="org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactoryTest"/>
+            <class name="org.wso2.carbon.identity.action.execution.impl.InvocationSuccessResponseContextFactoryTest"/>
         </classes>
     </test>
     <test name="action-execution-service-test">

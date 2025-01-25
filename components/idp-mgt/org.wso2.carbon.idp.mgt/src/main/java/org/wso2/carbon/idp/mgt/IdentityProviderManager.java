@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -2234,7 +2235,7 @@ public class IdentityProviderManager implements IdpManager {
                 }
             } else {
                 // Check if the given authenticator name is already taken.
-                if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) != null) {
+                if (isExistingAuthentication(config.getName(), tenantDomain)) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                             .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, config.getName());
                 }
@@ -2389,13 +2390,16 @@ public class IdentityProviderManager implements IdpManager {
         return allFederatedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
     }
 
-    private FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String authenticatorName, String tenantDomain)
+    private boolean isExistingAuthentication(String authenticatorName, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        return Arrays.stream(getAllFederatedAuthenticators(tenantDomain))
-                .filter(authenticator -> authenticator.getName().equals(authenticatorName))
-                .findFirst()
-                .orElse(null);
+        try {
+        return ApplicationAuthenticatorService.getInstance()
+                .isExistingAuthenticatorName(authenticatorName, tenantDomain);
+        } catch (AuthenticatorMgtException e) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, authenticatorName);
+        }
     }
 
     /**

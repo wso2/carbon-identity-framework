@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRespon
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Error;
@@ -29,6 +30,7 @@ import org.wso2.carbon.identity.action.execution.model.ErrorStatus;
 import org.wso2.carbon.identity.action.execution.model.Event;
 import org.wso2.carbon.identity.action.execution.model.FailedStatus;
 import org.wso2.carbon.identity.action.execution.model.Failure;
+import org.wso2.carbon.identity.action.execution.model.Incomplete;
 import org.wso2.carbon.identity.action.execution.model.Success;
 
 import java.util.Map;
@@ -46,6 +48,25 @@ public interface ActionExecutionResponseProcessor {
                                                           Event actionEvent,
                                                           ActionInvocationSuccessResponse successResponse) throws
             ActionExecutionResponseProcessorException;
+
+    /**
+     * This method processes the incomplete response received from the action execution. The default implementation
+     * throws an {@link UnsupportedOperationException}. The downstream components can override this method,
+     * if INCOMPLETE status is supported for corresponding action type.
+     *
+     * @param eventContext       The event context.
+     * @param actionEvent        The action event.
+     * @param incompleteResponse The incomplete response.
+     * @return The incomplete status.
+     * @throws ActionExecutionResponseProcessorException If an error occurs while processing the response.
+     */
+    default ActionExecutionStatus<Incomplete> processIncompleteResponse(Map<String, Object> eventContext,
+            Event actionEvent, ActionInvocationIncompleteResponse incompleteResponse) throws
+            ActionExecutionResponseProcessorException {
+
+        throw new UnsupportedOperationException(
+                "The INCOMPLETE status is not supported for the action type: " + getSupportedActionType());
+    }
 
     default ActionExecutionStatus<Error> processErrorResponse(Map<String, Object> eventContext,
                                                               Event actionEvent,

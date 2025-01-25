@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution.util;
 
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
+import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
 
 /**
@@ -41,6 +42,10 @@ public class OperationComparator {
 
         if (!allowedOp.getOp().equals(performableOp.getOp())) {
             return false;
+        }
+
+        if (Operation.REDIRECT.equals(performableOp.getOp())) {
+            return true;
         }
 
         String performableOperationBasePath = performableOp.getPath().contains("/")

@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
@@ -49,7 +48,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -475,9 +473,7 @@ public class JsNashornGraphBuilder extends JsGraphBuilder {
                     removeOption = true;
 
                     if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
-                        List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
-                            .getInstance().getLocalAuthenticators();
-                        for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
+                        for (LocalAuthenticatorConfig localAuthenticatorConfig : getLocalAuthenticatorConfigsList()) {
                             if (FrameworkUtils.isAuthenticatorNameInAuthConfigEnabled()) {
                                 if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
                                         authenticators.contains(localAuthenticatorConfig.getName())) {

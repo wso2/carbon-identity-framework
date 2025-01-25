@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.7.96-SNAPSHOT</version>
+    <version>7.7.135-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -75,6 +75,7 @@
         <module>components/action-mgt</module>
         <module>components/ai-services-mgt</module>
         <module>components/certificate-mgt</module>
+        <module>components/servlet-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -112,6 +113,7 @@
         <module>features/action-mgt</module>
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
+        <module>features/servlet-mgt</module>
     </modules>
 
 
@@ -323,6 +325,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -1706,6 +1713,11 @@
                 <version>${apache.cxf-rt-rs-service-description.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${apache.cxf-rt-frontend-jaxrs.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.codehaus.jettison</groupId>
                 <artifactId>jettison</artifactId>
                 <version>${codehaus.jettison.version}</version>
@@ -1728,6 +1740,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.servlet.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1802,29 +1819,9 @@
             </dependency>
 <!--            GraalVM related dependencies-->
             <dependency>
-                <groupId>org.graalvm.sdk</groupId>
+                <groupId>org.wso2.orbit.graalvm.sdk</groupId>
                 <artifactId>graal-sdk</artifactId>
-                <version>${graalvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.js</groupId>
-                <artifactId>js</artifactId>
-                <version>${graalvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.truffle</groupId>
-                <artifactId>truffle-api</artifactId>
-                <version>${graalvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.regex</groupId>
-                <artifactId>regex</artifactId>
-                <version>${graalvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ibm.icu</groupId>
-                <artifactId>icu4j</artifactId>
-                <version>${icu.version}</version>
+                <version>${graalvm.wso2.version}</version>
             </dependency>
         </dependencies>
 
@@ -1840,7 +1837,7 @@
 
     <properties>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
-        <apache.cxf-rt-frontend-jaxrs.version>2.7.16</apache.cxf-rt-frontend-jaxrs.version>
+        <apache.cxf-rt-frontend-jaxrs.version>3.6.4</apache.cxf-rt-frontend-jaxrs.version>
         <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
@@ -1850,7 +1847,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.28</carbon.kernel.version>
+        <carbon.kernel.version>4.10.33</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -2133,7 +2130,7 @@
 
         <h2database.version>2.2.224</h2database.version>
 
-        <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.wso2.version>22.3.4.wso2v1</graalvm.wso2.version>
         <graalvm.version.range>[22.3.0,23.0.0)</graalvm.version.range>
         <!-- ICU version must be reflecting graalvm version -->
         <icu.version>71.1</icu.version>
