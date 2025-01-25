@@ -3280,7 +3280,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         if (StringUtils.isBlank(domainName)) {
-            tenantDomain = IdentityUtil.getPrimaryDomainName();
+            domainName = IdentityUtil.getPrimaryDomainName();
         }
         // Initialize filter condition with a default value to ensure it matches any content if null.
         Condition filterCondition =
