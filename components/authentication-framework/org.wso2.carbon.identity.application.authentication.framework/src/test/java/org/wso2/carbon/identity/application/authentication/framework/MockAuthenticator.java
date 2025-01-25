@@ -33,6 +33,7 @@ public class MockAuthenticator implements ApplicationAuthenticator {
 
     private String name;
     private SubjectCallback subjectCallback;
+    private String claimDialectURI;
 
     public MockAuthenticator(String name) {
 
@@ -43,6 +44,13 @@ public class MockAuthenticator implements ApplicationAuthenticator {
 
         this(name);
         this.subjectCallback = subjectCallback;
+    }
+
+    public MockAuthenticator(String name, SubjectCallback subjectCallback, String claimDialectURI) {
+
+        this(name);
+        this.subjectCallback = subjectCallback;
+        this.claimDialectURI = claimDialectURI;
     }
 
     @Override
@@ -82,7 +90,7 @@ public class MockAuthenticator implements ApplicationAuthenticator {
     @Override
     public String getClaimDialectURI() {
 
-        return null;
+        return claimDialectURI;
     }
 
     @Override
