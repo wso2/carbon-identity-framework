@@ -76,6 +76,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.PROVISIONED_SOURCE_ID_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_ID_CLAIM;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.ORGANIZATION;
 
 /**
@@ -275,6 +276,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 userClaims.remove(USERNAME_CLAIM);
+                userClaims.remove(USER_ID_CLAIM);
                 userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                     /*
                     Since the user is exist following code is get all active claims of user and crosschecking against
