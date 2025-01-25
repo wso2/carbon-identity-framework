@@ -58,6 +58,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -727,8 +728,7 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         try {
-            context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
-                    context.getExternalIdP(), authenticator.getName()));
+            context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status = authenticator.process(request, response, context);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
@@ -1462,5 +1462,18 @@ public class DefaultStepHandler implements StepHandler {
                 authInitiationDataList.add(authInitiationData);
             });
         }
+    }
+
+    private static Map<String, String> getAuthenticatorPropertyMap(ApplicationAuthenticator authenticator,
+                                                                   AuthenticationContext context) {
+
+        if (authenticator instanceof LocalApplicationAuthenticator &&
+                AuthenticatorPropertyConstants.DefinedByType.USER.equals(authenticator.getDefinedByType())) {
+            return FrameworkUtils.getAuthenticatorPropertyMapForLocalAuthenticators(
+                    authenticator.getName(), context.getTenantDomain());
+        }
+
+        return FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
+                context.getExternalIdP(), authenticator.getName());
     }
 }
