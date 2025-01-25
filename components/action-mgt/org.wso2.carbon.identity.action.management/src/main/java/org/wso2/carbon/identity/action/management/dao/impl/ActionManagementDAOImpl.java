@@ -526,7 +526,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
         Map<String, Object> propertiesMap = actionDTO.getProperties();
-        if (propertiesMap == null) {
+        if (propertiesMap == null || propertiesMap.isEmpty()) {
             return;
         }
 

@@ -203,7 +203,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO activatedActionDTO = DAO_FACADE.activateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.ACTIVATE, actionType, actionId);
-        return buildAction(resolvedActionType, activatedActionDTO);
+        return buildBasicAction(activatedActionDTO);
     }
 
     /**
@@ -227,7 +227,7 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         ActionDTO deactivatedActionDTO = DAO_FACADE.deactivateAction(resolvedActionType, actionId,
                 IdentityTenantUtil.getTenantId(tenantDomain));
         auditLogger.printAuditLog(ActionManagementAuditLogger.Operation.DEACTIVATE, actionType, actionId);
-        return buildAction(resolvedActionType, deactivatedActionDTO);
+        return buildBasicAction(deactivatedActionDTO);
     }
 
     /**
@@ -415,6 +415,21 @@ public class ActionManagementServiceImpl implements ActionManagementService {
         return new ActionDTOBuilder(action)
                 .id(actionId)
                 .type(Action.ActionTypes.valueOf(actionType))
+                .build();
+    }
+
+    private Action buildBasicAction(ActionDTO actionDTO) {
+
+        if (actionDTO == null) {
+            return null;
+        }
+
+        return new Action.ActionResponseBuilder()
+                .id(actionDTO.getId())
+                .type(actionDTO.getType())
+                .name(actionDTO.getName())
+                .description(actionDTO.getDescription())
+                .status(actionDTO.getStatus())
                 .build();
     }
 
