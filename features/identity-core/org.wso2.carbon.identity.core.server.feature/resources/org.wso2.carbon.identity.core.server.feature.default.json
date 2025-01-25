@@ -498,7 +498,7 @@
   "identity_mgt.user_claim_update.otp.use_numeric_in_otp": true,
   "identity_mgt.user_claim_update.otp.otp_length": "6",
   "identity_mgt.user_claim_update.use_verify_claim": false,
-  "identity_mgt.user_claim_update.uniqueness.enable": false,
+  "identity_mgt.user_claim_update.uniqueness.enable": true,
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
@@ -1244,7 +1244,6 @@
   "console.applications.scopes.update": ["internal_application_mgt_update"],
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
-    "applications.loginFlow.ai",
     "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
@@ -1276,7 +1275,6 @@
   "console.branding.enabled": true,
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
-    "branding.ai",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
@@ -1534,7 +1532,10 @@
     "internal_organization_config_view",
     "internal_organization_view"
   ],
-  "console.organization_discovery.scopes.update": ["internal_organization_discovery_update"],
+  "console.organization_discovery.scopes.update": [
+    "internal_organization_config_update",
+    "internal_organization_discovery_update"
+  ],
   "console.organization_discovery.scopes.delete": [
     "internal_organization_discovery_delete",
     "internal_organization_config_delete"

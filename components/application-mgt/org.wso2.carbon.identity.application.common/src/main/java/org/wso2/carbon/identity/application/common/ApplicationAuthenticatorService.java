@@ -66,8 +66,39 @@ public class ApplicationAuthenticatorService {
         return instance;
     }
 
+    /**
+     * This method is used to get the list of SYSTEM defined local authenticator configurations.
+     *
+     * @deprecated It is recommended to use {@link #getAllSystemDefinedLocalAuthenticators()},
+     * which returning both SYSTEM and USER defined local application authenticator configurations.
+     */
+    @Deprecated
     public List<LocalAuthenticatorConfig> getLocalAuthenticators() {
         return this.localAuthenticators;
+    }
+
+    /**
+     * This returns list of all SYSTEM defined local authenticator configurations.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getAllSystemDefinedLocalAuthenticators() {
+
+        return this.localAuthenticators;
+    }
+
+    /**
+     * This returns list of all SYSTEM and USER defined local authenticator configurations.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getAllLocalAuthenticators(String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        List<LocalAuthenticatorConfig> configList = new ArrayList<>(getAllUserDefinedLocalAuthenticators(tenantDomain));
+        configList.addAll(localAuthenticators);
+        return configList;
     }
 
     /**

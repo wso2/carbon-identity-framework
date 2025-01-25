@@ -158,10 +158,11 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         return federatedIdentityProviders;
     }
 
-    @Override
     /**
-     *
+     * @deprecated use {@link ApplicationAuthenticatorService#getInstance().getAllLocalAuthenticators(String)} instead.
      */
+    @Override
+    @Deprecated
     public List<LocalAuthenticatorConfig> getAllLocalAuthenticators()
             throws IdentityApplicationManagementException {
 
