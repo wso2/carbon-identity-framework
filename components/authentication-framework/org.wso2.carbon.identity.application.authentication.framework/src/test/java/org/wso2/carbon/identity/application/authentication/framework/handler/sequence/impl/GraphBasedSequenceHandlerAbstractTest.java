@@ -151,6 +151,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
     protected void resetAuthenticators() {
 
+        resetApplicationAuthenticatorManager();
         ApplicationAuthenticatorManager authenticatorManager = ApplicationAuthenticatorManager.getInstance();
         authenticatorManager.addSystemDefinedAuthenticator(
                 new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));

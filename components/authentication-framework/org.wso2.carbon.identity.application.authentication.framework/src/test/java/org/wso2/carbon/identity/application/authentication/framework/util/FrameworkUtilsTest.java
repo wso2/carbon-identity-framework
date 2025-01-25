@@ -152,6 +152,7 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @BeforeClass
     public void setFrameworkServiceComponent() {
 
+        ApplicationAuthenticatorManager.getInstance().clearAllSystemDefinedAuthenticators();
         ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
                 new MockAuthenticator("BasicAuthenticator"));
         ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(

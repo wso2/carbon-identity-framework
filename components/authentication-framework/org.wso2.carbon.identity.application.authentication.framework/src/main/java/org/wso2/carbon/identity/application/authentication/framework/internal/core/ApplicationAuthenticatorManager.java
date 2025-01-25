@@ -34,7 +34,7 @@ import java.util.List;
 public class ApplicationAuthenticatorManager {
 
     private static final ApplicationAuthenticatorManager instance = new ApplicationAuthenticatorManager();
-    private final List<ApplicationAuthenticator> systemDefinedAuthenticators = new ArrayList<>();
+    private List<ApplicationAuthenticator> systemDefinedAuthenticators = new ArrayList<>();
 
     public static ApplicationAuthenticatorManager getInstance() {
 
@@ -49,6 +49,11 @@ public class ApplicationAuthenticatorManager {
     public void removeSystemDefinedAuthenticator(ApplicationAuthenticator authenticator) {
 
         systemDefinedAuthenticators.remove(authenticator);
+    }
+
+    public void clearAllSystemDefinedAuthenticators() {
+
+        systemDefinedAuthenticators = new ArrayList<>();
     }
 
     public List<ApplicationAuthenticator> getSystemDefinedAuthenticators() {
