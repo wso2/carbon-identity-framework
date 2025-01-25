@@ -30,7 +30,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManager;
 import org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManagerImpl;
-import org.wso2.carbon.identity.api.resource.collection.mgt.listener.ConsoleRoleListener;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
@@ -53,8 +52,6 @@ public class APIResourceCollectionMgtServiceComponent {
             BundleContext bundleCtx = context.getBundleContext();
             bundleCtx.registerService(APIResourceCollectionManager.class,
                     APIResourceCollectionManagerImpl.getInstance(), null);
-            // Register the Console Role Listener.
-            bundleCtx.registerService(RoleManagementListener.class, new ConsoleRoleListener(), null);
 
             LOG.debug("API resource collection management bundle is activated");
         } catch (Throwable e) {
@@ -90,21 +87,5 @@ public class APIResourceCollectionMgtServiceComponent {
     protected void unsetAPIResourceManagementService(APIResourceManager apiResourceManagementService) {
 
         APIResourceCollectionMgtServiceDataHolder.getInstance().setAPIResourceManagementService(null);
-    }
-
-    @Reference(
-            name = "org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService",
-            service = org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRoleManagementServiceV2")
-    protected void setRoleManagementServiceV2(RoleManagementService roleManagementService) {
-
-        APIResourceCollectionMgtServiceDataHolder.getInstance().setRoleManagementServiceV2(roleManagementService);
-    }
-
-    protected void unsetRoleManagementServiceV2(RoleManagementService roleManagementService) {
-
-        APIResourceCollectionMgtServiceDataHolder.getInstance().setRoleManagementServiceV2(null);
     }
 }

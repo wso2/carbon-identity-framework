@@ -139,6 +139,7 @@ public class APIResourceCollectionMgtConfigBuilder {
                 Iterator<?> actionElements = scopesCollection.getChildElements();
                 switch (scopesCollectionVersion) {
                     case APIResourceCollectionConfigBuilderConstants.SCOPE_COLLECTION_VERSION_V0:
+                        // Process legacy scopes.
                         while (actionElements.hasNext()) {
                             OMElement actionElement = (OMElement) actionElements.next();
                             if (actionElement == null) {
@@ -164,6 +165,7 @@ public class APIResourceCollectionMgtConfigBuilder {
                         }
                         break;
                     case APIResourceCollectionConfigBuilderConstants.SCOPE_COLLECTION_VERSION_V1:
+                        // Process new scopes with feature scopes.
                         while (actionElements.hasNext()) {
                             OMElement actionElement = (OMElement) actionElements.next();
                             if (actionElement == null) {
@@ -232,13 +234,6 @@ public class APIResourceCollectionMgtConfigBuilder {
                 .type(element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.TYPE)))
                 .build();
     }
-
-    private Map<String, List<String>> convertMapSetToList(Map<String, Set<String>> map) {
-
-        return map.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
-    }
-
 }
 
 
