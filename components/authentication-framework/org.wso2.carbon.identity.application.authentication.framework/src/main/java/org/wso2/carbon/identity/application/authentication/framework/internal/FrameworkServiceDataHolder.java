@@ -23,9 +23,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
@@ -77,7 +77,6 @@ public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private List<ApplicationRolesResolver> applicationRolesResolvers = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
@@ -125,6 +124,7 @@ public class FrameworkServiceDataHolder {
     private OrganizationManager organizationManager;
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
+    private AuthenticatorAdapterService authenticatorAdapterService;
 
     private FrameworkServiceDataHolder() {
 
@@ -162,11 +162,6 @@ public class FrameworkServiceDataHolder {
     public void setBundleContext(BundleContext bundleContext) {
 
         this.bundleContext = bundleContext;
-    }
-
-    public List<ApplicationAuthenticator> getAuthenticators() {
-
-        return authenticators;
     }
 
     /**
@@ -826,5 +821,25 @@ public class FrameworkServiceDataHolder {
     public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
 
         this.roleManagementServiceV2 = roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link AuthenticatorAdapterService}.
+     *
+     * @param authenticatorAdapterService   Instance of {@link AuthenticatorAdapterService}.
+     */
+    public void setAuthenticatorAdapterService(AuthenticatorAdapterService authenticatorAdapterService) {
+
+        this.authenticatorAdapterService = authenticatorAdapterService;
+    }
+
+    /**
+     * Get {@link AuthenticatorAdapterService}.
+     *
+     * @return Instance of {@link AuthenticatorAdapterService}.
+     */
+    public AuthenticatorAdapterService getAuthenticatorAdapterService() {
+
+        return authenticatorAdapterService;
     }
 }

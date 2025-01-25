@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.loader;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -34,6 +35,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -41,6 +44,8 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -189,7 +194,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             loadFederatedAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
             // loading local authenticators
-            loadLocalAuthenticators(authenticationStep, stepConfig);
+            loadLocalAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
             sequenceConfig.getStepMap().put(stepOrder, stepConfig);
         }
@@ -264,12 +269,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
                 String actualAuthenticatorName = federatedAuthenticator.getName();
                 // assign it to the step
-                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName);
+                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName, tenantDomain);
             }
         }
     }
 
-    protected void loadLocalAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig) {
+    protected void loadLocalAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig,
+                                           String tenantDomain) throws FrameworkException {
 
         LocalAuthenticatorConfig[] localAuthenticators = authenticationStep.getLocalAuthenticatorConfigs();
         if (localAuthenticators != null) {
@@ -278,12 +284,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             // assign it to the step
             for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
                 String actualAuthenticatorName = localAuthenticator.getName();
-                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName);
+                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName, tenantDomain);
             }
         }
     }
 
-    private void loadStepAuthenticator(StepConfig stepConfig, IdentityProvider idp, String authenticatorName) {
+    private void loadStepAuthenticator(StepConfig stepConfig, IdentityProvider idp, String authenticatorName,
+                                           String tenantDomain) throws FrameworkException {
 
         AuthenticatorConfig authenticatorConfig = null;
 
@@ -300,14 +307,18 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             authenticatorConfig = new AuthenticatorConfig();
             authenticatorConfig.setName(authenticatorName);
 
+            ApplicationAuthenticator appAuthenticatorForConfig = null;
             for (ApplicationAuthenticator appAuthenticator : FrameworkServiceComponent.getAuthenticators()) {
 
                 if (authenticatorName.equalsIgnoreCase(appAuthenticator.getName())) {
-                    authenticatorConfig.setApplicationAuthenticator(appAuthenticator);
+                    appAuthenticatorForConfig = appAuthenticator;
                     break;
                 }
             }
-
+            if (appAuthenticatorForConfig == null) {
+                appAuthenticatorForConfig = resolveUserDefinedAuthenticator(authenticatorName, idp, tenantDomain);
+            }
+            authenticatorConfig.setApplicationAuthenticator(appAuthenticatorForConfig);
             stepConfig.getAuthenticatorList().add(authenticatorConfig);
         }
 
@@ -319,6 +330,37 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         if (!stepConfig.isMultiOption() && (stepConfig.getAuthenticatorList().size() > 1
                 || authenticatorConfig.getIdps().size() > 1)) {
             stepConfig.setMultiOption(true);
+        }
+    }
+
+    private ApplicationAuthenticator resolveUserDefinedAuthenticator(
+            String authenticatorName, IdentityProvider idp, String tenantDomain) throws FrameworkException {
+
+        try {
+            if (StringUtils.equals(idp.getIdentityProviderName(), FrameworkConstants.LOCAL_IDP_NAME)) {
+
+                UserDefinedLocalAuthenticatorConfig config = ApplicationAuthenticatorService.getInstance()
+                        .getUserDefinedLocalAuthenticator(authenticatorName, tenantDomain);
+                if (config != null) {
+                    return FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
+                            .getLocalAuthenticatorAdapter(config);
+                }
+            } else {
+                UserDefinedFederatedAuthenticatorConfig config = (UserDefinedFederatedAuthenticatorConfig)
+                        IdentityProviderManager.getInstance().getIdPByName(idp.getIdentityProviderName(), tenantDomain)
+                                .getDefaultAuthenticatorConfig();
+
+                if (config != null) {
+                    return FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
+                            .getFederatedAuthenticatorAdapter(config);
+                }
+            }
+
+            throw new FrameworkException(String.format(
+                    "No user defined authenticator config found by the given name: %s.", authenticatorName));
+        } catch (AuthenticatorMgtException | IdentityProviderManagementException e) {
+            throw new FrameworkException(String.format(
+                    "An error occurred when retrieving user defined authenticator: %s", authenticatorName), e);
         }
     }
 }
