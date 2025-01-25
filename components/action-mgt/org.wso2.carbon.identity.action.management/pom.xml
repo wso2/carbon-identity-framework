@@ -100,11 +100,6 @@
                             org.wso2.carbon.identity.action.management.util
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.action.management.constant,
-                            !org.wso2.carbon.identity.action.management.dao.*,
-                            !org.wso2.carbon.identity.action.management.internal,
-                            !org.wso2.carbon.identity.action.management.service.impl,
-                            !org.wso2.carbon.identity.action.management.util,
                             org.wso2.carbon.identity.action.management.cache,
                             org.wso2.carbon.identity.action.management.constant.error,
                             org.wso2.carbon.identity.action.management.exception,
