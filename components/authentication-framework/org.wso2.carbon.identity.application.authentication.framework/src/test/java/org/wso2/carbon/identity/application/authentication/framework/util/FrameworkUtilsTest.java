@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -77,6 +78,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -937,6 +939,29 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
                     .thenReturn("false");
             assertFalse(FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr());
         }
+    }
+
+    @Test
+    public void testGetAppAssociatedRolesFromFederatedUserAttributesValidAttributes() throws Exception {
+
+        Map<String, String> fedUserAttributes = new HashMap<>();
+        fedUserAttributes.put("idpGroupAttribute", "idpGroup1,idpGroup2");
+        fedUserAttributes.put("testClaim", "abc");
+
+        String applicationId = "testAppId";
+        String idpGroupClaimURI = "testIdPGroupAttribute";
+        String[] associatedRoles = new String[]{"role1", "role2"};
+
+        ApplicationRolesResolver appRolesResolver = mock(ApplicationRolesResolver.class);
+        when(appRolesResolver.getAppAssociatedRolesOfFederatedUser(any(), any(), eq(applicationId),
+                eq(idpGroupClaimURI), eq(DUMMY_TENANT_DOMAIN)))
+                .thenReturn(associatedRoles);
+        FrameworkServiceDataHolder.getInstance().addApplicationRolesResolver(appRolesResolver);
+
+        List<String> roles = FrameworkUtils.getAppAssociatedRolesFromFederatedUserAttributes(fedUserAttributes,
+                mockedIdentityProvider, applicationId, idpGroupClaimURI, DUMMY_TENANT_DOMAIN);
+
+        assertEquals(roles, Arrays.asList(associatedRoles));
     }
 
     @Test
