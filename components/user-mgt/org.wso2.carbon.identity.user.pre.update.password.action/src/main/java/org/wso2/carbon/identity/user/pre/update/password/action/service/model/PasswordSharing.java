@@ -61,10 +61,6 @@ public class PasswordSharing {
         private Format format;
         private Certificate certificate;
 
-        public Builder() {
-
-        }
-
         public Builder format(Format format) {
 
             this.format = format;

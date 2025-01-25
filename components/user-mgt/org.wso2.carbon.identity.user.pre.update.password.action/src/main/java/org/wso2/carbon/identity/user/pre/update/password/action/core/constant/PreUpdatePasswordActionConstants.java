@@ -25,4 +25,8 @@ public class PreUpdatePasswordActionConstants {
 
     public static final String PASSWORD_SHARING_FORMAT = "passwordSharingFormat";
     public static final String CERTIFICATE = "certificate";
+
+    private PreUpdatePasswordActionConstants() {
+
+    }
 }

@@ -153,17 +153,17 @@ public class PreUpdatePasswordActionConverterTest {
                 .properties(new HashMap<String, Object>() {{
                     put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED);
                 }}).build();
-        PreUpdatePasswordAction action = (PreUpdatePasswordAction) converter.buildAction(dto);
-        assertNotNull(action.getPasswordSharing());
-        assertEquals(action.getPasswordSharing().getFormat(), PasswordSharing.Format.SHA256_HASHED);
+        PreUpdatePasswordAction convertedAction = (PreUpdatePasswordAction) converter.buildAction(dto);
+        assertNotNull(convertedAction.getPasswordSharing());
+        assertEquals(convertedAction.getPasswordSharing().getFormat(), PasswordSharing.Format.SHA256_HASHED);
 
         dto = new ActionDTO.Builder(dummyAction)
                 .properties(new HashMap<String, Object>() {{
                     put(CERTIFICATE, mockCertificate);
                 }}).build();
-        action = (PreUpdatePasswordAction) converter.buildAction(dto);
-        assertNotNull(action.getPasswordSharing());
-        assertEquals(action.getPasswordSharing().getCertificate(), mockCertificate);
+        convertedAction = (PreUpdatePasswordAction) converter.buildAction(dto);
+        assertNotNull(convertedAction.getPasswordSharing());
+        assertEquals(convertedAction.getPasswordSharing().getCertificate(), mockCertificate);
     }
 
     @Test(description = "Test buildAction with empty properties")

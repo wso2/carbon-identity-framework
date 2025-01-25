@@ -60,7 +60,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
         Object certificate = actionDTO.getProperty(CERTIFICATE);
         if (certificate != null) {
             if (!(certificate instanceof Certificate)) {
-                throw new ActionDTOModelResolverClientException("Invalid Request",
+                throw new ActionDTOModelResolverClientException("Invalid Certificate.",
                         "Certificate should be an instance of Certificate.");
             }
 
@@ -75,7 +75,7 @@ public class PreUpdatePasswordActionDTOModelResolver implements ActionDTOModelRe
                     "Password sharing format is a required field.");
         }
         if (!(actionDTO.getProperty(PASSWORD_SHARING_FORMAT) instanceof PasswordSharing.Format)) {
-            throw new ActionDTOModelResolverClientException("Invalid Request",
+            throw new ActionDTOModelResolverClientException("Invalid Password Sharing Format.",
                     "Password sharing format should be an instance of PasswordSharing.Format.");
         }
         properties.put(PASSWORD_SHARING_FORMAT,
