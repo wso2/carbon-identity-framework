@@ -15,12 +15,12 @@
       "valueDisplayAttribute": "name",
       "links": [
         {
-          "href": "/applications?offset=0&limit=10",
+          "href": "/applications?excludeSystemPortals=true&offset=0&limit=10",
           "method": "GET",
           "rel": "values"
         },
         {
-          "href": "/applications?filter=&limit=10",
+          "href": "/applications?excludeSystemPortals=true&filter=&limit=10",
           "method": "GET",
           "rel": "filter"
         }
