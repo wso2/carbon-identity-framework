@@ -66,14 +66,7 @@ public class PreUpdatePasswordActionServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        try {
-            BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.ungetService(bundleCtx.getServiceReference(PreUpdatePasswordActionConverter.class));
-            bundleCtx.ungetService(bundleCtx.getServiceReference(PreUpdatePasswordActionDTOModelResolver.class));
-            LOG.debug("Pre Update Password Action bundle is deactivated");
-        } catch (Throwable e) {
-            LOG.error("Error while deactivating Pre Update Password Action service component.", e);
-        }
+        LOG.debug("Pre Update Password Action bundle is deactivated");
     }
 
     @Reference(
