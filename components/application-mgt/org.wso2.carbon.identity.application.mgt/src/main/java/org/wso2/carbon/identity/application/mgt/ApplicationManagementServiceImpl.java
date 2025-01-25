@@ -114,6 +114,7 @@ import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.model.Condition;
 import org.wso2.carbon.user.core.model.ExpressionCondition;
 import org.wso2.carbon.user.core.model.ExpressionOperation;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -169,10 +170,10 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.APPLICATION_NAME_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DEFAULT_APPLICATIONS_CONFIG_ELEMENT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_GROUP_LIST;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.INVALID_GROUP_FILTER;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.FILTER_SW;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.INVALID_USER_STORE_DOMAIN;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.FILTER_CO;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.SYSTEM_APPLICATIONS_CONFIG_ELEMENT;
@@ -190,6 +191,7 @@ import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.trigger
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getInitiatorId;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_MANAGEMENT_ERROR_CODE_PREFIX;
 import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.ROLE_NOT_FOUND;
+import static org.wso2.carbon.user.core.UserStoreConfigConstants.GROUP_NAME_ATTRIBUTE;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
 /**
@@ -3277,26 +3279,38 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public List<GroupBasicInfo> getGroups(String tenantDomain, String domainName, Node filter)
             throws IdentityApplicationManagementException {
 
-        Condition filterCondition = null;
+        if (StringUtils.isBlank(domainName)) {
+            tenantDomain = IdentityUtil.getPrimaryDomainName();
+        }
+        // Initialize filter condition with a default value to ensure it matches any content if null.
+        Condition filterCondition =
+                new ExpressionCondition(ExpressionOperation.SW.toString(), GROUP_NAME_ATTRIBUTE, StringUtils.EMPTY);
+        // This service method is designed to retrieve the group list for applications and only supports
+        // the 'co' (contains) operation with the 'name' attribute of the group.
         if (filter != null) {
             if (!(filter instanceof ExpressionNode) ||
                     !StringUtils.equals(((ExpressionNode) filter).getAttributeValue(), NAME) ||
-                    !StringUtils.equals(((ExpressionNode) filter).getOperation(), FILTER_SW)) {
+                    !StringUtils.equals(((ExpressionNode) filter).getOperation(), FILTER_CO)) {
                 throw new IdentityApplicationManagementClientException(INVALID_GROUP_FILTER.getCode(),
                         INVALID_GROUP_FILTER.getDescription());
             }
-            filterCondition = new ExpressionCondition(ExpressionOperation.SW.toString(), DISPLAY_NAME,
+            filterCondition = new ExpressionCondition(ExpressionOperation.CO.toString(), GROUP_NAME_ATTRIBUTE,
                     ((ExpressionNode) filter).getValue());
         }
         AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
         try {
+            // Validate the user store domain.
+            if (userStoreManager.getSecondaryUserStoreManager(domainName) == null) {
+                throw new IdentityApplicationManagementClientException(INVALID_USER_STORE_DOMAIN.getCode(),
+                        String.format(INVALID_USER_STORE_DOMAIN.getDescription(), domainName, tenantDomain));
+            }
             List<GroupBasicInfo> groupBasicInfos = new ArrayList<>();
             // Group endpoint does not support pagination.
             List<Group> groups = userStoreManager.listGroups(filterCondition, domainName, 0, 0, null, null);
             for (Group group : groups) {
                 GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
                 groupBasicInfo.setId(group.getGroupID());
-                groupBasicInfo.setName(group.getGroupName());
+                groupBasicInfo.setName(UserCoreUtil.removeDomainFromName(group.getGroupName()));
                 groupBasicInfos.add(groupBasicInfo);
             }
             return groupBasicInfos;

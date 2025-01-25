@@ -23,6 +23,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 import java.io.File;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_FILTER;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
 
 /**
@@ -78,7 +79,6 @@ public class ApplicationConstants {
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
     public static final String IS_FRAGMENT_APP = "isFragmentApp";
-    public static final String DISPLAY_NAME = "displayName";
     public static final String NAME = "name";
 
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
@@ -106,7 +106,7 @@ public class ApplicationConstants {
     public static final String END_INDEX = "END_INDEX";
 
     // Filtering operations.
-    public static final String FILTER_SW = " sw ";
+    public static final String FILTER_CO = "co";
 
     // System application config elements
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
@@ -284,9 +284,11 @@ public class ApplicationConstants {
         ERROR_CHECKING_GROUP_EXISTENCE(UNEXPECTED_SERVER_ERROR.getCode(), "Unexpected processing error.",
                 "Error occurred while checking the existence of the group: %s."),
         INVALID_GROUP_FILTER(INVALID_FILTER.getCode(), "Invalid filter query.",
-                "Filtering is only supported with 'name' attribute and 'sw' operation. Eg: name+sw+group1"),
+                "Filtering is only supported with 'name' attribute and 'co' operation. Eg: name+co+group1"),
         ERROR_RETRIEVING_GROUP_LIST(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving group list.",
-                "Error while retrieving group list for the user store: %s.");
+                "Error while retrieving group list for the user store: %s."),
+        INVALID_USER_STORE_DOMAIN(INVALID_REQUEST.getCode(), "Invalid user store domain.",
+                "User store domain: %s is not valid for the tenant: %s.");
 
         private final String code;
 

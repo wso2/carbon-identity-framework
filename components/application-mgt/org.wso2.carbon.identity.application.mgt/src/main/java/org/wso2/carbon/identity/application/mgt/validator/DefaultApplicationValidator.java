@@ -115,6 +115,8 @@ public class DefaultApplicationValidator implements ApplicationValidator {
     private static final String EMPTY_DISCOVERABLE_GROUPS = "The list of discoverable groups is empty.";
     private static final String NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP =
             "No user store defined for the discoverable groups indexed at %d.";
+    private static final String USER_STORE_NOT_FOUND =
+            "The provided user store is not found for the discoverable groups indexed at %d.";
     private static final String NO_GROUPS_FOR_THE_DISCOVERABLE_GROUP =
             "No groups defined for the user store: '%s' in the discoverable groups configuration.";
     private static final String NO_GROUP_ID = "Group ID is not defined for the group indexed at %d for the user " +
@@ -227,11 +229,16 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 validationErrors.add(EMPTY_DISCOVERABLE_GROUPS);
                 return;
             }
+            AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
             for (int i = 0; i < discoverableGroups.length; i++) {
                 DiscoverableGroup discoverableGroup = discoverableGroups[i];
                 GroupBasicInfo[] groupBasicInfos = discoverableGroup.getGroups();
                 if (StringUtils.isBlank(discoverableGroup.getUserStore())) {
                     validationErrors.add(String.format(NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP, i));
+                    continue;
+                }
+                if (userStoreManager.getSecondaryUserStoreManager(discoverableGroup.getUserStore()) == null) {
+                    validationErrors.add(String.format(USER_STORE_NOT_FOUND, i));
                     continue;
                 }
                 if (groupBasicInfos == null || groupBasicInfos.length == 0) {
@@ -245,8 +252,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                         validationErrors.add(String.format(NO_GROUP_ID, j, discoverableGroup.getUserStore()));
                         continue;
                     }
-                    AbstractUserStoreManager userStoreManager =
-                            ApplicationMgtUtil.getUserStoreManager(tenantDomain);
                     try {
                         userStoreManager.getGroupNameByGroupId(
                                 UserCoreUtil.addDomainToName(

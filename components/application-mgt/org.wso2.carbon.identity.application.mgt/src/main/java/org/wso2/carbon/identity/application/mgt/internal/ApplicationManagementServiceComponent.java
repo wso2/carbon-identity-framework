@@ -80,7 +80,6 @@ import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
-//import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -663,22 +662,4 @@ public class ApplicationManagementServiceComponent {
         ApplicationManagementServiceComponentHolder.getInstance().setApplicationCertificateMgtService(null);
         log.debug("ApplicationCertificateManagementService unset in ApplicationManagementServiceComponent bundle.");
     }
-
-//    @Reference(
-//            name = "org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService",
-//            service = org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService.class,
-//            cardinality = ReferenceCardinality.MANDATORY,
-//            policy = ReferencePolicy.DYNAMIC,
-//            unbind = "unsetUserStoreConfigService")
-//    protected void setUserStoreConfigService(UserStoreConfigService userStoreConfigService) {
-//
-//        ApplicationManagementServiceComponentHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
-//        log.debug("UserStoreConfigService set in ApplicationManagementServiceComponent bundle.");
-//    }
-//
-//    protected void unsetUserStoreConfigService(UserStoreConfigService userStoreConfigService) {
-//
-//        ApplicationManagementServiceComponentHolder.getInstance().setUserStoreConfigService(null);
-//        log.debug("UserStoreConfigService unset in ApplicationManagementServiceComponent bundle.");
-//    }
 }
