@@ -28,10 +28,9 @@ import java.util.List;
 
 /**
  * Application authentication service. This server only return the system defined authenticators.
- * This server is exposed to external and currently only being used for API based authenticator which is only support
- * for system defined authenticators.
+ * This service is exposed and currently only being used for API based authenticator implementation which is currently
+ * only support for system defined authenticators.
  */
-@Deprecated
 public class ApplicationAuthenticationService {
 
     private static final Log log = LogFactory.getLog(ApplicationAuthenticationService.class);

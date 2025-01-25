@@ -81,7 +81,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         authenticatorConfig.setName(this.name);
         authenticatorConfig.setEnabled(this.enabled);
         authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
-                .getAppAuthenticatorByName(this.name, tenantDomain));
+                .getApplicationAuthenticatorByName(this.name, tenantDomain));
         authenticatorConfig.setAuthenticatorStateInfo(this.authenticatorStateInfo);
         authenticatorConfig.setParameterMap(this.parameterMap);
         Map<String, IdentityProvider> idps = new HashMap<>();

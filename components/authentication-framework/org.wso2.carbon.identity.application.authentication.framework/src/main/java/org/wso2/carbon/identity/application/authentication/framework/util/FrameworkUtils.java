@@ -376,6 +376,7 @@ public class FrameworkUtils {
      *
      * @param name  Name of the authenticator.
      * @return ApplicationAuthenticator.
+     * @deprecated use {@link ApplicationAuthenticatorManager#getSystemDefinedAuthenticatorByName(String)}.
      */
     @Deprecated
     public static ApplicationAuthenticator getAppAuthenticatorByName(String name) {

@@ -294,7 +294,8 @@ public class AuthenticationService {
             }
 
             ApplicationAuthenticator authenticator = ApplicationAuthenticatorManager.getInstance()
-                    .getAppAuthenticatorByName(name, getTenantDomain((HttpServletRequest) request.getRequest()));
+                    .getApplicationAuthenticatorByName(
+                            name, getTenantDomain((HttpServletRequest) request.getRequest()));
             if (authenticator == null) {
                 throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.code(),
                         String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.description(),
@@ -472,7 +473,7 @@ public class AuthenticationService {
                                   String tenantDomain) {
 
         ApplicationAuthenticator authenticator = ApplicationAuthenticatorManager.getInstance()
-                .getAppAuthenticatorByName(authenticatorName, tenantDomain);
+                .getApplicationAuthenticatorByName(authenticatorName, tenantDomain);
         if (authenticator != null) {
             authenticators.add(authenticator);
         }

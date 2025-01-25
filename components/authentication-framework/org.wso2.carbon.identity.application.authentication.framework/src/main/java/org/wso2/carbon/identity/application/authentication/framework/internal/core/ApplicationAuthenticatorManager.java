@@ -124,7 +124,7 @@ public class ApplicationAuthenticatorManager {
      * @param tenantDomain      Tenant domain.
      * @return  ApplicationAuthenticator instance.
      */
-    public ApplicationAuthenticator getAppAuthenticatorByName(String authenticatorName, String tenantDomain) {
+    public ApplicationAuthenticator getApplicationAuthenticatorByName(String authenticatorName, String tenantDomain) {
 
         // Check whether the authenticator is in the system defined authenticator.
         for (ApplicationAuthenticator authenticator : systemDefinedAuthenticators) {

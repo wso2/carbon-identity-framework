@@ -176,7 +176,8 @@ public class AuthenticationContextLoader {
                 for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
                     if (authenticatorConfig.getApplicationAuthenticator() == null) {
                         authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
-                                .getAppAuthenticatorByName(authenticatorConfig.getName(), context.getTenantDomain()));
+                                .getApplicationAuthenticatorByName(
+                                        authenticatorConfig.getName(), context.getTenantDomain()));
                     }
                     if (authenticatorConfig.getIdps() == null && authenticatorConfig.getIdpNames() == null) {
                         authenticatorConfig.setIdPs(Collections.emptyMap());
