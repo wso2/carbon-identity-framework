@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -105,10 +104,10 @@ public class AppAssociatedRolesResolverImplTest {
         List<RoleV2> appRoles = generateTestRoleListForAppAssociation(2);
 
         when(identityProvider.getIdPGroupConfig()).thenReturn(idpGroups);
-        when(roleManagementService.getRoleIdListOfIdpGroups(eq(Arrays.asList("idpGroupId1", "idpGroupId2")),
-                eq(tenantDomain)))
+        when(roleManagementService.getRoleIdListOfIdpGroups(Arrays.asList("idpGroupId1", "idpGroupId2"),
+                tenantDomain))
                 .thenReturn(Arrays.asList("roleId1", "roleId2"));
-        when(applicationManagementService.getAssociatedRolesOfApplication(eq(applicationId), eq(tenantDomain)))
+        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, tenantDomain))
                 .thenReturn(appRoles);
 
         String[] resolvedRoles = resolver.getAppAssociatedRolesOfFederatedUser(
@@ -125,10 +124,10 @@ public class AppAssociatedRolesResolverImplTest {
         List<RoleV2> appRoles = generateTestRoleListForAppAssociation(1);
 
         when(identityProvider.getIdPGroupConfig()).thenReturn(idpGroups);
-        when(roleManagementService.getRoleIdListOfIdpGroups(eq(Arrays.asList("idpGroupId1", "idpGroupId2", "idpGroupId3")),
-                eq(tenantDomain)))
+        when(roleManagementService.getRoleIdListOfIdpGroups(
+                Arrays.asList("idpGroupId1", "idpGroupId2", "idpGroupId3"), tenantDomain))
                 .thenReturn(Arrays.asList("roleId1", "roleId2"));
-        when(applicationManagementService.getAssociatedRolesOfApplication(eq(applicationId), eq(tenantDomain)))
+        when(applicationManagementService.getAssociatedRolesOfApplication(applicationId, tenantDomain))
                 .thenReturn(appRoles);
 
         String[] resolvedRoles = resolver.getAppAssociatedRolesOfFederatedUser(
