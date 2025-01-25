@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action;
+package org.wso2.carbon.identity.user.pre.update.password.action.management;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -25,9 +25,9 @@ import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
-import org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionConverter;
-import org.wso2.carbon.identity.user.pre.update.password.action.model.PasswordSharing;
-import org.wso2.carbon.identity.user.pre.update.password.action.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionConverter;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordSharing;
+import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordAction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,21 +35,20 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.wso2.carbon.identity.user.pre.update.password.action.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
-import static org.wso2.carbon.identity.user.pre.update.password.action.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
+import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
+import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ACTION;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_DESCRIPTION;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ID;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_PASSWORD;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_URL;
+import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_USERNAME;
 
 /**
  * Unit tests for PreUpdatePasswordActionConverter.
  */
 public class PreUpdatePasswordActionConverterTest {
 
-    public static final String TEST_ID = "test-id";
-    public static final String TEST_ACTION = "Test Action";
-    public static final String TEST_DESCRIPTION = "Test Description";
-    public static final String TEST_URL = "https://test.endpoint";
-    public static final String TEST_USERNAME = "test-username";
-    public static final String TEST_PASSWORD = "test-password";
     private PreUpdatePasswordActionConverter converter;
 
     private Certificate mockCertificate;
@@ -85,7 +84,7 @@ public class PreUpdatePasswordActionConverterTest {
     }
 
     @Test
-    public void testBuildActionDTOWithAllAttributes() {
+    public void testBuildActionForGetOperationDTOWithAllAttributes() {
 
         // Convert the action to DTO
         ActionDTO dto = converter.buildActionDTO(action);
@@ -107,15 +106,15 @@ public class PreUpdatePasswordActionConverterTest {
         // Verify properties map
         Map<String, Object> properties = dto.getProperties();
         assertNotNull(properties);
-        assertEquals((String) properties.get(PASSWORD_SHARING_FORMAT), action.getPasswordSharing().getFormat().name());
+        assertEquals(properties.get(PASSWORD_SHARING_FORMAT), action.getPasswordSharing().getFormat());
         assertEquals(properties.get(CERTIFICATE), mockCertificate);
     }
 
     @Test
-    public void testBuildActionWithAllAttributes() {
+    public void testBuildActionForGetOperationWithAllAttributes() {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED.name());
+        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED);
         properties.put(CERTIFICATE, mockCertificate);
         ActionDTO dto = new ActionDTO.Builder(action)
                 .properties(properties)
@@ -146,21 +145,15 @@ public class PreUpdatePasswordActionConverterTest {
     }
 
     @Test
-    public void testBuildActionWithPartialAttributes() {
+    public void testBuildActionForGetOperationWithPartialAttributes() {
 
         Action dummyAction = new Action.ActionRequestBuilder().name(TEST_ACTION).build();
 
         ActionDTO dto = new ActionDTO.Builder(dummyAction)
-                .properties(null)
-                .build();
-        PreUpdatePasswordAction action = (PreUpdatePasswordAction) converter.buildAction(dto);
-        assertNull(action.getPasswordSharing());
-
-        dto = new ActionDTO.Builder(dummyAction)
                 .properties(new HashMap<String, Object>() {{
-                    put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED.name());
+                    put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED);
                 }}).build();
-        action = (PreUpdatePasswordAction) converter.buildAction(dto);
+        PreUpdatePasswordAction action = (PreUpdatePasswordAction) converter.buildAction(dto);
         assertNotNull(action.getPasswordSharing());
         assertEquals(action.getPasswordSharing().getFormat(), PasswordSharing.Format.SHA256_HASHED);
 
@@ -174,7 +167,7 @@ public class PreUpdatePasswordActionConverterTest {
     }
 
     @Test(description = "Test buildAction with empty properties")
-    public void testBuildActionDTOWithPartialAttributes() {
+    public void testBuildActionForGetOperationDTOWithPartialAttributes() {
 
         PreUpdatePasswordAction passwordAction = new PreUpdatePasswordAction.ResponseBuilder()
                 .name(TEST_ACTION)
@@ -191,7 +184,7 @@ public class PreUpdatePasswordActionConverterTest {
         dto = converter.buildActionDTO(passwordAction);
         assertNotNull(dto.getProperties());
         assertEquals(dto.getProperties().size(), 1);
-        assertEquals(dto.getProperties().get(PASSWORD_SHARING_FORMAT), PasswordSharing.Format.SHA256_HASHED.name());
+        assertEquals(dto.getProperties().get(PASSWORD_SHARING_FORMAT), PasswordSharing.Format.SHA256_HASHED);
 
         passwordAction = new PreUpdatePasswordAction.ResponseBuilder()
                 .name(TEST_ACTION)

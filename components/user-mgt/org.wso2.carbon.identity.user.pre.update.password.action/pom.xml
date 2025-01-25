@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.7.109-SNAPSHOT</version>
+        <version>7.7.136-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -75,13 +75,13 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.user.pre.update.password.action.constant,
+                            org.wso2.carbon.identity.user.pre.update.password.action.core,
                             org.wso2.carbon.identity.user.pre.update.password.action.internal
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.user.pre.update.password.action.constant,
+                            !org.wso2.carbon.identity.user.pre.update.password.action.core,
                             !org.wso2.carbon.identity.user.pre.update.password.action.internal,
-                            org.wso2.carbon.identity.user.pre.update.password.action.*;
+                            org.wso2.carbon.identity.user.pre.update.password.action.service.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>

@@ -31,8 +31,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
-import org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionConverter;
-import org.wso2.carbon.identity.user.pre.update.password.action.management.PreUpdatePasswordActionDTOModelResolver;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionConverter;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionDTOModelResolver;
 
 /**
  * Service component for the Pre Update Password Action.
