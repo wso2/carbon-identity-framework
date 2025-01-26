@@ -28,8 +28,10 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.admin.advisory.mgt.dao.AdminAdvisoryBannerDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
+import org.wso2.carbon.identity.cors.mgt.core.advisorybanner.DBBasedAdminBannerDAO;
 import org.wso2.carbon.identity.cors.mgt.core.internal.impl.CORSManagementServiceImpl;
 
 /**
@@ -54,6 +56,8 @@ public class CORSManagementServiceComponent {
         try {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(CORSManagementService.class, new CORSManagementServiceImpl(), null);
+            // Register the Database based Admin Advisory Banner DAO.
+            bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(), null);
 
             if (log.isDebugEnabled()) {
                 log.debug("CORSManagementServiceComponent is activated.");
