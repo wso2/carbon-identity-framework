@@ -90,6 +90,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.admin.advisory.mgt</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -109,16 +113,22 @@
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.*; version="${carbon.identity.package.import.version.range}",
+                            o
                             org.wso2.carbon.identity.application.*;version="${carbon.identity.package.import.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
-                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.admin.advisory.mgt.dao; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.admin.advisory.mgt.dto; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.admin.advisory.mgt.service; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.admin.advisory.mgt.exception; version="${carbon.kernel.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.cors.mgt.core.internal,
                             org.wso2.carbon.identity.cors.mgt.core.*; version="${project.version}",
                         </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
