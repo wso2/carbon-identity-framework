@@ -42,6 +42,9 @@ import org.wso2.carbon.utils.Secret;
 public class ActionUserOperationEventListener extends AbstractIdentityUserOperationEventListener implements
         SecretHandleableListener {
 
+    private static final String FAILED_ERROR_CODE = "ACTION_FAILED";
+    private static final String ERROR_ERROR_CODE = "ACTION_ERROR";
+
     @Override
     public int getExecutionOrderId() {
 
@@ -92,11 +95,11 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.FAILED) {
                 Failure failure = (Failure) executionStatus.getResponse();
                 String errorMsg = buildErrorMessage(failure.getFailureReason(), failure.getFailureDescription());
-                throw new UserActionExecutionClientException(errorMsg);
+                throw new UserActionExecutionClientException(errorMsg, FAILED_ERROR_CODE);
             } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.ERROR) {
                 Error error = (Error) executionStatus.getResponse();
                 String errorMsg = buildErrorMessage(error.getErrorMessage(), error.getErrorDescription());
-                throw new UserActionExecutionServerException(errorMsg);
+                throw new UserActionExecutionServerException(errorMsg, ERROR_ERROR_CODE);
             } else {
                 throw new UserStoreException("Unknown status received from the action executor.");
             }

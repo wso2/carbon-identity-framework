@@ -29,4 +29,9 @@ public class UserActionExecutionServerException extends UserStoreException {
 
         super(message);
     }
+
+    public UserActionExecutionServerException(String message, String errorCode) {
+
+        super(message, errorCode);
+    }
 }

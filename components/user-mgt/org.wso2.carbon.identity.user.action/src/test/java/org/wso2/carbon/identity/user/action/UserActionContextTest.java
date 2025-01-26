@@ -36,7 +36,7 @@ public class UserActionContextTest {
 
         UserActionContext userActionContext = new UserActionContext.Builder()
                 .userId(TEST_USER_ID)
-                .password(new StringBuffer(PASSWORD))
+                .password(PASSWORD.toCharArray())
                 .userStoreDomain(TEST_USER_STORE_DOMAIN)
                 .build();
 

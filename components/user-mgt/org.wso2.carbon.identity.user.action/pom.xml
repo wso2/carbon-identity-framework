@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.7.141-SNAPSHOT</version>
+        <version>7.7.143-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -87,8 +87,10 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.action.core.*,
-                            !org.wso2.carbon.identity.user.action.internal
-                            org.wso2.carbon.identity.user.action.service.*;
+                            !org.wso2.carbon.identity.user.action.internal,
+                            org.wso2.carbon.identity.user.action.service,
+                            org.wso2.carbon.identity.user.action.service.model,
+                            org.wso2.carbon.identity.user.action.service.exception;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
@@ -102,6 +104,7 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.identity.core; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.context; version="${carbon.identity.package.import.version.range}",
@@ -167,7 +170,7 @@
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.65</minimum>
+                                            <minimum>0.68</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>

@@ -25,6 +25,8 @@ import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.Secret;
+import org.wso2.carbon.utils.UnsupportedSecretTypeException;
 
 import java.util.Collections;
 
@@ -84,20 +86,21 @@ public class ActionUserOperationEventListenerTest {
 
     @Test
     public void testDoPreUpdateCredentialByAdminWithID_WithDisabledListener()
-            throws UserStoreException {
+            throws UserStoreException, UnsupportedSecretTypeException {
 
         IdentityEventListenerConfig mockConfig = mock(IdentityEventListenerConfig.class);
         try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
             identityUtilMockedStatic.when(() -> IdentityUtil.readEventListenerProperty(any(), any()))
                     .thenReturn(mockConfig);
             doReturn("false").when(mockConfig).getEnable();
-            Assert.assertTrue(listener.doPreUpdateCredentialByAdminWithID(USER_NAME, new StringBuffer(PASSWORD),
+            Assert.assertTrue(listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                     userStoreManager));
         }
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_Success() throws UserStoreException, ActionExecutionException {
+    public void testDoPreUpdateCredentialByAdminWithID_Success()
+            throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         ActionExecutionStatus<Success> successStatus =
                 new SuccessStatus.Builder().setResponseContext(Collections.emptyMap()).build();
@@ -106,14 +109,15 @@ public class ActionUserOperationEventListenerTest {
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
         // Call the method
-        boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, new StringBuffer(PASSWORD),
+        boolean result = listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
                 userStoreManager);
         Assert.assertTrue(result, "The method should return true for successful execution.");
     }
 
     @Test(expectedExceptions = UserStoreClientException.class,
             expectedExceptionsMessageRegExp = "FailureReason. FailureDescription")
-    public void testDoPreUpdateCredentialByAdminWithID_Failed() throws UserStoreException, ActionExecutionException {
+    public void testDoPreUpdateCredentialByAdminWithID_Failed()
+            throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         Failure failureResponse = new Failure("FailureReason", "FailureDescription");
         ActionExecutionStatus<Failure> failedStatus = new FailedStatus(failureResponse);
@@ -121,12 +125,13 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
-        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, new StringBuffer(PASSWORD), userStoreManager);
+        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
     }
 
     @Test(expectedExceptions = UserStoreException.class,
             expectedExceptionsMessageRegExp = "ErrorMessage. ErrorDescription")
-    public void testDoPreUpdateCredentialByAdminWithID_Error() throws UserStoreException, ActionExecutionException {
+    public void testDoPreUpdateCredentialByAdminWithID_Error()
+            throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         Error errorResponse = new Error("ErrorMessage", "ErrorDescription");
         ActionExecutionStatus<Error> errorStatus = new ErrorStatus(errorResponse);
@@ -135,14 +140,14 @@ public class ActionUserOperationEventListenerTest {
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
         // Call the method
-        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, new StringBuffer(PASSWORD), userStoreManager);
+        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
     }
 
 
     @Test(expectedExceptions = UserStoreException.class,
             expectedExceptionsMessageRegExp = "Unknown status received from the action executor.")
     public void testDoPreUpdateCredentialByAdminWithID_UnknownStatus()
-            throws UserStoreException, ActionExecutionException {
+            throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         ActionExecutionStatus<?> unknownStatus = mock(ActionExecutionStatus.class);
         doReturn(null).when(unknownStatus).getStatus();
@@ -150,18 +155,18 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
-        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, new StringBuffer(PASSWORD), userStoreManager);
+        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
     }
 
     @Test(expectedExceptions = UserStoreException.class,
             expectedExceptionsMessageRegExp = "Error while executing pre update password action.")
     public void testDoPreUpdateCredentialByAdminWithID_ActionExecutionException()
-            throws UserStoreException, ActionExecutionException {
+            throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         doThrow(new ActionExecutionException("Execution error")).when(mockExecutor).execute(any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
-        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, new StringBuffer(PASSWORD), userStoreManager);
+        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
     }
 }

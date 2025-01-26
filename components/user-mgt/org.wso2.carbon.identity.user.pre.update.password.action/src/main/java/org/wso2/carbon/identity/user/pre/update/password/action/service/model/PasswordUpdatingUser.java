@@ -66,10 +66,6 @@ public class PasswordUpdatingUser extends User {
         private boolean isCredentialEncryptionRequired = false;
         private X509Certificate certificate;
 
-        public Builder() {
-
-        }
-
         public Builder id(String id) {
 
             this.id = id;

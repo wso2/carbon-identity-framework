@@ -25,8 +25,8 @@ import org.wso2.carbon.user.core.UserStoreClientException;
  */
 public class UserActionExecutionClientException extends UserStoreClientException {
 
-    public UserActionExecutionClientException(String message) {
+    public UserActionExecutionClientException(String message, String errorCode) {
 
-        super(message);
+        super(message, errorCode);
     }
 }
