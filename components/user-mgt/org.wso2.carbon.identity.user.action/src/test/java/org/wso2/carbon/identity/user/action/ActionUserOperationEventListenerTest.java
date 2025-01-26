@@ -15,6 +15,8 @@ import org.wso2.carbon.identity.action.execution.model.Failure;
 import org.wso2.carbon.identity.action.execution.model.Success;
 import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -65,6 +67,10 @@ public class ActionUserOperationEventListenerTest {
         userCoreUtil = mockStatic(UserCoreUtil.class);
         listener = new ActionUserOperationEventListener();
         userCoreUtil.when(() -> UserCoreUtil.getDomainName(any())).thenReturn("PRIMARY");
+        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
+                .name(Flow.Name.PASSWORD_UPDATE)
+                .initiatingPersona(Flow.InitiatingPersona.USER)
+                .build());
     }
 
     @AfterMethod
@@ -72,6 +78,7 @@ public class ActionUserOperationEventListenerTest {
 
         userCoreUtil.close();
         UserActionExecutorFactory.unregisterUserActionExecutor(mockExecutor);
+        IdentityContext.destroyCurrentContext();
     }
 
     @Test

@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.action.execution.model.Error;
 import org.wso2.carbon.identity.action.execution.model.Failure;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.user.action.core.factory.UserActionExecutorFactory;
 import org.wso2.carbon.identity.user.action.service.constant.UserActionError;
@@ -72,6 +73,10 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             return true;
         }
 
+        if (!isExecutableFlow()) {
+            return true;
+        }
+
         try {
             UserActionContext userActionContext = new UserActionContext.Builder()
                     .userId(userName)
@@ -102,6 +107,17 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             throw new UserStoreException("Error while executing pre update password action.",
                     UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR, e);
         }
+    }
+
+    private boolean isExecutableFlow() {
+
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        if (flow == null) {
+            return false;
+        }
+
+        return flow.getName() == Flow.Name.PASSWORD_UPDATE || flow.getName() == Flow.Name.PASSWORD_RESET ||
+                flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD;
     }
 
     private char[] getSecret(Object credential) throws UserStoreException {
