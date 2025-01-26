@@ -166,7 +166,7 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteSuccessWhenNoActiveActionAvailableForActionType() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = mock(Action.class);
         when(action.getStatus()).thenReturn(Action.Status.INACTIVE);
@@ -200,7 +200,7 @@ public class ActionExecutorServiceImplTest {
         when(ruleEvaluationService.evaluate(any(), any(), any())).thenReturn(new RuleEvaluationResult("ruleId", false));
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();;
 
         ActionExecutionStatus<?> status = actionExecutorService.execute(actionType, eventContext, "tenantDomain");
 
@@ -231,10 +231,10 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteFailureWhenNoRegisteredRequestBuilderForActionType() throws Exception {
 
         Action action = createAction();
-        when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
+        when(actionManagementService.getActionsByActionType(any(), eq("tenantDomain"))).thenReturn(
                 Collections.singletonList(action));
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new HashMap<>(), "tenantDomain");
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
@@ -272,7 +272,7 @@ public class ActionExecutorServiceImplTest {
         when(ruleEvaluationService.evaluate(any(), any(), any())).thenThrow(new RuleEvaluationException("Error"));
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();;
 
         ActionExecutionStatus<?> status = actionExecutorService.execute(actionType, eventContext, "tenantDomain");
 
@@ -298,8 +298,7 @@ public class ActionExecutorServiceImplTest {
         when(actionExecutionRequestBuilder.buildActionExecutionRequest(any())).thenThrow(
                 new ActionExecutionRequestBuilderException("Error while executing request builder."));
 
-        actionExecutorService.execute(actionType, "actionId", Collections.emptyMap(),
-                "tenantDomain");
+        actionExecutorService.execute(actionType, "actionId", new HashMap<>(), "tenantDomain");
     }
 
     @Test(expectedExceptions = ActionExecutionException.class)
@@ -318,11 +317,11 @@ public class ActionExecutorServiceImplTest {
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
         ActionExecutionStatus actionExecutionStatus =
-                actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
+                actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new HashMap<>(), "tenantDomain");
         assertEquals(actionExecutionStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(
-                ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any(), any());
+                ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), new HashMap<>(), "tenantDomain");
         assertEquals(actionExecutionStatusWithActionIds.getStatus(), ActionExecutionStatus.Status.FAILED);
     }
 
@@ -342,7 +341,7 @@ public class ActionExecutorServiceImplTest {
                         () -> ActionExecutionRequestBuilderFactory.getActionExecutionRequestBuilder(any()))
                 .thenReturn(actionExecutionRequestBuilder);
 
-        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, any(), any());
+        actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new HashMap<>(), "tenantDomain");
     }
 
     @Test(expectedExceptions = ActionExecutionException.class,
@@ -369,7 +368,7 @@ public class ActionExecutorServiceImplTest {
             throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -404,7 +403,7 @@ public class ActionExecutorServiceImplTest {
     public void testBuildActionExecutionRequest() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -436,7 +435,7 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteSuccessWhenNoRuleConfiguredInAction() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -479,7 +478,7 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteSuccessWhenRuleConfiguredInActionIsSatisfied() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
         when(action.getActionRule()).thenReturn(ActionRule.create("ruleId", "tenantDomain"));
@@ -526,7 +525,7 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteFailure() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();;
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -567,7 +566,7 @@ public class ActionExecutorServiceImplTest {
     public void testExecuteIncomplete() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -607,7 +606,7 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteFailureForUnexpectedAPIResponse() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();;
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -635,7 +634,7 @@ public class ActionExecutorServiceImplTest {
     public void testExecuteError() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = Collections.emptyMap();
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
 
