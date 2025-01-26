@@ -1210,7 +1210,9 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('1fc809a0-dc0d-4cb2-82f3-58934d389236', 'CUSTOM_TEXT', 'A resource type to keep the tenant custom text preferences.'),
 ('c385a42a-5697-4604-b49a-62456621e926', 'DCR_CONFIGURATION', 'A resource type to keep the DCR configurations.'),
 ('3e5b1f91-72d8-4fbc-94d1-1b9a4f8c3b07', 'IMPERSONATION_CONFIGURATION', 'A resource type to keep the tenant impersonation preferences.'),
-('a731af34-f96a-4069-812d-30dc3b713a28', 'response-max-limit-configurations', 'A resource type to max limit configurations for API response.');
+('a731af34-f96a-4069-812d-30dc3b713a28', 'response-max-limit-configurations', 'A resource type to max limit configurations for API response.'),
+('91116e95-ca63-4787-be2d-de13d04d1b55', 'X509_VALIDATOR', 'A resource type to keep the x509 validators.'),
+('a17952b9-0942-4669-8529-479ca481146b', 'X509_REVOCATION_VALIDATION_CA', 'A resource type to keep the x509 revocation validation certificate authorities.');
 
 DROP TABLE IF EXISTS IDN_CONFIG_RESOURCE;
 CREATE TABLE IDN_CONFIG_RESOURCE (
