@@ -1768,7 +1768,7 @@
   "actions.types.authentication.enable": true,
 
   "oauth.authorize_all_scopes": false,
-  "oauth.enable_rich_authorization_requests" : false,
+  "oauth.enable_rich_authorization_requests" : true,
 
   "system_applications.system_portals": ["Console", "My Account"],
 
