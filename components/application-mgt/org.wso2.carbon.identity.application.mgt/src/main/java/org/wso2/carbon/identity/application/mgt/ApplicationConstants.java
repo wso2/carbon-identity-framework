@@ -233,6 +233,8 @@ public class ApplicationConstants {
         public static final String AUTHORIZATION_DETAILS_NAME = "AUTHORIZATION_DETAILS_NAME";
         public static final String AUTHORIZATION_DETAILS_SCHEMA = "AUTHORIZATION_DETAILS_SCHEMA";
 
+        public static final String GROUP_ID = "GROUP_ID";
+
         private ApplicationTableColumns() {
 
         }

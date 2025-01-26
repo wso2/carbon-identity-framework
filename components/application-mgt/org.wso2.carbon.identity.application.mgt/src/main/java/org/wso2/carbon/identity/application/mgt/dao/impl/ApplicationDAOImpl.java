@@ -107,6 +107,7 @@ import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
@@ -5997,8 +5998,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 statement.setString(ApplicationTableColumns.APP_NAME, filterResolvedForSQL);
 
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        count = resultSet.getInt(1);
+                    while (resultSet.next()) {
+                        String groupId = resultSet.getString(ApplicationTableColumns.GROUP_ID);
+                        if (groupId == null || checkLoggedInUserIsInGroup(groupId)) {
+                            count++;
+                        }
                     }
                 }
             }
@@ -6023,14 +6027,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         boolean isDiscoverable = false;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_UUID)) {
+                    ApplicationMgtDBQueries.LOAD_DISCOVERABLE_APP_BY_TENANT_AND_UUID)) {
                 statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
                 statement.setString(ApplicationTableColumns.UUID, resourceId);
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        applicationBasicInfo = buildApplicationBasicInfo(resultSet);
-                        isDiscoverable = getBooleanValue(resultSet.getString(ApplicationTableColumns.IS_DISCOVERABLE));
+                        String groupId = resultSet.getString(ApplicationTableColumns.GROUP_ID);
+                        if (checkLoggedInUserIsInGroup(groupId)) {
+                            applicationBasicInfo = buildApplicationBasicInfo(resultSet);
+                            isDiscoverable =
+                                    getBooleanValue(resultSet.getString(ApplicationTableColumns.IS_DISCOVERABLE));
+                        }
                     }
                 }
             }
@@ -6052,7 +6060,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public boolean isApplicationDiscoverable(String resourceId, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        int count = 0;
+        boolean isDiscoverable = false;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                     ApplicationMgtDBQueries.IS_APP_BY_TENANT_AND_UUID_DISCOVERABLE)) {
@@ -6061,7 +6069,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-                        count = resultSet.getInt(1);
+                        String groupId = resultSet.getString(ApplicationTableColumns.GROUP_ID);
+                        if (groupId == null || checkLoggedInUserIsInGroup(groupId)) {
+                            isDiscoverable = true;
+                        }
                     }
                 }
             }
@@ -6069,7 +6080,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementServerException("Error while getting discoverable application " +
                     "basic information for resourceId: " + resourceId + " in tenantDomain: " + tenantDomain, e);
         }
-        return count > 0;
+        return isDiscoverable;
     }
 
     @Override
@@ -6266,7 +6277,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private List<ApplicationBasicInfo> getDiscoverableApplicationBasicInfo(int limit, int offset, String
             tenantDomain) throws IdentityApplicationManagementException {
 
-        List<ApplicationBasicInfo> applicationBasicInfoList = new ArrayList<>();
+        HashMap<Integer, ApplicationBasicInfo> applicationBasicInfos = new HashMap<>();
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String databaseVendorType = connection.getMetaData().getDatabaseProductName();
@@ -6283,7 +6294,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        applicationBasicInfoList.add(buildApplicationBasicInfo(resultSet));
+                        buildDiscoverableAppBasicInfo(applicationBasicInfos, resultSet);
                     }
                 }
             }
@@ -6292,12 +6303,67 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     " for discoverable applications in tenantDomain: " + tenantDomain, e);
         }
 
-        return Collections.unmodifiableList(applicationBasicInfoList);
+        return Collections.unmodifiableList(new ArrayList<>(applicationBasicInfos.values()));
+    }
+
+    /**
+     * Build the discoverable application basic information from the result set.
+     *
+     * @param applicationBasicInfos HashMap to store the application basic information.
+     * @param resultSet             Current result set.
+     * @throws SQLException                           Error while reading the result set.
+     * @throws IdentityApplicationManagementException Error while building the application basic information.
+     */
+    private void buildDiscoverableAppBasicInfo(HashMap<Integer, ApplicationBasicInfo> applicationBasicInfos,
+                                               ResultSet resultSet)
+            throws SQLException, IdentityApplicationManagementException {
+
+        int applicationId = resultSet.getInt(ApplicationTableColumns.ID);
+        if (!applicationBasicInfos.containsKey(applicationId)) {
+            String groupId = resultSet.getString(ApplicationTableColumns.GROUP_ID);
+            if (groupId == null) {
+                applicationBasicInfos.put(applicationId, buildApplicationBasicInfo(resultSet));
+                return;
+            }
+            if (checkLoggedInUserIsInGroup(groupId)) {
+                applicationBasicInfos.put(applicationId, buildApplicationBasicInfo(resultSet));
+            }
+        }
+    }
+
+    /**
+     * Check whether the logged-in user is in the provided group.
+     *
+     * @param groupId Group id to check whether the user is in.
+     * @return True if the user is in the group.
+     * @throws IdentityApplicationManagementException Error while checking the user is in the group.
+     */
+    private boolean checkLoggedInUserIsInGroup(String groupId) throws IdentityApplicationManagementException {
+
+        String loggedInUserId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+        try {
+            if (userStoreManager.isUserInGroup(loggedInUserId, groupId)) {
+                return true;
+            }
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            String msg = "Error while checking the user: " + loggedInUserId + " is in the group: " + groupId +
+                    " in tenant: " + tenantDomain;
+            if (e instanceof UserStoreClientException) {
+                if (log.isDebugEnabled()) {
+                    log.debug(msg, e);
+                }
+            } else {
+                throw new IdentityApplicationManagementException(msg, e);
+            }
+        }
+        return false;
     }
 
     private int getCountOfDiscoverableApplications(String tenantDomain) throws IdentityApplicationManagementException {
 
-        int count;
+        int count = 0;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             try (NamedPreparedStatement statement =
@@ -6306,8 +6372,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
 
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    resultSet.next();
-                    count = resultSet.getInt(1);
+                    while (resultSet.next()) {
+                        String groupId = resultSet.getString(ApplicationTableColumns.GROUP_ID);
+                        if (groupId == null || checkLoggedInUserIsInGroup(groupId)) {
+                            count++;
+                        }
+                    }
                 }
             }
         } catch (SQLException e) {
