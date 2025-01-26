@@ -28,6 +28,7 @@ import javax.validation.ValidatorFactory;
 /**
  * Custom Bean Validation Interceptor.
  */
+@SuppressWarnings("java:S110") // Disable "Inheritance tree of classes should not be too deep" rule
 public class CustomBeanValidationInterceptor extends JAXRSBeanValidationInInterceptor {
 
     public CustomBeanValidationInterceptor() {
