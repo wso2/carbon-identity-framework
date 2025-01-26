@@ -304,8 +304,15 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             authenticatorConfig = new AuthenticatorConfig();
             authenticatorConfig.setName(authenticatorName);
 
-            ApplicationAuthenticator appAuthenticatorForConfig = ApplicationAuthenticatorManager.getInstance()
-                    .getApplicationAuthenticatorByName(authenticatorName, tenantDomain);
+            ApplicationAuthenticator appAuthenticatorForConfig = null;
+            for (ApplicationAuthenticator appAuthenticator : ApplicationAuthenticatorManager.getInstance()
+                    .getAllAuthenticators(tenantDomain)) {
+
+                if (authenticatorName.equalsIgnoreCase(appAuthenticator.getName())) {
+                    appAuthenticatorForConfig = appAuthenticator;
+                    break;
+                }
+            }
             if (appAuthenticatorForConfig == null) {
                 throw new FrameworkException("No authenticator found by the name: " + authenticatorName);
             }

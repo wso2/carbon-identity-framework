@@ -141,8 +141,8 @@ public class AuthenticationService {
         List<AuthenticatorData> authenticatorDataList;
         if (isMultiOptionsResponse) {
             responseData.setAuthenticatorSelectionRequired(true);
-            authenticatorDataList = getAuthenticatorBasicData(request, response.getAuthenticators(),
-                    request.getAuthInitiationData());
+            authenticatorDataList = getAuthenticatorBasicData(response.getAuthenticators(),
+                    request.getAuthInitiationData(),  getTenantDomain((HttpServletRequest) request.getRequest()));
         } else {
             authenticatorDataList = request.getAuthInitiationData();
         }
@@ -275,8 +275,8 @@ public class AuthenticationService {
         return queryParams.get(AuthServiceConstants.AUTH_FAILURE_MSG_PARAM);
     }
 
-    private List<AuthenticatorData> getAuthenticatorBasicData(AuthServiceRequestWrapper request,
-            String authenticatorList, List<AuthenticatorData> authInitiationData) throws AuthServiceException {
+    private List<AuthenticatorData> getAuthenticatorBasicData(String authenticatorList,
+               List<AuthenticatorData> authInitiationData, String tenantDomain) throws AuthServiceException {
 
         List<AuthenticatorData> authenticatorDataList = new ArrayList<>();
         String[] authenticatorAndIdpsArr = StringUtils.split(authenticatorList,
@@ -294,8 +294,7 @@ public class AuthenticationService {
             }
 
             ApplicationAuthenticator authenticator = ApplicationAuthenticatorManager.getInstance()
-                    .getApplicationAuthenticatorByName(
-                            name, getTenantDomain((HttpServletRequest) request.getRequest()));
+                    .getApplicationAuthenticatorByName(name, tenantDomain);
             if (authenticator == null) {
                 throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.code(),
                         String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.description(),

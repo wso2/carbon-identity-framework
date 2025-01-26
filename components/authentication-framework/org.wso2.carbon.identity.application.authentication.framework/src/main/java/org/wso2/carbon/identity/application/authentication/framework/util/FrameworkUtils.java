@@ -1532,23 +1532,6 @@ public class FrameworkUtils {
         return authenticationContext;
     }
 
-    public static Map<String, String> getAuthenticatorPropertyMapForLocalAuthenticators(
-            String name, String tenantDomain) {
-
-        Map<String, String> propertyMap = new HashMap<>();
-        try {
-            LocalAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
-                    .getUserDefinedLocalAuthenticator(name, tenantDomain);
-            for (Property property : authenticatorConfig.getProperties()) {
-                propertyMap.put(property.getName(), property.getValue());
-            }
-        } catch (AuthenticatorMgtException e) {
-            log.error(String.format("Error while resolving the user defined local authenticator properties:%s",
-                    name), e);
-        }
-        return propertyMap;
-    }
-
     /**
      * @param externalIdPConfig
      * @param name

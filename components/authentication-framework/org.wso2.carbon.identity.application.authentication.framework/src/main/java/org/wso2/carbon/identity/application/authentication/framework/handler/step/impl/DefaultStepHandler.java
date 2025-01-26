@@ -56,7 +56,11 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -1469,11 +1473,28 @@ public class DefaultStepHandler implements StepHandler {
 
         if (authenticator instanceof LocalApplicationAuthenticator &&
                 AuthenticatorPropertyConstants.DefinedByType.USER.equals(authenticator.getDefinedByType())) {
-            return FrameworkUtils.getAuthenticatorPropertyMapForLocalAuthenticators(
+            return getAuthenticatorPropertyMapForUserDefinedLocalAuthenticators(
                     authenticator.getName(), context.getTenantDomain());
         }
 
         return FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
                 context.getExternalIdP(), authenticator.getName());
+    }
+
+    private static Map<String, String> getAuthenticatorPropertyMapForUserDefinedLocalAuthenticators(
+            String name, String tenantDomain) {
+
+        Map<String, String> propertyMap = new HashMap<>();
+        try {
+            LocalAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
+                    .getUserDefinedLocalAuthenticator(name, tenantDomain);
+            for (Property property : authenticatorConfig.getProperties()) {
+                propertyMap.put(property.getName(), property.getValue());
+            }
+        } catch (AuthenticatorMgtException e) {
+            LOG.error(String.format("Error while resolving the user defined local authenticator properties:%s",
+                    name), e);
+        }
+        return propertyMap;
     }
 }
