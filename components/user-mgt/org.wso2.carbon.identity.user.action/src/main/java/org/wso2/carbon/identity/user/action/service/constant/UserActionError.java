@@ -16,20 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.core.constant;
+package org.wso2.carbon.identity.user.action.service.constant;
 
 /**
- * This class holds the constants used in Pre Update Password extension.
+ * Constants related to user action service.
  */
-public class PreUpdatePasswordActionConstants {
+public class UserActionError {
 
-    public static final String PASSWORD_SHARING_FORMAT = "passwordSharingFormat";
-    public static final String CERTIFICATE = "certificate";
+    public static final String PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED = "USER-ACTION-PRE-UPDATE-PASSWORD-60001";
+    public static final String PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR = "USER-ACTION-PRE-UPDATE-PASSWORD-65001";
+    public static final String PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET = "USER-ACTION-PRE-UPDATE-PASSWORD-65002";
+    public static final String PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR = "USER-ACTION-PRE-UPDATE-PASSWORD-65003";
 
-    // Event Context constants for pre update password action
-    public static final String USER_ACTION_CONTEXT = "userActionContext";
-
-    private PreUpdatePasswordActionConstants() {
+    private UserActionError() {
 
     }
 }

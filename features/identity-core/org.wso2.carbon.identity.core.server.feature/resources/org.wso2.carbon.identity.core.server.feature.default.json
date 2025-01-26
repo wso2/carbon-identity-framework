@@ -553,6 +553,8 @@
   "event.default_listener.scim2_tenant_mgt.enable": true,
   "event.default_listener.scim2.priority": "93",
   "event.default_listener.scim2.enable": true,
+  "event.default_listener.pre_update_password_action.priority": "10000",
+  "event.default_listener.pre_update_password_action.enable": true,
   "event.default_listener.governance_identity_mgt.priority": "95",
   "event.default_listener.governance_identity_mgt.enable": true,
   "event.default_listener.governance_identity_store.priority": "97",
