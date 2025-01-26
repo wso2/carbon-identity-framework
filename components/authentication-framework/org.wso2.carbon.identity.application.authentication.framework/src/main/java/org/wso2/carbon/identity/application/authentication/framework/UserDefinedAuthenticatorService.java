@@ -18,14 +18,14 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 
 /**
- * Authenticator Adapter Service which responsible for creating ApplicationAuthenticator for the provided user defined
- * authenticator configs.
+ * The UserDefinedAuthenticatorService which responsible for creating ApplicationAuthenticator for the provided user
+ * defined authenticator configs.
  */
-public interface AuthenticatorAdapterService {
+public interface UserDefinedAuthenticatorService {
 
     /**
      * Get the ApplicationAuthenticator for the given user defined federated authenticator config.
@@ -33,7 +33,8 @@ public interface AuthenticatorAdapterService {
      * @param config    Federated Authenticator Config.
      * @return  FederatedApplicationAuthenticator instance.
      */
-    FederatedApplicationAuthenticator getFederatedAuthenticatorAdapter(FederatedAuthenticatorConfig config);
+     FederatedApplicationAuthenticator getUserDefinedFederatedAuthenticator(
+             UserDefinedFederatedAuthenticatorConfig config);
 
     /**
      * Get the ApplicationAuthenticator for the given user defined local authenticator config.
@@ -41,5 +42,5 @@ public interface AuthenticatorAdapterService {
      * @param config    Local Authenticator Config.
      * @return  LocalApplicationAuthenticator instance.
      */
-    LocalApplicationAuthenticator getLocalAuthenticatorAdapter(LocalAuthenticatorConfig config);
+    LocalApplicationAuthenticator getUserDefinedLocalAuthenticator(UserDefinedLocalAuthenticatorConfig config);
 }

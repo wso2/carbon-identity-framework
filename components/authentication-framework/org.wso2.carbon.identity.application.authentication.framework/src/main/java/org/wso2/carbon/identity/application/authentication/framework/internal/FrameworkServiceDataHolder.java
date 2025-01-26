@@ -25,9 +25,9 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
@@ -124,7 +124,7 @@ public class FrameworkServiceDataHolder {
     private OrganizationManager organizationManager;
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
-    private AuthenticatorAdapterService authenticatorAdapterService;
+    private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
 
     private FrameworkServiceDataHolder() {
 
@@ -824,22 +824,22 @@ public class FrameworkServiceDataHolder {
     }
 
     /**
-     * Set {@link AuthenticatorAdapterService}.
+     * Set {@link UserDefinedAuthenticatorService}.
      *
-     * @param authenticatorAdapterService   Instance of {@link AuthenticatorAdapterService}.
+     * @param userDefinedAuthenticatorService   Instance of {@link UserDefinedAuthenticatorService}.
      */
-    public void setAuthenticatorAdapterService(AuthenticatorAdapterService authenticatorAdapterService) {
+    public void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService userDefinedAuthenticatorService) {
 
-        this.authenticatorAdapterService = authenticatorAdapterService;
+        this.userDefinedAuthenticatorService = userDefinedAuthenticatorService;
     }
 
     /**
-     * Get {@link AuthenticatorAdapterService}.
+     * Get {@link UserDefinedAuthenticatorService}.
      *
-     * @return Instance of {@link AuthenticatorAdapterService}.
+     * @return Instance of {@link UserDefinedAuthenticatorService}.
      */
-    public AuthenticatorAdapterService getAuthenticatorAdapterService() {
+    public UserDefinedAuthenticatorService getUserDefinedAuthenticatorService() {
 
-        return authenticatorAdapterService;
+        return userDefinedAuthenticatorService;
     }
 }

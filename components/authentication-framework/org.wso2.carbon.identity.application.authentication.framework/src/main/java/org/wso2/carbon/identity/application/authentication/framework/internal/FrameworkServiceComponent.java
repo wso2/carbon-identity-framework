@@ -38,12 +38,12 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
@@ -1107,23 +1107,24 @@ public class FrameworkServiceComponent {
         log.debug("RoleManagementServiceV2 unset in FrameworkServiceComponent bundle.");
     }
 
-    /* TODO: The cardinality is set to OPTIONAL until AuthenticatorAdapterService implements. Update it to MANDATORY,
-        one adapter service implementation done. */
+    /* TODO: The cardinality is set to OPTIONAL until UserDefinedAuthenticatorService implements. Update it to
+        MANDATORY, one adapter service implementation done. */
     @Reference(
-            name = "org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService",
-            service = org.wso2.carbon.identity.application.authentication.framework.AuthenticatorAdapterService.class,
+            name = "org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService",
+            service =
+                    org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService.class,
             cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetAuthenticatorAdapterService")
-    protected void setAuthenticatorAdapterService(AuthenticatorAdapterService adapterService) {
+            unbind = "unsetUserDefinedAuthenticatorService")
+    protected void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService authenticatorService) {
 
-        FrameworkServiceDataHolder.getInstance().setAuthenticatorAdapterService(adapterService);
-        log.debug("AuthenticatorAdapterService set in FrameworkServiceComponent bundle.");
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
+        log.debug("UserDefinedAuthenticatorService set in FrameworkServiceComponent bundle.");
     }
 
-    protected void unsetAuthenticatorAdapterService(AuthenticatorAdapterService adapterService) {
+    protected void unsetUserDefinedAuthenticatorService(UserDefinedAuthenticatorService authenticatorService) {
 
-        FrameworkServiceDataHolder.getInstance().setAuthenticatorAdapterService(adapterService);
-        log.debug("AuthenticatorAdapterService unset in FrameworkServiceComponent bundle.");
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
+        log.debug("UserDefinedAuthenticatorService unset in FrameworkServiceComponent bundle.");
     }
 }

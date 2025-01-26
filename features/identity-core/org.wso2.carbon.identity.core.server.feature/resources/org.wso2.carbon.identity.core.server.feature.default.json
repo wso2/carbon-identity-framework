@@ -1744,6 +1744,7 @@
     "x-forwarded-uri"
   ],
   "actions.types.pre_issue_access_token.enable": true,
+
   "actions.types.pre_issue_access_token.action_request.excluded_headers": [
     "dpop"
   ],
@@ -1760,7 +1761,7 @@
     "client_assertion_type",
     "client_assertion"
   ],
-  "actions.types.authentication.enable": true,
+  "actions.types.authentication.enable": false,
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : false,

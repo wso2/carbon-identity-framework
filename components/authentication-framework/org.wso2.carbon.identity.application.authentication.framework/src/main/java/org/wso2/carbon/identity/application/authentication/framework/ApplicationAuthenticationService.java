@@ -28,8 +28,12 @@ import java.util.List;
 
 /**
  * Application authentication service. This server only return the system defined authenticators.
- * This service is exposed and currently only being used for API based authenticator implementation which is currently
- * only support for system defined authenticators.
+ * The application authentication service currently returns only system-defined authenticators. This service is publicly
+ * exposed and is presently utilized exclusively for API-based authenticator implementations, which are currently
+ * support only for system-defined authenticators.
+ * To support API-based authentication for custom authentication extensions, the existing methods will need to be
+ * deprecated, and introduce new methods to support custom authenticators.
+ * Issue: https://github.com/wso2/product-is/issues/22462
  */
 public class ApplicationAuthenticationService {
 

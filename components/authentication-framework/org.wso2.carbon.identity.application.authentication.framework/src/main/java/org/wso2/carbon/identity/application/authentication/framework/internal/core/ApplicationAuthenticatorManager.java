@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal.core;
 
+import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.util.ArrayList;
@@ -97,22 +100,25 @@ public class ApplicationAuthenticatorManager {
 
         List<ApplicationAuthenticator> allAuthenticators = new ArrayList<>(systemDefinedAuthenticators);
 
-        if (FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService() == null) {
+        if (!ActionExecutorConfig.getInstance().isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION) ||
+                FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService() == null) {
             return allAuthenticators;
         }
 
         try {
-            for (LocalAuthenticatorConfig localConfig : ApplicationAuthenticatorService.getInstance()
+            for (UserDefinedLocalAuthenticatorConfig localConfig : ApplicationAuthenticatorService.getInstance()
                     .getAllUserDefinedLocalAuthenticators(tenantDomain)) {
-                allAuthenticators.add(FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
-                        .getLocalAuthenticatorAdapter(localConfig));
+                allAuthenticators.add(FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
+                        .getUserDefinedLocalAuthenticator(localConfig));
             }
 
             FederatedAuthenticatorConfig[] fedConfig = IdentityProviderManager.getInstance()
                     .getAllFederatedAuthenticators(tenantDomain);
             for (FederatedAuthenticatorConfig fedAuth : fedConfig) {
-                allAuthenticators.add(FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
-                        .getFederatedAuthenticatorAdapter(fedAuth));
+                if (fedAuth instanceof UserDefinedFederatedAuthenticatorConfig) {
+                    allAuthenticators.add(FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
+                            .getUserDefinedFederatedAuthenticator((UserDefinedFederatedAuthenticatorConfig) fedAuth));
+                }
             }
 
             return allAuthenticators;
@@ -137,26 +143,28 @@ public class ApplicationAuthenticatorManager {
             }
         }
 
-        if (FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService() == null) {
+        if (!ActionExecutorConfig.getInstance().isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION) ||
+                FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService() == null) {
             return null;
         }
 
         // Check whether the authenticator config is the user defined local authenticator config, if so resolve it.
         try {
-            LocalAuthenticatorConfig localConfig = ApplicationAuthenticatorService.getInstance()
+            UserDefinedLocalAuthenticatorConfig localConfig = ApplicationAuthenticatorService.getInstance()
                     .getUserDefinedLocalAuthenticator(tenantDomain, authenticatorName);
             if (localConfig != null) {
-                return FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
-                        .getLocalAuthenticatorAdapter(localConfig);
+                return FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
+                        .getUserDefinedLocalAuthenticator(localConfig);
             }
 
             // Check whether the authenticator config is the user defined fed authenticator config, if so resolve it.
             FederatedAuthenticatorConfig[] fedConfig = IdentityProviderManager.getInstance()
                     .getAllFederatedAuthenticators(tenantDomain);
             for (FederatedAuthenticatorConfig fedAuth : fedConfig) {
-                if (fedAuth.getName().equals(authenticatorName)) {
-                    return FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService()
-                            .getFederatedAuthenticatorAdapter(fedAuth);
+                if (fedAuth instanceof UserDefinedFederatedAuthenticatorConfig &&
+                        fedAuth.getName().equals(authenticatorName)) {
+                    return FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
+                            .getUserDefinedFederatedAuthenticator((UserDefinedFederatedAuthenticatorConfig) fedAuth);
                 }
             }
             return null;
