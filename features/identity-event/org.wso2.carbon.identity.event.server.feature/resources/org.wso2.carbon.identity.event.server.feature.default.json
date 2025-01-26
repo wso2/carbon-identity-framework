@@ -281,5 +281,9 @@
   "identity_mgt.events.schemes.PushNotificationHandler.module_index": "43",
   "identity_mgt.events.schemes.PushNotificationHandler.subscriptions": [
     "TRIGGER_PUSH_NOTIFICATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationUserSharingHandler.module_index": "45",
+  "identity_mgt.events.schemes.OrganizationUserSharingHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
   ]
 }
