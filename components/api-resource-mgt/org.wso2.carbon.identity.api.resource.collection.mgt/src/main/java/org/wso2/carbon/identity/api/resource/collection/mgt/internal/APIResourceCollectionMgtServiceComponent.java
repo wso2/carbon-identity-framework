@@ -31,8 +31,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManager;
 import org.wso2.carbon.identity.api.resource.collection.mgt.APIResourceCollectionManagerImpl;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
-import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 
 /**
  * Service component for the API resource management.
