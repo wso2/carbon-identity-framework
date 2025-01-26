@@ -54,10 +54,10 @@ public class APIResourceCollectionManagementConstants {
         public static final String TYPE = "type";
         public static final String READ = "Read";
         public static final String FEATURE = "Feature";
-        public static final String ACTION = "action";
         public static final String VERSION = "version";
-        public static final String VIEW_ACTION = "view";
-        public static final String EDIT_ACTION = "edit";
+        public static final String VIEW_FEATURE_SCOPE_PREFIX = "_view";
+        public static final String EDIT_FEATURE_SCOPE_PREFIX = "_edit";
+        public static final String CONSOLE_SCOPE_PREFIX = "console:";
         public static final String COLLECTION_VERSION_V0 = "v0";
     }
 

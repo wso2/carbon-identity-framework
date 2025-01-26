@@ -156,13 +156,10 @@ public class APIResourceCollectionMgtConfigBuilder {
                             if (isReadAction) {
                                 readScopeSet.add(scopeName);
                             } else if (isFeatureAction) {
-                                String scopeAction = scope.getAttributeValue(
-                                        new QName(APIResourceCollectionConfigBuilderConstants.ACTION));
-                                if (APIResourceCollectionConfigBuilderConstants.VIEW_ACTION.equals(scopeAction)) {
+                                if (isViewFeatureScope(scopeName)) {
                                     apiResourceCollectionObj.setViewFeatureScope(scopeName);
                                     readScopeSet.add(scopeName);
-                                } else if (APIResourceCollectionConfigBuilderConstants.EDIT_ACTION
-                                        .equals(scopeAction)) {
+                                } else if (isEditFeatureScope(scopeName)) {
                                     apiResourceCollectionObj.setEditFeatureScope(scopeName);
                                     writeScopeSet.add(scopeName);
                                 } else {
@@ -210,5 +207,19 @@ public class APIResourceCollectionMgtConfigBuilder {
                         element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.DISPLAY_NAME)))
                 .type(element.getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.TYPE)))
                 .build();
+    }
+
+    private boolean isViewFeatureScope(String scope) {
+
+        return StringUtils.isNotBlank(scope) &&
+                scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
+                scope.endsWith(APIResourceCollectionConfigBuilderConstants.VIEW_FEATURE_SCOPE_PREFIX);
+    }
+
+    private boolean isEditFeatureScope(String scope) {
+
+        return StringUtils.isNotBlank(scope) &&
+                scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
+                scope.endsWith(APIResourceCollectionConfigBuilderConstants.EDIT_FEATURE_SCOPE_PREFIX);
     }
 }
