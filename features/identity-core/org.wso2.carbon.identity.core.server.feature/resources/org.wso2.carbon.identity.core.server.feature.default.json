@@ -617,7 +617,7 @@
   "event.default_listener.organization_user_association_listener.priority": "128",
   "event.default_listener.organization_user_association_listener.enable": true,
   "event.default_listener.shared_user_profile_update_governance_listener.priority": "8",
-  "event.default_listener.shared_user_profile_update_governance_listener.enable": false,
+  "event.default_listener.shared_user_profile_update_governance_listener.enable": true,
 
   "event.default_listener.provisioning_role_mgt_listener.enable": true,
   "event.default_listener.provisioning_role_mgt_listener.priority": "999",
@@ -1211,7 +1211,12 @@
   "console.actions.disabled_features": [],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
-  "console.actions.scopes.read": ["internal_action_mgt_view"],
+  "console.actions.scopes.read": [
+    "internal_action_mgt_view",
+    "internal_rule_metadata_view",
+    "internal_application_mgt_view",
+    "internal_claim_meta_view"
+  ],
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
   "console.administrators.enabled": false,
@@ -1763,7 +1768,7 @@
   "actions.types.authentication.enable": true,
 
   "oauth.authorize_all_scopes": false,
-  "oauth.enable_rich_authorization_requests" : false,
+  "oauth.enable_rich_authorization_requests" : true,
 
   "system_applications.system_portals": ["Console", "My Account"],
 
