@@ -1093,7 +1093,8 @@ INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('1fc809a0-dc0d-4cb2-82f3-58934d389236', 'CUSTOM_TEXT', 'A resource type to keep the tenant custom text preferences.'),
 ('c385a42a-5697-4604-b49a-62456621e926', 'DCR_CONFIGURATION', 'A resource type to keep the DCR configurations.'),
 ('3e5b1f91-72d8-4fbc-94d1-1b9a4f8c3b07', 'IMPERSONATION_CONFIGURATION', 'A resource type to keep the tenant impersonation preferences.'),
-('a731af34-f96a-4069-812d-30dc3b713a28', 'response-max-limit-configurations', 'A resource type to max limit configurations for API response.');
+('a731af34-f96a-4069-812d-30dc3b713a28', 'response-max-limit-configurations', 'A resource type to max limit configurations for API response.'),
+('32360745-9c3e-4391-b563-66f17f0eb93a', 'ADMIN_ADVISORY_BANNER', 'A resource type to store admin advisory banner configurations.');
 
 IF NOT EXISTS (SELECT * FROM SYS.OBJECTS WHERE OBJECT_ID = OBJECT_ID(N'[DBO].[IDN_CONFIG_RESOURCE]')
 AND TYPE IN (N'U'))

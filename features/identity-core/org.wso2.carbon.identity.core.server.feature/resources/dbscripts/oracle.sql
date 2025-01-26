@@ -1698,6 +1698,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('3e5b1f91-72d8-4fbc-94d1-1b9a4f8c3b07', 'IMPERSONATION_CONFIGURATION', 'A resource type to keep the tenant impersonation preferences.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('a731af34-f96a-4069-812d-30dc3b713a28', 'response-max-limit-configurations', 'A resource type to max limit configurations for API response.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('32360745-9c3e-4391-b563-66f17f0eb93a', 'ADMIN_ADVISORY_BANNER', 'A resource type to store admin advisory banner configurations.')
 SELECT 1 FROM dual
 /
 
