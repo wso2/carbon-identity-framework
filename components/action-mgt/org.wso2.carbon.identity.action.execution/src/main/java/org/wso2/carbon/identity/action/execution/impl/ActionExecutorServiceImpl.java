@@ -122,6 +122,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             validateActions(actions, actionType);
             // As of now only one action is allowed.
             Action action = actions.get(0);
+            eventContext.put("action", action);
             return execute(action, eventContext, tenantDomain);
         } catch (ActionExecutionRuntimeException e) {
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
@@ -149,6 +150,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
 
         Action action = getActionByActionId(actionType, actionId, tenantDomain);
+        eventContext.put("action", action);
         try {
             return execute(action, eventContext, tenantDomain);
         } catch (ActionExecutionRuntimeException e) {

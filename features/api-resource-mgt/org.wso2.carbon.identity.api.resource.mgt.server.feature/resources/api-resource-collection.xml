@@ -544,6 +544,9 @@
             </Create>
             <Read>
                 <Scope name="internal_action_mgt_view"/>
+                <Scope name="internal_rule_metadata_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_claim_meta_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

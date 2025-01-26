@@ -26,6 +26,9 @@ public class PreUpdatePasswordActionConstants {
     public static final String PASSWORD_SHARING_FORMAT = "passwordSharingFormat";
     public static final String CERTIFICATE = "certificate";
 
+    // Event Context constants for pre update password action
+    public static final String USER_ACTION_CONTEXT = "userActionContext";
+
     private PreUpdatePasswordActionConstants() {
 
     }

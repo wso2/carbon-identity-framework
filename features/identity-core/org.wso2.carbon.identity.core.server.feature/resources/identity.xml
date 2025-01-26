@@ -1275,6 +1275,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
                        orderId="95" enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       orderId="10000" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.governance.listener.IdentityStoreEventListener"
                        orderId="97" enable="true">
             <Property name="Data.Store">org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</Property>
@@ -2493,6 +2496,25 @@
             <IgnorePath>/rpIFrame.html</IgnorePath>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
+
+    <OrgContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/identity/oauth2/dcr/</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+                <SubPaths>
+                    <Path>/oauth2/token</Path>
+                    <Path>/oauth2/introspect</Path>
+                    <Path>/oauth2/revoke</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
         <WebApp>

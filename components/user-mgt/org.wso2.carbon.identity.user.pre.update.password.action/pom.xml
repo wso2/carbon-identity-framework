@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.7.141-SNAPSHOT</version>
+        <version>7.7.149-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,7 +35,29 @@
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.action.management</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.action</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <scope>provided</scope>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
@@ -69,24 +91,39 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
                             org.wso2.carbon.identity.user.pre.update.password.action.core.constant,
+                            org.wso2.carbon.identity.user.pre.update.password.action.core.execution,
                             org.wso2.carbon.identity.user.pre.update.password.action.core.management,
                             org.wso2.carbon.identity.user.pre.update.password.action.internal
                         </Private-Package>
                         <Export-Package>
-                            org.wso2.carbon.identity.user.pre.update.password.action.service.*;
+                            org.wso2.carbon.identity.user.pre.update.password.action.service.model;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
+                            com.google.gson;version="${com.google.code.gson.osgi.version.range}",
+                            com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
+
+                            org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+
+                            org.wso2.carbon.identity.core.context; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.context.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.execution.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.user.action.service; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.user.action.service.model; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>

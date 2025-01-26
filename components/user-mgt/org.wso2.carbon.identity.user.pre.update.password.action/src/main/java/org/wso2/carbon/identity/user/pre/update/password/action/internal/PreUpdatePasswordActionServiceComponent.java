@@ -28,9 +28,16 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
+import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
+import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordActionRequestBuilder;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordResponseProcessor;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.UserPreUpdatePasswordActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionConverter;
 import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionDTOModelResolver;
 
@@ -50,12 +57,24 @@ public class PreUpdatePasswordActionServiceComponent {
 
         try {
             BundleContext bundleCtx = context.getBundleContext();
+
             bundleCtx.registerService(ActionConverter.class, new PreUpdatePasswordActionConverter(), null);
             LOG.debug("Pre Update Password Action Converter is enabled");
 
             bundleCtx.registerService(ActionDTOModelResolver.class, new PreUpdatePasswordActionDTOModelResolver(),
                     null);
             LOG.debug("Pre Update Password Action DTO Model Resolver is enabled");
+
+            bundleCtx.registerService(ActionExecutionRequestBuilder.class, new PreUpdatePasswordActionRequestBuilder(),
+                    null);
+            LOG.debug("Pre Update Password Action Request Builder is enabled");
+
+            bundleCtx.registerService(ActionExecutionResponseProcessor.class, new PreUpdatePasswordResponseProcessor(),
+                    null);
+            LOG.debug("Pre Update Password Action Response Processor is enabled");
+
+            bundleCtx.registerService(UserActionExecutor.class, new UserPreUpdatePasswordActionExecutor(), null);
+            LOG.debug("User Pre Update Password Action Executor is enabled");
 
             LOG.debug("Pre Update Password Action bundle is activated");
         } catch (Throwable e) {
@@ -86,6 +105,25 @@ public class PreUpdatePasswordActionServiceComponent {
     private void unsetCertificateManagementService(CertificateManagementService certificateManagementService) {
 
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setCertificateManagementService(null);
-        LOG.debug("CertificateManagementService unset in Pre Update Password Action bundle.");
+        LOG.debug("CertificateManagementService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    @Reference(
+            name = "action.execution.service",
+            service = ActionExecutorService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetActionExecutorService"
+    )
+    protected void setActionExecutionService(ActionExecutorService actionExecutorService) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
+        LOG.debug("ActionExecutorService set in PreUpdatePasswordActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetActionExecutorService(ActionExecutorService actionExecutorService) {
+
+        PreUpdatePasswordActionServiceComponentHolder.getInstance().setActionExecutorService(null);
+        LOG.debug("ActionExecutorService unset in PreUpdatePasswordActionServiceComponentHolder bundle.");
     }
 }

@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.7.141-SNAPSHOT</version>
+    <version>7.7.149-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -347,6 +347,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.action</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -884,6 +896,11 @@
                 <version>${javax.jsp-api.version}</version>
             </dependency>
             <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${javax.validation-api.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${com.google.code.gson.version}</version>
@@ -939,6 +956,11 @@
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-extension-providers</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-extension-search</artifactId>
                 <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
@@ -1913,6 +1935,7 @@
         <servlet-api.version>2.5</servlet-api.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <javax.jsp-api.version>2.0</javax.jsp-api.version>
+        <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
         <version.javax.servlet.jsp>2.2.0.v201112011158</version.javax.servlet.jsp>
         <javax.servelet.jstl.version>1.2</javax.servelet.jstl.version>
         <taglibs-standard-impl.version>1.2.5</taglibs-standard-impl.version>

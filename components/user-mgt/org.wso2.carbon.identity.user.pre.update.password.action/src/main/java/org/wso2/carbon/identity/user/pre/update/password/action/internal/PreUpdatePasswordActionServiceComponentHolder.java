@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.pre.update.password.action.internal;
 
+import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 
 /**
@@ -26,6 +27,7 @@ import org.wso2.carbon.identity.certificate.management.service.CertificateManage
 public class PreUpdatePasswordActionServiceComponentHolder {
 
     private CertificateManagementService certificateManagementService;
+    private ActionExecutorService actionExecutorService;
 
     public static final PreUpdatePasswordActionServiceComponentHolder INSTANCE =
             new PreUpdatePasswordActionServiceComponentHolder();
@@ -62,5 +64,25 @@ public class PreUpdatePasswordActionServiceComponentHolder {
     public void setCertificateManagementService(CertificateManagementService certificateManagementService) {
 
         this.certificateManagementService = certificateManagementService;
+    }
+
+    /**
+     * Get the ActionExecutorService.
+     *
+     * @return ActionExecutorService instance.
+     */
+    public ActionExecutorService getActionExecutorService() {
+
+        return actionExecutorService;
+    }
+
+    /**
+     * Set the ActionExecutorService.
+     *
+     * @param actionExecutorService ActionExecutorService instance.
+     */
+    public void setActionExecutorService(ActionExecutorService actionExecutorService) {
+
+        this.actionExecutorService = actionExecutorService;
     }
 }

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt-feature</artifactId>
-        <version>7.7.141-SNAPSHOT</version>
+        <version>7.7.149-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -34,6 +34,10 @@
     <description>This feature contains the core bundles required for User Action Framework</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.action</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
@@ -62,6 +66,9 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.action
+                                </bundleDef>
                                 <bundleDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.pre.update.password.action
                                 </bundleDef>
