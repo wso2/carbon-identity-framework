@@ -103,6 +103,7 @@
                             com.google.gson;version="${com.google.code.gson.osgi.version.range}",
                             com.nimbusds.jose.*; version="${nimbusds.osgi.version.range}",
 
+                            org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",

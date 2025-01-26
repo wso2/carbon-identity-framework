@@ -71,15 +71,11 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         if (!isEnable()) {
             return true;
         }
-        if (!(credential instanceof Secret)) {
-            throw new UserStoreException("Credential is not in the expected format.",
-                    UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
-        }
 
         try {
             UserActionContext userActionContext = new UserActionContext.Builder()
                     .userId(userName)
-                    .password(((Secret) credential).getChars())
+                    .password(getSecret(credential))
                     .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
                     .build();
 
@@ -105,6 +101,18 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         } catch (ActionExecutionException e) {
             throw new UserStoreException("Error while executing pre update password action.",
                     UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR, e);
+        }
+    }
+
+    private char[] getSecret(Object credential) throws UserStoreException {
+
+        if (credential instanceof Secret) {
+            return ((Secret) credential).getChars();
+        } else if (credential instanceof StringBuffer) {
+            return ((StringBuffer) credential).toString().toCharArray();
+        } else {
+            throw new UserStoreException("Credential is not in the expected format.",
+                    UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
         }
     }
 

@@ -165,7 +165,7 @@ public class ActionUserOperationEventListenerTest {
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
         try {
-            listener.doPreUpdateCredentialByAdminWithID(USER_NAME, PASSWORD, userStoreManager);
+            listener.doPreUpdateCredentialByAdminWithID(USER_NAME, 10, userStoreManager);
         } catch (Exception e) {
             Assert.assertTrue(e instanceof UserStoreException);
             Assert.assertEquals(e.getMessage(), "Credential is not in the expected format.");
