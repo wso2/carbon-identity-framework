@@ -124,9 +124,9 @@ public class APIResourceCollectionMgtConfigBuilder {
                     .getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.VERSION));
             OMElement scopesElement = apiResourceCollection.getFirstChildWithName(
                     new QName(APIResourceCollectionConfigBuilderConstants.SCOPES_ELEMENT));
-            Set<String> readScopeSet = new HashSet<>();
-            Set<String> writeScopeSet = new HashSet<>();
             if (scopesElement != null) {
+                Set<String> readScopeSet = new HashSet<>();
+                Set<String> writeScopeSet = new HashSet<>();
                 Iterator<?> actionElements = scopesElement.getChildElements();
                 while (actionElements.hasNext()) {
                     OMElement actionElement = (OMElement) actionElements.next();
@@ -174,20 +174,20 @@ public class APIResourceCollectionMgtConfigBuilder {
                         }
                     }
                 }
-            }
-            if (APIResourceCollectionConfigBuilderConstants.COLLECTION_VERSION_V0
-                    .equals(collectionVersion)) {
-                apiResourceCollectionObj.setLegacyReadScopes(new ArrayList<>(readScopeSet));
-                apiResourceCollectionObj.setLegacyWriteScopes(new ArrayList<>(writeScopeSet));
-                if (apiResourceCollectionObj.getReadScopes() == null) {
+                if (APIResourceCollectionConfigBuilderConstants.COLLECTION_VERSION_V0
+                        .equals(collectionVersion)) {
+                    apiResourceCollectionObj.setLegacyReadScopes(new ArrayList<>(readScopeSet));
+                    apiResourceCollectionObj.setLegacyWriteScopes(new ArrayList<>(writeScopeSet));
+                    if (apiResourceCollectionObj.getReadScopes() == null) {
+                        apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
+                    }
+                    if (apiResourceCollectionObj.getWriteScopes() == null) {
+                        apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
+                    }
+                } else {
                     apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
-                }
-                if (apiResourceCollectionObj.getWriteScopes() == null) {
                     apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
                 }
-            } else {
-                apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
-                apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
             }
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
         }
