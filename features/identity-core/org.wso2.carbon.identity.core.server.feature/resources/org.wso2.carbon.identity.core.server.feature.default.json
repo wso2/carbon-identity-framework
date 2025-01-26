@@ -1211,7 +1211,12 @@
   "console.actions.disabled_features": [],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
-  "console.actions.scopes.read": ["internal_action_mgt_view"],
+  "console.actions.scopes.read": [
+    "internal_action_mgt_view",
+    "internal_rule_metadata_view",
+    "internal_application_mgt_view",
+    "internal_claim_meta_view"
+  ],
   "console.actions.scopes.update": ["internal_action_mgt_update"],
   "console.actions.scopes.delete": ["internal_action_mgt_delete"],
   "console.administrators.enabled": false,
