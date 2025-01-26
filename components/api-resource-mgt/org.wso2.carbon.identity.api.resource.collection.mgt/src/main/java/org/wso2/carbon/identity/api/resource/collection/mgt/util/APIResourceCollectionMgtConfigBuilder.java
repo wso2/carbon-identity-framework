@@ -213,13 +213,13 @@ public class APIResourceCollectionMgtConfigBuilder {
 
         return StringUtils.isNotBlank(scope) &&
                 scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
-                scope.endsWith(APIResourceCollectionConfigBuilderConstants.VIEW_FEATURE_SCOPE_PREFIX);
+                scope.endsWith(APIResourceCollectionConfigBuilderConstants.VIEW_FEATURE_SCOPE_SUFFIX);
     }
 
     private boolean isEditFeatureScope(String scope) {
 
         return StringUtils.isNotBlank(scope) &&
                 scope.startsWith(APIResourceCollectionConfigBuilderConstants.CONSOLE_SCOPE_PREFIX) &&
-                scope.endsWith(APIResourceCollectionConfigBuilderConstants.EDIT_FEATURE_SCOPE_PREFIX);
+                scope.endsWith(APIResourceCollectionConfigBuilderConstants.EDIT_FEATURE_SCOPE_SUFFIX);
     }
 }

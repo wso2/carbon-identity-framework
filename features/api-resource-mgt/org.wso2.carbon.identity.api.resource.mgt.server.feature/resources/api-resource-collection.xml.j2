@@ -24,7 +24,7 @@
             {% if collection.scopes.feature %}
             <Feature>
                 {% for scope in collection.scopes.feature %}
-                <Scope name="{{ scope.name }}" action="{{ scope.action }}"/>
+                <Scope name="{{ scope.name }}"/>
                 {% endfor %}
             </Feature>
             {% endif %}
@@ -936,8 +936,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:apiResources"/>
-                <Scope name="console:apiResources_view" action="view"/>
-                <Scope name="console:apiResources_edit" action="edit"/>
+                <Scope name="console:apiResources_view"/>
+                <Scope name="console:apiResources_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_api_resource_update"/>
@@ -957,8 +957,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:applications"/>
-                <Scope name="console:applications_view" action="view"/>
-                <Scope name="console:applications_edit" action="edit"/>
+                <Scope name="console:applications_view"/>
+                <Scope name="console:applications_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -996,8 +996,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:branding"/>
-                <Scope name="console:branding_view" action="view"/>
-                <Scope name="console:branding_edit" action="edit"/>
+                <Scope name="console:branding_view"/>
+                <Scope name="console:branding_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_branding_preference_update"/>
@@ -1017,8 +1017,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:workflowApprovals"/>
-                <Scope name="console:workflowApprovals_view" action="view"/>
-                <Scope name="console:workflowApprovals_edit" action="edit"/>
+                <Scope name="console:workflowApprovals_view"/>
+                <Scope name="console:workflowApprovals_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_humantask_view"/>
@@ -1038,8 +1038,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:attributes"/>
-                <Scope name="console:attributes_view" action="view"/>
-                <Scope name="console:attributes_edit" action="edit"/>
+                <Scope name="console:attributes_view"/>
+                <Scope name="console:attributes_edit"/>
             </Feature>
             <Create>
                 <Scope name="internal_claim_meta_create"/>
@@ -1062,8 +1062,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:certificates"/>
-                <Scope name="console:certificates_view" action="view"/>
-                <Scope name="console:certificates_edit" action="edit"/>
+                <Scope name="console:certificates_view"/>
+                <Scope name="console:certificates_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_keystore_update"/>
@@ -1083,8 +1083,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:settings"/>
-                <Scope name="console:settings_view" action="view"/>
-                <Scope name="console:settings_edit" action="edit"/>
+                <Scope name="console:settings_view"/>
+                <Scope name="console:settings_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -1112,8 +1112,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:emailTemplates"/>
-                <Scope name="console:emailTemplates_view" action="view"/>
-                <Scope name="console:emailTemplates_edit" action="edit"/>
+                <Scope name="console:emailTemplates_view"/>
+                <Scope name="console:emailTemplates_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_email_mgt_update"/>
@@ -1133,8 +1133,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:smsTemplates"/>
-                <Scope name="console:smsTemplates_view" action="view"/>
-                <Scope name="console:smsTemplates_edit" action="edit"/>
+                <Scope name="console:smsTemplates_view"/>
+                <Scope name="console:smsTemplates_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_template_mgt_update"/>
@@ -1154,8 +1154,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:groups"/>
-                <Scope name="console:groups_view" action="view"/>
-                <Scope name="console:groups_edit" action="edit"/>
+                <Scope name="console:groups_view"/>
+                <Scope name="console:groups_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_group_mgt_update"/>
@@ -1179,8 +1179,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:home"/>
-                <Scope name="console:home_view" action="view"/>
-                <Scope name="console:home_edit" action="edit"/>
+                <Scope name="console:home_view"/>
+                <Scope name="console:home_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -1201,8 +1201,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:idps"/>
-                <Scope name="console:idps_view" action="view"/>
-                <Scope name="console:idps_edit" action="edit"/>
+                <Scope name="console:idps_view"/>
+                <Scope name="console:idps_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_idp_update"/>
@@ -1230,8 +1230,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:idvps"/>
-                <Scope name="console:idvps_view" action="view"/>
-                <Scope name="console:idvps_edit" action="edit"/>
+                <Scope name="console:idvps_view"/>
+                <Scope name="console:idvps_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_idvp_update"/>
@@ -1251,8 +1251,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:loginAndRegistration"/>
-                <Scope name="console:loginAndRegistration_view" action="view"/>
-                <Scope name="console:loginAndRegistration_edit" action="edit"/>
+                <Scope name="console:loginAndRegistration_view"/>
+                <Scope name="console:loginAndRegistration_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_governance_update"/>
@@ -1272,8 +1272,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:notificationChannels"/>
-                <Scope name="console:notificationChannels_view" action="view"/>
-                <Scope name="console:notificationChannels_edit" action="edit"/>
+                <Scope name="console:notificationChannels_view"/>
+                <Scope name="console:notificationChannels_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_notification_senders_update"/>
@@ -1293,8 +1293,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:scopes:oidc"/>
-                <Scope name="console:scopes:oidc_view" action="view"/>
-                <Scope name="console:scopes:oidc_edit" action="edit"/>
+                <Scope name="console:scopes:oidc_view"/>
+                <Scope name="console:scopes:oidc_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_oidc_scope_mgt_update"/>
@@ -1315,8 +1315,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:organizations"/>
-                <Scope name="console:organizations_view" action="view"/>
-                <Scope name="console:organizations_edit" action="edit"/>
+                <Scope name="console:organizations_view"/>
+                <Scope name="console:organizations_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_organization_update"/>
@@ -1338,8 +1338,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:organizationDiscovery"/>
-                <Scope name="console:organizationDiscovery_view" action="view"/>
-                <Scope name="console:organizationDiscovery_edit" action="edit"/>
+                <Scope name="console:organizationDiscovery_view"/>
+                <Scope name="console:organizationDiscovery_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_organization_discovery_update"/>
@@ -1362,8 +1362,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:residentOutboundProvisioning"/>
-                <Scope name="console:residentOutboundProvisioning_view" action="view"/>
-                <Scope name="console:residentOutboundProvisioning_edit" action="edit"/>
+                <Scope name="console:residentOutboundProvisioning_view"/>
+                <Scope name="console:residentOutboundProvisioning_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -1384,8 +1384,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:roles"/>
-                <Scope name="console:roles_view" action="view"/>
-                <Scope name="console:roles_edit" action="edit"/>
+                <Scope name="console:roles_view"/>
+                <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_role_mgt_update"/>
@@ -1412,8 +1412,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:roles"/>
-                <Scope name="console:roles_view" action="view"/>
-                <Scope name="console:roles_edit" action="edit"/>
+                <Scope name="console:roles_view"/>
+                <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_role_mgt_update"/>
@@ -1438,8 +1438,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:users"/>
-                <Scope name="console:users_view" action="view"/>
-                <Scope name="console:users_edit" action="edit"/>
+                <Scope name="console:users_view"/>
+                <Scope name="console:users_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_user_mgt_update"/>
@@ -1471,8 +1471,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:userstores"/>
-                <Scope name="console:userstores_view" action="view"/>
-                <Scope name="console:userstores_edit" action="edit"/>
+                <Scope name="console:userstores_view"/>
+                <Scope name="console:userstores_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_userstore_update"/>
@@ -1492,8 +1492,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:actions"/>
-                <Scope name="console:actions_view" action="view"/>
-                <Scope name="console:actions_edit" action="edit"/>
+                <Scope name="console:actions_view"/>
+                <Scope name="console:actions_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_action_mgt_update"/>
@@ -1516,8 +1516,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:tenants"/>
-                <Scope name="console:tenants_view" action="view"/>
-                <Scope name="console:tenants_edit" action="edit"/>
+                <Scope name="console:tenants_view"/>
+                <Scope name="console:tenants_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_modify_tenants"/>
@@ -1538,8 +1538,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:settings"/>
-                <Scope name="console:org:settings_view" action="view"/>
-                <Scope name="console:org:settings_edit" action="edit"/>
+                <Scope name="console:org:settings_view"/>
+                <Scope name="console:org:settings_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -1569,8 +1569,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:idps"/>
-                <Scope name="console:org:idps_view" action="view"/>
-                <Scope name="console:org:idps_edit" action="edit"/>
+                <Scope name="console:org:idps_view"/>
+                <Scope name="console:org:idps_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_idp_update"/>
@@ -1597,8 +1597,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:users"/>
-                <Scope name="console:org:users_view" action="view"/>
-                <Scope name="console:org:users_edit" action="edit"/>
+                <Scope name="console:org:users_view"/>
+                <Scope name="console:org:users_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_user_mgt_update"/>
@@ -1630,8 +1630,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:organizations"/>
-                <Scope name="console:org:organizations_view" action="view"/>
-                <Scope name="console:org:organizations_edit" action="edit"/>
+                <Scope name="console:org:organizations_view"/>
+                <Scope name="console:org:organizations_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_organization_update"/>
@@ -1654,8 +1654,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:groups"/>
-                <Scope name="console:org:groups_view" action="view"/>
-                <Scope name="console:org:groups_edit" action="edit"/>
+                <Scope name="console:org:groups_view"/>
+                <Scope name="console:org:groups_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_group_mgt_update"/>
@@ -1679,8 +1679,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:roles"/>
-                <Scope name="console:org:roles_view" action="view"/>
-                <Scope name="console:org:roles_edit" action="edit"/>
+                <Scope name="console:org:roles_view"/>
+                <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
@@ -1706,8 +1706,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:roles"/>
-                <Scope name="console:org:roles_view" action="view"/>
-                <Scope name="console:org:roles_edit" action="edit"/>
+                <Scope name="console:org:roles_view"/>
+                <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
@@ -1730,8 +1730,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:applications"/>
-                <Scope name="console:org:applications_view" action="view"/>
-                <Scope name="console:org:applications_edit" action="edit"/>
+                <Scope name="console:org:applications_view"/>
+                <Scope name="console:org:applications_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -1755,8 +1755,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:branding"/>
-                <Scope name="console:org:branding_view" action="view"/>
-                <Scope name="console:org:branding_edit" action="edit"/>
+                <Scope name="console:org:branding_view"/>
+                <Scope name="console:org:branding_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_branding_preference_update"/>
@@ -1776,8 +1776,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:emailTemplates"/>
-                <Scope name="console:org:emailTemplates_view" action="view"/>
-                <Scope name="console:org:emailTemplates_edit" action="edit"/>
+                <Scope name="console:org:emailTemplates_view"/>
+                <Scope name="console:org:emailTemplates_edit"/>
             </Feature>
             <Update>
             </Update>
@@ -1794,8 +1794,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:smsTemplates"/>
-                <Scope name="console:org:smsTemplates_view" action="view"/>
-                <Scope name="console:org:smsTemplates_edit" action="edit"/>
+                <Scope name="console:org:smsTemplates_view"/>
+                <Scope name="console:org:smsTemplates_edit"/>
             </Feature>
             <Update>
             </Update>
@@ -1812,8 +1812,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:home"/>
-                <Scope name="console:org:home_view" action="view"/>
-                <Scope name="console:org:home_edit" action="edit"/>
+                <Scope name="console:org:home_view"/>
+                <Scope name="console:org:home_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -1834,8 +1834,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:apiResources"/>
-                <Scope name="console:org:apiResources_view" action="view"/>
-                <Scope name="console:org:apiResources_edit" action="edit"/>
+                <Scope name="console:org:apiResources_view"/>
+                <Scope name="console:org:apiResources_edit"/>
             </Feature>
             <Read>
                 <Scope name="internal_org_api_resource_view"/>
@@ -1846,8 +1846,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:userstores"/>
-                <Scope name="console:org:userstores_view" action="view"/>
-                <Scope name="console:org:userstores_edit" action="edit"/>
+                <Scope name="console:org:userstores_view"/>
+                <Scope name="console:org:userstores_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_userstore_update"/>
@@ -1867,8 +1867,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:attributes"/>
-                <Scope name="console:org:attributes_view" action="view"/>
-                <Scope name="console:org:attributes_edit" action="edit"/>
+                <Scope name="console:org:attributes_view"/>
+                <Scope name="console:org:attributes_edit"/>
             </Feature>
             <Create>
             </Create>
