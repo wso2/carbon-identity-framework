@@ -58,7 +58,7 @@ public class APIResourceCollectionManagementConstants {
         public static final String VERSION = "version";
         public static final String VIEW_ACTION = "view";
         public static final String EDIT_ACTION = "edit";
-        public static final String SCOPE_COLLECTION_VERSION_V1 = "v1";
+        public static final String COLLECTION_VERSION_V0 = "v0";
     }
 
     /**

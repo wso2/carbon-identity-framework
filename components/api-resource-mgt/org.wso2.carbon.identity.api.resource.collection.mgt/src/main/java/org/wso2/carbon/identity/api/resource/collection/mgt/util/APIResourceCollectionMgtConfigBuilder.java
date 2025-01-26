@@ -120,46 +120,44 @@ public class APIResourceCollectionMgtConfigBuilder {
             if (apiResourceCollectionObj == null) {
                 continue;
             }
-            // Fetch scopes.
-            Iterator<OMElement> scopesElements = apiResourceCollection.getChildrenWithName(
+            String collectionVersion = apiResourceCollection
+                    .getAttributeValue(new QName(APIResourceCollectionConfigBuilderConstants.VERSION));
+            OMElement scopesElement = apiResourceCollection.getFirstChildWithName(
                     new QName(APIResourceCollectionConfigBuilderConstants.SCOPES_ELEMENT));
             Set<String> readScopeSet = new HashSet<>();
             Set<String> writeScopeSet = new HashSet<>();
-            Set<String> legacyReadScopeSet = new HashSet<>();
-            Set<String> legacyWriteScopeSet = new HashSet<>();
-            while (scopesElements.hasNext()) {
-                OMElement scopesCollection = scopesElements.next();
-                String scopesCollectionVersion = scopesCollection.getAttributeValue(
-                        new QName(APIResourceCollectionConfigBuilderConstants.VERSION));
-                Iterator<?> actionElements = scopesCollection.getChildElements();
-                if (APIResourceCollectionConfigBuilderConstants.SCOPE_COLLECTION_VERSION_V1
-                        .equals(scopesCollectionVersion)) {
-                    // Process new scopes with feature scopes.
-                    while (actionElements.hasNext()) {
-                        OMElement actionElement = (OMElement) actionElements.next();
-                        if (actionElement == null) {
-                            continue;
-                        }
-                        Iterator<OMElement> scopes = actionElement.getChildrenWithName(
-                                new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
-                        while (scopes.hasNext()) {
-                            OMElement scope = scopes.next();
-                            String scopeName = scope.getAttributeValue(
-                                    new QName(APIResourceCollectionConfigBuilderConstants.NAME));
-                            // All the collections have specifically defined two feature scopes (view, edit)
-                            // for each action. These two will be assigned to console roles. Based on the
-                            // feature scope, we will assign the read and write scopes to the console roles.
-                            // This help to introduce new scopes without migrating the console roles.
-                            String scopeAction = scope.getAttributeValue(
-                                    new QName(APIResourceCollectionConfigBuilderConstants.ACTION));
-                            // Read and old Feature scope are considered as read scopes.
-                            boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
-                                    .equals(actionElement.getLocalName());
-                            boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
-                                    equals(actionElement.getLocalName());
+            if (scopesElement != null) {
+                Iterator<?> actionElements = scopesElement.getChildElements();
+                while (actionElements.hasNext()) {
+                    OMElement actionElement = (OMElement) actionElements.next();
+                    if (actionElement == null) {
+                        continue;
+                    }
+                    Iterator<OMElement> scopes = actionElement.getChildrenWithName(
+                            new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
+                    while (scopes.hasNext()) {
+                        OMElement scope = scopes.next();
+                        String scopeName = scope.getAttributeValue(
+                                new QName(APIResourceCollectionConfigBuilderConstants.NAME));
+                        // Read and old Feature scope are considered as read scopes.
+                        boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
+                                .equals(actionElement.getLocalName());
+                        boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
+                                equals(actionElement.getLocalName());
+                        if (APIResourceCollectionConfigBuilderConstants.COLLECTION_VERSION_V0
+                                .equals(collectionVersion)) {
+                            if (isReadAction || isFeatureAction) {
+                                readScopeSet.add(scopeName);
+                            } else {
+                                writeScopeSet.add(scopeName);
+                            }
+                        } else {
+                            // Process new scopes with feature scopes.
                             if (isReadAction) {
                                 readScopeSet.add(scopeName);
                             } else if (isFeatureAction) {
+                                String scopeAction = scope.getAttributeValue(
+                                        new QName(APIResourceCollectionConfigBuilderConstants.ACTION));
                                 if (APIResourceCollectionConfigBuilderConstants.VIEW_ACTION.equals(scopeAction)) {
                                     apiResourceCollectionObj.setViewFeatureScope(scopeName);
                                     readScopeSet.add(scopeName);
@@ -175,37 +173,22 @@ public class APIResourceCollectionMgtConfigBuilder {
                             }
                         }
                     }
-                } else {
-                    // Process legacy scopes.
-                    while (actionElements.hasNext()) {
-                        OMElement actionElement = (OMElement) actionElements.next();
-                        if (actionElement == null) {
-                            continue;
-                        }
-                        Iterator<OMElement> scopes = actionElement.getChildrenWithName(
-                                new QName(APIResourceCollectionConfigBuilderConstants.SCOPE_ELEMENT));
-                        while (scopes.hasNext()) {
-                            OMElement scope = scopes.next();
-                            String scopeName = scope.getAttributeValue(
-                                    new QName(APIResourceCollectionConfigBuilderConstants.NAME));
-                            // Read and old Feature scope are considered as read scopes.
-                            boolean isReadAction = APIResourceCollectionConfigBuilderConstants.READ
-                                    .equals(actionElement.getLocalName());
-                            boolean isFeatureAction = APIResourceCollectionConfigBuilderConstants.FEATURE.
-                                    equals(actionElement.getLocalName());
-                            if (isReadAction || isFeatureAction) {
-                                legacyReadScopeSet.add(scopeName);
-                            } else {
-                                legacyWriteScopeSet.add(scopeName);
-                            }
-                        }
-                    }
                 }
             }
-            apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
-            apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
-            apiResourceCollectionObj.setLegacyReadScopes(new ArrayList<>(legacyReadScopeSet));
-            apiResourceCollectionObj.setLegacyWriteScopes(new ArrayList<>(legacyWriteScopeSet));
+            if (APIResourceCollectionConfigBuilderConstants.COLLECTION_VERSION_V0
+                    .equals(collectionVersion)) {
+                apiResourceCollectionObj.setLegacyReadScopes(new ArrayList<>(readScopeSet));
+                apiResourceCollectionObj.setLegacyWriteScopes(new ArrayList<>(writeScopeSet));
+                if (apiResourceCollectionObj.getReadScopes() == null) {
+                    apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
+                }
+                if (apiResourceCollectionObj.getWriteScopes() == null) {
+                    apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
+                }
+            } else {
+                apiResourceCollectionObj.setReadScopes(new ArrayList<>(readScopeSet));
+                apiResourceCollectionObj.setWriteScopes(new ArrayList<>(writeScopeSet));
+            }
             apiResourceCollectionMgtConfigurations.put(apiResourceCollectionObj.getId(), apiResourceCollectionObj);
         }
     }
@@ -217,7 +200,7 @@ public class APIResourceCollectionMgtConfigBuilder {
         String encodedName = Base64.getEncoder().encodeToString(name.getBytes(StandardCharsets.UTF_8)).replace(
                 APIResourceCollectionManagementConstants.EQUAL_SIGN, StringUtils.EMPTY);
         if (apiResourceCollectionMgtConfigurations.containsKey(encodedName)) {
-            return null;
+            return apiResourceCollectionMgtConfigurations.get(encodedName);
         }
 
         return new APIResourceCollection.APIResourceCollectionBuilder()
