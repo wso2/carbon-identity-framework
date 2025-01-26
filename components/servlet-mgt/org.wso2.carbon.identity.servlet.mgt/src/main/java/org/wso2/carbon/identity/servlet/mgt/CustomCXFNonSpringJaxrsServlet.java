@@ -93,7 +93,7 @@ public class CustomCXFNonSpringJaxrsServlet extends CXFNonSpringServlet {
    private ClassLoader classLoader;
    private Application application;
 
-    public CustomCXFNonSpringJaxrsServlet() {}
+   public CustomCXFNonSpringJaxrsServlet() {}
 
    public CustomCXFNonSpringJaxrsServlet(Application app) {
 

@@ -51,6 +51,11 @@
             <artifactId>jackson-jaxrs-json-provider</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
