@@ -63,7 +63,6 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
