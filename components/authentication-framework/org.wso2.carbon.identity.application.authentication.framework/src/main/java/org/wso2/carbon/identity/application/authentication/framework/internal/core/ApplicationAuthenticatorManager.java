@@ -97,6 +97,10 @@ public class ApplicationAuthenticatorManager {
 
         List<ApplicationAuthenticator> allAuthenticators = new ArrayList<>(systemDefinedAuthenticators);
 
+        if (FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService() == null) {
+            return allAuthenticators;
+        }
+
         try {
             for (LocalAuthenticatorConfig localConfig : ApplicationAuthenticatorService.getInstance()
                     .getAllUserDefinedLocalAuthenticators(tenantDomain)) {
@@ -131,6 +135,10 @@ public class ApplicationAuthenticatorManager {
             if (authenticator.getName().equals(authenticatorName)) {
                 return authenticator;
             }
+        }
+
+        if (FrameworkServiceDataHolder.getInstance().getAuthenticatorAdapterService() == null) {
+            return null;
         }
 
         // Check whether the authenticator config is the user defined local authenticator config, if so resolve it.

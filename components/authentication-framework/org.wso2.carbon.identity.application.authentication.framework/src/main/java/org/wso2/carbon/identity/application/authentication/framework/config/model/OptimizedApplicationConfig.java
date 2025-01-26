@@ -328,7 +328,7 @@ public class OptimizedApplicationConfig implements Serializable {
             }
             return localAuthenticatorConfigs;
         } catch (AuthenticatorMgtException e) {
-            throw new SessionDataStorageOptimizationException(String.format("Error while getting local authenticator " +
+            throw new FrameworkException(String.format("Error while getting local authenticator " +
                     "configs by name for tenant domain: %s", tenantDomain), e);
         }
     }
