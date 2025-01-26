@@ -947,6 +947,11 @@
                 <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-extension-search</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.eclipse.equinox</groupId>
                 <artifactId>javax.servlet</artifactId>
                 <version>${version.javax.servlet}</version>
