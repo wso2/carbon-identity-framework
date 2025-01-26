@@ -56,6 +56,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.JustInTimeProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
@@ -69,6 +70,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -105,6 +107,9 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
     private MockedStatic<CarbonUtils> carbonUtils;
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMockedStatic;
 
+    private IdentityConfigParser mockIdentityConfigParser;
+    private MockedStatic<IdentityConfigParser> identityConfigParser;
+
     @BeforeClass
     protected void setupSuite() throws XMLStreamException, IdentityProviderManagementException {
 
@@ -130,6 +135,11 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         sp = getTestServiceProvider("default-sp-1.xml");
         carbonUtils = mockStatic(CarbonUtils.class);
         privilegedCarbonContextMockedStatic = mockStatic(PrivilegedCarbonContext.class);
+
+        mockIdentityConfigParser = mock(IdentityConfigParser.class);
+        identityConfigParser = mockStatic(IdentityConfigParser.class);
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
+        setAuthenticatorActionEnableStatus(false);
     }
 
     @AfterClass
@@ -138,6 +148,7 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         configurationFacade.close();
         carbonUtils.close();
         privilegedCarbonContextMockedStatic.close();
+        identityConfigParser.close();
     }
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow without an authenticated user")
@@ -324,5 +335,12 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
         authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("BasicMockAuthenticator"));
         authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("HwkMockAuthenticator"));
         authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("FptMockAuthenticator"));
+    }
+
+    private void setAuthenticatorActionEnableStatus(boolean isEnabled) {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.Authentication.Enable", Boolean.toString(isEnabled));
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
     }
 }

@@ -18,14 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal.core;
 
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.util.ArrayList;
@@ -38,6 +37,9 @@ public class ApplicationAuthenticatorManager {
 
     private static final ApplicationAuthenticatorManager instance = new ApplicationAuthenticatorManager();
     private final List<ApplicationAuthenticator> systemDefinedAuthenticators = new ArrayList<>();
+
+    private static final String AUTHENTICATION_ACTION_ENABLED_PROP =
+            "Actions.Types.Authentication.Enable";
 
     public static ApplicationAuthenticatorManager getInstance() {
 
@@ -100,7 +102,7 @@ public class ApplicationAuthenticatorManager {
 
         List<ApplicationAuthenticator> allAuthenticators = new ArrayList<>(systemDefinedAuthenticators);
 
-        if (!ActionExecutorConfig.getInstance().isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION) ||
+        if (!isAuthenticationActionEnabled() ||
                 FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService() == null) {
             return allAuthenticators;
         }
@@ -143,7 +145,7 @@ public class ApplicationAuthenticatorManager {
             }
         }
 
-        if (!ActionExecutorConfig.getInstance().isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION) ||
+        if (!isAuthenticationActionEnabled() ||
                 FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService() == null) {
             return null;
         }
@@ -171,5 +173,11 @@ public class ApplicationAuthenticatorManager {
         } catch (Exception e) {
             throw new RuntimeException("Error while getting the authenticator for the name: " + authenticatorName, e);
         }
+    }
+
+    private boolean isAuthenticationActionEnabled() {
+
+        return  Boolean.parseBoolean((String) IdentityConfigParser.getInstance()
+                .getConfiguration().get(AUTHENTICATION_ACTION_ENABLED_PROP));
     }
 }

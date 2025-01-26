@@ -43,6 +43,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactoryTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImplTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManagerTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.ConditionalAuthenticationMgtServiceTest"/>
