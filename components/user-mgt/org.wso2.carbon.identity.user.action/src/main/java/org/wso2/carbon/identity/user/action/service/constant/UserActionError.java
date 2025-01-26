@@ -16,17 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action.service.exception;
-
-import org.wso2.carbon.user.core.UserStoreClientException;
+package org.wso2.carbon.identity.user.action.service.constant;
 
 /**
- * User Action Execution Client Exception.
+ * Constants related to user action service.
  */
-public class UserActionExecutionClientException extends UserStoreClientException {
+public class UserActionError {
 
-    public UserActionExecutionClientException(String message, String errorCode) {
+    public static final String PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED = "USER-ACTION-PRE-UPDATE-PASSWORD-60001";
+    public static final String PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR = "USER-ACTION-PRE-UPDATE-PASSWORD-65001";
+    public static final String PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET = "USER-ACTION-PRE-UPDATE-PASSWORD-65002";
+    public static final String PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR = "USER-ACTION-PRE-UPDATE-PASSWORD-65003";
 
-        super(message, errorCode);
+    private UserActionError() {
+
     }
 }

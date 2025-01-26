@@ -27,9 +27,9 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.user.action.core.factory.UserActionExecutorFactory;
-import org.wso2.carbon.identity.user.action.service.exception.UserActionExecutionClientException;
-import org.wso2.carbon.identity.user.action.service.exception.UserActionExecutionServerException;
+import org.wso2.carbon.identity.user.action.service.constant.UserActionError;
 import org.wso2.carbon.identity.user.action.service.model.UserActionContext;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.SecretHandleableListener;
@@ -41,9 +41,6 @@ import org.wso2.carbon.utils.Secret;
  */
 public class ActionUserOperationEventListener extends AbstractIdentityUserOperationEventListener implements
         SecretHandleableListener {
-
-    private static final String FAILED_ERROR_CODE = "ACTION_FAILED";
-    private static final String ERROR_ERROR_CODE = "ACTION_ERROR";
 
     @Override
     public int getExecutionOrderId() {
@@ -75,7 +72,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             return true;
         }
         if (!(credential instanceof Secret)) {
-            throw new UserActionExecutionServerException("Credential is not in the expected format.");
+            throw new UserStoreException("Credential is not in the expected format.",
+                    UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
         }
 
         try {
@@ -95,16 +93,18 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.FAILED) {
                 Failure failure = (Failure) executionStatus.getResponse();
                 String errorMsg = buildErrorMessage(failure.getFailureReason(), failure.getFailureDescription());
-                throw new UserActionExecutionClientException(errorMsg, FAILED_ERROR_CODE);
+                throw new UserStoreClientException(errorMsg,
+                        UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
             } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.ERROR) {
                 Error error = (Error) executionStatus.getResponse();
                 String errorMsg = buildErrorMessage(error.getErrorMessage(), error.getErrorDescription());
-                throw new UserActionExecutionServerException(errorMsg, ERROR_ERROR_CODE);
+                throw new UserStoreException(errorMsg, UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR);
             } else {
                 return false;
             }
         } catch (ActionExecutionException e) {
-            throw new UserStoreException("Error while executing pre update password action.", e);
+            throw new UserStoreException("Error while executing pre update password action.",
+                    UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR, e);
         }
     }
 
