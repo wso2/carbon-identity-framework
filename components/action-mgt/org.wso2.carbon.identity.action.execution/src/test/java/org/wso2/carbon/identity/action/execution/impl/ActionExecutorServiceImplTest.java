@@ -200,7 +200,7 @@ public class ActionExecutorServiceImplTest {
         when(ruleEvaluationService.evaluate(any(), any(), any())).thenReturn(new RuleEvaluationResult("ruleId", false));
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = new HashMap<>();;
+        Map<String, Object> eventContext = new HashMap<>();
 
         ActionExecutionStatus<?> status = actionExecutorService.execute(actionType, eventContext, "tenantDomain");
 
@@ -272,7 +272,7 @@ public class ActionExecutorServiceImplTest {
         when(ruleEvaluationService.evaluate(any(), any(), any())).thenThrow(new RuleEvaluationException("Error"));
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = new HashMap<>();;
+        Map<String, Object> eventContext = new HashMap<>();
 
         ActionExecutionStatus<?> status = actionExecutorService.execute(actionType, eventContext, "tenantDomain");
 
@@ -525,7 +525,7 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteFailure() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = new HashMap<>();;
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
@@ -606,7 +606,7 @@ public class ActionExecutorServiceImplTest {
     public void testActionExecuteFailureForUnexpectedAPIResponse() throws Exception {
 
         ActionType actionType = ActionType.PRE_ISSUE_ACCESS_TOKEN;
-        Map<String, Object> eventContext = new HashMap<>();;
+        Map<String, Object> eventContext = new HashMap<>();
 
         Action action = createAction();
         when(actionManagementService.getActionsByActionType(any(), any())).thenReturn(
