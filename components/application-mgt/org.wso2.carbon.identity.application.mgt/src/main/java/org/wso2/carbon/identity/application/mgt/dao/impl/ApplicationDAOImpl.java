@@ -6777,8 +6777,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
                     groupBasicInfo.setId(groupID);
                     try {
-                        String groupName = userStoreManager.getGroupNameByGroupId(
-                                UserCoreUtil.addDomainToName(groupID, domainName));
+                        String groupName = userStoreManager.getGroupNameByGroupId(groupID);
                         groupBasicInfo.setName(UserCoreUtil.removeDomainFromName(groupName));
                         if (groupInfoMap.containsKey(domainName)) {
                             groupInfoMap.get(domainName).add(groupBasicInfo);

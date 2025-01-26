@@ -112,7 +112,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             "required when configuring an android application as a trusted mobile application.";
     private static final String DISCOVERABLE_GROUPS_FOR_NON_DISCOVERABLE_APPLICATION =
             "Discoverable groups are defined for a non-discoverable application.";
-    private static final String EMPTY_DISCOVERABLE_GROUPS = "The list of discoverable groups is empty.";
     private static final String NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP =
             "No user store defined for the discoverable groups indexed at %d.";
     private static final String USER_STORE_NOT_FOUND =
@@ -225,10 +224,6 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                 validationErrors.add(DISCOVERABLE_GROUPS_FOR_NON_DISCOVERABLE_APPLICATION);
                 return;
             }
-            if (discoverableGroups.length == 0) {
-                validationErrors.add(EMPTY_DISCOVERABLE_GROUPS);
-                return;
-            }
             AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
             for (int i = 0; i < discoverableGroups.length; i++) {
                 DiscoverableGroup discoverableGroup = discoverableGroups[i];
@@ -253,9 +248,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                         continue;
                     }
                     try {
-                        userStoreManager.getGroupNameByGroupId(
-                                UserCoreUtil.addDomainToName(
-                                        groupBasicInfo.getId(), discoverableGroup.getUserStore()));
+                        userStoreManager.getGroupNameByGroupId(groupBasicInfo.getId());
                     } catch (UserStoreException e) {
                         if (e instanceof UserStoreClientException) {
                             validationErrors.add(String.format(NO_GROUP_WITH_GIVEN_ID, groupBasicInfo.getId()));
