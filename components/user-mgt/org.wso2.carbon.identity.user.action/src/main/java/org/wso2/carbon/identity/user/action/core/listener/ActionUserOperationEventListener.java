@@ -101,7 +101,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
                 String errorMsg = buildErrorMessage(error.getErrorMessage(), error.getErrorDescription());
                 throw new UserActionExecutionServerException(errorMsg, ERROR_ERROR_CODE);
             } else {
-                throw new UserStoreException("Unknown status received from the action executor.");
+                return false;
             }
         } catch (ActionExecutionException e) {
             throw new UserStoreException("Error while executing pre update password action.", e);

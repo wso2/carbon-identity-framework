@@ -60,7 +60,7 @@ public class PreUpdatePasswordResponseProcessorTest {
     @Test
     public void testGetSupportedActionType() {
 
-        assertEquals(ActionType.PRE_UPDATE_PASSWORD, responseProcessor.getSupportedActionType());
+        assertEquals(responseProcessor.getSupportedActionType(), ActionType.PRE_UPDATE_PASSWORD);
     }
 
     @Test

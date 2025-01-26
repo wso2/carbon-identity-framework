@@ -111,7 +111,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
         if (flow == null) {
-            throw new ActionExecutionRequestBuilderException("Flow is null in the Identity Context.");
+            throw new ActionExecutionRequestBuilderException("Flow is not identified.");
         }
 
         switch(flow.getInitiatingPersona()) {
@@ -131,7 +131,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
         if (flow == null) {
-            throw new ActionExecutionRequestBuilderException("Flow is null in the Identity Context.");
+            throw new ActionExecutionRequestBuilderException("Flow is not identified.");
         }
 
         switch (flow.getName()) {

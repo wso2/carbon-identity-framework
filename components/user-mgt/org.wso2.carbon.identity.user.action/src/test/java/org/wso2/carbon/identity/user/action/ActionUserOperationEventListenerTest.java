@@ -35,6 +35,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.testng.Assert.assertFalse;
 
 /**
  * Unit tests for ActionUserOperationEventListener.
@@ -144,8 +145,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
 
-    @Test(expectedExceptions = UserStoreException.class,
-            expectedExceptionsMessageRegExp = "Unknown status received from the action executor.")
+    @Test
     public void testDoPreUpdateCredentialByAdminWithID_UnknownStatus()
             throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
@@ -155,7 +155,8 @@ public class ActionUserOperationEventListenerTest {
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
         UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
 
-        listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
+        assertFalse(listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD),
+                userStoreManager));
     }
 
     @Test(expectedExceptions = UserStoreException.class,

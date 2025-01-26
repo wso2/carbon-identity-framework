@@ -65,7 +65,7 @@ public class UserPreUpdatePasswordActionExecutorTest {
     @Test
     public void testGetSupportedActionType() {
 
-        assertEquals(ActionType.PRE_UPDATE_PASSWORD, executor.getSupportedActionType());
+        assertEquals(executor.getSupportedActionType(), ActionType.PRE_UPDATE_PASSWORD);
     }
 
     @Test

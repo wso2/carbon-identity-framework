@@ -94,7 +94,7 @@ public class Credential {
     }
 
     /**
-     * Builder for UnencryptedCredential.
+     * Builder for Credential.
      */
     public static class Builder {
 
@@ -102,10 +102,6 @@ public class Credential {
         private Format format;
         private char[] value;
         private Algorithm algorithm;
-
-        public Builder() {
-
-        }
 
         public Builder type(Type type) {
             this.type = type;
