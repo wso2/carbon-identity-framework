@@ -108,8 +108,7 @@
                             version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.admin.advisory.mgt.exception;
                             version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.logging.service; version="${carbon.commons.imp.pkg.version}",
-                            org.wso2.carbon.logging.service.dao; version="${carbon.commons.imp.pkg.version}",
+                            org.wso2.carbon.logging.service.*; version="${carbon.commons.imp.pkg.version}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.system.config.mgt.internal,
