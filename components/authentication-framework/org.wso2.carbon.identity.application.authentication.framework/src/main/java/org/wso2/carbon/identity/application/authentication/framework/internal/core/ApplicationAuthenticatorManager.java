@@ -153,7 +153,7 @@ public class ApplicationAuthenticatorManager {
         // Check whether the authenticator config is the user defined local authenticator config, if so resolve it.
         try {
             UserDefinedLocalAuthenticatorConfig localConfig = ApplicationAuthenticatorService.getInstance()
-                    .getUserDefinedLocalAuthenticator(tenantDomain, authenticatorName);
+                    .getUserDefinedLocalAuthenticator(authenticatorName, tenantDomain);
             if (localConfig != null) {
                 return FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService()
                         .getUserDefinedLocalAuthenticator(localConfig);

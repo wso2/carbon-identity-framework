@@ -20,8 +20,10 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.c
 
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
@@ -84,18 +86,20 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     @BeforeClass
     public void setUp() throws Exception {
 
+        removeAllSystemDefinedAuthenticators();
         mockIdentityConfigParser = mock(IdentityConfigParser.class);
         identityConfigParser = mockStatic(IdentityConfigParser.class);
-
-        removeAllSystemDefinedAuthenticators();
+        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
         applicationAuthenticatorService.addSystemDefinedAuthenticator(systemDefinedAuthenticator);
+    }
+
+    @BeforeTest
+    public void setUpTest() throws Exception {
+
         when(userDefinedAuthenticatorService.getUserDefinedLocalAuthenticator(any())).thenReturn(
                 userDefinedLocalAuthenticator);
         when(userDefinedAuthenticatorService.getUserDefinedFederatedAuthenticator(any())).thenReturn(
                 userDefinedFederatedAuthenticator);
-        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(userDefinedAuthenticatorService);
-
-        identityConfigParser.when(IdentityConfigParser::getInstance).thenReturn(mockIdentityConfigParser);
 
         mockedAuthenticationService.when(ApplicationAuthenticatorService::getInstance).thenReturn(authenticatorService);
         when(authenticatorService.getAllUserDefinedLocalAuthenticators(TENANT_DOMAIN)).thenReturn(
@@ -119,23 +123,50 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     public void testGetAllAuthenticatorsWithAuthActionTypeEnabledAndNotNullUserDefinedAuthenticatorService() {
 
         setAuthenticatorActionEnableStatus(true);
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(userDefinedAuthenticatorService);
         List<ApplicationAuthenticator> result = applicationAuthenticatorService.getAllAuthenticators(TENANT_DOMAIN);
         assertEquals(3, result.size());
-    }
-
-    @Test
-    public void testGetAllAuthenticatorsWithAuthActionTypeEnabledAndNullUserDefinedAuthenticatorService() {
-
-        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(null);
-        setAuthenticatorActionEnableStatus(true);
-        List<ApplicationAuthenticator> result = applicationAuthenticatorService.getAllAuthenticators(TENANT_DOMAIN);
-        assertEquals(1, result.size());
     }
 
     @Test
     public void testGetAllAuthenticatorsWithAuthenticationActionTypeDisabled() {
 
         setAuthenticatorActionEnableStatus(false);
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(userDefinedAuthenticatorService);
+        List<ApplicationAuthenticator> result = applicationAuthenticatorService.getAllAuthenticators(TENANT_DOMAIN);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    public void testGetAuthenticatorByNameWithAuthenticationActionTypeDisabled() {
+
+        setAuthenticatorActionEnableStatus(false);
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(userDefinedAuthenticatorService);
+        Assert.assertNotNull(applicationAuthenticatorService.getApplicationAuthenticatorByName(
+                SYSTEM_DEFINED_AUTHENTICATOR_NAME, TENANT_DOMAIN));
+        Assert.assertNull(applicationAuthenticatorService.getApplicationAuthenticatorByName(
+                USER_DEFINED_FEDERATED_AUTHENTICATOR_NAME, TENANT_DOMAIN));
+        Assert.assertNull(applicationAuthenticatorService.getApplicationAuthenticatorByName(
+                USER_DEFINED_LOCAL_AUTHENTICATOR_NAME, TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testGetAllAuthenticatorsWithAuthActionTypeEnabledAndNullUserDefinedAuthenticatorService() {
+
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(null);
+        Assert.assertNotNull(applicationAuthenticatorService.getApplicationAuthenticatorByName(
+                SYSTEM_DEFINED_AUTHENTICATOR_NAME, TENANT_DOMAIN));
+        Assert.assertNull(applicationAuthenticatorService.getApplicationAuthenticatorByName(
+                USER_DEFINED_FEDERATED_AUTHENTICATOR_NAME, TENANT_DOMAIN));
+        Assert.assertNull(applicationAuthenticatorService.getApplicationAuthenticatorByName(
+                USER_DEFINED_LOCAL_AUTHENTICATOR_NAME, TENANT_DOMAIN));
+    }
+
+    @Test
+    public void testGetAuthenticatorByNameWithAuthActionTypeEnabledAndNullUserDefinedAuthenticatorService() {
+
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(null);
+        setAuthenticatorActionEnableStatus(true);
         List<ApplicationAuthenticator> result = applicationAuthenticatorService.getAllAuthenticators(TENANT_DOMAIN);
         assertEquals(1, result.size());
     }

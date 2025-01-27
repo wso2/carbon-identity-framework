@@ -24,6 +24,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
@@ -1137,6 +1138,18 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
             assertEquals(result, "rolesClaimInDialect");
         }
+    }
+
+    @Test
+    public void getAppAuthenticatorByNameExistingAuthenticator() {
+
+        Assert.assertNotNull(FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator"));
+    }
+
+    @Test
+    public void getAppAuthenticatorByNameNonExistingAuthenticator() {
+
+        Assert.assertNull(FrameworkUtils.getAppAuthenticatorByName("NonExistAuthenticator"));
     }
  
     private void removeAllSystemDefinedAuthenticators() {
