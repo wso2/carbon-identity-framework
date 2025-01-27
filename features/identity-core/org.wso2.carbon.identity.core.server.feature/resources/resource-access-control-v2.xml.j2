@@ -1391,6 +1391,46 @@
              <Scopes>internal_custom_authenticator_delete</Scopes>
          </Resource>
 
+          <!-- [Organization] User share API -->
+          <Resource context="(.*)/o/api/server/v1/users/share(.*)" secured="true" http-method="POST">
+              <Scopes>internal_org_user_share</Scopes>
+          </Resource>
+          <Resource context="(.*)/o/api/server/v1/users/share-with-all(.*)" secured="true" http-method="POST">
+              <Scopes>internal_org_user_share</Scopes>
+          </Resource>
+          <Resource context="(.*)/o/api/server/v1/users/unshare(.*)" secured="true" http-method="POST">
+              <Scopes>internal_org_user_unshare</Scopes>
+          </Resource>
+          <Resource context="(.*)/o/api/server/v1/users/unshare-with-all(.*)" secured="true" http-method="POST">
+              <Scopes>internal_org_user_unshare</Scopes>
+          </Resource>
+          <Resource context="(.*)/o/api/server/v1/users/(.*)/shared-organizations" secured="true" http-method="GET">
+              <Scopes>internal_org_user_shared_access_view</Scopes>
+          </Resource>
+          <Resource context="(.*)/api/server/v1/users/(.*)/shared-roles" secured="true" http-method="GET">
+              <Scopes>internal_org_user_shared_access_view</Scopes>
+          </Resource>
+
+         <!-- User share API -->
+         <Resource context="(.*)/api/server/v1/users/share(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/users/share-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_share</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/users/unshare(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/users/unshare-with-all(.*)" secured="true" http-method="POST">
+             <Scopes>internal_user_unshare</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/users/(.*)/shared-organizations" secured="true" http-method="GET">
+             <Scopes>internal_user_shared_access_view</Scopes>
+         </Resource>
+         <Resource context="(.*)/api/server/v1/users/(.*)/shared-roles" secured="true" http-method="GET">
+             <Scopes>internal_user_shared_access_view</Scopes>
+         </Resource>
+
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>

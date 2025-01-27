@@ -917,6 +917,30 @@
                    description="Introspect tokens"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User Sharing API" identifier="/api/server/v1/users"
+                 requiresAuthorization="true"
+                 description="API representation of the user share API" type="TENANT">
+        <Scopes>
+            <Scope displayName="Share Users" name="internal_user_share"
+                   description="Share users with organizations"/>
+            <Scope displayName="Unshare users" name="internal_user_unshare"
+                   description="Unshare users from organizations"/>
+            <Scope displayName="View Shared Users" name="internal_user_shared_access_view"
+                   description="View users shared with organizations"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="User Sharing API" identifier="/o/api/server/v1/users"
+                 requiresAuthorization="true"
+                 description="API representation of the user share API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="Share Users" name="internal_org_user_share"
+                   description="Share users with organizations"/>
+            <Scope displayName="Unshare users" name="internal_org_user_unshare"
+                   description="Unshare users from organizations"/>
+            <Scope displayName="View Shared Users" name="internal_org_user_shared_access_view"
+                   description="View users shared with organizations"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Application Management Feature" identifier="console:applications"
                  requiresAuthorization="true"
                  description="Resource representation of the Application Management Feature"
