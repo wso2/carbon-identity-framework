@@ -69,6 +69,10 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
             } else {
                 getConfigurationManager().addResource(ADVISORY_BANNER_RESOURCE_TYPE, resource);
             }
+
+            Pair<Boolean, String> valueToCache =
+                    Pair.of(adminAdvisoryBannerDTO.getEnableBanner(), adminAdvisoryBannerDTO.getBannerContent());
+            advisoryBannerCache.addToCache(CACHE_KEY, valueToCache, tenantDomain);
         } catch (ConfigurationManagementException e) {
             throw new AdminAdvisoryMgtException("Error occurred while saving advisory banner configuration.", e);
         }
