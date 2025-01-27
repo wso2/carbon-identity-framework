@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.system.config.mgt.advisory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.admin.advisory.mgt.dao.AdminAdvisoryBannerDAO;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
+import org.wso2.carbon.identity.system.config.mgt.cache.AdminAdvisoryBannerCache;
 import org.wso2.carbon.identity.system.config.mgt.internal.SystemConfigMgtServiceHolder;
 
 import java.io.ByteArrayInputStream;
@@ -45,13 +47,16 @@ import java.util.Optional;
  */
 public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
 
+    private static final Log LOG = LogFactory.getLog(DBBasedAdminBannerDAO.class);
+    AdminAdvisoryBannerCache advisoryBannerCache = AdminAdvisoryBannerCache.getInstance();
+
     public static final String ADVISORY_BANNER_RESOURCE_TYPE = "ADMIN_ADVISORY_BANNER";
     public static final String ADVISORY_BANNER_RESOURCE_NAME = "ADMIN_ADVISORY_BANNER_RESOURCE";
     public static final String ENABLE_BANNER = "enableBanner";
     public static final String BANNER_CONTENT = "bannerContent";
     public static final String RESOURCE_NOT_EXISTS_ERROR_CODE = "CONFIGM_00017";
+    public static final String CACHE_KEY = "DBBasedAdminBannerCacheKey";
 
-    private static final Log LOG = LogFactory.getLog(DBBasedAdminBannerDAO.class);
 
     @Override
     public void saveAdminAdvisoryConfig(AdminAdvisoryBannerDTO adminAdvisoryBannerDTO, String tenantDomain)
@@ -76,6 +81,14 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
     @Override
     public Optional<AdminAdvisoryBannerDTO> loadAdminAdvisoryConfig(String tenantDomain)
             throws AdminAdvisoryMgtException {
+
+        Pair<Boolean, String> valueFromCache =  advisoryBannerCache.getValueFromCache(CACHE_KEY, tenantDomain);
+        if (valueFromCache != null) {
+            AdminAdvisoryBannerDTO adminAdvisoryBannerDTO = new AdminAdvisoryBannerDTO();
+            adminAdvisoryBannerDTO.setEnableBanner(valueFromCache.getKey());
+            adminAdvisoryBannerDTO.setBannerContent(valueFromCache.getValue());
+            return Optional.of(adminAdvisoryBannerDTO);
+        }
 
         try {
             Resource resource = getConfigurationManager().getResource(ADVISORY_BANNER_RESOURCE_TYPE,
@@ -103,6 +116,11 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
                 LOG.debug("Admin advisory banner configuration loaded successfully from configuration-store for" +
                         " tenant: " + tenantDomain);
             }
+
+            Pair<Boolean, String> valueToCache =
+                    Pair.of(adminAdvisoryBannerDTO.getEnableBanner(), adminAdvisoryBannerDTO.getBannerContent());
+            advisoryBannerCache.addToCache(CACHE_KEY, valueToCache, tenantDomain);
+
             return Optional.of(adminAdvisoryBannerDTO);
         } catch (ConfigurationManagementException e) {
             if (RESOURCE_NOT_EXISTS_ERROR_CODE.equals(e.getErrorCode())) {
