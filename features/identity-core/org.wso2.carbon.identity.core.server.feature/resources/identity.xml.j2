@@ -3749,6 +3749,8 @@
         <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
         <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
         <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
