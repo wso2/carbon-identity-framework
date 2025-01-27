@@ -1763,11 +1763,6 @@
                 <version>${apache.httpcomponents.httpclient.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${springframework.spring-web.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
                 <version>${project.version}</version>
@@ -1880,7 +1875,6 @@
         <apache.cxf-rt-frontend-jaxrs.version>3.6.4</apache.cxf-rt-frontend-jaxrs.version>
         <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
-        <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
 
