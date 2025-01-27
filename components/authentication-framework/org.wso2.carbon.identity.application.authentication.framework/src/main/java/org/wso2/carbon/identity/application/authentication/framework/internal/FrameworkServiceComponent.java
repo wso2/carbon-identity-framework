@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
@@ -74,6 +75,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
@@ -190,11 +192,6 @@ public class FrameworkServiceComponent {
         }
 
         return bundleContext;
-    }
-
-    public static List<ApplicationAuthenticator> getAuthenticators() {
-
-        return FrameworkServiceDataHolder.getInstance().getAuthenticators();
     }
 
     @SuppressWarnings("unchecked")
@@ -482,7 +479,7 @@ public class FrameworkServiceComponent {
     )
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(authenticator);
 
         Property[] configProperties = null;
 
@@ -582,7 +579,7 @@ public class FrameworkServiceComponent {
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().remove(authenticator);
+        ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         String authenticatorName = authenticator.getName();
         ApplicationAuthenticatorService appAuthenticatorService = ApplicationAuthenticatorService.getInstance();
 
@@ -1108,5 +1105,26 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setRoleManagementServiceV2(null);
         log.debug("RoleManagementServiceV2 unset in FrameworkServiceComponent bundle.");
+    }
+
+    /* TODO: The cardinality is set to OPTIONAL until UserDefinedAuthenticatorService implements. Update it to
+        MANDATORY, one adapter service implementation done. */
+    @Reference(
+            name = "org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService",
+            service =
+                    org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserDefinedAuthenticatorService")
+    protected void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService authenticatorService) {
+
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
+        log.debug("UserDefinedAuthenticatorService set in FrameworkServiceComponent bundle.");
+    }
+
+    protected void unsetUserDefinedAuthenticatorService(UserDefinedAuthenticatorService authenticatorService) {
+
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
+        log.debug("UserDefinedAuthenticatorService unset in FrameworkServiceComponent bundle.");
     }
 }

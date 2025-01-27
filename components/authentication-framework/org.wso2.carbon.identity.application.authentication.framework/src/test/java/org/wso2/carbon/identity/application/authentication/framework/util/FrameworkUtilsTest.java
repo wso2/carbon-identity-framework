@@ -24,6 +24,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
@@ -61,8 +62,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -82,6 +83,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -182,11 +184,14 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @BeforeClass
     public void setFrameworkServiceComponent() {
 
-        FrameworkServiceComponent.getAuthenticators().clear();
-        FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("BasicAuthenticator"));
-        FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
-        FrameworkServiceComponent.getAuthenticators().add(
+        removeAllSystemDefinedAuthenticators();
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockAuthenticator("BasicAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockAuthenticator("HwkMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
                 new MockAuthenticator("FederatedAuthenticator", null, "sampleClaimDialectURI"));
+           
         authenticationContext.setTenantDomain("abc");
     }
 
@@ -194,7 +199,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAppAuthenticatorByNameExistingAuthenticator() {
 
         ApplicationAuthenticator applicationAuthenticator;
-        applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator");
+        applicationAuthenticator = ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticatorByName("BasicAuthenticator");
         assert applicationAuthenticator != null;
         assertEquals(applicationAuthenticator.getName(), "BasicAuthenticator");
     }
@@ -203,7 +209,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAppAuthenticatorByNameNonExistingAuthenticator() {
 
         ApplicationAuthenticator applicationAuthenticator;
-        applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("NonExistingAuthenticator");
+        applicationAuthenticator = ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticatorByName("NonExistingAuthenticator");
         assertNull(applicationAuthenticator);
     }
 
@@ -1130,6 +1137,27 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
 
             assertEquals(result, "rolesClaimInDialect");
+        }
+    }
+
+    @Test
+    public void getAppAuthenticatorByNameExistingAuthenticator() {
+
+        Assert.assertNotNull(FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator"));
+    }
+
+    @Test
+    public void getAppAuthenticatorByNameNonExistingAuthenticator() {
+
+        Assert.assertNull(FrameworkUtils.getAppAuthenticatorByName("NonExistAuthenticator"));
+    }
+ 
+    private void removeAllSystemDefinedAuthenticators() {
+
+        List<ApplicationAuthenticator> authenticatorList = new ArrayList<>(
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators());
+        for (ApplicationAuthenticator authenticator : authenticatorList) {
+            ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         }
     }
 }

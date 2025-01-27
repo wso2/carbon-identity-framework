@@ -73,6 +73,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
@@ -99,6 +100,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationError;
@@ -371,12 +373,17 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param name
-     * @return
+     * Get system defined application authenticator by name.
+     *
+     * @param name  Name of the authenticator.
+     * @return ApplicationAuthenticator.
+     * @deprecated use {@link ApplicationAuthenticatorManager#getSystemDefinedAuthenticatorByName(String)}.
      */
+    @Deprecated
     public static ApplicationAuthenticator getAppAuthenticatorByName(String name) {
 
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+        for (ApplicationAuthenticator authenticator : ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticators()) {
 
             if (name.equals(authenticator.getName())) {
                 return authenticator;
@@ -387,10 +394,15 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param request
-     * @return
+     * This method resolve the AuthenticationContext from the request headers.
+     *
+     * @param request  The http servlet request.
+     * @return AuthenticationContext.
+     * @throws FrameworkRuntimeException If any error occurred while resolving the Authenticator list. Note that this
+     * is an RuntimeException and should be handled by the properly. All the known usages of this method updated to
+     * gracefully handle the FrameworkRuntimeException.
      */
-    public static AuthenticationContext getContextData(HttpServletRequest request) {
+    public static AuthenticationContext getContextData(HttpServletRequest request) throws FrameworkRuntimeException {
 
         AuthenticationContext context = null;
         if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
@@ -401,7 +413,16 @@ public class FrameworkUtils {
                 return context;
             }
         }
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+
+        List<ApplicationAuthenticator> authenticatorList = null;
+        try {
+            authenticatorList = ApplicationAuthenticatorManager.getInstance()
+                    .getAllAuthenticators(resolveTenantDomain(request));
+        } catch (FrameworkException e) {
+            throw new FrameworkRuntimeException("Error while getting all application authenticators.", e);
+        }
+
+        for (ApplicationAuthenticator authenticator : authenticatorList) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
 
@@ -4504,5 +4525,23 @@ public class FrameworkUtils {
     public static boolean isURLRelative(String uriString) throws URISyntaxException {
 
         return !new URI(uriString).isAbsolute();
+    }
+
+    private static String resolveTenantDomain(HttpServletRequest request) {
+
+        String tenantDomain;
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
+            }
+            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        } else {
+            tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+        }
+
+        if (StringUtils.isEmpty(tenantDomain)) {
+            tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        return tenantDomain;
     }
 }

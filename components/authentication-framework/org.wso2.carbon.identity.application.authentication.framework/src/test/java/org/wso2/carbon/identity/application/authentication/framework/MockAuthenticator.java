@@ -104,4 +104,19 @@ public class MockAuthenticator implements ApplicationAuthenticator {
 
         return this.name + ".authenticator";
     }
+
+    public static class MockLocalAuthenticator extends MockAuthenticator implements LocalApplicationAuthenticator {
+
+        public MockLocalAuthenticator(String name) {
+            super(name);
+        }
+    }
+
+    public static class MockFederatedAuthenticator extends MockAuthenticator
+            implements FederatedApplicationAuthenticator {
+
+        public MockFederatedAuthenticator(String name) {
+            super(name);
+        }
+    }
 }
