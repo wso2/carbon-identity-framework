@@ -417,7 +417,7 @@ public class FrameworkUtils {
         List<ApplicationAuthenticator> authenticatorList = null;
         try {
             authenticatorList = ApplicationAuthenticatorManager.getInstance()
-                    .getAllAuthenticators(reoslveTenantDomain(request));
+                    .getAllAuthenticators(resolveTenantDomain(request));
         } catch (FrameworkException e) {
             throw new FrameworkRuntimeException("Error while getting all application authenticators.", e);
         }
@@ -4527,7 +4527,7 @@ public class FrameworkUtils {
         return !new URI(uriString).isAbsolute();
     }
 
-    private static String reoslveTenantDomain(HttpServletRequest request) {
+    private static String resolveTenantDomain(HttpServletRequest request) {
 
         String tenantDomain;
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
@@ -4541,10 +4541,6 @@ public class FrameworkUtils {
 
         if (StringUtils.isEmpty(tenantDomain)) {
             tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Resolved tenant domain: " + tenantDomain);
         }
         return tenantDomain;
     }

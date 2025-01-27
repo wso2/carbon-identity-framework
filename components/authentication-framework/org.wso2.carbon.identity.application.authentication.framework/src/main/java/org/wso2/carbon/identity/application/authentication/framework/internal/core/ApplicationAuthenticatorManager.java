@@ -128,7 +128,7 @@ public class ApplicationAuthenticatorManager {
 
             return allAuthenticators;
         } catch (AuthenticatorMgtException | IdentityProviderManagementException e) {
-            throw new RuntimeException("Error while getting all application authenticators.", e);
+            throw new FrameworkException("Error while getting all application authenticators.", e);
         }
     }
 
