@@ -1328,6 +1328,12 @@
                        name="org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener"
                        orderId="85" enable="true"/>
 
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.EmailDomainValidationHandler"
+                       orderId="15" enable="true"/>
+
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler"

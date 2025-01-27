@@ -214,6 +214,14 @@
             <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.discovery.service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.config.service</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.role.v2.mgt.core</artifactId>
         </dependency>
@@ -291,6 +299,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.discovery.service; version="${org.wso2.carbon.identity.organization.management.version.range}",
+                            org.wso2.carbon.identity.organization.config.service; version="${org.wso2.carbon.identity.organization.management.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.model; version="${carbon.identity.package.import.version.range}",
