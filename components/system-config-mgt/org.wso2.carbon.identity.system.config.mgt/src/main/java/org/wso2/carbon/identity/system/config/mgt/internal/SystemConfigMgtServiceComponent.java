@@ -31,6 +31,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.admin.advisory.mgt.dao.AdminAdvisoryBannerDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.system.config.mgt.advisory.DBBasedAdminBannerDAO;
+import org.wso2.carbon.identity.system.config.mgt.remotelogging.DBBasedRemoteLoggingConfigDAO;
+import org.wso2.carbon.logging.service.dao.RemoteLoggingConfigDAO;
 
 /**
  * Service component class for system config mgt Service.
@@ -55,6 +57,7 @@ public class SystemConfigMgtServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             // Register the Database based Admin Advisory Banner DAO.
             bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(), null);
+            bundleContext.registerService(RemoteLoggingConfigDAO.class, new DBBasedRemoteLoggingConfigDAO(), null);
             log.debug("System Config Mgt Service Component is activated.");
 
         } catch (Throwable e) {
