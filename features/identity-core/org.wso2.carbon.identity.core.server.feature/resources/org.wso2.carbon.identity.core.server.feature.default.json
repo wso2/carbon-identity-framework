@@ -1210,7 +1210,10 @@
   "console.account_login.scopes.feature": [],
   "console.account_login.scopes.update": ["internal_config_mgt_update"],
   "console.actions.enabled": true,
-  "console.actions.disabled_features": [],
+  "console.actions.disabled_features": [
+    "actions.types.list.preRegistration",
+    "actions.types.list.preUpdateProfile"
+  ],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
   "console.actions.scopes.read": [
