@@ -76,6 +76,7 @@
         <module>components/ai-services-mgt</module>
         <module>components/certificate-mgt</module>
         <module>components/servlet-mgt</module>
+        <module>components/system-config-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -114,6 +115,7 @@
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
+        <module>features/system-config-mgt</module>
     </modules>
 
 
@@ -1519,6 +1521,11 @@
                 <artifactId>org.wso2.carbon.identity.user.store.configuration.ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.system.config.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--Feature Dependencies Ends-->
             <dependency>
@@ -1851,6 +1858,11 @@
                 <artifactId>graal-sdk</artifactId>
                 <version>${graalvm.wso2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.admin.advisory.mgt</artifactId>
+                <version>${carbon.kernel.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1875,7 +1887,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.33</carbon.kernel.version>
+        <carbon.kernel.version>4.10.34</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>

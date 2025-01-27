@@ -1551,6 +1551,8 @@ INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('91116e95-ca63-4787-be2d-de13d04d1b55', 'X509_VALIDATOR', 'A resource type to keep the x509 validators.')
 INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('a17952b9-0942-4669-8529-479ca481146b', 'X509_REVOCATION_VALIDATION_CA', 'A resource type to keep the x509 revocation validation certificate authorities.')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('32360745-9c3e-4391-b563-66f17f0eb93a', 'ADMIN_ADVISORY_BANNER', 'A resource type to store admin advisory banner configurations.')
 SELECT 1 FROM dual
 /
 CREATE TABLE IDN_CONFIG_RESOURCE (
