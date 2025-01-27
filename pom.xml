@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.7.118-SNAPSHOT</version>
+    <version>7.7.153-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -75,6 +75,8 @@
         <module>components/action-mgt</module>
         <module>components/ai-services-mgt</module>
         <module>components/certificate-mgt</module>
+        <module>components/servlet-mgt</module>
+        <module>components/system-config-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -112,6 +114,8 @@
         <module>features/action-mgt</module>
         <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
+        <module>features/servlet-mgt</module>
+        <module>features/system-config-mgt</module>
     </modules>
 
 
@@ -350,7 +354,25 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.action</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.consent.server.configs.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -876,6 +898,11 @@
                 <version>${javax.jsp-api.version}</version>
             </dependency>
             <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${javax.validation-api.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${com.google.code.gson.version}</version>
@@ -931,6 +958,11 @@
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-extension-providers</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-extension-search</artifactId>
                 <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
@@ -1489,6 +1521,11 @@
                 <artifactId>org.wso2.carbon.identity.user.store.configuration.ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.system.config.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--Feature Dependencies Ends-->
             <dependency>
@@ -1711,6 +1748,11 @@
                 <version>${apache.cxf-rt-rs-service-description.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${apache.cxf-rt-frontend-jaxrs.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.codehaus.jettison</groupId>
                 <artifactId>jettison</artifactId>
                 <version>${codehaus.jettison.version}</version>
@@ -1733,6 +1775,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.servlet.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1811,6 +1858,11 @@
                 <artifactId>graal-sdk</artifactId>
                 <version>${graalvm.wso2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.admin.advisory.mgt</artifactId>
+                <version>${carbon.kernel.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1825,7 +1877,7 @@
 
     <properties>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
-        <apache.cxf-rt-frontend-jaxrs.version>2.7.16</apache.cxf-rt-frontend-jaxrs.version>
+        <apache.cxf-rt-frontend-jaxrs.version>3.6.4</apache.cxf-rt-frontend-jaxrs.version>
         <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
@@ -1835,7 +1887,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.28</carbon.kernel.version>
+        <carbon.kernel.version>4.10.34</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1895,6 +1947,7 @@
         <servlet-api.version>2.5</servlet-api.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <javax.jsp-api.version>2.0</javax.jsp-api.version>
+        <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
         <version.javax.servlet.jsp>2.2.0.v201112011158</version.javax.servlet.jsp>
         <javax.servelet.jstl.version>1.2</javax.servelet.jstl.version>
         <taglibs-standard-impl.version>1.2.5</taglibs-standard-impl.version>

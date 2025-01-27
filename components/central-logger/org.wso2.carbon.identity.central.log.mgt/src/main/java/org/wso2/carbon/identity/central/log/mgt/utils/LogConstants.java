@@ -99,6 +99,8 @@ public class LogConstants {
         public static final String GET_USER_CLAIM_VALUES_ACTION = "get-user-claim-values";
         public static final String UPDATE_USERS_OF_GROUP_ACTION = "update-users-of-group";
         public static final String UPDATE_GROUPS_OF_USER_ACTION = "update-groups-of-user";
+        public static final String CREATE_FEDERATED_USER_ASSOCIATION = "create-federated-user-association";
+        public static final String DELETE_FEDERATED_USER_ASSOCIATION = "delete-federated-user-association";
 
         public static final String ADD_GROUP_ACTION = "add-group";
         public static final String GET_GROUP_ACTION = "get-group";

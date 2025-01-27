@@ -2182,6 +2182,11 @@
                        name="org.wso2.carbon.identity.scim2.common.listener.SCIMTenantMgtListener"
                        orderId="{{event.default_listener.scim2_tenant_mgt.priority}}"
                        enable="{{event.default_listener.scim2_tenant_mgt.enable}}"/>
+        <EventListener id="pre_update_password_action"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       orderId="{{event.default_listener.pre_update_password_action.priority}}"
+                       enable="{{event.default_listener.pre_update_password_action.enable}}"/>
         <EventListener id="governance_identity_mgt"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
@@ -2607,6 +2612,16 @@
                    enable="{{cache.private_key_jwt.enable}}"
                    timeout="{{cache.private_key_jwt.timeout}}"
                    capacity="{{cache.private_key_jwt.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_auth_context_cache" name="PushAuthContextCache"
+                   enable="{{cache.push_auth_context_cache.enable}}"
+                   timeout="{{cache.push_auth_context_cache.timeout}}"
+                   capacity="{{cache.push_auth_context_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_auth_status_cache" name="PushAuthStatusCache"
+                   enable="{{cache.push_auth_status_cache.enable}}"
+                   timeout="{{cache.push_auth_status_cache_cache.timeout}}"
+                   capacity="{{cache.push_auth_status_cache_cache.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
@@ -3734,6 +3749,8 @@
         <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
         <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
         <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -3819,6 +3836,25 @@
             {% endfor %}
         </OverwriteDispatch>
     </TenantContextsToRewrite>
+
+    <OrgContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/identity/oauth2/dcr/</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+                <SubPaths>
+                    <Path>/oauth2/token</Path>
+                    <Path>/oauth2/introspect</Path>
+                    <Path>/oauth2/revoke</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
         <WebApp>
@@ -4493,9 +4529,20 @@
         <TokenConnectionSocketTimeout>{{ai_services.token_connection_socket_timeout}}</TokenConnectionSocketTimeout>
         <HTTPConnectionPoolSize>{{ai_services.http_connection_pool_size}}</HTTPConnectionPoolSize>
         <HTTPConnectionTimeout>{{ai_services.http_connection_timeout}}</HTTPConnectionTimeout>
+        <HTTPConnectionRequestTimeout>{{ai_services.http_connection_request_timeout}}</HTTPConnectionRequestTimeout>
+        <HTTPSocketTimeout>{{ai_services.http_socket_timeout}}</HTTPSocketTimeout>
         <LoginFlowAI>
             <LoginFlowAIEndpoint>{{ai_services.login_flow_ai.endpoint}}</LoginFlowAIEndpoint>
+            <LoginFlowAIGenerateRequestPath>{{ai_services.login_flow_ai.generate_request_path}}</LoginFlowAIGenerateRequestPath>
+            <LoginFlowAIStatusRequestPath>{{ai_services.login_flow_ai.status_request_path}}</LoginFlowAIStatusRequestPath>
+            <LoginFlowAIResultRequestPath>{{ai_services.login_flow_ai.result_request_path}}</LoginFlowAIResultRequestPath>
         </LoginFlowAI>
+        <BrandingAI>
+            <BrandingAIEndpoint>{{ai_services.branding_ai.endpoint}}</BrandingAIEndpoint>
+            <BrandingAIGenerateRequestPath>{{ai_services.branding_ai.generate_request_path}}</BrandingAIGenerateRequestPath>
+            <BrandingAIStatusRequestPath>{{ai_services.branding_ai.status_request_path}}</BrandingAIStatusRequestPath>
+            <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
+        </BrandingAI>
     </AIServices>
 
 </Server>

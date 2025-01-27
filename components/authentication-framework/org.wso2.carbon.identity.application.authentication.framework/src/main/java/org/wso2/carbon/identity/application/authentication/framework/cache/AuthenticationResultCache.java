@@ -22,6 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -93,12 +95,28 @@ public class AuthenticationResultCache extends
      * @return Cached entry.
      */
     public AuthenticationResultCacheEntry getValueFromCache(AuthenticationResultCacheKey key) {
+
         AuthenticationResultCacheEntry entry = super.getValueFromCache(key);
         if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationResultCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getResultId(), CACHE_NAME);
+            if (entry != null && isCacheEntryExpired(entry)) {
+                return null;
+            }
         }
         return entry;
+    }
+
+    private boolean isCacheEntryExpired(AuthenticationResultCacheEntry entry) {
+
+        String createdTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString();
+        if (createdTimestamp != null &&
+                (FrameworkUtils.getCurrentStandardNano() >
+                    entry.getValidityPeriod() + Long.parseLong(createdTimestamp) * 1000000)) {
+            log.debug("Authentication result cache is expired");
+            return true;
+        }
+        return false;
     }
 
     /**

@@ -37,11 +37,13 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.execution.impl.ActionInvocationResponseClassFactory;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationIncompleteResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
+import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -116,7 +118,8 @@ public class APIClientTest {
         entity.setContentType(ContentType.DEFAULT_TEXT.getMimeType());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
         assertNotNull(apiResponse);
         assertNull(apiResponse.getResponse());
         assertFalse(apiResponse.isRetry());
@@ -129,8 +132,7 @@ public class APIClientTest {
     @DataProvider(name = "unacceptableSuccessResponsePayloads")
     public String[] unacceptableSuccessResponsePayloads() {
 
-        return new String[]{"{}", "", "success", "{\"actionStatus\":\"SUCCESS\"}", "{\"actionStatus\":\"ERROR\"}, " +
-                "{\"actionStatus\": \"FAILED\"}"};
+        return new String[]{"{}", "", "success", "{\"actionStatus\":\"ERROR\"}, " + "{\"actionStatus\": \"FAILED\"}"};
     }
 
     @Test(dataProvider = "unacceptableSuccessResponsePayloads")
@@ -145,7 +147,8 @@ public class APIClientTest {
         entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         assertFalse(apiResponse.isRetry());
@@ -171,7 +174,8 @@ public class APIClientTest {
         entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -210,7 +214,8 @@ public class APIClientTest {
         entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -249,7 +254,8 @@ public class APIClientTest {
         entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
 
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
@@ -279,7 +285,8 @@ public class APIClientTest {
                 .isConfidential(true)
                 .build();
         AuthMethods.AuthMethod bearAuth = new AuthMethods.BearerAuth(Collections.singletonList(authProperty));
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", bearAuth, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", bearAuth, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -323,7 +330,8 @@ public class APIClientTest {
         entity.setContentType(contentType.toString());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         assertFalse(apiResponse.isRetry());
@@ -373,7 +381,8 @@ public class APIClientTest {
         entity.setContentType(contentType.toString());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         if ((int) statusCode == 500 || (int) statusCode == 502) { // This is a retry
@@ -417,7 +426,8 @@ public class APIClientTest {
         entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
 
         assertNotNull(apiResponse);
         assertNotNull(apiResponse.getResponse());
@@ -452,11 +462,36 @@ public class APIClientTest {
         entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         when(httpResponse.getEntity()).thenReturn(entity);
 
-        ActionInvocationResponse response = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse response = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
 
         assertNotNull(response);
         assertTrue(response.isSuccess());
         verify(httpClient, times(2)).execute(any(HttpPost.class));
+    }
+
+    @Test
+    public void testReceiveSuccessResponseWithExtendedResponseData() throws Exception {
+
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        when(httpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+
+        ActionInvocationResponseClassFactory.registerActionInvocationResponseClassProvider(
+                new TestActionInvocationResponseClassProvider());
+
+        String successResponse =
+                "{\"actionStatus\":\"SUCCESS\", \"data\": {\"id\":\"test-123-id\"}}";
+        InputStreamEntity entity = new InputStreamEntity(new ByteArrayInputStream(successResponse.getBytes(
+                StandardCharsets.UTF_8)));
+        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        when(httpResponse.getEntity()).thenReturn(entity);
+
+        ActionInvocationResponse response = apiClient.callAPI(ActionType.AUTHENTICATION,
+                "http://example.com", null, "{}");
+
+        assertNotNull(response);
+        assertTrue(response.isSuccess());
     }
 
     @Test
@@ -465,7 +500,8 @@ public class APIClientTest {
         when(httpClient.execute(any(HttpPost.class))).thenThrow(new ConnectTimeoutException("Connection Timeout"))
                 .thenThrow(new SocketTimeoutException("Read Timeout"));
 
-        ActionInvocationResponse response = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse response = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
 
         assertNotNull(response);
         assertTrue(response.isError());
@@ -478,7 +514,8 @@ public class APIClientTest {
 
         when(httpClient.execute(any(HttpPost.class))).thenThrow(new ClientProtocolException("Unexpected exception"));
 
-        ActionInvocationResponse apiResponse = apiClient.callAPI("http://example.com", null, "{}");
+        ActionInvocationResponse apiResponse = apiClient.callAPI(ActionType.PRE_ISSUE_ACCESS_TOKEN,
+                "http://example.com", null, "{}");
         assertNotNull(apiResponse);
         assertTrue(apiResponse.isError());
         assertEquals(apiResponse.getErrorLog(),
