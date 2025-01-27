@@ -16,7 +16,7 @@
     "displayName": "",
     "isEnabled": true,
     "authenticationType": "VERIFICATION",
-    "description": "",
+    "description": "Only verify users in a second or later step in the login flow.",
     "endpoint": {
       "uri": "",
       "authentication": {

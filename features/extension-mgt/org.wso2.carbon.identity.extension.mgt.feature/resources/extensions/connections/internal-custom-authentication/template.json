@@ -14,9 +14,9 @@
   "customLocalAuthenticator": {
     "name": "",
     "displayName": "",
+    "description": "Collect identifier and authenticate user accounts managed in the organization.",
     "isEnabled": true,
     "authenticationType": "IDENTIFICATION",
-    "description": "",
     "endpoint": {
       "uri": "",
       "authentication": {
