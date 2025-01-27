@@ -3,7 +3,7 @@
   "name": "External Custom Authentication",
   "description": "Register externally implemented authentication service.",
   "docLink": "",
-  "image": "",
+  "image": "assets/images/logos/custom-authentication.svg",
   "category": "DEFAULT",
   "disabled": false,
   "templateId": "external-custom-authentication",
