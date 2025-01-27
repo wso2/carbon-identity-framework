@@ -23,6 +23,8 @@ import org.wso2.carbon.user.core.AuthorizationManager;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.ENABLE_V2_AUDIT_LOGS;
+
 public class UserProfileUtil {
 
 
@@ -46,4 +48,13 @@ public class UserProfileUtil {
         return isAuthrized;
     }
 
+    /**
+     * Check whether the v2 audit logs are enabled.
+     *
+     * @return true if v2 audit logs are enabled.
+     */
+    public static boolean isEnableV2AuditLogs() {
+
+        return Boolean.parseBoolean(System.getProperty(ENABLE_V2_AUDIT_LOGS));
+    }
 }

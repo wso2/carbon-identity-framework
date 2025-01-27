@@ -30,8 +30,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGenericGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -189,7 +189,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             loadFederatedAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
             // loading local authenticators
-            loadLocalAuthenticators(authenticationStep, stepConfig);
+            loadLocalAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
             sequenceConfig.getStepMap().put(stepOrder, stepConfig);
         }
@@ -222,8 +222,10 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 authConfig.setName(authenticatorName);
                 authConfig.setEnabled(true);
 
-                // iterate through each system authentication config
-                for (ApplicationAuthenticator appAuthenticator : FrameworkServiceComponent.getAuthenticators()) {
+                /* iterate through each only system authentication config as this is to load request path
+                 authenticators. */
+                for (ApplicationAuthenticator appAuthenticator :
+                        ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()) {
 
                     if (authenticatorName.equalsIgnoreCase(appAuthenticator.getName())) {
                         authConfig.setApplicationAuthenticator(appAuthenticator);
@@ -264,12 +266,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
                 String actualAuthenticatorName = federatedAuthenticator.getName();
                 // assign it to the step
-                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName);
+                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName, tenantDomain);
             }
         }
     }
 
-    protected void loadLocalAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig) {
+    protected void loadLocalAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig,
+                                           String tenantDomain) throws FrameworkException {
 
         LocalAuthenticatorConfig[] localAuthenticators = authenticationStep.getLocalAuthenticatorConfigs();
         if (localAuthenticators != null) {
@@ -278,12 +281,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             // assign it to the step
             for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
                 String actualAuthenticatorName = localAuthenticator.getName();
-                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName);
+                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName, tenantDomain);
             }
         }
     }
 
-    private void loadStepAuthenticator(StepConfig stepConfig, IdentityProvider idp, String authenticatorName) {
+    private void loadStepAuthenticator(StepConfig stepConfig, IdentityProvider idp, String authenticatorName,
+                                           String tenantDomain) throws FrameworkException {
 
         AuthenticatorConfig authenticatorConfig = null;
 
@@ -300,14 +304,19 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             authenticatorConfig = new AuthenticatorConfig();
             authenticatorConfig.setName(authenticatorName);
 
-            for (ApplicationAuthenticator appAuthenticator : FrameworkServiceComponent.getAuthenticators()) {
+            ApplicationAuthenticator appAuthenticatorForConfig = null;
+            for (ApplicationAuthenticator appAuthenticator : ApplicationAuthenticatorManager.getInstance()
+                    .getAllAuthenticators(tenantDomain)) {
 
                 if (authenticatorName.equalsIgnoreCase(appAuthenticator.getName())) {
-                    authenticatorConfig.setApplicationAuthenticator(appAuthenticator);
+                    appAuthenticatorForConfig = appAuthenticator;
                     break;
                 }
             }
-
+            if (appAuthenticatorForConfig == null) {
+                throw new FrameworkException("No authenticator found by the name: " + authenticatorName);
+            }
+            authenticatorConfig.setApplicationAuthenticator(appAuthenticatorForConfig);
             stepConfig.getAuthenticatorList().add(authenticatorConfig);
         }
 

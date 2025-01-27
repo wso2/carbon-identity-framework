@@ -23,7 +23,7 @@ import java.util.Arrays;
 /**
  * Action.
  */
-public class Action  {
+public class Action {
 
     /**
      * Action Type.
@@ -134,6 +134,7 @@ public class Action  {
     private String description;
     private Status status;
     private EndpointConfig endpointConfig;
+    private ActionRule rule;
 
     public Action(ActionResponseBuilder actionResponseBuilder) {
 
@@ -143,6 +144,7 @@ public class Action  {
         this.description = actionResponseBuilder.description;
         this.status = actionResponseBuilder.status;
         this.endpointConfig = actionResponseBuilder.endpointConfig;
+        this.rule = actionResponseBuilder.rule;
     }
 
     public Action(ActionRequestBuilder actionRequestBuilder) {
@@ -150,6 +152,7 @@ public class Action  {
         this.name = actionRequestBuilder.name;
         this.description = actionRequestBuilder.description;
         this.endpointConfig = actionRequestBuilder.endpointConfig;
+        this.rule = actionRequestBuilder.rule;
     }
 
     public String getId() {
@@ -182,6 +185,11 @@ public class Action  {
         return endpointConfig;
     }
 
+    public ActionRule getActionRule() {
+
+        return rule;
+    }
+
     /**
      * ActionResponseBuilder.
      */
@@ -193,6 +201,7 @@ public class Action  {
         private String description;
         private Status status;
         private EndpointConfig endpointConfig;
+        private ActionRule rule;
 
         public ActionResponseBuilder id(String id) {
 
@@ -230,6 +239,12 @@ public class Action  {
             return this;
         }
 
+        public ActionResponseBuilder rule(ActionRule rule) {
+
+            this.rule = rule;
+            return this;
+        }
+
         public Action build() {
 
             return new Action(this);
@@ -244,6 +259,7 @@ public class Action  {
         private String name;
         private String description;
         private EndpointConfig endpointConfig;
+        private ActionRule rule;
 
         public ActionRequestBuilder name(String name) {
 
@@ -260,6 +276,12 @@ public class Action  {
         public ActionRequestBuilder endpoint(EndpointConfig endpointConfig) {
 
             this.endpointConfig = endpointConfig;
+            return this;
+        }
+
+        public ActionRequestBuilder rule(ActionRule rule) {
+
+            this.rule = rule;
             return this;
         }
 

@@ -39,6 +39,8 @@ public class ActionExecutionResponseProcessorFactory {
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
                 return actionInvocationResponseProcessors.get(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+            case PRE_UPDATE_PASSWORD:
+                return actionInvocationResponseProcessors.get(ActionType.PRE_UPDATE_PASSWORD);
             case AUTHENTICATION:
                 return actionInvocationResponseProcessors.get(ActionType.AUTHENTICATION);
             default:

@@ -90,8 +90,10 @@ public class AuthenticatorMgtExceptionBuilder {
                 "The authenticator already exists for the given name: %s."),
         ERROR_INVALID_AUTHENTICATOR_NAME("60014", "Authenticator name is invalid.",
                 "The provided authenticator name %s is not in the expected format %s."),
-        ERROR_BLANK_FIELD_VALUE("60015", "Invalid empty or blank value.",
-                "Value for %s should not be empty or blank."),
+        ERROR_INVALID_DISPLAY_NAME("60015", "Authenticator display name is invalid.",
+                "The provided authenticator name %s is not in the expected format %s."),
+        ERROR_INVALID_URL("60016", "Invalid URL.",
+                "The provided url %s is not in the expected format %s."),
 
         // Server errors.
         ERROR_WHILE_ADDING_AUTHENTICATOR("65001", "Error while adding authenticator.",
@@ -119,7 +121,9 @@ public class AuthenticatorMgtExceptionBuilder {
         ERROR_CODE_DELETING_ENDPOINT_CONFIG("65012", "Error while managing endpoint configurations.",
                 "Error while managing endpoint configurations for the user defined local authenticator %s."),
         ERROR_CODE_HAVING_MULTIPLE_PROP("65013", "Multiple properties found", "Only actionId " +
-                "property is allowed for authenticator: %s.");
+                "property is allowed for authenticator: %s."),
+        ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME("65014", "Error while retrieving " +
+                "authenticator.", "Error while checking if an authenticator exists with the given name: %s.");
 
         private final String code;
         private final String message;

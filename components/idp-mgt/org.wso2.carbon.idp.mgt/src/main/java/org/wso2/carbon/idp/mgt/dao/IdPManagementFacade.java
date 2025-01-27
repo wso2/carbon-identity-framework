@@ -182,6 +182,16 @@ public class IdPManagementFacade {
         return dao.isIdpReferredBySP(idPName, tenantId);
     }
 
+    public boolean isAuthenticatorReferredBySP(String idpName, String authenticatorName, int tenantId) throws IdentityProviderManagementException {
+
+        return dao.isAuthenticatorReferredBySP(idpName, authenticatorName, tenantId);
+    }
+
+    public boolean isOutboundConnectorReferredBySP(String idpName, String connectorName, int tenantId) throws IdentityProviderManagementException {
+
+        return dao.isOutboundConnectorReferredBySP(idpName, connectorName, tenantId);
+    }
+
     public void deleteIdP(String idPName, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -342,11 +352,11 @@ public class IdPManagementFacade {
             return;
         }
         FederatedAuthenticatorConfig newFederatedAuth = newIdentityProvider.getFederatedAuthenticatorConfigs()[0];
-        FederatedAuthenticatorConfig oldFederatedAuth = oldIdentityProvider.getFederatedAuthenticatorConfigs()[0];
         if (newFederatedAuth.getDefinedByType() == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
             return;
         }
 
+        FederatedAuthenticatorConfig oldFederatedAuth = oldIdentityProvider.getFederatedAuthenticatorConfigs()[0];
         if (StringUtils.equals(newFederatedAuth.getName(), oldFederatedAuth.getName())) {
             endpointConfigurationManager.updateEndpointConfig(newIdentityProvider.getFederatedAuthenticatorConfigs()[0],
                     oldIdentityProvider.getFederatedAuthenticatorConfigs()[0],

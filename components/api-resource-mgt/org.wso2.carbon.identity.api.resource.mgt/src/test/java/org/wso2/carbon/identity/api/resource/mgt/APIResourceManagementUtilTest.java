@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.api.resource.mgt;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.api.resource.mgt.internal.APIResourceManagementServiceComponentHolder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementConfigBuilder;
 import org.wso2.carbon.identity.api.resource.mgt.util.APIResourceManagementUtil;
 import org.wso2.carbon.identity.application.common.model.APIResource;
@@ -49,6 +50,7 @@ public class APIResourceManagementUtilTest {
 
         // Trigger System API register function on server startup.
         APIResourceManagementUtil.addSystemAPIs();
+        APIResourceManagementServiceComponentHolder.getInstance().setRichAuthorizationRequestsEnabled(true);
     }
 
     @Test

@@ -38,7 +38,6 @@ import java.util.List;
 
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildClientException;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.buildRuntimeServerException;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.DISPLAY_NAME;
 
 /**
  * Application authenticator service.
@@ -67,8 +66,39 @@ public class ApplicationAuthenticatorService {
         return instance;
     }
 
+    /**
+     * This method is used to get the list of SYSTEM defined local authenticator configurations.
+     *
+     * @deprecated It is recommended to use {@link #getAllSystemDefinedLocalAuthenticators()},
+     * which returning both SYSTEM and USER defined local application authenticator configurations.
+     */
+    @Deprecated
     public List<LocalAuthenticatorConfig> getLocalAuthenticators() {
         return this.localAuthenticators;
+    }
+
+    /**
+     * This returns list of all SYSTEM defined local authenticator configurations.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getAllSystemDefinedLocalAuthenticators() {
+
+        return this.localAuthenticators;
+    }
+
+    /**
+     * This returns list of all SYSTEM and USER defined local authenticator configurations.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getAllLocalAuthenticators(String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        List<LocalAuthenticatorConfig> configList = new ArrayList<>(getAllUserDefinedLocalAuthenticators(tenantDomain));
+        configList.addAll(localAuthenticators);
+        return configList;
     }
 
     /**
@@ -131,7 +161,29 @@ public class ApplicationAuthenticatorService {
         return getUserDefinedLocalAuthenticator(name, tenantDomain);
     }
 
+    /**
+     * This returns only SYSTEM defined federated authenticator by name.
+     *
+     * @param name  The name of the federated application authenticator configuration.
+     * @return Retrieved FederatedAuthenticatorConfig.
+     *
+     * @deprecated It is recommended to use getFederatedAuthenticatorByName(String, String) in
+     * org.wso2.carbon.idp.mgt.IdentityProviderManager class which supports retrieving both USER and SYSTEM defined
+     * federated application authenticator configuration by name, or getSystemFederatedAuthenticatorByName(String)
+     * to retrieve only SYSTEM defined federated application authenticator configuration by name.
+     */
+    @Deprecated
     public FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String name) {
+        for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
+            if (federatedAuthenticator.getName().equals(name)) {
+                return federatedAuthenticator;
+            }
+        }
+        return null;
+    }
+
+    public FederatedAuthenticatorConfig getSystemDefinedFederatedAuthenticatorByName(String name) {
+
         for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
             if (federatedAuthenticator.getName().equals(name)) {
                 return federatedAuthenticator;
@@ -207,13 +259,15 @@ public class ApplicationAuthenticatorService {
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
-        LocalAuthenticatorConfig config = getLocalAuthenticatorByName(authenticatorConfig.getName(), tenantDomain);
-        if (config != null) {
+        if (isExistingAuthenticatorName(authenticatorConfig.getName(), tenantDomain)) {
             throw buildClientException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST,
                     authenticatorConfig.getName());
         }
         authenticatorValidator.validateAuthenticatorName(authenticatorConfig.getName());
-        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
+        if (authenticatorConfig.getImageUrl() != null) {
+            authenticatorValidator.validateUrl(authenticatorConfig.getImageUrl());
+        }
 
         return dao.addUserDefinedLocalAuthenticator(
                 authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -237,8 +291,10 @@ public class ApplicationAuthenticatorService {
             throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR,
                     authenticatorConfig.getName());
         }
-
-        authenticatorValidator.validateForBlank(DISPLAY_NAME, authenticatorConfig.getDisplayName());
+        authenticatorValidator.validateDisplayName(authenticatorConfig.getDisplayName());
+        if (authenticatorConfig.getImageUrl() != null) {
+            authenticatorValidator.validateUrl(authenticatorConfig.getImageUrl());
+        }
 
         return dao.updateUserDefinedLocalAuthenticator(
                 existingConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -277,6 +333,40 @@ public class ApplicationAuthenticatorService {
 
         return dao.getUserDefinedLocalAuthenticator(
                 authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * Check whether any local or federated authenticator configuration exists with the given name.
+     *
+     * @param authenticatorName Name of the authenticator.
+     * @param tenantDomain      Tenant domain.
+     * @return True if an authenticator with the given name exists.
+     * @throws AuthenticatorMgtException If an error occurs while checking the existence of the authenticator.
+     */
+    public boolean isExistingAuthenticatorName(String authenticatorName, String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        // Check whether an authenticator with the given name exists in the database.
+        if (dao.isExistingAuthenticatorName(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain))) {
+            return true;
+        }
+
+        /* Check whether an authenticator with the given name exists in the system defined authenticators
+        which are not saved in database. */
+        for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
+            if (localAuthenticator.getName().equals(authenticatorName)) {
+                return true;
+            }
+        }
+
+        /* Check whether an authenticator with the given name exists in the federated defined authenticators
+        which are not saved in database. */
+        for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
+            if (federatedAuthenticator.getName().equals(authenticatorName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private UserDefinedLocalAuthenticatorConfig resolveExistingAuthenticator(String authenticatorName,

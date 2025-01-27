@@ -41,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -76,6 +77,7 @@ public class UnifiedClaimMetadataManagerTest {
     private final String LOCAL_CLAIM_2 = "http://wso2.org/claims/email";
     private final String LOCAL_CLAIM_3 = "http://wso2.org/claims/country";
     private final String LOCAL_CLAIM_4 = "http://wso2.org/claims/identity/accountLocked";
+    private final String LOCAL_CLAIM_5 = "http://wso2.org/claims/customClaim5";
     private final String EXT_CLAIM_DIALECT_1_CLAIM_1 = "http://abc.org/claim1";
     private final String EXT_CLAIM_DIALECT_1_CLAIM_2 = "http://abc.org/claim2";
     private final String EXT_CLAIM_DIALECT_1_CLAIM_3 = "http://abc.org/claim3";
@@ -226,12 +228,19 @@ public class UnifiedClaimMetadataManagerTest {
     @Test
     public void testGetLocalClaims() throws ClaimMetadataException {
 
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
         List<LocalClaim> localClaimsInSystem = new ArrayList<>();
-        localClaimsInSystem.add(new LocalClaim(LOCAL_CLAIM_1));
-        localClaimsInSystem.add(new LocalClaim(LOCAL_CLAIM_2));
+        localClaimsInSystem.add(new LocalClaim(LOCAL_CLAIM_1, new ArrayList<>(), claimProperties));
+        LocalClaim localClaim2InSystem = new LocalClaim(LOCAL_CLAIM_2, new ArrayList<>(), claimProperties);
+        localClaimsInSystem.add(localClaim2InSystem);
 
+        Map<String, String> claimPropertiesForLocalClaimsInDB = new HashMap<>();
+        claimPropertiesForLocalClaimsInDB.put(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_SHARED_PROFILE.getName());
         List<LocalClaim> localClaimsInDB = new ArrayList<>();
-        localClaimsInDB.add(new LocalClaim(LOCAL_CLAIM_3));
+        localClaimsInDB.add(new LocalClaim(LOCAL_CLAIM_3, new ArrayList<>(), claimPropertiesForLocalClaimsInDB));
         localClaimsInDB.add(new LocalClaim(LOCAL_CLAIM_4));
         LocalClaim duplicatedLocalClaim = new LocalClaim(LOCAL_CLAIM_2);
         duplicatedLocalClaim.setMappedAttributes(new ArrayList<>());
@@ -240,6 +249,8 @@ public class UnifiedClaimMetadataManagerTest {
 
         when(systemDefaultClaimMetadataManager.getLocalClaims(0)).thenReturn(localClaimsInSystem);
         when(dbBasedClaimMetadataManager.getLocalClaims(0)).thenReturn(localClaimsInDB);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(
+                Optional.of(localClaim2InSystem));
         List<LocalClaim> result = claimMetadataManager.getLocalClaims(0);
         assertNotNull(result);
         assertEquals(result.size(), 4);
@@ -247,38 +258,67 @@ public class UnifiedClaimMetadataManagerTest {
                 .map(LocalClaim::getClaimURI)
                 .collect(Collectors.toList());
         assertTrue(localClaimURIsInResult.contains(LOCAL_CLAIM_1));
-        assertTrue(localClaimURIsInResult.contains(LOCAL_CLAIM_3));
-        assertTrue(localClaimURIsInResult.contains(LOCAL_CLAIM_4));
-        LocalClaim localClaim4 = result.stream()
+        LocalClaim localClaim1 = result.stream()
+                .filter(localClaim -> localClaim.getClaimURI().equals(LOCAL_CLAIM_1))
+                .findFirst()
+                .orElse(null);
+        assertEquals(localClaim1.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+        LocalClaim localClaim2 = result.stream()
                 .filter(localClaim -> localClaim.getClaimURI().equals(LOCAL_CLAIM_2))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(localClaim4);
-        assertEquals(localClaim4.getMappedAttributes().size(), 1);
-        assertEquals(localClaim4.getMappedAttributes().get(0).getUserStoreDomain(), "PRIMARY");
-        assertEquals(localClaim4.getMappedAttributes().get(0).getAttributeName(), "username");
+        assertNotNull(localClaim2);
+        assertEquals(localClaim2.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+        assertEquals(localClaim2.getMappedAttributes().size(), 1);
+        assertEquals(localClaim2.getMappedAttributes().get(0).getUserStoreDomain(), "PRIMARY");
+        assertEquals(localClaim2.getMappedAttributes().get(0).getAttributeName(), "username");
+        assertTrue(localClaimURIsInResult.contains(LOCAL_CLAIM_3));
+        LocalClaim localClaim3 = result.stream()
+                .filter(localClaim -> localClaim.getClaimURI().equals(LOCAL_CLAIM_3))
+                .findFirst()
+                .orElse(null);
+        assertEquals(localClaim3.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_SHARED_PROFILE.getName());
+        assertTrue(localClaimURIsInResult.contains(LOCAL_CLAIM_4));
+        LocalClaim localClaim4 = result.stream()
+                .filter(localClaim -> localClaim.getClaimURI().equals(LOCAL_CLAIM_4))
+                .findFirst()
+                .orElse(null);
+        assertEquals(localClaim4.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
     }
 
     @Test
     public void testGetLocalClaim() throws ClaimMetadataException {
 
-        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1);
+        Map<String, String> claimProperties = new HashMap<>();
+        claimProperties.put(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+        LocalClaim localClaim = new LocalClaim(LOCAL_CLAIM_1, new ArrayList<>(), claimProperties);
         when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0))
                 .thenReturn(Optional.of(localClaim));
         when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0)).thenReturn(Optional.empty());
         Optional<LocalClaim> result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_1, 0);
         assertTrue(result.isPresent());
         assertEquals(result.get().getClaimURI(), LOCAL_CLAIM_1);
+        assertEquals(result.get().getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
 
-        localClaim = new LocalClaim(LOCAL_CLAIM_2);
+        localClaim = new LocalClaim(LOCAL_CLAIM_2, new ArrayList<>(), claimProperties);
         when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0)).thenReturn(null);
         when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0))
                 .thenReturn(Optional.of(localClaim));
         result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_2, 0);
         assertTrue(result.isPresent());
         assertEquals(result.get().getClaimURI(), LOCAL_CLAIM_2);
+        assertEquals(result.get().getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
 
-        LocalClaim localClaimInSystem = new LocalClaim(LOCAL_CLAIM_3);
+        LocalClaim localClaimInSystem = new LocalClaim(LOCAL_CLAIM_3, new ArrayList<>(), claimProperties);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_3, 0))
+                .thenReturn(Optional.of(localClaimInSystem));
         when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_3, 0))
                 .thenReturn(Optional.of(localClaimInSystem));
         LocalClaim localClaimInDB = new LocalClaim(LOCAL_CLAIM_3);
@@ -292,11 +332,22 @@ public class UnifiedClaimMetadataManagerTest {
         assertEquals(result.get().getMappedAttributes().size(), 1);
         assertEquals(result.get().getMappedAttributes().get(0).getUserStoreDomain(), "PRIMARY");
         assertEquals(result.get().getMappedAttributes().get(0).getAttributeName(), "country");
+        assertEquals(result.get().getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
 
         when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0)).thenReturn(Optional.empty());
         when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0)).thenReturn(Optional.empty());
         result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_4, 0);
         assertFalse(result.isPresent());
+
+        localClaim = new LocalClaim(LOCAL_CLAIM_5);
+        when(systemDefaultClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_5, 0)).thenReturn(Optional.empty());
+        when(dbBasedClaimMetadataManager.getLocalClaim(LOCAL_CLAIM_5, 0)).thenReturn(Optional.of(localClaim));
+        result = claimMetadataManager.getLocalClaim(LOCAL_CLAIM_5, 0);
+        assertTrue(result.isPresent());
+        assertEquals(result.get().getClaimURI(), LOCAL_CLAIM_5);
+        assertEquals(result.get().getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD),
+                ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
     }
 
     @Test

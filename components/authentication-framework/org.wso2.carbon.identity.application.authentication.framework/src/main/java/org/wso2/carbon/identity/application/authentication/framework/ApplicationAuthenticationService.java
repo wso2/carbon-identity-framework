@@ -21,13 +21,19 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticationException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Application authentication service.
+ * Application authentication service. This server only return the system defined authenticators.
+ * The application authentication service currently returns only system-defined authenticators. This service is publicly
+ * exposed and is presently utilized exclusively for API-based authenticator implementations, which are currently
+ * support only for system-defined authenticators.
+ * To support API-based authentication for custom authentication extensions, the existing methods will need to be
+ * deprecated, and introduce new methods to support custom authenticators.
+ * Issue: https://github.com/wso2/product-is/issues/22462
  */
 public class ApplicationAuthenticationService {
 
@@ -43,7 +49,8 @@ public class ApplicationAuthenticationService {
 
         ApplicationAuthenticator appAuthenticator = null;
 
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+        for (ApplicationAuthenticator authenticator :
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()) {
 
             if (authenticator.getName().equals(name)) {
                 appAuthenticator = authenticator;
@@ -54,14 +61,15 @@ public class ApplicationAuthenticationService {
     }
 
     public List<ApplicationAuthenticator> getAllAuthenticators() throws ApplicationAuthenticationException {
-        return FrameworkServiceComponent.getAuthenticators();
+        return ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators();
     }
 
     public List<ApplicationAuthenticator> getLocalAuthenticators() throws ApplicationAuthenticationException {
 
         List<ApplicationAuthenticator> localAuthenticators = new ArrayList<ApplicationAuthenticator>();
 
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+        for (ApplicationAuthenticator authenticator :
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()) {
 
             if (authenticator instanceof LocalApplicationAuthenticator) {
                 localAuthenticators.add(authenticator);
@@ -75,7 +83,8 @@ public class ApplicationAuthenticationService {
 
         List<ApplicationAuthenticator> federatedAuthenticators = new ArrayList<ApplicationAuthenticator>();
 
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+        for (ApplicationAuthenticator authenticator :
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()) {
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
                 federatedAuthenticators.add(authenticator);
@@ -89,7 +98,8 @@ public class ApplicationAuthenticationService {
 
         List<ApplicationAuthenticator> reqPathAuthenticators = new ArrayList<ApplicationAuthenticator>();
 
-        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+        for (ApplicationAuthenticator authenticator :
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators()) {
 
             if (authenticator instanceof RequestPathApplicationAuthenticator) {
                 reqPathAuthenticators.add(authenticator);

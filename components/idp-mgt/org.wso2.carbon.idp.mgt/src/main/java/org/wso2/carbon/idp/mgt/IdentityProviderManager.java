@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -1530,7 +1531,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         handleMetadata(tenantId, identityProvider);
-        resolveAuthenticatorDefinedByProperty(identityProvider, true);
+        resolveAuthenticatorDefinedByProperty(identityProvider, true, tenantDomain);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
@@ -1880,7 +1881,7 @@ public class IdentityProviderManager implements IdpManager {
 
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
-        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false);
+        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false, tenantDomain);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
     }
 
@@ -2075,6 +2076,32 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
+    public boolean isIdpReferredBySP(String resourceId, String idpName, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isIdpReferredBySP(idpName, IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public boolean isAuthenticatorReferredBySP(String resourceId, String idpName, String authenticatorName,
+                                               String tenantDomain) throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isAuthenticatorReferredBySP(idpName, authenticatorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
+    public boolean isOutboundConnectorReferredBySP(String resourceId, String idpName, String connectorName,
+                                                   String tenantDomain) throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        return dao.isOutboundConnectorReferredBySP(idpName, connectorName,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    @Override
     public ConnectedAppsResult getConnectedAppsForLocalAuthenticator(String authenticatorId, int tenantId,
                                                                      Integer limit, Integer offset)
             throws IdentityProviderManagementException {
@@ -2200,15 +2227,14 @@ public class IdentityProviderManager implements IdpManager {
         for (FederatedAuthenticatorConfig config : federatedAuthConfigs) {
             if (config.getDefinedByType() == DefinedByType.SYSTEM) {
                 // Check if there is a system registered authenticator given authenticator name.
-                if (ApplicationAuthenticatorService.getInstance()
-                        .getFederatedAuthenticatorByName(config.getName()) == null) {
+                if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) == null) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                             .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, new String(
                             Base64.getEncoder().encode(config.getName().getBytes(StandardCharsets.UTF_8))));
                 }
             } else {
                 // Check if the given authenticator name is already taken.
-                if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) != null) {
+                if (isExistingAuthentication(config.getName(), tenantDomain)) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                             .ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, config.getName());
                 }
@@ -2363,13 +2389,28 @@ public class IdentityProviderManager implements IdpManager {
         return allFederatedAuthenticators.toArray(new FederatedAuthenticatorConfig[0]);
     }
 
-    private FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String authenticatorName, String tenantDomain)
+    @Override
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorByName(
+            String authenticatorName,  String tenantDomain) throws IdentityProviderManagementException {
+
+        for (FederatedAuthenticatorConfig fedAuth : getAllFederatedAuthenticators(tenantDomain)) {
+            if (fedAuth.getName().equals(authenticatorName)) {
+                return fedAuth;
+            }
+        }
+        return null;
+    }
+
+    private boolean isExistingAuthentication(String authenticatorName, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        return Arrays.stream(getAllFederatedAuthenticators(tenantDomain))
-                .filter(authenticator -> authenticator.getName().equals(authenticatorName))
-                .findFirst()
-                .orElse(null);
+        try {
+        return ApplicationAuthenticatorService.getInstance()
+                .isExistingAuthenticatorName(authenticatorName, tenantDomain);
+        } catch (AuthenticatorMgtException e) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_AUTHENTICATOR_NAME_ALREADY_TAKEN, authenticatorName);
+        }
     }
 
     /**
@@ -2725,7 +2766,8 @@ public class IdentityProviderManager implements IdpManager {
         return false;
     }
 
-    private void resolveAuthenticatorDefinedByProperty(IdentityProvider idp, boolean isNewFederatedAuthenticator) {
+    private void resolveAuthenticatorDefinedByProperty(IdentityProvider idp, boolean isNewFederatedAuthenticator,
+                                                       String tenantDomain) throws IdentityProviderManagementException {
 
         /* For new federated authenticators: If 'definedByType' is null, set it to default to SYSTEM. */
         if (isNewFederatedAuthenticator) {
@@ -2742,8 +2784,8 @@ public class IdentityProviderManager implements IdpManager {
          if not return USER. */
         for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
             if (federatedAuthConfig.getDefinedByType() == null) {
-                FederatedAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
-                        .getFederatedAuthenticatorByName(federatedAuthConfig.getName());
+                FederatedAuthenticatorConfig authenticatorConfig = getFederatedAuthenticatorByName
+                        (federatedAuthConfig.getName(), tenantDomain);
                 federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
             }
         }

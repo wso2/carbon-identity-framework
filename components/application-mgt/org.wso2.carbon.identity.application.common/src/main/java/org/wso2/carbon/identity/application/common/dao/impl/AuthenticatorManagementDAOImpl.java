@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.Authenticati
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +58,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement -> {
                         statement.setString(Column.NAME, authenticatorConfig.getName());
                         statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
+                        statement.setString(Column.IMAGE_URL, authenticatorConfig.getImageUrl());
+                        statement.setString(Column.DESCRIPTION, authenticatorConfig.getDescription());
                         statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
                         statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType()
                                 .toString());
@@ -89,6 +92,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                 template.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL,
                     statement -> {
                         statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
+                        statement.setString(Column.IMAGE_URL, updatedAuthenticatorConfig.getImageUrl());
+                        statement.setString(Column.DESCRIPTION, updatedAuthenticatorConfig.getDescription());
                         statement.setString(Column.IS_ENABLED,
                                 updatedAuthenticatorConfig.isEnabled() ? IS_TRUE_VALUE : IS_FALSE_VALUE);
                         statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
@@ -128,6 +133,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                                 resultSet.getString(Column.AUTHENTICATION_TYPE));
                         config.setName(resultSet.getString(Column.NAME));
                         config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                        config.setImageUrl(resultSet.getString(Column.IMAGE_URL));
+                        config.setDescription(resultSet.getString(Column.DESCRIPTION));
                         config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                         config.setDefinedByType(DefinedByType.valueOf(resultSet.getString(Column.DEFINED_BY)));
                         return new AuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), config);
@@ -135,6 +142,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement -> {
                         statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
                         statement.setInt(Column.TENANT_ID, tenantId);
+                        statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                     }));
 
             for (AuthenticatorConfigDaoModel config: configDaoModels) {
@@ -168,6 +176,25 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
     }
 
+    public boolean isExistingAuthenticatorName(String authenticatorName, int tenantId)
+            throws AuthenticatorMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            ResultSet results = jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(Query.IS_AUTHENTICATOR_EXISTS_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet,
+                        statement -> {
+                            statement.setString(Column.NAME, authenticatorName);
+                            statement.setInt(Column.TENANT_ID, tenantId);
+                        }));
+            return results != null;
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e,
+                    authenticatorName);
+        }
+    }
+
     private UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticatorByName(String authenticatorConfigName,
             int tenantId) throws TransactionException {
 
@@ -181,6 +208,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                     config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                     config.setDefinedByType(DefinedByType.USER);
+                    config.setImageUrl(resultSet.getString(Column.IMAGE_URL));
+                    config.setDescription(resultSet.getString(Column.DESCRIPTION));
                     return new AuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), config);
                 },
                 statement -> {

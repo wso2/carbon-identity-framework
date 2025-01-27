@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution.internal;
 
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
 
 /**
  * This class holds references for dependent services required for Action Execution Service to function.
@@ -28,6 +29,7 @@ public class ActionExecutionServiceComponentHolder {
     private static final ActionExecutionServiceComponentHolder INSTANCE = new ActionExecutionServiceComponentHolder();
 
     private ActionManagementService actionManagementService;
+    private RuleEvaluationService ruleEvaluationService;
 
     private ActionExecutionServiceComponentHolder() {
 
@@ -46,5 +48,15 @@ public class ActionExecutionServiceComponentHolder {
     public void setActionManagementService(ActionManagementService actionManagementService) {
 
         this.actionManagementService = actionManagementService;
+    }
+
+    public RuleEvaluationService getRuleEvaluationService() {
+
+        return ruleEvaluationService;
+    }
+
+    public void setRuleEvaluationService(RuleEvaluationService ruleEvaluationService) {
+
+        this.ruleEvaluationService = ruleEvaluationService;
     }
 }

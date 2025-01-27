@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.action.management.model.Action;
  */
 public enum ActionType {
     PRE_ISSUE_ACCESS_TOKEN,
+    PRE_UPDATE_PASSWORD,
     AUTHENTICATION;
 
     public String getDisplayName() {
