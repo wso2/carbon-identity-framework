@@ -5944,7 +5944,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         String filterResolvedForSQL = resolveSQLFilter(filter);
 
-        List<ApplicationBasicInfo> applicationBasicInfoList = new ArrayList<>();
+        HashMap<Integer, ApplicationBasicInfo> applicationBasicInfos = new HashMap<>();
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             String databaseVendorType = connection.getMetaData().getDatabaseProductName();
@@ -5962,7 +5962,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        applicationBasicInfoList.add(buildApplicationBasicInfo(resultSet));
+                        buildDiscoverableAppBasicInfo(applicationBasicInfos, resultSet);
                     }
                 }
             }
@@ -5971,7 +5971,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     " for discoverable applications in tenantDomain: " + tenantDomain, e);
         }
 
-        return Collections.unmodifiableList(applicationBasicInfoList);
+        return Collections.unmodifiableList(new ArrayList<>(applicationBasicInfos.values()));
     }
 
     @Override
