@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
@@ -293,8 +294,15 @@ public class AuthenticationService {
                 continue;
             }
 
-            ApplicationAuthenticator authenticator = ApplicationAuthenticatorManager.getInstance()
-                    .getApplicationAuthenticatorByName(name, tenantDomain);
+            ApplicationAuthenticator authenticator = null;
+            try {
+                authenticator = ApplicationAuthenticatorManager.getInstance()
+                        .getApplicationAuthenticatorByName(name, tenantDomain);
+            } catch (FrameworkException e) {
+                throw new AuthServiceException(String.format("An error occurred while resolving authenticator:%s",
+                        name), e);
+            }
+
             if (authenticator == null) {
                 throw new AuthServiceException(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.code(),
                         String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_FOUND.description(),
@@ -413,21 +421,24 @@ public class AuthenticationService {
                             serviceProvider.getApplicationResourceId()));
         }
 
-        // Validate all configured authenticators support API based authentication.
-        Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(serviceProvider, tenantDomain);
-        for (ApplicationAuthenticator authenticator : authenticators) {
-            if (!authenticator.isAPIBasedAuthenticationSupported()) {
-                throw new AuthServiceClientException(
-                        AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.code(),
-                        String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.description(),
-                                authenticator.getName()));
+        try {
+            // Validate all configured authenticators support API based authentication.
+            Set<ApplicationAuthenticator> authenticators = getConfiguredAuthenticators(serviceProvider, tenantDomain);
+            for (ApplicationAuthenticator authenticator : authenticators) {
+                if (!authenticator.isAPIBasedAuthenticationSupported()) {
+                    throw new AuthServiceClientException(
+                            AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED.code(),
+                            String.format(AuthServiceConstants.ErrorMessage.ERROR_AUTHENTICATOR_NOT_SUPPORTED
+                                            .description(), authenticator.getName()));
+                }
             }
+        } catch (FrameworkException e) {
+            throw new AuthServiceException("An error occurred while retrieving all authenticators", e);
         }
-
     }
 
     private Set<ApplicationAuthenticator> getConfiguredAuthenticators(ServiceProvider serviceProvider,
-                                                                      String tenantDomain) {
+                                                                      String tenantDomain) throws FrameworkException  {
 
         LocalAndOutboundAuthenticationConfig authenticationConfig = serviceProvider
                 .getLocalAndOutBoundAuthenticationConfig();
@@ -445,7 +456,8 @@ public class AuthenticationService {
     }
 
     private void processLocalAuthenticators(AuthenticationStep authenticationStep,
-                                            Set<ApplicationAuthenticator> authenticators, String tenantDomain) {
+                                            Set<ApplicationAuthenticator> authenticators, String tenantDomain)
+            throws FrameworkException {
 
         if (authenticationStep.getLocalAuthenticatorConfigs() != null) {
             for (LocalAuthenticatorConfig localAuthenticatorConfig :
@@ -456,7 +468,8 @@ public class AuthenticationService {
     }
 
     private void processFederatedAuthenticators(AuthenticationStep authenticationStep,
-                                                Set<ApplicationAuthenticator> authenticators, String tenantDomain) {
+                                                Set<ApplicationAuthenticator> authenticators, String tenantDomain)
+            throws FrameworkException {
 
         if (authenticationStep.getFederatedIdentityProviders() != null) {
             for (IdentityProvider federatedIdP : authenticationStep.getFederatedIdentityProviders()) {
@@ -469,7 +482,7 @@ public class AuthenticationService {
     }
 
     private void addAuthenticator(Set<ApplicationAuthenticator> authenticators, String authenticatorName,
-                                  String tenantDomain) {
+                                  String tenantDomain) throws FrameworkException {
 
         ApplicationAuthenticator authenticator = ApplicationAuthenticatorManager.getInstance()
                 .getApplicationAuthenticatorByName(authenticatorName, tenantDomain);

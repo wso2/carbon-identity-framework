@@ -84,7 +84,7 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     private final IdentityProviderManager identityProviderManager = mock(IdentityProviderManager.class);
 
     @BeforeClass
-    public void setUp() throws Exception {
+    public void setUp() {
 
         removeAllSystemDefinedAuthenticators();
         mockIdentityConfigParser = mock(IdentityConfigParser.class);
@@ -120,7 +120,8 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     }
 
     @Test
-    public void testGetAllAuthenticatorsWithAuthActionTypeEnabledAndNotNullUserDefinedAuthenticatorService() {
+    public void testGetAllAuthenticatorsWithAuthActionTypeEnabledAndNotNullUserDefinedAuthenticatorService()
+            throws Exception {
 
         setAuthenticatorActionEnableStatus(true);
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(userDefinedAuthenticatorService);
@@ -129,7 +130,7 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     }
 
     @Test
-    public void testGetAllAuthenticatorsWithAuthenticationActionTypeDisabled() {
+    public void testGetAllAuthenticatorsWithAuthenticationActionTypeDisabled() throws Exception {
 
         setAuthenticatorActionEnableStatus(false);
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(userDefinedAuthenticatorService);
@@ -138,7 +139,7 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     }
 
     @Test
-    public void testGetAuthenticatorByNameWithAuthenticationActionTypeDisabled() {
+    public void testGetAuthenticatorByNameWithAuthenticationActionTypeDisabled() throws Exception {
 
         setAuthenticatorActionEnableStatus(false);
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(userDefinedAuthenticatorService);
@@ -151,7 +152,8 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     }
 
     @Test
-    public void testGetAllAuthenticatorsWithAuthActionTypeEnabledAndNullUserDefinedAuthenticatorService() {
+    public void testGetAllAuthenticatorsWithAuthActionTypeEnabledAndNullUserDefinedAuthenticatorService()
+            throws Exception {
 
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(null);
         Assert.assertNotNull(applicationAuthenticatorService.getApplicationAuthenticatorByName(
@@ -163,7 +165,8 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     }
 
     @Test
-    public void testGetAuthenticatorByNameWithAuthActionTypeEnabledAndNullUserDefinedAuthenticatorService() {
+    public void testGetAuthenticatorByNameWithAuthActionTypeEnabledAndNullUserDefinedAuthenticatorService()
+            throws Exception {
 
         FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(null);
         setAuthenticatorActionEnableStatus(true);

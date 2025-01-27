@@ -171,9 +171,14 @@ public class AuthenticationContextLoader {
                 StepConfig stepConfig = entry.getValue();
                 for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
                     if (authenticatorConfig.getApplicationAuthenticator() == null) {
-                        authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
-                                .getApplicationAuthenticatorByName(
-                                        authenticatorConfig.getName(), context.getTenantDomain()));
+                        try {
+                            authenticatorConfig.setApplicationAuthenticator(
+                                    ApplicationAuthenticatorManager.getInstance().getApplicationAuthenticatorByName(
+                                            authenticatorConfig.getName(), context.getTenantDomain()));
+                        } catch (FrameworkException e) {
+                            throw new SessionDataStorageOptimizationException(String.format("An error occurred while " +
+                                    "resolving authenticator:%s", authenticatorConfig.getName()), e);
+                        }
                     }
                     if (authenticatorConfig.getIdps() == null && authenticatorConfig.getIdpNames() == null) {
                         authenticatorConfig.setIdPs(Collections.emptyMap());

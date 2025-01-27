@@ -19,12 +19,15 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal.core;
 
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.util.ArrayList;
@@ -98,7 +101,7 @@ public class ApplicationAuthenticatorManager {
      * @param tenantDomain Tenant domain.
      * @return List of authenticators.
      */
-    public List<ApplicationAuthenticator> getAllAuthenticators(String tenantDomain) {
+    public List<ApplicationAuthenticator> getAllAuthenticators(String tenantDomain) throws FrameworkException {
 
         List<ApplicationAuthenticator> allAuthenticators = new ArrayList<>(systemDefinedAuthenticators);
 
@@ -124,7 +127,7 @@ public class ApplicationAuthenticatorManager {
             }
 
             return allAuthenticators;
-        } catch (Exception e) {
+        } catch (AuthenticatorMgtException | IdentityProviderManagementException e) {
             throw new RuntimeException("Error while getting all application authenticators.", e);
         }
     }
@@ -136,7 +139,8 @@ public class ApplicationAuthenticatorManager {
      * @param tenantDomain      Tenant domain.
      * @return  ApplicationAuthenticator instance.
      */
-    public ApplicationAuthenticator getApplicationAuthenticatorByName(String authenticatorName, String tenantDomain) {
+    public ApplicationAuthenticator getApplicationAuthenticatorByName(String authenticatorName, String tenantDomain)
+            throws FrameworkException {
 
         // Check whether the authenticator is in the system defined authenticator.
         for (ApplicationAuthenticator authenticator : systemDefinedAuthenticators) {
@@ -170,8 +174,8 @@ public class ApplicationAuthenticatorManager {
                 }
             }
             return null;
-        } catch (Exception e) {
-            throw new RuntimeException("Error while getting the authenticator for the name: " + authenticatorName, e);
+        } catch (AuthenticatorMgtException | IdentityProviderManagementException e) {
+            throw new FrameworkException("Error while getting the authenticator for the name: " + authenticatorName, e);
         }
     }
 

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
@@ -80,8 +81,13 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
         authenticatorConfig.setName(this.name);
         authenticatorConfig.setEnabled(this.enabled);
-        authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
-                .getApplicationAuthenticatorByName(this.name, tenantDomain));
+        try {
+            authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
+                    .getApplicationAuthenticatorByName(this.name, tenantDomain));
+        } catch (FrameworkException e) {
+            throw new SessionDataStorageOptimizationException(String.format("An error occurred while " +
+                    "resolving authenticator:%s", this.name), e);
+        }
         authenticatorConfig.setAuthenticatorStateInfo(this.authenticatorStateInfo);
         authenticatorConfig.setParameterMap(this.parameterMap);
         Map<String, IdentityProvider> idps = new HashMap<>();

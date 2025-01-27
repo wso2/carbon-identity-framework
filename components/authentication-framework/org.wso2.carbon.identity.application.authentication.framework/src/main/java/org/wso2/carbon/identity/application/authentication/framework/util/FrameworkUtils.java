@@ -73,6 +73,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
@@ -393,10 +394,15 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param request
-     * @return
+     * This method resolve the AuthenticationContext from the request headers.
+     *
+     * @param request  The http servlet request.
+     * @return AuthenticationContext.
+     * @throws FrameworkRuntimeException If any error occurred while resolving the Authenticator list. Note that this
+     * is an RuntimeException and should be handled by the properly. All the known usages of this method updated to
+     * gracefully handle the FrameworkRuntimeException.
      */
-    public static AuthenticationContext getContextData(HttpServletRequest request) {
+    public static AuthenticationContext getContextData(HttpServletRequest request) throws FrameworkRuntimeException {
 
         AuthenticationContext context = null;
         if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
@@ -407,8 +413,16 @@ public class FrameworkUtils {
                 return context;
             }
         }
-        for (ApplicationAuthenticator authenticator : ApplicationAuthenticatorManager
-                .getInstance().getAllAuthenticators(reoslveTenantDomain(request))) {
+
+        List<ApplicationAuthenticator> authenticatorList = null;
+        try {
+            authenticatorList = ApplicationAuthenticatorManager.getInstance()
+                    .getAllAuthenticators(reoslveTenantDomain(request));
+        } catch (FrameworkException e) {
+            throw new FrameworkRuntimeException("Error while getting all application authenticators.", e);
+        }
+
+        for (ApplicationAuthenticator authenticator : authenticatorList) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
 
