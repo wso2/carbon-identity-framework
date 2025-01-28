@@ -1424,6 +1424,19 @@
   "console.oidc_scopes.scopes.read": ["internal_oidc_scope_mgt_view", "internal_claim_meta_view"],
   "console.oidc_scopes.scopes.update": ["internal_oidc_scope_mgt_update"],
   "console.oidc_scopes.scopes.delete": ["internal_oidc_scope_mgt_delete"],
+  "console.push_providers.enabled": true,
+  "console.push_providers.scopes.create": [
+    "internal_notification_senders_create"
+  ],
+  "console.push_providers.scopes.read": [
+    "internal_notification_senders_view"
+  ],
+  "console.push_providers.scopes.update": [
+    "internal_notification_senders_update"
+  ],
+  "console.push_providers.scopes.delete": [
+    "internal_notification_senders_delete"
+  ],
   "console.remote_fetch.enabled": false,
   "console.remote_fetch.scopes.create": [
       "internal_identity_mgt_view",
