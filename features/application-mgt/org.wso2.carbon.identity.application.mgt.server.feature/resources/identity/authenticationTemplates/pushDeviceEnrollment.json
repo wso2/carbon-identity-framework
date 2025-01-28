@@ -1,25 +1,31 @@
 {
   "category": "ProgressiveEnrollment",
-  "name": "Passkey Progressive Enrollment",
-  "title": "Passkey Progressive Enrollment Template",
-  "summary": "If Passkey is set as a 1st authentication factor and there is a need to enable progressive Passkey enrollment, this adaptive script, along with the relevant connections configurations, should be added.",
+  "name": "Push Device Progressive Enrollment",
+  "title": "Push Notification Device Progressive Enrollment Template",
+  "summary": "If Push Authenticator is set as a 1st authentication factor and there is a need to enable progressive Passkey enrollment, this adaptive script, along with the relevant connections configurations, should be added.",
   "preRequisites": [
-    "Modify the 1st factor authentication option(s) from defaults as required."
+    "Modify the 2nd factor authentication option(s) from defaults as required."
   ],
   "defaultStepsDescription": {
-    "Step 1": "Passkey and Basic (Password) authenticator."
+    "Step 1": "Push Notification",
+    "Step 2": "Username & Password"
   },
-  "authenticationSteps":1,
+  "authenticationSteps":2,
   "defaultAuthenticators": {
     "1": {
       "local": [
-        "BasicAuthenticator",
-        "FIDOAuthenticator"
+        "push-notification-authenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "BasicAuthenticator"
       ],
       "federated": []
     }
   },
-  "helpLink": "",
+  "helpLink": "https://is.docs.wso2.com/en/7.0.0/guides/authentication/conditional-auth/passkey-progressive-enrollment-based-template/",
   "code": [
     "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
@@ -27,14 +33,12 @@
     "            var authenticatorStatus = context.request.params.scenario;",
     "",
     "            // If it is a passkey progressive enrollment request trigger the following flow.",
-    "            if (authenticatorStatus != null && authenticatorStatus[0] == 'INIT_FIDO_ENROLL') {",
-    "                var filteredAuthenticationOptions = filterAuthenticators(context.steps[1].options, 'FIDOAuthenticator');",
-    "                executeStep(1, {",
+    "            if (authenticatorStatus != null && authenticatorStatus[0] === 'INIT_PUSH_ENROLL') {",
+    "                executeStep(2, {",
     "                    stepOptions: {",
     "                        markAsSubjectIdentifierStep: 'true',",
     "                        markAsSubjectAttributeStep: 'true'",
     "                    },",
-    "                    authenticationOptions: filteredAuthenticationOptions",
     "                }, {",
     "                    onSuccess: function(context) {",
     "                        // If user got successfully authenticated ",
@@ -42,9 +46,6 @@
     "                            stepOptions: {",
     "                                forceAuth: 'true'",
     "                            },",
-    "                            authenticationOptions: [{",
-    "                                authenticator: 'FIDOAuthenticator'",
-    "                            }]",
     "                        }, {});",
     "                    },",
     "                });",
