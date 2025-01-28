@@ -3314,7 +3314,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 groupBasicInfos.add(groupBasicInfo);
             }
             return groupBasicInfos;
-        } catch (UserStoreException e) {
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
             throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_GROUP_LIST.getCode(),
                     String.format(ERROR_RETRIEVING_GROUP_LIST.getDescription(), domainName), e);
         }
