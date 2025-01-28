@@ -109,6 +109,7 @@
         <module>features/client-attestation-mgt</module>
         <module>features/trusted-app-mgt</module>
         <module>features/action-mgt</module>
+        <module>components/remote-log-publish</module>
     </modules>
 
 
