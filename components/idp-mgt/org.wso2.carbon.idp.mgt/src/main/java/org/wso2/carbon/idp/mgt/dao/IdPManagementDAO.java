@@ -6071,7 +6071,6 @@ public class IdPManagementDAO {
                     getFederatedProperties(connection, authnId, federatedAuthenticatorConfig);
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
             return federatedAuthenticatorConfigs;
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving all user defined federated " +
