@@ -1143,13 +1143,11 @@ public class FrameworkServiceComponent {
         log.debug("RoleManagementServiceV2 unset in FrameworkServiceComponent bundle.");
     }
 
-    /* TODO: The cardinality is set to OPTIONAL until UserDefinedAuthenticatorService implements. Update it to
-        MANDATORY, one adapter service implementation done. */
     @Reference(
             name = "org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService",
             service =
                     org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
+            cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetUserDefinedAuthenticatorService")
     protected void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService authenticatorService) {
