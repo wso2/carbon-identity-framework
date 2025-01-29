@@ -66,8 +66,39 @@ public class ApplicationAuthenticatorService {
         return instance;
     }
 
+    /**
+     * This method is used to get the list of SYSTEM defined local authenticator configurations.
+     *
+     * @deprecated It is recommended to use {@link #getAllSystemDefinedLocalAuthenticators()},
+     * which returning both SYSTEM and USER defined local application authenticator configurations.
+     */
+    @Deprecated
     public List<LocalAuthenticatorConfig> getLocalAuthenticators() {
         return this.localAuthenticators;
+    }
+
+    /**
+     * This returns list of all SYSTEM defined local authenticator configurations.
+     *
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getAllSystemDefinedLocalAuthenticators() {
+
+        return this.localAuthenticators;
+    }
+
+    /**
+     * This returns list of all SYSTEM and USER defined local authenticator configurations.
+     *
+     * @param tenantDomain  Tenant domain.
+     * @return Retrieved LocalAuthenticatorConfig.
+     */
+    public List<LocalAuthenticatorConfig> getAllLocalAuthenticators(String tenantDomain)
+            throws AuthenticatorMgtException {
+
+        List<LocalAuthenticatorConfig> configList = new ArrayList<>(getAllUserDefinedLocalAuthenticators(tenantDomain));
+        configList.addAll(localAuthenticators);
+        return configList;
     }
 
     /**
@@ -130,7 +161,29 @@ public class ApplicationAuthenticatorService {
         return getUserDefinedLocalAuthenticator(name, tenantDomain);
     }
 
+    /**
+     * This returns only SYSTEM defined federated authenticator by name.
+     *
+     * @param name  The name of the federated application authenticator configuration.
+     * @return Retrieved FederatedAuthenticatorConfig.
+     *
+     * @deprecated It is recommended to use getFederatedAuthenticatorByName(String, String) in
+     * org.wso2.carbon.idp.mgt.IdentityProviderManager class which supports retrieving both USER and SYSTEM defined
+     * federated application authenticator configuration by name, or getSystemFederatedAuthenticatorByName(String)
+     * to retrieve only SYSTEM defined federated application authenticator configuration by name.
+     */
+    @Deprecated
     public FederatedAuthenticatorConfig getFederatedAuthenticatorByName(String name) {
+        for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
+            if (federatedAuthenticator.getName().equals(name)) {
+                return federatedAuthenticator;
+            }
+        }
+        return null;
+    }
+
+    public FederatedAuthenticatorConfig getSystemDefinedFederatedAuthenticatorByName(String name) {
+
         for (FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators) {
             if (federatedAuthenticator.getName().equals(name)) {
                 return federatedAuthenticator;

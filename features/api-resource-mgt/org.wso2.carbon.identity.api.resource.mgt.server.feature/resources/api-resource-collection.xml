@@ -428,25 +428,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="secretsManagement" displayName="Secrets Management" type="tenant">
-        <Scopes>
-            <Feature>
-                <Scope name="console:secretsManagement"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_secret_mgt_update"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_secret_mgt_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_secret_mgt_add"/>
-            </Create>
-            <Read>
-                <Scope name="internal_secret_mgt_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
     <APIResourceCollection name="roles" displayName="Roles" type="tenant">
         <Scopes>
             <Feature>
@@ -563,6 +544,9 @@
             </Create>
             <Read>
                 <Scope name="internal_action_mgt_view"/>
+                <Scope name="internal_rule_metadata_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_claim_meta_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>

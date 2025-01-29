@@ -21,6 +21,7 @@
         <!--<parameter name="log-level" value="debug"/>-->
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationServiceTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.AbstractAppAuthSkipRetryTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscovererTest"/>
@@ -29,6 +30,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.SSOConsentServiceImplTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinatorTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandlerTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.EmailDomainValidationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandlerTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandlerTest"/>
@@ -42,11 +44,15 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactoryTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImplTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManagerTest"/>
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.ConditionalAuthenticationMgtServiceTest"/>
 
+            <class name="org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacadeTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoaderTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilderTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilderTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsNashornAuthenticationContextTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsGraalAuthenticationContextTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderTest"/>
@@ -61,6 +67,7 @@
 
             <class name="org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImplTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.AuthenticationServiceTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.approles.impl.AppAssociatedRolesResolverImplTest"/>
         </classes>
     </test>
 

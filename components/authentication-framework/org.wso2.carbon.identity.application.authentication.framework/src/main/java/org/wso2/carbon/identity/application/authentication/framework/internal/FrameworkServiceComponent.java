@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.authentication.framework.JsFunctionR
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
@@ -60,6 +61,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.cla
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimFilter;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.listener.JITProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.EmailDomainValidationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler;
@@ -74,6 +76,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
@@ -108,6 +111,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.organization.config.service.OrganizationConfigManager;
+import org.wso2.carbon.identity.organization.discovery.service.OrganizationDiscoveryManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -190,11 +195,6 @@ public class FrameworkServiceComponent {
         }
 
         return bundleContext;
-    }
-
-    public static List<ApplicationAuthenticator> getAuthenticators() {
-
-        return FrameworkServiceDataHolder.getInstance().getAuthenticators();
     }
 
     @SuppressWarnings("unchecked")
@@ -343,6 +343,8 @@ public class FrameworkServiceComponent {
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
 
+        PostAuthenticationHandler emailDomainValidationHandler = EmailDomainValidationHandler.getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), emailDomainValidationHandler, null);
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
@@ -482,7 +484,7 @@ public class FrameworkServiceComponent {
     )
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(authenticator);
 
         Property[] configProperties = null;
 
@@ -582,7 +584,7 @@ public class FrameworkServiceComponent {
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().remove(authenticator);
+        ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         String authenticatorName = authenticator.getName();
         ApplicationAuthenticatorService appAuthenticatorService = ApplicationAuthenticatorService.getInstance();
 
@@ -592,7 +594,7 @@ public class FrameworkServiceComponent {
             appAuthenticatorService.removeLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = appAuthenticatorService
-                    .getFederatedAuthenticatorByName(authenticatorName);
+                    .getSystemDefinedFederatedAuthenticatorByName(authenticatorName);
             appAuthenticatorService.removeFederatedAuthenticator(federatedAuthenticatorConfig);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = appAuthenticatorService
@@ -938,7 +940,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetFederatedAssociationManagerService"
     )
     protected void setFederatedAssociationManagerService(FederatedAssociationManager
-                                                                     federatedAssociationManagerService) {
+                                                                 federatedAssociationManagerService) {
 
         if (log.isDebugEnabled()) {
             log.debug("Federated Association Manager Service is set in the Application Authentication Framework " +
@@ -1070,6 +1072,37 @@ public class FrameworkServiceComponent {
     }
 
     @Reference(
+            name = "identity.organization.discovery.management.component",
+            service = OrganizationDiscoveryManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationDiscoveryManager")
+    protected void setOrganizationDiscoveryManager(OrganizationDiscoveryManager organizationDiscoveryManager) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationDiscoveryManager(organizationDiscoveryManager);
+    }
+
+    protected void unsetOrganizationDiscoveryManager(OrganizationDiscoveryManager organizationDiscoveryManager) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationDiscoveryManager(null);
+    }
+
+    @Reference(name = "identity.organization.config.management.component",
+            service = OrganizationConfigManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationConfigManager")
+    protected void setOrganizationConfigManager(OrganizationConfigManager organizationConfigManager) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationConfigManager(organizationConfigManager);
+    }
+
+    protected void unsetOrganizationConfigManager(OrganizationConfigManager organizationConfigManager) {
+
+        FrameworkServiceDataHolder.getInstance().setOrganizationConfigManager(null);
+    }
+
+    @Reference(
             name = "resource.configuration.manager",
             service = ConfigurationManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
@@ -1108,5 +1141,24 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setRoleManagementServiceV2(null);
         log.debug("RoleManagementServiceV2 unset in FrameworkServiceComponent bundle.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService",
+            service =
+                    org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserDefinedAuthenticatorService")
+    protected void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService authenticatorService) {
+
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
+        log.debug("UserDefinedAuthenticatorService set in FrameworkServiceComponent bundle.");
+    }
+
+    protected void unsetUserDefinedAuthenticatorService(UserDefinedAuthenticatorService authenticatorService) {
+
+        FrameworkServiceDataHolder.getInstance().setUserDefinedAuthenticatorService(authenticatorService);
+        log.debug("UserDefinedAuthenticatorService unset in FrameworkServiceComponent bundle.");
     }
 }

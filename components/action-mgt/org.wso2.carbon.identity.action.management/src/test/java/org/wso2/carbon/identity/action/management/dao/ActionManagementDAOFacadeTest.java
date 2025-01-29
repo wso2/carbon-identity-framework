@@ -537,6 +537,24 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(daoFacade.getActionsCountPerType(TENANT_ID), Collections.emptyMap());
     }
 
+    @Test(priority = 23)
+    public void testAddActionWithEmptyRule() throws Exception {
+
+        actionDTOToAddOrUpdate = createActionDTOForPasswordUpdateActionWithRule(null);
+
+        mockActionPropertyResolver(testActionPropertyResolver);
+
+        daoFacade.addAction(actionDTOToAddOrUpdate, TENANT_ID);
+
+        actionDTORetrieved = daoFacade.getActionByActionId(PRE_UPDATE_PASSWORD_TYPE, PRE_UPDATE_PASSWORD_ACTION_ID,
+                TENANT_ID);
+
+        verifyActionDTO(actionDTORetrieved, actionDTOToAddOrUpdate);
+        Assert.assertNull(actionDTORetrieved.getActionRule());
+
+        daoFacade.deleteAction(actionDTORetrieved, TENANT_ID);
+    }
+
     private void mockActionPropertyResolver(ActionDTOModelResolver actionDTOModelResolver) {
 
         actionPropertyResolverFactory.when(() -> ActionDTOModelResolverFactory.

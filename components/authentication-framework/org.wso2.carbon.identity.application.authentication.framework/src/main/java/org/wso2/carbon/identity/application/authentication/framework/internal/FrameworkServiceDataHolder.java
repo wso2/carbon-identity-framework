@@ -23,11 +23,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.UserDefinedAuthenticatorService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JSExecutionSupervisor;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilderFactory;
@@ -53,6 +53,8 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
+import org.wso2.carbon.identity.organization.config.service.OrganizationConfigManager;
+import org.wso2.carbon.identity.organization.discovery.service.OrganizationDiscoveryManager;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
@@ -77,7 +79,6 @@ public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private List<ApplicationRolesResolver> applicationRolesResolvers = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
@@ -123,8 +124,11 @@ public class FrameworkServiceDataHolder {
     private boolean isAdaptiveAuthenticationAvailable = false;
     private boolean isOrganizationManagementEnable = false;
     private OrganizationManager organizationManager;
+    private OrganizationDiscoveryManager organizationDiscoveryManager;
+    private OrganizationConfigManager organizationConfigManager;
     private RoleManagementService roleManagementServiceV2;
     private SecretResolveManager secretConfigManager;
+    private UserDefinedAuthenticatorService userDefinedAuthenticatorService;
 
     private FrameworkServiceDataHolder() {
 
@@ -162,11 +166,6 @@ public class FrameworkServiceDataHolder {
     public void setBundleContext(BundleContext bundleContext) {
 
         this.bundleContext = bundleContext;
-    }
-
-    public List<ApplicationAuthenticator> getAuthenticators() {
-
-        return authenticators;
     }
 
     /**
@@ -778,6 +777,46 @@ public class FrameworkServiceDataHolder {
         this.organizationManager = organizationManager;
     }
 
+    /**
+     * Get {@link OrganizationDiscoveryManager}.
+     *
+     * @return organization discovery manager instance {@link OrganizationDiscoveryManager}.
+     */
+    public OrganizationDiscoveryManager getOrganizationDiscoveryManager() {
+
+        return organizationDiscoveryManager;
+    }
+
+    /**
+     * Set {@link OrganizationDiscoveryManager}.
+     *
+     * @param organizationDiscoveryManager Instance of {@link OrganizationDiscoveryManager}.
+     */
+    public void setOrganizationDiscoveryManager(OrganizationDiscoveryManager organizationDiscoveryManager) {
+
+        this.organizationDiscoveryManager = organizationDiscoveryManager;
+    }
+
+    /**
+     * Get {@link OrganizationConfigManager}.
+     *
+     * @return organization config manager instance {@link OrganizationConfigManager}.
+     */
+    public OrganizationConfigManager getOrganizationConfigManager() {
+
+        return organizationConfigManager;
+    }
+
+    /**
+     * Set {@link OrganizationConfigManager}.
+     *
+     * @param organizationConfigManager Instance of {@link OrganizationConfigManager}.
+     */
+    public void setOrganizationConfigManager(OrganizationConfigManager organizationConfigManager) {
+
+        this.organizationConfigManager = organizationConfigManager;
+    }
+
     public IdpManager getIdentityProviderManager() {
 
         return identityProviderManager;
@@ -826,5 +865,25 @@ public class FrameworkServiceDataHolder {
     public void setRoleManagementServiceV2(RoleManagementService roleManagementServiceV2) {
 
         this.roleManagementServiceV2 = roleManagementServiceV2;
+    }
+
+    /**
+     * Set {@link UserDefinedAuthenticatorService}.
+     *
+     * @param userDefinedAuthenticatorService   Instance of {@link UserDefinedAuthenticatorService}.
+     */
+    public void setUserDefinedAuthenticatorService(UserDefinedAuthenticatorService userDefinedAuthenticatorService) {
+
+        this.userDefinedAuthenticatorService = userDefinedAuthenticatorService;
+    }
+
+    /**
+     * Get {@link UserDefinedAuthenticatorService}.
+     *
+     * @return Instance of {@link UserDefinedAuthenticatorService}.
+     */
+    public UserDefinedAuthenticatorService getUserDefinedAuthenticatorService() {
+
+        return userDefinedAuthenticatorService;
     }
 }

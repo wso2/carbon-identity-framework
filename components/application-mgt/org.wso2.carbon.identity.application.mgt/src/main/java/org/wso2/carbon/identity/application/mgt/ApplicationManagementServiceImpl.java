@@ -30,11 +30,13 @@ import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -1011,8 +1013,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             startTenantFlow(tenantDomain);
-            IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
-            List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
+            List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService.getInstance()
+                    .getAllLocalAuthenticators(tenantDomain);
             if (localAuthenticators != null) {
                 return localAuthenticators.toArray(new LocalAuthenticatorConfig[localAuthenticators.size()]);
             }
@@ -1520,15 +1522,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         int filteredCount = 0;
         try {
             startTenantFlow(tenantDomain);
-            IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
-            List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
+            List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService.getInstance()
+                    .getAllLocalAuthenticators(tenantDomain);
             if (localAuthenticators != null) {
                 filteredCount = (int) localAuthenticators.stream()
                         .filter(authenticatorConfig ->
                                 authenticatorConfig.getName()
                                         .equals(authenticatorName)).count();
             }
-        } catch (IdentityApplicationManagementException e) {
+        } catch (IdentityApplicationManagementException | AuthenticatorMgtException e) {
             throw new IdentityApplicationManagementException(
                     String.format(IdPManagementConstants.ErrorMessage
                             .ERROR_CODE_GET_CONNECTED_APPS_REQUEST_INVALID.getMessage(), resourceId));

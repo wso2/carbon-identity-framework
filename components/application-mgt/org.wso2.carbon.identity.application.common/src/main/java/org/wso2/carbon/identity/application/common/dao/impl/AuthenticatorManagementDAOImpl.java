@@ -142,6 +142,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement -> {
                         statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
                         statement.setInt(Column.TENANT_ID, tenantId);
+                        statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                     }));
 
             for (AuthenticatorConfigDaoModel config: configDaoModels) {

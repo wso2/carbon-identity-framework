@@ -463,9 +463,9 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         updateActionPropertiesInDB(actionId, nonSecretAuthenticationProperties, tenantId);
     }
 
-    private void addRuleReference(ActionDTO actionDTO, Integer tenantId) throws ActionMgtServerException {
+    private void addRuleReference(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
-        if (actionDTO.getActionRule() == null) {
+        if (actionDTO.getActionRule() == null || actionDTO.getActionRule().getRule() == null) {
             return;
         }
 
@@ -526,7 +526,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
     private void addProperties(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
 
         Map<String, Object> propertiesMap = actionDTO.getProperties();
-        if (propertiesMap == null) {
+        if (propertiesMap == null || propertiesMap.isEmpty()) {
             return;
         }
 
