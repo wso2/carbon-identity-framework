@@ -33,7 +33,7 @@ import java.util.HashSet;
  */
 public class HybridSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProviderDAO {
 
-    SAMLSSOServiceProviderDAO jdbcSAMLSSOServiceProviderDAOImpl = new JDBCSAMLSSOServiceProviderDAOImpl();
+    SAMLSSOServiceProviderDAO jdbcSAMLSSOServiceProviderDAOImpl = CacheBackedSAMLSSOServiceProviderDAO.getInstance();
     SAMLSSOServiceProviderDAO registrySAMLSSOServiceProviderDAOImpl = new RegistrySAMLSSOServiceProviderDAOImpl();
 
     @Override
