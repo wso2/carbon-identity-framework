@@ -63,7 +63,9 @@ public class OperatorRegistry {
 
         RuleMetadataService ruleMetadataService = RuleEvaluationComponentServiceHolder.getInstance()
                 .getRuleMetadataService();
-
+        if (ruleMetadataService == null) {
+            return new OperatorRegistry();
+        }
         ruleMetadataService.getApplicableOperatorsInExpressions()
                 .forEach(operator -> {
                     switch (operator.getName()) {
