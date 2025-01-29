@@ -156,7 +156,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "getAppNamesForDefaultRegex")
-    @Ignore
     public void testIsRegexValidated(String appName, boolean isValidName) {
 
         // Default app validation regex should allow names with alphanumeric, dot, space, underscore and hyphens.
@@ -176,7 +175,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "getAppNamesForCustomRegex")
-    @Ignore
     public void testSpNameValidationWithCustomRegex(String appName, boolean isValidName) {
 
         final String customRegEx = "^[a-zA-Z0-9]+";
@@ -189,7 +187,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testBuildPermissions() {
 
         String[] permissions = new String[]{"permission"};
@@ -210,7 +207,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "validateRolesDataProvider")
-    @Ignore
     public void testValidateRoles(String allowRoleValidationProperty, Boolean expected) {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
@@ -237,7 +233,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "userAuthorizeDataProvider")
-    @Ignore
     public void testIsUserAuthorized(String applicationName, String userName, String allowRoleValidationProperty,
                                      String[] userRoles, int applicationId, Boolean expected) throws
             UserStoreException, IdentityApplicationManagementException {
@@ -265,7 +260,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testIsUserAuthorizedUserStoreException() throws UserStoreException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -279,7 +273,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testCreateAppRole() throws UserStoreException, IdentityApplicationManagementException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -291,7 +284,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testCreateAppRoleUserStoreException() throws UserStoreException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -317,7 +309,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testDeleteAppRole() throws UserStoreException, IdentityApplicationManagementException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -329,7 +320,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testDeleteAppRoleUserStoreException() throws UserStoreException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -343,7 +333,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testRenameRole() throws UserStoreException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -356,7 +345,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testRenameAppPermissionPathNode() throws IdentityApplicationManagementException, UserStoreException,
             RegistryException {
 
@@ -387,7 +375,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testStorePermissions() throws  Exception {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -437,7 +424,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "updatePermissionDataProvider")
-    @Ignore
     public void testUpdatePermission(String[] childPermissions, int childCount) throws
             IdentityApplicationManagementException, UserStoreException, RegistryException {
 
@@ -494,7 +480,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testDeletePermissions() throws RegistryException, IdentityApplicationManagementException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -514,7 +499,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testDeletePermissionsRegistryException() throws RegistryException {
 
         try (MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
@@ -537,7 +521,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test
-    @Ignore
     public void testConcatArrays() {
 
         Property[] properties1 = new Property[]{new Property()};
@@ -558,7 +541,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "validApplicationOwnerDataProvider")
-    @Ignore
     public void testIsValidApplicationOwner(String username, String tenantDomain, Boolean hasOwner,  Boolean expected)
             throws IdentityApplicationManagementException, UserStoreException {
 
@@ -618,7 +600,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "getItemsPerPageDataProvider")
-    @Ignore
     public void testGetItemsPerPage(String itemsPerPagePropertyValue, int itemsPerPage) {
 
         try (MockedStatic<ServerConfiguration> serverConfiguration = mockStatic(ServerConfiguration.class)) {
@@ -647,7 +628,6 @@ public class ApplicationMgtUtilTest {
     }
 
     @Test(dataProvider = "getApplicationUpdatedVersionDataProvider")
-    @Ignore
     public void testGetApplicationUpdatedVersion(String currentVersion, String authType,
                                                  String expectedUpdatedVersion) {
 

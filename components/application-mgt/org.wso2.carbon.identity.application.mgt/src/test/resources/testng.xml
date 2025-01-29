@@ -21,7 +21,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.application.mgt.ApplicationMgtUtilTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImplTest"/>
-            <class name="org.wso2.carbon.identity.application.mgt.DefaultApplicationValidatorTest"/>
+            <class name="org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidatorTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceImplTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.AdminRoleListenerTest"/>
             <class name="org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListenerTest"/>

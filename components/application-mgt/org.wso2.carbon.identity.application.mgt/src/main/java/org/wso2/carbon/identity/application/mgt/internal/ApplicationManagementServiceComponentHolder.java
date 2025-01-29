@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationUser
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
-import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -70,7 +69,6 @@ public class ApplicationManagementServiceComponentHolder {
     private ApplicationPermissionProvider applicationPermissionProvider;
     private APIResourceManager apiResourceManager;
     private RoleManagementService roleManagementServiceV2;
-    private UserStoreConfigService userStoreConfigService;
     private OrganizationManager organizationManager;
 
     private boolean isOrganizationManagementEnable = false;
