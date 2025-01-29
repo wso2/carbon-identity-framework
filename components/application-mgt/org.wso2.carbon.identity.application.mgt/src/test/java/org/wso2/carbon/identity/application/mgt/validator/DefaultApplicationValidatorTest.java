@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -101,6 +102,13 @@ public class DefaultApplicationValidatorTest {
         mockRealmService = mock(RealmService.class);
         mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
         setupInitConfigurations();
+    }
+
+    @AfterClass
+    public void end() {
+
+        mockIdentityTenantUtil.close();
+        mockedApplicationManagementServiceComponentHolder.close();
     }
 
     @DataProvider(name = "validateAdaptiveAuthScriptDataProvider")
