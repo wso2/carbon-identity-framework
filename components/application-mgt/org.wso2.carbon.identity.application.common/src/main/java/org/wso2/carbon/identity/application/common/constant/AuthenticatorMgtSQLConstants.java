@@ -76,7 +76,7 @@ public class AuthenticatorMgtSQLConstants {
                         "FROM IDP_AUTHENTICATOR " +
                         "WHERE DEFINED_BY = :DEFINED_BY; AND TENANT_ID = :TENANT_ID; " +
                         "AND IDP_ID IN (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; " +
-                        "AND IDP.TENANT_ID = :TENANT_ID;);";
+                        "AND IDP.TENANT_ID = :TENANT_ID;)";
         public static final String DELETE_AUTHENTICATOR_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE NAME = :NAME; " +
                 " AND TENANT_ID = :TENANT_ID;";
         public static final String GET_AUTHENTICATOR_ID_SQL = "SELECT ID FROM IDP_AUTHENTICATOR " +
