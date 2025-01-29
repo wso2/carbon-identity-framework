@@ -351,10 +351,31 @@ public class ClaimMetadataUtils {
                 if (LOCAL_CLAIM_DIALECT_URI.equals(claimDialectURI)) {
                     claim = createLocalClaim(claimKey, claimMapping,
                             filterClaimProperties(claimConfig.getPropertyHolderMap().get(claimKey)));
+                    claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
                 } else {
-                    claim = createExternalClaim(claimKey, claimConfig.getPropertyHolderMap().get(claimKey));
+                    /*
+                     * If schemas.profile config is defined in the identity.xml, then attributes can be added to and
+                     * removed from the default schemas as defined in schemas.xml file.
+                     */
+                    Map<String, String> removalsMap = DialectConfigParser.getInstance().getRemovalsFromDefaultDialects();
+                    String removalDialect = removalsMap.get(claimKey.getClaimUri());
+                    if (removalDialect == null || !removalDialect.equals(claimKey.getDialectUri())) {
+                        claim = createExternalClaim(claimKey, claimConfig.getPropertyHolderMap().get(claimKey));
+                        claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
+                    }
+
+                    Map<String, String> additionsMap = DialectConfigParser.getInstance().getAdditionsToDefaultDialects();
+                    String newDialectUri = additionsMap.get(claimKey.getClaimUri());
+                    if (newDialectUri != null) {
+                        ClaimKey newClaimKey = new ClaimKey(claimKey.getClaimUri(), newDialectUri);
+                        Map<String, String> newClaimProperties = new HashMap<>(
+                                claimConfig.getPropertyHolderMap().computeIfAbsent(claimKey, k -> new HashMap<>())
+                        );
+                        newClaimProperties.put(ClaimConstants.DIALECT_PROPERTY, newDialectUri);
+                        claim = createExternalClaim(newClaimKey, newClaimProperties);
+                        claims.computeIfAbsent(newClaimKey.getDialectUri(), k -> new ArrayList<>()).add(claim);
+                    }
                 }
-                claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
             }
         }
         return claims;
