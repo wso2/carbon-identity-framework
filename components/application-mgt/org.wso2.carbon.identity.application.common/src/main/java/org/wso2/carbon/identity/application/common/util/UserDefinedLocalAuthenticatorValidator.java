@@ -36,7 +36,7 @@ public class UserDefinedLocalAuthenticatorValidator {
     private static final String DISPLAY_NAME_REGEX = "^.{3,}$";
     private final Pattern disaplayNameRegexPattern = Pattern.compile(DISPLAY_NAME_REGEX);
 
-    private static final String URL_REGEX = "^https?://.+";
+    private static final String URL_REGEX = "^(https?://).*";
     private final Pattern urlRegexPattern = Pattern.compile(URL_REGEX);
 
     /**
