@@ -442,24 +442,4 @@ public class ApplicationManagementServiceComponentHolder {
 
         this.applicationCertificateMgtService = applicationCertificateMgtService;
     }
-
-    /**
-     * Get UserStoreConfigService instance.
-     *
-     * @return UserStoreConfigService instance.
-     */
-    public UserStoreConfigService getUserStoreConfigService() {
-
-        return userStoreConfigService;
-    }
-
-    /**
-     * Set UserStoreConfigService instance.
-     *
-     * @param userStoreConfigService UserStoreConfigService instance.
-     */
-    public void setUserStoreConfigService(UserStoreConfigService userStoreConfigService) {
-
-        this.userStoreConfigService = userStoreConfigService;
-    }
 }
