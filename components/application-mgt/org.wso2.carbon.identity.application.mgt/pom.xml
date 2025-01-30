@@ -199,11 +199,6 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.certificate.management</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.user.store.configuration</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -277,7 +272,6 @@
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.user.store.configuration; version="${carbon.identity.package.import.version.range}",
                             org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
