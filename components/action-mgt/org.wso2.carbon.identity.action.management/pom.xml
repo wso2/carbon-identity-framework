@@ -133,6 +133,7 @@
                             org.wso2.carbon.identity.rule.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.service; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.management.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
