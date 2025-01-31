@@ -49,6 +49,8 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtServiceTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.services.ConditionalAuthenticationMgtServiceTest"/>
 
+            <class name="org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServletTest"/>
+
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacadeTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoaderTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilderTest"/>
