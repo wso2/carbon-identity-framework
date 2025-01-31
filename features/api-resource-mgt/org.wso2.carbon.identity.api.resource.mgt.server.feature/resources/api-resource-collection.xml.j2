@@ -241,25 +241,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="smsTemplates" displayName="SMS Templates" type="tenant" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:smsTemplates"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_template_mgt_update"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_template_mgt_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_template_mgt_create"/>
-            </Create>
-            <Read>
-                <Scope name="internal_template_mgt_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
     <APIResourceCollection name="groups" displayName="Groups" type="tenant" version="v0">
        <Scopes>
             <Feature>
@@ -326,7 +307,6 @@
                 <Scope name="internal_authenticator_view"/>
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_extensions_view"/>
-                <Scope name="internal_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -363,8 +343,6 @@
                 <Scope name="internal_governance_view"/>
                 <Scope name="internal_validation_rule_mgt_update"/>
                 <Scope name="internal_config_update"/>
-                <Scope name="internal_role_mgt_view"/>
-                <Scope name="internal_group_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -414,7 +392,6 @@
             </Feature>
             <Update>
                 <Scope name="internal_organization_update"/>
-                <Scope name="internal_organization_config_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_organization_delete"/>
@@ -435,7 +412,6 @@
             </Feature>
             <Update>
                 <Scope name="internal_organization_discovery_update"/>
-                <Scope name="internal_organization_config_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_organization_discovery_delete"/>
@@ -570,47 +546,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="actions" displayName="Actions" type="tenant" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:actions"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_action_mgt_update"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_action_mgt_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_action_mgt_create"/>
-            </Create>
-            <Read>
-                <Scope name="internal_action_mgt_view"/>
-                <Scope name="internal_rule_metadata_view"/>
-                <Scope name="internal_application_mgt_view"/>
-                <Scope name="internal_claim_meta_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="tenants" displayName="Root Organizations" type="tenant" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:tenants"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_modify_tenants"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_modify_tenants"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_create_tenants"/>
-            </Create>
-            <Read>
-                <Scope name="internal_list_tenants"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
 <!--    Legacy Organization API Resource Collections (version as v0)-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization" version="v0">
        <Scopes>
@@ -663,7 +598,6 @@
                 <Scope name="internal_org_authenticator_view"/>
                 <Scope name="internal_org_governance_view"/>
                 <Scope name="internal_org_extensions_view"/>
-                <Scope name="internal_org_config_mgt_view"/>
             </Read>
         </Scopes>
     </APIResourceCollection>
@@ -751,9 +685,6 @@
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
             </Update>
-            <Delete>
-                <Scope name="internal_org_role_mgt_delete"/>
-            </Delete>
             <Create>
                 <Scope name="internal_org_role_mgt_create"/>
             </Create>
@@ -848,22 +779,6 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-    <APIResourceCollection name="org_smsTemplates" displayName="SMS Templates" type="organization" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:org:smsTemplates"/>
-            </Feature>
-            <Update>
-            </Update>
-            <Delete>
-            </Delete>
-            <Create>
-            </Create>
-            <Read>
-                <Scope name="internal_org_template_mgt_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
     <APIResourceCollection name="org_gettingStarted" displayName="Home Page" type="organization" version="v0">
        <Scopes>
             <Feature>
@@ -882,53 +797,6 @@
             <Read>
                 <Scope name="internal_org_application_mgt_view"/>
             </Read>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="org_apiResources" displayName="API Resources" type="organization" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:org:apiResources"/>
-            </Feature>
-            <Read>
-                <Scope name="internal_org_api_resource_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="org_userStores" displayName="User Stores" type="organization" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:org:userstores"/>
-            </Feature>
-            <Update>
-                <Scope name="internal_org_userstore_update"/>
-            </Update>
-            <Delete>
-                <Scope name="internal_org_userstore_delete"/>
-            </Delete>
-            <Create>
-                <Scope name="internal_org_userstore_create"/>
-            </Create>
-            <Read>
-                <Scope name="internal_org_userstore_view"/>
-            </Read>
-        </Scopes>
-    </APIResourceCollection>
-    <APIResourceCollection name="org_attributeDialects" displayName="Attribute Dialects" type="organization" version="v0">
-       <Scopes>
-            <Feature>
-                <Scope name="console:org:attributes"/>
-            </Feature>
-            <Create>
-            </Create>
-            <Update>
-                <Scope name="internal_org_claim_meta_update"/>
-            </Update>
-            <Read>
-                <Scope name="internal_org_userstore_view"/>
-                <Scope name="internal_org_claim_meta_view"/>
-            </Read>
-            <Delete>
-            </Delete>
         </Scopes>
     </APIResourceCollection>
 
