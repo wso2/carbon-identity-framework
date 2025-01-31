@@ -19,8 +19,8 @@
 
 <APIResourceCollections>
     {% for collection in api_resource_collections %}
-    <APIResourceCollection name="{{ collection.name }}" displayName="{{ collection.displayName }}" type="{{ collection.type | default('Unknown') }}" enabled="{{ collection.enabled | default('true') }}">
-        <Scopes>
+    <APIResourceCollection name="{{ collection.name }}" displayName="{{ collection.displayName }}" type="{{ collection.type | default('Unknown') }}" {% if collection.version %} version="{{ collection.version }}"{% endif %} enabled="{{ collection.enabled | default('true') }}">
+       <Scopes>
             {% if collection.scopes.feature %}
             <Feature>
                 {% for scope in collection.scopes.feature %}
@@ -59,10 +59,750 @@
         </Scopes>
     </APIResourceCollection>
     {% endfor %}
+<!--    Legacy API Resource Collections (version as v0)-->
+    <APIResourceCollection name="apiResources" displayName="API Resources" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:apiResources"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_api_resource_update"/>
+            </Update>
+            <Create>
+                <Scope name="internal_api_resource_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_api_resource_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="applications" displayName="Applications" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_application_mgt_delete"/>
+                <Scope name="internal_shared_application_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_application_mgt_create"/>
+                <Scope name="internal_shared_application_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_cors_origins_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_oidc_scope_mgt_view"/>
+                <Scope name="internal_organization_view"/>
+                <Scope name="internal_api_resource_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_shared_application_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="branding" displayName="Branding" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:branding"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_branding_preference_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_branding_preference_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_branding_preference_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="approvals" displayName="Approvals" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:workflowApprovals"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_humantask_view"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_humantask_view"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_humantask_view"/>
+            </Create>
+            <Read>
+                <Scope name="internal_humantask_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="attributeDialects" displayName="Attribute Dialects" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:attributes"/>
+            </Feature>
+            <Create>
+                <Scope name="internal_claim_meta_create"/>
+            </Create>
+            <Update>
+                <Scope name="internal_claim_meta_update"/>
+                <Scope name="internal_governance_update"/>
+            </Update>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_governance_view"/>
+            </Read>
+            <Delete>
+                <Scope name="internal_claim_meta_delete"/>
+            </Delete>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="certificates" displayName="Certificates" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:certificates"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_keystore_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_keystore_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_keystore_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_keystore_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="consoleSettings" displayName="Console Settings" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:settings"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+                <Scope name="internal_user_mgt_update"/>
+            </Update>
+            <Delete>
+            </Delete>
+            <Create>
+                <Scope name="internal_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_session_view"/>
+                <Scope name="internal_governance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="emailTemplates" displayName="Email Templates" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:emailTemplates"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_email_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_email_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_email_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_email_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="groups" displayName="Groups" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:groups"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_group_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_group_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_group_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="gettingStarted" displayName="Home Page" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:home"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete/>
+            <Create>
+                <Scope name="internal_application_mgt_create"/>
+                <Scope name="internal_idp_create"/>
+                <Scope name="internal_user_mgt_create"/>
+                <Scope name="internal_group_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="connections" displayName="Connections" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:idps"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_idp_update"/>
+                <Scope name="internal_governance_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_idp_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_idp_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_claim_meta_view"/>
+                <Scope name="internal_authenticator_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_extensions_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="identityVerificationProviders" displayName="Identity Verification Providers" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:idvps"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_idvp_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_idvp_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_idvp_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_idvp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="loginAndRegistration" displayName="Login And Registration" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:loginAndRegistration"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_governance_update"/>
+            </Update>
+            <Delete/>
+            <Create/>
+            <Read>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_validation_rule_mgt_update"/>
+                <Scope name="internal_config_update"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="notificationChannels" displayName="Notification Channels" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:notificationChannels"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_notification_senders_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_notification_senders_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_notification_senders_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_notification_senders_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="oidcScopes" displayName="OIDC Scopes" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:scopes:oidc"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_oidc_scope_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_oidc_scope_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_oidc_scope_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_oidc_scope_mgt_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="organizations" displayName="Organizations" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:organizations"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_organization_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_organization_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_organization_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_organization_view"/>
+                <Scope name="internal_organization_config_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="organizationDiscovery" displayName="Organization Discovery" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:organizationDiscovery"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_organization_discovery_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_organization_discovery_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_organization_discovery_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_organization_discovery_view"/>
+                <Scope name="internal_organization_view"/>
+                <Scope name="internal_organization_config_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="residentOutboundProvisioning" displayName="Resident Application Outbound Provisioning" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:residentOutboundProvisioning"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_application_mgt_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_application_mgt_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="roles" displayName="Roles" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:roles"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_role_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_role_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_application_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_idp_view"/>
+                <Scope name="internal_api_resource_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="rolesV1" displayName="Roles" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:roles"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_role_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_role_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_permission_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="users" displayName="Users" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:users"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_user_mgt_update"/>
+                <Scope name="internal_session_delete"/>
+                <Scope name="internal_group_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_user_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_user_mgt_create"/>
+                <Scope name="internal_bulk_resource_create"/>
+                <Scope name="internal_offline_invite"/>
+            </Create>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+                <Scope name="internal_role_mgt_view"/>
+                <Scope name="internal_group_mgt_view"/>
+                <Scope name="internal_governance_view"/>
+                <Scope name="internal_login"/>
+                <Scope name="internal_user_mgt_view"/>
+                <Scope name="internal_user_mgt_list"/>
+                <Scope name="internal_session_view"/>
+                <Scope name="internal_claim_meta_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="userStores" displayName="User Stores" type="tenant" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:userstores"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_userstore_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_userstore_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_userstore_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_userstore_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+<!--    Legacy Organization API Resource Collections (version as v0)-->
+    <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:settings"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_application_mgt_update"/>
+                <Scope name="internal_org_user_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_guest_mgt_invite_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_guest_mgt_invite_list"/>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_session_view"/>
+                <Scope name="internal_org_governance_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_connections" displayName="Connections" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:idps"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_idp_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_idp_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_idp_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_idp_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+                <Scope name="internal_org_authenticator_view"/>
+                <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_extensions_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_users" displayName="Users" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:users"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_user_mgt_update"/>
+                <Scope name="internal_org_session_delete"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_user_mgt_delete"/>
+                <Scope name="internal_org_guest_mgt_invite_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_user_mgt_create"/>
+                <Scope name="internal_org_guest_mgt_invite_add"/>
+                <Scope name="internal_org_bulk_resource_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_governance_view"/>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_session_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+                <Scope name="internal_org_guest_mgt_invite_list"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_organizations" displayName="Organizations" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:organizations"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_organization_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_organization_delete"/>
+                <Scope name="internal_org_config_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_organization_create"/>
+                <Scope name="internal_org_config_mgt_add"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_organization_view"/>
+                <Scope name="internal_org_config_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_groups" displayName="Groups" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:groups"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_group_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_group_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_group_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_roles" displayName="Roles" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:roles"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_role_mgt_update"/>
+            </Update>
+            <Create>
+                <Scope name="internal_org_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+                <Scope name="internal_org_idp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_rolesV1" displayName="Roles" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:roles"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_role_mgt_update"/>
+            </Update>
+            <Delete/>
+            <Create>
+                <Scope name="internal_org_role_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_user_mgt_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_group_mgt_view"/>
+                <Scope name="internal_org_permission_mgt_view"/>
+                <Scope name="internal_org_user_mgt_list"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_applications" displayName="Applications" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:applications"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_application_mgt_delete"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_application_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_application_mgt_view"/>
+                <Scope name="internal_org_claim_meta_view"/>
+                <Scope name="internal_org_role_mgt_view"/>
+                <Scope name="internal_org_userstore_view"/>
+                <Scope name="internal_org_idp_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_branding" displayName="Branding" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:branding"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_branding_preference_update"/>
+            </Update>
+            <Delete>
+                <Scope name="internal_org_branding_preference_update"/>
+            </Delete>
+            <Create>
+                <Scope name="internal_org_branding_preference_update"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_emailTemplates" displayName="Email Templates" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:emailTemplates"/>
+            </Feature>
+            <Update>
+            </Update>
+            <Delete>
+            </Delete>
+            <Create>
+            </Create>
+            <Read>
+                <Scope name="internal_org_email_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+    <APIResourceCollection name="org_gettingStarted" displayName="Home Page" type="organization" version="v0">
+       <Scopes>
+            <Feature>
+                <Scope name="console:org:home"/>
+            </Feature>
+            <Update>
+                <Scope name="internal_org_application_mgt_update"/>
+            </Update>
+            <Delete/>
+            <Create>
+                <Scope name="internal_org_application_mgt_create"/>
+                <Scope name="internal_org_idp_create"/>
+                <Scope name="internal_org_user_mgt_create"/>
+                <Scope name="internal_org_group_mgt_create"/>
+            </Create>
+            <Read>
+                <Scope name="internal_org_application_mgt_view"/>
+            </Read>
+        </Scopes>
+    </APIResourceCollection>
+
+<!--    New API Resource Collections-->
     <APIResourceCollection name="apiResources" displayName="API Resources" type="tenant">
         <Scopes>
             <Feature>
                 <Scope name="console:apiResources"/>
+                <Scope name="console:apiResources_view"/>
+                <Scope name="console:apiResources_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_api_resource_update"/>
@@ -82,6 +822,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:applications"/>
+                <Scope name="console:applications_view"/>
+                <Scope name="console:applications_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -119,6 +861,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:branding"/>
+                <Scope name="console:branding_view"/>
+                <Scope name="console:branding_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_branding_preference_update"/>
@@ -138,6 +882,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:workflowApprovals"/>
+                <Scope name="console:workflowApprovals_view"/>
+                <Scope name="console:workflowApprovals_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_humantask_view"/>
@@ -157,6 +903,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:attributes"/>
+                <Scope name="console:attributes_view"/>
+                <Scope name="console:attributes_edit"/>
             </Feature>
             <Create>
                 <Scope name="internal_claim_meta_create"/>
@@ -179,6 +927,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:certificates"/>
+                <Scope name="console:certificates_view"/>
+                <Scope name="console:certificates_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_keystore_update"/>
@@ -198,6 +948,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:settings"/>
+                <Scope name="console:settings_view"/>
+                <Scope name="console:settings_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -225,6 +977,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:emailTemplates"/>
+                <Scope name="console:emailTemplates_view"/>
+                <Scope name="console:emailTemplates_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_email_mgt_update"/>
@@ -244,6 +998,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:smsTemplates"/>
+                <Scope name="console:smsTemplates_view"/>
+                <Scope name="console:smsTemplates_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_template_mgt_update"/>
@@ -263,6 +1019,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:groups"/>
+                <Scope name="console:groups_view"/>
+                <Scope name="console:groups_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_group_mgt_update"/>
@@ -286,6 +1044,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:home"/>
+                <Scope name="console:home_view"/>
+                <Scope name="console:home_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -306,6 +1066,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:idps"/>
+                <Scope name="console:idps_view"/>
+                <Scope name="console:idps_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_idp_update"/>
@@ -333,6 +1095,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:idvps"/>
+                <Scope name="console:idvps_view"/>
+                <Scope name="console:idvps_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_idvp_update"/>
@@ -352,6 +1116,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:loginAndRegistration"/>
+                <Scope name="console:loginAndRegistration_view"/>
+                <Scope name="console:loginAndRegistration_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_governance_update"/>
@@ -371,6 +1137,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:notificationChannels"/>
+                <Scope name="console:notificationChannels_view"/>
+                <Scope name="console:notificationChannels_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_notification_senders_update"/>
@@ -390,6 +1158,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:scopes:oidc"/>
+                <Scope name="console:scopes:oidc_view"/>
+                <Scope name="console:scopes:oidc_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_oidc_scope_mgt_update"/>
@@ -410,6 +1180,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:organizations"/>
+                <Scope name="console:organizations_view"/>
+                <Scope name="console:organizations_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_organization_update"/>
@@ -431,6 +1203,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:organizationDiscovery"/>
+                <Scope name="console:organizationDiscovery_view"/>
+                <Scope name="console:organizationDiscovery_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_organization_discovery_update"/>
@@ -453,6 +1227,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:residentOutboundProvisioning"/>
+                <Scope name="console:residentOutboundProvisioning_view"/>
+                <Scope name="console:residentOutboundProvisioning_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_application_mgt_update"/>
@@ -473,6 +1249,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:roles"/>
+                <Scope name="console:roles_view"/>
+                <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_role_mgt_update"/>
@@ -499,6 +1277,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:roles"/>
+                <Scope name="console:roles_view"/>
+                <Scope name="console:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_role_mgt_update"/>
@@ -523,6 +1303,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:users"/>
+                <Scope name="console:users_view"/>
+                <Scope name="console:users_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_user_mgt_update"/>
@@ -554,6 +1336,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:userstores"/>
+                <Scope name="console:userstores_view"/>
+                <Scope name="console:userstores_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_userstore_update"/>
@@ -573,6 +1357,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:actions"/>
+                <Scope name="console:actions_view"/>
+                <Scope name="console:actions_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_action_mgt_update"/>
@@ -595,6 +1381,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:tenants"/>
+                <Scope name="console:tenants_view"/>
+                <Scope name="console:tenants_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_modify_tenants"/>
@@ -610,11 +1398,13 @@
             </Read>
         </Scopes>
     </APIResourceCollection>
-<!--    Organization API Resource Collections-->
+<!--    New Organization API Resource Collections-->
     <APIResourceCollection name="org_consoleSettings" displayName="Console Settings" type="organization">
         <Scopes>
             <Feature>
                 <Scope name="console:org:settings"/>
+                <Scope name="console:org:settings_view"/>
+                <Scope name="console:org:settings_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -644,6 +1434,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:idps"/>
+                <Scope name="console:org:idps_view"/>
+                <Scope name="console:org:idps_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_idp_update"/>
@@ -670,6 +1462,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:users"/>
+                <Scope name="console:org:users_view"/>
+                <Scope name="console:org:users_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_user_mgt_update"/>
@@ -701,6 +1495,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:organizations"/>
+                <Scope name="console:org:organizations_view"/>
+                <Scope name="console:org:organizations_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_organization_update"/>
@@ -723,6 +1519,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:groups"/>
+                <Scope name="console:org:groups_view"/>
+                <Scope name="console:org:groups_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_group_mgt_update"/>
@@ -746,6 +1544,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:roles"/>
+                <Scope name="console:org:roles_view"/>
+                <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
@@ -771,6 +1571,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:roles"/>
+                <Scope name="console:org:roles_view"/>
+                <Scope name="console:org:roles_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_role_mgt_update"/>
@@ -793,6 +1595,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:applications"/>
+                <Scope name="console:org:applications_view"/>
+                <Scope name="console:org:applications_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -816,6 +1620,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:branding"/>
+                <Scope name="console:org:branding_view"/>
+                <Scope name="console:org:branding_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_branding_preference_update"/>
@@ -835,6 +1641,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:emailTemplates"/>
+                <Scope name="console:org:emailTemplates_view"/>
+                <Scope name="console:org:emailTemplates_edit"/>
             </Feature>
             <Update>
             </Update>
@@ -851,6 +1659,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:smsTemplates"/>
+                <Scope name="console:org:smsTemplates_view"/>
+                <Scope name="console:org:smsTemplates_edit"/>
             </Feature>
             <Update>
             </Update>
@@ -867,6 +1677,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:home"/>
+                <Scope name="console:org:home_view"/>
+                <Scope name="console:org:home_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_application_mgt_update"/>
@@ -887,6 +1699,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:apiResources"/>
+                <Scope name="console:org:apiResources_view"/>
+                <Scope name="console:org:apiResources_edit"/>
             </Feature>
             <Read>
                 <Scope name="internal_org_api_resource_view"/>
@@ -897,6 +1711,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:userstores"/>
+                <Scope name="console:org:userstores_view"/>
+                <Scope name="console:org:userstores_edit"/>
             </Feature>
             <Update>
                 <Scope name="internal_org_userstore_update"/>
@@ -916,6 +1732,8 @@
         <Scopes>
             <Feature>
                 <Scope name="console:org:attributes"/>
+                <Scope name="console:org:attributes_view"/>
+                <Scope name="console:org:attributes_edit"/>
             </Feature>
             <Create>
             </Create>
