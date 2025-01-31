@@ -29,6 +29,10 @@ import java.util.stream.Collectors;
  */
 public class AuditLogBuilderForRule {
 
+    private AuditLogBuilderForRule() {
+
+    }
+
     /**
      * Builds a string representation of an {@link ORCombinedRule}.
      * Converts the rule into a logical expression format, where AND conditions

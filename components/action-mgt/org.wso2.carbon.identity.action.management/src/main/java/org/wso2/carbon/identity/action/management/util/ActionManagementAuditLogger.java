@@ -115,7 +115,7 @@ public class ActionManagementAuditLogger {
         if (actionDTO.getProperties() != null && !actionDTO.getProperties().isEmpty()) {
             data.put(LogConstants.ACTION_PROPERTIES, getPropertiesData(actionDTO.getProperties()));
         }
-        if (actionDTO.getActionRule() != null) {
+        if (actionDTO.getActionRule() != null && actionDTO.getActionRule().getRule() != null) {
             data.put(LogConstants.ACTION_RULE, getRuleData(actionDTO.getActionRule().getRule()));
         }
         return data;
