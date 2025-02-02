@@ -15,12 +15,12 @@
       "valueDisplayAttribute": "name",
       "links": [
         {
-          "href": "/applications?offset=0&limit=10",
+          "href": "/applications?excludeSystemPortals=true&offset=0&limit=10",
           "method": "GET",
           "rel": "values"
         },
         {
-          "href": "/applications?filter=name+eq+*&limit=10",
+          "href": "/applications?excludeSystemPortals=true&filter=name+eq+*&limit=10",
           "method": "GET",
           "rel": "filter"
         }
@@ -55,13 +55,48 @@
         {
           "name": "client_credentials",
           "displayName": "client credentials"
+        }
+      ]
+    }
+  },
+  "flow": {
+    "field": {
+      "name": "flow",
+      "displayName": "flow"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": [
+        {
+          "name": "admin_initiated_password_reset",
+          "displayName": "Admin initiated password reset"
         },
         {
-          "name": "urn:ietf:params:oauth:grant-type:token-exchange",
-          "displayName": "token exchange"
+          "name": "admin_initiated_password_update",
+          "displayName": "Admin initiated password update"
+        },
+        {
+          "name": "admin_initiated_user_invite_to_set_password",
+          "displayName": "Admin initiated user invite to set password"
+        },
+        {
+          "name": "application_initiated_password_update",
+          "displayName": "Application initiated password update"
+        },
+        {
+          "name": "user_initiated_password_reset",
+          "displayName": "User initiated password reset"
+        },
+        {
+          "name": "user_initiated_password_update",
+          "displayName": "User initiated password update"
         }
       ]
     }
   }
 }
-

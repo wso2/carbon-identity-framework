@@ -133,6 +133,18 @@ public class FlowConfigTest {
         Value grantTypeValue = new OptionsInputValue(Value.ValueType.STRING, optionsValues);
         fieldDefinitionMap.put("grantType", new FieldDefinition(grantTypeField, operators, grantTypeValue));
 
+        Field flowField = new Field("flow", "flow");
+        List<OptionsValue> flowOptionsValues = Arrays.asList(
+                new OptionsValue("admin_initiated_password_reset", "Admin initiated password reset"),
+                new OptionsValue("admin_initiated_password_update", "Admin initiated password update"),
+                new OptionsValue("admin_initiated_user_invite_to_set_password",
+                        "Admin initiated user invite to set password"),
+                new OptionsValue("application_initiated_password_update", "Application initiated password update"),
+                new OptionsValue("user_initiated_password_reset", "User initiated password reset"),
+                new OptionsValue("user_initiated_password_update", "User initiated password update"));
+        Value flowValue = new OptionsInputValue(Value.ValueType.STRING, flowOptionsValues);
+        fieldDefinitionMap.put("flow", new FieldDefinition(flowField, operators, flowValue));
+
         return fieldDefinitionMap;
     }
 }

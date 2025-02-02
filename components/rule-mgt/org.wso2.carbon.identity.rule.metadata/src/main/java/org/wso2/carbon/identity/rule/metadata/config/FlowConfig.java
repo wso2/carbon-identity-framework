@@ -18,11 +18,16 @@
 
 package org.wso2.carbon.identity.rule.metadata.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataConfigException;
 import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
+import org.wso2.carbon.identity.rule.metadata.model.Field;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.model.FlowType;
+import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.model.OptionsReferenceValue;
+import org.wso2.carbon.identity.rule.metadata.model.Value;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -52,14 +57,14 @@ public class FlowConfig {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Map<String, List<String>> fieldsDefinitionMapPerFlow = mapper.readValue(file,
+            Map<String, List<Map<String, Object>>> fieldsDefinitionMapPerFlow = mapper.readValue(file,
                     mapper.getTypeFactory().constructMapType(Map.class, String.class, List.class));
 
             Map<String, List<FieldDefinition>> fieldDefinitionsMap = new HashMap<>();
-            for (Map.Entry<String, List<String>> entry : fieldsDefinitionMapPerFlow.entrySet()) {
+            for (Map.Entry<String, List<Map<String, Object>>> entry : fieldsDefinitionMapPerFlow.entrySet()) {
                 validateFlow(entry.getKey());
-                List<FieldDefinition> fieldDefinitionList =
-                        loadFieldDefinitions(entry.getValue(), fieldDefinitionConfig);
+                List<FieldDefinition> fieldDefinitionList = loadFieldDefinitions(mapper, entry.getValue(),
+                        fieldDefinitionConfig);
                 fieldDefinitionsMap.put(entry.getKey(), fieldDefinitionList);
             }
             return new FlowConfig(fieldDefinitionsMap);
@@ -68,16 +73,25 @@ public class FlowConfig {
         }
     }
 
-    private static List<FieldDefinition> loadFieldDefinitions(List<String> fieldNames,
+    private static List<FieldDefinition> loadFieldDefinitions(ObjectMapper mapper,
+                                                              List<Map<String, Object>> fieldDefinitions,
                                                               FieldDefinitionConfig fieldDefinitionConfig)
             throws RuleMetadataConfigException {
 
         List<FieldDefinition> fieldDefinitionList = new ArrayList<>();
-        for (String fieldName : fieldNames) {
-            if (!fieldDefinitionConfig.getFieldDefinitionMap().containsKey(fieldName)) {
-                throw new RuleMetadataConfigException("Invalid field: " + fieldName);
+        for (Map<String, Object> entry : fieldDefinitions) {
+            FieldDefinition fieldDefinition = resolveFieldDefinition(fieldDefinitionConfig, entry);
+            if (!entry.containsKey("overrides")) {
+                fieldDefinitionList.add(fieldDefinition);
+                continue;
             }
-            fieldDefinitionList.add(fieldDefinitionConfig.getFieldDefinitionMap().get(fieldName));
+
+            Map<String, Object> overrides = mapper.convertValue(entry.get("overrides"),
+                    new TypeReference<Map<String, Object>>() { });
+            Field updatedField = getUpdatedField(mapper, overrides, fieldDefinition);
+            Value updatedValue = getUpdatedValue(mapper, overrides, fieldDefinition);
+            fieldDefinitionList.add(new FieldDefinition(updatedField, fieldDefinition.getOperators(),
+                    updatedValue));
         }
         return fieldDefinitionList;
     }
@@ -89,5 +103,82 @@ public class FlowConfig {
         } catch (RuleMetadataException e) {
             throw new RuleMetadataConfigException("Invalid flow: " + flowName);
         }
+    }
+
+    /**
+     * Resolve the field definition from the field definition config.
+     *
+     * @param fieldDefinitionConfig FieldDefinitionConfig
+     * @param entry                 Entry
+     * @return FieldDefinition
+     * @throws RuleMetadataConfigException If an error occurs while resolving the field definition
+     */
+    private static FieldDefinition resolveFieldDefinition(FieldDefinitionConfig fieldDefinitionConfig,
+                                                          Map<String, Object> entry)
+            throws RuleMetadataConfigException {
+
+        if (!entry.containsKey("fieldName")) {
+            throw new RuleMetadataConfigException("'fieldName' is required for a field");
+        }
+
+        String fieldName = entry.get("fieldName").toString();
+        if (!fieldDefinitionConfig.getFieldDefinitionMap().containsKey(fieldName)) {
+            throw new RuleMetadataConfigException("Invalid field: " + fieldName);
+        }
+
+        return fieldDefinitionConfig.getFieldDefinitionMap().get(fieldName);
+    }
+
+    /**
+     * Get the updated field if the field is overridden.
+     *
+     * @param mapper           ObjectMapper
+     * @param overrides        Overrides
+     * @param fieldDefinition  FieldDefinition
+     * @return Updated field
+     */
+    private static Field getUpdatedField(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition) {
+
+        if (!overrides.containsKey("field")) {
+            return fieldDefinition.getField();
+        }
+
+        return mapper.convertValue(overrides.get("field"), Field.class);
+    }
+
+    /**
+     * Get the updated value if the value is overridden.
+     *
+     * @param mapper           ObjectMapper
+     * @param overrides        Overrides
+     * @param fieldDefinition  FieldDefinition
+     * @return Updated value
+     */
+    private static Value getUpdatedValue(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition) {
+
+        if (!overrides.containsKey("value")) {
+            return fieldDefinition.getValue();
+        }
+
+        Value initialValue = fieldDefinition.getValue();
+        if (initialValue instanceof OptionsInputValue) {
+            OptionsInputValue overriddenOptionsInputValue = mapper.convertValue(overrides.get("value"),
+                    OptionsInputValue.class);
+            return new OptionsInputValue(initialValue.getValueType(), overriddenOptionsInputValue.getValues());
+        }
+
+        if (initialValue instanceof OptionsReferenceValue) {
+            OptionsReferenceValue initialOptionsReferenceValue = (OptionsReferenceValue) initialValue;
+            OptionsReferenceValue overriddenOptionsReferenceValue = mapper.convertValue(overrides.get("value"),
+                    OptionsReferenceValue.class);
+            return new OptionsReferenceValue.Builder()
+                    .valueReferenceAttribute(initialOptionsReferenceValue.getValueReferenceAttribute())
+                    .valueDisplayAttribute(initialOptionsReferenceValue.getValueDisplayAttribute())
+                    .valueType(initialOptionsReferenceValue.getValueType())
+                    .links(overriddenOptionsReferenceValue.getLinks())
+                    .build();
+        }
+
+        throw new IllegalArgumentException("Unsupported value type for overrides");
     }
 }
