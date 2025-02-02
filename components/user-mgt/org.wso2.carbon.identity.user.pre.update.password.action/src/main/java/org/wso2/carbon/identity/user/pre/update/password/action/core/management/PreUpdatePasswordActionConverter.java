@@ -86,6 +86,7 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
                 .status(actionDTO.getStatus())
                 .endpoint(actionDTO.getEndpoint())
                 .passwordSharing(passwordSharingBuilder.build())
+                .rule(actionDTO.getActionRule())
                 .build();
     }
 }
