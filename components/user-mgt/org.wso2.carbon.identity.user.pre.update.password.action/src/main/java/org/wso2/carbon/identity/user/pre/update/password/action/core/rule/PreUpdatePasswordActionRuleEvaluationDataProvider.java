@@ -105,9 +105,9 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
             if (RuleField.valueOfFieldName(field.getName()) == RuleField.FLOW) {
                 fieldValueList.add(new FieldValue(field.getName(), getFlowFromContext(), ValueType.STRING));
                 break;
+            } else {
+                throw new RuleEvaluationDataProviderException("Unsupported field: " + field.getName());
             }
-
-            throw new RuleEvaluationDataProviderException("Unsupported field: " + field.getName());
         }
 
         return fieldValueList;
