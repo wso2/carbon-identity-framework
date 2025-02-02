@@ -12,7 +12,6 @@
       "fieldName": "flow",
       "overrides": {
         "field": {
-          "name": "flow",
           "displayName": "flow"
         },
         "value": {

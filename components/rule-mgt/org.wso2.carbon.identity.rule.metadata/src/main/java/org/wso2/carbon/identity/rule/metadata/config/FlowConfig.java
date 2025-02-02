@@ -25,8 +25,10 @@ import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.model.Field;
 import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.model.FlowType;
+import org.wso2.carbon.identity.rule.metadata.model.Link;
 import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
 import org.wso2.carbon.identity.rule.metadata.model.OptionsReferenceValue;
+import org.wso2.carbon.identity.rule.metadata.model.OptionsValue;
 import org.wso2.carbon.identity.rule.metadata.model.Value;
 
 import java.io.File;
@@ -82,6 +84,7 @@ public class FlowConfig {
         for (Map<String, Object> entry : fieldDefinitions) {
             FieldDefinition fieldDefinition = resolveFieldDefinition(fieldDefinitionConfig, entry);
             if (!entry.containsKey("overrides")) {
+                validateModifiableAttributesOfField(fieldDefinition);
                 fieldDefinitionList.add(fieldDefinition);
                 continue;
             }
@@ -105,14 +108,6 @@ public class FlowConfig {
         }
     }
 
-    /**
-     * Resolve the field definition from the field definition config.
-     *
-     * @param fieldDefinitionConfig FieldDefinitionConfig
-     * @param entry                 Entry
-     * @return FieldDefinition
-     * @throws RuleMetadataConfigException If an error occurs while resolving the field definition
-     */
     private static FieldDefinition resolveFieldDefinition(FieldDefinitionConfig fieldDefinitionConfig,
                                                           Map<String, Object> entry)
             throws RuleMetadataConfigException {
@@ -129,56 +124,89 @@ public class FlowConfig {
         return fieldDefinitionConfig.getFieldDefinitionMap().get(fieldName);
     }
 
-    /**
-     * Get the updated field if the field is overridden.
-     *
-     * @param mapper           ObjectMapper
-     * @param overrides        Overrides
-     * @param fieldDefinition  FieldDefinition
-     * @return Updated field
-     */
     private static Field getUpdatedField(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition) {
 
         if (!overrides.containsKey("field")) {
             return fieldDefinition.getField();
         }
 
-        return mapper.convertValue(overrides.get("field"), Field.class);
+        Map<String, Object> overriddenAttributes = mapper.convertValue(overrides.get("field"),
+                new TypeReference<Map<String, Object>>() { });
+        if (overriddenAttributes.containsKey("name")) {
+            throw new IllegalArgumentException("Field 'name' cannot be overridden");
+        }
+        if (!overriddenAttributes.containsKey("displayName")) {
+            throw new IllegalArgumentException("'displayName' is required to override a field");
+        }
+
+        return new Field(fieldDefinition.getField().getName(), overriddenAttributes.get("displayName").toString());
     }
 
-    /**
-     * Get the updated value if the value is overridden.
-     *
-     * @param mapper           ObjectMapper
-     * @param overrides        Overrides
-     * @param fieldDefinition  FieldDefinition
-     * @return Updated value
-     */
-    private static Value getUpdatedValue(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition) {
+    private static Value getUpdatedValue(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition)
+            throws RuleMetadataConfigException {
 
         if (!overrides.containsKey("value")) {
             return fieldDefinition.getValue();
         }
 
+        Map<String, Object> overriddenAttributes = mapper.convertValue(overrides.get("value"),
+                new TypeReference<Map<String, Object>>() { });
+
+        Value overriddenValue = null;
         Value initialValue = fieldDefinition.getValue();
         if (initialValue instanceof OptionsInputValue) {
-            OptionsInputValue overriddenOptionsInputValue = mapper.convertValue(overrides.get("value"),
-                    OptionsInputValue.class);
-            return new OptionsInputValue(initialValue.getValueType(), overriddenOptionsInputValue.getValues());
-        }
+            if (!overriddenAttributes.containsKey("values") ||
+                    ((ArrayList<?>) overriddenAttributes.get("values")).isEmpty()) {
+                throw new RuleMetadataConfigException("'values' is required to override an options input value");
+            }
 
-        if (initialValue instanceof OptionsReferenceValue) {
+            List<OptionsValue> overriddenValues = mapper.convertValue(overriddenAttributes.remove("values"),
+                    new TypeReference<List<OptionsValue>>() { });
+            overriddenValue = new OptionsInputValue(initialValue.getValueType(), overriddenValues);
+        } else if (initialValue instanceof OptionsReferenceValue) {
+            if (!overriddenAttributes.containsKey("links") ||
+                    ((ArrayList<?>) overriddenAttributes.get("links")).isEmpty()) {
+                throw new RuleMetadataConfigException("'links' is required to override for options reference value");
+            }
+
             OptionsReferenceValue initialOptionsReferenceValue = (OptionsReferenceValue) initialValue;
-            OptionsReferenceValue overriddenOptionsReferenceValue = mapper.convertValue(overrides.get("value"),
-                    OptionsReferenceValue.class);
-            return new OptionsReferenceValue.Builder()
+            List<Link> overriddenLinks = mapper.convertValue(overriddenAttributes.remove("links"),
+                    new TypeReference<List<Link>>() { });
+            overriddenValue = new OptionsReferenceValue.Builder()
                     .valueReferenceAttribute(initialOptionsReferenceValue.getValueReferenceAttribute())
                     .valueDisplayAttribute(initialOptionsReferenceValue.getValueDisplayAttribute())
                     .valueType(initialOptionsReferenceValue.getValueType())
-                    .links(overriddenOptionsReferenceValue.getLinks())
+                    .links(overriddenLinks)
                     .build();
+        } else {
+            throw new RuleMetadataConfigException("Unsupported value type for overrides");
         }
 
-        throw new IllegalArgumentException("Unsupported value type for overrides");
+        if (!overriddenAttributes.isEmpty()) {
+            throw new RuleMetadataConfigException("Following attributes are not allowed to override: "
+                    + overriddenAttributes.keySet());
+        }
+
+        return overriddenValue;
+    }
+
+    private static void validateModifiableAttributesOfField(FieldDefinition fieldDefinition) {
+
+        if (fieldDefinition.getField().getDisplayName() == null) {
+            throw new IllegalArgumentException("Field 'displayName' cannot be null or empty.");
+        }
+
+        Value value = fieldDefinition.getValue();
+        if (value instanceof OptionsInputValue) {
+            List<OptionsValue> values = ((OptionsInputValue) value).getValues();
+            if (values == null || values.isEmpty()) {
+                throw new IllegalArgumentException("'values' cannot be null or empty for an options input value");
+            }
+        } else if (value instanceof OptionsReferenceValue) {
+            List<Link> links = ((OptionsReferenceValue) value).getLinks();
+            if (links == null || links.isEmpty()) {
+                throw new IllegalArgumentException("'links' cannot be null or empty for an options reference value");
+            }
+        }
     }
 }

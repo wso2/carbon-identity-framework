@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.rule.metadata.model.OptionsValue;
 import org.wso2.carbon.identity.rule.metadata.model.Value;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 public class FlowConfigTest {
 
@@ -93,12 +95,44 @@ public class FlowConfigTest {
                 Arrays.asList(fieldDefinitions.get("application"), fieldDefinitions.get("grantType")));
     }
 
+    @Test
+    public void testLoadFieldDefinitionsForOverriddenFlow() throws Exception {
+
+        String flowsFilePath = Objects.requireNonNull(getClass().getClassLoader().getResource(
+                "configs/valid-overridden-flows.json")).getFile();
+        FlowConfig flowConfig = FlowConfig.load(new File(flowsFilePath), fieldDefinitionConfig);
+
+        assertNotNull(flowConfig);
+
+        List<FieldDefinition> result = flowConfig.getFieldDefinitionsForFlow(FlowType.PRE_ISSUE_ACCESS_TOKEN);
+        assertNotNull(result);
+        assertEquals(result.size(), 1);
+        assertTrue(result.get(0).getValue() instanceof OptionsReferenceValue);
+        OptionsReferenceValue optionsReferenceValue = (OptionsReferenceValue) result.get(0).getValue();
+        assertEquals(optionsReferenceValue.getLinks().size(), 2);
+
+        result = flowConfig.getFieldDefinitionsForFlow(FlowType.PRE_UPDATE_PASSWORD);
+        assertNotNull(result);
+        assertEquals(result.size(), 1);
+        assertTrue(result.get(0).getValue() instanceof OptionsInputValue);
+        OptionsInputValue optionsInputValue = (OptionsInputValue) result.get(0).getValue();
+        assertEquals(optionsInputValue.getValues().size(), 6);
+    }
+
     @DataProvider(name = "invalidConfigFiles")
     public Object[][] invalidConfigFiles() {
 
         return new Object[][]{
                 {"configs/invalid-flows-unregistered-flow.json"},
                 {"configs/invalid-flows-unregistered-field.json"},
+                {"configs/invalid-overridden-flows-field-name.json"},
+                {"configs/invalid-overridden-flows-with-empty-field-displayName.json"},
+                {"configs/invalid-overridden-flows-with-empty-option-input-values.json"},
+                {"configs/invalid-overridden-flows-with-empty-option-input-values.json"},
+                {"configs/invalid-overridden-flows-with-invalid-option-input-value.json"},
+                {"configs/invalid-overridden-flows-with-invalid-option-reference-value.json"},
+                {"configs/invalid-overridden-flows-with-empty-option-reference-links.json"},
+                {"configs/invalid-overridden-flows-without-option-reference-links.json"},
                 {"unavailable-file.json"}
         };
     }
@@ -134,15 +168,7 @@ public class FlowConfigTest {
         fieldDefinitionMap.put("grantType", new FieldDefinition(grantTypeField, operators, grantTypeValue));
 
         Field flowField = new Field("flow", "flow");
-        List<OptionsValue> flowOptionsValues = Arrays.asList(
-                new OptionsValue("admin_initiated_password_reset", "Admin initiated password reset"),
-                new OptionsValue("admin_initiated_password_update", "Admin initiated password update"),
-                new OptionsValue("admin_initiated_user_invite_to_set_password",
-                        "Admin initiated user invite to set password"),
-                new OptionsValue("application_initiated_password_update", "Application initiated password update"),
-                new OptionsValue("user_initiated_password_reset", "User initiated password reset"),
-                new OptionsValue("user_initiated_password_update", "User initiated password update"));
-        Value flowValue = new OptionsInputValue(Value.ValueType.STRING, flowOptionsValues);
+        Value flowValue = new OptionsInputValue(Value.ValueType.STRING, new ArrayList<>());
         fieldDefinitionMap.put("flow", new FieldDefinition(flowField, operators, flowValue));
 
         return fieldDefinitionMap;

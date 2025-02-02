@@ -93,6 +93,8 @@ public class FieldDefinitionConfig {
         for (String operatorName : operatorNames) {
             if (operatorConfig.getOperatorsMap().containsKey(operatorName)) {
                 operators.add(operatorConfig.getOperatorsMap().get(operatorName));
+            } else {
+                throw new IllegalArgumentException("Invalid operator: " + operatorName + " provided");
             }
         }
         return operators;

@@ -1,20 +1,14 @@
 {
-  "preIssueAccessToken": [
-    {
-      "fieldName": "application"
-    },
-    {
-      "fieldName": "grantType"
-    }
-  ],
   "preUpdatePassword": [
     {
       "fieldName": "flow",
       "overrides": {
         "field": {
-          "displayName": "flow"
+            "displayName": "flow"
         },
         "value": {
+          "inputType": "options",
+          "valueType": "string",
           "values": [
             {
               "name": "adminInitiatedPasswordReset",
