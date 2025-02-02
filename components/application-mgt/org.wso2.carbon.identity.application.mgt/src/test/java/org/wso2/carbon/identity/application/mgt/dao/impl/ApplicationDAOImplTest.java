@@ -305,15 +305,15 @@ public class ApplicationDAOImplTest {
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         ServiceProvider serviceProvider = applicationDAO.getApplication("scl-app", SUPER_TENANT_DOMAIN_NAME);
         when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(true);
+                .thenReturn(false);
         assertTrue(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
                 SUPER_TENANT_DOMAIN_NAME));
         when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(false);
-        assertFalse(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
+                .thenReturn(true);
+        assertTrue(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
                 SUPER_TENANT_DOMAIN_NAME));
         serviceProvider = applicationDAO.getApplication("test-app", SUPER_TENANT_DOMAIN_NAME);
-        assertTrue(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
+        assertFalse(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
                 SUPER_TENANT_DOMAIN_NAME));
     }
 

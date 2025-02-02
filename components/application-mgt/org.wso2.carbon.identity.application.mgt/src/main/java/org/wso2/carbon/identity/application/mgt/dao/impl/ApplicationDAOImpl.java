@@ -6068,7 +6068,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 statement.setString(ApplicationTableColumns.UUID, resourceId);
 
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
+                    while (resultSet.next()) {
                         String groupId = resultSet.getString(ApplicationTableColumns.GROUP_ID);
                         if (groupId == null || checkLoggedInUserIsInGroup(groupId)) {
                             isDiscoverable = true;
