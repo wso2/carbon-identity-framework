@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvi
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Rule evaluation data provider for pre update password flow.
@@ -38,16 +39,18 @@ import java.util.List;
  */
 public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEvaluationDataProvider {
 
+    private static final String FLOW_FIELD = "flow";
+
     /**
      * Supported flows for pre update password action.
      */
     private enum PasswordUpdateFlowType {
-        ADMIN_INITIATED_PASSWORD_RESET("admin_initiated_password_reset"),
-        ADMIN_INITIATED_PASSWORD_UPDATE("admin_initiated_password_update"),
-        ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD("admin_initiated_user_invite_to_set_password"),
-        APPLICATION_INITIATED_PASSWORD_UPDATE("application_initiated_password_update"),
-        USER_INITIATED_PASSWORD_UPDATE("user_initiated_password_update"),
-        USER_INITIATED_PASSWORD_RESET("user_initiated_password_reset");
+        ADMIN_INITIATED_PASSWORD_RESET("adminInitiatedPasswordReset"),
+        ADMIN_INITIATED_PASSWORD_UPDATE("adminInitiatedPasswordUpdate"),
+        ADMIN_INITIATED_USER_INVITE_TO_SET_PASSWORD("adminInitiatedUserInviteToSetPassword"),
+        APPLICATION_INITIATED_PASSWORD_UPDATE("applicationInitiatedPasswordUpdate"),
+        USER_INITIATED_PASSWORD_UPDATE("userInitiatedPasswordUpdate"),
+        USER_INITIATED_PASSWORD_RESET("userInitiatedPasswordReset");
 
         final String flowName;
 
@@ -59,33 +62,6 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
         public String getFlowName() {
 
             return flowName;
-        }
-    }
-
-    private enum RuleField {
-        FLOW("flow");
-
-        final String fieldName;
-
-        RuleField(String fieldName) {
-
-            this.fieldName = fieldName;
-        }
-
-        public String getFieldName() {
-
-            return fieldName;
-        }
-
-        public static RuleField valueOfFieldName(String fieldName) throws RuleEvaluationDataProviderException {
-
-            for (RuleField ruleField : RuleField.values()) {
-                if (ruleField.getFieldName().equals(fieldName)) {
-                    return ruleField;
-                }
-            }
-
-            throw new RuleEvaluationDataProviderException("Unsupported field: " + fieldName);
         }
     }
 
@@ -102,7 +78,7 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
 
         List<FieldValue> fieldValueList = new ArrayList<>();
         for (Field field : ruleEvaluationContext.getFields()) {
-            if (RuleField.valueOfFieldName(field.getName()) == RuleField.FLOW) {
+            if (Objects.equals(field.getName(), FLOW_FIELD)) {
                 fieldValueList.add(new FieldValue(field.getName(), getFlowFromContext(), ValueType.STRING));
                 break;
             } else {
