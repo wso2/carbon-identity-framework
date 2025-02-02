@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Class to load field definitions for a flow from a file.
@@ -83,18 +85,12 @@ public class FlowConfig {
         List<FieldDefinition> fieldDefinitionList = new ArrayList<>();
         for (Map<String, Object> entry : fieldDefinitions) {
             FieldDefinition fieldDefinition = resolveFieldDefinition(fieldDefinitionConfig, entry);
-            if (!entry.containsKey("overrides")) {
+            if (entry.containsKey("overrides")) {
+                fieldDefinitionList.add(applyOverrides(mapper, entry, fieldDefinition));
+            } else {
                 validateModifiableAttributesOfField(fieldDefinition);
                 fieldDefinitionList.add(fieldDefinition);
-                continue;
             }
-
-            Map<String, Object> overrides = mapper.convertValue(entry.get("overrides"),
-                    new TypeReference<Map<String, Object>>() { });
-            Field updatedField = getUpdatedField(mapper, overrides, fieldDefinition);
-            Value updatedValue = getUpdatedValue(mapper, overrides, fieldDefinition);
-            fieldDefinitionList.add(new FieldDefinition(updatedField, fieldDefinition.getOperators(),
-                    updatedValue));
         }
         return fieldDefinitionList;
     }
@@ -112,16 +108,23 @@ public class FlowConfig {
                                                           Map<String, Object> entry)
             throws RuleMetadataConfigException {
 
-        if (!entry.containsKey("fieldName")) {
-            throw new RuleMetadataConfigException("'fieldName' is required for a field");
-        }
+        String fieldName = Optional.ofNullable(entry.get("fieldName"))
+                .map(Object::toString)
+                .orElseThrow(() -> new RuleMetadataConfigException("'fieldName' is required for a field"));
 
-        String fieldName = entry.get("fieldName").toString();
-        if (!fieldDefinitionConfig.getFieldDefinitionMap().containsKey(fieldName)) {
-            throw new RuleMetadataConfigException("Invalid field: " + fieldName);
-        }
+        return Optional.ofNullable(fieldDefinitionConfig.getFieldDefinitionMap().get(fieldName))
+                .orElseThrow(() -> new RuleMetadataConfigException("Invalid field: " + fieldName));
+    }
 
-        return fieldDefinitionConfig.getFieldDefinitionMap().get(fieldName);
+    private static FieldDefinition applyOverrides(ObjectMapper mapper, Map<String, Object> entry,
+                                                  FieldDefinition fieldDefinition) throws RuleMetadataConfigException {
+
+        Map<String, Object> overrides = mapper.convertValue(entry.get("overrides"),
+                new TypeReference<Map<String, Object>>() { });
+        Field updatedField = getUpdatedField(mapper, overrides, fieldDefinition);
+        Value updatedValue = getUpdatedValue(mapper, overrides, fieldDefinition);
+
+        return new FieldDefinition(updatedField, fieldDefinition.getOperators(), updatedValue);
     }
 
     private static Field getUpdatedField(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition) {
@@ -135,11 +138,9 @@ public class FlowConfig {
         if (overriddenAttributes.containsKey("name")) {
             throw new IllegalArgumentException("Field 'name' cannot be overridden");
         }
-        if (!overriddenAttributes.containsKey("displayName")) {
-            throw new IllegalArgumentException("'displayName' is required to override a field");
-        }
 
-        return new Field(fieldDefinition.getField().getName(), overriddenAttributes.get("displayName").toString());
+        return new Field(fieldDefinition.getField().getName(),
+                Objects.requireNonNull(overriddenAttributes.get("displayName")).toString());
     }
 
     private static Value getUpdatedValue(ObjectMapper mapper, Map<?, ?> overrides, FieldDefinition fieldDefinition)
@@ -155,23 +156,21 @@ public class FlowConfig {
         Value overriddenValue = null;
         Value initialValue = fieldDefinition.getValue();
         if (initialValue instanceof OptionsInputValue) {
-            if (!overriddenAttributes.containsKey("values") ||
-                    ((ArrayList<?>) overriddenAttributes.get("values")).isEmpty()) {
+            List<OptionsValue> overriddenValues = mapper.convertValue(overriddenAttributes.remove("values"),
+                    new TypeReference<List<OptionsValue>>() { });
+            if (overriddenValues.isEmpty()) {
                 throw new RuleMetadataConfigException("'values' is required to override an options input value");
             }
 
-            List<OptionsValue> overriddenValues = mapper.convertValue(overriddenAttributes.remove("values"),
-                    new TypeReference<List<OptionsValue>>() { });
             overriddenValue = new OptionsInputValue(initialValue.getValueType(), overriddenValues);
         } else if (initialValue instanceof OptionsReferenceValue) {
-            if (!overriddenAttributes.containsKey("links") ||
-                    ((ArrayList<?>) overriddenAttributes.get("links")).isEmpty()) {
-                throw new RuleMetadataConfigException("'links' is required to override for options reference value");
-            }
-
             OptionsReferenceValue initialOptionsReferenceValue = (OptionsReferenceValue) initialValue;
             List<Link> overriddenLinks = mapper.convertValue(overriddenAttributes.remove("links"),
                     new TypeReference<List<Link>>() { });
+            if (overriddenLinks.isEmpty()) {
+                throw new RuleMetadataConfigException("'links' is required to override for options reference value");
+            }
+
             overriddenValue = new OptionsReferenceValue.Builder()
                     .valueReferenceAttribute(initialOptionsReferenceValue.getValueReferenceAttribute())
                     .valueDisplayAttribute(initialOptionsReferenceValue.getValueDisplayAttribute())
