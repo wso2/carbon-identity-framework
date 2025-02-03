@@ -59,9 +59,9 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
 
     @BeforeMethod
     public void setUp() {
+
         MockitoAnnotations.openMocks(this);
         dataProvider = new PreUpdatePasswordActionRuleEvaluationDataProvider();
-
         Field field = new Field("flow", ValueType.STRING);
         doReturn(Collections.singletonList(field)).when(ruleEvaluationContext).getFields();
     }
@@ -119,7 +119,6 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
         doReturn(Flow.Name.PASSWORD_RESET).when(flow).getName();
         doReturn(Flow.InitiatingPersona.APPLICATION).when(flow).getInitiatingPersona();
         IdentityContext.getThreadLocalIdentityContext().setFlow(flow);
-
         dataProvider.getEvaluationData(ruleEvaluationContext, flowContext, "test.com");
     }
 }
