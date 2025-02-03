@@ -873,7 +873,7 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         List<String> roles = roleDAO.getRoleIdListOfGroups(groupIds, tenantDomain);
         for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
             if (roleManagementListener.isEnable()) {
-                roleManagementListener.postGetRoleIdListOfGroups(groupIds, tenantDomain);
+                roleManagementListener.postGetRoleIdListOfGroups(roles, tenantDomain);
             }
         }
         return roles;

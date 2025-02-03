@@ -32,7 +32,11 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.RoleV2;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
@@ -61,6 +65,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_RETRIEVING_LOCAL_USER_GROUPS;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.approles.constant.AppRolesConstants.ErrorMessages.ERROR_CODE_USER_NULL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
+import static org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants.Error.INVALID_AUDIENCE;
 import static org.wso2.carbon.user.mgt.UserMgtConstants.INTERNAL_ROLE;
 
 /**
@@ -128,18 +133,43 @@ public class AppAssociatedRolesResolverImpl implements ApplicationRolesResolver 
     private String[] getAppAssociatedRolesForLocalUser(AuthenticatedUser authenticatedUser, String applicationId)
             throws ApplicationRolesException {
 
-        Set<String> userRoleIds = getAllRolesOfLocalUser(authenticatedUser);
-        List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId,
-                authenticatedUser.getTenantDomain());
-        if (StringUtils.isNotEmpty(authenticatedUser.getSharedUserId())) {
-            // Add the shared role details to the roles list which are associated with the application.
-            addSharedRoleAssociations(authenticatedUser, rolesAssociatedWithApp, userRoleIds);
-        }
+        ServiceProvider app = null;
+        try {
+            app = ApplicationManagementService.getInstance()
+                    .getApplicationByResourceId(applicationId, authenticatedUser.getTenantDomain());
 
-        return rolesAssociatedWithApp.stream()
-                .filter(role -> userRoleIds.contains(role.getId()))
-                .map(role -> appendInternalDomain(role.getName()))
-                .toArray(String[]::new);
+            if (app == null) {
+                throw new ApplicationRolesException(INVALID_AUDIENCE.getCode(),
+                        "Invalid audience. No application found with application id: " + applicationId +
+                                " and tenant domain : " + authenticatedUser.getTenantDomain());
+            }
+            if (IdentityUtil.threadLocalProperties.get().get(ApplicationConstants.IS_FRAGMENT_APP) != null) {
+                IdentityUtil.threadLocalProperties.get().remove(ApplicationConstants.IS_FRAGMENT_APP);
+            }
+            if (app.getSpProperties() != null && Arrays.stream(app.getSpProperties())
+                    .anyMatch(property -> ApplicationConstants.IS_FRAGMENT_APP.equals(property.getName())
+                            && Boolean.parseBoolean(property.getValue()))) {
+                IdentityUtil.threadLocalProperties.get().put(ApplicationConstants.IS_FRAGMENT_APP, Boolean.TRUE);
+            }
+
+            Set<String> userRoleIds = getAllRolesOfLocalUser(authenticatedUser);
+            List<RoleV2> rolesAssociatedWithApp = getRolesAssociatedWithApplication(applicationId,
+                    authenticatedUser.getTenantDomain());
+            if (StringUtils.isNotEmpty(authenticatedUser.getSharedUserId())) {
+                // Add the shared role details to the roles list which are associated with the application.
+                addSharedRoleAssociations(authenticatedUser, rolesAssociatedWithApp, userRoleIds);
+            }
+
+            return rolesAssociatedWithApp.stream()
+                    .filter(role -> userRoleIds.contains(role.getId()))
+                    .map(role -> appendInternalDomain(role.getName()))
+                    .toArray(String[]::new);
+        } catch (IdentityApplicationManagementException e) {
+            throw new ApplicationRolesException("Error occurred while extracting the application for application : "
+                    + applicationId, e.getErrorCode());
+        } finally {
+            IdentityUtil.threadLocalProperties.get().remove(ApplicationConstants.IS_FRAGMENT_APP);
+        }
     }
 
     private void addSharedRoleAssociations(AuthenticatedUser authenticatedUser, List<RoleV2> rolesAssociatedWithApp,
