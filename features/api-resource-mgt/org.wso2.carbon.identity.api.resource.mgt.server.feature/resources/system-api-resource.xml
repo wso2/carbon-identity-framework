@@ -374,13 +374,21 @@
                  description="API representation of the OIDC Scope Management API" type="TENANT">
         <Scopes>
             <Scope displayName="View OIDC Scopes" name="internal_oidc_scope_mgt_view" 
-                    description="Create new OAuth2 scopes and bindings"/>
-            <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_mgt_create" 
                     description="View OAuth2 scopes and bindings"/>
+            <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_mgt_create" 
+                    description="Create new OAuth2 scopes and bindings"/>
             <Scope displayName="Update OIDC Scopes" name="internal_oidc_scope_mgt_update" 
                     description="Update OAuth2 scopes and bindings"/>
             <Scope displayName="Delete OIDC Scopes" name="internal_oidc_scope_mgt_delete" 
                     description="Delete OAuth2 scopes and bindings"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="OIDC Scope Management API" identifier="/o/api/server/v1/oidc/scopes"
+                 requiresAuthorization="true"
+                 description="API representation of the OIDC Scope Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View OIDC Scopes" name="internal_org_oidc_scope_mgt_view"
+                   description="View OAuth2 scopes and bindings"/>
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management API" identifier="/api/server/v1/tenants"
