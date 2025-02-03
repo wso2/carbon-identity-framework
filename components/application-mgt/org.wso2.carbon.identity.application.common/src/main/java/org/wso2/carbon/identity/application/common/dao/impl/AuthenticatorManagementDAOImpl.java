@@ -200,7 +200,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         AuthenticatorConfigDaoModel configDaoModel = jdbcTemplate.withTransaction(template ->
-            template.fetchSingleRecord(Query.GET_AUTHENTICATOR_SQL,
+            template.fetchSingleRecord(Query.GET_USER_DEFINED_LOCAL_AUTHENTICATOR_SQL,
                 (resultSet, rowNumber) -> {
                     UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
                             resultSet.getString(Column.AUTHENTICATION_TYPE));
@@ -216,6 +216,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     statement.setString(Column.NAME, authenticatorConfigName);
                     statement.setInt(Column.TENANT_ID, tenantId);
                     statement.setString(Column.DEFINED_BY, DefinedByType.USER.toString());
+                    statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                 }));
 
         if (configDaoModel == null) {
