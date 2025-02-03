@@ -99,7 +99,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
     private Event getEvent() throws ActionExecutionRequestBuilderException {
 
         return new PreUpdatePasswordEvent.Builder()
-                .initiator(getInitiator())
+                .initiatorType(getInitiatorType())
                 .action(getAction())
                 .tenant(getTenant())
                 .user(getUser())
@@ -107,7 +107,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
                 .build();
     }
 
-    private PreUpdatePasswordEvent.FlowInitiator getInitiator() throws ActionExecutionRequestBuilderException {
+    private PreUpdatePasswordEvent.FlowInitiatorType getInitiatorType() throws ActionExecutionRequestBuilderException {
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
         if (flow == null) {
@@ -116,11 +116,11 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
 
         switch(flow.getInitiatingPersona()) {
             case ADMIN:
-                return PreUpdatePasswordEvent.FlowInitiator.ADMIN;
+                return PreUpdatePasswordEvent.FlowInitiatorType.ADMIN;
             case APPLICATION:
-                return PreUpdatePasswordEvent.FlowInitiator.APPLICATION;
+                return PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION;
             case USER:
-                return PreUpdatePasswordEvent.FlowInitiator.USER;
+                return PreUpdatePasswordEvent.FlowInitiatorType.USER;
             default:
                 break;
         }
