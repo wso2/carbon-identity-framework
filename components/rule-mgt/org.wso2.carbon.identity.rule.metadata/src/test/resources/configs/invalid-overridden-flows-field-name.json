@@ -1,17 +1,10 @@
 {
-  "preIssueAccessToken": [
-    {
-      "fieldName": "application"
-    },
-    {
-      "fieldName": "grantType"
-    }
-  ],
   "preUpdatePassword": [
     {
       "fieldName": "flow",
       "overrides": {
         "field": {
+          "name": "flow",
           "displayName": "flow"
         },
         "value": {

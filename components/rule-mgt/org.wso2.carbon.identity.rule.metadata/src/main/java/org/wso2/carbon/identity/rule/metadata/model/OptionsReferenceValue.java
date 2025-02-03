@@ -114,10 +114,6 @@ public class OptionsReferenceValue extends Value {
                 throw new IllegalArgumentException("'valueDisplayAttribute' cannot be empty.");
             }
 
-            if (links == null || links.isEmpty()) {
-                throw new IllegalArgumentException("'links' cannot be null or empty.");
-            }
-
             return new OptionsReferenceValue(this);
         }
     }
