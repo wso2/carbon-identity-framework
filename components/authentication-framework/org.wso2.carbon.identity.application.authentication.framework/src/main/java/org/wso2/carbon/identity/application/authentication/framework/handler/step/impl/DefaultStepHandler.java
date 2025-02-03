@@ -698,7 +698,8 @@ public class DefaultStepHandler implements StepHandler {
         }
     }
 
-    private void handleAuthenticatorResolvingForBasicAuthMechanism(AuthenticationContext context, StepConfig stepConfig) {
+    private void handleAuthenticatorResolvingForBasicAuthMechanism(
+            AuthenticationContext context, StepConfig stepConfig) {
 
         /* When an authenticator with the basic authentication mechanism (such as basic or identifierFirst) is engaged
         in the authentication flow, the handleRequest method for that authenticator is automatically triggered at the
