@@ -1,0 +1,61 @@
+{
+  "preIssueAccessToken": [
+    {
+      "fieldName": "application",
+      "overrides": {
+        "value": {
+          "links": [
+            {
+              "href": "/applications?excludeSystemPortals=true&offset=0&limit=10",
+              "method": "GET",
+              "rel": "values"
+            },
+            {
+              "href": "/applications?excludeSystemPortals=true&filter=name+eq+*&limit=10",
+              "method": "GET",
+              "rel": "filter"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "preUpdatePassword": [
+    {
+      "fieldName": "flow",
+      "overrides": {
+        "field": {
+          "displayName": "flow"
+        },
+        "value": {
+          "values": [
+            {
+              "name": "adminInitiatedPasswordReset",
+              "displayName": "Admin initiated password reset"
+            },
+            {
+              "name": "adminInitiatedPasswordUpdate",
+              "displayName": "Admin initiated password update"
+            },
+            {
+              "name": "adminInitiatedUserInviteToSetPassword",
+              "displayName": "Admin initiated user invite to set password"
+            },
+            {
+              "name": "applicationInitiatedPasswordUpdate",
+              "displayName": "Application initiated password update"
+            },
+            {
+              "name": "userInitiatedPasswordReset",
+              "displayName": "User initiated password reset"
+            },
+            {
+              "name": "userInitiatedPasswordUpdate",
+              "displayName": "User initiated password update"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

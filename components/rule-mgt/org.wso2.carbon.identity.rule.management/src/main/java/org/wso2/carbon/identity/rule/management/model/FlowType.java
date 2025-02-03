@@ -23,5 +23,6 @@ package org.wso2.carbon.identity.rule.management.model;
  */
 public enum FlowType {
 
-    PRE_ISSUE_ACCESS_TOKEN;
+    PRE_ISSUE_ACCESS_TOKEN,
+    PRE_UPDATE_PASSWORD,
 }

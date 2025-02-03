@@ -25,7 +25,8 @@ import org.wso2.carbon.identity.rule.metadata.util.RuleMetadataExceptionBuilder;
  * Enum class to represent the flow types.
  */
 public enum FlowType {
-    PRE_ISSUE_ACCESS_TOKEN("preIssueAccessToken");
+    PRE_ISSUE_ACCESS_TOKEN("preIssueAccessToken"),
+    PRE_UPDATE_PASSWORD("preUpdatePassword");
 
     private final String flowAlias;
 

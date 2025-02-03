@@ -40,19 +40,11 @@ public class OptionsInputValue extends Value {
                              @JsonProperty("values") List<OptionsValue> values) {
 
         super(InputType.OPTIONS, valueType);
-        validate(values);
         this.values = values;
     }
 
     public List<OptionsValue> getValues() {
 
         return values;
-    }
-
-    private void validate(List<OptionsValue> values) {
-
-        if (values == null || values.isEmpty()) {
-            throw new IllegalArgumentException("'values' cannot be null or empty.");
-        }
     }
 }

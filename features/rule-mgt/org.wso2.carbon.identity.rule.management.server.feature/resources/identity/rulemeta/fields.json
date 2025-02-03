@@ -58,5 +58,20 @@
         }
       ]
     }
+  },
+  "flow": {
+    "field": {
+      "name": "flow",
+      "displayName": "flow"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": []
+    }
   }
 }

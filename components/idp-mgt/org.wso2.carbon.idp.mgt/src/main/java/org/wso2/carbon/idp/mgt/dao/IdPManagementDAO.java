@@ -6057,6 +6057,8 @@ public class IdPManagementDAO {
              PreparedStatement prepStmt = connection.prepareStatement(
                     IdPManagementConstants.SQLQueries.GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS)) {
             prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, "LOCAL");
+            prepStmt.setInt(3, tenantId);
             try (ResultSet resultSet = prepStmt.executeQuery()) {
                 while (resultSet.next()) {
                     UserDefinedFederatedAuthenticatorConfig federatedAuthenticatorConfig =
