@@ -18,18 +18,22 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The authenticator endpoint configuration model for the user defined authenticator configurations.
  */
 public class UserDefinedAuthenticatorEndpointConfig {
 
+    private static final Log LOG = LogFactory.getLog(UserDefinedAuthenticatorEndpointConfig.class);
     private final EndpointConfig endpointConfig;
 
     private UserDefinedAuthenticatorEndpointConfig(UserDefinedAuthenticatorEndpointConfigBuilder builder) {
@@ -112,13 +116,31 @@ public class UserDefinedAuthenticatorEndpointConfig {
 
             EndpointConfig.EndpointConfigBuilder endpointConfigBuilder = new EndpointConfig.EndpointConfigBuilder();
             endpointConfigBuilder.uri(uri);
-            endpointConfigBuilder.authentication(new Authentication.AuthenticationBuilder()
-                        .type(Authentication.Type.valueOf(authenticationType))
-                        .properties(authenticationProperties)
-                        .build());
+            endpointConfigBuilder.authentication(resolveAuthentication());
             endpointConfig = endpointConfigBuilder.build();
 
             return new UserDefinedAuthenticatorEndpointConfig(this);
+        }
+
+        private Authentication resolveAuthentication() {
+
+            if (Objects.equals(authenticationType, Authentication.Type.NONE.getName())) {
+                return new Authentication.NoneAuthBuilder().build();
+            }
+
+            if (authenticationProperties == null || authenticationProperties.isEmpty()) {
+                if (authenticationType != null) {
+                    LOG.debug("Ignoring the authentication type: " + authenticationType +
+                            " since the authentication properties are not provided.");
+                }
+                return null;
+            }
+
+            // Both authenticationType and authenticationProperties is required to build the authentication.
+            return new Authentication.AuthenticationBuilder()
+                    .type(Authentication.Type.valueOf(authenticationType))
+                    .properties(authenticationProperties)
+                    .build();
         }
     }
 }

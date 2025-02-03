@@ -361,9 +361,10 @@ public class IdPManagementFacade {
             endpointConfigurationManager.updateEndpointConfig(newIdentityProvider.getFederatedAuthenticatorConfigs()[0],
                     oldIdentityProvider.getFederatedAuthenticatorConfigs()[0],
                     tenantDomain);
+        } else {
+            endpointConfigurationManager.deleteEndpointConfig(oldFederatedAuth, tenantDomain);
+            endpointConfigurationManager.addEndpointConfig(newFederatedAuth, tenantDomain);
         }
-        endpointConfigurationManager.deleteEndpointConfig(oldFederatedAuth, tenantDomain);
-        endpointConfigurationManager.addEndpointConfig(newFederatedAuth, tenantDomain);
     }
 
     private void deleteEndpointConfig(IdentityProvider identityProvider, String tenantDomain)
