@@ -331,7 +331,6 @@ public class IdPManagementFacade {
         }
         endpointConfigurationManager.resolveEndpointConfig(identityProvider.getFederatedAuthenticatorConfigs()[0],
                 tenantDomain);
-        identityProvider.setDefaultAuthenticatorConfig(identityProvider.getFederatedAuthenticatorConfigs()[0]);
         return identityProvider;
     }
 
