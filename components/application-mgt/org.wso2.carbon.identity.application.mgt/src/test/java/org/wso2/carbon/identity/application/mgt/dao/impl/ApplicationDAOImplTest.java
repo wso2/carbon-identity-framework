@@ -249,7 +249,7 @@ public class ApplicationDAOImplTest {
 
     @Test(description = "Test retrieving discoverable apps when getGroupListOfUser throws an exception",
             dependsOnMethods = { "testDiscoverableAppsList" })
-    public void testDiscoverableAppsListWhenIsUserInGroupThrowsException() throws UserStoreException {
+    public void testDiscoverableAppsListWhenGetGroupListOfUserThrowsException() throws UserStoreException {
 
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
