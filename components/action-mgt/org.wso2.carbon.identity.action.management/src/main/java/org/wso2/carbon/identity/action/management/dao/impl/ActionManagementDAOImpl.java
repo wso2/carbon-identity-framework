@@ -348,7 +348,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         Authentication authentication;
         Authentication.Type authnType =
-                Authentication.Type.valueOf(propertiesFromDB.remove(ActionMgtConstants.AUTHN_TYPE_PROPERTY));
+                Authentication.Type.valueOfName(propertiesFromDB.remove(ActionMgtConstants.AUTHN_TYPE_PROPERTY));
         switch (authnType) {
             case BASIC:
                 authentication = new Authentication.BasicAuthBuilder(
