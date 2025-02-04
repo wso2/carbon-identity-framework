@@ -260,7 +260,7 @@ public class ApplicationDAOImplTest {
     }
 
     @Test(description = "Test retrieving discoverable apps list with a filter",
-            dependsOnMethods = {"testDiscoverableAppsListWhenIsUserInGroupThrowsException"})
+            dependsOnMethods = {"testDiscoverableAppsListWhenGetGroupListOfUserThrowsException"})
     public void testDiscoverableAppsListWithFilter()
             throws IdentityApplicationManagementException, UserStoreException {
 
