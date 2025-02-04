@@ -34,12 +34,14 @@ import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
+import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvider;
 import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordActionRequestBuilder;
 import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordResponseProcessor;
 import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.UserPreUpdatePasswordActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionConverter;
 import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionDTOModelResolver;
+import org.wso2.carbon.identity.user.pre.update.password.action.core.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
 
 /**
  * Service component for the Pre Update Password Action.
@@ -75,6 +77,10 @@ public class PreUpdatePasswordActionServiceComponent {
 
             bundleCtx.registerService(UserActionExecutor.class, new UserPreUpdatePasswordActionExecutor(), null);
             LOG.debug("User Pre Update Password Action Executor is enabled");
+
+            bundleCtx.registerService(RuleEvaluationDataProvider.class,
+                    new PreUpdatePasswordActionRuleEvaluationDataProvider(), null);
+            LOG.debug("User Pre Update Password Action Rule Evaluation Data Provider is enabled");
 
             LOG.debug("Pre Update Password Action bundle is activated");
         } catch (Throwable e) {

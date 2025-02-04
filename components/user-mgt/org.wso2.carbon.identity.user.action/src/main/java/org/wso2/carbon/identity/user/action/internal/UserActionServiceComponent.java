@@ -60,13 +60,7 @@ public class UserActionServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        try {
-            BundleContext bundleCtx = context.getBundleContext();
-            bundleCtx.ungetService(bundleCtx.getServiceReference(ActionUserOperationEventListener.class));
-            LOG.debug("User Action bundle is deactivated");
-        } catch (Throwable e) {
-            LOG.error("Error while deactivating User Action service component.", e);
-        }
+        LOG.debug("User Action bundle is deactivated");
     }
 
     @Reference(

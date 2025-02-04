@@ -15,12 +15,12 @@
       "valueDisplayAttribute": "name",
       "links": [
         {
-          "href": "/applications?offset=0&limit=10",
+          "href": "/applications?excludeSystemPortals=true&offset=0&limit=10",
           "method": "GET",
           "rel": "values"
         },
         {
-          "href": "/applications?filter=name+eq+*&limit=10",
+          "href": "/applications?excludeSystemPortals=true&filter=name+eq+*&limit=10",
           "method": "GET",
           "rel": "filter"
         }
@@ -55,13 +55,23 @@
         {
           "name": "client_credentials",
           "displayName": "client credentials"
-        },
-        {
-          "name": "urn:ietf:params:oauth:grant-type:token-exchange",
-          "displayName": "token exchange"
         }
       ]
     }
+  },
+  "flow": {
+    "field": {
+      "name": "flow",
+      "displayName": "flow"
+    },
+    "operators": [
+      "equals",
+      "notEquals"
+    ],
+    "value": {
+      "inputType": "options",
+      "valueType": "string",
+      "values": []
+    }
   }
 }
-

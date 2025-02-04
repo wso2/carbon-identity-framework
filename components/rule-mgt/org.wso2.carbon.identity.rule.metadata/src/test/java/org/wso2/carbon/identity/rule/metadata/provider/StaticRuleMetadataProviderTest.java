@@ -107,10 +107,12 @@ public class StaticRuleMetadataProviderTest {
         assertEquals(applicationFieldValue.getValueDisplayAttribute(), "name");
 
         assertEquals(applicationFieldValue.getLinks().size(), 2);
-        assertEquals(applicationFieldValue.getLinks().get(0).getHref(), "/applications?offset=0&limit=10");
+        assertEquals(applicationFieldValue.getLinks().get(0).getHref(),
+                "/applications?excludeSystemPortals=true&offset=0&limit=10");
         assertEquals(applicationFieldValue.getLinks().get(0).getRel(), "values");
         assertEquals(applicationFieldValue.getLinks().get(0).getMethod(), "GET");
-        assertEquals(applicationFieldValue.getLinks().get(1).getHref(), "/applications?filter=name+eq+*&limit=10");
+        assertEquals(applicationFieldValue.getLinks().get(1).getHref(),
+                "/applications?excludeSystemPortals=true&filter=name+eq+*&limit=10");
         assertEquals(applicationFieldValue.getLinks().get(1).getRel(), "filter");
         assertEquals(applicationFieldValue.getLinks().get(1).getMethod(), "GET");
 

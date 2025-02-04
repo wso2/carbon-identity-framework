@@ -148,7 +148,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertTrue(actionExecutionRequest.getEvent() instanceof PreUpdatePasswordEvent);
 
         PreUpdatePasswordEvent preUpdatePasswordEvent = (PreUpdatePasswordEvent) actionExecutionRequest.getEvent();
-        assertEquals(preUpdatePasswordEvent.getInitiator(), PreUpdatePasswordEvent.FlowInitiator.USER);
+        assertEquals(preUpdatePasswordEvent.getInitiatorType(), PreUpdatePasswordEvent.FlowInitiatorType.USER);
         assertEquals(preUpdatePasswordEvent.getAction(), PreUpdatePasswordEvent.Action.UPDATE);
 
         assertEquals(preUpdatePasswordEvent.getUserStore().getName(), TEST_USER_STORE_DOMAIN_NAME);
@@ -178,7 +178,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertTrue(actionExecutionRequest.getEvent() instanceof PreUpdatePasswordEvent);
 
         PreUpdatePasswordEvent preUpdatePasswordEvent = (PreUpdatePasswordEvent) actionExecutionRequest.getEvent();
-        assertEquals(preUpdatePasswordEvent.getInitiator(), PreUpdatePasswordEvent.FlowInitiator.APPLICATION);
+        assertEquals(preUpdatePasswordEvent.getInitiatorType(), PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION);
         assertEquals(preUpdatePasswordEvent.getAction(), PreUpdatePasswordEvent.Action.RESET);
 
         assertEquals(preUpdatePasswordEvent.getUserStore().getName(), TEST_USER_STORE_DOMAIN_NAME);

@@ -663,6 +663,7 @@ public class DefaultStepHandler implements StepHandler {
         boolean isNoneCanHandle = true;
         StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
 
+        handleAuthenticatorResolvingForBasicAuthMechanism(context, stepConfig);
         for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
@@ -694,6 +695,27 @@ public class DefaultStepHandler implements StepHandler {
         }
         if (isNoneCanHandle) {
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
+        }
+    }
+
+    private void handleAuthenticatorResolvingForBasicAuthMechanism(
+            AuthenticationContext context, StepConfig stepConfig) {
+
+        /* When an authenticator with the basic authentication mechanism (such as basic or identifierFirst) is engaged
+        in the authentication flow, the handleRequest method for that authenticator is automatically triggered at the
+        start, setting setCurrentAuthenticator to the corresponding authenticator. However, when the user provides
+        credentials, the handleResponse method is initiated, and from the method handle(HttpServletRequest,
+        HttpServletResponse) in the DefaultRequestCoordinator class setCurrentAuthenticator is reset to null.
+        As a result, when selecting the appropriate authenticator, the system iterates through the list of
+        authenticators in the step and checks if currentAuthenticator is null. This causes the first authenticator in
+        the step to always be selected. To address this, if currentAuthenticator is null and an authenticator with the
+        basic authentication mechanism is present, we set the corresponding authenticator as the current authenticator.
+         */
+        for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
+            if (context.getCurrentAuthenticator() == null &&
+                    BASIC_AUTH_MECHANISM.equals(authenticatorConfig.getApplicationAuthenticator().getAuthMechanism())) {
+                context.setCurrentAuthenticator(authenticatorConfig.getName());
+            }
         }
     }
 

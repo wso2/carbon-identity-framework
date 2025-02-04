@@ -1,0 +1,42 @@
+{
+  "preUpdatePassword": [
+    {
+      "fieldName": "flow",
+      "overrides": {
+        "field": {
+            "displayName": "flow"
+        },
+        "value": {
+          "inputType": "options",
+          "valueType": "string",
+          "values": [
+            {
+              "name": "adminInitiatedPasswordReset",
+              "displayName": "Admin initiated password reset"
+            },
+            {
+              "name": "adminInitiatedPasswordUpdate",
+              "displayName": "Admin initiated password update"
+            },
+            {
+              "name": "adminInitiatedUserInviteToSetPassword",
+              "displayName": "Admin initiated user invite to set password"
+            },
+            {
+              "name": "applicationInitiatedPasswordUpdate",
+              "displayName": "Application initiated password update"
+            },
+            {
+              "name": "userInitiatedPasswordReset",
+              "displayName": "User initiated password reset"
+            },
+            {
+              "name": "userInitiatedPasswordUpdate",
+              "displayName": "User initiated password update"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
