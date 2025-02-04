@@ -138,7 +138,7 @@ public class UserDefinedAuthenticatorEndpointConfig {
 
             // Both authenticationType and authenticationProperties is required to build the authentication.
             return new Authentication.AuthenticationBuilder()
-                    .type(Authentication.Type.valueOf(authenticationType))
+                    .type(Authentication.Type.valueOfName(authenticationType))
                     .properties(authenticationProperties)
                     .build();
         }
