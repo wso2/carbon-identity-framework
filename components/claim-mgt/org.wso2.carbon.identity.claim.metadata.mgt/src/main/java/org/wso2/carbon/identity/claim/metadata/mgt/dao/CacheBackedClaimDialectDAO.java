@@ -30,6 +30,7 @@ import java.util.List;
  * Caches the claim dialect.
  * Uses direct DB call when cache is disabled.
  */
+@Deprecated
 public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedClaimDialectDAO.class);
