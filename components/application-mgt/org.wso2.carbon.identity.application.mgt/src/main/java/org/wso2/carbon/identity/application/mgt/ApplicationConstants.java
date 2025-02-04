@@ -290,7 +290,9 @@ public class ApplicationConstants {
         ERROR_RETRIEVING_GROUP_LIST(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving group list.",
                 "Error while retrieving group list for the user store: %s."),
         INVALID_USER_STORE_DOMAIN(INVALID_REQUEST.getCode(), "Invalid user store domain.",
-                "User store domain: %s is not valid for the tenant: %s.");
+                "User store domain: %s is not valid for the tenant: %s."),
+        ERROR_RETRIEVING_USER_GROUPS(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving user groups.",
+                "Error occurred while retrieving groups of the user: %s.");
 
         private final String code;
 

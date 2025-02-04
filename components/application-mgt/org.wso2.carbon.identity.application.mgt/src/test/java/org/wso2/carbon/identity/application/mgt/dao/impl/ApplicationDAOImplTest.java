@@ -37,17 +37,20 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -229,34 +232,28 @@ public class ApplicationDAOImplTest {
         ServiceProvider serviceProvider3 = applicationDAO.getApplication("test-app", SUPER_TENANT_DOMAIN_NAME);
         serviceProvider3.setDiscoverableGroups(null);
         applicationDAO.updateApplication(serviceProvider3, SUPER_TENANT_DOMAIN_NAME);
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(true);
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-1")))
-                .thenReturn(false);
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenReturn(Collections.singletonList(new Group("test-group-id-0")));
         List<ApplicationBasicInfo> applicationBasicInfos =
                 applicationDAO.getDiscoverableApplicationBasicInfo(10, 0, null, null, null, SUPER_TENANT_DOMAIN_NAME);
         assertEquals(applicationBasicInfos.size(), 2);
+        assertEquals(applicationBasicInfos.get(0).getApplicationName(), "scl-app");
+        assertEquals(applicationBasicInfos.get(1).getApplicationName(), "test-app");
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenReturn(null);
+        applicationBasicInfos =
+                applicationDAO.getDiscoverableApplicationBasicInfo(10, 0, null, null, null, SUPER_TENANT_DOMAIN_NAME);
+        assertEquals(applicationBasicInfos.size(), 1);
         assertEquals(applicationBasicInfos.get(0).getApplicationName(), "test-app");
-        assertEquals(applicationBasicInfos.get(1).getApplicationName(), "scl-app");
     }
 
-    @Test(description = "Test retrieving discoverable apps when isUserInGroup throws an exception",
+    @Test(description = "Test retrieving discoverable apps when getGroupListOfUser throws an exception",
             dependsOnMethods = { "testDiscoverableAppsList" })
-    public void testDiscoverableAppsListWhenIsUserInGroupThrowsException()
-            throws IdentityApplicationManagementException, UserStoreException {
+    public void testDiscoverableAppsListWhenIsUserInGroupThrowsException() throws UserStoreException {
 
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(true);
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-1")))
-                .thenThrow(new UserStoreClientException());
-        List<ApplicationBasicInfo> applicationBasicInfos =
-                applicationDAO.getDiscoverableApplicationBasicInfo(10, 0, null, null, null, SUPER_TENANT_DOMAIN_NAME);
-        assertEquals(applicationBasicInfos.size(), 2);
-        assertEquals(applicationBasicInfos.get(0).getApplicationName(), "test-app");
-        assertEquals(applicationBasicInfos.get(1).getApplicationName(), "scl-app");
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-1")))
-                .thenThrow(new UserStoreException());
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenThrow(new UserStoreException());
         assertThrows(IdentityApplicationManagementException.class,
                 () -> applicationDAO.getDiscoverableApplicationBasicInfo(10, 0, null, null, null,
                         SUPER_TENANT_DOMAIN_NAME));
@@ -268,10 +265,9 @@ public class ApplicationDAOImplTest {
             throws IdentityApplicationManagementException, UserStoreException {
 
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(true);
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-1")))
-                .thenReturn(true);
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenReturn(
+                Arrays.asList(new Group("test-group-id-0"), new Group("test-group-id-1")));
         List<ApplicationBasicInfo> applicationBasicInfos =
                 applicationDAO.getDiscoverableApplicationBasicInfo(10, 0, "medical*", null, null,
                         SUPER_TENANT_DOMAIN_NAME);
@@ -286,13 +282,13 @@ public class ApplicationDAOImplTest {
 
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         ServiceProvider serviceProvider = applicationDAO.getApplication("scl-app", SUPER_TENANT_DOMAIN_NAME);
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(true);
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenReturn(Collections.singletonList(new Group("test-group-id-0")));
         ApplicationBasicInfo applicationBasicInfo = applicationDAO.getDiscoverableApplicationBasicInfoByResourceId(
                 serviceProvider.getApplicationResourceId(), SUPER_TENANT_DOMAIN_NAME);
         assertEquals(applicationBasicInfo.getApplicationName(), "scl-app");
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(false);
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenReturn(new ArrayList<>());
         assertNull(applicationDAO.getDiscoverableApplicationBasicInfoByResourceId(
                 serviceProvider.getApplicationResourceId(), SUPER_TENANT_DOMAIN_NAME));
     }
@@ -304,16 +300,15 @@ public class ApplicationDAOImplTest {
 
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         ServiceProvider serviceProvider = applicationDAO.getApplication("scl-app", SUPER_TENANT_DOMAIN_NAME);
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(false);
-        assertTrue(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenReturn(Collections.singletonList(new Group("test-group-id-1")));
+        assertFalse(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
                 SUPER_TENANT_DOMAIN_NAME));
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(true);
+        serviceProvider = applicationDAO.getApplication("medical-app", SUPER_TENANT_DOMAIN_NAME);
         assertTrue(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
                 SUPER_TENANT_DOMAIN_NAME));
         serviceProvider = applicationDAO.getApplication("test-app", SUPER_TENANT_DOMAIN_NAME);
-        assertFalse(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
+        assertTrue(applicationDAO.isApplicationDiscoverable(serviceProvider.getApplicationResourceId(),
                 SUPER_TENANT_DOMAIN_NAME));
     }
 
@@ -321,10 +316,8 @@ public class ApplicationDAOImplTest {
             "testIsApplicationDiscoverable" })
     public void testGetDiscoverableAppCount() throws UserStoreException, IdentityApplicationManagementException {
 
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-0")))
-                .thenReturn(true);
-        when(mockAbstractUserStoreManager.isUserInGroup(eq(USER_ID), eq("test-group-id-1")))
-                .thenReturn(false);
+        when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
+                nullable(String.class))).thenReturn(Collections.singletonList(new Group("test-group-id-0")));
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         assertEquals(applicationDAO.getCountOfDiscoverableApplications(null, SUPER_TENANT_DOMAIN_NAME), 2);
         assertEquals(applicationDAO.getCountOfDiscoverableApplications("scl*", SUPER_TENANT_DOMAIN_NAME), 1);

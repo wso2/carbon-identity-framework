@@ -62,6 +62,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -84,6 +85,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONS
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USER_GROUPS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
@@ -1288,17 +1290,42 @@ public class ApplicationMgtUtil {
                     realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain))
                             .getUserStoreManager();
         } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
                     String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain), e);
         }
         if (userStoreManager == null) {
-            throw new IdentityApplicationManagementException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
                     String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain));
         }
         if (!(userStoreManager instanceof AbstractUserStoreManager)) {
-            throw new IdentityApplicationManagementException(UNSUPPORTED_USER_STORE_MANAGER.getCode(),
+            throw new IdentityApplicationManagementServerException(UNSUPPORTED_USER_STORE_MANAGER.getCode(),
                     String.format(UNSUPPORTED_USER_STORE_MANAGER.getDescription(), tenantDomain));
         }
         return (AbstractUserStoreManager) userStoreManager;
+    }
+
+    /**
+     * Get the group IDs of the logged-in user.
+     *
+     * @return Array of group IDs of the logged-in user.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving the group IDs of the
+     *                                                logged-in user.
+     */
+    public static String[] getLoggedInUserGroupIDList() throws IdentityApplicationManagementException {
+
+        String loggedInUserId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        AbstractUserStoreManager userStoreManager = getUserStoreManager(tenantDomain);
+        try {
+            List<Group> groupList = userStoreManager.getGroupListOfUser(loggedInUserId, null, null);
+            if (groupList != null) {
+                return groupList.stream().map((group) -> UserCoreUtil.removeDomainFromName(group.getGroupID()))
+                        .toArray(String[]::new);
+            }
+            return new String[0];
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USER_GROUPS.getCode(),
+                    ERROR_RETRIEVING_USER_GROUPS.getDescription(), e);
+        }
     }
 }
