@@ -27,7 +27,7 @@ import static org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.TAG_C
  */
 public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
 
-    private transient UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private UserDefinedAuthenticatorEndpointConfig endpointConfig;
 
     public UserDefinedFederatedAuthenticatorConfig() {
 
