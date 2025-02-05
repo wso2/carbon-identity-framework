@@ -92,16 +92,6 @@
     </DataStorageType>
 
     <NotificationTemplates>
-        <LegacyTenants>
-            {% for tenant in notification_templates.legacy_tenants %}
-            <Tenant>{{tenant}}</Tenant>
-            {% endfor %}
-        </LegacyTenants>
-        <DebugTenants>
-            {% for tenant in notification_templates.debug_tenants %}
-            <Tenant>{{tenant}}</Tenant>
-            {% endfor %}
-        </DebugTenants>
         <SMSTemplates>
             <Apply>{{notification_templates.sms_templates.apply}}</Apply>
         </SMSTemplates>
