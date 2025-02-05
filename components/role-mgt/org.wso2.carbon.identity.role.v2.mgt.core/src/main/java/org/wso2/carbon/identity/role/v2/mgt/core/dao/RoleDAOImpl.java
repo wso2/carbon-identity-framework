@@ -831,8 +831,10 @@ public class RoleDAOImpl implements RoleDAO {
         if (!StringUtils.equalsIgnoreCase(roleName, newRoleName) && isExistingRoleName(newRoleName,
                 roleAudience.getAudience(), roleAudience.getAudienceId(), tenantDomain)) {
             throw new IdentityRoleManagementClientException(RoleConstants.Error.ROLE_ALREADY_EXISTS.getCode(),
-                    "Role already exist for the role name: " + roleName + " audience: " + roleAudience.getAudience()
-                            + " audienceId: " + roleAudience.getAudienceId());
+                    String.format(
+                    "Error while Updating the roleName: %s to : %s. Role already exist for the role name: %s " +
+                            "audience: %s audienceId: %s", roleName, newRoleName, newRoleName,
+                            roleAudience.getAudience(), roleAudience.getAudienceId()));
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Updating the roleName: " + roleName + " to :" + newRoleName + " in the tenantDomain: "
