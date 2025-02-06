@@ -29,6 +29,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.xerces.impl.Constants;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -64,8 +65,11 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -78,6 +82,10 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.sax.SAXSource;
 
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
@@ -658,15 +666,35 @@ public class ApplicationMgtUtil {
     public static ServiceProvider getApplicationFromSpFileStream(SpFileStream spFileStream, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        if (spFileStream.getFileStream() == null) {
+            throw new IdentityApplicationManagementException("File stream is null for file: %s uploaded by tenant: %s",
+                    spFileStream.getFileName(), tenantDomain);
+        }
         try {
+            // Creating secure parser by disabling XXE.
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            spf.setNamespaceAware(true);
+            spf.setXIncludeAware(false);
+            try {
+                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+                spf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
+                spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            } catch (SAXException | ParserConfigurationException e) {
+                log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE +
+                        " or " + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " +
+                        Constants.LOAD_EXTERNAL_DTD_FEATURE + " or secure-processing.");
+            }
+            // Creating source object using the secure parser.
+            Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
+                    new InputSource(spFileStream.getFileStream()));
             JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             // Disable external entity processing to prevent XXE attacks.
             unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-            return (ServiceProvider) unmarshaller.unmarshal(spFileStream.getFileStream());
-
-        } catch (JAXBException e) {
+            return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+        } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
         } catch (Exception e) {
