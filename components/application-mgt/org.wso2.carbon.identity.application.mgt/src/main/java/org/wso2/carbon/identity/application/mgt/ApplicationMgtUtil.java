@@ -675,11 +675,7 @@ public class ApplicationMgtUtil {
             // Creating source object using the secure parser.
             Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
                     new InputSource(spFileStream.getFileStream()));
-            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            // Disable external entity processing to prevent XXE attacks.
-            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+            Unmarshaller unmarshaller = getUnmarshaller();
             return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
         } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
@@ -690,6 +686,16 @@ public class ApplicationMgtUtil {
                     "Provider configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain),
                     e);
         }
+    }
+
+    public static Unmarshaller getUnmarshaller() throws JAXBException {
+
+        JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        // Disable external entity processing to prevent XXE attacks.
+        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        return unmarshaller;
     }
 
     /**

@@ -2226,8 +2226,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
                     new InputSource(new StringReader(spTemplateXml)));
             // Performing unmarshall operation by passing the generated source object to the unmarshaller.
-            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            Unmarshaller unmarshaller = ApplicationMgtUtil.getUnmarshaller();
             return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
         } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
@@ -2427,8 +2426,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
                     new InputSource(new StringReader(spFileContent.getContent())));
             // Performing unmarshall operation by passing the generated source object to the unmarshaller.
-            JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            Unmarshaller unmarshaller = ApplicationMgtUtil.getUnmarshaller();
             return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
         } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
