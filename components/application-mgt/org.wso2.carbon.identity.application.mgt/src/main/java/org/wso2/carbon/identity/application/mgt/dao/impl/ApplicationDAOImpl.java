@@ -290,6 +290,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 property.setName(rs.getString("NAME"));
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
+                //Should we add amr value as a service provider property
                 idpProperties.add(property);
             }
         } catch (DataAccessException e) {
@@ -1589,7 +1590,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                         ApplicationConstants.LOCAL_IDP_NAME,
                                         lclAuthenticator.getName(),
                                         lclAuthenticator.getDisplayName(),
-                                        DefinedByType.SYSTEM.toString());
+                                        DefinedByType.SYSTEM.toString(), lclAuthenticator.getAmrValue());
                             }
                             if (authenticatorId > 0) {
                                 // ID, TENANT_ID, AUTHENTICATOR_ID
@@ -3144,6 +3145,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     localAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
+                    localAuthenticator.setAmrValue(authenticatorInfo
+                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                 } else {
                     Map<String, List<FederatedAuthenticatorConfig>> stepFedIdps = stepFedIdPAuthenticators
                             .get(step);
@@ -3163,6 +3166,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
                     fedAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
+                    fedAuthenticator.setAmrValue(authenticatorInfo
+                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                     idpAuths.add(fedAuthenticator);
                 }
 
@@ -5081,6 +5086,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 returnData
                         .put(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME, rs.getString(3));
                 returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE, rs.getString(4));
+                returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_AMR, rs.getString(5));
             }
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -5098,7 +5104,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws SQLException
      */
     private int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
-                                 String authenticatorDispalyName, String definedByType) throws SQLException {
+                                 String authenticatorDispalyName, String definedByType, String amrValue) throws SQLException {
 
         int authenticatorId = -1;
         PreparedStatement prepStmt = null;
@@ -5117,6 +5123,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             prepStmt.setString(7, definedByType);
             // By default, unless specified, the authentication type is 'IDENTIFICATION' for local authenticators.
             prepStmt.setString(8, AuthenticationType.IDENTIFICATION.toString());
+            prepStmt.setString(9, amrValue);
             prepStmt.execute();
             rs = prepStmt.getGeneratedKeys();
             if (rs.next()) {

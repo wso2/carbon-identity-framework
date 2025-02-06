@@ -79,6 +79,8 @@ public class RequestPathAuthenticatorConfig extends LocalAuthenticatorConfig {
         // Since custom request path authenticators are not allowed, the definedBy type will always be set to SYSTEM.
         requestPathAuthenticatorConfig.setDefinedByType(AuthenticatorPropertyConstants.DefinedByType.SYSTEM);
 
+        requestPathAuthenticatorConfig.setAmrValue(requestPathAuthenticatorConfig.getAmrValue());
+
         return requestPathAuthenticatorConfig;
     }
 
