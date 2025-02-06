@@ -39,9 +39,9 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     private static final Log log = LogFactory.getLog(CacheBackedUnifiedClaimMetadataManager.class);
 
     ClaimDialectCache claimDialectCache = ClaimDialectCache.getInstance();
-    LocalClaimCache localClaimInvalidationCache = LocalClaimCache.getInstance();
-    AssociatedClaimCache associatedClaimCache = AssociatedClaimCache.getInstance();
+    LocalClaimCache localClaimCache = LocalClaimCache.getInstance();
     ExternalClaimCache externalClaimCache = ExternalClaimCache.getInstance();
+    AssociatedClaimCache associatedClaimCache = AssociatedClaimCache.getInstance();
 
     @Override
     public List<ClaimDialect> getClaimDialects(int tenantId) throws ClaimMetadataException {
@@ -60,7 +60,7 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
 
         if (log.isDebugEnabled()) {
             log.debug("Cache miss for claim dialect list for tenant: " + tenantId + ". Updated cache with claim " +
-                    "dialect list retrieved from database. Claim dialect list size: " + claimDialectList.size());
+                    "dialect list. Claim dialect list size: " + claimDialectList.size());
         }
         return claimDialectList;
     }
@@ -114,14 +114,14 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     @Override
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
-        List<LocalClaim> localClaimList = localClaimInvalidationCache.getValueFromCache(tenantId, tenantId);
+        List<LocalClaim> localClaimList = localClaimCache.getValueFromCache(tenantId, tenantId);
 
         if (localClaimList == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Cache miss for local claim list for tenant: " + tenantId);
             }
             localClaimList = super.getLocalClaims(tenantId);
-            localClaimInvalidationCache.addToCache(tenantId, new ArrayList<>(localClaimList), tenantId);
+            localClaimCache.addToCache(tenantId, new ArrayList<>(localClaimList), tenantId);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for local claim list for tenant: " + tenantId);
@@ -143,15 +143,23 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         super.addLocalClaim(localClaim, tenantId);
-        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Local claim: " + localClaim.getClaimURI() + " is added for tenant: " + tenantId +
+                    ". Invalidated LocalClaimCache.");
+        }
     }
 
     @Override
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         super.updateLocalClaim(localClaim, tenantId);
-        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        localClaimCache.clearCacheEntry(tenantId, tenantId);
         associatedClaimCache.clearCacheEntry(localClaim.getClaimURI(), tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Local claim: " + localClaim.getClaimURI() + " is updated in tenant: " + tenantId +
+                    ". Invalidated LocalClaimCache.");
+        }
     }
 
     @Override
@@ -159,15 +167,23 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
             throws ClaimMetadataException {
 
         super.updateLocalClaimMappings(localClaimList, tenantId, userStoreDomain);
-        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Claim mappings for user-store domain: " + userStoreDomain + " is updated in tenant: " +
+                    tenantId + ". Invalidated LocalClaimCache.");
+        }
     }
 
     @Override
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         super.removeLocalClaim(localClaimURI, tenantId);
-        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        localClaimCache.clearCacheEntry(tenantId, tenantId);
         associatedClaimCache.clearCacheEntry(localClaimURI, tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Local claim: " + localClaimURI + " is deleted in tenant: " + tenantId +
+                    ". Invalidated LocalClaimCache.");
+        }
     }
 
     @Override
@@ -211,6 +227,10 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaim.getClaimDialectURI());
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
         associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("External claim: " + externalClaim.getClaimDialectURI() + ":" + externalClaim.getClaimURI() +
+                    " is added for tenant: " + tenantId + ". Invalidated ExternalClaimCache.");
+        }
     }
 
     @Override
@@ -221,6 +241,10 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaim.getClaimDialectURI());
         externalClaimCache.clearCacheEntry(cacheKey, tenantId);
         associatedClaimCache.clearCacheEntry(externalClaim.getMappedLocalClaim(), tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("External claim: " + externalClaim.getClaimDialectURI() + ":" + externalClaim.getClaimURI() +
+                    " is updated in tenant: " + tenantId + ". Invalidated ExternalClaimCache.");
+        }
     }
 
     @Override
@@ -242,13 +266,21 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
         if (StringUtils.isNotBlank(mappedLocalClaim)) {
             associatedClaimCache.clearCacheEntry(mappedLocalClaim, tenantId);
         }
+        if (log.isDebugEnabled()) {
+            log.debug("External claim: " + externalClaimDialectURI + ":" + externalClaimURI +
+                    " is deleted in tenant: " + tenantId + ". Invalidated ExternalClaimCache.");
+        }
     }
 
     @Override
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         super.removeClaimMappingAttributes(tenantId, userstoreDomain);
-        localClaimInvalidationCache.clearCacheEntry(tenantId, tenantId);
+        localClaimCache.clearCacheEntry(tenantId, tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("Claim mappings for user-store domain: " + userstoreDomain + " is removed in tenant: " +
+                    tenantId + ". Invalidated LocalClaimCache.");
+        }
     }
 
     @Override
@@ -256,15 +288,16 @@ public class CacheBackedUnifiedClaimMetadataManager extends UnifiedClaimMetadata
 
         super.removeAllClaimDialects(tenantId);
         claimDialectCache.clearClaimDialects(tenantId);
-        localClaimInvalidationCache.clear(tenantId);
+        localClaimCache.clear(tenantId);
         externalClaimCache.clear(tenantId);
         associatedClaimCache.clear(tenantId);
         if (log.isDebugEnabled()) {
             log.debug("All claim dialects are removed for tenant: " + tenantId +
-                    ". Invalidated ClaimDialectCache.");
+                    ". Invalidated ClaimDialectCache, LocalClaimCache and ExternalClaimCache.");
         }
     }
 
+    @Override
     public List<Claim> getMappedExternalClaims(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         List<Claim> associatedLocalClaims = associatedClaimCache.getValueFromCache(localClaimURI, tenantId);
