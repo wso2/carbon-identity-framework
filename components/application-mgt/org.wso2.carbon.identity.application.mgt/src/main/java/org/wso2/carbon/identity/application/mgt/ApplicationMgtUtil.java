@@ -671,19 +671,7 @@ public class ApplicationMgtUtil {
         }
         try {
             // Creating secure parser by disabling XXE.
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-            spf.setNamespaceAware(true);
-            spf.setXIncludeAware(false);
-            try {
-                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-                spf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
-                spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            } catch (SAXException | ParserConfigurationException e) {
-                log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE +
-                        " or " + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " +
-                        Constants.LOAD_EXTERNAL_DTD_FEATURE + " or secure-processing.");
-            }
+            SAXParserFactory spf = getSecureSaxParserFactory();
             // Creating source object using the secure parser.
             Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
                     new InputSource(spFileStream.getFileStream()));
@@ -1292,5 +1280,23 @@ public class ApplicationMgtUtil {
                     .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
         }
         return inboundConfigType;
+    }
+
+    public static SAXParserFactory getSecureSaxParserFactory() {
+        // Creating secure parser by disabling XXE.
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setNamespaceAware(true);
+        spf.setXIncludeAware(false);
+        try {
+            spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+            spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+            spf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
+            spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (SAXException | ParserConfigurationException e) {
+            log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or "
+                    + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE
+                    + " or secure-processing.");
+        }
+        return spf;
     }
 }
