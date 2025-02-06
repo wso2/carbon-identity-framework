@@ -33,7 +33,6 @@ import java.util.List;
 /**
  * Caching wrapper for org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO
  */
-@Deprecated
 public class CacheBackedLocalClaimDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedLocalClaimDAO.class);
