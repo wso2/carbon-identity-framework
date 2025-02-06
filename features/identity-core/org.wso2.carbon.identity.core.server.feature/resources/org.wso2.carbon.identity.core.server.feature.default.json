@@ -621,6 +621,7 @@
   "oauth.jwks_endpoint.size_limit_bytes": "51200",
   "oauth.jwks_endpoint.add_previous_version_kid" : false,
 
+  "oauth.jwks_endpoint.is_thumbprint_hexify_required": true,
   "authentication.adaptive.event_publisher.authentication_type": "basic",
   "authentication.adaptive.async_executer_pool_size": "5",
   "authentication.adaptive.http_connections.max": "20",
