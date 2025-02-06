@@ -22,12 +22,17 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -854,6 +859,39 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * @return Clone of authentication context.
      */
     public Object clone () {
+
+        removeNonSerializableObjects();
         return SerializationUtils.clone(this);
+    }
+
+    private void removeNonSerializableObjects() {
+
+        if (sequenceConfig == null || sequenceConfig.getStepMap() == null) {
+            return;
+        }
+
+        for (StepConfig stepConfig : sequenceConfig.getStepMap().values()) {
+            if (stepConfig == null || stepConfig.getAuthenticatorList() == null) {
+                continue;
+            }
+
+            for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
+                if (stepConfig.getAuthenticatorList() == null) {
+                    continue;
+                }
+
+                for (IdentityProvider idp : authenticatorConfig.getIdps().values()) {
+                    if (idp == null || idp.getFederatedAuthenticatorConfigs() == null) {
+                        continue;
+                    }
+
+                    for (FederatedAuthenticatorConfig authConfig : idp.getFederatedAuthenticatorConfigs()) {
+                        if (authConfig instanceof UserDefinedFederatedAuthenticatorConfig) {
+                            ((UserDefinedFederatedAuthenticatorConfig) authConfig).setEndpointConfig(null);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
