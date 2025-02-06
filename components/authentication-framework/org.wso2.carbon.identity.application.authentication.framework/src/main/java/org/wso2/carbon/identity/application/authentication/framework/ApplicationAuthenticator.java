@@ -181,4 +181,14 @@ public interface ApplicationAuthenticator extends Serializable {
 
         return DefinedByType.SYSTEM;
     }
+
+    /**
+     * Get the AMR value.
+     *
+     * @return AMR value.
+     */
+    default String getAmrValue() {
+
+        return getName();
+    }
 }

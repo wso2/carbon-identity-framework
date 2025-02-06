@@ -249,8 +249,9 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
-
-        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY FROM " +
+//
+        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY, " +
+                "AMR_VALUE FROM " +
                 "IDP_AUTHENTICATOR WHERE IDP_ID = ?";
 
         public static final String GET_IDP_AUTH_SQL = "SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = ? AND NAME = ?";
@@ -370,10 +371,11 @@ public class IdPManagementConstants {
                 "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
 
         public static final String TRUSTED_TOKEN_ISSUER_FILTER_SQL = "IDP_METADATA.\"VALUE\" = 'true' AND ";
-
+//
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
-                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) VALUES " +
-                "(?,?,?,?,?,?,?)";
+                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE, AMR_VALUE) " +
+        "VALUES " +
+                "(?,?,?,?,?,?,?,?)";
 
         public static final String DELETE_IDP_AUTH_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE IDP_ID=? AND NAME=?";
 
@@ -453,7 +455,7 @@ public class IdPManagementConstants {
         public static final String GET_SP_FEDERATED_IDP_REFS = "SELECT COUNT(*) FROM SP_FEDERATED_IDP A JOIN " +
                 "IDP_AUTHENTICATOR B ON A.AUTHENTICATOR_ID = B.ID WHERE B.IDP_ID = (SELECT ID FROM IDP C WHERE (C" +
                 ".TENANT_ID = ? OR (C.TENANT_ID = ? AND C.NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND C.NAME = ?)";
-
+//
         public static final String GET_SP_FEDERATED_IDP_AUTHENTICATOR_REF = "SELECT COUNT(*) FROM SP_FEDERATED_IDP " +
                 "JOIN IDP_AUTHENTICATOR ON SP_FEDERATED_IDP.AUTHENTICATOR_ID = IDP_AUTHENTICATOR.ID WHERE " +
                 "IDP_AUTHENTICATOR.IDP_ID = (SELECT ID FROM IDP WHERE (IDP.TENANT_ID = ? OR (IDP.TENANT_ID = ? " +
@@ -464,7 +466,7 @@ public class IdPManagementConstants {
 
         public static final String GET_SP_PROVISIONING_CONNECTOR_IDP_REFS = "SELECT COUNT(*) FROM SP_PROVISIONING_CONNECTOR "
                 + "WHERE (TENANT_ID = ? AND IDP_NAME = ? AND CONNECTOR_NAME = ?)";
-
+//
         public static final String GET_IDP_BY_AUTHENTICATOR_PROPERTY = "SELECT idp.ID, idp.NAME, idp.IS_PRIMARY, " +
                 "idp.HOME_REALM_ID, " +
                 "idp.CERTIFICATE, idp.ALIAS, idp.INBOUND_PROV_ENABLED, idp.INBOUND_PROV_USER_STORE_ID, " +
@@ -477,7 +479,7 @@ public class IdPManagementConstants {
                 "FROM IDP idp INNER JOIN  IDP_AUTHENTICATOR idp_auth ON idp.ID = idp_auth.IDP_ID INNER JOIN " +
                 "IDP_AUTHENTICATOR_PROPERTY idp_auth_pro ON idp_auth.ID = idp_auth_pro.AUTHENTICATOR_ID " +
                 "WHERE  idp_auth_pro.PROPERTY_KEY =?  AND idp_auth_pro.PROPERTY_VALUE = ? AND idp_auth_pro.TENANT_ID =?";
-
+//
         public static final String GET_IDP_BY_AUTHENTICATOR_PROPERTY_SQL = "SELECT idp.ID, idp.NAME, idp.IS_PRIMARY, " +
                 "idp.HOME_REALM_ID, " +
                 "idp.CERTIFICATE, idp.ALIAS, idp.INBOUND_PROV_ENABLED, idp.INBOUND_PROV_USER_STORE_ID, " +
@@ -610,7 +612,7 @@ public class IdPManagementConstants {
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
         public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
                 "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER'";
-    }
+    }//
 
     public static class WarningMessage {
 
