@@ -37,7 +37,7 @@ jobs:
             ${{ runner.os }}-maven-
             ${{ runner.os }}-
       - name: Build with Maven
-        run: mvn clean install -U -B
+        run: mvn clean install -U -B -Djdk.util.zip.disableZip64ExtraFieldValidation=true
       - name: Generate coverage report
         run: mvn test jacoco:report
       - name: Delete SNAPSHOT artifacts
