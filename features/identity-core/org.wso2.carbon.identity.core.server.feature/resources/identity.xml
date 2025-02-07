@@ -78,6 +78,7 @@
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
         <SAML>database</SAML>
+        <CertificateValidation>database</CertificateValidation>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
