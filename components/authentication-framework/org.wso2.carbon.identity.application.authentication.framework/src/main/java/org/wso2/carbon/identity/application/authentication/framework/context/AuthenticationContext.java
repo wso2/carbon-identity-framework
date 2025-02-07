@@ -866,6 +866,11 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     private void removeNonSerializableObjects() {
 
+        /* Remove non-serializable UserDefinedAuthenticatorEndpointConfig objects from the
+         UserDefinedFederatedAuthenticatorConfig in the context. The UserDefinedAuthenticatorEndpointConfig contains
+         the endpoint URI and the authentication type of the corresponding action. However, this information is not
+         used in the authentication flow. Instead, the action ID in the authenticator property is used to resolve the
+         corresponding action. */
         if (sequenceConfig == null || sequenceConfig.getStepMap() == null) {
             return;
         }
