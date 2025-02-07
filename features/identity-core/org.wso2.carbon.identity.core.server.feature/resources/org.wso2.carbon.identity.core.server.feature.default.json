@@ -1230,7 +1230,6 @@
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.enabled": false,
   "console.ai.disabled_features": [],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
