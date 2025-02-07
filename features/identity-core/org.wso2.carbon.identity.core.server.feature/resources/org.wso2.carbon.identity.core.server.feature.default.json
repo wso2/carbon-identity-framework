@@ -1640,6 +1640,8 @@
   "myaccount.product_version.configs.versionOverride": "",
   "myaccount.authenticator_app_configs.enabled": true,
   "myaccount.applications.enabled": true,
+  "myaccount.applications.console_app.configs.origin": "${serverOrigin}",
+  "myaccount.applications.console_app.configs.path": "/getting-started",
   "myaccount.operations.enabled": true,
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
