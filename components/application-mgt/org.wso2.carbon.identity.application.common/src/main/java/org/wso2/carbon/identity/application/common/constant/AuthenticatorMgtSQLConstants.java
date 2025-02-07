@@ -45,6 +45,8 @@ public class AuthenticatorMgtSQLConstants {
         public static final String PROPERTY_KEY = "PROPERTY_KEY";
         public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
         public static final String IS_SECRET = "IS_SECRET";
+        public static final String IMAGE_URL = "IMAGE_URL";
+        public static final String DESCRIPTION = "DESCRIPTION";
 
         private Column() {
 
@@ -57,15 +59,26 @@ public class AuthenticatorMgtSQLConstants {
     public static class Query {
 
         public static final String ADD_AUTHENTICATOR_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
-                "(TENANT_ID, IDP_ID, NAME, IS_ENABLED, DEFINED_BY, AUTHENTICATION_TYPE, DISPLAY_NAME) VALUES" +
+                "(TENANT_ID, IDP_ID, NAME, IS_ENABLED, DEFINED_BY, AUTHENTICATION_TYPE, DISPLAY_NAME, IMAGE_URL, " +
+                "DESCRIPTION) VALUES" +
                 " (:TENANT_ID;, (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; AND IDP.TENANT_ID = :TENANT_ID;), " +
-                ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AUTHENTICATION_TYPE;, :DISPLAY_NAME;);";
+                ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AUTHENTICATION_TYPE;, :DISPLAY_NAME;, " +
+                ":IMAGE_URL;, :DESCRIPTION;);";
         public static final String UPDATE_AUTHENTICATOR_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED = " +
-                ":IS_ENABLED;, DISPLAY_NAME = :DISPLAY_NAME; WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
-        public static final String GET_AUTHENTICATOR_SQL = "SELECT * FROM IDP_AUTHENTICATOR " +
-                "WHERE DEFINED_BY = :DEFINED_BY; AND NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
-        public static final String GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL = "SELECT * FROM IDP_AUTHENTICATOR " +
-                "WHERE DEFINED_BY = :DEFINED_BY; AND TENANT_ID = :TENANT_ID;";
+                ":IS_ENABLED;, DISPLAY_NAME = :DISPLAY_NAME;, IMAGE_URL = :IMAGE_URL;, DESCRIPTION = :DESCRIPTION; " +
+                "WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
+        public static final String GET_USER_DEFINED_LOCAL_AUTHENTICATOR_SQL = "SELECT * FROM IDP_AUTHENTICATOR " +
+                "WHERE DEFINED_BY = :DEFINED_BY; AND NAME = :NAME; AND TENANT_ID = :TENANT_ID;" +
+                "AND IDP_ID IN (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; " +
+                        "AND IDP.TENANT_ID = :TENANT_ID;)";
+        public static final String IS_AUTHENTICATOR_EXISTS_BY_NAME_SQL = "SELECT ID FROM IDP_AUTHENTICATOR " +
+                "WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
+        public static final String GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL =
+                "SELECT AUTHENTICATION_TYPE, NAME, DISPLAY_NAME, IMAGE_URL, DESCRIPTION, IS_ENABLED, DEFINED_BY, ID " +
+                        "FROM IDP_AUTHENTICATOR " +
+                        "WHERE DEFINED_BY = :DEFINED_BY; AND TENANT_ID = :TENANT_ID; " +
+                        "AND IDP_ID IN (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; " +
+                        "AND IDP.TENANT_ID = :TENANT_ID;)";
         public static final String DELETE_AUTHENTICATOR_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE NAME = :NAME; " +
                 " AND TENANT_ID = :TENANT_ID;";
         public static final String GET_AUTHENTICATOR_ID_SQL = "SELECT ID FROM IDP_AUTHENTICATOR " +

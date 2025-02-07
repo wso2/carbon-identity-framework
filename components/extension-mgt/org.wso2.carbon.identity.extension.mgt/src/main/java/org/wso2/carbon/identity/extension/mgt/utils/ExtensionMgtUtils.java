@@ -18,12 +18,16 @@
 
 package org.wso2.carbon.identity.extension.mgt.utils;
 
+import java.util.Optional;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.extension.mgt.exception.ExtensionManagementException;
 
 import java.nio.file.Path;
 import java.util.Objects;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import static org.wso2.carbon.identity.extension.mgt.utils.ExtensionMgtConstants.EXTENSION_TYPES_CONFIG;
 
@@ -64,5 +68,34 @@ public class ExtensionMgtUtils {
         if (!ArrayUtils.contains(getExtensionTypes(), extensionType)) {
             throw new ExtensionManagementException("Invalid extension type: " + extensionType);
         }
+    }
+
+    /**
+     * Modify the JIT provisioning user store in the connection template if the specified user store is set to
+     * `PRIMARY` and the primary domain name has been altered in the deployment configuration settings.
+     *
+     * @param connectionTemplate - Connection template configuration data.
+     */
+    public static void resolveConnectionJITPrimaryDomainName(JSONObject connectionTemplate) {
+
+        if (connectionTemplate == null) {
+            return;
+        }
+
+        Optional.ofNullable(connectionTemplate.optJSONObject(ExtensionMgtConstants.IDP_CONFIG_KEY))
+                .map(idpConfigs -> idpConfigs.optJSONObject(ExtensionMgtConstants.IDP_PROVISIONING_CONFIG_KEY))
+                .map(provisioningConfigs -> provisioningConfigs.optJSONObject(
+                        ExtensionMgtConstants.IDP_PROVISIONING_JIT_CONFIG_KEY))
+                .ifPresent(jitConfigs -> {
+                    String jitDomainName =
+                            jitConfigs.optString(ExtensionMgtConstants.IDP_PROVISIONING_JIT_DOMAIN_NAME_KEY);
+                    String primaryDomainName = IdentityUtil.getPrimaryDomainName();
+
+                    if (StringUtils.equalsIgnoreCase(jitDomainName, UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME) &&
+                            !StringUtils.equalsIgnoreCase(primaryDomainName,
+                                    UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
+                        jitConfigs.put(ExtensionMgtConstants.IDP_PROVISIONING_JIT_DOMAIN_NAME_KEY, primaryDomainName);
+                    }
+                });
     }
 }

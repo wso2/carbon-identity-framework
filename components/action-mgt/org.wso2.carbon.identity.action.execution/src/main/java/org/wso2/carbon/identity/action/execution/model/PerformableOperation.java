@@ -31,6 +31,7 @@ public class PerformableOperation {
     private Operation op;
     private String path;
     private Object value;
+    private String url;
 
     public Operation getOp() {
 
@@ -49,6 +50,9 @@ public class PerformableOperation {
 
     public void setPath(String path) {
 
+        if (Operation.REDIRECT.equals(op)) {
+            throw new IllegalArgumentException("Path is not allowed for REDIRECT operation.");
+        }
         this.path = path;
     }
 
@@ -59,6 +63,22 @@ public class PerformableOperation {
 
     public void setValue(Object value) {
 
+        if (Operation.REDIRECT.equals(op)) {
+            throw new IllegalArgumentException("Value is not allowed for REDIRECT operation.");
+        }
         this.value = value;
+    }
+
+    public String getUrl() {
+
+        return url;
+    }
+
+    public void setUrl(String url) {
+
+        if (!Operation.REDIRECT.equals(op)) {
+            throw new IllegalArgumentException("Url is only allowed for REDIRECT operation.");
+        }
+        this.url = url;
     }
 }

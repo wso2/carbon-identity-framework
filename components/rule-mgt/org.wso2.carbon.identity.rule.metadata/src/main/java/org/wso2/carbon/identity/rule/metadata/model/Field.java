@@ -33,7 +33,7 @@ public class Field {
     @JsonCreator
     public Field(@JsonProperty("name") String name, @JsonProperty("displayName") String displayName) {
 
-        validate(name, displayName);
+        validate(name);
         this.name = name;
         this.displayName = displayName;
     }
@@ -48,14 +48,10 @@ public class Field {
         return displayName;
     }
 
-    private void validate(String name, String displayName) {
+    private void validate(String name) {
 
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("Field 'name' cannot be null or empty.");
-        }
-
-        if (StringUtils.isBlank(displayName)) {
-            throw new IllegalArgumentException("Field 'displayName' cannot be null or empty.");
         }
     }
 }

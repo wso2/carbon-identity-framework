@@ -6,7 +6,7 @@
     "operators": [
       "equals",
       "notEquals",
-      "contains"
+      "startsWith"
     ],
     "value": {
       "inputType": "options",

@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.auth.service.AuthServiceErrorInfo;
 import org.wso2.carbon.identity.application.authentication.framework.model.auth.service.AuthServiceRequest;
@@ -93,6 +94,7 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
 
         MockitoAnnotations.initMocks(this);
 
+        removeAllSystemDefinedAuthenticators();
         configurationFacade = mockStatic(ConfigurationFacade.class);
         ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
         configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
@@ -146,8 +148,8 @@ public class AuthenticationServiceTest extends AbstractFrameworkTest {
         if (isMultiOpsResponse) {
             List<AuthenticatorData> authenticatorDataMap = getMultiOpsAuthenticatorData(authenticatorList);
             for (AuthenticatorData authenticatorData : authenticatorDataMap) {
-                frameworkUtils.when(() -> FrameworkUtils.getAppAuthenticatorByName(authenticatorData.getName()))
-                        .thenReturn(new MockApiBasedAuthenticator(authenticatorData.getName()));
+                ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                        new MockApiBasedAuthenticator(authenticatorData.getName()));
             }
         }
         List<AuthenticatorData> expected = getAuthenticatorData(authenticatorList);

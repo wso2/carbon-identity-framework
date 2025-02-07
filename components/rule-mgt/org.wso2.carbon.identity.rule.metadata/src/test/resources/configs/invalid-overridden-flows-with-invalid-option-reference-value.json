@@ -1,0 +1,27 @@
+{
+  "preIssueAccessToken": [
+    {
+      "fieldName": "application",
+      "overrides": {
+        "value": {
+          "inputType": "options",
+          "valueType": "reference",
+          "valueReferenceAttribute": "id",
+          "valueDisplayAttribute": "name",
+          "links": [
+            {
+              "href": "/applications?excludeSystemPortals=true&offset=0&limit=10",
+              "method": "GET",
+              "rel": "values"
+            },
+            {
+              "href": "/applications?excludeSystemPortals=true&filter=name+eq+*&limit=10",
+              "method": "GET",
+              "rel": "filter"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

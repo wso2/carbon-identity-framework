@@ -211,6 +211,26 @@
           ]
         }
       ]
+    },
+    "legacy_scim2_core": {
+      "schemas.remove_from_default_schema" : [
+        {
+          "id": "urn:ietf:params:scim:schemas:core:2.0:User",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager",
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax"
+          ]
+        }
+      ],
+      "schemas.add_to_default_schema": [
+        {
+          "id": "urn:ietf:params:scim:schemas:core:2.0",
+          "attributes": [
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager",
+            "urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax"
+          ]
+        }
+      ]
     }
   },
   "server.legacy_mode": {

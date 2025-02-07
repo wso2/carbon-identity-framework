@@ -22,11 +22,14 @@ import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.rule.management.model.Rule;
+import org.wso2.carbon.identity.rule.management.util.AuditLogBuilderForRule;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.AuditLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -47,7 +50,7 @@ public class ActionManagementAuditLogger {
      * @param operation Operation associated with the state change.
      * @param actionDTO Action object to be logged.
      */
-    public void printAuditLog(Operation operation, ActionDTO actionDTO) {
+    public void printAuditLog(Operation operation, ActionDTO actionDTO) throws ActionMgtException {
 
         if (!LoggerUtils.isEnableV2AuditLogs()) {
             return;
@@ -96,7 +99,7 @@ public class ActionManagementAuditLogger {
      * @param actionDTO Action to be logged.
      * @return audit log data.
      */
-    private JSONObject createAuditLogEntry(ActionDTO actionDTO) {
+    private JSONObject createAuditLogEntry(ActionDTO actionDTO) throws ActionMgtException {
 
         JSONObject data = new JSONObject();
         data.put(LogConstants.ACTION_TYPE_FIELD, actionDTO.getType() != null ? actionDTO.getType() : JSONObject.NULL);
@@ -112,7 +115,22 @@ public class ActionManagementAuditLogger {
         if (actionDTO.getProperties() != null && !actionDTO.getProperties().isEmpty()) {
             data.put(LogConstants.ACTION_PROPERTIES, getPropertiesData(actionDTO.getProperties()));
         }
+        if (actionDTO.getActionRule() != null && actionDTO.getActionRule().getRule() != null) {
+            data.put(LogConstants.ACTION_RULE, getRuleData(actionDTO.getActionRule().getRule()));
+        }
         return data;
+    }
+
+    /**
+     * Retrieve rule data to be logged.
+     * All the rule expression values will be masked.
+     *
+     * @param rule rule to be logged.
+     * @return rule data.
+     */
+    private String getRuleData(Rule rule) {
+
+        return AuditLogBuilderForRule.buildRuleValue(rule);
     }
 
     /**
@@ -263,6 +281,7 @@ public class ActionManagementAuditLogger {
         public static final String ACCESS_TOKEN_FIELD = "AccessToken";
         public static final String API_KEY_HEADER_FIELD = "ApiKeyHeader";
         public static final String API_KEY_VALUE_FIELD = "ApiKeyValue";
+        public static final String ACTION_RULE = "Rule";
     }
 }
 

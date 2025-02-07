@@ -28,8 +28,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
@@ -76,6 +76,13 @@ public class FileBasedConfigurationBuilder {
     private String identifierFirstConfirmationURL;
     private String authenticationEndpointPromptURL;
     private String authenticationEndpointMissingClaimsURL;
+    private String authenticationEndpointURLV2;
+    private String authenticationEndpointRetryURLV2;
+    private String authenticationEndpointErrorURLV2;
+    private String authenticationEndpointWaitURLV2;
+    private String identifierFirstConfirmationURLV2;
+    private String authenticationEndpointPromptURLV2;
+    private String authenticationEndpointMissingClaimsURLV2;
     private boolean allowCustomClaimMappingsForAuthenticators = false;
     private boolean allowMergingCustomClaimMappingsWithDefaultClaimMappings = false;
     private boolean allowConsentPageRedirectParams = false;
@@ -184,6 +191,8 @@ public class FileBasedConfigurationBuilder {
             readAuthenticationEndpointPromptURL(rootElement);
             readAuthenticationEndpointMissingClaimsURL(rootElement);
 
+            readAuthenticationEndpointV2URL(rootElement);
+
             //########### Read tenant data listener URLs ###########
             readTenantDataListenerURLs(rootElement);
 
@@ -235,6 +244,23 @@ public class FileBasedConfigurationBuilder {
             log.error("Error reading the " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
         } catch (Exception e) {
             log.error("Error while parsing " + IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG, e);
+        }
+    }
+
+    private void readAuthenticationEndpointV2URL(OMElement documentElement) {
+
+        OMElement v2UrlElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.V2));
+
+        //########### Read Authentication Endpoint V2 URL ###########
+        if (v2UrlElem != null) {
+            readAuthenticationEndpointURLV2(v2UrlElem);
+            readAuthenticationEndpointRetryURLV2(v2UrlElem);
+            readAuthenticationEndpointErrorURLV2(v2UrlElem);
+            readAuthenticationEndpointWaitURLV2(v2UrlElem);
+            readIdentifierFirstConfirmationURLV2(v2UrlElem);
+            readAuthenticationEndpointPromptURLV2(v2UrlElem);
+            readAuthenticationEndpointMissingClaimsURLV2(v2UrlElem);
         }
     }
 
@@ -601,12 +627,40 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint v2 URL
+     * @param documentElement
+     */
+    private void readAuthenticationEndpointURLV2(OMElement documentElement) {
+
+        OMElement authEndpointURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_URL));
+        if (authEndpointURLElem != null) {
+            authenticationEndpointURLV2 = IdentityUtil.fillURLPlaceholders(authEndpointURLElem.getText());
+        }
+    }
+
     private void readAuthenticationEndpointRetryURL(OMElement documentElement) {
         OMElement authEndpointRetryURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL));
 
         if (authEndpointRetryURLElem != null) {
             authenticationEndpointRetryURL = IdentityUtil.fillURLPlaceholders(authEndpointRetryURLElem.getText());
+        }
+    }
+
+    /*
+     * Read the authentication endpoint retry v2 URL
+     * @param documentElement
+     */
+    private void readAuthenticationEndpointRetryURLV2(OMElement documentElement) {
+
+        OMElement authEndpointRetryURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(
+                        FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL));
+
+        if (authEndpointRetryURLElem != null) {
+            authenticationEndpointRetryURLV2 = IdentityUtil.fillURLPlaceholders(authEndpointRetryURLElem.getText());
         }
     }
 
@@ -619,12 +673,41 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint error v2 URL
+     * @param documentElement
+     */
+    private void readAuthenticationEndpointErrorURLV2(OMElement documentElement) {
+
+        OMElement authEndpointErrorURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(
+                        FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_ERROR_URL));
+
+        if (authEndpointErrorURLElem != null) {
+            authenticationEndpointErrorURLV2 = IdentityUtil.fillURLPlaceholders(authEndpointErrorURLElem.getText());
+        }
+    }
+
     private void readAuthenticationEndpointWaitURL(OMElement documentElement) {
         OMElement authEndpointWaitURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL));
 
         if (authEndpointWaitURLElem != null) {
             authenticationEndpointWaitURL = IdentityUtil.fillURLPlaceholders(authEndpointWaitURLElem.getText());
+        }
+    }
+
+    /*
+     * Read the authentication endpoint wait v2 URL
+     * @param documentElement
+     */
+    private void readAuthenticationEndpointWaitURLV2(OMElement documentElement) {
+
+        OMElement authEndpointWaitURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL));
+
+        if (authEndpointWaitURLElem != null) {
+            authenticationEndpointWaitURLV2 = IdentityUtil.fillURLPlaceholders(authEndpointWaitURLElem.getText());
         }
     }
 
@@ -638,6 +721,21 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the identifier first confirmation v2 URL
+     * @param documentElement
+     */
+    private void readIdentifierFirstConfirmationURLV2(OMElement documentElement) {
+
+        OMElement readIDFConfirmationElement = documentElement.getFirstChildWithName(
+                IdentityApplicationManagementUtil.getQNameWithIdentityApplicationNS(
+                        FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_IDF_CONFIRM_URL));
+
+        if (readIDFConfirmationElement != null) {
+            identifierFirstConfirmationURLV2 = IdentityUtil.fillURLPlaceholders(readIDFConfirmationElement.getText());
+        }
+    }
+
     private void readAuthenticationEndpointPromptURL(OMElement documentElement) {
         OMElement authEndpointPromptURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL));
@@ -646,6 +744,22 @@ public class FileBasedConfigurationBuilder {
             authenticationEndpointPromptURL = IdentityUtil.fillURLPlaceholders(authEndpointPromptURLElem.getText());
         }
     }
+
+    /*
+     * Read the authentication endpoint prompt v2 URL
+     * @param documentElement
+     */
+    private void readAuthenticationEndpointPromptURLV2(OMElement documentElement) {
+
+        OMElement authEndpointPromptURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+                getQNameWithIdentityApplicationNS(
+                        FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL));
+
+        if (authEndpointPromptURLElem != null) {
+            authenticationEndpointPromptURLV2 = IdentityUtil.fillURLPlaceholders(authEndpointPromptURLElem.getText());
+        }
+    }
+
 
     private void readAuthenticationEndpointMissingClaimsURL(OMElement documentElement) {
         OMElement authEndpointMissingClaimsURLElem = documentElement.getFirstChildWithName
@@ -658,12 +772,44 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
+    /*
+     * Read the authentication endpoint missing claims v2 URL
+     * @param documentElement
+     */
+    private void readAuthenticationEndpointMissingClaimsURLV2(OMElement documentElement) {
+
+        OMElement authEndpointMissingClaimsURLElem = documentElement.getFirstChildWithName
+                (IdentityApplicationManagementUtil.getQNameWithIdentityApplicationNS(FrameworkConstants.Config
+                        .QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL));
+
+        if (authEndpointMissingClaimsURLElem != null) {
+            authenticationEndpointMissingClaimsURLV2 = IdentityUtil.fillURLPlaceholders
+                    (authEndpointMissingClaimsURLElem.getText());
+        }
+    }
+
     public String getAuthenticationEndpointMissingClaimsURL() {
         return authenticationEndpointMissingClaimsURL;
     }
 
     public void setAuthenticationEndpointMissingClaimsURL(String authenticationEndpointMissingClaimsURL) {
         this.authenticationEndpointMissingClaimsURL = authenticationEndpointMissingClaimsURL;
+    }
+
+    /*
+     * Get the authentication endpoint missing claims v2 URL
+     */
+    public String getAuthenticationEndpointMissingClaimsURLV2() {
+
+        return authenticationEndpointMissingClaimsURLV2;
+    }
+
+    /*
+     * Set the authentication endpoint missing claims v2 URL
+     */
+    public void setAuthenticationEndpointMissingClaimsURLV2(String authenticationEndpointMissingClaimsURLV2) {
+
+        this.authenticationEndpointMissingClaimsURLV2 = authenticationEndpointMissingClaimsURLV2;
     }
 
     private void readCacheTimeOut(OMElement cacheTimeoutElem, String value) {
@@ -901,7 +1047,8 @@ public class FileBasedConfigurationBuilder {
         }
 
         AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig(authenticatorName, enabled, parameterMap);
-        authenticatorConfig.setApplicationAuthenticator(FrameworkUtils.getAppAuthenticatorByName(authenticatorName));
+        authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticatorByName(authenticatorName));
 
         return authenticatorConfig;
     }
@@ -1001,12 +1148,46 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointURL = authenticationEndpointURL;
     }
 
+    /*
+    * Get the authentication endpoint URL v2
+     */
+    public String getAuthenticationEndpointURLV2() {
+
+        return authenticationEndpointURLV2;
+    }
+
+    /*
+     * Set the authentication endpoint URL v2
+     * @param authenticationEndpointURLV2
+     */
+    public void setAuthenticationEndpointURLV2(String authenticationEndpointURLV2) {
+
+        this.authenticationEndpointURLV2 = authenticationEndpointURLV2;
+    }
+
     public String getAuthenticationEndpointRetryURL() {
         return authenticationEndpointRetryURL;
     }
 
     public void setAuthenticationEndpointRetryURL(String authenticationEndpointRetryURL) {
         this.authenticationEndpointRetryURL = authenticationEndpointRetryURL;
+    }
+
+    /*
+     * Get the authentication endpoint retry URL v2
+     */
+    public String getAuthenticationEndpointRetryURLV2() {
+
+        return authenticationEndpointRetryURLV2;
+    }
+
+    /*
+     * Set the authentication endpoint retry URL v2
+     * @param authenticationEndpointRetryURLV2
+     */
+    public void setAuthenticationEndpointRetryURLV2(String authenticationEndpointRetryURLV2) {
+
+        this.authenticationEndpointRetryURLV2 = authenticationEndpointRetryURLV2;
     }
 
     public String getAuthenticationEndpointErrorURL() {
@@ -1017,12 +1198,46 @@ public class FileBasedConfigurationBuilder {
         this.authenticationEndpointErrorURL = authenticationEndpointErrorURL;
     }
 
+    /*
+     * Get the authentication endpoint error URL v2
+     */
+    public String getAuthenticationEndpointErrorURLV2() {
+
+        return authenticationEndpointErrorURLV2;
+    }
+
+    /*
+     * Set the authentication endpoint error URL v2
+     * @param authenticationEndpointErrorURLV2
+     */
+    public void setAuthenticationEndpointErrorURLV2(String authenticationEndpointErrorURLV2) {
+
+        this.authenticationEndpointErrorURLV2 = authenticationEndpointErrorURLV2;
+    }
+
     public String getAuthenticationEndpointWaitURL() {
         return authenticationEndpointWaitURL;
     }
 
     public void setAuthenticationEndpointWaitURL(String authenticationEndpointWaitURL) {
         this.authenticationEndpointWaitURL = authenticationEndpointWaitURL;
+    }
+
+    /*
+     * Get the authentication endpoint wait URL v2
+     */
+    public String getAuthenticationEndpointWaitURLV2() {
+
+        return authenticationEndpointWaitURLV2;
+    }
+
+    /*
+     * Set the authentication endpoint wait URL v2
+     * @param authenticationEndpointWaitURLV2
+     */
+    public void setAuthenticationEndpointWaitURLV2(String authenticationEndpointWaitURLV2) {
+
+        this.authenticationEndpointWaitURLV2 = authenticationEndpointWaitURLV2;
     }
 
     public String getIdentifierFirstConfirmationURL() {
@@ -1033,12 +1248,46 @@ public class FileBasedConfigurationBuilder {
         this.identifierFirstConfirmationURL = identifierFirstConfirmationURL;
     }
 
+    /*
+     * Get the identifier first confirmation URL v2
+     */
+    public String getIdentifierFirstConfirmationURLV2() {
+
+        return identifierFirstConfirmationURLV2;
+    }
+
+    /*
+     * Set the identifier first confirmation URL v2
+     * @param identifierFirstConfirmationURLV2
+     */
+    public void setIdentifierFirstConfirmationURLV2(String identifierFirstConfirmationURLV2) {
+
+        this.identifierFirstConfirmationURLV2 = identifierFirstConfirmationURLV2;
+    }
+
     public String getAuthenticationEndpointPromptURL() {
         return authenticationEndpointPromptURL;
     }
 
     public void setAuthenticationEndpointPromptURL(String authenticationEndpointPromptURL) {
         this.authenticationEndpointPromptURL = authenticationEndpointPromptURL;
+    }
+
+    /*
+     * Get the authentication endpoint prompt URL v2
+     */
+    public String getAuthenticationEndpointPromptURLV2() {
+
+        return authenticationEndpointPromptURLV2;
+    }
+
+    /*
+     * Set the authentication endpoint prompt URL v2
+     * @param authenticationEndpointPromptURLV2
+     */
+    public void setAuthenticationEndpointPromptURLV2(String authenticationEndpointPromptURLV2) {
+
+        this.authenticationEndpointPromptURLV2 = authenticationEndpointPromptURLV2;
     }
 
     /**

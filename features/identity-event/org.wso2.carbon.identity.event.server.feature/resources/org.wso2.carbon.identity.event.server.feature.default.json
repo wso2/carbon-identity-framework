@@ -277,5 +277,18 @@
   "identity_mgt.events.schemes.SMSNotificationHandler.subscriptions": [
     "TRIGGER_SMS_NOTIFICATION_LOCAL"
   ],
-  "identity_mgt.events.schemes.UserInvitationEventHandler.properties.enable": true
+  "identity_mgt.events.schemes.UserInvitationEventHandler.properties.enable": true,
+  "identity_mgt.events.schemes.PushNotificationHandler.module_index": "43",
+  "identity_mgt.events.schemes.PushNotificationHandler.subscriptions": [
+    "TRIGGER_PUSH_NOTIFICATION"
+  ],
+  "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.module_index": "44",
+  "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.subscriptions": [
+    "POST_DELETE_ROLE_V2_EVENT",
+    "POST_DELETE_USER_WITH_ID"
+  ],
+  "identity_mgt.events.schemes.OrganizationUserSharingHandler.module_index": "45",
+  "identity_mgt.events.schemes.OrganizationUserSharingHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
+  ]
 }

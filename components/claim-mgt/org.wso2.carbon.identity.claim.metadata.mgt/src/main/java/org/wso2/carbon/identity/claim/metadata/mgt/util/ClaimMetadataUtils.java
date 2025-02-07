@@ -39,9 +39,13 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.LOCAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.UNIQUENESS_VALIDATION_SCOPE;
@@ -347,10 +351,31 @@ public class ClaimMetadataUtils {
                 if (LOCAL_CLAIM_DIALECT_URI.equals(claimDialectURI)) {
                     claim = createLocalClaim(claimKey, claimMapping,
                             filterClaimProperties(claimConfig.getPropertyHolderMap().get(claimKey)));
+                    claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
                 } else {
-                    claim = createExternalClaim(claimKey, claimConfig.getPropertyHolderMap().get(claimKey));
+                    /*
+                     * If schemas.profile config is defined in the identity.xml, then attributes can be added to and
+                     * removed from the default schemas as defined in schemas.xml file.
+                     */
+                    Map<String, String> removalsMap = DialectConfigParser.getInstance().getRemovalsFromDefaultDialects();
+                    String removalDialect = removalsMap.get(claimKey.getClaimUri());
+                    if (removalDialect == null || !removalDialect.equals(claimKey.getDialectUri())) {
+                        claim = createExternalClaim(claimKey, claimConfig.getPropertyHolderMap().get(claimKey));
+                        claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
+                    }
+
+                    Map<String, String> additionsMap = DialectConfigParser.getInstance().getAdditionsToDefaultDialects();
+                    String newDialectUri = additionsMap.get(claimKey.getClaimUri());
+                    if (newDialectUri != null) {
+                        ClaimKey newClaimKey = new ClaimKey(claimKey.getClaimUri(), newDialectUri);
+                        Map<String, String> newClaimProperties = new HashMap<>(
+                                claimConfig.getPropertyHolderMap().computeIfAbsent(claimKey, k -> new HashMap<>())
+                        );
+                        newClaimProperties.put(ClaimConstants.DIALECT_PROPERTY, newDialectUri);
+                        claim = createExternalClaim(newClaimKey, newClaimProperties);
+                        claims.computeIfAbsent(newClaimKey.getDialectUri(), k -> new ArrayList<>()).add(claim);
+                    }
                 }
-                claims.computeIfAbsent(claimDialectURI, k -> new ArrayList<>()).add(claim);
             }
         }
         return claims;
@@ -414,5 +439,27 @@ public class ClaimMetadataUtils {
 
         return isScopeWithinUserstore ? ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE :
                 ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES;
+    }
+
+    /**
+     * Retrieves the allowed claim profiles.
+     *
+     * @return Set of allowed claim profiles.
+     */
+    public static Set<String> getAllowedClaimProfiles() {
+
+        Map<String, String> uniqueProfilesMap = new HashMap<>();
+        Arrays.stream(ClaimConstants.DefaultAllowedClaimProfile.values())
+                .map(ClaimConstants.DefaultAllowedClaimProfile::getProfileName)
+                .forEach(profile -> uniqueProfilesMap.put(profile.toLowerCase(), profile));
+
+        String serverWideClaimProfiles = IdentityUtil.getProperty(ClaimConstants.ALLOWED_ATTRIBUTE_PROFILE_CONFIG);
+        if (StringUtils.isNotBlank(serverWideClaimProfiles)) {
+            String[] profiles = serverWideClaimProfiles.split(",");
+            Arrays.stream(profiles).map(String::trim).filter(StringUtils::isNotBlank)
+                    .forEach(profile -> uniqueProfilesMap.putIfAbsent(profile.toLowerCase(), profile));
+        }
+
+        return Collections.unmodifiableSet(new HashSet<>(uniqueProfilesMap.values()));
     }
 }

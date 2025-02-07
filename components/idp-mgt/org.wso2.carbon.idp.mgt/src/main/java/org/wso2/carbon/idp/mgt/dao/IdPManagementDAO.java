@@ -6057,6 +6057,8 @@ public class IdPManagementDAO {
              PreparedStatement prepStmt = connection.prepareStatement(
                     IdPManagementConstants.SQLQueries.GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS)) {
             prepStmt.setInt(1, tenantId);
+            prepStmt.setString(2, "LOCAL");
+            prepStmt.setInt(3, tenantId);
             try (ResultSet resultSet = prepStmt.executeQuery()) {
                 while (resultSet.next()) {
                     UserDefinedFederatedAuthenticatorConfig federatedAuthenticatorConfig =
@@ -6071,7 +6073,6 @@ public class IdPManagementDAO {
                     getFederatedProperties(connection, authnId, federatedAuthenticatorConfig);
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
             return federatedAuthenticatorConfigs;
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving all user defined federated " +

@@ -352,18 +352,19 @@ public class IdPManagementFacade {
             return;
         }
         FederatedAuthenticatorConfig newFederatedAuth = newIdentityProvider.getFederatedAuthenticatorConfigs()[0];
-        FederatedAuthenticatorConfig oldFederatedAuth = oldIdentityProvider.getFederatedAuthenticatorConfigs()[0];
         if (newFederatedAuth.getDefinedByType() == AuthenticatorPropertyConstants.DefinedByType.SYSTEM) {
             return;
         }
 
+        FederatedAuthenticatorConfig oldFederatedAuth = oldIdentityProvider.getFederatedAuthenticatorConfigs()[0];
         if (StringUtils.equals(newFederatedAuth.getName(), oldFederatedAuth.getName())) {
             endpointConfigurationManager.updateEndpointConfig(newIdentityProvider.getFederatedAuthenticatorConfigs()[0],
                     oldIdentityProvider.getFederatedAuthenticatorConfigs()[0],
                     tenantDomain);
+        } else {
+            endpointConfigurationManager.deleteEndpointConfig(oldFederatedAuth, tenantDomain);
+            endpointConfigurationManager.addEndpointConfig(newFederatedAuth, tenantDomain);
         }
-        endpointConfigurationManager.deleteEndpointConfig(oldFederatedAuth, tenantDomain);
-        endpointConfigurationManager.addEndpointConfig(newFederatedAuth, tenantDomain);
     }
 
     private void deleteEndpointConfig(IdentityProvider identityProvider, String tenantDomain)

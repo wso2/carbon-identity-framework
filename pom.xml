@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.7.81-SNAPSHOT</version>
+    <version>7.7.198-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -73,7 +73,10 @@
         <module>components/trusted-app-mgt</module>
         <module>components/rule-mgt</module>
         <module>components/action-mgt</module>
+        <module>components/ai-services-mgt</module>
         <module>components/certificate-mgt</module>
+        <module>components/servlet-mgt</module>
+        <module>components/system-config-mgt</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -109,7 +112,10 @@
         <module>features/trusted-app-mgt</module>
         <module>features/rule-mgt</module>
         <module>features/action-mgt</module>
+        <module>features/ai-services-mgt</module>
         <module>features/certificate-mgt</module>
+        <module>features/servlet-mgt</module>
+        <module>features/system-config-mgt</module>
     </modules>
 
 
@@ -323,6 +329,11 @@
                 <artifactId>org.wso2.carbon.identity.rule.management</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -343,7 +354,25 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.action</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.consent.server.configs.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -722,6 +751,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.ai.service.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.api-client</groupId>
                 <artifactId>google-api-client</artifactId>
                 <version>${com.google.client.version}</version>
@@ -864,6 +898,11 @@
                 <version>${javax.jsp-api.version}</version>
             </dependency>
             <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${javax.validation-api.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${com.google.code.gson.version}</version>
@@ -919,6 +958,11 @@
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-extension-providers</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-extension-search</artifactId>
                 <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
@@ -1063,6 +1107,11 @@
                 <version>${carbon.commons.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.commons</groupId>
+                <artifactId>org.wso2.carbon.logging.service</artifactId>
+                <version>${carbon.commons.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.idp.mgt.stub</artifactId>
                 <version>${project.version}</version>
@@ -1142,6 +1191,16 @@
                 <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
                 <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
                 <version>${org.wso2.carbon.identity.organization.management.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.discovery.service</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.config.service</artifactId>
+                <version>${org.wso2.carbon.identity.organization.management.version}</version>
             </dependency>
             <!--Components Dependencies Ends-->
 
@@ -1477,6 +1536,11 @@
                 <artifactId>org.wso2.carbon.identity.user.store.configuration.ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.system.config.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!--Feature Dependencies Ends-->
             <dependency>
@@ -1699,6 +1763,11 @@
                 <version>${apache.cxf-rt-rs-service-description.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${apache.cxf-rt-frontend-jaxrs.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.codehaus.jettison</groupId>
                 <artifactId>jettison</artifactId>
                 <version>${codehaus.jettison.version}</version>
@@ -1709,13 +1778,18 @@
                 <version>${apache.httpcomponents.httpclient.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${springframework.spring-web.version}</version>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+                <artifactId>org.wso2.carbon.identity.ai.service.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.servlet.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1735,6 +1809,13 @@
                 <version>${org.wso2.carbon.multitenancy.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.wiremock</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>${wiremock.version}</version>
+                <scope>test</scope>
+            </dependency>
+
             <!--Google Library for android attestation client-->
             <dependency>
                 <groupId>org.wso2.orbit.com.google.api-services-playintegrity</groupId>
@@ -1783,29 +1864,14 @@
             </dependency>
 <!--            GraalVM related dependencies-->
             <dependency>
-                <groupId>org.graalvm.sdk</groupId>
+                <groupId>org.wso2.orbit.graalvm.sdk</groupId>
                 <artifactId>graal-sdk</artifactId>
-                <version>${graalvm.version}</version>
+                <version>${graalvm.wso2.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.graalvm.js</groupId>
-                <artifactId>js</artifactId>
-                <version>${graalvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.truffle</groupId>
-                <artifactId>truffle-api</artifactId>
-                <version>${graalvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.regex</groupId>
-                <artifactId>regex</artifactId>
-                <version>${graalvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.ibm.icu</groupId>
-                <artifactId>icu4j</artifactId>
-                <version>${icu.version}</version>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.admin.advisory.mgt</artifactId>
+                <version>${carbon.kernel.version}</version>
             </dependency>
         </dependencies>
 
@@ -1821,17 +1887,16 @@
 
     <properties>
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
-        <apache.cxf-rt-frontend-jaxrs.version>2.7.16</apache.cxf-rt-frontend-jaxrs.version>
+        <apache.cxf-rt-frontend-jaxrs.version>3.6.4</apache.cxf-rt-frontend-jaxrs.version>
         <apache.cxf-rt-rs-service-description.version>3.3.7</apache.cxf-rt-rs-service-description.version>
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
-        <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <apache.httpcomponents.httpclient.version>4.3.5</apache.httpcomponents.httpclient.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.28</carbon.kernel.version>
+        <carbon.kernel.version>4.10.34</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1845,7 +1910,7 @@
         <apache.felix.scr.ds.annotations.version>1.2.8</apache.felix.scr.ds.annotations.version>
 
         <!--Carbon commons version-->
-        <carbon.commons.version>4.7.39</carbon.commons.version>
+        <carbon.commons.version>4.7.54</carbon.commons.version>
         <carbon.commons.imp.pkg.version>[4.7.2, 5.0.0)</carbon.commons.imp.pkg.version>
 
         <org.wso2.carbon.database.utils.version>2.2.2</org.wso2.carbon.database.utils.version>
@@ -1857,10 +1922,14 @@
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
 
         <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
-        <org.wso2.carbon.identity.organization.management.core.version>1.0.90
+        <org.wso2.carbon.identity.organization.management.core.version>1.1.19
         </org.wso2.carbon.identity.organization.management.core.version>
+        <org.wso2.carbon.identity.organization.management.version>1.4.57
+        </org.wso2.carbon.identity.organization.management.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>
+        <org.wso2.carbon.identity.organization.management.version.range>[1.0.0, 2.0.0)
+        </org.wso2.carbon.identity.organization.management.version.range>
 
         <!--Carbon registry version-->
         <org.wso2.carbon.registry.version>4.8.37</org.wso2.carbon.registry.version>
@@ -1891,6 +1960,7 @@
         <servlet-api.version>2.5</servlet-api.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <javax.jsp-api.version>2.0</javax.jsp-api.version>
+        <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
         <version.javax.servlet.jsp>2.2.0.v201112011158</version.javax.servlet.jsp>
         <javax.servelet.jstl.version>1.2</javax.servelet.jstl.version>
         <taglibs-standard-impl.version>1.2.5</taglibs-standard-impl.version>
@@ -2006,8 +2076,9 @@
         <commons-codec.version>1.14.0.wso2v1</commons-codec.version>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
 
-        <httpcore.version>4.3.3.wso2v1</httpcore.version>
+        <httpcore.version>4.4.14.wso2v1</httpcore.version>
         <httpcore.version.osgi.import.range>[4.3.0, 5.0.0)</httpcore.version.osgi.import.range>
+
         <com.google.code.gson.version>2.8.9</com.google.code.gson.version>
         <com.google.code.gson.osgi.version.range>[2.3.1,3.0.0)</com.google.code.gson.osgi.version.range>
         <com.google.code.findbugs.version>1.3.9</com.google.code.findbugs.version>
@@ -2023,7 +2094,7 @@
         <google.guice.imp.pkg.version.range>[1.3.0,2.0.0)</google.guice.imp.pkg.version.range>
         <gdata-core.wso2.version>1.47.0.wso2v1</gdata-core.wso2.version>
         <gdata-core.imp.pkg.version.range>[1.47.0.wso2v1,2.0.0)</gdata-core.imp.pkg.version.range>
-        <httpcomponents-httpclient.wso2.version>4.3.6.wso2v2</httpcomponents-httpclient.wso2.version>
+        <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)</httpcomponents-httpclient.imp.pkg.version.range>
         <orbit.version.commons.lang>2.6.0.wso2v1</orbit.version.commons.lang>
         <org.wso2.securevault.version>1.1.10</org.wso2.securevault.version>
@@ -2106,13 +2177,14 @@
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <mockito.version>5.3.1</mockito.version>
         <mockito-testng.version>0.5.2</mockito-testng.version>
+        <wiremock.version>3.9.1</wiremock.version>
 
         <wso2.maven.compiler.source>1.8</wso2.maven.compiler.source>
         <wso2.maven.compiler.target>1.8</wso2.maven.compiler.target>
 
         <h2database.version>2.2.224</h2database.version>
 
-        <graalvm.version>22.3.4</graalvm.version>
+        <graalvm.wso2.version>22.3.4.wso2v1</graalvm.wso2.version>
         <graalvm.version.range>[22.3.0,23.0.0)</graalvm.version.range>
         <!-- ICU version must be reflecting graalvm version -->
         <icu.version>71.1</icu.version>
@@ -2130,7 +2202,7 @@
         <com.google.gson.client.version>2.2.0</com.google.gson.client.version>
         <nimbusds.version>7.9.0.wso2v1</nimbusds.version>
         <nimbusds.osgi.version.range>[7.3.0,8.0.0)</nimbusds.osgi.version.range>
-        <com.google.auth.osgi.version>1.20.0.wso2v1</com.google.auth.osgi.version>
+        <com.google.auth.osgi.version>1.20.0.wso2v2</com.google.auth.osgi.version>
         <com.google.auth.osgi.version.range>[1.20.0,2.0.0)</com.google.auth.osgi.version.range>
         <com.google.api.clients.googleapis.osgi.version>2.2.0.wso2v1</com.google.api.clients.googleapis.osgi.version>
         <com.google.api.clients.googleapis.osgi.version.range>[2.0.0,3.0.0)</com.google.api.clients.googleapis.osgi.version.range>

@@ -56,8 +56,13 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -658,6 +663,7 @@ public class DefaultStepHandler implements StepHandler {
         boolean isNoneCanHandle = true;
         StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
 
+        handleAuthenticatorResolvingForBasicAuthMechanism(context, stepConfig);
         for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
@@ -689,6 +695,27 @@ public class DefaultStepHandler implements StepHandler {
         }
         if (isNoneCanHandle) {
             throw new FrameworkException("No authenticator can handle the request in step :  " + currentStep);
+        }
+    }
+
+    private void handleAuthenticatorResolvingForBasicAuthMechanism(
+            AuthenticationContext context, StepConfig stepConfig) {
+
+        /* When an authenticator with the basic authentication mechanism (such as basic or identifierFirst) is engaged
+        in the authentication flow, the handleRequest method for that authenticator is automatically triggered at the
+        start, setting setCurrentAuthenticator to the corresponding authenticator. However, when the user provides
+        credentials, the handleResponse method is initiated, and from the method handle(HttpServletRequest,
+        HttpServletResponse) in the DefaultRequestCoordinator class setCurrentAuthenticator is reset to null.
+        As a result, when selecting the appropriate authenticator, the system iterates through the list of
+        authenticators in the step and checks if currentAuthenticator is null. This causes the first authenticator in
+        the step to always be selected. To address this, if currentAuthenticator is null and an authenticator with the
+        basic authentication mechanism is present, we set the corresponding authenticator as the current authenticator.
+         */
+        for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
+            if (context.getCurrentAuthenticator() == null &&
+                    BASIC_AUTH_MECHANISM.equals(authenticatorConfig.getApplicationAuthenticator().getAuthMechanism())) {
+                context.setCurrentAuthenticator(authenticatorConfig.getName());
+            }
         }
     }
 
@@ -727,8 +754,7 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         try {
-            context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
-                    context.getExternalIdP(), authenticator.getName()));
+            context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status = authenticator.process(request, response, context);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
@@ -1462,5 +1488,35 @@ public class DefaultStepHandler implements StepHandler {
                 authInitiationDataList.add(authInitiationData);
             });
         }
+    }
+
+    private static Map<String, String> getAuthenticatorPropertyMap(ApplicationAuthenticator authenticator,
+                                                                   AuthenticationContext context) {
+
+        if (authenticator instanceof LocalApplicationAuthenticator &&
+                AuthenticatorPropertyConstants.DefinedByType.USER.equals(authenticator.getDefinedByType())) {
+            return getAuthenticatorPropertyMapForUserDefinedLocalAuthenticators(
+                    authenticator.getName(), context.getTenantDomain());
+        }
+
+        return FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
+                context.getExternalIdP(), authenticator.getName());
+    }
+
+    private static Map<String, String> getAuthenticatorPropertyMapForUserDefinedLocalAuthenticators(
+            String name, String tenantDomain) {
+
+        Map<String, String> propertyMap = new HashMap<>();
+        try {
+            LocalAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
+                    .getUserDefinedLocalAuthenticator(name, tenantDomain);
+            for (Property property : authenticatorConfig.getProperties()) {
+                propertyMap.put(property.getName(), property.getValue());
+            }
+        } catch (AuthenticatorMgtException e) {
+            LOG.error(String.format("Error while resolving the user defined local authenticator properties:%s",
+                    name), e);
+        }
+        return propertyMap;
     }
 }

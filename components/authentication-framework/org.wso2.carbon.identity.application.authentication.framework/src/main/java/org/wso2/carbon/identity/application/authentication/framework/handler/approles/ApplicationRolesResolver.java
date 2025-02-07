@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,7 +19,12 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.approles;
 
 import org.wso2.carbon.identity.application.authentication.framework.handler.approles.exception.ApplicationRolesException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.NotImplementedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+
+import java.util.Map;
 
 /**
  * Application associated roles resolver interface.
@@ -71,5 +76,24 @@ public interface ApplicationRolesResolver {
                                                           String idpGroupClaimURI) throws ApplicationRolesException {
 
         return getRoles(authenticatedUser, applicationId);
+    }
+
+    /**
+     * Get the application associated roles of the federated user.
+     *
+     * @param fedUserAttributes Federated user attributes.
+     * @param identityProvider  Identity provider.
+     * @param applicationId     Application ID of the application.
+     * @param idpGroupClaimURI  IDP group claim URI.
+     * @param tenantDomain      Tenant domain.
+     * @return Array of application associated roles of the federated user.
+     * @throws ApplicationRolesException If an error occurs while getting app associated roles.
+     */
+    default String[] getAppAssociatedRolesOfFederatedUser(Map<ClaimMapping, String> fedUserAttributes,
+                                                          IdentityProvider identityProvider, String applicationId,
+                                                          String idpGroupClaimURI, String tenantDomain)
+            throws ApplicationRolesException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
     }
 }

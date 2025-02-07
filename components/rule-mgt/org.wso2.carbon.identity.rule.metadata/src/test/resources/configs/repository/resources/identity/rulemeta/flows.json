@@ -1,6 +1,48 @@
 {
   "preIssueAccessToken": [
-    "application",
-    "grantType"
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType"
+    }
+  ],
+  "preUpdatePassword": [
+    {
+      "fieldName": "flow",
+      "overrides": {
+        "field": {
+          "displayName": "flow"
+        },
+        "value": {
+          "values": [
+            {
+              "name": "admin_initiated_password_reset",
+              "displayName": "Admin initiated password reset"
+            },
+            {
+              "name": "admin_initiated_password_update",
+              "displayName": "Admin initiated password update"
+            },
+            {
+              "name": "admin_initiated_user_invite_to_set_password",
+              "displayName": "Admin initiated user invite to set password"
+            },
+            {
+              "name": "application_initiated_password_update",
+              "displayName": "Application initiated password update"
+            },
+            {
+              "name": "user_initiated_password_reset",
+              "displayName": "User initiated password reset"
+            },
+            {
+              "name": "user_initiated_password_update",
+              "displayName": "User initiated password update"
+            }
+          ]
+        }
+      }
+    }
   ]
 }

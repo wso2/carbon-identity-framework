@@ -84,6 +84,21 @@ public class UsernameRecoveryApi {
    */
   public List<Claim> claimsGet(String tenantDomain, boolean isEndpointTenantAware) throws ApiException {
 
+    return claimsGet(tenantDomain, isEndpointTenantAware, null);
+  }
+
+  /**
+   * Return the recovery supported claims in the given tenant for a given profile.
+   *
+   * @param tenantDomain          tenant domain Default carbon.super (optional).
+   * @param isEndpointTenantAware Is tenant aware endpoint.
+   * @param profileName           Profile name (eg. selfRegistration).
+   * @return List<Claim> List of claims.
+   * @throws ApiException if fails to make API call.
+   */
+  public List<Claim> claimsGet(String tenantDomain, boolean isEndpointTenantAware, String profileName)
+          throws ApiException {
+
     Object localVarPostBody = null;
 
     if (StringUtils.isBlank(tenantDomain)) {
@@ -95,25 +110,26 @@ public class UsernameRecoveryApi {
                     isEndpointTenantAware);
     apiClient.setBasePath(basePath);
 
-    // create path and map variables
+    // create path and map variables.
     String localVarPath = "/claims".replaceAll("\\{format\\}", "json");
 
-    // query params
-    List<Pair> localVarQueryParams = new ArrayList<Pair>();
+    // query params.
     Map<String, String> localVarHeaderParams = new HashMap<String, String>();
     Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
+    List<Pair> localVarQueryParams = new ArrayList<Pair>();
     localVarQueryParams.addAll(apiClient.parameterToPairs("", "tenant-domain", tenantDomain));
+    if (StringUtils.isNotBlank(profileName)) {
+      localVarQueryParams.addAll(
+              apiClient.parameterToPairs("", "profile-name", profileName));
+    }
 
     final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
-
     final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
-
     String[] localVarAuthNames = new String[]{};
-
-    GenericType<List<Claim>> localVarReturnType = new GenericType<List<Claim>>() {
-    };
-    return apiClient.invokeAPI(localVarPath, "GET", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+    GenericType<List<Claim>> localVarReturnType = new GenericType<List<Claim>>() {};
+    return apiClient.invokeAPI(localVarPath, "GET", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+            localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
   }
 
   /**

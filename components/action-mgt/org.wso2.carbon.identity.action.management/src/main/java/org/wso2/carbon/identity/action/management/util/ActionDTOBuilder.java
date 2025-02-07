@@ -18,17 +18,13 @@
 
 package org.wso2.carbon.identity.action.management.util;
 
-import org.wso2.carbon.identity.action.management.constant.ActionMgtConstants;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.action.management.model.ActionRule;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Internal Builder class for ActionDTO.
@@ -41,6 +37,7 @@ public class ActionDTOBuilder {
     private String description;
     private Action.Status status;
     private EndpointConfig endpoint;
+    private ActionRule rule;
     private Map<String, Object> properties;
 
     public ActionDTOBuilder() {
@@ -55,6 +52,7 @@ public class ActionDTOBuilder {
         this.description = actionDTO.getDescription();
         this.status = actionDTO.getStatus();
         this.endpoint = actionDTO.getEndpoint();
+        this.rule = actionDTO.getActionRule();
         this.properties = actionDTO.getProperties();
     }
 
@@ -66,6 +64,7 @@ public class ActionDTOBuilder {
         this.description = action.getDescription();
         this.status = action.getStatus();
         this.endpoint = action.getEndpoint();
+        this.rule = action.getActionRule();
     }
 
     public ActionDTOBuilder id(String id) {
@@ -134,42 +133,15 @@ public class ActionDTOBuilder {
         return this.endpoint;
     }
 
-    public ActionDTOBuilder setEndpointAndProperties(Map<String, String> properties) throws
-            ActionMgtException {
+    public ActionDTOBuilder rule(ActionRule rule) {
 
-        Authentication authentication;
-        Authentication.Type authnType =
-                Authentication.Type.valueOf(properties.remove(ActionMgtConstants.AUTHN_TYPE_PROPERTY));
-        switch (authnType) {
-            case BASIC:
-                authentication = new Authentication.BasicAuthBuilder(
-                        properties.remove(Authentication.Property.USERNAME.getName()),
-                        properties.remove(Authentication.Property.PASSWORD.getName())).build();
-                break;
-            case BEARER:
-                authentication = new Authentication.BearerAuthBuilder(
-                        properties.remove(Authentication.Property.ACCESS_TOKEN.getName())).build();
-                break;
-            case API_KEY:
-                authentication = new Authentication.APIKeyAuthBuilder(
-                        properties.remove(Authentication.Property.HEADER.getName()),
-                        properties.remove(Authentication.Property.VALUE.getName())).build();
-                break;
-            case NONE:
-                authentication = new Authentication.NoneAuthBuilder().build();
-                break;
-            default:
-                throw new ActionMgtServerException("Authentication type is not defined for the Action Endpoint.");
-        }
-
-        this.endpoint = new EndpointConfig.EndpointConfigBuilder()
-                .uri(properties.remove(ActionMgtConstants.URI_PROPERTY))
-                .authentication(authentication)
-                .build();
-        // Add remaining properties as action properties.
-        this.properties = properties.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        this.rule = rule;
         return this;
+    }
+
+    public ActionRule getActionRule() {
+
+        return rule;
     }
 
     public ActionDTOBuilder properties(Map<String, Object> properties) {
@@ -201,6 +173,7 @@ public class ActionDTOBuilder {
                 .description(this.description)
                 .status(this.status)
                 .endpoint(this.endpoint)
+                .rule(this.rule)
                 .build();
 
         return new ActionDTO.Builder(action).properties(this.properties).build();

@@ -1,0 +1,12 @@
+{
+  "preIssueAccessToken": [
+    {
+      "fieldName": "application",
+      "overrides": {
+        "value": {
+          "links": []
+        }
+      }
+    }
+  ]
+}

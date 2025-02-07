@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2011-2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2011-2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -77,7 +77,7 @@
     -->
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
-<!--        <SAMLConfigs>database</SAMLConfigs>-->
+        <SAML>database</SAML>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -586,6 +586,7 @@
             <UserInfoEndpointClaimRetriever>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoUserStoreClaimRetriever</UserInfoEndpointClaimRetriever>
             <UserInfoEndpointRequestValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator</UserInfoEndpointAccessTokenValidator>
+            <UserInfoRemoveInternalPrefixFromRoles>false</UserInfoRemoveInternalPrefixFromRoles>
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             <SkipUserConsent>false</SkipUserConsent>
             <SkipLoginConsent>false</SkipLoginConsent>
@@ -775,6 +776,8 @@
             <Parameter>password</Parameter>
             <Parameter>client_secret</Parameter>
         </RestrictedQueryParameters>
+
+        <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1272,6 +1275,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
                        orderId="95" enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       orderId="10000" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.governance.listener.IdentityStoreEventListener"
                        orderId="97" enable="true">
             <Property name="Data.Store">org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</Property>
@@ -1321,6 +1327,12 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener"
                        orderId="85" enable="true"/>
+
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.EmailDomainValidationHandler"
+                       orderId="15" enable="true"/>
 
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
@@ -1400,6 +1412,10 @@
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="128" enable="true"/>
+        <EventListener id="shared_user_profile_update_governance_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserProfileUpdateGovernanceEventListener"
+                       orderId="8" enable="true"/>
 
         <!-- Role based outbound provision management Event Listener -->
         <EventListener id="provisioning_role_mgt_listener"
@@ -2486,6 +2502,25 @@
             <IgnorePath>/rpIFrame.html</IgnorePath>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
+
+    <OrgContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/identity/oauth2/dcr/</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+                <SubPaths>
+                    <Path>/oauth2/token</Path>
+                    <Path>/oauth2/introspect</Path>
+                    <Path>/oauth2/revoke</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewriteInTenantPerspective>
 
     <OrgContextsToRewrite>
         <WebApp>

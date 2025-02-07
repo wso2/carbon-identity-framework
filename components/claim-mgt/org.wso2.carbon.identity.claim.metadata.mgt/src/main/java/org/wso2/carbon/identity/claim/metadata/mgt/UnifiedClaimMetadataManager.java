@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
@@ -54,6 +57,7 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
     private final ReadOnlyClaimMetadataManager systemDefaultClaimMetadataManager =
             new SystemDefaultClaimMetadataManager();
     private final ReadWriteClaimMetadataManager dbBasedClaimMetadataManager = new DBBasedClaimMetadataManager();
+    private static final Log LOG = LogFactory.getLog(UnifiedClaimMetadataManager.class);
 
     /**
      * Get all claim dialects.
@@ -158,21 +162,23 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<LocalClaim> localClaimsInSystem = this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId);
         List<LocalClaim> localClaimsInDB = this.dbBasedClaimMetadataManager.getLocalClaims(tenantId);
 
-        List<LocalClaim> allLocalClaims = new ArrayList<>(localClaimsInDB);
-        localClaimsInSystem.forEach(systemClaim -> {
-            Optional<LocalClaim> matchingClaimInDB = allLocalClaims.stream()
-                    .filter(dbClaim -> dbClaim.getClaimURI().equals(systemClaim.getClaimURI()))
-                    .findFirst();
+        Map<String, LocalClaim> localClaimMap = localClaimsInDB.stream()
+                .collect(Collectors.toMap(LocalClaim::getClaimURI, claim -> claim));
 
-            if (matchingClaimInDB.isPresent()) {
-                markAsSystemClaim(matchingClaimInDB.get());
-            } else {
-                markAsSystemClaim(systemClaim);
-                allLocalClaims.add(systemClaim);
-            }
+        localClaimsInSystem.forEach(systemClaim -> {
+            markAsSystemClaim(systemClaim);
+            localClaimMap.merge(systemClaim.getClaimURI(), systemClaim, (existingClaim, newClaim) -> {
+                markAsSystemClaim(existingClaim);
+                return existingClaim;
+            });
         });
 
-        return allLocalClaims;
+        // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
+        for (LocalClaim localClaim : localClaimMap.values()) {
+            setDefaultSharedProfileValueResolvingMethod(localClaim.getClaimURI(), tenantId, localClaim);
+        }
+
+        return new ArrayList<>(localClaimMap.values());
     }
 
     /**
@@ -190,6 +196,8 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             if (isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
                 markAsSystemClaim(localClaimInDB.get());
             }
+            // If SharedProfileValueResolvingMethod is missing in DB, set it to default value.
+            setDefaultSharedProfileValueResolvingMethod(localClaimURI, tenantId, localClaimInDB.get());
             return localClaimInDB;
         }
         Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
@@ -198,6 +206,38 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
             return localClaimInSystem;
         }
         return Optional.empty();
+    }
+
+    private void setDefaultSharedProfileValueResolvingMethod(String localClaimURI, int tenantId,
+                                                             LocalClaim localClaimInDB) throws ClaimMetadataException {
+
+        String sharedProfileValueResolvingMethod =
+                localClaimInDB.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+        if (StringUtils.isNotBlank(sharedProfileValueResolvingMethod)) {
+            return;
+        }
+        // If the claim is a system claim, get the default value set in the system default claim metadata.
+        if (isSystemDefaultLocalClaim(localClaimURI, tenantId)) {
+            Optional<LocalClaim> localClaimInSystem = this.systemDefaultClaimMetadataManager.getLocalClaim(
+                    localClaimURI, tenantId);
+            if (localClaimInSystem.isPresent()) {
+                String systemDefaultSharedProfileValueResolvingMethod = localClaimInSystem.get()
+                        .getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+                if (StringUtils.isNotBlank(systemDefaultSharedProfileValueResolvingMethod)) {
+                    localClaimInDB.setClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                            systemDefaultSharedProfileValueResolvingMethod);
+                } else {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("SharedProfileValueResolvingMethod is not defined for the system " +
+                                "claim: %s", localClaimURI));
+                    }
+                }
+            }
+        } else {
+            // For custom claims set the FromOrigin as the default value.
+            localClaimInDB.setClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD,
+                    ClaimConstants.SharedProfileValueResolvingMethod.FROM_ORIGIN.getName());
+        }
     }
 
     /**
