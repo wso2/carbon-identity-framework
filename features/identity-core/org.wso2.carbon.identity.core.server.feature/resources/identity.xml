@@ -2534,6 +2534,7 @@
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/me/push/devices</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2553,6 +2554,7 @@
             <Context>/identity/metadata/saml2</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
