@@ -763,6 +763,13 @@ public class DefaultStepHandler implements StepHandler {
                 handleAPIBasedAuthenticationData(request, authenticator, context);
             }
 
+            /* Marking the flow as an external call for downstream components.
+             This is used to ensure things like additional params are not attached to
+             external calls.*/
+            if (authenticator instanceof FederatedApplicationAuthenticator) {
+                request.setAttribute(FrameworkConstants.IS_EXTERNAL_CALL, true);
+            }
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug(authenticator.getName() + " returned: " + status.toString());
             }
