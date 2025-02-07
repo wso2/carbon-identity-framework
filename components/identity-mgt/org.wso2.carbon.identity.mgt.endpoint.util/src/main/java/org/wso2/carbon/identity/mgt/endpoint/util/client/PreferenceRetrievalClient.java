@@ -258,8 +258,11 @@ public class PreferenceRetrievalClient {
         Optional<String> optional = getPropertyValue(tenant, ACCOUNT_MGT_GOVERNANCE, MULTI_ATTRIBUTE_LOGIN_HANDLER,
                 MULTI_ATTRIBUTE_LOGIN_ALLOWED_ATTRIBUTES_PROPERTY);
         if (optional.isPresent()) {
-            return optional.get();
-        } 
+            String claimList = optional.get();
+            if (StringUtils.isNotBlank(claimList)) {
+                return StringUtils.deleteWhitespace(claimList);
+            }
+        }
         return null;
     }
 
