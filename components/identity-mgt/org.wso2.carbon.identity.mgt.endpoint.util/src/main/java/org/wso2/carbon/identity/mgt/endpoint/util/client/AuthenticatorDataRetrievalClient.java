@@ -59,7 +59,7 @@ public class AuthenticatorDataRetrievalClient {
      *
      * @param tenant                  Tenant domain of the local authenticator.
      * @param authenticatorIdentifier Identifier of the local authenticator.
-     * @return The Image configured for the given local authenticator.
+     * @return The image configured for the given local authenticator.
      * @throws AuthenticatorDataRetrievalClientException If an error occurs while retrieving configurations.
      */
     public Map<String, String> getAuthenticatorConfig(String tenant, String authenticatorIdentifier)
