@@ -88,6 +88,7 @@ public class SAMLSSOServiceProviderConstants {
         public static final String VERSION = "VERSION";
         public static final String CREATED_AT = "CREATED_AT";
         public static final String UPDATED_AT = "UPDATED_AT";
+        public static final String ATTR_NAME_FORMAT = "ATTR_NAME_FORMAT";
 
         // IDN_SAML2_SP_PROPERTIES table.
         public static final String PROPERTY_NAME = "PROPERTY_NAME";
@@ -109,7 +110,8 @@ public class SAMLSSOServiceProviderConstants {
                         "SLO_PROFILE_ENABLED, SLO_METHOD, SLO_RESPONSE_URL, SLO_REQUEST_URL, IDP_INIT_SSO_ENABLED, " +
                         "IDP_INIT_SLO_ENABLED, QUERY_REQUEST_PROFILE_ENABLED, ECP_ENABLED, ARTIFACT_BINDING_ENABLED, " +
                         "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION, IDP_ENTITY_ID_ALIAS, ISSUER_QUALIFIER, " +
-                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID, VERSION, CREATED_AT, UPDATED_AT) " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID, VERSION, CREATED_AT, UPDATED_AT, " +
+                        "ATTR_NAME_FORMAT) " +
                         "VALUES (:ISSUER;, :DEFAULT_ASSERTION_CONSUMER_URL;, :NAME_ID_FORMAT;, :CERT_ALIAS;, " +
                         ":REQ_SIG_VALIDATION;, :SIGN_RESPONSE;, :SIGN_ASSERTIONS;, :SIGNING_ALGO;, :DIGEST_ALGO;, " +
                         ":ENCRYPT_ASSERTION;, :ASSERTION_ENCRYPTION_ALGO;, :KEY_ENCRYPTION_ALGO;, " +
@@ -117,7 +119,8 @@ public class SAMLSSOServiceProviderConstants {
                         ":SLO_RESPONSE_URL;, :SLO_REQUEST_URL;, :IDP_INIT_SSO_ENABLED;, :IDP_INIT_SLO_ENABLED;, " +
                         ":QUERY_REQUEST_PROFILE_ENABLED;, :ECP_ENABLED;, :ARTIFACT_BINDING_ENABLED;, " +
                         ":ARTIFACT_RESOLVE_REQ_SIG_VALIDATION;, :IDP_ENTITY_ID_ALIAS;, :ISSUER_QUALIFIER;, " +
-                        ":SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;, :TENANT_ID;, :VERSION;, :CREATED_AT;, :UPDATED_AT;)";
+                        ":SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;, :TENANT_ID;, :VERSION;, :CREATED_AT;, " +
+                        ":UPDATED_AT;, :ATTR_NAME_FORMAT;)";
 
         public static final String UPDATE_SAML2_SSO_CONFIG =
                 "UPDATE IDN_SAML2_SERVICE_PROVIDER " +
@@ -137,7 +140,7 @@ public class SAMLSSOServiceProviderConstants {
                         "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION = :ARTIFACT_RESOLVE_REQ_SIG_VALIDATION;, " +
                         "IDP_ENTITY_ID_ALIAS = :IDP_ENTITY_ID_ALIAS;, ISSUER_QUALIFIER = :ISSUER_QUALIFIER;, " +
                         "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES = :SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES;, " +
-                        "UPDATED_AT = :UPDATED_AT;" +
+                        "UPDATED_AT = :UPDATED_AT;, ATTR_NAME_FORMAT = :ATTR_NAME_FORMAT; " +
                         "WHERE ID = :ID; AND TENANT_ID = :TENANT_ID;";
 
         public static final String DELETE_SAML2_SSO_CONFIG_BY_ISSUER =
@@ -151,7 +154,7 @@ public class SAMLSSOServiceProviderConstants {
                         "SLO_PROFILE_ENABLED, SLO_METHOD, SLO_RESPONSE_URL, SLO_REQUEST_URL, IDP_INIT_SSO_ENABLED, " +
                         "IDP_INIT_SLO_ENABLED, QUERY_REQUEST_PROFILE_ENABLED, ECP_ENABLED, ARTIFACT_BINDING_ENABLED, " +
                         "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION, IDP_ENTITY_ID_ALIAS, ISSUER_QUALIFIER, " +
-                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID, ATTR_NAME_FORMAT " +
                         "FROM IDN_SAML2_SERVICE_PROVIDER " +
                         "WHERE ISSUER = :ISSUER; " +
                         "AND TENANT_ID = :TENANT_ID;";
@@ -163,7 +166,7 @@ public class SAMLSSOServiceProviderConstants {
                         "SLO_PROFILE_ENABLED, SLO_METHOD, SLO_RESPONSE_URL, SLO_REQUEST_URL, IDP_INIT_SSO_ENABLED, " +
                         "IDP_INIT_SLO_ENABLED, QUERY_REQUEST_PROFILE_ENABLED, ECP_ENABLED, ARTIFACT_BINDING_ENABLED, " +
                         "ARTIFACT_RESOLVE_REQ_SIG_VALIDATION, IDP_ENTITY_ID_ALIAS, ISSUER_QUALIFIER, " +
-                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID " +
+                        "SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES, TENANT_ID, ATTR_NAME_FORMAT " +
                         "FROM IDN_SAML2_SERVICE_PROVIDER " +
                         "WHERE TENANT_ID = :TENANT_ID;";
 

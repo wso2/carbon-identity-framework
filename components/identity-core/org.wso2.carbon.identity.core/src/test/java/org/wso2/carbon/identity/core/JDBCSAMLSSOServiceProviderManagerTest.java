@@ -354,6 +354,7 @@ public class JDBCSAMLSSOServiceProviderManagerTest {
         serviceProviderDO.setIdpEntityIDAlias(IDP_ENTITY_ID_ALIAS);
         serviceProviderDO.setDoFrontChannelLogout(DO_FRONT_CHANNEL_LOGOUT);
         serviceProviderDO.setFrontChannelLogoutBinding(FRONT_CHANNEL_LOGOUT_BINDING);
+        serviceProviderDO.setAttributeNameFormat(ATTRIBUTE_NAME_FORMAT);
 
         return serviceProviderDO;
     }
