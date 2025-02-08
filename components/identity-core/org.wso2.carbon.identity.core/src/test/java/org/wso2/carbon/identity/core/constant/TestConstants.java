@@ -58,6 +58,7 @@ public class TestConstants {
     public static final String IDP_ENTITY_ID_ALIAS = "idpEntityIDAlias";
     public static final boolean DO_FRONT_CHANNEL_LOGOUT = true;
     public static final String FRONT_CHANNEL_LOGOUT_BINDING = "frontChannelLogoutBinding";
+    public static final String ATTRIBUTE_NAME_FORMAT = "urn:oasis:names:tc:SAML:2.0:attrname-format:uri";
 
     public static final boolean UPDATED_DO_SINGLE_LOGOUT = false;
     public static final String[] UPDATED_REQUESTED_RECIPIENTS = {"updatedRecipient1", "updatedRecipient2"};
