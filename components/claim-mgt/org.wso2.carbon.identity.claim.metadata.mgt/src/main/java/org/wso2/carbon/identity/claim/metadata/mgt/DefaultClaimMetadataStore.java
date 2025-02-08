@@ -48,7 +48,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
     private static final Log log = LogFactory.getLog(DefaultClaimMetadataStore.class);
 
-    private final UnifiedClaimMetadataManager unifiedClaimMetadataManager = new UnifiedClaimMetadataManager();
+    private final UnifiedClaimMetadataManager unifiedClaimMetadataManager = new CacheBackedUnifiedClaimMetadataManager();
 
     private int tenantId;
 
