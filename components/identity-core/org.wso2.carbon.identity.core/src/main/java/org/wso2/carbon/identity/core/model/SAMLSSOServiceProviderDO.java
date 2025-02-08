@@ -141,6 +141,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         this.idpEntityIDAlias = samlSSOServiceProviderDO.idpEntityIDAlias;
         this.doFrontChannelLogout = samlSSOServiceProviderDO.doFrontChannelLogout;
         this.frontChannelLogoutBinding = samlSSOServiceProviderDO.frontChannelLogoutBinding;
+        this.attributeNameFormat = samlSSOServiceProviderDO.getAttributeNameFormat();
     }
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
