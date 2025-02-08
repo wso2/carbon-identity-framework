@@ -683,16 +683,6 @@ public class ApplicationMgtUtil {
         }
     }
 
-    public static Unmarshaller getUnmarshaller() throws JAXBException {
-
-        JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
-        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        // Disable external entity processing to prevent XXE attacks.
-        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-        return unmarshaller;
-    }
-
     /**
      * Resolve user.
      *
