@@ -3,7 +3,7 @@
   "name": "External Custom Authentication",
   "description": "Register externally implemented authentication service.",
   "docLink": "",
-  "image": "assets/images/logos/custom-authentication.svg",
+  "image": "assets/images/logos/custom-authenticator.svg",
   "category": "DEFAULT",
   "disabled": false,
   "templateId": "external-custom-authentication",
@@ -14,7 +14,7 @@
   "idp": {
     "name": "",
     "description": "Authenticate and provision federated users.",
-    "image": "assets/images/logos/custom-authentication.svg",
+    "image": "assets/images/logos/custom-authenticator.svg",
     "isPrimary": false,
     "isFederationHub": false,
     "homeRealmIdentifier": "",
