@@ -2221,13 +2221,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     "unmarshal");
         }
         try {
-            SAXParserFactory spf = ApplicationMgtUtil.getSecureSaxParserFactory();
-            // Creating source object using the secure parser.
-            Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
-                    new InputSource(new StringReader(spTemplateXml)));
-            // Performing unmarshall operation by passing the generated source object to the unmarshaller.
-            Unmarshaller unmarshaller = ApplicationMgtUtil.getUnmarshaller();
-            return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+            InputSource inputSource = new InputSource(new StringReader(spTemplateXml));
+            return ApplicationMgtUtil.getSecureSaxParserFactory(inputSource);
         } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException("Error in reading Service Provider template " +
                     "configuration ", e);
@@ -2420,14 +2415,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     " %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain));
         }
         try {
-            // Creating secure parser by disabling XXE.
-            SAXParserFactory spf = ApplicationMgtUtil.getSecureSaxParserFactory();
-            // Creating source object using the secure parser.
-            Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
-                    new InputSource(new StringReader(spFileContent.getContent())));
-            // Performing unmarshall operation by passing the generated source object to the unmarshaller.
-            Unmarshaller unmarshaller = ApplicationMgtUtil.getUnmarshaller();
-            return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+            InputSource inputSource = new InputSource(new StringReader(spFileContent.getContent()));
+            return ApplicationMgtUtil.getSecureSaxParserFactory(inputSource);
         } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileContent.getFileName(), tenantDomain), e);

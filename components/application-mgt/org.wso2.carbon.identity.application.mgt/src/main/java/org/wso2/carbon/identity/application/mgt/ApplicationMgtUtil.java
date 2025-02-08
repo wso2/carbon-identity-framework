@@ -670,13 +670,8 @@ public class ApplicationMgtUtil {
                     spFileStream.getFileName(), tenantDomain);
         }
         try {
-            // Creating secure parser by disabling XXE.
-            SAXParserFactory spf = getSecureSaxParserFactory();
-            // Creating source object using the secure parser.
-            Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(),
-                    new InputSource(spFileStream.getFileStream()));
-            Unmarshaller unmarshaller = getUnmarshaller();
-            return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+            InputSource inputSource = new InputSource(spFileStream.getFileStream());
+            return getSecureSaxParserFactory(inputSource);
         } catch (JAXBException | SAXException | ParserConfigurationException e) {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
@@ -1288,7 +1283,9 @@ public class ApplicationMgtUtil {
         return inboundConfigType;
     }
 
-    public static SAXParserFactory getSecureSaxParserFactory() {
+    public static ServiceProvider getSecureSaxParserFactory(InputSource inputsource) throws
+            ParserConfigurationException, SAXException, JAXBException {
+
         // Creating secure parser by disabling XXE.
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
@@ -1303,6 +1300,12 @@ public class ApplicationMgtUtil {
                     + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE
                     + " or secure-processing.");
         }
-        return spf;
+        Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(), inputsource);
+        JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        // Disable external entity processing to prevent XXE attacks.
+        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
     }
 }
