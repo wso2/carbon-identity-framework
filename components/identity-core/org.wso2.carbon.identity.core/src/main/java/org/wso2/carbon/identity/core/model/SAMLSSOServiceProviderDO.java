@@ -235,10 +235,12 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     }
 
     public String getAttributeNameFormat() {
+
         return attributeNameFormat;
     }
 
     public void setAttributeNameFormat(String attributeNameFormat) {
+
         this.attributeNameFormat = attributeNameFormat;
     }
 
