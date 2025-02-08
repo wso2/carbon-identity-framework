@@ -2115,20 +2115,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     " is provided."});
         }
         try {
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-            spf.setNamespaceAware(true);
-            spf.setXIncludeAware(false);
-            try {
-                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-                spf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-                spf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
-                spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-
-            } catch (SAXException | ParserConfigurationException e) {
-                log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE +
-                        " or " + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " +
-                        Constants.LOAD_EXTERNAL_DTD_FEATURE + " or secure-processing.");
-            }
+            SAXParserFactory spf = ApplicationMgtUtil.getSaxParserFactory();
 
             JAXBContext jc = JAXBContext.newInstance(ServiceProvider.class);
             UnmarshallerHandler unmarshallerHandler = jc.createUnmarshaller().getUnmarshallerHandler();

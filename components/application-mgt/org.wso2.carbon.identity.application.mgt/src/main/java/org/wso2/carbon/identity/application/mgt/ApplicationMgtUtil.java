@@ -1277,6 +1277,17 @@ public class ApplicationMgtUtil {
             ParserConfigurationException, SAXException, JAXBException {
 
         // Creating secure parser by disabling XXE.
+        SAXParserFactory spf = getSaxParserFactory();
+        Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(), inputsource);
+        JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        // Disable external entity processing to prevent XXE attacks.
+        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+    }
+
+    public static SAXParserFactory getSaxParserFactory() {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         spf.setXIncludeAware(false);
@@ -1290,12 +1301,6 @@ public class ApplicationMgtUtil {
                     + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE
                     + " or secure-processing.");
         }
-        Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(), inputsource);
-        JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
-        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        // Disable external entity processing to prevent XXE attacks.
-        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-        return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
+        return spf;
     }
 }
