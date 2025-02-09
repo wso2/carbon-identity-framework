@@ -51,8 +51,15 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.xml.sax.InputSource;
 
+import java.io.StringReader;
 import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
+
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -66,6 +73,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
@@ -111,6 +119,9 @@ public class ApplicationMgtUtilTest {
     private final String applicationNode = PERMISSION_PATH + PATH_CONSTANT + APPLICATION_NAME;
     private final String applicationPermissionPath = PERMISSION_PATH  + PATH_CONSTANT + APPLICATION_NAME +
             PATH_CONSTANT + PERMISSION;
+
+    private JAXBContext mockJAXBContext;
+    private Unmarshaller mockUnmarshaller;
 
     @BeforeTest
     public void setup() {
@@ -640,6 +651,35 @@ public class ApplicationMgtUtilTest {
 
         assertEquals(updatedVersion, expectedUpdatedVersion);
 
+    }
+
+    @Test
+    void testGetSecureSaxParserFactory_ShouldUnmarshalValidXML() throws Exception {
+
+        mockJAXBContext = mock(JAXBContext.class);
+        mockUnmarshaller = mock(Unmarshaller.class);
+
+        when(mockJAXBContext.createUnmarshaller()).thenReturn(mockUnmarshaller);
+
+        String validXml = "<ServiceProvider><name>TestSP</name></ServiceProvider>";
+        InputSource inputSource = new InputSource(new StringReader(validXml));
+
+        ServiceProvider expectedServiceProvider = new ServiceProvider();
+        expectedServiceProvider.setApplicationName("TestSP");
+
+        // Mock the static method getSaxParserFactory
+        when(mockUnmarshaller.unmarshal(any(Source.class))).thenReturn(expectedServiceProvider);
+
+        // Mock JAXBContext.newInstance
+        try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+            mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                    .thenReturn(mockJAXBContext);
+
+            ServiceProvider result = ApplicationMgtUtil.getSecureSaxParserFactory(inputSource);
+
+            assertNotNull(result);
+            assertEquals(result.getApplicationName(), "TestSP");
+        }
     }
 
     private void mockTenantRegistry(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,
