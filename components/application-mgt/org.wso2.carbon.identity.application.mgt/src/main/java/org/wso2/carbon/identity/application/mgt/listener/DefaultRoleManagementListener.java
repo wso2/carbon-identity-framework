@@ -46,7 +46,6 @@ import org.wso2.carbon.identity.role.v2.mgt.core.model.IdpGroup;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Permission;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleBasicInfo;
-import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleProperty;
 import org.wso2.carbon.identity.role.v2.mgt.core.model.UserBasicInfo;
 
 import java.util.ArrayList;
@@ -448,11 +447,6 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     public void postGetRoleIdListOfUser(List<String> roleIds, String userId, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (!isFragmentApplication()) {
-            return;
-        }
-
-        filterAndRemoveNonSharedRoles(roleIds, tenantDomain);
     }
 
     @Override
@@ -465,45 +459,6 @@ public class DefaultRoleManagementListener extends AbstractApplicationMgtListene
     public void postGetRoleIdListOfGroups(List<String> roleIds, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        if (!isFragmentApplication()) {
-            return;
-        }
-
-        filterAndRemoveNonSharedRoles(roleIds, tenantDomain);
-    }
-
-    private static boolean isFragmentApplication() {
-
-        boolean isFragmentApp = false;
-        if (IdentityUtil.threadLocalProperties.get().get(ApplicationConstants.IS_FRAGMENT_APP) != null) {
-            isFragmentApp = Boolean.parseBoolean(IdentityUtil.threadLocalProperties.get().
-                    get(ApplicationConstants.IS_FRAGMENT_APP).toString());
-        }
-
-        return isFragmentApp;
-    }
-
-    private boolean isSharedRole (List<RoleProperty> roleProperties) {
-
-        if (CollectionUtils.isEmpty(roleProperties)) {
-            return false;
-        }
-        return roleProperties.stream().anyMatch(property -> "isSharedRole".equals(property.getName())
-                && Boolean.parseBoolean(property.getValue()));
-    }
-
-    private void filterAndRemoveNonSharedRoles(List<String> roleIds, String tenantDomain)
-            throws IdentityRoleManagementException {
-
-        Iterator<String> iterator = roleIds.iterator();
-        while (iterator.hasNext()) {
-            String roleId = iterator.next();
-            Role role = ApplicationManagementServiceComponentHolder.getInstance().getRoleManagementServiceV2()
-                    .getRole(roleId, tenantDomain);
-            if (role.getRoleProperties() != null && !isSharedRole(role.getRoleProperties())) {
-                iterator.remove();
-            }
-        }
     }
 
     @Override

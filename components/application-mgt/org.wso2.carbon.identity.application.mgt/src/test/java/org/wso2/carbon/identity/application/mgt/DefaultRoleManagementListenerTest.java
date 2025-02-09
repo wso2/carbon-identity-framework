@@ -25,18 +25,13 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultRoleManagementListener;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementServerException;
-import org.wso2.carbon.identity.role.v2.mgt.core.model.Role;
-import org.wso2.carbon.identity.role.v2.mgt.core.model.RoleProperty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -83,15 +78,6 @@ public class DefaultRoleManagementListenerTest {
         return new Object[][] {
                 {false, mainApplication},
                 {true, fragmentApplication}
-        };
-    }
-
-    @DataProvider(name = "fragmentAppBooleanProvider")
-    public Object[][] fragmentAppBooleanProvider() {
-
-        return new Object[][] {
-                {false},
-                {true}
         };
     }
 
@@ -262,86 +248,6 @@ public class DefaultRoleManagementListenerTest {
             defaultRoleManagementListener.preAddRole(ROLE_NAME, new ArrayList<>(), new ArrayList<>(),
                     new ArrayList<>(), APPLICATION_AUD, APPLICATION_RES_ID, TENANT_DOMAIN);
         }
-    }
-
-    @Test(priority = 8, dataProvider = "fragmentAppBooleanProvider")
-    public void testPostGetRoleIdListOfUser(boolean isFragmentApp) throws Exception {
-
-        List<String> roleIds = new ArrayList<>();
-        roleIds.add("role1-uuid");
-        roleIds.add("role2-uuid");
-
-        Map<String, Object> threadLocalProps = new HashMap<>();
-        if (isFragmentApp) {
-            RoleManagementService roleManagementService = mock(RoleManagementService.class);
-            ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(roleManagementService);
-
-            // Creating a non-shared role object.
-            Role role1 = new Role();
-            role1.setId("role1-uuid");
-            RoleProperty roleProperty1 = new RoleProperty();
-            roleProperty1.setName("isSharedRole");
-            roleProperty1.setValue(Boolean.FALSE.toString());
-            role1.setRoleProperty(roleProperty1);
-
-            // Creating a shared role object.
-            Role role2 = new Role();
-            role2.setId("role2-uuid");
-            RoleProperty roleProperty2 = new RoleProperty();
-            roleProperty2.setName("isSharedRole");
-            roleProperty2.setValue(Boolean.TRUE.toString());
-            role2.setRoleProperty(roleProperty2);
-
-            when(roleManagementService.getRole("role1-uuid", TENANT_DOMAIN)).thenReturn(role1);
-            when(roleManagementService.getRole("role2-uuid", TENANT_DOMAIN)).thenReturn(role2);
-
-            threadLocalProps.put(IS_FRAGMENT_APP, isFragmentApp);
-        }
-        IdentityUtil.threadLocalProperties.set(threadLocalProps);
-        defaultRoleManagementListener.postGetRoleIdListOfUser(roleIds, "user1-uuid", TENANT_DOMAIN);
-
-        // Clearing the thread local properties.
-        IdentityUtil.threadLocalProperties.set(new HashMap<>());
-    }
-
-    @Test(priority = 9, dataProvider = "fragmentAppBooleanProvider")
-    public void testPostGetRoleIdListOfGroups(boolean isFragmentApp) throws Exception {
-
-        List<String> roleIds = new ArrayList<>();
-        roleIds.add("role1-uuid");
-        roleIds.add("role2-uuid");
-
-        Map<String, Object> threadLocalProps = new HashMap<>();
-        if (isFragmentApp) {
-            RoleManagementService roleManagementService = mock(RoleManagementService.class);
-            ApplicationManagementServiceComponentHolder.getInstance().setRoleManagementServiceV2(roleManagementService);
-
-            // Creating a non-shared role object.
-            Role role1 = new Role();
-            role1.setId("role1-uuid");
-            RoleProperty roleProperty1 = new RoleProperty();
-            roleProperty1.setName("isSharedRole");
-            roleProperty1.setValue(Boolean.FALSE.toString());
-            role1.setRoleProperty(roleProperty1);
-
-            // Creating a shared role object.
-            Role role2 = new Role();
-            role2.setId("role2-uuid");
-            RoleProperty roleProperty2 = new RoleProperty();
-            roleProperty2.setName("isSharedRole");
-            roleProperty2.setValue(Boolean.TRUE.toString());
-            role2.setRoleProperty(roleProperty2);
-
-            when(roleManagementService.getRole("role1-uuid", TENANT_DOMAIN)).thenReturn(role1);
-            when(roleManagementService.getRole("role2-uuid", TENANT_DOMAIN)).thenReturn(role2);
-
-            threadLocalProps.put(IS_FRAGMENT_APP, isFragmentApp);
-        }
-        IdentityUtil.threadLocalProperties.set(threadLocalProps);
-        defaultRoleManagementListener.postGetRoleIdListOfGroups(roleIds, TENANT_DOMAIN);
-
-        // Clearing the thread local properties.
-        IdentityUtil.threadLocalProperties.set(new HashMap<>());
     }
 
     private static ServiceProviderProperty buildServiceProviderProperty(String name, String value) {
