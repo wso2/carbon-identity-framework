@@ -1413,6 +1413,17 @@
              <Scopes>internal_rule_metadata_view</Scopes>
          </Resource>
 
+         <!-- [Organization] User defined local authenticator API -->
+         <Resource context="(.*)/o/api/server/v1/authenticators/custom" secured="true" http-method="POST">
+             <Scopes>internal_org_custom_authenticator_create</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/authenticators/custom(.*)" secured="true" http-method="PUT">
+             <Scopes>internal_org_custom_authenticator_update</Scopes>
+         </Resource>
+         <Resource context="(.*)/o/api/server/v1/authenticators/custom(.*)" secured="true" http-method="DELETE">
+             <Scopes>internal_org_custom_authenticator_delete</Scopes>
+         </Resource>
+
          <!-- User defined local authenticator API -->
          <Resource context="(.*)/api/server/v1/authenticators/custom" secured="true" http-method="POST">
              <Scopes>internal_custom_authenticator_create</Scopes>
