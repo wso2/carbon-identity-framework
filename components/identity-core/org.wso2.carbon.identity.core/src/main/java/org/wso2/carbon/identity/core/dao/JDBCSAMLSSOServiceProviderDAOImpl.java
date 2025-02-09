@@ -35,6 +35,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ATTR_NAME_FORMAT;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML_SCHEMA_VERSION;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.ID;
 import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.SAML2TableColumns.TENANT_ID;
@@ -333,6 +334,7 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
         statement.setString(SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
                 serviceProviderDO.getSupportedAssertionQueryRequestTypes());
         statement.setTimeStamp(UPDATED_AT, new Timestamp(new Date().getTime()), CALENDAR);
+        statement.setString(ATTR_NAME_FORMAT, serviceProviderDO.getAttributeNameFormat());
     }
 
     private void setServiceProviderParameters(NamedPreparedStatement statement,
@@ -372,6 +374,7 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
         statement.setString(VERSION, SAML_SCHEMA_VERSION);
         statement.setTimeStamp(CREATED_AT, currentTime, CALENDAR);
         statement.setTimeStamp(UPDATED_AT, currentTime, CALENDAR);
+        statement.setString(ATTR_NAME_FORMAT, serviceProviderDO.getAttributeNameFormat());
     }
 
     private SAMLSSOServiceProviderDO resourceToObject(ResultSet resultSet) throws SQLException {
@@ -410,6 +413,7 @@ public class JDBCSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvider
         if (serviceProviderDO.isDoFrontChannelLogout()) {
             serviceProviderDO.setFrontChannelLogoutBinding(resultSet.getString(SLO_METHOD));
         }
+        serviceProviderDO.setAttributeNameFormat(resultSet.getString(ATTR_NAME_FORMAT));
 
         return serviceProviderDO;
     }

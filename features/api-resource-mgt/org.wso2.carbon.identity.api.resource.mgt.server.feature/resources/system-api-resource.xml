@@ -830,6 +830,34 @@
                     description="Delete OAuth2 scopes in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Certificate Validation Management API" identifier="/api/server/v1/certificate-validation"
+                 requiresAuthorization="true"
+                 description="API representation of the Certificate Validation Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Certificate Validation Configurations" name="internal_cert_validation_mgt_view"
+                    description="View certificate validation configurations in the organization (root)"/>
+            <Scope displayName="Create Certificate Validation Configurations" name="internal_cert_validation_mgt_create"
+                    description="Create certificate validation configurations in the organization (root)"/>
+            <Scope displayName="Update Certificate Validation Configurations" name="internal_cert_validation_mgt_update"
+                    description="Update certificate validation configurations in the organization (root)"/>
+            <Scope displayName="Delete Certificate Validation Configurations" name="internal_cert_validation_mgt_delete"
+                    description="Delete certificate validation configurations in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Certificate Validation Management API" identifier="/o/api/server/v1/certificate-validation"
+                 requiresAuthorization="true"
+                 description="API representation of the Certificate Validation Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Certificate Validation Configurations" name="internal_org_cert_validation_mgt_view"
+                    description="View certificate validation configurations in the organization"/>
+            <Scope displayName="Create Certificate Validation Configurations" name="internal_org_cert_validation_mgt_create"
+                    description="Create certificate validation configurations in the organization"/>
+            <Scope displayName="Update Certificate Validation Configurations" name="internal_org_cert_validation_mgt_update"
+                    description="Update certificate validation configurations in the organization"/>
+            <Scope displayName="Delete Certificate Validation Configurations" name="internal_org_cert_validation_mgt_delete"
+                    description="Delete certificate validation configurations in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Email Template Management API v1/v2"
                  identifier="/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API" type="TENANT">

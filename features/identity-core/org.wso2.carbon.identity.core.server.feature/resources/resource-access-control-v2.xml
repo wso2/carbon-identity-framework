@@ -125,6 +125,34 @@
         <Scopes>internal_notification_senders_delete</Scopes>
     </Resource>
 
+    <!-- [Organization]  Certificate Validation Management API -->
+    <Resource context="(.*)/o/api/server/v1/certificate-validation/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_org_cert_validation_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/certificate-validation/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_org_cert_validation_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/certificate-validation/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_org_cert_validation_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/o/api/server/v1/certificate-validation/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_org_cert_validation_mgt_delete</Scopes>
+    </Resource>
+
+    <!-- Certificate Validation Management API -->
+    <Resource context="(.*)/api/server/v1/certificate-validation/(.*)" secured="true" http-method="POST">
+        <Scopes>internal_cert_validation_mgt_create</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/certificate-validation/(.*)" secured="true" http-method="PUT">
+        <Scopes>internal_cert_validation_mgt_update</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/certificate-validation/(.*)" secured="true" http-method="GET">
+        <Scopes>internal_cert_validation_mgt_view</Scopes>
+    </Resource>
+    <Resource context="(.*)/api/server/v1/certificate-validation/(.*)" secured="true" http-method="DELETE">
+        <Scopes>internal_cert_validation_mgt_delete</Scopes>
+    </Resource>
+
     <!-- Secret Type Management API -->
     <Resource context="(.*)/api/server/v1/secret-type(.*)" secured="true" http-method="POST">
         <Scopes>internal_secret_type_mgt_add</Scopes>
