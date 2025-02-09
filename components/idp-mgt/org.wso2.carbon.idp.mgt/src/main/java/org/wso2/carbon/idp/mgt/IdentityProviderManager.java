@@ -839,11 +839,10 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        if (identityProvider == null || StringUtils.isBlank(identityProvider.getId())) {
-            // Get the SSO IDP for back-channel logout requests coming from sub-organizations.
-            if (idPName.contains(IdentityUtil.getHostName()) && ISSUER_PATTERN.matcher(idPName).matches()) {
-                identityProvider = getSSOIDP(idPName, tenantId, tenantDomain);
-            }
+        // Get the SSO IDP for back-channel logout requests coming from sub-organizations.
+        if ((identityProvider == null || StringUtils.isBlank(identityProvider.getId()))
+                && idPName.contains(IdentityUtil.getHostName()) && ISSUER_PATTERN.matcher(idPName).matches()) {
+            identityProvider = getSSOIDP(idPName, tenantId, tenantDomain);
         }
 
         return identityProvider;
