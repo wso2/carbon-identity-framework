@@ -2241,6 +2241,13 @@
                        orderId="{{event.default_listener.basic_auth_client_authenticator.priority}}"
                        enable="{{event.default_listener.basic_auth_client_authenticator.enable}}"/>
 
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
+                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
+                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
+
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener id="user_deletion"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
