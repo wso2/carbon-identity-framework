@@ -94,6 +94,11 @@ public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+    private static final String JWKS_URI = "jwksUri";
+    private static final String OAUTH2_JWKS_EP_URL = "oauth2/jwks";
+    private static final String OAUTH2_TOKEN_EP_URL = "oauth2/token";
+    private static final Pattern ISSUER_PATTERN = Pattern.compile("(.+)/o/(.+)/oauth2/token");
+    private static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     private static final int OTP_CODE_MIN_LENGTH = 4;
     private static final int OTP_CODE_MAX_LENGTH = 10;
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
@@ -831,6 +836,13 @@ public class IdentityProviderManager implements IdpManager {
             if (identityProvider == null) {
                 identityProvider = IdPManagementServiceComponent.getFileBasedIdPs().get(
                         IdentityApplicationConstants.DEFAULT_IDP_CONFIG);
+            }
+        }
+
+        if (identityProvider == null || StringUtils.isBlank(identityProvider.getId())) {
+            // Get the SSO IDP for back-channel logout requests coming from sub-organizations.
+            if (idPName.contains(IdentityUtil.getHostName()) && ISSUER_PATTERN.matcher(idPName).matches()) {
+                identityProvider = getSSOIDP(idPName, tenantId, tenantDomain);
             }
         }
 
@@ -2789,5 +2801,38 @@ public class IdentityProviderManager implements IdpManager {
                 federatedAuthConfig.setDefinedByType(authenticatorConfig.getDefinedByType());
             }
         }
+    }
+
+    private IdentityProvider getSSOIDP(String jwtIssuer, int tenantId, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdentityProvider identityProvider = dao.getIdPByName(null, ORGANIZATION_LOGIN_IDP_NAME, tenantId, tenantDomain);
+        if (identityProvider != null && StringUtils.isNotBlank(identityProvider.getId())) {
+            identityProvider.setIdpProperties(
+                    addJWKSUriProperty(identityProvider.getIdpProperties(), jwtIssuer));
+        }
+        return identityProvider;
+    }
+
+    /**
+     * Add JWKS URI property to the identity provider properties for SSO identity provider.
+     * The URI is constructed by replacing the token endpoint with JWKS endpoint.
+     *
+     * @param idpProperties Identity provider properties.
+     * @param jwtIssuer     JWT issuer.
+     * @return IdentityProviderProperty[] Updated identity provider properties.
+     */
+    private IdentityProviderProperty[] addJWKSUriProperty(IdentityProviderProperty[] idpProperties, String jwtIssuer) {
+
+        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(idpProperties)) {
+            identityProviderProperties = new ArrayList<>(Arrays.asList(idpProperties));
+        }
+        String jwksUri = jwtIssuer.replace(OAUTH2_TOKEN_EP_URL, OAUTH2_JWKS_EP_URL);
+        IdentityProviderProperty jwksEndpoint = new IdentityProviderProperty();
+        jwksEndpoint.setName(JWKS_URI);
+        jwksEndpoint.setValue(jwksUri);
+        identityProviderProperties.add(jwksEndpoint);
+        return identityProviderProperties.toArray(new IdentityProviderProperty[0]);
     }
 }
