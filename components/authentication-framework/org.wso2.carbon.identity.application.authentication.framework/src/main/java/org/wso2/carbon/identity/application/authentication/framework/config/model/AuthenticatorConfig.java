@@ -20,9 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -129,23 +127,6 @@ public class AuthenticatorConfig implements Serializable {
 
     public void setIdPs(Map<String, IdentityProvider> idPs) {
 
-
-        if (idPs != null) {
-            /* Remove non-serializable UserDefinedAuthenticatorEndpointConfig objects from the
-             UserDefinedFederatedAuthenticatorConfig in the context. The UserDefinedAuthenticatorEndpointConfig contains
-             the endpoint URI and the authentication type of the corresponding action. However, this information is not
-             used in the authentication flow. Instead, the action ID in the authenticator property is used to resolve
-             the corresponding action.
-             TOD0: https://github.com/wso2/product-is/issues/22907
-             [Robust solution for serialization error at authentication context cloning] */
-            for (IdentityProvider idp : idPs.values()) {
-                for (FederatedAuthenticatorConfig authConfig : idp.getFederatedAuthenticatorConfigs()) {
-                    if (authConfig instanceof UserDefinedFederatedAuthenticatorConfig) {
-                        ((UserDefinedFederatedAuthenticatorConfig) authConfig).setEndpointConfig(null);
-                    }
-                }
-            }
-        }
         this.idps = idPs;
     }
 
