@@ -290,5 +290,9 @@
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.module_index": "45",
   "identity_mgt.events.schemes.OrganizationUserSharingHandler.subscriptions": [
     "POST_ADD_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationSessionHandler.module_index": "46",
+  "identity_mgt.events.schemes.OrganizationSessionHandler.subscriptions": [
+    "SESSION_TERMINATE"
   ]
 }
