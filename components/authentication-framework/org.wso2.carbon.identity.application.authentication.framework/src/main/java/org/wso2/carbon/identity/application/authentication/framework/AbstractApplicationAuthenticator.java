@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -94,7 +95,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         // if an authentication flow
         if (!context.isLogoutRequest()) {
             boolean skipPrompt = isSkipPrompt(context);
-            if (!skipPrompt && (!canHandle(request)
+            if (!AuthenticatorPropertyConstants.DefinedByType.USER.equals(getDefinedByType())
+                    && !skipPrompt && (!canHandle(request)
                     || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
                 if (getName().equals(context.getProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR))) {
                     context.setRetrying(true);
