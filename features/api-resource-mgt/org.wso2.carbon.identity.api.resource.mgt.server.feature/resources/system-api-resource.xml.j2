@@ -1551,4 +1551,16 @@
                    description="Delete user defined local authenticator"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User defined local authenticator API" identifier="/o/api/server/v1/authenticators/custom"
+                     requiresAuthorization="true"
+                     description="API representation of the User Defined Local Authenticator Management API" type="ORGANIZATION">
+            <Scopes>
+                <Scope displayName="Create Authenticator" name="internal_org_custom_authenticator_create"
+                       description="Create new user defined local authenticator in the organization"/>
+                <Scope displayName="Update Authenticator" name="internal_org_custom_authenticator_update"
+                       description="Update user defined local authenticator in the organization"/>
+                <Scope displayName="Delete Authenticator" name="internal_org_custom_authenticator_delete"
+                       description="Delete user defined local authenticator in the organization"/>
+            </Scopes>
+        </APIResource>
 </APIResources>
