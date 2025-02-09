@@ -1288,9 +1288,6 @@ public class ApplicationMgtUtil {
         Source xmlSource = new SAXSource(spf.newSAXParser().getXMLReader(), inputsource);
         JAXBContext jaxbContext = JAXBContext.newInstance(ServiceProvider.class);
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        // Disable external entity processing to prevent XXE attacks.
-        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        unmarshaller.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         return (ServiceProvider) unmarshaller.unmarshal(xmlSource);
     }
 
