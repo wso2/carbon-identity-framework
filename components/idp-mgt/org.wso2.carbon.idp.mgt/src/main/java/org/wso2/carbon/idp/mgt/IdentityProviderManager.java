@@ -97,7 +97,7 @@ public class IdentityProviderManager implements IdpManager {
     private static final String JWKS_URI = "jwksUri";
     private static final String OAUTH2_JWKS_EP_URL = "oauth2/jwks";
     private static final String OAUTH2_TOKEN_EP_URL = "oauth2/token";
-    private static final Pattern ISSUER_PATTERN = Pattern.compile("(.+)/o/(.+)/oauth2/token");
+    private static final Pattern ISSUER_PATTERN = Pattern.compile("^https?://[^/]+/o/([^/]+)/oauth2/token$");
     private static final String ORGANIZATION_LOGIN_IDP_NAME = "SSO";
     private static final int OTP_CODE_MIN_LENGTH = 4;
     private static final int OTP_CODE_MAX_LENGTH = 10;
