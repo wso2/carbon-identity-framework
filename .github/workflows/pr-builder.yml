@@ -39,7 +39,7 @@ jobs:
       - name: Clear Maven Cache for commons-compress
         run: rm -rf ~/.m2/repository/org/wso2/orbit/org/apache/commons/commons-compress/1.26.1.wso2v1
       - name: Build with Maven
-        run: mvn clean install -U -B
+        run: mvn clean install -U -B -Djdk.util.zip.disableZip64ExtraFieldValidation=true
       - name: Generate coverage report
         run: mvn test jacoco:report
       - name: Delete SNAPSHOT artifacts
