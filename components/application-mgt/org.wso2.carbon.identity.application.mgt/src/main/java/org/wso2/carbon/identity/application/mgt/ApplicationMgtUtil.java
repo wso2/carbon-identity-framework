@@ -702,6 +702,7 @@ public class ApplicationMgtUtil {
      * @return SAXParserFactory object.
      */
     public static SAXParserFactory getSaxParserFactory() {
+
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         spf.setXIncludeAware(false);
