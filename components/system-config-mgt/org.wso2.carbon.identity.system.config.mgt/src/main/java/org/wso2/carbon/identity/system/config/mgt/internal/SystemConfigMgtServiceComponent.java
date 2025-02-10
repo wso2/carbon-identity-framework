@@ -30,6 +30,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.admin.advisory.mgt.dao.AdminAdvisoryBannerDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.system.config.mgt.advisory.DBBasedAdminBannerDAO;
 import org.wso2.carbon.identity.system.config.mgt.remotelogging.DBBasedRemoteLoggingConfigDAO;
 import org.wso2.carbon.logging.service.dao.RemoteLoggingConfigDAO;
@@ -43,7 +45,7 @@ import org.wso2.carbon.logging.service.dao.RemoteLoggingConfigDAO;
 )
 public class SystemConfigMgtServiceComponent {
 
-    private static final Log log = LogFactory.getLog(SystemConfigMgtServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(SystemConfigMgtServiceComponent.class);
 
     /**
      * Activate the SystemConfigMgtServiceComponent.
@@ -55,14 +57,25 @@ public class SystemConfigMgtServiceComponent {
 
         try {
             BundleContext bundleContext = context.getBundleContext();
-            // Register the Database based Admin Advisory Banner DAO.
-            bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(), null);
-            bundleContext.registerService(RemoteLoggingConfigDAO.class, new DBBasedRemoteLoggingConfigDAO(), null);
-            log.debug("System Config Mgt Service Component is activated.");
-
+            if (isDBBasedConfigMgtEnabled("AdminAdvisoryBanner")) {
+                bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(), null);
+                LOG.debug("DB based Admin Banner DAO registered.");
+            }
+            if (isDBBasedConfigMgtEnabled("RemoteLoggingConfig")) {
+                bundleContext.registerService(RemoteLoggingConfigDAO.class, new DBBasedRemoteLoggingConfigDAO(), null);
+                LOG.debug("DB based Remote Logging Config DAO registered.");
+            }
+            LOG.debug("System Config Mgt Service Component is activated.");
         } catch (Throwable e) {
-            log.error("Error while activating System Config management service.", e);
+            LOG.error("Error while activating System Config management service.", e);
         }
+    }
+
+    private boolean isDBBasedConfigMgtEnabled(String configType) {
+
+        String storageType = IdentityUtil.getProperty("DataStorageType." + configType);
+        boolean isRegistry = "registry".equals(storageType) || "hybrid".equals(storageType);
+        return !isRegistry;
     }
 
     /**
@@ -73,7 +86,7 @@ public class SystemConfigMgtServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        log.debug("System Config Mgt Service Component is deactivated.");
+        LOG.debug("System Config Mgt Service Component is deactivated.");
     }
 
     /**
@@ -90,7 +103,7 @@ public class SystemConfigMgtServiceComponent {
     )
     protected void registerConfigurationManager(ConfigurationManager configurationManager) {
 
-        log.debug("Registering the ConfigurationManager in System Config Mgt Service.");
+        LOG.debug("Registering the ConfigurationManager in System Config Mgt Service.");
         SystemConfigMgtServiceHolder.getInstance().setConfigurationManager(configurationManager);
     }
 
@@ -101,8 +114,23 @@ public class SystemConfigMgtServiceComponent {
      */
     protected void unregisterConfigurationManager(ConfigurationManager configurationManager) {
 
-        log.debug("Unregistering the ConfigurationManager in System Config Mgt Service.");
+        LOG.debug("Unregistering the ConfigurationManager in System Config Mgt Service.");
         SystemConfigMgtServiceHolder.getInstance().setConfigurationManager(null);
     }
 
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService")
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+    /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
 }
