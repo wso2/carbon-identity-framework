@@ -1346,8 +1346,24 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
             throws IdentityApplicationManagementException {
 
+        Collection<ApplicationMgtListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        return appDAO.getApplicationWithRequiredAttributes(applicationId, requiredAttributes);
+        ServiceProvider application = appDAO.getApplicationWithRequiredAttributes(applicationId, requiredAttributes);
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() &&
+                    !listener.doPostGetApplicationWithRequiredAttributes(application, tenantDomain)) {
+                log.error("PostGetApplicationWithRequiredAttributes operation of " +
+                        "listener: " + getName(listener) + " failed for application with id: " +
+                        application.getApplicationID());
+                break;
+            }
+        }
+
+        return application;
     }
 
     /**

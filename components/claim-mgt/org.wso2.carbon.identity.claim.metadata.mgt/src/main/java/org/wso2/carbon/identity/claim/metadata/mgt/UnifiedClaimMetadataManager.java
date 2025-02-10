@@ -162,20 +162,16 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<LocalClaim> localClaimsInSystem = this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId);
         List<LocalClaim> localClaimsInDB = this.dbBasedClaimMetadataManager.getLocalClaims(tenantId);
 
-        Map<String, LocalClaim> localClaimMap = new HashMap<>();
-        for (LocalClaim claim : localClaimsInDB) {
-            localClaimMap.put(claim.getClaimURI(), claim);
-        }
+        Map<String, LocalClaim> localClaimMap = localClaimsInDB.stream()
+                .collect(Collectors.toMap(LocalClaim::getClaimURI, claim -> claim));
 
-        for (LocalClaim systemClaim : localClaimsInSystem) {
-            LocalClaim matchingClaim = localClaimMap.get(systemClaim.getClaimURI());
-            if (matchingClaim != null) {
-                markAsSystemClaim(matchingClaim);
-            } else {
-                markAsSystemClaim(systemClaim);
-                localClaimMap.put(systemClaim.getClaimURI(), systemClaim);
-            }
-        }
+        localClaimsInSystem.forEach(systemClaim -> {
+            markAsSystemClaim(systemClaim);
+            localClaimMap.merge(systemClaim.getClaimURI(), systemClaim, (existingClaim, newClaim) -> {
+                markAsSystemClaim(existingClaim);
+                return existingClaim;
+            });
+        });
 
         // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
         for (LocalClaim localClaim : localClaimMap.values()) {

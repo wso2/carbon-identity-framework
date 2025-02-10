@@ -168,7 +168,7 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' " +
                 "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND " +
-                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true') ORDER BY %s LIMIT ?, ?";
+                "NAME = 'isSystemReservedIdP' AND `VALUE` = 'true') ORDER BY %s LIMIT ?, ?";
 
         public static final String GET_IDP_BY_TENANT_DB2SQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";

@@ -89,19 +89,10 @@
         <NotificationTemplates>{{data_storage_type.notification_templates}}</NotificationTemplates>
         <SAML>{{data_storage_type.saml}}</SAML>
         <XACML>{{data_storage_type.xacml}}</XACML>
+        <CertificateValidation>{{data_storage_type.certificate_validation}}</CertificateValidation>
     </DataStorageType>
 
     <NotificationTemplates>
-        <LegacyTenants>
-            {% for tenant in notification_templates.legacy_tenants %}
-            <Tenant>{{tenant}}</Tenant>
-            {% endfor %}
-        </LegacyTenants>
-        <DebugTenants>
-            {% for tenant in notification_templates.debug_tenants %}
-            <Tenant>{{tenant}}</Tenant>
-            {% endfor %}
-        </DebugTenants>
         <SMSTemplates>
             <Apply>{{notification_templates.sms_templates.apply}}</Apply>
         </SMSTemplates>
@@ -2250,6 +2241,13 @@
                        orderId="{{event.default_listener.basic_auth_client_authenticator.priority}}"
                        enable="{{event.default_listener.basic_auth_client_authenticator.enable}}"/>
 
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
+                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
+                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
+
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener id="user_deletion"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -2267,12 +2265,6 @@
                        orderId="{{event.default_listener.user_session_termination.priority}}"
                        enable="{{event.default_listener.user_session_termination.enable}}"/>
 
-        <!-- Post Authentication handler for email domain based organization discovery -->
-        <EventListener id="email_domain_validation_handler"
-                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.EmailDomainValidationHandler"
-                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
-                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
 
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener id="jit_provisioning_handler"
@@ -3892,6 +3884,7 @@
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/me/push/devices</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3915,8 +3908,10 @@
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
             <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
