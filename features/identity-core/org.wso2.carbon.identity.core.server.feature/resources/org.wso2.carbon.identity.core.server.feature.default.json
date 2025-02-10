@@ -576,6 +576,8 @@
   "event.default_listener.basic_auth_client_authenticator.enable": true,
   "event.default_listener.user_deletion.priority": "98",
   "event.default_listener.user_deletion.enable": false,
+  "event.default_listener.email_domain_validation_handler.priority": "15",
+  "event.default_listener.email_domain_validation_handler.enable": true,
   "event.default_listener.consent_mgt_handler.priority": "110",
   "event.default_listener.consent_mgt_handler.enable": true,
   "event.default_listener.user_session_termination.priority": "85",
