@@ -213,7 +213,7 @@ public class ApplicationIdentityProviderMgtListenerTest {
             exceptionMessage = ex.getMessage();
         }
         Assert.assertEquals(exceptionMessage,
-                "ProvisioningConnector outbound provisioning connector is referred by service providers.");
+                "ProvisioningConnector connector is already configured for outbound provisioning.");
         provisioningConnectorConfigs[0].setEnabled(true);
     }
 
