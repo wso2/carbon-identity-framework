@@ -90,6 +90,8 @@
         <SAML>{{data_storage_type.saml}}</SAML>
         <XACML>{{data_storage_type.xacml}}</XACML>
         <CertificateValidation>{{data_storage_type.certificate_validation}}</CertificateValidation>
+        <AdminAdvisoryBanner>{{data_storage_type.admin_advisory_banner}}</AdminAdvisoryBanner>
+        <RemoteLoggingConfig>{{data_storage_type.remote_logging_config}}</RemoteLoggingConfig>
     </DataStorageType>
 
     <NotificationTemplates>
@@ -3855,6 +3857,7 @@
                     <Path>/oauth2/token</Path>
                     <Path>/oauth2/introspect</Path>
                     <Path>/oauth2/revoke</Path>
+                    <Path>/oauth2/userinfo</Path>
                 </SubPaths>
             </Context>
         </WebApp>

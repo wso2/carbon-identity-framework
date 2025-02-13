@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.listener.AbstractIdentityProviderMgtListener;
@@ -169,8 +170,8 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                     identityProviderManager.isOutboundConnectorReferredBySP(identityProvider.getResourceId(),
                             identityProvider.getIdentityProviderName(), provisioningConnectorConfig.getName(),
                             tenantDomain)) {
-                throw new IdentityProviderManagementException(provisioningConnectorConfig.getName() +
-                        " outbound provisioning connector is referred by service providers.");
+                throw new IdentityProviderManagementClientException(provisioningConnectorConfig.getName() +
+                        " connector is already configured for outbound provisioning.");
             }
         }
     }
