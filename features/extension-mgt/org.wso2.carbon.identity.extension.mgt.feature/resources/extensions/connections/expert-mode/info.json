@@ -5,6 +5,6 @@
     "image": "assets/images/logos/expert.svg",
     "category": "DEFAULT",
     "displayOrder": 11,
-    "tags": [],
+    "tags": [ "Custom" ],
     "type": "MANUAL"
 }
