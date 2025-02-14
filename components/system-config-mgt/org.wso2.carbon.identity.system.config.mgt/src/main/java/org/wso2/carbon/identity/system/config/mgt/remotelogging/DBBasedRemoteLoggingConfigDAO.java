@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
-import org.wso2.carbon.identity.system.config.mgt.internal.SystemConfigMgtServiceHolder;
 import org.wso2.carbon.logging.service.LoggingConstants.LogType;
 import org.wso2.carbon.logging.service.RemoteLoggingServerException;
 import org.wso2.carbon.logging.service.dao.RemoteLoggingConfigDAO;
@@ -53,6 +52,12 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
     public static final String RESOURCE_NOT_EXISTS_ERROR_CODE = "CONFIGM_00017";
 
     private static final Log LOG = LogFactory.getLog(DBBasedRemoteLoggingConfigDAO.class);
+    private ConfigurationManager configurationManager;
+
+    public DBBasedRemoteLoggingConfigDAO(ConfigurationManager configurationManager) {
+
+        this.configurationManager = configurationManager;
+    }
 
     @Override
     public void saveRemoteServerConfig(RemoteServerLoggerData data, LogType logType)
@@ -61,9 +66,9 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
         Resource resource = buildResourceFromRemoteServerLoggerData(data, String.valueOf(logType));
         try {
             if (isRemoteServerConfigResourceExists(REMOTE_LOGGING_RESOURCE_TYPE, String.valueOf(logType))) {
-                getConfigurationManager().replaceResource(REMOTE_LOGGING_RESOURCE_TYPE, resource);
+                this.configurationManager.replaceResource(REMOTE_LOGGING_RESOURCE_TYPE, resource);
             } else {
-                getConfigurationManager().addResource(REMOTE_LOGGING_RESOURCE_TYPE, resource);
+                this.configurationManager.addResource(REMOTE_LOGGING_RESOURCE_TYPE, resource);
             }
         } catch (ConfigurationManagementException e) {
             throw new RemoteLoggingServerException("Error occurred while saving Remote Logging configuration.", e);
@@ -77,7 +82,7 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
     public Optional<RemoteServerLoggerData> getRemoteServerConfig(LogType logType) throws RemoteLoggingServerException {
 
         try {
-            Resource resource = getConfigurationManager().getResource(REMOTE_LOGGING_RESOURCE_TYPE,
+            Resource resource = this.configurationManager.getResource(REMOTE_LOGGING_RESOURCE_TYPE,
                     String.valueOf(logType));
             if (resource == null) {
                 return Optional.empty();
@@ -102,7 +107,7 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
     public void resetRemoteServerConfig(LogType logType) throws RemoteLoggingServerException {
 
         try {
-            getConfigurationManager().deleteResource(REMOTE_LOGGING_RESOURCE_TYPE, String.valueOf(logType));
+            this.configurationManager.deleteResource(REMOTE_LOGGING_RESOURCE_TYPE, String.valueOf(logType));
         } catch (ConfigurationManagementException e) {
             throw new RemoteLoggingServerException("Error occurred while resetting Remote Logger configuration.", e);
         }
@@ -120,7 +125,7 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
 
         Resource resource;
         try {
-            resource = getConfigurationManager().getResource(resourceType, resourceName);
+            resource = this.configurationManager.getResource(resourceType, resourceName);
         } catch (ConfigurationManagementException e) {
             if (RESOURCE_NOT_EXISTS_ERROR_CODE.equals(e.getErrorCode())) {
                 return false;
@@ -198,10 +203,5 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
             }
         }
         return remoteServerLoggerData;
-    }
-
-    private ConfigurationManager getConfigurationManager() {
-
-        return SystemConfigMgtServiceHolder.getInstance().getConfigurationManager();
     }
 }

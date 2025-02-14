@@ -34,6 +34,7 @@ public abstract class FrameworkConstants {
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
     public static final String ALLOW_SESSION_CREATION = "allowSessionCreation";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
+    public static final String CUSTOM_AUTHENTICATOR_PREFIX = "custom-";
     // Cookie used for post authenticaion sequence tracking
     public static final String PASTR_COOKIE = "pastr";
     public static final String CLAIM_URI_WSO2_EXT_IDP = "http://wso2.org/claims/externalIDP";
