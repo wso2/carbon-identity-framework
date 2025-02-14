@@ -266,7 +266,8 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
                 String actualAuthenticatorName = federatedAuthenticator.getName();
                 // assign it to the step
-                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName, tenantDomain);
+                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName,
+                        federatedAuthenticator.getAmrValue(), tenantDomain);
             }
         }
     }
@@ -281,13 +282,14 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             // assign it to the step
             for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
                 String actualAuthenticatorName = localAuthenticator.getName();
-                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName, tenantDomain);
+                loadStepAuthenticator(stepConfig, localIdp, actualAuthenticatorName, localAuthenticator.getAmrValue()
+                        , tenantDomain);
             }
         }
     }
 
     private void loadStepAuthenticator(StepConfig stepConfig, IdentityProvider idp, String authenticatorName,
-                                           String tenantDomain) throws FrameworkException {
+                                       String amrValue, String tenantDomain) throws FrameworkException {
 
         AuthenticatorConfig authenticatorConfig = null;
 
@@ -317,6 +319,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 throw new FrameworkException("No authenticator found by the name: " + authenticatorName);
             }
             authenticatorConfig.setApplicationAuthenticator(appAuthenticatorForConfig);
+            authenticatorConfig.setAmrValue(amrValue);
             stepConfig.getAuthenticatorList().add(authenticatorConfig);
         }
 

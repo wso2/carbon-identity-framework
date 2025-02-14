@@ -44,9 +44,10 @@ public class AuthenticatorConfig implements Serializable {
     private List<String> idpNames = new ArrayList<>();
     private List<String> idPResourceIds = new ArrayList<>();
     private String tenantDomain;
-    private String amrValues;
+    private String amrValue;
 
     public AuthenticatorConfig() {
+
     }
 
     public AuthenticatorConfig(String name, boolean enabled,
@@ -74,8 +75,8 @@ public class AuthenticatorConfig implements Serializable {
                 new HashMap<>(authenticatorConfig.getParameterMap()) : null;
         this.idPResourceIds = authenticatorConfig.getIdPResourceIds() != null ?
                 new ArrayList<>(authenticatorConfig.getIdPResourceIds()) : null;
-        this.amrValues = authenticatorConfig.getAmrValues() != null ?
-                authenticatorConfig.getAmrValues() : null;
+        this.amrValue = authenticatorConfig.getAmrValue() != null ?
+                authenticatorConfig.getAmrValue() : null;
     }
 
     public String getName() {
@@ -158,11 +159,11 @@ public class AuthenticatorConfig implements Serializable {
         this.tenantDomain = tenantDomain;
     }
 
-    public String getAmrValues() {
-        return amrValues;
+    public String getAmrValue() {
+        return amrValue;
     }
 
-    public void setAmrValues(String amrValues) {
-        this.amrValues = amrValues;
+    public void setAmrValue(String amrValue) {
+        this.amrValue = amrValue;
     }
 }

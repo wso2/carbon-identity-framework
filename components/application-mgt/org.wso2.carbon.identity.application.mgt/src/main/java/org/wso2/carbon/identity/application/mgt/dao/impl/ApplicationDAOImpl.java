@@ -290,7 +290,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 property.setName(rs.getString("NAME"));
                 property.setValue(rs.getString("VALUE"));
                 property.setDisplayName(rs.getString("DISPLAY_NAME"));
-                //Should we add amr value as a service provider property
                 idpProperties.add(property);
             }
         } catch (DataAccessException e) {

@@ -69,7 +69,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         this.parameterMap = authenticatorConfig.getParameterMap();
         this.tenantDomain = authenticatorConfig.getTenantDomain();
         this.idPResourceIds = authenticatorConfig.getIdPResourceIds();
-        this.amrValue = authenticatorConfig.getAmrValues();
+        this.amrValue = authenticatorConfig.getAmrValue();
     }
 
     public AuthenticatorConfig getAuthenticatorConfig() throws
@@ -101,7 +101,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
         authenticatorConfig.setIdPs(idps);
         authenticatorConfig.setIdPNames(idpNames);
         authenticatorConfig.setTenantDomain(this.tenantDomain);
-        authenticatorConfig.setAmrValues(this.amrValue);
+        authenticatorConfig.setAmrValue(this.amrValue);
         return authenticatorConfig;
     }
 
