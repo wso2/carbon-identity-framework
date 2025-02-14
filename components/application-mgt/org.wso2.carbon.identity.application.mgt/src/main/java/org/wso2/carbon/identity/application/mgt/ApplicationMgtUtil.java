@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -1368,6 +1370,52 @@ public class ApplicationMgtUtil {
         } catch (org.wso2.carbon.user.core.UserStoreException e) {
             throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USER_GROUPS.getCode(),
                     ERROR_RETRIEVING_USER_GROUPS.getDescription(), e);
+        }
+    }
+
+    /**
+     * Add the current discoverable group to the list of discoverable groups.
+     *
+     * @param discoverableGroups  All list of discoverable groups.
+     * @param currentDomainGroups List of groups in the current iterating domain.
+     * @param tenantDomain        Tenant domain.
+     * @param domainName          Current iterating domain name.
+     * @param groupID             Group ID.
+     * @throws IdentityApplicationManagementException If an error occurred while adding the discoverable group.
+     */
+    public static void addDiscoverableGroup(List<DiscoverableGroup> discoverableGroups,
+                                            List<GroupBasicInfo> currentDomainGroups, String tenantDomain,
+                                            String domainName, String groupID)
+            throws IdentityApplicationManagementException {
+
+        if (domainName == null && groupID == null) {
+            discoverableGroups.get(discoverableGroups.size() - 1)
+                    .setGroups(currentDomainGroups.toArray(new GroupBasicInfo[0]));
+            return;
+        }
+
+        AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+        GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
+        groupBasicInfo.setId(groupID);
+        try {
+            String groupName = userStoreManager.getGroupNameByGroupId(groupID);
+            groupBasicInfo.setName(UserCoreUtil.removeDomainFromName(groupName));
+            if (!discoverableGroups.isEmpty() && StringUtils.equals(domainName,
+                    discoverableGroups.get(discoverableGroups.size() - 1).getUserStore())) {
+                currentDomainGroups.add(groupBasicInfo);
+            } else {
+                if (!discoverableGroups.isEmpty()) {
+                    discoverableGroups.get(discoverableGroups.size() - 1)
+                            .setGroups(currentDomainGroups.toArray(new GroupBasicInfo[0]));
+                }
+                currentDomainGroups.clear();
+                currentDomainGroups.add(groupBasicInfo);
+                DiscoverableGroup discoverableGroup = new DiscoverableGroup();
+                discoverableGroup.setUserStore(domainName);
+                discoverableGroups.add(discoverableGroup);
+            }
+        } catch (UserStoreException e) {
+            log.warn("Error while retrieving group name for group ID: " + groupID, e);
         }
     }
 }

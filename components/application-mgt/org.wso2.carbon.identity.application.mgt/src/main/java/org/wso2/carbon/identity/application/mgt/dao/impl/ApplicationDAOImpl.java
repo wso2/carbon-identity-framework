@@ -107,7 +107,6 @@ import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.DBUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -186,6 +185,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCA
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ORACLE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.PORTAL_NAMES_CONFIG_ELEMENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.UNION_SEPARATOR;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.addDiscoverableGroup;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getConsoleAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.getUserTenantDomain;
@@ -6047,7 +6047,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
 
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
+                    while (resultSet.next()) {
                         applicationBasicInfo = buildApplicationBasicInfo(resultSet);
                         isDiscoverable = getBooleanValue(resultSet.getString(ApplicationTableColumns.IS_DISCOVERABLE));
                     }
@@ -6829,43 +6829,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.debug("Retrieving discoverable groups for application with ID: " + applicationId);
         }
 
-        Map<String, List<GroupBasicInfo>> groupInfoMap = new HashMap<>();
+        List<DiscoverableGroup> discoverableGroups = new ArrayList<>();
+        List<GroupBasicInfo> currentIteratingDomainGroups = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
                 ApplicationMgtDBQueries.GET_GROUP_ASSOCIATIONS_BY_APP_ID)) {
             statement.setInt(1, applicationId);
             try (ResultSet resultSet = statement.executeQuery()) {
-                AbstractUserStoreManager userStoreManager =
-                        ApplicationMgtUtil.getUserStoreManager(tenantDomain);
                 while (resultSet.next()) {
                     String groupID = resultSet.getString(1);
                     String domainName = resultSet.getString(2);
-                    GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
-                    groupBasicInfo.setId(groupID);
-                    try {
-                        String groupName = userStoreManager.getGroupNameByGroupId(groupID);
-                        groupBasicInfo.setName(UserCoreUtil.removeDomainFromName(groupName));
-                        if (groupInfoMap.containsKey(domainName)) {
-                            groupInfoMap.get(domainName).add(groupBasicInfo);
-                        } else {
-                            List<GroupBasicInfo> groupBasicInfoList = new ArrayList<>();
-                            groupBasicInfoList.add(groupBasicInfo);
-                            groupInfoMap.put(domainName, groupBasicInfoList);
-                        }
-                    } catch (UserStoreException e) {
-                        log.warn("Error while retrieving group name for group ID: " + groupID, e);
-                    }
+                    addDiscoverableGroup(discoverableGroups, currentIteratingDomainGroups, tenantDomain, domainName,
+                            groupID);
+                }
+                if (!currentIteratingDomainGroups.isEmpty()) {
+                    addDiscoverableGroup(discoverableGroups, currentIteratingDomainGroups, tenantDomain, null, null);
                 }
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException(
                     "Error while retrieving discoverable groups for the application", e);
-        }
-        List<DiscoverableGroup> discoverableGroups = new ArrayList<>();
-        for (String domainName : groupInfoMap.keySet()) {
-            DiscoverableGroup discoverableGroup = new DiscoverableGroup();
-            discoverableGroup.setUserStore(domainName);
-            discoverableGroup.setGroups(groupInfoMap.get(domainName).toArray(new GroupBasicInfo[0]));
-            discoverableGroups.add(discoverableGroup);
         }
         if (!discoverableGroups.isEmpty()) {
             return discoverableGroups.toArray(new DiscoverableGroup[0]);

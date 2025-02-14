@@ -170,8 +170,32 @@ public class ApplicationDAOImplTest {
                 () -> applicationDAO.updateApplication(serviceProvider, SUPER_TENANT_DOMAIN_NAME));
     }
 
-    @Test(description = "Test retrieving discoverable groups list when the mapped group ID does not exist",
+    @Test(description = "Test discoverable groups list",
             dependsOnMethods = {"updateApplicationWithInvalidDiscoverableGroups"})
+    public void testDiscoverableGroupsList()
+            throws IdentityApplicationManagementException, UserStoreException {
+
+        when(mockAbstractUserStoreManager.getGroupNameByGroupId(eq("test-group-id-0")))
+                .thenReturn("test-group-name-0");
+        when(mockAbstractUserStoreManager.getGroupNameByGroupId(eq("test-group-id-1")))
+                .thenReturn("test-group-name-1");
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider serviceProvider = applicationDAO.getApplication("test-app", SUPER_TENANT_DOMAIN_NAME);
+        DiscoverableGroup[] discoverableGroups = serviceProvider.getDiscoverableGroups();
+        String[] domainNames = new String[] {DEFAULT_USER_STORE_DOMAIN, "SECONDARY"};
+        for (int i = 0; i < discoverableGroups.length; i++) {
+            DiscoverableGroup discoverableGroup = discoverableGroups[i];
+            assertEquals(discoverableGroup.getGroups().length, 2);
+            for (int j = 0; j < discoverableGroup.getGroups().length; j++) {
+                assertEquals(discoverableGroup.getGroups()[j].getName(), "test-group-name-" + j);
+                assertEquals(discoverableGroup.getGroups()[j].getId(), "test-group-id-" + j);
+            }
+            assertEquals(discoverableGroup.getUserStore(), domainNames[i]);
+        }
+    }
+
+    @Test(description = "Test retrieving discoverable groups list when the mapped group ID does not exist",
+            dependsOnMethods = {"testDiscoverableGroupsList"})
     public void testDiscoverableGroupsListWhenMappedGroupIdNotExist()
             throws IdentityApplicationManagementException, UserStoreException {
 
@@ -182,7 +206,7 @@ public class ApplicationDAOImplTest {
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         ServiceProvider serviceProvider = applicationDAO.getApplication("test-app", SUPER_TENANT_DOMAIN_NAME);
         DiscoverableGroup[] discoverableGroups = serviceProvider.getDiscoverableGroups();
-        String[] domainNames = new String[] {"SECONDARY", DEFAULT_USER_STORE_DOMAIN};
+        String[] domainNames = new String[] {DEFAULT_USER_STORE_DOMAIN, "SECONDARY"};
         for (int i = 0; i < discoverableGroups.length; i++) {
             DiscoverableGroup discoverableGroup = discoverableGroups[i];
             assertEquals(discoverableGroup.getGroups().length, 1);

@@ -621,7 +621,7 @@ public class ApplicationMgtDBQueries {
     public static final String DELETE_APP_GROUP_ASSOCIATION_BY_APP_ID =
             "DELETE FROM APP_GROUP_ASSOCIATION WHERE APP_ID = ?";
     public static final String GET_GROUP_ASSOCIATIONS_BY_APP_ID =
-            "SELECT GROUP_ID, DOMAIN_NAME FROM APP_GROUP_ASSOCIATION WHERE APP_ID = ?";
+            "SELECT GROUP_ID, DOMAIN_NAME FROM APP_GROUP_ASSOCIATION WHERE APP_ID = ? ORDER BY DOMAIN_NAME";
   
     // Authorized authorization details types API queries.
     private static final String GET_AUTHORIZED_AUTHORIZATION_DETAILS_TYPES_ID =
