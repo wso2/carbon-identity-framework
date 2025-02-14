@@ -21,6 +21,7 @@
 <suite name="org.wso2.carbon.identity.unique.claim.mgt.suite">
     <test name="org.wso2.carbon.identity.unique.claim.mgt.tests" preserve-order="true" parallel="false">
         <classes>
+            <class name="org.wso2.carbon.identity.unique.claim.mgt.listener.UniqueClaimUserOperationEventListenerTest"/>
         </classes>
     </test>
 </suite>

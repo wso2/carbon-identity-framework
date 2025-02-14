@@ -45,7 +45,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
 
 public class UniqueClaimUserOperationEventListenerTest {
@@ -87,9 +92,8 @@ public class UniqueClaimUserOperationEventListenerTest {
     }
 
     @Test(dataProvider = "duplicateClaimDataProvider", expectedExceptions = UserStoreClientException.class)
-    public void testDuplicateClaimThrowsException(String userName, Map<String, String> claims, String profile,
-                                                  Object claimObject) throws UserStoreException,
-            ClaimMetadataException {
+    public void testDuplicateClaimThrowsException(String userName, Map<String, String> claims, String profile)
+            throws UserStoreException, ClaimMetadataException {
 
         uniqueClaimUserOperationEventListener = spy(new UniqueClaimUserOperationEventListener());
 
