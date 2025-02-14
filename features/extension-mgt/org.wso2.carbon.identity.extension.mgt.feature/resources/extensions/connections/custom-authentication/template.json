@@ -4,7 +4,7 @@
   "displayOrder": -1,
   "id": "custom-authentication",
   "image": "",
-  "name": "Custom Authentication",
+  "name": "Custom Authenticator (Service-based)",
   "services": [],
   "disabled": false,
   "templateId": "custom-authentication"
