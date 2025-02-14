@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -256,7 +257,7 @@ public class SelfRegistrationMgtClient {
 
         try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
             JSONObject userObject = new JSONObject();
-            userObject.put(USERNAME, user.getUsername());
+            userObject.put(USERNAME, MultitenantUtils.getTenantAwareUsername(user.getUsername()));
 
             JSONArray properties = new JSONArray();
             JSONObject property = new JSONObject();

@@ -57,12 +57,17 @@ public class SystemConfigMgtServiceComponent {
 
         try {
             BundleContext bundleContext = context.getBundleContext();
+            ConfigurationManager configManager = SystemConfigMgtServiceHolder.getInstance().getConfigurationManager();
+
             if (isDBBasedConfigMgtEnabled("AdminAdvisoryBanner")) {
-                bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(), null);
+                bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(configManager),
+                        null);
                 LOG.debug("DB based Admin Banner DAO registered.");
             }
             if (isDBBasedConfigMgtEnabled("RemoteLoggingConfig")) {
-                bundleContext.registerService(RemoteLoggingConfigDAO.class, new DBBasedRemoteLoggingConfigDAO(), null);
+                DBBasedRemoteLoggingConfigDAO dbBasedLoggingConfigDAO =
+                        new DBBasedRemoteLoggingConfigDAO(configManager);
+                bundleContext.registerService(RemoteLoggingConfigDAO.class, dbBasedLoggingConfigDAO, null);
                 LOG.debug("DB based Remote Logging Config DAO registered.");
             }
             LOG.debug("System Config Mgt Service Component is activated.");
