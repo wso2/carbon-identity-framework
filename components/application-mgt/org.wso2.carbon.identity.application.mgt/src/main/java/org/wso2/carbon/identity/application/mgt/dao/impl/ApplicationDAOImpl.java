@@ -635,7 +635,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         updateOutboundProvisioningConfiguration(applicationId,
                 serviceProvider.getOutboundProvisioningConfig(), connection);
         updateSpTrustedAppMetadata(applicationId, serviceProvider.getTrustedAppMetadata(), connection, tenantID);
-        updateDiscoverableGroups(applicationId, serviceProvider.getDiscoverableGroups(), connection, tenantID);
+        updateDiscoverableGroups(applicationId, serviceProvider.getDiscoverableGroups(), connection);
 
         if (serviceProvider.getPermissionAndRoleConfig() != null) {
             updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
@@ -6861,11 +6861,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @param applicationId      Application ID.
      * @param discoverableGroups Discoverable groups.
      * @param connection         Database connection.
-     * @param tenantId           Tenant ID.
      * @throws IdentityApplicationManagementException If an error occurred while updating discoverable groups.
      */
     private void updateDiscoverableGroups(int applicationId, DiscoverableGroup[] discoverableGroups,
-                                          Connection connection, int tenantId)
+                                          Connection connection)
             throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
@@ -6878,11 +6877,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try (PreparedStatement statement = connection.prepareStatement(
                 ApplicationMgtDBQueries.ADD_APP_GROUP_ASSOCIATION)) {
+            statement.setInt(1, applicationId);
             for (DiscoverableGroup discoverableGroup : discoverableGroups) {
+                statement.setString(3, discoverableGroup.getUserStore().toUpperCase(Locale.ENGLISH));
                 for (GroupBasicInfo groupBasicInfo : discoverableGroup.getGroups()) {
-                    statement.setInt(1, applicationId);
                     statement.setString(2, groupBasicInfo.getId());
-                    statement.setString(3, discoverableGroup.getUserStore().toUpperCase(Locale.ENGLISH));
                     statement.addBatch();
                 }
             }
