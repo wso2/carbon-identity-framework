@@ -133,6 +133,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                                 resultSet.getString(Column.AUTHENTICATION_TYPE));
                         config.setName(resultSet.getString(Column.NAME));
                         config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                        config.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                         config.setImageUrl(resultSet.getString(Column.IMAGE_URL));
                         config.setDescription(resultSet.getString(Column.DESCRIPTION));
                         config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
@@ -206,6 +207,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                             resultSet.getString(Column.AUTHENTICATION_TYPE));
                     config.setName(resultSet.getString(Column.NAME));
                     config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                    config.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                     config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                     config.setDefinedByType(DefinedByType.USER);
                     config.setImageUrl(resultSet.getString(Column.IMAGE_URL));
