@@ -281,7 +281,7 @@ public class ApplicationConstants {
         UNSUPPORTED_USER_STORE_MANAGER(UNEXPECTED_SERVER_ERROR.getCode(), "Unsupported user store manager.",
                 "The underlying user store manager is not a unique ID user store manager for the tenant: %s."),
         ERROR_RETRIEVING_USERSTORE_MANAGER("65504", "Error retrieving userstore manager.",
-                "Error occurred while retrieving userstore manager for the tenant: %s."),
+                "Error occurred while retrieving userstore manager."),
         UNEXPECTED_ERROR("65006", "Unexpected processing error.",
                 "Server encountered an unexpected error when creating the application."),
         ERROR_CHECKING_GROUP_EXISTENCE(UNEXPECTED_SERVER_ERROR.getCode(), "Unexpected processing error.",

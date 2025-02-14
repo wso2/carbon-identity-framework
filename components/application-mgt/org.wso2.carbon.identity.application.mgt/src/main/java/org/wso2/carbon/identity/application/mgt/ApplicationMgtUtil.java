@@ -1333,11 +1333,11 @@ public class ApplicationMgtUtil {
                             .getUserStoreManager();
         } catch (UserStoreException e) {
             throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
-                    String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain), e);
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), e);
         }
         if (userStoreManager == null) {
             throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
-                    String.format(ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), tenantDomain));
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription());
         }
         if (!(userStoreManager instanceof AbstractUserStoreManager)) {
             throw new IdentityApplicationManagementServerException(UNSUPPORTED_USER_STORE_MANAGER.getCode(),
