@@ -1,8 +1,8 @@
 {
-  "id": "custom-authentication",
-  "name": "Custom Authentication",
+  "id": "custom-authenticator",
+  "name": "Custom Authenticator",
   "description": "Enable login for users with external authentication service.",
-  "image": "custom-authentication",
+  "image": "custom-authenticator",
   "category": "DEFAULT",
   "displayOrder": -1,
   "tags": ["Custom"],

@@ -1,5 +1,5 @@
 {
-  "id": "external-custom-authentication",
+  "id": "external-custom-authenticator",
   "name": "External (Federated) User Authentication",
   "description": "Authenticate and provision federated users.",
   "image": "",
