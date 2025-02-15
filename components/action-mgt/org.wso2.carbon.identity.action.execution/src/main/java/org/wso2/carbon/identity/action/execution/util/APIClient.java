@@ -84,12 +84,13 @@ public class APIClient {
                                             String payload) {
 
         HttpPost httpPost = new HttpPost(url);
-        setRequestEntity(httpPost, payload, authMethod);
+        setRequestEntity(httpPost, payload, authMethod, actionType);
 
         return executeRequest(actionType, httpPost);
     }
 
-    private void setRequestEntity(HttpPost httpPost, String jsonRequest, AuthMethods.AuthMethod authMethod) {
+    private void setRequestEntity(HttpPost httpPost, String jsonRequest, AuthMethods.AuthMethod authMethod,
+                                  ActionType actionType) {
 
         StringEntity entity = new StringEntity(jsonRequest, StandardCharsets.UTF_8);
         if (authMethod != null) {
@@ -98,6 +99,8 @@ public class APIClient {
         httpPost.setEntity(entity);
         httpPost.setHeader("Accept", "application/json");
         httpPost.setHeader("Content-type", "application/json");
+        httpPost.setHeader(ActionAPIVersionResolver.API_VERSION_HEADER,
+                ActionAPIVersionResolver.resolveAPIVersion(actionType));
     }
 
     private ActionInvocationResponse executeRequest(ActionType actionType, HttpPost request) {
