@@ -626,13 +626,38 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             String loginTenantDomain = FrameworkUtils.getLoginTenantDomainFromContext();
             boolean isOrganization = OrganizationManagementUtil.isOrganization(loginTenantDomain);
             if (StringUtils.equals(sessionTenantDomain, loginTenantDomain)) {
-                return !(isOrganization & areAllFragmentAppsInUserSession(userSession));
-            } else {
-                if (isOrganization &&
-                        validatePrimaryOrganization(sessionTenantDomain, loginTenantDomain)) {
+                // This block handles the scenario where session tenant domain and login tenant domain are equal.
+                if (isOrganization & areAllFragmentAppsInUserSession(userSession)) {
+                   /*
+                   When a sub org user authenticates using a shared application, sessions are created for shared app in
+                   sub organization and parent app in primary organization. In this case, the session created in primary
+                   organization is the effective session. Hence, this session is ignored for the session list.
+                    */
+                    return false;
+                } else {
                     return true;
                 }
-                return isSaaSAppAvailableInUserSession(userSession);
+            } else {
+                // This block handles the scenario where session tenant domain and login tenant domain are different.
+                if (isOrganization &&
+                        validatePrimaryOrganization(sessionTenantDomain, loginTenantDomain)) {
+                    /*
+                    When a sub org user authenticates using a shared application, sessions are created for shared app in
+                    sub organization and parent app in primary organization. In this case, the session created in
+                    primary organization is the effective session. Hence, this scenario is considered as an
+                    effective session.
+                     */
+                    return true;
+                }
+                if (isSaaSAppAvailableInUserSession(userSession)) {
+                    /*
+                    When a user authenticates using a SaaS application in a different tenant domain. Session is also
+                    created for that tenant domain. In this case, user should be able to see this session from the
+                    user resident tenant domain. Hence, this scenario is considered as an effective session.
+                     */
+                    return true;
+                }
+                return false;
             }
         } catch (OrganizationManagementException | IdentityApplicationManagementException e) {
             log.error("Error occurred while validating the effective sessions.", e);
