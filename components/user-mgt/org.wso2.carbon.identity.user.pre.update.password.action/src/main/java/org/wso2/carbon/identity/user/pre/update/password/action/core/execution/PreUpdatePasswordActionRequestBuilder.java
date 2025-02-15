@@ -136,6 +136,7 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
 
         switch (flow.getName()) {
             case PASSWORD_UPDATE:
+            case PROFILE_UPDATE:
                 return PreUpdatePasswordEvent.Action.UPDATE;
             case PASSWORD_RESET:
                 return PreUpdatePasswordEvent.Action.RESET;
