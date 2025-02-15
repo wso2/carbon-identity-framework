@@ -290,7 +290,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         }
     }
 
-    public String getTenantDomain(UserStoreManager userStoreManager) throws UserStoreException {
+    private String getTenantDomain(UserStoreManager userStoreManager) throws UserStoreException {
 
         try {
             return UniqueClaimUserOperationDataHolder.getInstance().getRealmService().getTenantManager().

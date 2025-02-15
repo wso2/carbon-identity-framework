@@ -39,6 +39,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,13 +82,11 @@ public class UniqueClaimUserOperationEventListenerTest {
     @DataProvider(name = "duplicateClaimDataProvider")
     public Object[][] duplicateClaimDataProvider() {
 
-        Map<String, String> claims = new HashMap<>();
-        claims.put("http://wso2.org/claims/mobile", "0714290810");
-        Map<String, String> claimObject = new HashMap<>();
-        claimObject.put("http://wso2.org/claims/mobile", "Mobile");
-        claimObject.put("http://wso2.org/claims/emailAddress", "Email");
+        Map<String, String> claimsOne = new HashMap<>();
+        claimsOne.put("http://wso2.org/claims/mobile", "0711234567");
+        claimsOne.put("http://wso2.org/claims/emailAddress", "sample@wso2.com");
         return new Object[][]{
-                {"testUser", claims, "default", claimObject}
+                {"testUser", claimsOne, "default"}
         };
     }
 
@@ -119,7 +118,12 @@ public class UniqueClaimUserOperationEventListenerTest {
         when(realmService.getTenantUserRealm(-1234)).thenReturn(userRealm);
         when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
 
+        TenantManager tenantManager = mock(TenantManager.class);
+        when(realmService.getTenantManager()).thenReturn(tenantManager);
+
         when(userStoreManager.getUserList(anyString(), anyString(), anyString())).thenReturn(new String[]{"testUser"});
+        when(userStoreManager.getTenantId()).thenReturn(-1234);
+        when(tenantManager.getDomain(-1234)).thenReturn("carbon.super");
 
         List<LocalClaim> localClaims = new ArrayList<>();
         LocalClaim localClaimMobile = new LocalClaim("http://wso2.org/claims/mobile");
@@ -144,10 +148,6 @@ public class UniqueClaimUserOperationEventListenerTest {
         claimEmail.setDisplayTag("Email");
         when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/mobile")).thenReturn(claimMobile);
         when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/emailAddress")).thenReturn(claimEmail);
-        when(claim.getClaimUri()).thenReturn("http://wso2.org/claims/mobile");
-        when(claim.getDisplayTag()).thenReturn("Mobile");
-        when(claim.getValue()).thenReturn("0711234567");
-        doReturn("carbon.super").when(uniqueClaimUserOperationEventListener).getTenantDomain(userStoreManager);
         doReturn(true).when(uniqueClaimUserOperationEventListener).isEnable();
 
         try {
