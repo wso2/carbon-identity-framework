@@ -92,17 +92,17 @@ public class PreUpdatePasswordActionRuleEvaluationDataProvider implements RuleEv
     private String getFlowFromContext() throws RuleEvaluationDataProviderException {
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
-        if (flow.getName() == Flow.Name.PASSWORD_UPDATE &&
+        if ((flow.getName() == Flow.Name.PASSWORD_UPDATE || flow.getName() == Flow.Name.PROFILE_UPDATE) &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.ADMIN) {
             return PasswordUpdateFlowType.ADMIN_INITIATED_PASSWORD_UPDATE.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.PASSWORD_UPDATE &&
+        if ((flow.getName() == Flow.Name.PASSWORD_UPDATE || flow.getName() == Flow.Name.PROFILE_UPDATE) &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.APPLICATION) {
             return PasswordUpdateFlowType.APPLICATION_INITIATED_PASSWORD_UPDATE.getFlowName();
         }
 
-        if (flow.getName() == Flow.Name.PASSWORD_UPDATE &&
+        if ((flow.getName() == Flow.Name.PASSWORD_UPDATE || flow.getName() == Flow.Name.PROFILE_UPDATE) &&
                 flow.getInitiatingPersona() == Flow.InitiatingPersona.USER) {
             return PasswordUpdateFlowType.USER_INITIATED_PASSWORD_UPDATE.getFlowName();
         }

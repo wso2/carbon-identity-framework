@@ -117,7 +117,8 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         }
 
         return flow.getName() == Flow.Name.PASSWORD_UPDATE || flow.getName() == Flow.Name.PASSWORD_RESET ||
-                flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD;
+                flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD ||
+                flow.getName() == Flow.Name.PROFILE_UPDATE;
     }
 
     private char[] getSecret(Object credential) throws UserStoreException {
