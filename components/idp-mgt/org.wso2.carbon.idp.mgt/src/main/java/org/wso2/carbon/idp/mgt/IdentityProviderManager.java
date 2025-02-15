@@ -881,6 +881,19 @@ public class IdentityProviderManager implements IdpManager {
         return identityProvider;
     }
 
+    /**
+     * Returns extended IDP with resource ID.
+     * Note: The UserDefinedFederatedAuthenticatorConfig object in the IdentityProvider is not serializable using
+     *       org.apache.commons.lang3.SerializationUtils, which is used in the authentication framework to clone the
+     *       authentication context. Hence, use getSerializableIdPByResourceId(String, String) in
+     *       ApplicationAuthenticatorManager which provides an in IdentityProvider instance with the
+     *       UserDefinedFederatedAuthenticatorConfig converted to a FederatedAuthenticatorConfig.
+     * @param resourceId            Resource ID of the IDP.
+     * @param tenantDomain          Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps   Whether to ignore file based idps or not.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
     @Override
     public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean
             ignoreFileBasedIdps) throws IdentityProviderManagementException {
