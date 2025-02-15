@@ -116,6 +116,7 @@
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
+        <module>components/async-status-mgt</module>
     </modules>
 
 
