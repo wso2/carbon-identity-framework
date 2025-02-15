@@ -1,5 +1,5 @@
 {
-  "id": "internal-user-custom-authentication",
+  "id": "internal-user-custom-authenticator",
   "name": "Internal User Authentication",
   "description": "Collect identifier and authenticate user accounts managed in the organization.",
   "image": "",
