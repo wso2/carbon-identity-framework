@@ -68,7 +68,7 @@ public class ActionUserOperationEventListenerTest {
         listener = new ActionUserOperationEventListener();
         userCoreUtil.when(() -> UserCoreUtil.getDomainName(any())).thenReturn("PRIMARY");
         IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_UPDATE)
+                .name(Flow.Name.PASSWORD_RESET)
                 .initiatingPersona(Flow.InitiatingPersona.USER)
                 .build());
     }
