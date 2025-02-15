@@ -640,7 +640,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             } else {
                 // This block handles the scenario where session tenant domain and login tenant domain are different.
                 if (isOrganization &&
-                        validatePrimaryOrganization(sessionTenantDomain, loginTenantDomain)) {
+                        isSessionTenantPrimaryOrgForLoginTenant(sessionTenantDomain, loginTenantDomain)) {
                     /*
                     When a sub org user authenticates using a shared application, sessions are created for shared app in
                     sub organization and parent app in primary organization. In this case, the session created in
@@ -686,7 +686,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         return true;
     }
 
-    private boolean validatePrimaryOrganization(String sessionTenantDomain, String loginTenantDomain)
+    private boolean isSessionTenantPrimaryOrgForLoginTenant(String sessionTenantDomain, String loginTenantDomain)
             throws OrganizationManagementException {
 
         OrganizationManager organizationManager = FrameworkServiceDataHolder.getInstance().getOrganizationManager();
