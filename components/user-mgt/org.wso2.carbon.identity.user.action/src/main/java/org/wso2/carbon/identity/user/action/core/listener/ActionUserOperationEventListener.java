@@ -135,6 +135,10 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
     private String buildErrorMessage(String message, String description) {
 
+        if (description == null) {
+            return message;
+        }
+
         return message + ". " + description;
     }
 }
