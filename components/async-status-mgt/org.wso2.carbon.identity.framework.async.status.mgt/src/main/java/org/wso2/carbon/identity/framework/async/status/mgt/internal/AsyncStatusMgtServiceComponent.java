@@ -23,7 +23,7 @@ public class AsyncStatusMgtServiceComponent {
     @Activate
     protected void activate(final ComponentContext context) {
         LOGGER.info("Async Status Mgt Component is activated");
-        asyncStatusMgtService.processOperation("B2B App Share");
+        asyncStatusMgtService.test("B2B App Share");
     }
 
     @Deactivate
