@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.framework.async.status.mgt;
 
 import org.osgi.service.component.annotations.Component;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.BulkUserImportOperationDO;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 
 import java.util.logging.Logger;
@@ -14,7 +15,12 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
             Logger.getLogger(AsyncStatusMgtServiceImpl.class.getName());
 
     @Override
-    public void processB2BAsyncOperation(SharingOperationDO sharingOperationDO) {
+    public void processB2BAsyncOperationStatus(SharingOperationDO sharingOperationDO) {
+
+    }
+
+    @Override
+    public void processBulkUserImportAsyncOperationStatus(BulkUserImportOperationDO bulkUserImportOperationDO) {
 
     }
 
