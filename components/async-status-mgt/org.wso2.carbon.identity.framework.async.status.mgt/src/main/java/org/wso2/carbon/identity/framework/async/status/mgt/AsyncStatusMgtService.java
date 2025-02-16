@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOpe
 public interface AsyncStatusMgtService {
 
     /**
-     * Processing the status on B2B Asynchronous
+     * Processing the status of B2B Asynchronous
      * Resource Share Operation.
      *
      * @param sharingOperationDO Sharing operation metadata is shared.
@@ -36,8 +36,8 @@ public interface AsyncStatusMgtService {
     void processB2BAsyncOperationStatus(SharingOperationDO sharingOperationDO);
 
     /**
-     * Processing the status on B2B Asynchronous
-     * Resource Share Operation.
+     * Processing the status of Bulk User Import
+     * Operation.
      *
      * @param bulkUserImportOperationDO Sharing operation metadata is shared.
      */
