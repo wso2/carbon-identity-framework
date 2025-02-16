@@ -2050,6 +2050,9 @@
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
+        {% if authentication.jit_provisioning.show_failure_reason is defined %}
+        <ShowFailureReason>{{authentication.jit_provisioning.show_failure_reason}}</ShowFailureReason>
+        {% endif %}
     </JITProvisioning>
 
     <!--Application management service configurations-->
