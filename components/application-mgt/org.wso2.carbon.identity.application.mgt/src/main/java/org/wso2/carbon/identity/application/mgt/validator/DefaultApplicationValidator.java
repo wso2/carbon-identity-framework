@@ -112,8 +112,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             "Discoverable groups are defined for a non-discoverable application.";
     private static final String NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP =
             "No user store defined for the discoverable groups indexed at %d.";
-    private static final String USER_STORE_NOT_FOUND =
-            "The provided user store is not found for the discoverable groups indexed at %d.";
+    private static final String USER_STORE_NOT_FOUND = "The provided user store: '%s' is not found.";
     private static final String NO_GROUPS_FOR_THE_DISCOVERABLE_GROUP =
             "No groups defined for the user store: '%s' in the discoverable groups configuration.";
     private static final String NO_GROUP_ID = "Group ID is not defined for the group indexed at %d for the user " +
@@ -231,7 +230,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                     continue;
                 }
                 if (userStoreManager.getSecondaryUserStoreManager(discoverableGroup.getUserStore()) == null) {
-                    validationErrors.add(String.format(USER_STORE_NOT_FOUND, i));
+                    validationErrors.add(String.format(USER_STORE_NOT_FOUND, discoverableGroup.getUserStore()));
                     continue;
                 }
                 if (groupBasicInfos == null || groupBasicInfos.length == 0) {

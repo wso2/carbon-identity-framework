@@ -446,9 +446,9 @@ public class DefaultApplicationValidatorTest {
                         applicationValidator.validateApplication(sp, SUPER_TENANT_DOMAIN_NAME, USERNAME);
                 assertEquals(validationErrors.size(), 2);
                 assertEquals(validationErrors.get(0),
-                        "The provided user store is not found for the discoverable groups indexed at 0.");
+                        "The provided user store: 'non-existing' is not found.");
                 assertEquals(validationErrors.get(1),
-                        "The provided user store is not found for the discoverable groups indexed at 1.");
+                        "The provided user store: 'non-existing' is not found.");
             } catch (IdentityApplicationManagementException e) {
                 fail("Unexpected Exception occurred.", e);
             }
