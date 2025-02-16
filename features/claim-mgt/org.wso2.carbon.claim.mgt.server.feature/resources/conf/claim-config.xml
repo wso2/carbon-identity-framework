@@ -961,7 +961,7 @@
 				<ClaimURI>http://wso2.org/claims/identity/sharedType</ClaimURI>
 				<DisplayName>Shared Type</DisplayName>
 				<AttributeID>sharedType</AttributeID>
-				<Description>Claim to represent the shared type of the user.</Description>
+				<Description>Claim to represent the shared type of the user</Description>
 				<ReadOnly />
 				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
@@ -2860,8 +2860,6 @@
 				<DisplayName>Shared Type</DisplayName>
 				<AttributeID>sharedType</AttributeID>
 				<Description>Shared type of the user</Description>
-				<DisplayOrder>1</DisplayOrder>
-				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/sharedType</MappedLocalClaim>
 			</Claim>
 		</Dialect>
