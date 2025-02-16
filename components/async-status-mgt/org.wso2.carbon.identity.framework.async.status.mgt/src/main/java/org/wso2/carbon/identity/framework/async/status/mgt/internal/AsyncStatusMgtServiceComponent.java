@@ -22,13 +22,13 @@ public class AsyncStatusMgtServiceComponent {
 
     @Activate
     protected void activate(final ComponentContext context) {
-        LOGGER.info("Event Processor Service Component is activated");
-        asyncStatusMgtService.processEvent("B2B App Share");
+        LOGGER.info("Async Status Mgt Component is activated");
+        asyncStatusMgtService.processOperation("B2B App Share");
     }
 
     @Deactivate
     protected void deactivate(final ComponentContext context) {
-        LOGGER.info("Event Processor Service Component is deactivated");
+        LOGGER.info("Async Status Mgt Component is deactivated");
     }
 
     @Reference

@@ -34,15 +34,14 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <private-package>org.wso2.carbon.greeting.card.consumer.internal</private-package>
+                        <private-package>org.wso2.carbon.identity.framework.async.status.mgt.internal</private-package>
                         <Export-Package>
-                            !org.wso2.carbon.greeting.card.consumer.internal,
-                            org.wso2.carbon.greeting.card.consumer.*
+                            !org.wso2.carbon.identity.framework.async.status.mgt.internal,
+                            org.wso2.carbon.identity.framework.async.status.mgt.AsyncStatusMgtService.*
                         </Export-Package>
                         <Import-Package>
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.wso2.carbon.greeting.card.producer.*; version="${project.version}"
                         </Import-Package>
                     </instructions>
                 </configuration>
