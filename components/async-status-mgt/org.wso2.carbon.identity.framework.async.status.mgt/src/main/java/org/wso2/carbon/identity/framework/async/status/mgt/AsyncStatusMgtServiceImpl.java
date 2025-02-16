@@ -13,7 +13,7 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
             Logger.getLogger(AsyncStatusMgtServiceImpl.class.getName());
 
     @Override
-    public void processEvent(String event) {
+    public void processOperation(String event) {
         LOGGER.info("Processing Event: " + event);
     }
 }
