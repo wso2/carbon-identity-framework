@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.compone
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.UserPreUpdatePasswordActionExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.testng.Assert.assertEquals;
@@ -72,7 +73,7 @@ public class UserPreUpdatePasswordActionExecutorTest {
     public void testExecuteSuccess() throws ActionExecutionException {
 
         ActionExecutionStatus<Success> expectedStatus = new SuccessStatus.Builder().build();
-        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(), anyString());
+        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), anyMap(), anyString());
 
         ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
         assertTrue(resultStatus instanceof SuccessStatus);
@@ -84,7 +85,7 @@ public class UserPreUpdatePasswordActionExecutorTest {
 
         ActionExecutionStatus<Failure> expectedStatus = new FailedStatus(new Failure("Invalid Request",
                 "Compromised Password"));
-        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(), anyString());
+        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), anyMap(), anyString());
 
         ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
         assertTrue(resultStatus instanceof FailedStatus);
@@ -100,7 +101,7 @@ public class UserPreUpdatePasswordActionExecutorTest {
 
         ActionExecutionStatus<Error> expectedStatus = new ErrorStatus(new Error("Internal server error",
                 "Error while validating password"));
-        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(), anyString());
+        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), anyMap(), anyString());
 
         ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
         assertTrue(resultStatus instanceof ErrorStatus);

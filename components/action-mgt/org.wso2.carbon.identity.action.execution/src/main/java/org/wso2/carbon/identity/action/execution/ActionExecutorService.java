@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.execution;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.FlowContext;
 
 import java.util.Map;
 
@@ -65,4 +66,35 @@ public interface ActionExecutorService {
                                             Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException;
 
+    /**
+     * Execute the action based on the action type and the flow context.
+     *
+     * @param actionType   Action Type
+     * @param flowContext  Flow context of the corresponding flow
+     * @param tenantDomain Tenant Domain
+     * @return {@link ActionExecutionStatus} The status of the action execution and the response context
+     * @throws ActionExecutionException If an error occurs while executing the action
+     */
+    default ActionExecutionStatus execute(ActionType actionType, FlowContext flowContext, String tenantDomain)
+            throws ActionExecutionException {
+
+        return execute(actionType, flowContext.getContextData(), tenantDomain);
+    }
+
+    /**
+     * Execute the action based on the action type and the flow context.
+     *
+     * @param actionType   Action Type
+     * @param actionId     The action id of the action that need to be executed
+     * @param flowContext  Flow context of the corresponding flow
+     * @param tenantDomain Tenant Domain
+     * @return {@link ActionExecutionStatus} The status of the action execution and the response context
+     * @throws ActionExecutionException If an error occurs while executing the action
+     */
+    default ActionExecutionStatus execute(ActionType actionType, String actionId,
+                                          FlowContext flowContext, String tenantDomain)
+            throws ActionExecutionException {
+
+        return execute(actionType, actionId, flowContext.getContextData(), tenantDomain);
+    }
 }
