@@ -257,7 +257,8 @@
     "POST_ADD_EXTERNAL_CLAIM",
     "POST_ADD_CLAIM_DIALECT",
     "POST_RENAME_CLAIM_DIALECT",
-    "POST_DELETE_CLAIM_DIALECT"
+    "POST_DELETE_CLAIM_DIALECT",
+    "POST_ADD_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "39",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
@@ -295,5 +296,9 @@
   "identity_mgt.events.schemes.OrganizationSessionHandler.module_index": "46",
   "identity_mgt.events.schemes.OrganizationSessionHandler.subscriptions": [
     "SESSION_TERMINATE"
+  ],
+  "identity_mgt.events.schemes.FragmentApplicationMgtHandler.module_index": "47",
+  "identity_mgt.events.schemes.FragmentApplicationMgtHandler.subscriptions": [
+    "PRE_SHARE_APPLICATION"
   ]
 }
