@@ -43,9 +43,6 @@ import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpd
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionRequestBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -70,7 +67,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     private PreUpdatePasswordAction preUpdatePasswordAction;
     private PreUpdatePasswordAction preUpdatePasswordActionWithoutCert;
     private UserActionContext userActionContext;
-    private final Map<String, Object> eventContext = new HashMap<>();
+    private final FlowContext flowContext = FlowContext.create();
     private PreUpdatePasswordActionRequestBuilder preUpdatePasswordActionRequestBuilder;
 
     @BeforeClass
@@ -118,14 +115,13 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     public void setUp() {
 
         preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordActionRequestBuilder();
-        eventContext.put(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
+        flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
     }
 
     @AfterMethod
     public void tearDown() {
 
         IdentityContext.destroyCurrentContext();
-        eventContext.clear();
     }
 
     @Test
@@ -161,7 +157,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
                 preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
-                        FlowContext.create(), ActionExecutionRequestContext.create(preUpdatePasswordAction));
+                        flowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
 
         assertNotNull(actionExecutionRequest);
         assertEquals(actionExecutionRequest.getActionType(), ActionType.PRE_UPDATE_PASSWORD);
@@ -191,7 +187,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
         ActionExecutionRequest actionExecutionRequest =
                 preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
-                        FlowContext.create(), ActionExecutionRequestContext.create(preUpdatePasswordActionWithoutCert));
+                        flowContext, ActionExecutionRequestContext.create(preUpdatePasswordActionWithoutCert));
 
         assertNotNull(actionExecutionRequest);
         assertEquals(actionExecutionRequest.getActionType(), ActionType.PRE_UPDATE_PASSWORD);
