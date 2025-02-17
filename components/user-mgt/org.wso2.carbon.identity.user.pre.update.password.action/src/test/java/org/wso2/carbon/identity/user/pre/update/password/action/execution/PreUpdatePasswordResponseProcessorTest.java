@@ -32,10 +32,10 @@ import org.wso2.carbon.identity.action.execution.model.Event;
 import org.wso2.carbon.identity.action.execution.model.Failure;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 import org.wso2.carbon.identity.action.execution.model.Success;
-import org.wso2.carbon.identity.user.action.service.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordResponseProcessor;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordResponseProcessor;
 
 import java.util.HashMap;
 import java.util.Map;

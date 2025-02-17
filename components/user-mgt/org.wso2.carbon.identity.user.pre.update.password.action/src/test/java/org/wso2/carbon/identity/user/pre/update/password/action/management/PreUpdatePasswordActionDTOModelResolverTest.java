@@ -35,9 +35,9 @@ import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtE
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtServerException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.management.PreUpdatePasswordActionDTOModelResolver;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.PreUpdatePasswordActionServiceComponentHolder;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordSharing;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.management.PreUpdatePasswordActionDTOModelResolver;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,8 +56,8 @@ import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
-import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
-import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
+import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
+import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_ACTION;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TEST_CERTIFICATE;
