@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.rule.evaluation.core;
 
 import org.wso2.carbon.identity.rule.evaluation.internal.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.evaluation.model.Operator;
-import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 import java.util.HashMap;
 import java.util.Map;

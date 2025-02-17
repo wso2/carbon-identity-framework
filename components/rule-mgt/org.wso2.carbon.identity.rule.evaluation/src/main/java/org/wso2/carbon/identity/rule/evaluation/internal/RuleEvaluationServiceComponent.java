@@ -33,7 +33,7 @@ import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvi
 import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
 import org.wso2.carbon.identity.rule.evaluation.service.impl.RuleEvaluationServiceImpl;
 import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
-import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 /**
  * Rule evaluation service component.
