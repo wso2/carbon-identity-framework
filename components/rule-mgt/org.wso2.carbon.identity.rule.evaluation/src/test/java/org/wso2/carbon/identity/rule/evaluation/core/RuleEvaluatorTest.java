@@ -256,8 +256,7 @@ public class RuleEvaluatorTest {
 
         List<FieldDefinition> fieldDefinitionList = new ArrayList<>();
 
-        Field
-                applicationField = new Field("application", "application");
+        Field applicationField = new Field("application", "application");
         List<Operator> operators = Arrays.asList(new Operator("equals", "equals"),
                 new Operator("notEquals", "not equals"));
         List<Link> links = Arrays.asList(new Link("/applications?offset=0&limit=10", "GET", "values"),
@@ -269,8 +268,7 @@ public class RuleEvaluatorTest {
                 .links(links).build();
         fieldDefinitionList.add(new FieldDefinition(applicationField, operators, applicationValue));
 
-        Field
-                grantTypeField = new Field("grantType", "grantType");
+        Field grantTypeField = new Field("grantType", "grantType");
         List<OptionsValue> optionsValues = Arrays.asList(new OptionsValue("authorization_code", "authorization code"),
                 new OptionsValue("password", "password"), new OptionsValue("refresh_token", "refresh token"),
                 new OptionsValue("client_credentials", "client credentials"),
@@ -281,20 +279,17 @@ public class RuleEvaluatorTest {
                         optionsValues);
         fieldDefinitionList.add(new FieldDefinition(grantTypeField, operators, grantTypeValue));
 
-        Field
-                consentedField = new Field("consented", "consented");
+        Field consentedField = new Field("consented", "consented");
         org.wso2.carbon.identity.rule.metadata.api.model.Value consentedValue =
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.BOOLEAN);
         fieldDefinitionList.add(new FieldDefinition(consentedField, operators, consentedValue));
 
-        Field
-                riskScoreField = new Field("riskScore", "risk score");
+        Field riskScoreField = new Field("riskScore", "risk score");
         org.wso2.carbon.identity.rule.metadata.api.model.Value riskScoreValue =
                 new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.NUMBER);
         fieldDefinitionList.add(new FieldDefinition(riskScoreField, operators, riskScoreValue));
 
-        Field
-                emailField = new Field("email", "user.email");
+        Field emailField = new Field("email", "user.email");
         org.wso2.carbon.identity.rule.metadata.api.model.Value
                 emailValue = new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING);
         fieldDefinitionList.add(
