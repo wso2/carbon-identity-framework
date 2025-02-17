@@ -23,7 +23,19 @@ package org.wso2.carbon.identity.framework.async.status.mgt.dao;
  * Status Management.
  */
 public interface AsyncStatusMgtDAO {
-    void createB2BResourceSharingOperation(String operationId, String operationType, String residentResourceId,
+
+    /**
+     *
+     *
+     * @param operationType Type of the share.
+     * @param residentResourceId ID of the resource which is shared.
+     * @param resourceType Type of the resource.
+     * @param sharingPolicy  The sharing policy related with the share.
+     * @param residentOrgId  The organization ID of the resource which is shared.
+     * @param initiatorId  The ID of the user who is initiating the operation.
+     * @param operationStatus  The status of the asynchronous operation.
+     */
+    void createB2BResourceSharingOperation(String operationType, String residentResourceId,
                                            String resourceType, String sharingPolicy, String residentOrgId, String initiatorId,
                                            String operationStatus);
 }

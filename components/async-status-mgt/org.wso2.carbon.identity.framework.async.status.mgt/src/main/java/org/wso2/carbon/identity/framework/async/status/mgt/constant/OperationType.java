@@ -5,4 +5,6 @@ package org.wso2.carbon.identity.framework.async.status.mgt.constant;
  * operations.
  */
 public enum OperationType {
+    SHARE,
+    UNSHARE
 }

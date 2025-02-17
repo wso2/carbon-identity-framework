@@ -6,6 +6,9 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.wso2.carbon.identity.framework.async.status.mgt.AsyncStatusMgtService;
+import org.wso2.carbon.identity.framework.async.status.mgt.constant.OperationType;
+import org.wso2.carbon.identity.framework.async.status.mgt.constant.ResourceType;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 
 import java.util.logging.Logger;
 
@@ -24,6 +27,17 @@ public class AsyncStatusMgtServiceComponent {
     protected void activate(final ComponentContext context) {
         LOGGER.info("Async Status Mgt Component is activated");
         asyncStatusMgtService.test("B2B App Share");
+
+        SharingOperationDO sharingOperationDO = new SharingOperationDO();
+        sharingOperationDO.setOperationType(OperationType.SHARE.toString());
+        sharingOperationDO.setResidentResourceId("resourceId");
+        sharingOperationDO.setResourceType(ResourceType.B2B_APPLICATION);
+        sharingOperationDO.setSharingPolicy("policy");
+        sharingOperationDO.setResidentOrganizationId("orgId");
+        sharingOperationDO.setInitiatorId("initiatorId");
+        sharingOperationDO.setOperationStatus("status");
+
+        asyncStatusMgtService.processB2BAsyncOperationStatus(sharingOperationDO);
     }
 
     @Deactivate

@@ -45,6 +45,7 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.database.utils.jdbc;version="${org.wso2.carbon.database.utils.version.range}",
                             org.wso2.carbon.database.utils.jdbc.exceptions;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util;version="${org.wso2.identity.organization.mgt.imp.pkg.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
@@ -71,6 +72,10 @@
             <artifactId>org.wso2.carbon.database.utils</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.utils</artifactId>
         </dependency>
@@ -86,6 +91,8 @@
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <org.wso2.identity.organization.mgt.imp.pkg.version.range>[1.0.0,2.0.0)
+        </org.wso2.identity.organization.mgt.imp.pkg.version.range>
     </properties>
 
 </project>

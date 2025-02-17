@@ -11,4 +11,59 @@ public class SharingOperationDO {
     private String initiatorId;
     private String operationStatus;
 
+    public String getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(String operationType) {
+        this.operationType = operationType;
+    }
+
+    public String getResidentResourceId() {
+        return residentResourceId;
+    }
+
+    public void setResidentResourceId(String residentResourceId) {
+        this.residentResourceId = residentResourceId;
+    }
+
+    public ResourceType getResourceType() {
+        return resourceType;
+    }
+
+    public void setResourceType(ResourceType resourceType) {
+        this.resourceType = resourceType;
+    }
+
+    public String getSharingPolicy() {
+        return sharingPolicy;
+    }
+
+    public void setSharingPolicy(String sharingPolicy) {
+        this.sharingPolicy = sharingPolicy;
+    }
+
+    public String getResidentOrganizationId() {
+        return residentOrganizationId;
+    }
+
+    public void setResidentOrganizationId(String residentOrganizationId) {
+        this.residentOrganizationId = residentOrganizationId;
+    }
+
+    public String getInitiatorId() {
+        return initiatorId;
+    }
+
+    public void setInitiatorId(String initiatorId) {
+        this.initiatorId = initiatorId;
+    }
+
+    public String getOperationStatus() {
+        return operationStatus;
+    }
+
+    public void setOperationStatus(String operationStatus) {
+        this.operationStatus = operationStatus;
+    }
 }

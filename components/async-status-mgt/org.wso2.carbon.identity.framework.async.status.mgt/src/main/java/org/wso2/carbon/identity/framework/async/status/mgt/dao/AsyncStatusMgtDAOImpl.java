@@ -19,15 +19,41 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.framework.async.status.mgt.internal.AsyncStatusMgtServiceComponent;
+
+import java.util.logging.Logger;
+
+import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants.CREATE_B2B_RESOURCE_SHARING_OPERATION;
 import static org.wso2.carbon.identity.organization.management.service.util.Utils.getNewTemplate;
 
 /**
  * DAO implementation for Asynchronous Operation Status Management.
  */
 public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
+    private static final Logger LOGGER =
+            Logger.getLogger(AsyncStatusMgtDAOImpl.class.getName());
 
     @Override
-    public void createB2BResourceSharingOperation(String operationId, String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus) {
-        NamedJdbcTemplate namedJdbcTemplate = getNew
+    public void createB2BResourceSharingOperation(String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus) {
+        NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
+
+        try {
+            namedJdbcTemplate.withTransaction(template -> {
+                template.executeInsert(CREATE_B2B_RESOURCE_SHARING_OPERATION, namedPreparedStatement -> {
+                    namedPreparedStatement.setString(1, operationType);
+                    namedPreparedStatement.setString(2, residentResourceId);
+                    namedPreparedStatement.setString(3, resourceType);
+                    namedPreparedStatement.setString(4, sharingPolicy);
+                    namedPreparedStatement.setString(5, residentOrgId);
+                    namedPreparedStatement.setString(6, initiatorId);
+                    namedPreparedStatement.setString(7, operationStatus);
+                },null, false);
+                return null;
+            });
+            LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Success.");
+        } catch (TransactionException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
