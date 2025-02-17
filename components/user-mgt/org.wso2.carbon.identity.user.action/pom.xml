@@ -80,16 +80,11 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.user.action.core.*,
-                            org.wso2.carbon.identity.user.action.internal
+                            org.wso2.carbon.identity.user.action.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.user.action.core.*,
-                            !org.wso2.carbon.identity.user.action.internal,
-                            org.wso2.carbon.identity.user.action.service,
-                            org.wso2.carbon.identity.user.action.service.constant,
-                            org.wso2.carbon.identity.user.action.service.model,
-                            org.wso2.carbon.identity.user.action.service.exception;
+                            !org.wso2.carbon.identity.user.action.internal.*,
+                            org.wso2.carbon.identity.user.action.api.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
