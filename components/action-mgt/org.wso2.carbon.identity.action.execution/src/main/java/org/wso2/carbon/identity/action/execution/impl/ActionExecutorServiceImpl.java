@@ -160,6 +160,22 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         }
     }
 
+    @Override
+    public ActionExecutionStatus execute(ActionType actionType,
+                                         org.wso2.carbon.identity.action.execution.model.FlowContext flowContext,
+                                         String tenantDomain) throws ActionExecutionException {
+
+        return execute(actionType, flowContext.getContextData(), tenantDomain);
+    }
+
+    @Override
+    public ActionExecutionStatus execute(ActionType actionType, String actionId,
+                                         org.wso2.carbon.identity.action.execution.model.FlowContext flowContext,
+                                         String tenantDomain) throws ActionExecutionException {
+
+        return execute(actionType, actionId, flowContext.getContextData(), tenantDomain);
+    }
+
     private ActionExecutionStatus<?> execute(Action action, Map<String, Object> eventContext, String tenantDomain)
             throws ActionExecutionException {
 
@@ -366,7 +382,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                                   Map<String, Object> eventContext,
                                                                   ActionExecutionRequest actionRequest,
                                                                   ActionExecutionResponseProcessor
-                                                                 actionExecutionResponseProcessor)
+                                                                          actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
         logSuccessResponse(action, successResponse);
@@ -419,7 +435,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                                                   Map<String, Object> eventContext,
                                                                   ActionExecutionRequest actionRequest,
                                                                   ActionExecutionResponseProcessor
-                                                               actionExecutionResponseProcessor)
+                                                                          actionExecutionResponseProcessor)
             throws ActionExecutionResponseProcessorException {
 
         logFailureResponse(action, failureResponse);

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.action.execution;
 
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionResponseProcessorException;
+import org.wso2.carbon.identity.action.execution.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.action.execution.model.ErrorStatus;
 import org.wso2.carbon.identity.action.execution.model.Event;
 import org.wso2.carbon.identity.action.execution.model.FailedStatus;
 import org.wso2.carbon.identity.action.execution.model.Failure;
+import org.wso2.carbon.identity.action.execution.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.model.Incomplete;
 import org.wso2.carbon.identity.action.execution.model.Success;
 
@@ -61,7 +63,9 @@ public interface ActionExecutionResponseProcessor {
      * @throws ActionExecutionResponseProcessorException If an error occurs while processing the response.
      */
     default ActionExecutionStatus<Incomplete> processIncompleteResponse(Map<String, Object> eventContext,
-            Event actionEvent, ActionInvocationIncompleteResponse incompleteResponse) throws
+                                                                        Event actionEvent,
+                                                                        ActionInvocationIncompleteResponse incompleteResponse)
+            throws
             ActionExecutionResponseProcessorException {
 
         throw new UnsupportedOperationException(
@@ -84,5 +88,39 @@ public interface ActionExecutionResponseProcessor {
 
         return new FailedStatus(new Failure(failureResponse.getFailureReason(),
                 failureResponse.getFailureDescription()));
+    }
+
+    default ActionExecutionStatus<Success> processSuccessResponse(FlowContext flowContext,
+                                                                  ActionExecutionResponseContext<ActionInvocationSuccessResponse> responseContext)
+            throws
+            ActionExecutionResponseProcessorException {
+
+        throw new UnsupportedOperationException(
+                "The SUCCESS status is not supported for the action type: " + getSupportedActionType());
+
+    }
+
+    default ActionExecutionStatus<Incomplete> processIncompleteResponse(FlowContext flowContext,
+                                                                        ActionExecutionResponseContext<ActionInvocationIncompleteResponse> responseContext)
+            throws ActionExecutionResponseProcessorException {
+
+        throw new UnsupportedOperationException(
+                "The INCOMPLETE status is not supported for the action type: " + getSupportedActionType());
+    }
+
+    default ActionExecutionStatus<Error> processErrorResponse(FlowContext flowContext,
+                                                              ActionExecutionResponseContext<ActionInvocationErrorResponse> responseContext)
+            throws ActionExecutionResponseProcessorException {
+
+        return new ErrorStatus(new Error(responseContext.getActionInvocationResponse().getErrorMessage(),
+                responseContext.getActionInvocationResponse().getErrorDescription()));
+    }
+
+    default ActionExecutionStatus<Failure> processFailureResponse(FlowContext flowContext,
+                                                                  ActionExecutionResponseContext<ActionInvocationFailureResponse> responseContext)
+            throws ActionExecutionResponseProcessorException {
+
+        return new FailedStatus(new Failure(responseContext.getActionInvocationResponse().getFailureReason(),
+                responseContext.getActionInvocationResponse().getFailureDescription()));
     }
 }

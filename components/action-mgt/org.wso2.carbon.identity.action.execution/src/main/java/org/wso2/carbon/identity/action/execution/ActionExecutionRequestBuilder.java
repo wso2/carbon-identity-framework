@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.action.execution;
 
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.FlowContext;
 
 import java.util.Map;
 
@@ -36,4 +38,11 @@ public interface ActionExecutionRequestBuilder {
     ActionExecutionRequest buildActionExecutionRequest(Map<String, Object> eventContext) throws
             ActionExecutionRequestBuilderException;
 
+    default ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
+                                                               ActionExecutionRequestContext actionExecutionContext)
+            throws ActionExecutionRequestBuilderException {
+
+        throw new UnsupportedOperationException(
+                "Action request building is not supported for " + getSupportedActionType() + " action type.");
+    }
 }
