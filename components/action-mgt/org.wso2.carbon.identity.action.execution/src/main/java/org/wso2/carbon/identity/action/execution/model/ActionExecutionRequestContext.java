@@ -21,18 +21,14 @@ package org.wso2.carbon.identity.action.execution.model;
 import org.wso2.carbon.identity.action.management.model.Action;
 
 /**
- * This class models the Action Execution Context.
- * Action Execution Context is the context of the action that is executed by the Action Executor Service.
+ * This class models the Action Execution Request Context.
+ * The context includes the action type, action and any action execution request related data.
  */
 public class ActionExecutionRequestContext {
 
     private final Action action;
 
-    protected ActionExecutionRequestContext(Action action) {
-
-        if (action == null) {
-            throw new IllegalArgumentException("Action cannot be null.");
-        }
+    private ActionExecutionRequestContext(Action action) {
 
         this.action = action;
     }
@@ -50,5 +46,13 @@ public class ActionExecutionRequestContext {
     public Action getAction() {
 
         return action;
+    }
+
+    public static ActionExecutionRequestContext create(Action action) {
+
+        if (action == null) {
+            throw new IllegalArgumentException("Action cannot be null.");
+        }
+        return new ActionExecutionRequestContext(action);
     }
 }

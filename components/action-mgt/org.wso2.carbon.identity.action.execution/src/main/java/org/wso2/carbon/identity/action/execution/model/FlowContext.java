@@ -21,6 +21,11 @@ package org.wso2.carbon.identity.action.execution.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class models the Flow Context.
+ * The context includes the data that is required to be shared across downstream components,
+ * implementing the actions in the flow.
+ */
 public class FlowContext {
 
     private final Map<String, Object> contextData = new HashMap<>();
@@ -43,5 +48,10 @@ public class FlowContext {
 
         contextData.put(key, value);
         return this;
+    }
+
+    public static FlowContext create() {
+
+        return new FlowContext();
     }
 }

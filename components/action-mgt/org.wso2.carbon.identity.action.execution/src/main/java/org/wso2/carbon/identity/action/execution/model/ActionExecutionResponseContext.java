@@ -20,17 +20,18 @@ package org.wso2.carbon.identity.action.execution.model;
 
 /**
  * This class models the Action Execution Response Context.
+ * The context includes the action event, action invocation response and any action response related data.
  *
  * @param <T> The type of the action invocation response.
- * {@link ActionInvocationSuccessResponse} or {@link ActionInvocationIncompleteResponse} or
- * {@link ActionInvocationErrorResponse} or {@link ActionInvocationFailureResponse}
+ *            {@link ActionInvocationSuccessResponse} or {@link ActionInvocationIncompleteResponse} or
+ *            {@link ActionInvocationErrorResponse} or {@link ActionInvocationFailureResponse}
  */
 public class ActionExecutionResponseContext<T extends ActionInvocationResponse.APIResponse> {
 
     Event actionEvent;
     T actionInvocationResponse;
 
-    protected ActionExecutionResponseContext(Event actionEvent, T actionInvocationResponse) {
+    private ActionExecutionResponseContext(Event actionEvent, T actionInvocationResponse) {
 
         this.actionEvent = actionEvent;
         this.actionInvocationResponse = actionInvocationResponse;
@@ -44,5 +45,11 @@ public class ActionExecutionResponseContext<T extends ActionInvocationResponse.A
     public T getActionInvocationResponse() {
 
         return actionInvocationResponse;
+    }
+
+    public static <T extends ActionInvocationResponse.APIResponse> ActionExecutionResponseContext<T> create(
+            Event actionEvent, T actionInvocationResponse) {
+
+        return new ActionExecutionResponseContext<>(actionEvent, actionInvocationResponse);
     }
 }

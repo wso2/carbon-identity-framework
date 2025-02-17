@@ -75,21 +75,26 @@ public interface ActionExecutorService {
      * @return {@link ActionExecutionStatus} The status of the action execution and the response context
      * @throws ActionExecutionException If an error occurs while executing the action
      */
-    ActionExecutionStatus execute(ActionType actionType, FlowContext flowContext, String tenantDomain)
-            throws ActionExecutionException;
+    default ActionExecutionStatus execute(ActionType actionType, FlowContext flowContext, String tenantDomain)
+            throws ActionExecutionException {
+
+        return execute(actionType, flowContext.getContextData(), tenantDomain);
+    }
 
     /**
      * Execute the action based on the action type and the flow context.
      *
      * @param actionType   Action Type
-     * @param actionId     The action Id of the action that need to be executed
+     * @param actionId     The action id of the action that need to be executed
      * @param flowContext  Flow context of the corresponding flow
      * @param tenantDomain Tenant Domain
      * @return {@link ActionExecutionStatus} The status of the action execution and the response context
      * @throws ActionExecutionException If an error occurs while executing the action
      */
-    ActionExecutionStatus execute(ActionType actionType, String actionId,
-                                  FlowContext flowContext, String tenantDomain)
-            throws ActionExecutionException;
+    default ActionExecutionStatus execute(ActionType actionType, String actionId,
+                                          FlowContext flowContext, String tenantDomain)
+            throws ActionExecutionException {
 
+        return execute(actionType, actionId, flowContext.getContextData(), tenantDomain);
+    }
 }

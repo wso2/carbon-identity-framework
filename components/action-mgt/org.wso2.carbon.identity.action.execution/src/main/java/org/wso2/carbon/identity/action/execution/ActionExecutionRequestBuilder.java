@@ -42,7 +42,6 @@ public interface ActionExecutionRequestBuilder {
                                                                ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
-        throw new UnsupportedOperationException(
-                "Action request building is not supported for " + getSupportedActionType() + " action type.");
+        return buildActionExecutionRequest(flowContext.getContextData());
     }
 }
