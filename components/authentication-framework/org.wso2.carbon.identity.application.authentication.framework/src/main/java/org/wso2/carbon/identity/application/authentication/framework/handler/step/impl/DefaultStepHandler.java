@@ -667,10 +667,21 @@ public class DefaultStepHandler implements StepHandler {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
 
-            // Call authenticate if the request can be handled by the authenticator.
+            /* Call authenticate if the request can be handled by the authenticator.
+             When an authenticator using the basic authentication mechanism (e.g., basic or identifierFirst) is engaged,
+             its handleRequest method sets setCurrentAuthenticator to the corresponding authenticator. After the user
+             submits credentials, the CurrentAuthenticator reset to null in DefaultRequestCoordinator.handle().
+             To determine the corresponding authenticator, the system iterates through the authenticators in the step,
+             relying on canHandle since currentAuthenticator is null. Custom authenticators always return true for
+             canHandle, causing it to be selected even when basic authentication is intended.
+             To prevent this, the solution checks if context.getCurrentAuthenticator() is null and ensures the selected
+             authenticator is not user-defined. Since custom authenticators always go through
+             handleRequestFromLoginPage, this set the selected authenticator to the context.
+             */
             if (authenticator != null && authenticator.canHandleRequestFromMultiOptionStep(request, context)
-                && (context.getCurrentAuthenticator() == null || authenticator.getName()
-                    .equals(context.getCurrentAuthenticator()))) {
+                && ((context.getCurrentAuthenticator() == null
+                    && !AuthenticatorPropertyConstants.DefinedByType.USER.equals(authenticator.getDefinedByType()))
+                    || authenticator.getName().equals(context.getCurrentAuthenticator()))) {
                 isNoneCanHandle = false;
 
                 if (LOG.isDebugEnabled()) {

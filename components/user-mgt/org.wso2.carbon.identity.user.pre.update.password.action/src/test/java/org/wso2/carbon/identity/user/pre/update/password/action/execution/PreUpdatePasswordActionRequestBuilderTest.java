@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.user.pre.update.password.action.execution;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
@@ -131,13 +132,31 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertEquals(preUpdatePasswordActionRequestBuilder.getSupportedActionType(), ActionType.PRE_UPDATE_PASSWORD);
     }
 
-    @Test
-    public void testRequestBuilder() throws ActionExecutionRequestBuilderException {
+    @DataProvider(name = "flowData")
+    public Object[][] flowData() {
 
-        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_UPDATE)
-                .initiatingPersona(Flow.InitiatingPersona.USER)
-                .build());
+        return new Object[][]{
+                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER),
+                        PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.USER},
+                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION),
+                        PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION},
+                {buildMockedFlow(Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.UPDATE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
+                {buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER),
+                        PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.USER},
+                {buildMockedFlow(Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.RESET, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN},
+                {buildMockedFlow(Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN),
+                        PreUpdatePasswordEvent.Action.INVITE, PreUpdatePasswordEvent.FlowInitiatorType.ADMIN}
+        };
+    }
+
+    @Test(dataProvider = "flowData")
+    public void testRequestBuilder(Flow mockedFlow, PreUpdatePasswordEvent.Action expectedAction,
+                                   PreUpdatePasswordEvent.FlowInitiatorType expectedInitiatorType)
+            throws ActionExecutionRequestBuilderException {
+
+        IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
         eventContext.put("action", preUpdatePasswordAction);
 
         ActionExecutionRequest actionExecutionRequest = preUpdatePasswordActionRequestBuilder
@@ -148,8 +167,8 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertTrue(actionExecutionRequest.getEvent() instanceof PreUpdatePasswordEvent);
 
         PreUpdatePasswordEvent preUpdatePasswordEvent = (PreUpdatePasswordEvent) actionExecutionRequest.getEvent();
-        assertEquals(preUpdatePasswordEvent.getInitiatorType(), PreUpdatePasswordEvent.FlowInitiatorType.USER);
-        assertEquals(preUpdatePasswordEvent.getAction(), PreUpdatePasswordEvent.Action.UPDATE);
+        assertEquals(preUpdatePasswordEvent.getInitiatorType(), expectedInitiatorType);
+        assertEquals(preUpdatePasswordEvent.getAction(), expectedAction);
 
         assertEquals(preUpdatePasswordEvent.getUserStore().getName(), TEST_USER_STORE_DOMAIN_NAME);
         assertEquals(preUpdatePasswordEvent.getUserStore().getId(), TEST_USER_STORE_DOMAIN_ID);
@@ -161,13 +180,14 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertTrue(passwordUpdatingUser.getUpdatingCredential() instanceof String);
     }
 
-    @Test
-    public void testRequestBuilderWithUnEncryptedCredential() throws ActionExecutionRequestBuilderException {
+    @Test(dataProvider = "flowData")
+    public void testRequestBuilderWithUnEncryptedCredential(Flow mockedFlow,
+                                                            PreUpdatePasswordEvent.Action expectedAction,
+                                                            PreUpdatePasswordEvent.FlowInitiatorType
+                                                                        expectedInitiatorType)
+            throws ActionExecutionRequestBuilderException {
 
-        IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_RESET)
-                .initiatingPersona(Flow.InitiatingPersona.APPLICATION)
-                .build());
+        IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
         eventContext.put("action", preUpdatePasswordActionWithoutCert);
 
         ActionExecutionRequest actionExecutionRequest = preUpdatePasswordActionRequestBuilder
@@ -178,8 +198,8 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertTrue(actionExecutionRequest.getEvent() instanceof PreUpdatePasswordEvent);
 
         PreUpdatePasswordEvent preUpdatePasswordEvent = (PreUpdatePasswordEvent) actionExecutionRequest.getEvent();
-        assertEquals(preUpdatePasswordEvent.getInitiatorType(), PreUpdatePasswordEvent.FlowInitiatorType.APPLICATION);
-        assertEquals(preUpdatePasswordEvent.getAction(), PreUpdatePasswordEvent.Action.RESET);
+        assertEquals(preUpdatePasswordEvent.getInitiatorType(), expectedInitiatorType);
+        assertEquals(preUpdatePasswordEvent.getAction(), expectedAction);
 
         assertEquals(preUpdatePasswordEvent.getUserStore().getName(), TEST_USER_STORE_DOMAIN_NAME);
         assertEquals(preUpdatePasswordEvent.getUserStore().getId(), TEST_USER_STORE_DOMAIN_ID);
@@ -189,5 +209,13 @@ public class PreUpdatePasswordActionRequestBuilderTest {
         assertEquals(passwordUpdatingUser.getId(), TEST_ID);
         assertNotNull(passwordUpdatingUser.getUpdatingCredential());
         assertTrue(passwordUpdatingUser.getUpdatingCredential() instanceof Credential);
+    }
+
+    private static Flow buildMockedFlow(Flow.Name flowName, Flow.InitiatingPersona initiatingPersona) {
+
+        return new Flow.Builder()
+                .name(flowName)
+                .initiatingPersona(initiatingPersona)
+                .build();
     }
 }

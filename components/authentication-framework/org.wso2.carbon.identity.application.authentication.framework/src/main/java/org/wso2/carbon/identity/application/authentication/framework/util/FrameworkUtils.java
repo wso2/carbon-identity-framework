@@ -1958,7 +1958,7 @@ public class FrameworkUtils {
         List<String> queryParams;
         String action;
         if (!configAvailable) {
-            queryParams = Arrays.asList("loggedInUser", "ske");
+            queryParams = Arrays.asList("loggedInUser", "ske", "pushEnrollData");
             action = "exclude";
         } else {
             queryParams = FileBasedConfigurationBuilder.getInstance()

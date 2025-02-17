@@ -116,7 +116,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
             return false;
         }
 
-        return flow.getName() == Flow.Name.PASSWORD_UPDATE || flow.getName() == Flow.Name.PASSWORD_RESET ||
+        return flow.getName() == Flow.Name.PASSWORD_RESET ||
                 flow.getName() == Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD ||
                 flow.getName() == Flow.Name.PROFILE_UPDATE;
     }
@@ -134,6 +134,10 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     }
 
     private String buildErrorMessage(String message, String description) {
+
+        if (description == null) {
+            return message;
+        }
 
         return message + ". " + description;
     }

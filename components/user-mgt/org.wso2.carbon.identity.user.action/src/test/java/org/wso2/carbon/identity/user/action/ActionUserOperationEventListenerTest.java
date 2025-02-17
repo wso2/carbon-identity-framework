@@ -68,7 +68,7 @@ public class ActionUserOperationEventListenerTest {
         listener = new ActionUserOperationEventListener();
         userCoreUtil.when(() -> UserCoreUtil.getDomainName(any())).thenReturn("PRIMARY");
         IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_UPDATE)
+                .name(Flow.Name.PASSWORD_RESET)
                 .initiatingPersona(Flow.InitiatingPersona.USER)
                 .build());
     }
@@ -97,7 +97,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_WithDisabledListener()
+    public void testPreUpdatePasswordActionExecutionWithDisabledListener()
             throws UserStoreException, UnsupportedSecretTypeException {
 
         IdentityEventListenerConfig mockConfig = mock(IdentityEventListenerConfig.class);
@@ -111,7 +111,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_Success()
+    public void testPreUpdatePasswordActionExecutionSuccess()
             throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         ActionExecutionStatus<Success> successStatus =
@@ -126,7 +126,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_Failed() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionFailure() throws ActionExecutionException {
 
         Failure failureResponse = new Failure("FailureReason", "FailureDescription");
         ActionExecutionStatus<Failure> failedStatus = new FailedStatus(failureResponse);
@@ -145,7 +145,26 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_Error() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionFailureWithoutDescription() throws ActionExecutionException {
+
+        Failure failureResponse = new Failure("FailureReason", null);
+        ActionExecutionStatus<Failure> failedStatus = new FailedStatus(failureResponse);
+        doReturn(failedStatus).when(mockExecutor).execute(any(), any());
+        doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
+        UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
+
+        try {
+            listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof UserStoreClientException);
+            Assert.assertEquals(e.getMessage(), "FailureReason");
+            Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
+                    PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
+        }
+    }
+
+    @Test
+    public void testPreUpdatePasswordActionExecutionError() throws ActionExecutionException {
 
         Error errorResponse = new Error("ErrorMessage", "ErrorDescription");
         ActionExecutionStatus<Error> errorStatus = new ErrorStatus(errorResponse);
@@ -163,7 +182,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_UnsupportedSecret() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionWithUnsupportedSecret() throws ActionExecutionException {
 
         Error errorResponse = new Error("ErrorMessage", "ErrorDescription");
         ActionExecutionStatus<Error> errorStatus = new ErrorStatus(errorResponse);
@@ -181,7 +200,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_UnknownStatus()
+    public void testPreUpdatePasswordActionExecutionWithUnknownStatus()
             throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         ActionExecutionStatus<?> unknownStatus = mock(ActionExecutionStatus.class);
@@ -195,7 +214,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_ActionExecutionException() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionWithActionExecutionException() throws ActionExecutionException {
 
         doThrow(new ActionExecutionException("Execution error")).when(mockExecutor).execute(any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
