@@ -60,10 +60,14 @@ public interface ActionExecutionResponseProcessor {
      * @return The success status.
      * @throws ActionExecutionResponseProcessorException If an error occurs while processing the response.
      */
-    ActionExecutionStatus<Success> processSuccessResponse(Map<String, Object> eventContext,
-                                                          Event actionEvent,
-                                                          ActionInvocationSuccessResponse successResponse)
-            throws ActionExecutionResponseProcessorException;
+    default ActionExecutionStatus<Success> processSuccessResponse(Map<String, Object> eventContext,
+                                                                  Event actionEvent,
+                                                                  ActionInvocationSuccessResponse successResponse)
+            throws ActionExecutionResponseProcessorException {
+
+        throw new UnsupportedOperationException(
+                "The SUCCESS status is not supported for the action type: " + getSupportedActionType());
+    }
 
     /**
      * This method processes the incomplete response received from the action execution. The default implementation

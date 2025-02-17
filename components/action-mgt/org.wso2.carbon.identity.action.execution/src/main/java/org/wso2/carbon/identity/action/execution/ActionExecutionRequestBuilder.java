@@ -35,8 +35,13 @@ public interface ActionExecutionRequestBuilder {
 
     ActionType getSupportedActionType();
 
-    ActionExecutionRequest buildActionExecutionRequest(Map<String, Object> eventContext) throws
-            ActionExecutionRequestBuilderException;
+    default ActionExecutionRequest buildActionExecutionRequest(Map<String, Object> eventContext) throws
+            ActionExecutionRequestBuilderException {
+
+        throw new UnsupportedOperationException(
+                "The Action Execution Request Builder is not supported for the action type:" +
+                        getSupportedActionType());
+    }
 
     default ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
                                                                ActionExecutionRequestContext actionExecutionContext)
