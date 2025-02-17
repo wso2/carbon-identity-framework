@@ -5,7 +5,9 @@ import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAOImpl;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.BulkUserImportOperationDO;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationUnitDO;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 @Component(
@@ -36,6 +38,7 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         String residentOrgId = sharingOperationDO.getResidentOrganizationId();
         String initiatorId = sharingOperationDO.getInitiatorId();
         String operationStatus = sharingOperationDO.getOperationStatus();
+        ArrayList<SharingOperationUnitDO> unitSharingList = sharingOperationDO.getUnitSharingList();
 
         try {
             asyncStatusMgtDAO.createB2BResourceSharingOperation(

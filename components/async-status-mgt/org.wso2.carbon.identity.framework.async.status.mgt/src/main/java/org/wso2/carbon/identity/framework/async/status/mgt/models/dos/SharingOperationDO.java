@@ -2,12 +2,15 @@ package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 
 import org.wso2.carbon.identity.framework.async.status.mgt.constant.ResourceType;
 
+import java.util.ArrayList;
+
 public class SharingOperationDO {
     private String operationType;
     private String residentResourceId;
     private ResourceType resourceType;
-    private String sharingPolicy;
     private String residentOrganizationId;
+        private ArrayList<SharingOperationUnitDO> unitSharingList;
+    private String sharingPolicy;
     private String initiatorId;
     private String operationStatus;
 
@@ -65,5 +68,13 @@ public class SharingOperationDO {
 
     public void setOperationStatus(String operationStatus) {
         this.operationStatus = operationStatus;
+    }
+
+    public ArrayList<SharingOperationUnitDO> getUnitSharingList() {
+        return unitSharingList;
+    }
+
+    public void setUnitSharingList(ArrayList<SharingOperationUnitDO> unitSharingList) {
+        this.unitSharingList = unitSharingList;
     }
 }
