@@ -27,11 +27,11 @@ import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.rule.management.dao.RuleManagementDAO;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementClientException;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
-import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.management.service.impl.RuleManagementServiceImpl;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementClientException;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.internal.dao.RuleManagementDAO;
+import org.wso2.carbon.identity.rule.management.internal.service.impl.RuleManagementServiceImpl;
 
 import java.lang.reflect.Field;
 

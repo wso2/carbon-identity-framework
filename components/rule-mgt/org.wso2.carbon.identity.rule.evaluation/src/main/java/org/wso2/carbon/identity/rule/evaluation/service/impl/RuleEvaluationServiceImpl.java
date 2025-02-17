@@ -32,8 +32,8 @@ import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
-import org.wso2.carbon.identity.rule.management.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 

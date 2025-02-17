@@ -103,7 +103,7 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.identity.rule.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.management.*;
+                            org.wso2.carbon.identity.rule.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                     </instructions>

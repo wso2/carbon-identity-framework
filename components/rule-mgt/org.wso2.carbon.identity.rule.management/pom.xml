@@ -94,17 +94,12 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.rule.management.internal,
-                            org.wso2.carbon.identity.rule.management.constant,
-                            org.wso2.carbon.identity.rule.management.dao.*,
-                            org.wso2.carbon.identity.rule.management.service.impl,
+                            org.wso2.carbon.identity.rule.management.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.rule.management.internal,
-                            !org.wso2.carbon.identity.rule.management.constant,
-                            !org.wso2.carbon.identity.rule.management.dao.*,
-                            !org.wso2.carbon.identity.rule.management.service.impl,
-                            org.wso2.carbon.identity.rule.management.*;
+                            !org.wso2.carbon.identity.rule.management.internal.*,
+                            org.wso2.carbon.identity.rule.management.api.*,
+                            org.wso2.carbon.identity.rule.management.core.*;
                             version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <Import-Package>
