@@ -18,5 +18,16 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
-public class AsyncStatusMgtDAOImpl {
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import static org.wso2.carbon.identity.organization.management.service.util.Utils.getNewTemplate;
+
+/**
+ * DAO implementation for Asynchronous Operation Status Management.
+ */
+public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
+
+    @Override
+    public void createB2BResourceSharingOperation(String operationId, String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus) {
+        NamedJdbcTemplate namedJdbcTemplate = getNew
+    }
 }
