@@ -16,20 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.core.management;
+package org.wso2.carbon.identity.user.pre.update.password.action.internal.management;
 
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.service.ActionConverter;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordSharing;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
-import static org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
+import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
+import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
 
 /**
  * This class implements the methods required to build Action objects in Pre Update Password extension.

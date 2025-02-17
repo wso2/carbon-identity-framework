@@ -34,7 +34,7 @@ import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
 import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
 import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
 import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
 
 import java.util.Collections;
 import java.util.List;

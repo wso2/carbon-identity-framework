@@ -16,15 +16,15 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.pre.update.password.action.core.execution;
+package org.wso2.carbon.identity.user.pre.update.password.action.internal.execution;
 
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.PreUpdatePasswordActionServiceComponentHolder;
+import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
 
 import java.util.HashMap;
 import java.util.Map;
