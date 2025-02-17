@@ -24,6 +24,7 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
 
     @Override
     public void processB2BAsyncOperationStatus(SharingOperationDO sharingOperationDO) {
+        LOGGER.info("processB2BAsyncOperationStatus Started...");
         if (sharingOperationDO == null) {
             LOGGER.warning("Received null SharingOperationDO.");
             return;
