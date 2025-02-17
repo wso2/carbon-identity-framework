@@ -27,9 +27,6 @@ import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * User Pre Update Password Action Executor.
  */

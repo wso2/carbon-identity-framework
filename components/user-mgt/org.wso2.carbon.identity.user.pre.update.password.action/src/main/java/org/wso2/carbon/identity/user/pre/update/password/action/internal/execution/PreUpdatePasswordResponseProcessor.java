@@ -19,17 +19,13 @@
 package org.wso2.carbon.identity.user.pre.update.password.action.internal.execution;
 
 import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
-import org.wso2.carbon.identity.action.execution.exception.ActionExecutionResponseProcessorException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Event;
 import org.wso2.carbon.identity.action.execution.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.model.Success;
 import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
-
-import java.util.Map;
 
 /**
  * Pre Update Password Response Processor.
