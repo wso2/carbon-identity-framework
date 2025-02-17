@@ -101,7 +101,7 @@
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.rule.metadata.*;
+                            org.wso2.carbon.identity.rule.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.management.*;
                             version="${carbon.identity.package.import.version.range}",

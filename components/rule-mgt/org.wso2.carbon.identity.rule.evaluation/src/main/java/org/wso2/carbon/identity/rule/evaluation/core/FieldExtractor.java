@@ -23,9 +23,9 @@ import org.wso2.carbon.identity.rule.evaluation.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
 import org.wso2.carbon.identity.rule.management.model.Expression;
 import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsReferenceValue;
-import org.wso2.carbon.identity.rule.metadata.model.Value;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Value;
 
 import java.util.ArrayList;
 import java.util.List;

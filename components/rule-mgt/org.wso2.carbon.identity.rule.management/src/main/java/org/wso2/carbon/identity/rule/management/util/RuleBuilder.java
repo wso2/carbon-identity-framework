@@ -28,9 +28,9 @@ import org.wso2.carbon.identity.rule.management.model.FlowType;
 import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Rule;
 import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
-import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
 
 import java.util.List;
 import java.util.Map;
@@ -122,7 +122,7 @@ public class RuleBuilder {
             List<FieldDefinition> fieldDefinitionList =
                     RuleManagementComponentServiceHolder.getInstance().getRuleMetadataService()
                             .getExpressionMeta(
-                                    org.wso2.carbon.identity.rule.metadata.model.FlowType.valueOf(flowType.name()),
+                                    org.wso2.carbon.identity.rule.metadata.api.model.FlowType.valueOf(flowType.name()),
                                     tenantDomain);
 
             if (fieldDefinitionList == null || fieldDefinitionList.isEmpty()) {
@@ -256,7 +256,7 @@ public class RuleBuilder {
     private Value resolveValue(FieldDefinition fieldDefinition,
                                String rawValue) throws RuleManagementClientException {
 
-        org.wso2.carbon.identity.rule.metadata.model.Value.ValueType
+        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType
                 fieldDefinitionValueType = fieldDefinition.getValue().getValueType();
 
         switch (fieldDefinitionValueType) {
@@ -277,7 +277,7 @@ public class RuleBuilder {
 
     private boolean isValidValueType(FieldDefinition fieldDefinition, Value value) {
 
-        org.wso2.carbon.identity.rule.metadata.model.Value.ValueType fieldDefinitionValueType =
+        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType fieldDefinitionValueType =
                 fieldDefinition.getValue().getValueType();
         Value.Type valueType = value.getType();
 
