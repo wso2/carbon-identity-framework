@@ -257,7 +257,8 @@
     "POST_ADD_EXTERNAL_CLAIM",
     "POST_ADD_CLAIM_DIALECT",
     "POST_RENAME_CLAIM_DIALECT",
-    "POST_DELETE_CLAIM_DIALECT"
+    "POST_DELETE_CLAIM_DIALECT",
+    "POST_ADD_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "39",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
