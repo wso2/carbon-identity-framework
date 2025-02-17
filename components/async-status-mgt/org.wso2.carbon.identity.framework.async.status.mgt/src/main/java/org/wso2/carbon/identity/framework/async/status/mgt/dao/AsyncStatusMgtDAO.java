@@ -18,5 +18,12 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
+/**
+ * DAO interface for Asynchronous Operation
+ * Status Management.
+ */
 public interface AsyncStatusMgtDAO {
+    void createB2BResourceSharingOperation(String operationId, String operationType, String residentResourceId,
+                                           String resourceType, String sharingPolicy, String residentOrgId, String initiatorId,
+                                           String operationStatus);
 }
