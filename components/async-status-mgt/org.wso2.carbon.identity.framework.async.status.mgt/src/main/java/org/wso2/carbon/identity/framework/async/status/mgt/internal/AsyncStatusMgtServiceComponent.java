@@ -37,6 +37,8 @@ public class AsyncStatusMgtServiceComponent {
         sharingOperationDO.setInitiatorId("initiatorId");
         sharingOperationDO.setOperationStatus("status");
 
+        LOGGER.info("SharingOperationDO created.");
+
         asyncStatusMgtService.processB2BAsyncOperationStatus(sharingOperationDO);
     }
 
