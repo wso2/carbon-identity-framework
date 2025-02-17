@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action.service.model;
+package org.wso2.carbon.identity.user.action.api.model;
 
 /**
  * Model class for User Action Context.

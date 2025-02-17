@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action.service.constant;
+package org.wso2.carbon.identity.user.action.api.constant;
 
 /**
  * Constants related to user action service.

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.action.internal;
+package org.wso2.carbon.identity.user.action.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,9 +28,9 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.user.action.core.factory.UserActionExecutorFactory;
-import org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener;
-import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
+import org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
 /**
