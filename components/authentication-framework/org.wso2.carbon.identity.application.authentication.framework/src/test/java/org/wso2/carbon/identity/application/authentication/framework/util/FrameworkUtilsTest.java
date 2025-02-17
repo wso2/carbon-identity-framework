@@ -1,18 +1,21 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -21,6 +24,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
@@ -42,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.approles.ApplicationRolesResolver;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -57,12 +62,15 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
@@ -75,6 +83,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -85,16 +95,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.GROUPS_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ROLES_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -143,6 +164,19 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
     @Mock
     private ClaimMapping mockedClaimMapping;
+    @Mock
+    private FederatedAuthenticatorConfig mockedFederatedAuthenticatorConfig;
+    @Mock
+    private ClaimMetadataHandler mockedClaimMetadataHandler;
+
+    @Mock
+    private SessionDataStore mockedSessionDataStore;
+
+    @Mock
+    private AuthenticationResultCacheEntry mockedAuthenticationResultCacheEntry;
+
+    @Mock
+    private AuthenticationResult mockedAuthenticationResult;
 
     @Captor
     ArgumentCaptor<Cookie> cookieCaptor;
@@ -150,9 +184,14 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     @BeforeClass
     public void setFrameworkServiceComponent() {
 
-        FrameworkServiceComponent.getAuthenticators().clear();
-        FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("BasicAuthenticator"));
-        FrameworkServiceComponent.getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
+        removeAllSystemDefinedAuthenticators();
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockAuthenticator("BasicAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockAuthenticator("HwkMockAuthenticator"));
+        ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(
+                new MockAuthenticator("FederatedAuthenticator", null, "sampleClaimDialectURI"));
+           
         authenticationContext.setTenantDomain("abc");
     }
 
@@ -160,7 +199,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAppAuthenticatorByNameExistingAuthenticator() {
 
         ApplicationAuthenticator applicationAuthenticator;
-        applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator");
+        applicationAuthenticator = ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticatorByName("BasicAuthenticator");
         assert applicationAuthenticator != null;
         assertEquals(applicationAuthenticator.getName(), "BasicAuthenticator");
     }
@@ -169,7 +209,8 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     public void testGetAppAuthenticatorByNameNonExistingAuthenticator() {
 
         ApplicationAuthenticator applicationAuthenticator;
-        applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName("NonExistingAuthenticator");
+        applicationAuthenticator = ApplicationAuthenticatorManager.getInstance()
+                .getSystemDefinedAuthenticatorByName("NonExistingAuthenticator");
         assertNull(applicationAuthenticator);
     }
 
@@ -482,6 +523,60 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
             AuthenticationResultCacheEntry cacheEntry =
                     FrameworkUtils.getAuthenticationResultFromCache(DUMMY_CACHE_KEY);
             assertEquals(cacheEntry, authenticationCacheEntry);
+        }
+    }
+
+    @Test
+    public void testGetAuthenticationResultFromSessionDataStore() {
+
+        try (MockedStatic<SessionDataStore> sessionDataStore = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
+            identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
+                    .thenReturn("true");
+
+            AuthenticationResultCache authenticationCacheSpy = spy(AuthenticationResultCache.getInstance());
+
+            AuthenticationResultCacheKey key = new AuthenticationResultCacheKey(DUMMY_CACHE_KEY);
+
+            when(authenticationCacheSpy.getValueFromCache(eq(key), anyString())).thenReturn(null);
+
+            when(mockedSessionDataStore.getSessionData(anyString(), anyString()))
+                    .thenReturn(mockedAuthenticationResultCacheEntry);
+            when(mockedAuthenticationResultCacheEntry.getResult()).thenReturn(mockedAuthenticationResult);
+            when(mockedAuthenticationResultCacheEntry.getValidityPeriod()).thenReturn(60000000L);
+            when(mockedAuthenticationResult.getProperty(anyString())).thenReturn(System.currentTimeMillis());
+
+            AuthenticationResultCacheEntry result = authenticationCacheSpy.getValueFromCache(key);
+            assertNotNull(result);
+        }
+    }
+
+    @Test
+    public void testGetAuthenticationResultFromSessionDataStoreExpired() {
+
+        try (MockedStatic<SessionDataStore> sessionDataStore = mockStatic(SessionDataStore.class);
+            MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+                sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
+                identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
+                        .thenReturn("true");
+
+            AuthenticationResultCache authenticationCacheSpy = spy(AuthenticationResultCache.getInstance());
+
+            AuthenticationResultCacheKey key = new AuthenticationResultCacheKey(DUMMY_CACHE_KEY);
+
+            when(authenticationCacheSpy.getValueFromCache(eq(key), anyString())).thenReturn(null);
+
+            when(mockedSessionDataStore.getSessionData(anyString(), anyString()))
+                    .thenReturn(mockedAuthenticationResultCacheEntry);
+            when(mockedAuthenticationResultCacheEntry.getResult()).thenReturn(mockedAuthenticationResult);
+            when(mockedAuthenticationResultCacheEntry.getValidityPeriod()).thenReturn(-60000000L);
+            when(mockedAuthenticationResult.getProperty(anyString())).thenReturn(System.currentTimeMillis());
+
+            AuthenticationResultCacheEntry result = authenticationCacheSpy.getValueFromCache(key);
+            assertNull(result);
         }
     }
 
@@ -902,6 +997,167 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
 
             String result = FrameworkUtils.getUserIdClaimURI("testIdp", "testTenant");
             assertEquals(result, "http://wso2.org/claims/username");
+        }
+    }
+
+    @Test(description = "Verify that the username auto-fill configuration is retrieved correctly")
+    public void testGetUsernameFieldAutofillWithSubjectAttrConfig() {
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(
+                            () -> IdentityUtil.getProperty(
+                                    eq("JITProvisioning.AutofillUsernameFieldWithSubjectAttribute")))
+                    .thenReturn("true");
+            assertTrue(FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr());
+            identityUtilMockedStatic.when(
+                            () -> IdentityUtil.getProperty(
+                                    eq("JITProvisioning.AutofillUsernameFieldWithSubjectAttribute")))
+                    .thenReturn("false");
+            assertFalse(FrameworkUtils.isUsernameFieldAutofillWithSubjectAttr());
+        }
+    }
+
+    @Test
+    public void testGetAppAssociatedRolesFromFederatedUserAttributesValidAttributes() throws Exception {
+
+        Map<String, String> fedUserAttributes = new HashMap<>();
+        fedUserAttributes.put("idpGroupAttribute", "idpGroup1,idpGroup2");
+        fedUserAttributes.put("testClaim", "abc");
+
+        String applicationId = "testAppId";
+        String idpGroupClaimURI = "testIdPGroupAttribute";
+        String[] associatedRoles = new String[]{"role1", "role2"};
+
+        ApplicationRolesResolver appRolesResolver = mock(ApplicationRolesResolver.class);
+        when(appRolesResolver.getAppAssociatedRolesOfFederatedUser(any(), any(), eq(applicationId),
+                eq(idpGroupClaimURI), eq(DUMMY_TENANT_DOMAIN)))
+                .thenReturn(associatedRoles);
+        FrameworkServiceDataHolder.getInstance().addApplicationRolesResolver(appRolesResolver);
+
+        List<String> roles = FrameworkUtils.getAppAssociatedRolesFromFederatedUserAttributes(fedUserAttributes,
+                mockedIdentityProvider, applicationId, idpGroupClaimURI, DUMMY_TENANT_DOMAIN);
+
+        assertEquals(roles, Arrays.asList(associatedRoles));
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriDefaultBehaviourForCustomGroupClaimMapping() {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        ClaimMapping[] claimMappings = new ClaimMapping[3];
+        claimMappings[0] = ClaimMapping.build(USERNAME_CLAIM, "idpUsernameAttribute", null, false);
+        claimMappings[1] = ClaimMapping.build(GROUPS_CLAIM, "idpGroupAttribute", null, false);
+        claimMappings[2] = ClaimMapping.build(ROLES_CLAIM, "idpRoleAttribute", null, false);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(claimMappings);
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(false));
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "idpGroupAttribute");
+        }
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriLegacyBehaviourForCustomGroupClaimMapping() {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        ClaimMapping[] claimMappings = new ClaimMapping[3];
+        claimMappings[0] = ClaimMapping.build(USERNAME_CLAIM, "idpUsernameAttribute", null, false);
+        claimMappings[1] = ClaimMapping.build(GROUPS_CLAIM, "idpGroupAttribute", null, false);
+        claimMappings[2] = ClaimMapping.build(ROLES_CLAIM, "idpRoleAttribute", null, false);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(claimMappings);
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(true));
+            identityUtilMockedStatic.when(IdentityUtil::getLocalGroupsClaimURI)
+                    .thenReturn(UserCoreConstants.INTERNAL_ROLES_CLAIM);
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "idpRoleAttribute");
+        }
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriDefaultBehaviourWithNoCustomClaimMappings() throws Exception {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(null);
+        when(mockedClaimConfig.isLocalClaimDialect()).thenReturn(true);
+        when(mockedIdentityProvider.getDefaultAuthenticatorConfig()).thenReturn(mockedFederatedAuthenticatorConfig);
+        when(mockedFederatedAuthenticatorConfig.getName()).thenReturn("FederatedAuthenticator");
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<ClaimMetadataHandler> claimMetadataHandlerMockedStatic = mockStatic(
+                     ClaimMetadataHandler.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(false));
+
+            claimMetadataHandlerMockedStatic.when(() -> ClaimMetadataHandler.getInstance())
+                    .thenReturn(mockedClaimMetadataHandler);
+            Map<String, String> otherClaimDialectToCarbonMapping = new HashMap<>();
+            otherClaimDialectToCarbonMapping.put("groupsClaimInDialect", "http://wso2.org/claims/groups");
+            when(mockedClaimMetadataHandler.getMappingsMapFromOtherDialectToCarbon(anyString(),
+                    isNull(), anyString(), anyBoolean())).thenReturn(otherClaimDialectToCarbonMapping);
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "groupsClaimInDialect");
+        }
+    }
+
+    @Test
+    public void testGetEffectiveIdpGroupClaimUriLegacyBehaviourWithNoCustomClaimMappings() throws Exception {
+
+        when(mockedIdentityProvider.getClaimConfig()).thenReturn(mockedClaimConfig);
+        when(mockedClaimConfig.getClaimMappings()).thenReturn(new ClaimMapping[0]);
+        when(mockedClaimConfig.isLocalClaimDialect()).thenReturn(true);
+        when(mockedIdentityProvider.getDefaultAuthenticatorConfig()).thenReturn(mockedFederatedAuthenticatorConfig);
+        when(mockedFederatedAuthenticatorConfig.getName()).thenReturn("FederatedAuthenticator");
+
+        try (MockedStatic<IdentityUtil> identityUtilMockedStatic = mockStatic(IdentityUtil.class);
+             MockedStatic<ClaimMetadataHandler> claimMetadataHandlerMockedStatic = mockStatic(
+                     ClaimMetadataHandler.class)) {
+            identityUtilMockedStatic.when(() -> IdentityUtil.getProperty(USE_IDP_ROLE_CLAIM_AS_IDP_GROUP_CLAIM))
+                    .thenReturn(String.valueOf(true));
+            identityUtilMockedStatic.when(IdentityUtil::getLocalGroupsClaimURI)
+                    .thenReturn(UserCoreConstants.INTERNAL_ROLES_CLAIM);
+
+            claimMetadataHandlerMockedStatic.when(() -> ClaimMetadataHandler.getInstance())
+                    .thenReturn(mockedClaimMetadataHandler);
+            Map<String, String> otherClaimDialectToCarbonMapping = new HashMap<>();
+            otherClaimDialectToCarbonMapping.put("rolesClaimInDialect", "http://wso2.org/claims/roles");
+            when(mockedClaimMetadataHandler.getMappingsMapFromOtherDialectToCarbon(anyString(),
+                    isNull(), anyString(), anyBoolean())).thenReturn(otherClaimDialectToCarbonMapping);
+
+            String result = FrameworkUtils.getEffectiveIdpGroupClaimUri(mockedIdentityProvider, DUMMY_TENANT_DOMAIN);
+
+            assertEquals(result, "rolesClaimInDialect");
+        }
+    }
+
+    @Test
+    public void getAppAuthenticatorByNameExistingAuthenticator() {
+
+        Assert.assertNotNull(FrameworkUtils.getAppAuthenticatorByName("BasicAuthenticator"));
+    }
+
+    @Test
+    public void getAppAuthenticatorByNameNonExistingAuthenticator() {
+
+        Assert.assertNull(FrameworkUtils.getAppAuthenticatorByName("NonExistAuthenticator"));
+    }
+ 
+    private void removeAllSystemDefinedAuthenticators() {
+
+        List<ApplicationAuthenticator> authenticatorList = new ArrayList<>(
+                ApplicationAuthenticatorManager.getInstance().getSystemDefinedAuthenticators());
+        for (ApplicationAuthenticator authenticator : authenticatorList) {
+            ApplicationAuthenticatorManager.getInstance().removeSystemDefinedAuthenticator(authenticator);
         }
     }
 }

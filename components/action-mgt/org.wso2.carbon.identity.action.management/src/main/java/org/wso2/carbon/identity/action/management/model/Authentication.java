@@ -64,6 +64,20 @@ public class Authentication {
 
             return name;
         }
+
+        public static Type valueOfName(String name) {
+
+            if (name == null || name.isEmpty()) {
+                throw new IllegalArgumentException("Authentication type cannot be null or empty.");
+            }
+
+            for (Type type : Type.values()) {
+                if (type.name.equalsIgnoreCase(name)) {
+                    return type;
+                }
+            }
+            throw new IllegalArgumentException("Invalid authentication type: " + name);
+        }
     }
 
     /**

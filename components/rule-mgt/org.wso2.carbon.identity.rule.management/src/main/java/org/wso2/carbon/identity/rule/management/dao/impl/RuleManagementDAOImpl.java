@@ -26,17 +26,19 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.rule.management.constant.RuleSQLConstants;
 import org.wso2.carbon.identity.rule.management.dao.RuleManagementDAO;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.exception.RuleManagementRuntimeException;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementServerException;
+import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Expression;
+import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
 import org.wso2.carbon.identity.rule.management.model.Rule;
 import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.management.model.internal.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.internal.ORCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.internal.RuleData;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -137,7 +139,8 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
             jdbcTemplate.withTransaction(
                     template -> template.fetchSingleRecord(RuleSQLConstants.Query.GET_RULE_BY_ID,
                             (resultSet, rowNumber) -> {
-                                ruleData.setRuleJson(resultSet.getString(RuleSQLConstants.Column.RULE_CONTENT));
+                                ruleData.setRuleJson(getStringValueFromInputStream(
+                                        resultSet.getBinaryStream(RuleSQLConstants.Column.RULE_CONTENT)));
                                 ruleData.setActive(resultSet.getBoolean(RuleSQLConstants.Column.IS_ACTIVE));
                                 return null;
                             },
@@ -322,5 +325,24 @@ public class RuleManagementDAOImpl implements RuleManagementDAO {
         } catch (JsonProcessingException e) {
             throw new RuleManagementServerException("Failed to convert JSON to rule.", e);
         }
+    }
+
+    private String getStringValueFromInputStream(InputStream stream) {
+
+        if (stream == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            throw new RuleManagementRuntimeException("Error while reading the rule content from storage.", e);
+        }
+
+        return sb.toString();
     }
 }

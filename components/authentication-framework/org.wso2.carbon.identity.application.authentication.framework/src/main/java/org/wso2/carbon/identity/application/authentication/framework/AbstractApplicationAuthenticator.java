@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -84,6 +85,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     private static final long serialVersionUID = -4406878411547612129L;
     private static final Log log = LogFactory.getLog(AbstractApplicationAuthenticator.class);
     public static final String ENABLE_RETRY_FROM_AUTHENTICATOR = "enableRetryFromAuthenticator";
+    public static final String SKIP_RETRY_FROM_AUTHENTICATOR = "skipRetryFromAuthenticator";
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -93,7 +95,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         // if an authentication flow
         if (!context.isLogoutRequest()) {
             boolean skipPrompt = isSkipPrompt(context);
-            if (!skipPrompt && (!canHandle(request)
+            if (!AuthenticatorPropertyConstants.DefinedByType.USER.equals(getDefinedByType())
+                    && !skipPrompt && (!canHandle(request)
                     || Boolean.TRUE.equals(request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
                 if (getName().equals(context.getProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR))) {
                     context.setRetrying(true);
@@ -133,8 +136,17 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
                     context.setSendToMultiOptionPage(sendToMultiOptionPage);
-                    context.setRetrying(retryAuthenticationEnabled() && !skipPrompt);
-                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
+                    /*
+                     Certain authenticators require to fail the flow when there is an error or when the user
+                     aborts the authentication flow. When retry is enabled for the authenticator, the flow won't fail
+                     hence it retries and shows the error in it. SKIP_RETRY_FROM_AUTHENTICATOR is introduced to
+                     forcefully skip the retry and fail the flow which ends up in the client application. This logic
+                     can be further improved to handle the retry logic with user abort scenarios.
+                     */
+                    boolean skipRetryFromAuthenticator = context.getProperty(SKIP_RETRY_FROM_AUTHENTICATOR) != null
+                            && (Boolean) context.getProperty(SKIP_RETRY_FROM_AUTHENTICATOR);
+                    context.setRetrying(retryAuthenticationEnabled() && !skipPrompt && !skipRetryFromAuthenticator);
+                    if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage && !skipRetryFromAuthenticator) {
                         if (log.isDebugEnabled()) {
                             log.debug("Error occurred during the authentication process, hence retrying.", e);
                         }

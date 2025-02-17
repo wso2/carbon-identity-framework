@@ -119,6 +119,8 @@ public class IdentityCoreConstants {
         public static final String AND = "and";
         public static final String OR = "or";
         public static final String NOT = "not";
+
+        public static final String PR = "pr";
     }
 
     public static enum UserStoreState {

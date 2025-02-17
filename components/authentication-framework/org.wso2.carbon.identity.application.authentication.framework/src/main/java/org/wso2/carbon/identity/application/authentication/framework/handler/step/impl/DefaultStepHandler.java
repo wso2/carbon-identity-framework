@@ -56,8 +56,13 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.auth.service.AuthServiceConstants;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -662,10 +667,21 @@ public class DefaultStepHandler implements StepHandler {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
 
-            // Call authenticate if the request can be handled by the authenticator.
+            /* Call authenticate if the request can be handled by the authenticator.
+             When an authenticator using the basic authentication mechanism (e.g., basic or identifierFirst) is engaged,
+             its handleRequest method sets setCurrentAuthenticator to the corresponding authenticator. After the user
+             submits credentials, the CurrentAuthenticator reset to null in DefaultRequestCoordinator.handle().
+             To determine the corresponding authenticator, the system iterates through the authenticators in the step,
+             relying on canHandle since currentAuthenticator is null. Custom authenticators always return true for
+             canHandle, causing it to be selected even when basic authentication is intended.
+             To prevent this, the solution checks if context.getCurrentAuthenticator() is null and ensures the selected
+             authenticator is not user-defined. Since custom authenticators always go through
+             handleRequestFromLoginPage, this set the selected authenticator to the context.
+             */
             if (authenticator != null && authenticator.canHandleRequestFromMultiOptionStep(request, context)
-                && (context.getCurrentAuthenticator() == null || authenticator.getName()
-                    .equals(context.getCurrentAuthenticator()))) {
+                && ((context.getCurrentAuthenticator() == null
+                    && !AuthenticatorPropertyConstants.DefinedByType.USER.equals(authenticator.getDefinedByType()))
+                    || authenticator.getName().equals(context.getCurrentAuthenticator()))) {
                 isNoneCanHandle = false;
 
                 if (LOG.isDebugEnabled()) {
@@ -727,14 +743,20 @@ public class DefaultStepHandler implements StepHandler {
         }
 
         try {
-            context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
-                    context.getExternalIdP(), authenticator.getName()));
+            context.setAuthenticatorProperties(getAuthenticatorPropertyMap(authenticator, context));
             AuthenticatorFlowStatus status = authenticator.process(request, response, context);
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
             /* If this is an authentication initiation and the authenticator supports API based authentication
              we need to send the auth initiation data in order to support performing API based authentication.*/
             if (status == AuthenticatorFlowStatus.INCOMPLETE) {
                 handleAPIBasedAuthenticationData(request, authenticator, context);
+            }
+
+            /* Marking the flow as an external call for downstream components.
+             This is used to ensure things like additional params are not attached to
+             external calls.*/
+            if (authenticator instanceof FederatedApplicationAuthenticator) {
+                request.setAttribute(FrameworkConstants.IS_EXTERNAL_CALL, true);
             }
 
             if (LOG.isDebugEnabled()) {
@@ -1462,5 +1484,35 @@ public class DefaultStepHandler implements StepHandler {
                 authInitiationDataList.add(authInitiationData);
             });
         }
+    }
+
+    private static Map<String, String> getAuthenticatorPropertyMap(ApplicationAuthenticator authenticator,
+                                                                   AuthenticationContext context) {
+
+        if (authenticator instanceof LocalApplicationAuthenticator &&
+                AuthenticatorPropertyConstants.DefinedByType.USER.equals(authenticator.getDefinedByType())) {
+            return getAuthenticatorPropertyMapForUserDefinedLocalAuthenticators(
+                    authenticator.getName(), context.getTenantDomain());
+        }
+
+        return FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
+                context.getExternalIdP(), authenticator.getName());
+    }
+
+    private static Map<String, String> getAuthenticatorPropertyMapForUserDefinedLocalAuthenticators(
+            String name, String tenantDomain) {
+
+        Map<String, String> propertyMap = new HashMap<>();
+        try {
+            LocalAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
+                    .getUserDefinedLocalAuthenticator(name, tenantDomain);
+            for (Property property : authenticatorConfig.getProperties()) {
+                propertyMap.put(property.getName(), property.getValue());
+            }
+        } catch (AuthenticatorMgtException e) {
+            LOG.error(String.format("Error while resolving the user defined local authenticator properties:%s",
+                    name), e);
+        }
+        return propertyMap;
     }
 }

@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
@@ -24,10 +26,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadOnlyClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.ReadWriteClaimMetadataManager;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceComponent;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -41,6 +45,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,9 +64,11 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_ATTRIBUTE_PROFILE;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI;
@@ -69,6 +76,8 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_EXTERNAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NON_EXISTING_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getAllowedClaimProfiles;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils.getServerLevelClaimUniquenessScope;
 
 /**
@@ -79,7 +88,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
     private static final Log log = LogFactory.getLog(ClaimMetadataManagementServiceImpl.class);
 
-    private final ReadWriteClaimMetadataManager unifiedClaimMetadataManager = new UnifiedClaimMetadataManager();
+    private final ReadWriteClaimMetadataManager unifiedClaimMetadataManager =
+            new CacheBackedUnifiedClaimMetadataManager();
+    private final ReadOnlyClaimMetadataManager systemDefaultClaimMetadataManager =
+            new SystemDefaultClaimMetadataManager();
     private static final int MAX_CLAIM_PROPERTY_LENGTH = 255;
     private static final int MAX_CLAIM_PROPERTY_LENGTH_LIMIT = 1024;
     private static final int MIN_CLAIM_PROPERTY_LENGTH_LIMIT = 0;
@@ -179,6 +191,89 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
     }
 
+    /**
+     * Retrieves the list of local claims supported by the specified profile for a given tenant.
+     *
+     * @param tenantDomain The tenant domain.
+     * @param profileName  The profile name.
+     * @return A list of local claims supported by the profile for the given tenant.
+     * @throws ClaimMetadataException If an error occurs while retrieving claims.
+     */
+    @Override
+    public List<LocalClaim> getSupportedLocalClaimsForProfile(String tenantDomain, String profileName)
+            throws ClaimMetadataException {
+
+        // Validate profile name.
+        if (!getAllowedClaimProfiles().contains(profileName)) {
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_ATTRIBUTE_PROFILE);
+        }
+
+        String profileSupportedProperty =
+                buildAttributeProfilePropertyKey(profileName, ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
+        return getLocalClaims(tenantDomain).stream().filter(localClaim ->
+                isClaimSupportedByProfile(localClaim, profileName, profileSupportedProperty))
+                .map(localClaim -> updateClaimPropertiesForProfile(localClaim, profileName))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Determines if the given claim is supported by the specified profile.
+     * If the profile-specific value exists, it takes precedence over the global value.
+     *
+     * @param claim                        The local claim to check.
+     * @param profileName                  The profile name to evaluate against.
+     * @param profileSupportedByDefaultProperty The profile-specific property key.
+     * @return True if the claim is supported by the profile; False otherwise.
+     */
+    private boolean isClaimSupportedByProfile(LocalClaim claim, String profileName,
+                                              String profileSupportedByDefaultProperty) {
+
+        Map<String, String> claimProperties = claim.getClaimProperties();
+        if (claimProperties.containsKey(profileSupportedByDefaultProperty)) {
+            return Boolean.parseBoolean(claimProperties.get(profileSupportedByDefaultProperty));
+        }
+        return Boolean.parseBoolean(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY));
+    }
+
+    /**
+     * Updates the global claim properties with profile-specific properties, if available.
+     *
+     * @param claim       The local claim to update.
+     * @param profileName The profile name to apply the specific properties from.
+     */
+    private LocalClaim updateClaimPropertiesForProfile(LocalClaim claim, String profileName) {
+
+        LocalClaim claimCopy = copyLocalClaim(claim);
+        Map<String, String> claimProperties = claimCopy.getClaimProperties();
+        for (String propertyKey: ClaimConstants.ALLOWED_PROFILE_PROPERTY_KEYS) {
+            String profilePropertyKey = buildAttributeProfilePropertyKey(profileName, propertyKey);
+            String profilePropertyValue = claimProperties.get(profilePropertyKey);
+
+            if (StringUtils.isNotBlank(profilePropertyValue)) {
+                claimProperties.put(propertyKey, profilePropertyValue);
+            }
+        }
+        return claimCopy;
+    }
+
+    /**
+     * Creates a deep copy of the given LocalClaim object.
+     *
+     * @param originalClaim The original LocalClaim to copy.
+     * @return A deep copy of the original LocalClaim.
+     */
+    private LocalClaim copyLocalClaim(LocalClaim originalClaim) {
+
+        Map<String, String> claimPropertiesCopy = originalClaim.getClaimProperties() != null
+                ? new HashMap<>(originalClaim.getClaimProperties())
+                : new HashMap<>();
+        List<AttributeMapping> mappedAttributesCopy = originalClaim.getMappedAttributes() != null
+                ? new ArrayList<>(originalClaim.getMappedAttributes())
+                : new ArrayList<>();
+
+        return new LocalClaim(originalClaim.getClaimURI(), mappedAttributesCopy, claimPropertiesCopy);
+    }
+
     @Override
     public List<LocalClaim> getLocalClaims(String tenantDomain) throws ClaimMetadataException {
 
@@ -191,10 +286,12 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         boolean isGroupRoleSeparationEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
+        boolean isShowRoleClaimOnGroupRoleSeparation = IdentityUtil.isShowLegacyRoleClaimOnGroupRoleSeparationEnabled();
         List<LocalClaim> filteredLocalClaims = new ArrayList<>(localClaims.size());
 
         for (LocalClaim claim : localClaims) {
-            if (isGroupRoleSeparationEnabled && UserCoreConstants.ROLE_CLAIM.equals(claim.getClaimURI())) {
+            if (isGroupRoleSeparationEnabled && !isShowRoleClaimOnGroupRoleSeparation &&
+                    UserCoreConstants.ROLE_CLAIM.equals(claim.getClaimURI())) {
                 continue;
             }
             // Add `UniquenessScope` property for claims that only have legacy `isUnique` property.
@@ -209,6 +306,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             filteredLocalClaims.add(claim);
         }
         return filteredLocalClaims;
+    }
+
+    @Override
+    public Optional<LocalClaim> getLocalClaim(String localClaimURI, String tenantDomain) throws ClaimMetadataException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return this.unifiedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
     }
 
     @Override
@@ -232,6 +336,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
 
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(), null);
+        validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
+
+        validateSharedProfileValueResolvingMethodValue(localClaim);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreAddLocalClaim(tenantId, localClaim);
 
@@ -257,7 +364,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
 
-        Optional<LocalClaim> existingLocalClaim = getLocalClaim(localClaim.getClaimURI(), tenantId);
+        Optional<LocalClaim> existingLocalClaim = getLocalClaim(localClaim.getClaimURI(), tenantDomain);
         if (!existingLocalClaim.isPresent()) {
             throw new ClaimMetadataClientException(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getCode(),
                     String.format(ERROR_CODE_NON_EXISTING_LOCAL_CLAIM.getMessage(), localClaim.getClaimURI()));
@@ -265,6 +372,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         validateAndSyncUniquenessClaimProperties(localClaim.getClaimProperties(),
                 existingLocalClaim.get().getClaimProperties());
+        validateAndSyncAttributeProfileProperties(localClaim.getClaimProperties());
+
+        validateSharedProfileValueResolvingMethodChange(localClaim, existingLocalClaim.get(), tenantId);
 
         ClaimMetadataEventPublisherProxy.getInstance().publishPreUpdateLocalClaim(tenantId, localClaim);
 
@@ -620,17 +730,108 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                 claim -> claim.getClaimURI().equalsIgnoreCase(localClaimURI));
     }
 
-    private Optional<LocalClaim> getLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
-
-        return this.unifiedClaimMetadataManager.getLocalClaim(localClaimURI, tenantId);
-    }
-
     @Override
     public List<Claim> getMappedExternalClaimsForLocalClaim(String localClaimURI, String tenantDomain) throws
             ClaimMetadataException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return this.unifiedClaimMetadataManager.getMappedExternalClaims(localClaimURI, tenantId);
+    }
+
+    /**
+     * Validate and sync the claim profile properties.
+     *
+     * @param claimProperties Map of claim properties to be updated.
+     * @throws ClaimMetadataClientException If an invalid profile name is found.
+     */
+    private void validateAndSyncAttributeProfileProperties(Map<String, String> claimProperties)
+            throws ClaimMetadataClientException {
+
+        Set<String> allowedClaimProfiles = getAllowedClaimProfiles();
+
+        // Validate profile names and throw an exception if an invalid profile name is found.
+        for (Map.Entry<String, String> entry : claimProperties.entrySet()) {
+            if (!entry.getKey().startsWith(ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX)) {
+                continue;
+            }
+
+           String[] profilePropertyKeyArray = entry.getKey().split("\\.");
+           if (profilePropertyKeyArray.length < 2 || !allowedClaimProfiles.contains(profilePropertyKeyArray[1])) {
+               throw new ClaimMetadataClientException(ERROR_CODE_INVALID_ATTRIBUTE_PROFILE);
+           }
+        }
+        for (String propertyKey: ClaimConstants.ALLOWED_PROFILE_PROPERTY_KEYS) {
+            syncAttributeProfileProperties(claimProperties, allowedClaimProfiles, propertyKey);
+        }
+    }
+
+    /**
+     * Remove the profile properties if the profile property value is the same as the global property value.
+     * If all the profile properties have the same value, change the global property value to the profile value.
+     *
+     * @param claimProperties      Map of claim properties to be updated.
+     * @param allowedClaimProfiles Set of allowed claim profiles.
+     * @param propertyKey          Property key to be updated.
+     */
+    private void syncAttributeProfileProperties(Map<String, String> claimProperties, Set<String> allowedClaimProfiles,
+                                                String propertyKey) {
+
+        String globalValue = claimProperties.get(propertyKey);
+        boolean isAllProfilesHaveSameValue = true;
+        boolean isAtLeastOneProfileValueMatchingGlobal = false;
+        String commonProfileValue = null;
+
+        for (String profileName : allowedClaimProfiles) {
+            String profilePropertyKey = buildAttributeProfilePropertyKey(profileName, propertyKey);
+            String profilePropertyValue = claimProperties.get(profilePropertyKey);
+
+            // Remove the profile property if it is the same as the global property.
+            if (StringUtils.equals(globalValue, profilePropertyValue)) {
+                claimProperties.remove(profilePropertyKey);
+                isAtLeastOneProfileValueMatchingGlobal = true;
+                continue;
+            }
+
+            // If we've already found at least one profile that matches the global, skip further consistency check.
+            if (isAtLeastOneProfileValueMatchingGlobal) {
+                continue;
+            }
+
+            if (StringUtils.isBlank(profilePropertyValue)) {
+                isAllProfilesHaveSameValue = false;
+                continue;
+            }
+            if (commonProfileValue == null) {
+                commonProfileValue = profilePropertyValue;
+            } else if (!StringUtils.equals(commonProfileValue, profilePropertyValue)) {
+                isAllProfilesHaveSameValue = false;
+            }
+        }
+
+        if (isAllProfilesHaveSameValue && !isAtLeastOneProfileValueMatchingGlobal) {
+            // All the profiles have same value and the global value is different value. Hence, update the global value.
+            claimProperties.put(propertyKey, commonProfileValue);
+
+            //  Remove the profile-specific properties as the global value denotes all the profile properties.
+            allowedClaimProfiles.forEach(profile -> {
+                String key = ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profile +
+                        ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
+                claimProperties.remove(key);
+            });
+        }
+    }
+
+    /**
+     * Constructs the attribute profile property key for a given profile and property.
+     *
+     * @param profileName  Profile name (e.g., "console").
+     * @param propertyKey  The property key associated with the profile (e.g., "Required").
+     * @return A fully qualified profile property key (e.g., "Profiles.console.Required").
+     */
+    private String buildAttributeProfilePropertyKey(String profileName, String propertyKey) {
+
+        return ClaimConstants.PROFILES_CLAIM_PROPERTY_PREFIX + profileName +
+                ClaimConstants.CLAIM_PROFILE_PROPERTY_DELIMITER + propertyKey;
     }
 
     /**
@@ -709,4 +910,82 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         properties.put(ClaimConstants.IS_UNIQUE_CLAIM_PROPERTY, String.valueOf(isUnique));
     }
 
+    /**
+     * Validates the shared profile value resolving method change for system claims.
+     *
+     * @param updatedLocalClaim  Updated local claim.
+     * @param existingLocalClaim Existing local claim.
+     * @param tenantId           Tenant ID.
+     * @throws ClaimMetadataException If the shared profile value resolving method change is invalid for system claim
+     *                                or updating value is unaccepted.
+     */
+    private void validateSharedProfileValueResolvingMethodChange(LocalClaim updatedLocalClaim,
+                                                                 LocalClaim existingLocalClaim, int tenantId)
+            throws ClaimMetadataException {
+
+        validateSharedProfileValueResolvingMethodValue(updatedLocalClaim);
+        /*
+        If the existing local claim is non system claim, shared profile value resolving method can be changed
+        if the updating value is valid.
+         */
+        if (!Boolean.parseBoolean(existingLocalClaim.getClaimProperty(ClaimConstants.IS_SYSTEM_CLAIM))) {
+            return;
+        }
+
+        String updatedClaimProperty =
+                updatedLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+        String existingClaimProperty =
+                existingLocalClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+        // If both values are blank or the same, no need to validate further.
+        if (StringUtils.isBlank(updatedClaimProperty) && StringUtils.isBlank(existingClaimProperty)) {
+            return;
+        }
+        if (StringUtils.equals(updatedClaimProperty, existingClaimProperty)) {
+            return;
+        }
+        /*
+        If updatedClaimProperty has a value, it should be equals to system default.
+        Removing the updatedClaimProperty is allowed. Then, in the runtime, the system default value will be used.
+         */
+        if (StringUtils.isNotBlank(updatedClaimProperty)) {
+            Optional<LocalClaim> systemDefaultClaim =
+                    this.systemDefaultClaimMetadataManager.getLocalClaim(existingLocalClaim.getClaimURI(), tenantId);
+            if (systemDefaultClaim.isPresent()) {
+                String systemDefaultClaimPropertyValue =
+                        systemDefaultClaim.get().getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+                if (StringUtils.equals(systemDefaultClaimPropertyValue, updatedClaimProperty)) {
+                    return;
+                }
+                throw new ClaimMetadataClientException(
+                        ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM.getCode(),
+                        String.format(
+                                ERROR_CODE_NO_SHARED_PROFILE_VALUE_RESOLVING_METHOD_CHANGE_FOR_SYSTEM_CLAIM.getMessage(),
+                                existingLocalClaim.getClaimURI()));
+            }
+        }
+    }
+
+    /**
+     * Validates the shared profile value resolving method value.
+     *
+     * @param localClaim Local claim.
+     * @throws ClaimMetadataException If the shared profile value resolving method value is invalid.
+     */
+    private void validateSharedProfileValueResolvingMethodValue(LocalClaim localClaim)
+            throws ClaimMetadataClientException {
+
+        String claimProperty =
+                localClaim.getClaimProperty(ClaimConstants.SHARED_PROFILE_VALUE_RESOLVING_METHOD);
+
+        if (StringUtils.isNotBlank(claimProperty)) {
+            try {
+                ClaimConstants.SharedProfileValueResolvingMethod.fromName(claimProperty);
+            } catch (IllegalArgumentException e) {
+                throw new ClaimMetadataClientException(
+                        ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getCode(),
+                        String.format(ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD.getMessage(),
+                                claimProperty));
+            }
+        }
+    }
 }

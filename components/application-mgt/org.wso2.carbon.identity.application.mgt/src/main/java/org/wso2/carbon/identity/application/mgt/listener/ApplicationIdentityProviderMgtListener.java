@@ -22,25 +22,19 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
-import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.listener.AbstractIdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Internal implementation to listen to IdP CRUD events.
@@ -55,144 +49,129 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             IdentityProviderManagementException {
 
         try {
-            IdentityServiceProviderCache.getInstance().clear(tenantDomain);
-
             IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
 
-            ConnectedAppsResult connectedApplications;
-            String idpId = identityProviderManager.getIdPByName(oldIdPName, tenantDomain).getResourceId();
+            IdentityProvider oldIdentityProvider = identityProviderManager.getIdPByName(oldIdPName, tenantDomain);
+            String idpId = oldIdentityProvider.getResourceId();
             if (identityProvider.getResourceId() == null && idpId != null) {
                 identityProvider.setResourceId(idpId);
             }
-            int offset = 0;
-            do {
-                connectedApplications =
-                        identityProviderManager.getConnectedApplications(idpId, null, offset, tenantDomain);
 
-                List<ServiceProvider> serviceProvidersList = new ArrayList<>();
-                for (String appResourceId : connectedApplications.getApps()) {
-                    ServiceProvider serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                            .getApplicationByResourceId(appResourceId, tenantDomain);
-                    serviceProvidersList.add(serviceProvider);
+            if (identityProviderManager.isIdpReferredBySP(idpId, oldIdPName, tenantDomain)) {
+                // If the user tries to disable the IDP,Authenticator, or Outbound Connector while it is associated,
+                // with at least one SP throw an error.
+                validateIdpDisable(identityProvider, tenantDomain);
+
+                // Validating Applications with Federated Authenticators configured.
+                updateApplicationWithFederatedAuthenticators(oldIdentityProvider, identityProvider, tenantDomain);
+
+                // Clear application caches if IDP name is updated.
+                if (!StringUtils.equals(oldIdPName, identityProvider.getIdentityProviderName())) {
+                    int offset = 0;
+                    ConnectedAppsResult connectedApplications;
+                    do {
+                        connectedApplications =
+                                identityProviderManager.getConnectedApplications(idpId, null, offset, tenantDomain);
+
+                        for (String appResourceId : connectedApplications.getApps()) {
+                            ServiceProvider serviceProvider =
+                                    ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                                            .getApplicationByResourceId(appResourceId, tenantDomain);
+                            CacheBackedApplicationDAO.clearAllAppCache(serviceProvider, tenantDomain);
+                        }
+
+                        offset = connectedApplications.getOffSet() + connectedApplications.getLimit();
+
+                    } while (connectedApplications.getTotalAppCount() > offset);
                 }
-
-                for (ServiceProvider serviceProvider : serviceProvidersList) {
-
-                    LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig = serviceProvider
-                            .getLocalAndOutBoundAuthenticationConfig();
-                    AuthenticationStep[] authSteps = localAndOutboundAuthConfig.getAuthenticationSteps();
-
-                    OutboundProvisioningConfig outboundProvisioningConfig = serviceProvider
-                            .getOutboundProvisioningConfig();
-                    IdentityProvider[] provisioningIdps = outboundProvisioningConfig.getProvisioningIdentityProviders();
-
-                    // Check whether the identity provider is referred in a service provider
-                    validateIdpDisable(identityProvider, authSteps, provisioningIdps);
-
-                    // Validating Applications with Federated Authenticators configured.
-                    updateApplicationWithFederatedAuthenticators(identityProvider, tenantDomain, serviceProvider,
-                            localAndOutboundAuthConfig, authSteps);
-
-                    // Validating Applications with Outbound Provisioning Connectors configured.
-                    updateApplicationWithProvisioningConnectors(identityProvider, provisioningIdps);
-
-                    // Clear application caches if IDP name is updated.
-                    if (!StringUtils.equals(oldIdPName, identityProvider.getIdentityProviderName())) {
-
-                        CacheBackedApplicationDAO.clearAllAppCache(serviceProvider, tenantDomain);
-                    }
-                }
-
-                offset = connectedApplications.getOffSet() + connectedApplications.getLimit();
-
-            } while (connectedApplications.getTotalAppCount() > offset);
-
+            }
         } catch (IdentityApplicationManagementException e) {
             throw new IdentityProviderManagementException(
-                    "Error when updating default authenticator of service providers", e);
+                    "Error when updating the service providers associated with the IDP " + oldIdPName, e);
         }
         return true;
     }
 
-    @Override
-    public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
-            IdentityProviderManagementException {
+    /**
+     * Update the service providers that have the given IDP as their federated IDP.
+     *
+     * @param oldIdentityProvider Old identity provider instance.
+     * @param newIdentityProvider New updating identity provider instance.
+     * @param tenantDomain Tenant domain of Identity Provider.
+     * @throws IdentityApplicationManagementException Error when updating applications with federated authenticators.
+     */
+    private void updateApplicationWithFederatedAuthenticators(IdentityProvider oldIdentityProvider,
+                                                              IdentityProvider newIdentityProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
-        try {
-            IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
-            ConnectedAppsResult connectedApplications;
-            String updatedIdpId = identityProvider.getResourceId();
+        FederatedAuthenticatorConfig oldDefaultAuthenticator = oldIdentityProvider.getDefaultAuthenticatorConfig();
+        FederatedAuthenticatorConfig newDefaultAuthenticator = newIdentityProvider.getDefaultAuthenticatorConfig();
+        if (oldDefaultAuthenticator != null && newDefaultAuthenticator != null &&
+                !StringUtils.equals(oldDefaultAuthenticator.getName(), newDefaultAuthenticator.getName())) {
             ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            int offset = 0;
+            String[] spResourceIDs = applicationDAO.getSPsAssociatedWithFederatedIDPAuthenticator(
+                    oldIdentityProvider.getIdentityProviderName(), oldDefaultAuthenticator.getName(), tenantDomain);
 
-            do {
-                connectedApplications =
-                        identityProviderManager.getConnectedApplications(updatedIdpId, null, offset, tenantDomain);
-
-                for (String appResourceId : connectedApplications.getApps()) {
-                    ServiceProvider serviceProvider = applicationDAO.getApplicationByResourceId(appResourceId,
-                            tenantDomain);
-                    applicationDAO.clearApplicationFromCache(serviceProvider, tenantDomain);
-                }
-
-                offset = connectedApplications.getOffSet() + connectedApplications.getLimit();
-
-            } while (connectedApplications.getTotalAppCount() > offset);
-
-        } catch (IdentityApplicationManagementException e) {
-            throw new IdentityProviderManagementException("Error while running post IDP update tasks.", e);
+            for (String spResourceId : spResourceIDs) {
+                ServiceProvider serviceProvider =
+                        applicationDAO.getApplicationByResourceId(spResourceId, tenantDomain);
+                IdentityProvider fedIdp = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                        .getAuthenticationSteps()[0].getFederatedIdentityProviders()[0];
+                fedIdp.setDefaultAuthenticatorConfig(newDefaultAuthenticator);
+                fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] {newDefaultAuthenticator});
+                applicationDAO.updateApplicationLocalAndOutboundAuthConfig(serviceProvider, tenantDomain);
+            }
         }
-        return true;
     }
 
-    private void updateApplicationWithProvisioningConnectors(IdentityProvider identityProvider,
-                                                             IdentityProvider[] provisioningIdps)
+    /**
+     * Validate if the current IDP, its authenticator or outbound connector is referenced by a Service Provider and,
+     * if in a disabled state, throw an error.
+     *
+     * @param identityProvider Instance of the identity provider to be validated.
+     * @param tenantDomain     Tenant domain of Identity Provider.
+     * @throws IdentityProviderManagementException Error when validating IDP/Authenticator/Outbound Connector
+     * disable state.
+     */
+    private void validateIdpDisable(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        if (provisioningIdps != null && provisioningIdps.length != 0) {
-            updateOutboundProvisioningConnectors(identityProvider, provisioningIdps);
-        }
-    }
-
-    private void updateApplicationWithFederatedAuthenticators(IdentityProvider identityProvider, String tenantDomain,
-                                                              ServiceProvider serviceProvider,
-                                                              LocalAndOutboundAuthenticationConfig
-                                                                      localAndOutboundAuthConfig,
-                                                              AuthenticationStep[] authSteps)
-            throws IdentityApplicationManagementException, IdentityProviderManagementException {
-
-        if (authSteps != null && authSteps.length != 0) {
-
-            if (ApplicationConstants.AUTH_TYPE_FEDERATED
-                    .equalsIgnoreCase(localAndOutboundAuthConfig.getAuthenticationType())) {
-                updateApplicationWithFederatedAuthenticator(identityProvider, tenantDomain,
-                        serviceProvider, authSteps[0]);
-            } else {
-                updateApplicationWithMultiStepFederatedAuthenticator(identityProvider, authSteps);
-            }
-        }
-    }
-
-    private void validateIdpDisable(IdentityProvider identityProvider, AuthenticationStep[] authSteps,
-                                    IdentityProvider[] provisioningIdps) throws IdentityProviderManagementException {
-
+        // Verify if the entire IDP is disabled.
         if (!identityProvider.isEnable()) {
-            for (AuthenticationStep authenticationStep : authSteps) {
-                for (IdentityProvider idpProvider : authenticationStep.getFederatedIdentityProviders()) {
-                    if (StringUtils.equals(identityProvider.getIdentityProviderName(),
-                            idpProvider.getIdentityProviderName())) {
-                        throw new IdentityProviderManagementException(
-                                "Error in disabling identity provider as it is referred by service providers.");
-                    }
-                }
-            }
+            throw new IdentityProviderManagementException(
+                    "Error in disabling identity provider as it is referred by service providers.");
+        }
 
-            for (IdentityProvider idpProvider : provisioningIdps) {
-                if (StringUtils.equals(identityProvider.getIdentityProviderName(),
-                        idpProvider.getIdentityProviderName())) {
-                    throw new IdentityProviderManagementException(
-                            "Error in disabling identity provider as it is referred by service providers.");
+        // Verify if any of the referred authenticators is disabled.
+        IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs =
+                identityProvider.getFederatedAuthenticatorConfigs();
+        FederatedAuthenticatorConfig defaultAuthenticatorConfig = identityProvider.getDefaultAuthenticatorConfig();
+        for (FederatedAuthenticatorConfig federatedAuthenticatorConfig : federatedAuthenticatorConfigs) {
+            if (!federatedAuthenticatorConfig.isEnabled() &&
+                    identityProviderManager.isAuthenticatorReferredBySP(identityProvider.getResourceId(),
+                            identityProvider.getIdentityProviderName(), federatedAuthenticatorConfig.getName(),
+                            tenantDomain)) {
+                if (defaultAuthenticatorConfig != null && StringUtils.equals(federatedAuthenticatorConfig.getName(),
+                        defaultAuthenticatorConfig.getName())) {
+                    throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
+                            " as it is referred by service providers.");
                 }
+
+                throw new IdentityProviderManagementException(federatedAuthenticatorConfig.getName()
+                        + " is referred by service providers.");
+            }
+        }
+
+        // Verify if any of the referred outbound connector is disabled.
+        ProvisioningConnectorConfig[] provisioningConnectorConfigs = identityProvider.getProvisioningConnectorConfigs();
+        for (ProvisioningConnectorConfig provisioningConnectorConfig : provisioningConnectorConfigs) {
+            if (!provisioningConnectorConfig.isEnabled() &&
+                    identityProviderManager.isOutboundConnectorReferredBySP(identityProvider.getResourceId(),
+                            identityProvider.getIdentityProviderName(), provisioningConnectorConfig.getName(),
+                            tenantDomain)) {
+                throw new IdentityProviderManagementClientException(provisioningConnectorConfig.getName() +
+                        " connector is already configured for outbound provisioning.");
             }
         }
     }
@@ -230,117 +209,6 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
     public int getDefaultOrderId() {
 
         return 10;
-    }
-
-    /**
-     * Check whether the selected authenticator in multi step authentication,
-     * is enabled in the updated identity provider.
-     *
-     * @param identityProvider
-     * @param authSteps
-     * @throws IdentityProviderManagementException
-     */
-    private void updateApplicationWithMultiStepFederatedAuthenticator(IdentityProvider identityProvider,
-                                                                      AuthenticationStep[] authSteps)
-            throws IdentityProviderManagementException {
-
-        FederatedAuthenticatorConfig[] idpFederatedConfig = identityProvider.getFederatedAuthenticatorConfigs();
-        for (AuthenticationStep authStep : authSteps) {
-
-            IdentityProvider[] federatedIdentityProviders = authStep.getFederatedIdentityProviders();
-
-            for (IdentityProvider federatedIdp : federatedIdentityProviders) {
-
-                if (StringUtils.equals(federatedIdp.getIdentityProviderName(),
-                        identityProvider.getIdentityProviderName())) {
-                    FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = federatedIdp
-                            .getFederatedAuthenticatorConfigs();
-                    String federatedConfigOption = federatedAuthenticatorConfigs[0].getName();
-
-                    for (FederatedAuthenticatorConfig config : idpFederatedConfig) {
-                        if (StringUtils.equals(config.getName(),
-                                federatedConfigOption) && !config.isEnabled()) {
-                            throw new IdentityProviderManagementException(config.getName()
-                                    + " is referred by service providers.");
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-
-    /**
-     * Update the service providers, with the default authenticator of the identity provider.
-     *
-     * @param identityProvider
-     * @param tenantDomain
-     * @param serviceProvider
-     * @param authStep
-     * @throws IdentityApplicationManagementException
-     * @throws IdentityProviderManagementException
-     */
-    private void updateApplicationWithFederatedAuthenticator(IdentityProvider identityProvider, String tenantDomain,
-                                                             ServiceProvider serviceProvider,
-                                                             AuthenticationStep authStep)
-            throws IdentityApplicationManagementException, IdentityProviderManagementException {
-
-        IdentityProvider fedIdp = authStep.getFederatedIdentityProviders()[0];
-        if (StringUtils.equals(fedIdp.getIdentityProviderName(), identityProvider.getIdentityProviderName())) {
-
-            String defaultAuthName = fedIdp.getDefaultAuthenticatorConfig().getName();
-            if (identityProvider.getDefaultAuthenticatorConfig() != null) {
-                String currentDefaultAuthName = identityProvider.getDefaultAuthenticatorConfig().getName();
-                boolean isCurrentDefaultAuthEnabled = identityProvider.getDefaultAuthenticatorConfig().isEnabled();
-
-                if (!StringUtils.equals(currentDefaultAuthName, defaultAuthName)) {
-                    FederatedAuthenticatorConfig currentDefaultAuthenticatorConfig = identityProvider
-                            .getDefaultAuthenticatorConfig();
-                    fedIdp.setDefaultAuthenticatorConfig(currentDefaultAuthenticatorConfig);
-                    fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
-                            {currentDefaultAuthenticatorConfig});
-                    ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                            .updateApplication(serviceProvider, tenantDomain);
-                } else if (!isCurrentDefaultAuthEnabled && StringUtils.equals(currentDefaultAuthName,
-                        defaultAuthName)) {
-                    throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
-                            " as it is referred by service providers.");
-                }
-            } else {
-                throw new IdentityProviderManagementException("Error in disabling default federated authenticator" +
-                        " as it is referred by service providers.");
-            }
-        }
-    }
-
-    /**
-     * Updates Outbound Provisioning Connectors.
-     *
-     * @param identityProvider
-     * @param provisioningIdps
-     * @throws IdentityProviderManagementException
-     */
-    private void updateOutboundProvisioningConnectors(IdentityProvider identityProvider,
-                                                      IdentityProvider[] provisioningIdps)
-            throws IdentityProviderManagementException {
-
-        ProvisioningConnectorConfig[] idpProvisioningConnectorConfigs =
-                identityProvider.getProvisioningConnectorConfigs();
-        for (IdentityProvider idpProvider : provisioningIdps) {
-
-            if (StringUtils.equals(idpProvider.getIdentityProviderName(), identityProvider.getIdentityProviderName())) {
-                ProvisioningConnectorConfig defaultProvisioningConnectorConfig =
-                        idpProvider.getDefaultProvisioningConnectorConfig();
-
-                for (ProvisioningConnectorConfig config : idpProvisioningConnectorConfigs) {
-                    if (StringUtils.equals(config.getName(),
-                            defaultProvisioningConnectorConfig.getName()) && !config.isEnabled()) {
-                        throw new IdentityProviderManagementException(config.getName()
-                                + " outbound provisioning connector is referred by service providers.");
-                    }
-                }
-            }
-        }
     }
 }
 

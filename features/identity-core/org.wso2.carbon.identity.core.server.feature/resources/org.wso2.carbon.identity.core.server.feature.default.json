@@ -11,6 +11,10 @@
   "identity_data_source.skip_db_schema_creation": false,
   "identity_data_source.skip_claim_metadata_persistence": true,
   "data_storage_type.notification_templates": "database",
+  "data_storage_type.saml": "database",
+  "data_storage_type.certificate_validation": "database",
+  "data_storage_type.admin_advisory_banner": "database",
+  "data_storage_type.remote_logging_config": "database",
   "database.identity_db.pool_options.maxActive": "50",
   "database.identity_db.pool_options.maxWait": "60000",
   "database.identity_db.pool_options.testOnBorrow": "true",
@@ -22,15 +26,16 @@
   "session_data.persistence.persistence_pool_size": "0",
   "session_data.persistence.persist_temporary_data": true,
   "session_data.persistence.enable_user_session_mapping": true,
-  "session_data.cleanup.enable_expired_data_cleanup": true,
+  "session_data.cleanup.enable_expired_data_cleanup": false,
   "session_data.cleanup.expire_session_data_after": "$ref{session.timeout.remember_me_session_timeout}",
   "session_data.cleanup.expire_pre_session_data_after": "40m",
   "session_data.cleanup.clean_expired_session_data_every": "1d",
   "session_data.cleanup.clean_expired_session_data_in_chunks_of": "8192",
-  "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": true,
-  "session_data.cleanup.enable_pre_session_data_cleanup": true,
+  "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": false,
+  "session_data.cleanup.enable_pre_session_data_cleanup": false,
   "session_data.cleanup.enable_periodic_pre_session_data_cleanup": true,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": true,
+  "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": false,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.nonce.cookie.enabled": true,
   "session.nonce.cookie.default_whitelist_authenticators": ["MagicLinkAuthenticator"],
@@ -218,8 +223,6 @@
   "oauth.token_validator.jwt.class": "org.wso2.carbon.identity.oauth2.validators.OAuth2JWTTokenValidator",
   "oauth.scope_validator.jdbc.enable": true,
   "oauth.scope_validator.jdbc.class": "org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator",
-  "oauth.scope_validator.xacml.enable": false,
-  "oauth.scope_validator.xacml.class": "org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator",
   "oauth.scope_validator.authz_implicit.enable": true,
   "oauth.scope_validator.preserve_case_sensitivity": false,
   "oauth.grant_type.saml_bearer.user_type": "FEDERATED",
@@ -252,6 +255,7 @@
   "oauth.oidc.extensions.user_info_request_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator",
   "oauth.oidc.extensions.user_info_access_token_validator": "org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator",
   "oauth.oidc.user_info.enable_multi_value_support": true,
+  "oauth.oidc.user_info.remove_internal_prefix_from_roles": false,
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
@@ -311,6 +315,7 @@
   "saml.metadata.assertion_encrypt_with_app_cert": true,
   "saml.enable_saml_sp_certificate_expiry_validation": true,
   "saml.enable_saml_idp_init_logout_response_signing": true,
+  "saml.return_valid_name_id_format": false,
 
   "saml.endpoints.idp_url": "$ref{server.base_path}/samlsso",
   "saml.endpoints.logout": "$ref{server.base_path}/authenticationendpoint/samlsso_logout.do",
@@ -374,7 +379,6 @@
   "scim2.user_endpoint_max_items_per_page.enable": true,
   "scim2.consider_server_wide_user_endpoint_max_limit": true,
 
-  "identity_mgt.password_policy.password_policy_validation_handler.enable": true,
   "identity_mgt.password_policy.max_password_allowed_length": "64",
   "identity_mgt.recovery.enable_v1_api": false,
   "identity_mgt.recovery.notification.manage_internally": true,
@@ -494,7 +498,7 @@
   "identity_mgt.user_claim_update.otp.use_numeric_in_otp": true,
   "identity_mgt.user_claim_update.otp.otp_length": "6",
   "identity_mgt.user_claim_update.use_verify_claim": false,
-  "identity_mgt.user_claim_update.uniqueness.enable": false,
+  "identity_mgt.user_claim_update.uniqueness.enable": true,
   "identity_mgt.user_claim_update.uniqueness.listener_priority": "2",
   "identity_mgt.user_claim_update.uniqueness.scope_within_userstore": false,
   "identity_mgt.user_claim_update.enable_multiple_emails_and_mobile_numbers": true,
@@ -527,6 +531,7 @@
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
+  "authentication.jit_provisioning.autofill_username_field_with_subject_attribute": true,
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
   "authentication.jit_provisioning.skip_username_pattern_validation": false,
   "authentication.jit_provisioning.fail_authn_on_provision_failure": false,
@@ -548,13 +553,15 @@
   "event.default_listener.scim2_tenant_mgt.enable": true,
   "event.default_listener.scim2.priority": "93",
   "event.default_listener.scim2.enable": true,
+  "event.default_listener.pre_update_password_action.priority": "10000",
+  "event.default_listener.pre_update_password_action.enable": true,
   "event.default_listener.governance_identity_mgt.priority": "95",
   "event.default_listener.governance_identity_mgt.enable": true,
   "event.default_listener.governance_identity_store.priority": "97",
   "event.default_listener.governance_identity_store.enable": true,
   "event.default_listener.governance_identity_store.data_store": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
   "event.default_listener.governance_identity_store.enable_hybrid_data_store": false,
-  "event.default_listener.password_expiry.priority": "102",
+  "event.default_listener.password_expiry.priority": "118",
   "event.default_listener.password_expiry.enable": true,
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
@@ -570,6 +577,8 @@
   "event.default_listener.basic_auth_client_authenticator.enable": true,
   "event.default_listener.user_deletion.priority": "98",
   "event.default_listener.user_deletion.enable": false,
+  "event.default_listener.email_domain_validation_handler.priority": "15",
+  "event.default_listener.email_domain_validation_handler.enable": true,
   "event.default_listener.consent_mgt_handler.priority": "110",
   "event.default_listener.consent_mgt_handler.enable": true,
   "event.default_listener.user_session_termination.priority": "85",
@@ -595,7 +604,7 @@
   "event.default_listener.client_certificate_authentication_handler.enable": true,
   "event.default_listener.username_resolver.priority": "14",
   "event.default_listener.username_resolver.enable": true,
-  "event.default_listener.userid_resolver.priority": "15",
+  "event.default_listener.userid_resolver.priority": "9999",
   "event.default_listener.userid_resolver.enable": true,
   "event.default_listener.claim_encryption.priority": "13",
   "event.default_listener.claim_encryption.enable": true,
@@ -611,6 +620,8 @@
   "event.default_listener.organization_discovery_user_operation_listener.enable": true,
   "event.default_listener.organization_user_association_listener.priority": "128",
   "event.default_listener.organization_user_association_listener.enable": true,
+  "event.default_listener.shared_user_profile_update_governance_listener.priority": "8",
+  "event.default_listener.shared_user_profile_update_governance_listener.enable": true,
 
   "event.default_listener.provisioning_role_mgt_listener.enable": true,
   "event.default_listener.provisioning_role_mgt_listener.priority": "999",
@@ -627,6 +638,9 @@
   "event.default_listener.role_management_v2_audit_logger.enable": true,
   "event.default_listener.group_management_v2_audit_logger.priority": "10",
   "event.default_listener.group_management_v2_audit_logger.enable": true,
+
+  "event.default_listener.identity_verification_event_listener.priority": "120",
+  "event.default_listener.identity_verification_event_listener.enable": true,
 
   "event.default_recorder.user_delete_event.name": "org.wso2.carbon.user.mgt.recorder.DefaultUserDeletionEventRecorder",
   "event.default_recorder.user_delete_event.enable": false,
@@ -706,6 +720,12 @@
   "cache.private_key_jwt.enable": true,
   "cache.private_key_jwt.timeout": "300",
   "cache.private_key_jwt.capacity": "5000",
+  "cache.push_auth_context_cache.enable": true,
+  "cache.push_auth_context_cache.timeout": "300",
+  "cache.push_auth_context_cache.capacity": "$ref{cache.default_capacity}",
+  "cache.push_auth_status_cache.enable": true,
+  "cache.push_auth_status_cache.timeout": "300",
+  "cache.push_auth_status_cache.capacity": "$ref{cache.default_capacity}",
 
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
@@ -758,7 +778,8 @@
     "/samlsso(.*)",
     "/samlartresolve",
     "/passivests",
-    "/longwaitstatus(.*)"
+    "/longwaitstatus(.*)",
+    "/push-auth/(.*)"
   ],
   "tenant_context.rewrite.overwrite.dispatch": ["/myaccount/", "/console/"],
   "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
@@ -1151,6 +1172,25 @@
   "console.ui.show_app_switch_button": true,
   "console.ui.administrator_role_display_name": "Administrator",
   "console.ui.isXacmlConnectorEnabled": false,
+  "console.ui.routes.organizationEnabledRoutes": [
+    "apiResources",
+    "applications",
+    "attributeDialects",
+    "branding",
+    "consoleSettings",
+    "emailTemplates",
+    "gettingStarted",
+    "governanceConnectors",
+    "groups",
+    "identityProviders",
+    "organizations",
+    "roles",
+    "smsTemplates",
+    "userRoles",
+    "userStores",
+    "users"
+  ],
+  "console.ui.multi_tenancy.tenant_domain_illegal_characters_regex": ".*[^a-z0-9._-].*",
   "console.theme": "wso2is",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
@@ -1172,13 +1212,27 @@
   "console.account_login.enabled": true,
   "console.account_login.scopes.feature": [],
   "console.account_login.scopes.update": ["internal_config_mgt_update"],
+  "console.actions.enabled": true,
+  "console.actions.disabled_features": [
+    "actions.types.list.preRegistration",
+    "actions.types.list.preUpdateProfile"
+  ],
+  "console.actions.scopes.feature": ["console:actions"],
+  "console.actions.scopes.create": ["internal_action_mgt_create"],
+  "console.actions.scopes.read": [
+    "internal_action_mgt_view",
+    "internal_rule_metadata_view",
+    "internal_application_mgt_view",
+    "internal_claim_meta_view"
+  ],
+  "console.actions.scopes.update": ["internal_action_mgt_update"],
+  "console.actions.scopes.delete": ["internal_action_mgt_delete"],
   "console.administrators.enabled": false,
   "console.administrators.scopes.feature": [],
   "console.administrators.scopes.create": [],
   "console.administrators.scopes.read": [],
   "console.administrators.scopes.update": [],
   "console.administrators.scopes.delete": [],
-  "console.ai.enabled": false,
   "console.ai.disabled_features": [],
   "console.ai.scopes.feature": [],
   "console.ai.scopes.create": [],
@@ -1208,7 +1262,6 @@
   "console.applications.scopes.update": ["internal_application_mgt_update"],
   "console.applications.scopes.delete": ["internal_application_mgt_delete"],
   "console.applications.disabled_features": [
-    "applications.loginFlow.ai",
     "applications.loginFlow.legacyEditor"
   ],
   "console.applications.ui.certificate_alias_enabled": false,
@@ -1225,6 +1278,9 @@
   "console.attribute_dialects.scopes.read": ["internal_userstore_view", "internal_claim_meta_view"],
   "console.attribute_dialects.scopes.update": ["internal_claim_meta_update"],
   "console.attribute_dialects.scopes.delete": ["internal_claim_meta_delete"],
+  "console.attribute_verification.enabled": true,
+  "console.attribute_verification.scopes.read": ["internal_governance_view"],
+  "console.attribute_verification.scopes.update": ["internal_governance_update"],
   "console.bulk_user_import.enabled": true,
   "console.bulk_user_import.user_limit": 100,
   "console.bulk_user_import.file_import_timeout": 60000,
@@ -1240,7 +1296,6 @@
   "console.branding.enabled": true,
   "console.branding.scopes.feature": ["console:branding"],
   "console.branding.disabled_features": [
-    "branding.ai",
     "branding.hostnameUrlBranding"
   ],
   "console.branding.scopes.create": ["internal_branding_preference_update"],
@@ -1276,12 +1331,12 @@
   "console.email_templates.scopes.read": ["internal_email_mgt_view"],
   "console.email_templates.scopes.update": ["internal_email_mgt_update"],
   "console.email_templates.scopes.delete": ["internal_email_mgt_delete"],
-  "console.sms_templates.enabled": false,
+  "console.sms_templates.enabled": true,
   "console.sms_templates.scopes.feature": ["console:smsTemplates"],
-  "console.sms_templates.scopes.create": ["internal_notification_mgt_create"],
-  "console.sms_templates.scopes.read": ["internal_notification_mgt_view"],
-  "console.sms_templates.scopes.update": ["internal_notification_mgt_update"],
-  "console.sms_templates.scopes.delete": ["internal_notification_mgt_delete"],
+  "console.sms_templates.scopes.create": ["internal_template_mgt_create"],
+  "console.sms_templates.scopes.read": ["internal_template_mgt_view"],
+  "console.sms_templates.scopes.update": ["internal_template_mgt_update"],
+  "console.sms_templates.scopes.delete": ["internal_template_mgt_delete"],
   "console.event_publishing.enabled": false,
   "console.event_publishing.scopes.feature": ["console:eventPublishing"],
   "console.event_publishing.scopes.create": ["internal_event_config_update"],
@@ -1335,6 +1390,7 @@
   ],
   "console.identity_providers.scopes.update": ["internal_idp_update"],
   "console.identity_providers.scopes.delete": ["internal_idp_delete"],
+  "console.identity_providers.disabled_features": [],
   "console.identity_provider_groups.enabled": true,
   "console.identity_verification_providers.enabled": true,
   "console.identity_verification_providers.scopes.feature": ["console:idvps"],
@@ -1346,14 +1402,22 @@
   "console.login_and_registration.enabled": true,
   "console.login_and_registration.scopes.feature": ["console:loginAndRegistration"],
   "console.login_and_registration.scopes.read": [
-    "internal_governance_view",
-    "internal_group_mgt_view",
-    "internal_role_mgt_view"
+    "internal_governance_view"
   ],
   "console.login_and_registration.scopes.update": [
     "internal_governance_update",
     "internal_validation_rule_mgt_update",
     "internal_config_update"
+  ],
+  "console.internal_notification_sending.enabled": true,
+  "console.internal_notification_sending.scopes.feature": [
+    "console:loginAndRegistration"
+  ],
+  "console.internal_notification_sending.scopes.read": [
+    "internal_governance_view"
+  ],
+  "console.internal_notification_sending.scopes.update": [
+    "internal_governance_update"
   ],
   "console.logs.enabled": false,
   "console.my_account.enabled": false,
@@ -1363,6 +1427,19 @@
   "console.oidc_scopes.scopes.read": ["internal_oidc_scope_mgt_view", "internal_claim_meta_view"],
   "console.oidc_scopes.scopes.update": ["internal_oidc_scope_mgt_update"],
   "console.oidc_scopes.scopes.delete": ["internal_oidc_scope_mgt_delete"],
+  "console.push_providers.enabled": true,
+  "console.push_providers.scopes.create": [
+    "internal_notification_senders_create"
+  ],
+  "console.push_providers.scopes.read": [
+    "internal_notification_senders_view"
+  ],
+  "console.push_providers.scopes.update": [
+    "internal_notification_senders_update"
+  ],
+  "console.push_providers.scopes.delete": [
+    "internal_notification_senders_delete"
+  ],
   "console.remote_fetch.enabled": false,
   "console.remote_fetch.scopes.create": [
       "internal_identity_mgt_view",
@@ -1487,7 +1564,10 @@
     "internal_organization_config_view",
     "internal_organization_view"
   ],
-  "console.organization_discovery.scopes.update": ["internal_organization_discovery_update"],
+  "console.organization_discovery.scopes.update": [
+    "internal_organization_config_update",
+    "internal_organization_discovery_update"
+  ],
   "console.organization_discovery.scopes.delete": [
     "internal_organization_discovery_delete",
     "internal_organization_config_delete"
@@ -1499,6 +1579,17 @@
     "internal_application_mgt_view"
   ],
   "console.resident_outbound_provisioning.scopes.update": ["internal_application_mgt_update"],
+  "console.rule_based_password_expiry.enabled": true,
+  "console.rule_based_password_expiry.scopes.read": [
+    "internal_governance_view",
+    "internal_group_mgt_view",
+    "internal_role_mgt_view"
+  ],
+  "console.rule_based_password_expiry.scopes.update": [
+    "internal_config_update",
+    "internal_governance_update",
+    "internal_validation_rule_mgt_update"
+  ],
   "console.console_settings.enabled": true,
   "console.console_settings.disabled_features": [
     "consoleSettings.invitedExternalAdmins",
@@ -1528,6 +1619,7 @@
   "console.parent_user_invitation.scopes.read": ["internal_guest_mgt_invite_list"],
   "console.parent_user_invitation.scopes.update": ["internal_guest_mgt_invite_update"],
   "console.parent_user_invitation.scopes.delete": ["internal_guest_mgt_invite_delete", "internal_guest_mgt_user_delete"],
+  "console.policyAdministration.enabled": false,
   "console.ui.is_default_dialect_editing_enabled": false,
   "console.ui.is_header_avatar_label_allowed": true,
   "console.get_profile_info_from_id_token": false,
@@ -1552,6 +1644,8 @@
   "myaccount.product_version.configs.versionOverride": "",
   "myaccount.authenticator_app_configs.enabled": true,
   "myaccount.applications.enabled": true,
+  "myaccount.applications.console_app.configs.origin": "${serverOrigin}",
+  "myaccount.applications.console_app.configs.path": "/getting-started",
   "myaccount.operations.enabled": true,
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
@@ -1614,7 +1708,7 @@
   "organization.user.invitation.primary.user_domain": "PRIMARY",
   "organization.user.invitation.default.accept_url": "/accountrecoveryendpoint/acceptinvitation.do",
   "organization.user.invitation.association.wait_time": "5000",
-  "extension_mgt.extension_types": "applications,connections,identity-verification-providers",
+  "extension_mgt.extension_types": "applications,connections,identity-verification-providers,notification-providers",
 
   "identity_datastore.datastore_type": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
   "input_validation.default_validator": "alphaNumeric",
@@ -1697,6 +1791,7 @@
   "actions.types.authentication.enable": true,
 
   "oauth.authorize_all_scopes": false,
+  "oauth.enable_rich_authorization_requests" : true,
 
   "system_applications.system_portals": ["Console", "My Account"],
 

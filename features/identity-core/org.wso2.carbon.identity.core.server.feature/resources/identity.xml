@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
-  ~ Copyright (c) 2011-2024, WSO2 LLC. (http://www.wso2.com).
+  ~ Copyright (c) 2011-2025, WSO2 LLC. (http://www.wso2.com).
   ~
   ~ WSO2 LLC. licenses this file to you under the Apache License,
   ~ Version 2.0 (the "License"); you may not use this file except
@@ -77,7 +77,10 @@
     -->
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
-<!--        <SAMLConfigs>database</SAMLConfigs>-->
+        <SAML>database</SAML>
+        <CertificateValidation>database</CertificateValidation>
+        <AdminAdvisoryBanner>database</AdminAdvisoryBanner>
+        <RemoteLoggingConfig>database</RemoteLoggingConfig>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -586,6 +589,7 @@
             <UserInfoEndpointClaimRetriever>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoUserStoreClaimRetriever</UserInfoEndpointClaimRetriever>
             <UserInfoEndpointRequestValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator</UserInfoEndpointAccessTokenValidator>
+            <UserInfoRemoveInternalPrefixFromRoles>false</UserInfoRemoveInternalPrefixFromRoles>
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             <SkipUserConsent>false</SkipUserConsent>
             <SkipLoginConsent>false</SkipLoginConsent>
@@ -775,6 +779,8 @@
             <Parameter>password</Parameter>
             <Parameter>client_secret</Parameter>
         </RestrictedQueryParameters>
+
+        <EnableRichAuthorizationRequests>false</EnableRichAuthorizationRequests>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1241,6 +1247,7 @@
 
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
+        <AutofillUsernameFieldWithSubjectAttribute>true</AutofillUsernameFieldWithSubjectAttribute>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
         <FailAuthnOnProvisionFailure>false</FailAuthnOnProvisionFailure>
         <EnableEnhancedFeature>false</EnableEnhancedFeature>
@@ -1271,6 +1278,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
                        orderId="95" enable="true"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       orderId="10000" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.governance.listener.IdentityStoreEventListener"
                        orderId="97" enable="true">
             <Property name="Data.Store">org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore</Property>
@@ -1308,6 +1318,13 @@
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
                        orderId="100" enable="true"/>
+
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
+                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
+                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -1399,12 +1416,22 @@
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="128" enable="true"/>
+        <EventListener id="shared_user_profile_update_governance_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserProfileUpdateGovernanceEventListener"
+                       orderId="8" enable="true"/>
 
         <!-- Role based outbound provision management Event Listener -->
         <EventListener id="provisioning_role_mgt_listener"
                        type="org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener"
                        name="org.wso2.carbon.identity.provisioning.listener.ProvisioningRoleMgtListener"
                        orderId="999" enable="true"/>
+        
+        <!-- User Identity Verification Event Listener -->
+        <EventListener id="identity_verification_event_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
+                       orderId="120" enable="true"/>
     </EventListeners>
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
@@ -2480,6 +2507,26 @@
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
+    <OrgContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/identity/oauth2/dcr/</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+                <SubPaths>
+                    <Path>/oauth2/token</Path>
+                    <Path>/oauth2/introspect</Path>
+                    <Path>/oauth2/revoke</Path>
+                    <Path>/oauth2/userinfo</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewriteInTenantPerspective>
+
     <OrgContextsToRewrite>
         <WebApp>
             <Context>
@@ -2492,6 +2539,7 @@
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/me/push/devices</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2509,8 +2557,10 @@
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
             <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 

@@ -28,8 +28,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.action.management.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.model.ActionRule;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.action.management.model.EndpointConfig;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -37,6 +39,11 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
+import org.wso2.carbon.identity.rule.management.model.Expression;
+import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
+import org.wso2.carbon.identity.rule.management.model.Value;
+import org.wso2.carbon.identity.rule.management.util.AuditLogBuilderForRule;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.lang.reflect.Field;
@@ -168,6 +175,7 @@ public class ActionManagementAuditLoggerTest {
                                 .authentication(new Authentication.BearerAuthBuilder(TEST_ACCESS_TOKEN).build())
                                 .build())
                         .properties(actionProperties)
+                        .rule(ActionRule.create(buildMockORCombinedRule()))
                         .build()
                 },
                 // Create object without properties
@@ -199,6 +207,7 @@ public class ActionManagementAuditLoggerTest {
                                         TEST_API_KEY_VALUE).build())
                                 .build())
                         .properties(updatedActionProperties)
+                        .rule(ActionRule.create(buildMockORCombinedRule()))
                         .build()
                 },
                 {ActionManagementAuditLogger.Operation.UPDATE,
@@ -249,7 +258,7 @@ public class ActionManagementAuditLoggerTest {
 
     @Test(dataProvider = "actionDataProvider")
     public void testPrintAuditLogWithAction(ActionManagementAuditLogger.Operation operation, ActionDTO actionDTO)
-            throws NoSuchFieldException, IllegalAccessException {
+            throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
         auditLogger.printAuditLog(operation, actionDTO);
         AuditLog.AuditLogBuilder capturedArg = captureTriggerAuditLogEventArgs();
@@ -257,6 +266,7 @@ public class ActionManagementAuditLoggerTest {
         Assert.assertNotNull(capturedArg);
         assertActionData(capturedArg, actionDTO);
         assertAuditLoggerData(capturedArg, operation.getLogAction());
+
     }
 
     @Test
@@ -333,7 +343,7 @@ public class ActionManagementAuditLoggerTest {
      * @throws IllegalAccessException if the provided field is not accessible.
      */
     private void assertActionData(AuditLog.AuditLogBuilder auditLogBuilder, ActionDTO actionDTO)
-            throws NoSuchFieldException, IllegalAccessException {
+            throws NoSuchFieldException, IllegalAccessException, ActionMgtException {
 
         Field dataField = AuditLog.AuditLogBuilder.class.getDeclaredField("data");
         dataField.setAccessible(true);
@@ -352,6 +362,8 @@ public class ActionManagementAuditLoggerTest {
                 actionDTO.getEndpoint().getAuthentication() != null &&
                 actionDTO.getEndpoint().getAuthentication().getType() != null ?
                 actionDTO.getEndpoint().getAuthentication().getType().getName() : null;
+        String rule = actionDTO.getActionRule() != null ?
+                AuditLogBuilderForRule.buildRuleValue(actionDTO.getActionRule().getRule()) : null;
 
         assertField(id != null, dataMap, "ActionId", id);
         assertField(name != null, dataMap, "ActionName", name);
@@ -361,19 +373,30 @@ public class ActionManagementAuditLoggerTest {
         assertField(uri != null, endpointConfigMap, "EndpointUri", uri);
         assertField(authenticationScheme != null, endpointConfigMap, "AuthenticationScheme",
                 authenticationScheme);
+        assertField(rule != null, dataMap, "Rule", rule);
 
         if (authenticationScheme != null) {
             switch (actionDTO.getEndpoint().getAuthentication().getType()) {
                 case BASIC:
-                    assertMasked(endpointConfigMap.get("Username").toString());
-                    assertMasked(endpointConfigMap.get("Password").toString());
+                    assertField(true, endpointConfigMap, "Username",
+                            LoggerUtils.getMaskedContent(actionDTO.getEndpoint().getAuthentication()
+                                    .getProperty(Authentication.Property.USERNAME).getValue()));
+                    assertField(true, endpointConfigMap, "Password",
+                            LoggerUtils.getMaskedContent(actionDTO.getEndpoint().getAuthentication()
+                                    .getProperty(Authentication.Property.PASSWORD).getValue()));
                     break;
                 case BEARER:
-                    assertMasked(endpointConfigMap.get("AccessToken").toString());
+                    assertField(true, endpointConfigMap, "AccessToken",
+                            LoggerUtils.getMaskedContent(actionDTO.getEndpoint().getAuthentication()
+                                    .getProperty(Authentication.Property.ACCESS_TOKEN).getValue()));
                     break;
                 case API_KEY:
-                    assertMasked(endpointConfigMap.get("ApiKeyHeader").toString());
-                    assertMasked(endpointConfigMap.get("ApiKeyValue").toString());
+                    assertField(true, endpointConfigMap, "ApiKeyHeader",
+                            LoggerUtils.getMaskedContent(actionDTO.getEndpoint().getAuthentication()
+                                    .getProperty(Authentication.Property.HEADER).getValue()));
+                    assertField(true, endpointConfigMap, "ApiKeyValue",
+                            LoggerUtils.getMaskedContent(actionDTO.getEndpoint().getAuthentication()
+                                    .getProperty(Authentication.Property.VALUE).getValue()));
                     break;
                 case NONE:
                 default:
@@ -382,10 +405,15 @@ public class ActionManagementAuditLoggerTest {
         }
 
         if (actionDTO.getProperties() != null && actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME) != null) {
-            assertMasked(propertiesMap.get(PASSWORD_SHARING_TYPE_PROPERTY_NAME).toString());
+            assertField(propertiesMap.get(PASSWORD_SHARING_TYPE_PROPERTY_NAME) != null, propertiesMap,
+                    PASSWORD_SHARING_TYPE_PROPERTY_NAME, LoggerUtils.getMaskedContent(actionDTO.getProperties()
+                            .get(PASSWORD_SHARING_TYPE_PROPERTY_NAME).toString()));
         }
+
         if (actionDTO.getProperties() != null && actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME) != null) {
-            assertMasked(propertiesMap.get(CERTIFICATE_PROPERTY_NAME).toString());
+            assertField(propertiesMap.get(CERTIFICATE_PROPERTY_NAME) != null, propertiesMap,
+                    CERTIFICATE_PROPERTY_NAME, LoggerUtils.getMaskedContent(actionDTO.getProperties()
+                            .get(CERTIFICATE_PROPERTY_NAME).toString()));
         }
     }
 
@@ -404,16 +432,6 @@ public class ActionManagementAuditLoggerTest {
         } else {
             Assert.assertTrue(dataMap == null || dataMap.get(fieldName) == null);
         }
-    }
-
-    /**
-     * Assert masked data fields.
-     *
-     * @param value Value to be asserted.
-     */
-    private void assertMasked(String value) {
-
-        Assert.assertTrue(value.contains("*"));
     }
 
     /**
@@ -443,5 +461,30 @@ public class ActionManagementAuditLoggerTest {
                 break;
         }
     }
-}
 
+    /**
+     * Builds a mock {@link ORCombinedRule} with predefined expressions.
+     * The rule consists of:
+     * - An AND rule matching "application = testapp1" and "grantType = authorization_code".
+     * - An AND rule matching "application = testapp2".
+     * These are combined with OR logic.
+     *
+     * @return A mock {@link ORCombinedRule} instance.
+     */
+    private ORCombinedRule buildMockORCombinedRule() {
+        Expression expression1 = new Expression.Builder().field("application").operator("equals")
+                .value(new Value(Value.Type.REFERENCE, "testapp1")).build();
+
+        Expression expression2 = new Expression.Builder().field("grantType").operator("equals")
+                .value(new Value(Value.Type.STRING, "authorization_code")).build();
+        ANDCombinedRule andCombinedRule1 =
+                new ANDCombinedRule.Builder().addExpression(expression1).addExpression(expression2).build();
+
+        Expression expression3 = new Expression.Builder().field("application").operator("equals")
+                .value(new Value(Value.Type.REFERENCE, "testapp2")).build();
+        ANDCombinedRule andCombinedRule2 =
+                new ANDCombinedRule.Builder().addExpression(expression3).build();
+
+        return new ORCombinedRule.Builder().addRule(andCombinedRule1).addRule(andCombinedRule2).build();
+    }
+}

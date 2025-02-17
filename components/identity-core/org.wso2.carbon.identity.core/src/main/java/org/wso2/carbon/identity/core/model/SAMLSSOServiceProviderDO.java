@@ -1,12 +1,12 @@
 /*
- * Copyright 2005-2007 WSO2, Inc. (http://wso2.com)
- * 
+ * Copyright 2005-2025 WSO2, Inc. (http://wso2.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,12 +21,16 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.MultiValuedPropertyKey;
+import static org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderConstants.BACKCHANNEL_LOGOUT_BINDING;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class SAMLSSOServiceProviderDO implements Serializable {
 
@@ -54,6 +58,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private String[] requestedRecipients;
     private List<String> requestedRecipientsList;
     private boolean enableAttributesByDefault;
+    private String attributeNameFormat;
     private String nameIdClaimUri;
     private String nameIDFormat;
     private boolean isIdPInitSSOEnabled;
@@ -77,6 +82,67 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private String idpEntityIDAlias;
     private boolean doFrontChannelLogout;
     private String frontChannelLogoutBinding;
+
+    public SAMLSSOServiceProviderDO(SAMLSSOServiceProviderDO samlSSOServiceProviderDO) {
+
+        this.tenantDomain = samlSSOServiceProviderDO.tenantDomain;
+        this.issuer = samlSSOServiceProviderDO.issuer;
+        this.issuerQualifier = samlSSOServiceProviderDO.issuerQualifier;
+        this.assertionConsumerUrl = samlSSOServiceProviderDO.assertionConsumerUrl;
+        this.assertionConsumerUrls = samlSSOServiceProviderDO.assertionConsumerUrls != null ?
+                samlSSOServiceProviderDO.assertionConsumerUrls.clone() : null;
+        this.assertionConsumerUrlList = samlSSOServiceProviderDO.assertionConsumerUrlList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.assertionConsumerUrlList) : null;
+        this.defaultAssertionConsumerUrl = samlSSOServiceProviderDO.defaultAssertionConsumerUrl;
+        this.certAlias = samlSSOServiceProviderDO.certAlias;
+        this.sloResponseURL = samlSSOServiceProviderDO.sloResponseURL;
+        this.sloRequestURL = samlSSOServiceProviderDO.sloRequestURL;
+        this.doSingleLogout = samlSSOServiceProviderDO.doSingleLogout;
+        this.loginPageURL = samlSSOServiceProviderDO.loginPageURL;
+        this.doSignResponse = samlSSOServiceProviderDO.doSignResponse;
+        this.doSignAssertions = samlSSOServiceProviderDO.doSignAssertions;
+        this.attributeConsumingServiceIndex = samlSSOServiceProviderDO.attributeConsumingServiceIndex;
+        this.requestedClaims =
+                samlSSOServiceProviderDO.requestedClaims != null ? samlSSOServiceProviderDO.requestedClaims.clone() :
+                        null;
+        this.requestedClaimsList = samlSSOServiceProviderDO.requestedClaimsList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.requestedClaimsList) : null;
+        this.requestedAudiences = samlSSOServiceProviderDO.requestedAudiences != null ?
+                samlSSOServiceProviderDO.requestedAudiences.clone() : null;
+        this.requestedAudiencesList = samlSSOServiceProviderDO.requestedAudiencesList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.requestedAudiencesList) : null;
+        this.requestedRecipients = samlSSOServiceProviderDO.requestedRecipients != null ?
+                samlSSOServiceProviderDO.requestedRecipients.clone() : null;
+        this.requestedRecipientsList = samlSSOServiceProviderDO.requestedRecipientsList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.requestedRecipientsList) : null;
+        this.enableAttributesByDefault = samlSSOServiceProviderDO.enableAttributesByDefault;
+        this.nameIdClaimUri = samlSSOServiceProviderDO.nameIdClaimUri;
+        this.nameIDFormat = samlSSOServiceProviderDO.nameIDFormat;
+        this.isIdPInitSSOEnabled = samlSSOServiceProviderDO.isIdPInitSSOEnabled;
+        this.idPInitSLOEnabled = samlSSOServiceProviderDO.idPInitSLOEnabled;
+        this.idpInitSLOReturnToURLs = samlSSOServiceProviderDO.idpInitSLOReturnToURLs != null ?
+                samlSSOServiceProviderDO.idpInitSLOReturnToURLs.clone() : null;
+        this.idpInitSLOReturnToURLList = samlSSOServiceProviderDO.idpInitSLOReturnToURLList != null ?
+                new ArrayList<>(samlSSOServiceProviderDO.idpInitSLOReturnToURLList) : null;
+        this.doEnableEncryptedAssertion = samlSSOServiceProviderDO.doEnableEncryptedAssertion;
+        this.doValidateSignatureInRequests = samlSSOServiceProviderDO.doValidateSignatureInRequests;
+        this.doValidateSignatureInArtifactResolve = samlSSOServiceProviderDO.doValidateSignatureInArtifactResolve;
+        this.signingAlgorithmUri = samlSSOServiceProviderDO.signingAlgorithmUri;
+        this.digestAlgorithmUri = samlSSOServiceProviderDO.digestAlgorithmUri;
+        this.assertionEncryptionAlgorithmUri = samlSSOServiceProviderDO.assertionEncryptionAlgorithmUri;
+        this.keyEncryptionAlgorithmUri = samlSSOServiceProviderDO.keyEncryptionAlgorithmUri;
+        this.signingCertificate = samlSSOServiceProviderDO.signingCertificate;
+        this.encryptionCertificate = samlSSOServiceProviderDO.encryptionCertificate;
+        this.x509Certificate = samlSSOServiceProviderDO.x509Certificate;
+        this.isAssertionQueryRequestProfileEnabled = samlSSOServiceProviderDO.isAssertionQueryRequestProfileEnabled;
+        this.supportedAssertionQueryRequestTypes = samlSSOServiceProviderDO.supportedAssertionQueryRequestTypes;
+        this.enableSAML2ArtifactBinding = samlSSOServiceProviderDO.enableSAML2ArtifactBinding;
+        this.samlECP = samlSSOServiceProviderDO.samlECP;
+        this.idpEntityIDAlias = samlSSOServiceProviderDO.idpEntityIDAlias;
+        this.doFrontChannelLogout = samlSSOServiceProviderDO.doFrontChannelLogout;
+        this.frontChannelLogoutBinding = samlSSOServiceProviderDO.frontChannelLogoutBinding;
+        this.attributeNameFormat = samlSSOServiceProviderDO.getAttributeNameFormat();
+    }
 
     public void setDoValidateSignatureInArtifactResolve(boolean doValidateSignatureInArtifactResolve) {
 
@@ -166,6 +232,16 @@ public class SAMLSSOServiceProviderDO implements Serializable {
 
     public void setEnableAttributesByDefault(boolean enableAttributesByDefault) {
         this.enableAttributesByDefault = enableAttributesByDefault;
+    }
+
+    public String getAttributeNameFormat() {
+
+        return attributeNameFormat;
+    }
+
+    public void setAttributeNameFormat(String attributeNameFormat) {
+
+        this.attributeNameFormat = attributeNameFormat;
     }
 
     public String getIssuer() {
@@ -650,5 +726,175 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     public void setIdpEntityIDAlias(String idpEntityIDAlias) {
 
         this.idpEntityIDAlias = idpEntityIDAlias;
+    }
+
+    public String getSingleLogoutMethod() {
+
+        if (doFrontChannelLogout) {
+            return frontChannelLogoutBinding;
+        } else {
+            return BACKCHANNEL_LOGOUT_BINDING;
+        }
+    }
+
+    /**
+     * Get configs of the SAML SSO IdP.
+     *
+     * @return List of ServiceProviderProperty.
+     */
+    public List<ServiceProviderProperty> getMultiValuedProperties() {
+
+        List<ServiceProviderProperty> multiValuedProperties = new ArrayList<>();
+
+        // Multi-valued attributes.
+        getAssertionConsumerUrlList().forEach(assertionConUrl ->
+                putIfNotNull(multiValuedProperties, MultiValuedPropertyKey.ASSERTION_CONSUMER_URLS.toString(),
+                        assertionConUrl));
+        getRequestedRecipientsList().forEach(requestedRecipient ->
+                putIfNotNull(multiValuedProperties, MultiValuedPropertyKey.RECIPIENTS.toString(),
+                        requestedRecipient));
+        getRequestedAudiencesList().forEach(requestedAudience ->
+                putIfNotNull(multiValuedProperties, MultiValuedPropertyKey.AUDIENCES.toString(),
+                        requestedAudience));
+        getIdpInitSLOReturnToURLList().forEach(idpInitSLOReturnToURL ->
+                putIfNotNull(multiValuedProperties, MultiValuedPropertyKey.SLO_RETURN_TO_URLS.toString(),
+                        idpInitSLOReturnToURL));
+
+        return multiValuedProperties;
+    }
+
+    /**
+     * Add a list of multivalued properties.
+     *
+     * @param multiValuedProperties List of ServiceProviderProperty.
+     */
+    public void addMultiValuedProperties(List<ServiceProviderProperty> multiValuedProperties) {
+
+        if (multiValuedProperties == null) {
+            return;
+        }
+
+        multiValuedProperties.forEach(this::addMultiValuedProperty);
+    }
+
+    /**
+     * Add a multivalued property.
+     *
+     * @param multiValuedProperty ServiceProviderProperty.
+     */
+    private void addMultiValuedProperty(ServiceProviderProperty multiValuedProperty) {
+
+        if (multiValuedProperty == null) {
+            return;
+        }
+        String key = multiValuedProperty.getKey();
+        String value = multiValuedProperty.getValue();
+
+        if (MultiValuedPropertyKey.ASSERTION_CONSUMER_URLS.toString().equals(key)) {
+            List<String> attributeList = getAssertionConsumerUrlList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setAssertionConsumerUrls(attributeList);
+        } else if (MultiValuedPropertyKey.RECIPIENTS.toString().equals(key)) {
+            List<String> attributeList = getRequestedRecipientsList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setRequestedRecipients(attributeList);
+        } else if (MultiValuedPropertyKey.AUDIENCES.toString().equals(key)) {
+            List<String> attributeList = getRequestedAudiencesList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setRequestedAudiences(attributeList);
+        } else if (MultiValuedPropertyKey.SLO_RETURN_TO_URLS.toString().equals(key)) {
+            List<String> attributeList = getIdpInitSLOReturnToURLList();
+            if (attributeList.isEmpty()) {
+                attributeList = new ArrayList<>();
+            }
+            attributeList.add(value);
+            setIdpInitSLOReturnToURLs(attributeList);
+        }
+    }
+
+    /**
+     * Put a key value pair to a list if the value is not null.
+     *
+     * @param list  List of ServiceProviderProperty.
+     * @param key   Key.
+     * @param value Value.
+     */
+    private void putIfNotNull(List<ServiceProviderProperty> list, String key, String value) {
+
+        if (StringUtils.isNotBlank(value)) {
+            list.add(new ServiceProviderProperty(key, value));
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SAMLSSOServiceProviderDO that = (SAMLSSOServiceProviderDO) o;
+        return doSingleLogout == that.doSingleLogout &&
+                doSignResponse == that.doSignResponse &&
+                doSignAssertions == that.doSignAssertions &&
+                enableAttributesByDefault == that.enableAttributesByDefault &&
+                isIdPInitSSOEnabled == that.isIdPInitSSOEnabled &&
+                idPInitSLOEnabled == that.idPInitSLOEnabled &&
+                doEnableEncryptedAssertion == that.doEnableEncryptedAssertion &&
+                doValidateSignatureInRequests == that.doValidateSignatureInRequests &&
+                doValidateSignatureInArtifactResolve == that.doValidateSignatureInArtifactResolve &&
+                enableSAML2ArtifactBinding == that.enableSAML2ArtifactBinding &&
+                samlECP == that.samlECP &&
+                doFrontChannelLogout == that.doFrontChannelLogout &&
+                Objects.equals(tenantDomain, that.tenantDomain) &&
+                Objects.equals(issuer, that.issuer) &&
+                Objects.equals(issuerQualifier, that.issuerQualifier) &&
+                Objects.equals(assertionConsumerUrl, that.assertionConsumerUrl) &&
+                Arrays.equals(assertionConsumerUrls, that.assertionConsumerUrls) &&
+                Objects.equals(defaultAssertionConsumerUrl, that.defaultAssertionConsumerUrl) &&
+                Objects.equals(certAlias, that.certAlias) &&
+                Objects.equals(sloResponseURL, that.sloResponseURL) &&
+                Objects.equals(sloRequestURL, that.sloRequestURL) &&
+                Objects.equals(loginPageURL, that.loginPageURL) &&
+                Objects.equals(attributeConsumingServiceIndex, that.attributeConsumingServiceIndex) &&
+                Arrays.equals(requestedClaims, that.requestedClaims) &&
+                Arrays.equals(requestedAudiences, that.requestedAudiences) &&
+                Arrays.equals(requestedRecipients, that.requestedRecipients) &&
+                Objects.equals(nameIdClaimUri, that.nameIdClaimUri) &&
+                Objects.equals(nameIDFormat, that.nameIDFormat) &&
+                Arrays.equals(idpInitSLOReturnToURLs, that.idpInitSLOReturnToURLs) &&
+                Objects.equals(signingAlgorithmUri, that.signingAlgorithmUri) &&
+                Objects.equals(digestAlgorithmUri, that.digestAlgorithmUri) &&
+                Objects.equals(assertionEncryptionAlgorithmUri, that.assertionEncryptionAlgorithmUri) &&
+                Objects.equals(keyEncryptionAlgorithmUri, that.keyEncryptionAlgorithmUri) &&
+                Objects.equals(signingCertificate, that.signingCertificate) &&
+                Objects.equals(encryptionCertificate, that.encryptionCertificate) &&
+                Objects.equals(idpEntityIDAlias, that.idpEntityIDAlias) &&
+                Objects.equals(frontChannelLogoutBinding, that.frontChannelLogoutBinding);
+    }
+
+    @Override
+    public int hashCode() {
+
+        int h = Objects.hash(tenantDomain, issuer, issuerQualifier, assertionConsumerUrl, defaultAssertionConsumerUrl,
+                certAlias, sloResponseURL, sloRequestURL, doSingleLogout, loginPageURL, doSignResponse,
+                doSignAssertions, attributeConsumingServiceIndex, enableAttributesByDefault, nameIdClaimUri,
+                nameIDFormat, isIdPInitSSOEnabled, idPInitSLOEnabled, doEnableEncryptedAssertion,
+                doValidateSignatureInRequests, doValidateSignatureInArtifactResolve, signingAlgorithmUri,
+                digestAlgorithmUri, assertionEncryptionAlgorithmUri, keyEncryptionAlgorithmUri, signingCertificate,
+                encryptionCertificate, isAssertionQueryRequestProfileEnabled, supportedAssertionQueryRequestTypes,
+                enableSAML2ArtifactBinding, samlECP, idpEntityIDAlias, doFrontChannelLogout, frontChannelLogoutBinding);
+        h = 31 * h + Arrays.hashCode(assertionConsumerUrls);
+        h = 31 * h + Arrays.hashCode(requestedClaims);
+        h = 31 * h + Arrays.hashCode(requestedAudiences);
+        h = 31 * h + Arrays.hashCode(requestedRecipients);
+        h = 31 * h + Arrays.hashCode(idpInitSLOReturnToURLs);
+        return h;
     }
 }

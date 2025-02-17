@@ -257,7 +257,8 @@
     "POST_ADD_EXTERNAL_CLAIM",
     "POST_ADD_CLAIM_DIALECT",
     "POST_RENAME_CLAIM_DIALECT",
-    "POST_DELETE_CLAIM_DIALECT"
+    "POST_DELETE_CLAIM_DIALECT",
+    "POST_ADD_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "39",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
@@ -267,7 +268,8 @@
   "identity_mgt.events.schemes.SharedRoleMgtHandler.module_index": "40",
   "identity_mgt.events.schemes.SharedRoleMgtHandler.subscriptions": [
     "POST_ADD_ROLE_V2_EVENT",
-    "POST_SHARE_APPLICATION"
+    "POST_SHARE_APPLICATION",
+    "PRE_SHARE_APPLICATION"
   ],
   "identity_mgt.events.schemes.UserInvitationEventHandler.module_index": "41",
   "identity_mgt.events.schemes.UserInvitationEventHandler.subscriptions": [
@@ -277,5 +279,26 @@
   "identity_mgt.events.schemes.SMSNotificationHandler.subscriptions": [
     "TRIGGER_SMS_NOTIFICATION_LOCAL"
   ],
-  "identity_mgt.events.schemes.UserInvitationEventHandler.properties.enable": true
+  "identity_mgt.events.schemes.UserInvitationEventHandler.properties.enable": true,
+  "identity_mgt.events.schemes.PushNotificationHandler.module_index": "43",
+  "identity_mgt.events.schemes.PushNotificationHandler.subscriptions": [
+    "TRIGGER_PUSH_NOTIFICATION"
+  ],
+  "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.module_index": "44",
+  "identity_mgt.events.schemes.SharingPolicyCleanUpHandler.subscriptions": [
+    "POST_DELETE_ROLE_V2_EVENT",
+    "POST_DELETE_USER_WITH_ID"
+  ],
+  "identity_mgt.events.schemes.OrganizationUserSharingHandler.module_index": "45",
+  "identity_mgt.events.schemes.OrganizationUserSharingHandler.subscriptions": [
+    "POST_ADD_ORGANIZATION"
+  ],
+  "identity_mgt.events.schemes.OrganizationSessionHandler.module_index": "46",
+  "identity_mgt.events.schemes.OrganizationSessionHandler.subscriptions": [
+    "SESSION_TERMINATE"
+  ],
+  "identity_mgt.events.schemes.FragmentApplicationMgtHandler.module_index": "47",
+  "identity_mgt.events.schemes.FragmentApplicationMgtHandler.subscriptions": [
+    "PRE_SHARE_APPLICATION"
+  ]
 }

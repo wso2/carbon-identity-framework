@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -150,11 +151,12 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
     protected void resetAuthenticators() {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().clear();
-        FrameworkServiceDataHolder.getInstance().getAuthenticators()
-                .add(new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("HwkMockAuthenticator"));
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(new MockAuthenticator("FptMockAuthenticator"));
+        ApplicationAuthenticatorManager authenticatorManager = ApplicationAuthenticatorManager.getInstance();
+        removeAllSystemDefinedAuthenticators();
+        authenticatorManager.addSystemDefinedAuthenticator(
+                new MockAuthenticator("BasicMockAuthenticator", new MockSubjectCallback()));
+        authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("HwkMockAuthenticator"));
+        authenticatorManager.addSystemDefinedAuthenticator(new MockAuthenticator("FptMockAuthenticator"));
     }
 
     protected HttpServletRequest createMockHttpServletRequest() {

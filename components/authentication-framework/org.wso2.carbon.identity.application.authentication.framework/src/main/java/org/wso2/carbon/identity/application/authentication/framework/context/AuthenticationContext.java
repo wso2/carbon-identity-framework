@@ -854,6 +854,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * @return Clone of authentication context.
      */
     public Object clone () {
+
         return SerializationUtils.clone(this);
     }
 }

@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,7 @@ public class MockAuthenticator implements ApplicationAuthenticator {
 
     private String name;
     private SubjectCallback subjectCallback;
+    private String claimDialectURI;
 
     public MockAuthenticator(String name) {
 
@@ -43,6 +44,13 @@ public class MockAuthenticator implements ApplicationAuthenticator {
 
         this(name);
         this.subjectCallback = subjectCallback;
+    }
+
+    public MockAuthenticator(String name, SubjectCallback subjectCallback, String claimDialectURI) {
+
+        this(name);
+        this.subjectCallback = subjectCallback;
+        this.claimDialectURI = claimDialectURI;
     }
 
     @Override
@@ -82,7 +90,7 @@ public class MockAuthenticator implements ApplicationAuthenticator {
     @Override
     public String getClaimDialectURI() {
 
-        return null;
+        return claimDialectURI;
     }
 
     @Override
@@ -95,5 +103,20 @@ public class MockAuthenticator implements ApplicationAuthenticator {
     public String getI18nKey() {
 
         return this.name + ".authenticator";
+    }
+
+    public static class MockLocalAuthenticator extends MockAuthenticator implements LocalApplicationAuthenticator {
+
+        public MockLocalAuthenticator(String name) {
+            super(name);
+        }
+    }
+
+    public static class MockFederatedAuthenticator extends MockAuthenticator
+            implements FederatedApplicationAuthenticator {
+
+        public MockFederatedAuthenticator(String name) {
+            super(name);
+        }
     }
 }

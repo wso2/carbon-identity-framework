@@ -130,7 +130,7 @@ public class IdPManagementConstants {
             = "Recovery.Notification.Password.smsOtp.Enable";
 
     // User defined federated authenticator related constants.
-    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^[a-zA-Z0-9][a-zA-Z0-9-_]*$";
+    public static final String USER_DEFINED_AUTHENTICATOR_NAME_REGEX = "^custom-[a-zA-Z0-9-_]{3,}$";
 
     // Resident IDP Username Recovery Configs.
     public static final String USERNAME_RECOVERY_PROPERTY = "Recovery.Notification.Username.Enable";
@@ -168,7 +168,7 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' " +
                 "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND " +
-                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true') ORDER BY %s LIMIT ?, ?";
+                "NAME = 'isSystemReservedIdP' AND `VALUE` = 'true') ORDER BY %s LIMIT ?, ?";
 
         public static final String GET_IDP_BY_TENANT_DB2SQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
@@ -454,8 +454,16 @@ public class IdPManagementConstants {
                 "IDP_AUTHENTICATOR B ON A.AUTHENTICATOR_ID = B.ID WHERE B.IDP_ID = (SELECT ID FROM IDP C WHERE (C" +
                 ".TENANT_ID = ? OR (C.TENANT_ID = ? AND C.NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND C.NAME = ?)";
 
+        public static final String GET_SP_FEDERATED_IDP_AUTHENTICATOR_REF = "SELECT COUNT(*) FROM SP_FEDERATED_IDP " +
+                "JOIN IDP_AUTHENTICATOR ON SP_FEDERATED_IDP.AUTHENTICATOR_ID = IDP_AUTHENTICATOR.ID WHERE " +
+                "IDP_AUTHENTICATOR.IDP_ID = (SELECT ID FROM IDP WHERE (IDP.TENANT_ID = ? OR (IDP.TENANT_ID = ? " +
+                "AND IDP.NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND IDP.NAME = ?) AND IDP_AUTHENTICATOR.NAME = ?";
+
         public static final String GET_SP_PROVISIONING_CONNECTOR_REFS = "SELECT COUNT(*) FROM SP_PROVISIONING_CONNECTOR "
                 + "WHERE (TENANT_ID=? AND IDP_NAME=?)";
+
+        public static final String GET_SP_PROVISIONING_CONNECTOR_IDP_REFS = "SELECT COUNT(*) FROM SP_PROVISIONING_CONNECTOR "
+                + "WHERE (TENANT_ID = ? AND IDP_NAME = ? AND CONNECTOR_NAME = ?)";
 
         public static final String GET_IDP_BY_AUTHENTICATOR_PROPERTY = "SELECT idp.ID, idp.NAME, idp.IS_PRIMARY, " +
                 "idp.HOME_REALM_ID, " +
@@ -601,7 +609,16 @@ public class IdPManagementConstants {
                 "IDP.UUID AS IDP_ID FROM IDP_GROUP LEFT JOIN IDP ON IDP.ID = IDP_GROUP.IDP_ID WHERE " +
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
         public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
-                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER'";
+                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER' AND IDP_ID IN " +
+                "(SELECT ID FROM IDP WHERE IDP.NAME != ? AND IDP.TENANT_ID = ?)";
+    }
+
+    public static class WarningMessage {
+
+        public static final String WARN_STALE_IDP_ACTION = "The Identity Provider: %s is deleted, but an error " +
+                "occurred while deleting its associated action.";
+        public static final String WARN_STALE_IDP_ACTIONS = "Identity Providers are deleted, but an error " +
+                "occurred while deleting their associated actions.";
     }
 
     public enum ErrorMessage {
@@ -650,7 +667,9 @@ public class IdPManagementConstants {
         ERROR_CODE_RETRIEVING_ENDPOINT_CONFIG("IDP-65011", "An error occurred while retrieving" +
                 " endpoint configuration for authenticator: %s."),
         ERROR_CODE_DELETING_ENDPOINT_CONFIG("IDP-65012", "An error occurred while deleting" +
-                " endpoint configuration for authenticator: %s.");
+                " endpoint configuration for authenticator: %s."),
+        ERROR_CODE_ADDING_FEDERATED_AUTHENTICATOR("IDP-6501",
+                "An error occurred while validating federated authenticator name."),;
 
         private final String code;
         private final String message;

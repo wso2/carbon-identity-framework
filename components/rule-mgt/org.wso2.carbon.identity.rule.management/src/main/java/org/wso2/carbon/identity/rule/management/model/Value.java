@@ -41,6 +41,7 @@ public class Value {
         return type;
     }
 
+    @JsonProperty("value")
     public String getFieldValue() {
         return fieldValue;
     }
@@ -49,6 +50,6 @@ public class Value {
      * Represents the type of the value.
      */
     public enum Type {
-        STRING, NUMBER, BOOLEAN, DATE_TIME, REFERENCE
+        STRING, NUMBER, BOOLEAN, DATE_TIME, REFERENCE, RAW
     }
 }

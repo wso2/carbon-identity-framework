@@ -1,0 +1,11 @@
+{
+  "category": "DEFAULT",
+  "description": "Register externally implemented authentication service.",
+  "displayOrder": -1,
+  "id": "custom-authenticator",
+  "image": "",
+  "name": "Custom Authenticator (Service-based)",
+  "services": [],
+  "disabled": false,
+  "templateId": "custom-authenticator"
+}

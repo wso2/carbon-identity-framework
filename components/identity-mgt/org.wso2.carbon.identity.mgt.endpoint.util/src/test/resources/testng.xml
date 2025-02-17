@@ -30,8 +30,10 @@
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ConfiguredAuthenticatorsRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.IdentityProviderDataRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.RecoveryApiV2Test"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.UsernameRecoveryApiTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.ValidationConfigurationRetrievalClientTest"/>
             <class name="org.wso2.carbon.identity.mgt.endpoint.util.OrganizationDiscoveryConfigDataRetrievalClientTest"/>
+            <class name="org.wso2.carbon.identity.mgt.endpoint.util.AuthenticatorDataRetrievalClientTest"/>
         </classes>
     </test>
 </suite>

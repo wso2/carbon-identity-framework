@@ -62,4 +62,12 @@ public class ExtensionMgtConstants {
     public static final String KEY = "key";
 
     public static final String VALUE = "value";
+
+    public static final String IDP_CONFIG_KEY = "idp";
+
+    public static final String IDP_PROVISIONING_CONFIG_KEY = "provisioning";
+
+    public static final String IDP_PROVISIONING_JIT_CONFIG_KEY = "jit";
+
+    public static final String IDP_PROVISIONING_JIT_DOMAIN_NAME_KEY = "userstore";
 }

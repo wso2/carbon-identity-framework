@@ -38,8 +38,6 @@
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:meta.resourceType</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:meta.version</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:externalId</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager</Attribute>
             </Schema>
             <Schema id="urn:ietf:params:scim:schemas:core:2.0:User">
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:userName</Attribute>
@@ -63,6 +61,8 @@
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.home</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.work</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.mobile</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.other</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.aim</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:ims.gtalk</Attribute>
@@ -95,36 +95,6 @@
                 <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.value</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.$ref</Attribute>
                 <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.displayName</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountDisabled</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountLocked</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:accountState</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:askPassword</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:country</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:dateOfBirth</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:emailOTPDisabled</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedEmailOTPAttempts</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttempts</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginAttemptsBeforeSuccess</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedLoginLockoutCount</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedPasswordRecoveryAttempts</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedSMSOTPAttempts</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:failedTOTPAttempts</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:forcePasswordReset</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:isLiteUser</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastLogonTime</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lastPasswordUpdateTime</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:lockedReason</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:oneTimePassword</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingMobileNumber</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:phoneVerified</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:preferredChannel</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:smsOTPDisabled</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:tenantAdminAskPassword</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:unlockTime</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userSourceId</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyEmail</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:verifyMobile</Attribute>
-                <Attribute>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingEmails.value</Attribute>
             </Schema>
         </Schemas>
     </DefaultSchema>

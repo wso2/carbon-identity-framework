@@ -25,8 +25,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -295,7 +296,7 @@ public class OptimizedApplicationConfig implements Serializable {
             AuthenticationStep authenticationStep = new AuthenticationStep();
             authenticationStep.setStepOrder(authStep.getStepOrder());
             authenticationStep.setLocalAuthenticatorConfigs(
-                    getLocalAuthenticatorConfigs(authStep.getLocalAuthenticatorConfigNames()));
+                    getLocalAuthenticatorConfigs(authStep.getLocalAuthenticatorConfigNames(), tenantDomain));
             if (authStep.federatedIdPResourceIds == null || authStep.federatedIdPResourceIds.isEmpty()) {
                 // For new caches federatedIdPResourceIds will be null. But will have optimized federated IdPs.
                 authenticationStep.setFederatedIdentityProviders(getIdPsFromOptimizedFederatedIdPs(
@@ -315,27 +316,31 @@ public class OptimizedApplicationConfig implements Serializable {
         return authenticationSteps;
     }
 
-    private LocalAuthenticatorConfig[] getLocalAuthenticatorConfigs(List<String> localAuthConfigNames) {
+    private LocalAuthenticatorConfig[] getLocalAuthenticatorConfigs(List<String> localAuthConfigNames,
+                                                                    String tenantDomain) throws FrameworkException {
 
-        LocalAuthenticatorConfig[] localAuthenticatorConfigs = new
-                LocalAuthenticatorConfig[localAuthConfigNames.size()];
-        for (int i = 0; i < localAuthConfigNames.size(); i++) {
-            localAuthenticatorConfigs[i] = ApplicationAuthenticatorService.getInstance().
-                    getLocalAuthenticatorByName(localAuthConfigNames.get(i));
+        try {
+            LocalAuthenticatorConfig[] localAuthenticatorConfigs = new
+                    LocalAuthenticatorConfig[localAuthConfigNames.size()];
+            for (int i = 0; i < localAuthConfigNames.size(); i++) {
+                localAuthenticatorConfigs[i] = ApplicationAuthenticatorService.getInstance()
+                        .getLocalAuthenticatorByName(localAuthConfigNames.get(i), tenantDomain);
+            }
+            return localAuthenticatorConfigs;
+        } catch (AuthenticatorMgtException e) {
+            throw new FrameworkException(String.format("Error while getting local authenticator " +
+                    "configs by name for tenant domain: %s", tenantDomain), e);
         }
-        return localAuthenticatorConfigs;
     }
 
     private IdentityProvider[] getFederatedIdPs(List<String> federatedIdPResourceIds, String tenantDomain)
             throws FrameworkException {
 
         IdentityProvider[] idPs = new IdentityProvider[federatedIdPResourceIds.size()];
-        IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         for (int i = 0; i < federatedIdPResourceIds.size(); i++) {
             try {
-                IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,
-                        false);
+                IdentityProvider idp = ApplicationAuthenticatorManager.getInstance().getSerializableIdPByResourceId(
+                        federatedIdPResourceIds.get(i), tenantDomain);
                 if (idp == null) {
                     throw new SessionDataStorageOptimizationClientException(
                             String.format("Cannot find the IdP by the resource Id: %s Tenant Domain: %s",
@@ -372,12 +377,10 @@ public class OptimizedApplicationConfig implements Serializable {
             throws FrameworkException {
 
         List<IdentityProvider> idPList = new ArrayList<>();
-        IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         for (OptimizedAuthStep.OptimizedFederatedIdP optimizedFederatedIdP : optimizedFederatedIdPs) {
             try {
-                IdentityProvider idPByResourceId = manager.getIdPByResourceId(optimizedFederatedIdP.getIdpResourceId(),
-                        tenantDomain, false);
+                IdentityProvider idPByResourceId = ApplicationAuthenticatorManager.getInstance()
+                        .getSerializableIdPByResourceId(optimizedFederatedIdP.getIdpResourceId(), tenantDomain);
                 if (idPByResourceId == null) {
                     throw new SessionDataStorageOptimizationClientException(
                             String.format("Cannot find the IdP by the resource Id: %s Tenant Domain: %s",

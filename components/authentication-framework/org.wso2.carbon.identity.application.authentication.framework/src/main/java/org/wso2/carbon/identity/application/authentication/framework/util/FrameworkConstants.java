@@ -34,6 +34,7 @@ public abstract class FrameworkConstants {
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
     public static final String ALLOW_SESSION_CREATION = "allowSessionCreation";
     public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
+    public static final String CUSTOM_AUTHENTICATOR_PREFIX = "custom-";
     // Cookie used for post authenticaion sequence tracking
     public static final String PASTR_COOKIE = "pastr";
     public static final String CLAIM_URI_WSO2_EXT_IDP = "http://wso2.org/claims/externalIDP";
@@ -265,6 +266,7 @@ public abstract class FrameworkConstants {
 
     // The constant to used as the attribute key or the property key of the federated tokens.
     public static final String FEDERATED_TOKENS = "federated_tokens";
+    public static final String IS_EXTERNAL_CALL = "IS_EXTERNAL_CALL";
 
     private FrameworkConstants() {
 
@@ -324,6 +326,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
                 "AuthenticationEndpointMissingClaimsURL";
+        public static final String V2 = "V2";
         public static final String QNAME_PROXY_MODE = "ProxyMode";
         public static final String QNAME_MAX_LOGIN_ATTEMPT_COUNT = "MaxLoginAttemptCount";
         public static final String QNAME_EXTENSIONS = "Extensions";

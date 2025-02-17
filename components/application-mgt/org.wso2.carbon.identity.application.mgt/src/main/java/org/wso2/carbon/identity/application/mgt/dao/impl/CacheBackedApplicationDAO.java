@@ -563,6 +563,14 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         return trustedApps;
     }
 
+    @Override
+    public void updateApplicationLocalAndOutboundAuthConfig(ServiceProvider serviceProvider, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        clearAllAppCache(serviceProvider, tenantDomain);
+        appDAO.updateApplicationLocalAndOutboundAuthConfig(serviceProvider, tenantDomain);
+    }
+
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) {
 
         if (log.isDebugEnabled()) {

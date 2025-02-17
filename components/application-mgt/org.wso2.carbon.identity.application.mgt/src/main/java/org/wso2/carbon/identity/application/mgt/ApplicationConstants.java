@@ -75,6 +75,7 @@ public class ApplicationConstants {
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
     public static final String IS_FRAGMENT_APP = "isFragmentApp";
+    public static final String DEFAULT_BACKCHANNEL_LOGOUT_URL = "/identity/oidc/slo";
 
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String MY_SQL = "MySQL";
@@ -219,6 +220,11 @@ public class ApplicationConstants {
         public static final String POLICY_ID = "POLICY_ID";
         public static final String SCOPE_NAME = "SCOPE_NAME";
         public static final String MAIN_APP_ID = "MAIN_APP_ID";
+
+        public static final String AUTHORIZATION_DETAILS_ID = "AUTHORIZATION_DETAILS_ID";
+        public static final String AUTHORIZATION_DETAILS_TYPE = "AUTHORIZATION_DETAILS_TYPE";
+        public static final String AUTHORIZATION_DETAILS_NAME = "AUTHORIZATION_DETAILS_NAME";
+        public static final String AUTHORIZATION_DETAILS_SCHEMA = "AUTHORIZATION_DETAILS_SCHEMA";
 
         private ApplicationTableColumns() {
 

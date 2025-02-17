@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
-~ Copyright (c) 2019-2024, WSO2 LLC. (http://www.wso2.com).
+~ Copyright (c) 2019-2025, WSO2 LLC. (http://www.wso2.com).
 ~
 ~ WSO2 LLC. licenses this file to you under the Apache License,
 ~ Version 2.0 (the "License"); you may not use this file except
@@ -66,6 +66,7 @@
             <UserSessionMapping>
                 <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
             </UserSessionMapping>
+            <CheckExistingEntryForDeleteOperationInsert>{{session_data.session_data_persist.check_existing_entry_for_delete_operation_insert}}</CheckExistingEntryForDeleteOperationInsert>
         </SessionDataPersist>
         <PushedAuthReqCleanUp>
             <Enable>{{par.cleanup.enable_expired_requests_cleanup}}</Enable>
@@ -86,20 +87,14 @@
     -->
     <DataStorageType>
         <NotificationTemplates>{{data_storage_type.notification_templates}}</NotificationTemplates>
+        <SAML>{{data_storage_type.saml}}</SAML>
         <XACML>{{data_storage_type.xacml}}</XACML>
+        <CertificateValidation>{{data_storage_type.certificate_validation}}</CertificateValidation>
+        <AdminAdvisoryBanner>{{data_storage_type.admin_advisory_banner}}</AdminAdvisoryBanner>
+        <RemoteLoggingConfig>{{data_storage_type.remote_logging_config}}</RemoteLoggingConfig>
     </DataStorageType>
 
     <NotificationTemplates>
-        <LegacyTenants>
-            {% for tenant in notification_templates.legacy_tenants %}
-            <Tenant>{{tenant}}</Tenant>
-            {% endfor %}
-        </LegacyTenants>
-        <DebugTenants>
-            {% for tenant in notification_templates.debug_tenants %}
-            <Tenant>{{tenant}}</Tenant>
-            {% endfor %}
-        </DebugTenants>
         <SMSTemplates>
             <Apply>{{notification_templates.sms_templates.apply}}</Apply>
         </SMSTemplates>
@@ -797,9 +792,6 @@
         {% if oauth.scope_validator.jdbc.enable %}
             <ScopeValidator class="{{oauth.scope_validator.jdbc.class}}" />
         {% endif %}
-        {% if oauth.scope_validator.xacml.enable %}
-            <ScopeValidator class="{{oauth.scope_validator.xacml.class}}"/>
-        {% endif %}
         {% for scope_validator in oauth.custom_scope_validator %}
             <ScopeValidator class="{{scope_validator.class}}" />
         {% endfor %}
@@ -965,6 +957,7 @@
             <UserInfoEndpointRequestValidator>{{oauth.oidc.extensions.user_info_request_validator}}</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>{{oauth.oidc.extensions.user_info_access_token_validator}}</UserInfoEndpointAccessTokenValidator>
             <UserInfoMultiValueSupportEnabled>{{oauth.oidc.user_info.enable_multi_value_support}}</UserInfoMultiValueSupportEnabled>
+            <UserInfoRemoveInternalPrefixFromRoles>{{oauth.oidc.user_info.remove_internal_prefix_from_roles}}</UserInfoRemoveInternalPrefixFromRoles>
             {% if oauth.oidc.extensions.user_info_response_builder is defined %}
             <UserInfoEndpointResponseBuilder>{{oauth.oidc.extensions.user_info_response_builder}}</UserInfoEndpointResponseBuilder>
             {% else %}
@@ -1255,6 +1248,15 @@
         </AllowedScopes>
         {% endif %}
 
+        % if oauth.default_requested_scopes is defined %}
+        <!-- Configuration to pass a list of default requested scopes. -->
+        <DefaultRequestedScopes>
+            {%for scope in oauth.default_requested_scopes%}
+            <Scope>{{scope}}</Scope>
+            {% endfor %}
+        </DefaultRequestedScopes>
+        {% endif %}
+
         {% if oauth.drop_unregistered_scopes is defined %}
         <!--
         By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
@@ -1334,6 +1336,13 @@
         </RestrictedQueryParameters>
 
         <AuthorizeAllScopes>{{oauth.authorize_all_scopes}}</AuthorizeAllScopes>
+
+        <!--
+            When this configuration is enabled, the system supports the features defined in RFC9396,
+            allowing rich authorization requests to be processed.
+            Default value : false
+        -->
+        <EnableRichAuthorizationRequests>{{oauth.enable_rich_authorization_requests}}</EnableRichAuthorizationRequests>
     </OAuth>
 
     <RestApiAuthentication>
@@ -1415,6 +1424,7 @@
         {% if saml.separate_multi_attributes_from_idp is defined %}
             <SeparateMultiAttributesFromIdP>{{saml.separate_multi_attributes_from_idp}}</SeparateMultiAttributesFromIdP>
         {% endif %}
+        <ReturnValidNameIDFormat>{{saml.return_valid_name_id_format}}</ReturnValidNameIDFormat>
     </SSOService>
 
     <Consent>
@@ -1909,6 +1919,7 @@
         <UniquenessValidation>
             <ScopeWithinUserstore>{{identity_mgt.user_claim_update.uniqueness.scope_within_userstore}}</ScopeWithinUserstore>
         </UniquenessValidation>
+        <AllowedAttributeProfiles>{{identity_mgt.user_claim_update.allowed_attribute_profiles}}</AllowedAttributeProfiles>
     </UserClaimUpdate>
 
      <AccountSuspension>
@@ -2019,6 +2030,7 @@
 
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
+        <AutofillUsernameFieldWithSubjectAttribute>{{authentication.jit_provisioning.autofill_username_field_with_subject_attribute}}</AutofillUsernameFieldWithSubjectAttribute>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
         <FailAuthnOnProvisionFailure>{{authentication.jit_provisioning.fail_authn_on_provision_failure}}</FailAuthnOnProvisionFailure>
         <SkipUsernamePatternValidation>{{authentication.jit_provisioning.skip_username_pattern_validation}}</SkipUsernamePatternValidation>
@@ -2119,7 +2131,7 @@
                 </ActionRequest>
             </PreIssueAccessToken>
             <Authentication>
-                <Enable>{{actions.authentication.enable}}</Enable>
+                <Enable>{{actions.types.authentication.enable}}</Enable>
                 <ActionRequest>
                     <ExcludedHeaders>
                          {% for header in actions.types.authentication.action_request.excluded_headers %}
@@ -2169,6 +2181,11 @@
                        name="org.wso2.carbon.identity.scim2.common.listener.SCIMTenantMgtListener"
                        orderId="{{event.default_listener.scim2_tenant_mgt.priority}}"
                        enable="{{event.default_listener.scim2_tenant_mgt.enable}}"/>
+        <EventListener id="pre_update_password_action"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       orderId="{{event.default_listener.pre_update_password_action.priority}}"
+                       enable="{{event.default_listener.pre_update_password_action.enable}}"/>
         <EventListener id="governance_identity_mgt"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
@@ -2225,6 +2242,13 @@
                        name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
                        orderId="{{event.default_listener.basic_auth_client_authenticator.priority}}"
                        enable="{{event.default_listener.basic_auth_client_authenticator.enable}}"/>
+
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
+                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
+                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener id="user_deletion"
@@ -2362,6 +2386,11 @@
                        name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserOperationEventListener"
                        orderId="{{event.default_listener.organization_user_association_listener.priority}}"
                        enable="{{event.default_listener.organization_user_association_listener.enable}}"/>
+        <EventListener id="shared_user_profile_update_governance_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.organization.management.organization.user.sharing.listener.SharedUserProfileUpdateGovernanceEventListener"
+                       orderId="{{event.default_listener.shared_user_profile_update_governance_listener.priority}}"
+                       enable="{{event.default_listener.shared_user_profile_update_governance_listener.enable}}"/>
 
         <!-- Role based outbound provision management Event Listener -->
                 <EventListener id="provisioning_role_mgt_listener"
@@ -2391,6 +2420,13 @@
                        orderId="{{event.default_listener.basic_user_info_provider.priority}}"
                        enable="{{event.default_listener.basic_user_info_provider.enable}}">
         </EventListener>
+
+        <!-- User Identity Verification Event Listener -->
+        <EventListener id="identity_verification_event_listener"
+                       type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.extension.identity.verification.mgt.listeners.IdVUserOperationEventListener"
+                       orderId="{{event.default_listener.identity_verification_event_listener.priority}}"
+                       enable="{{event.default_listener.identity_verification_event_listener.enable}}"/>
 
         <!-- Custom Event Listeners -->
         {% for listener in event_listener %}
@@ -2582,6 +2618,16 @@
                    enable="{{cache.private_key_jwt.enable}}"
                    timeout="{{cache.private_key_jwt.timeout}}"
                    capacity="{{cache.private_key_jwt.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_auth_context_cache" name="PushAuthContextCache"
+                   enable="{{cache.push_auth_context_cache.enable}}"
+                   timeout="{{cache.push_auth_context_cache.timeout}}"
+                   capacity="{{cache.push_auth_context_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_auth_status_cache" name="PushAuthStatusCache"
+                   enable="{{cache.push_auth_status_cache.enable}}"
+                   timeout="{{cache.push_auth_status_cache_cache.timeout}}"
+                   capacity="{{cache.push_auth_status_cache_cache.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
@@ -3709,6 +3755,8 @@
         <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
         <Resource context="(.*)/.well-known/trusted-apps/android" secured="false" http-method="GET"/>
         <Resource context="(.*)/.well-known/trusted-apps/ios" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/check-status(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/push-auth/authenticate" secured="false" http-method="POST"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -3795,6 +3843,26 @@
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
+    <OrgContextsToRewriteInTenantPerspective>
+        <WebApp>
+            <Context>
+                <BasePath>/api/</BasePath>
+                <SubPaths>
+                    <Path>/api/identity/oauth2/dcr/</Path>
+                </SubPaths>
+            </Context>
+            <Context>
+                <BasePath>/oauth2/</BasePath>
+                <SubPaths>
+                    <Path>/oauth2/token</Path>
+                    <Path>/oauth2/introspect</Path>
+                    <Path>/oauth2/revoke</Path>
+                    <Path>/oauth2/userinfo</Path>
+                </SubPaths>
+            </Context>
+        </WebApp>
+    </OrgContextsToRewriteInTenantPerspective>
+
     <OrgContextsToRewrite>
         <WebApp>
         {% for organization_context in organization_context.rewrite %}
@@ -3819,6 +3887,7 @@
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/me/push/devices</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -3842,8 +3911,10 @@
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
             <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 
@@ -4458,5 +4529,30 @@
         </PolicyEditorService>
         {% endif %}
     </AdminServices>
+
+    <AIServices>
+        <TokenEndpoint>{{ai_services.token_endpoint}}</TokenEndpoint>
+        <Key>{{ai_services.key}}</Key>
+        <TokenRequestRetryCount>{{ai_services.token_request_retry_count}}</TokenRequestRetryCount>
+        <TokenConnectionTimeout>{{ai_services.token_connection_timeout}}</TokenConnectionTimeout>
+        <TokenConnectionRequestTimeout>{{ai_services.token_connection_request_timeout}}</TokenConnectionRequestTimeout>
+        <TokenConnectionSocketTimeout>{{ai_services.token_connection_socket_timeout}}</TokenConnectionSocketTimeout>
+        <HTTPConnectionPoolSize>{{ai_services.http_connection_pool_size}}</HTTPConnectionPoolSize>
+        <HTTPConnectionTimeout>{{ai_services.http_connection_timeout}}</HTTPConnectionTimeout>
+        <HTTPConnectionRequestTimeout>{{ai_services.http_connection_request_timeout}}</HTTPConnectionRequestTimeout>
+        <HTTPSocketTimeout>{{ai_services.http_socket_timeout}}</HTTPSocketTimeout>
+        <LoginFlowAI>
+            <LoginFlowAIEndpoint>{{ai_services.login_flow_ai.endpoint}}</LoginFlowAIEndpoint>
+            <LoginFlowAIGenerateRequestPath>{{ai_services.login_flow_ai.generate_request_path}}</LoginFlowAIGenerateRequestPath>
+            <LoginFlowAIStatusRequestPath>{{ai_services.login_flow_ai.status_request_path}}</LoginFlowAIStatusRequestPath>
+            <LoginFlowAIResultRequestPath>{{ai_services.login_flow_ai.result_request_path}}</LoginFlowAIResultRequestPath>
+        </LoginFlowAI>
+        <BrandingAI>
+            <BrandingAIEndpoint>{{ai_services.branding_ai.endpoint}}</BrandingAIEndpoint>
+            <BrandingAIGenerateRequestPath>{{ai_services.branding_ai.generate_request_path}}</BrandingAIGenerateRequestPath>
+            <BrandingAIStatusRequestPath>{{ai_services.branding_ai.status_request_path}}</BrandingAIStatusRequestPath>
+            <BrandingAIResultRequestPath>{{ai_services.branding_ai.result_request_path}}</BrandingAIResultRequestPath>
+        </BrandingAI>
+    </AIServices>
 
 </Server>

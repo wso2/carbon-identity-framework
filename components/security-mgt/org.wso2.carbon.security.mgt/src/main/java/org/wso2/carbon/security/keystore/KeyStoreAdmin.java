@@ -58,6 +58,7 @@ import java.security.cert.X509Certificate;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -141,12 +142,25 @@ public class KeyStoreAdmin {
     public void addKeyStore(byte[] content, String filename, String password, String provider,
                             String type, String pvtkeyPass) throws SecurityConfigException {
 
+        char[] passwordChar = new char[0];
+        char[] privateKeyPasswordChar = new char[0];
         try {
-            keyStoreManager.addKeyStore(content, filename, password, provider, type, pvtkeyPass);
+            if (password == null) {
+                throw new SecurityException("Key store password can't be null");
+            }
+
+            passwordChar = password.toCharArray();
+            if (pvtkeyPass != null) {
+                privateKeyPasswordChar = pvtkeyPass.toCharArray();
+            }
+            keyStoreManager.addKeyStore(content, filename, passwordChar, provider, type, privateKeyPasswordChar);
         } catch (SecurityException e) {
             String msg = "Error when adding a keyStore";
             log.error(msg, e);
             throw new SecurityConfigException(msg, e);
+        } finally {
+            Arrays.fill(passwordChar, '\0');
+            Arrays.fill(privateKeyPasswordChar, '\0');
         }
     }
 

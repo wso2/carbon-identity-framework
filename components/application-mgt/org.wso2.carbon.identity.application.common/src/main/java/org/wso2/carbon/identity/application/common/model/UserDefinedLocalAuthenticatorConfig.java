@@ -31,6 +31,8 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
 
     private AuthenticationType authenticationType;
     private UserDefinedAuthenticatorEndpointConfig endpointConfig;
+    private String imageUrl;
+    private String description;
 
     public UserDefinedLocalAuthenticatorConfig(AuthenticationType type) {
 
@@ -81,5 +83,45 @@ public class UserDefinedLocalAuthenticatorConfig extends LocalAuthenticatorConfi
     public void setAuthenticationType(AuthenticationType authenticationType) {
 
         this.authenticationType = authenticationType;
+    }
+
+    /**
+     * Get the image url of the local authenticator config.
+     *
+     * @return Image
+     */
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    /**
+     * Set the image url of the local authenticator config.
+     *
+     * @param imageUrl The image of the local authenticator config.
+     */
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    /**
+     * Get the description of the local authenticator config.
+     *
+     * @return Description
+     */
+    public String getDescription() {
+
+        return description;
+    }
+
+    /**
+     * Set the description of the local authenticator config.
+     *
+     * @param description The description of the local authenticator config.
+     */
+    public void setDescription(String description) {
+
+        this.description = description;
     }
 }

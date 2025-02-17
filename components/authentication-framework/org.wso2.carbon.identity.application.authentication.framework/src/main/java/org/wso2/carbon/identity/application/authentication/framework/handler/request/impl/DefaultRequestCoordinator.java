@@ -97,7 +97,6 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ERROR_DESCRIPTION_APP_DISABLED;
@@ -396,8 +395,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, responseWrapper, context);
-                    // Adding spIp param to the redirect URL if the authenticator is not the organization authenticator.
-                    if (!ORGANIZATION_AUTHENTICATOR.equals(request.getParameter(AUTHENTICATOR))) {
+
+                    // Adding spId param to the redirect URL if it is not an external system call.
+                    boolean isExternalCall = Boolean.TRUE.equals(
+                            request.getAttribute(FrameworkConstants.IS_EXTERNAL_CALL));
+                    if (!isExternalCall) {
                         addServiceProviderIdToRedirectUrl(responseWrapper, context);
                     }
                 } else {
