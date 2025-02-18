@@ -985,8 +985,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         context.setSubject(authenticatedUser);
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Already authenticated by username: " +
-                                    authenticatedUser.getAuthenticatedSubjectIdentifier());
+                            try {
+                                String userId = authenticatedUser.getUserId();
+                                log.debug("Already authenticated by userId: " + userId);
+                            } catch (UserIdNotFoundException e) {
+                                log.error("Error while getting the user ID from the authenticated user.");
+                            }
                         }
 
                         if (authenticatedUserTenantDomain != null) {
