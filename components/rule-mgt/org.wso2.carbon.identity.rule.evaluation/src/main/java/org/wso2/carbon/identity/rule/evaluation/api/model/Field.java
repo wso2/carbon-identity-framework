@@ -16,30 +16,30 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.model;
+package org.wso2.carbon.identity.rule.evaluation.api.model;
 
 /**
- * Rule evaluation result.
- * This class is used to represent the result of a rule evaluation.
+ * Field model.
+ * This class represents a field in a rule.
  */
-public class RuleEvaluationResult {
+public class Field {
 
-    private final String ruleId;
-    private final boolean ruleSatisfied;
+    private final String name;
+    private final ValueType valueType;
 
-    public RuleEvaluationResult(String ruleId, boolean ruleSatisfied) {
+    public Field(String name, ValueType valueType) {
 
-        this.ruleId = ruleId;
-        this.ruleSatisfied = ruleSatisfied;
+        this.name = name;
+        this.valueType = valueType;
     }
 
-    public String getRuleId() {
+    public String getName() {
 
-        return ruleId;
+        return name;
     }
 
-    public boolean isRuleSatisfied() {
+    public ValueType getValueType() {
 
-        return ruleSatisfied;
+        return valueType;
     }
 }

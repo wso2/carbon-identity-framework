@@ -84,16 +84,12 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.rule.evaluation.internal,
-                            org.wso2.carbon.identity.rule.evaluation.core,
-                            org.wso2.carbon.identity.rule.evaluation.service.impl,
+                            org.wso2.carbon.identity.rule.evaluation.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.rule.evaluation.internal,
-                            !org.wso2.carbon.identity.rule.evaluation.core,
-                            !org.wso2.carbon.identity.rule.evaluation.service.impl,
-                            org.wso2.carbon.identity.rule.evaluation.*;
-                            version="${carbon.identity.package.export.version}",
+                            !org.wso2.carbon.identity.rule.evaluation.internal.*,
+                            org.wso2.carbon.identity.rule.evaluation.api.*;
+                            version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",

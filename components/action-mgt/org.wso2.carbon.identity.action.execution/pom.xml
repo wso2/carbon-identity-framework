@@ -98,7 +98,7 @@
                         <Import-Package>
                             org.wso2.carbon.identity.action.management.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.evaluation.*;
+                            org.wso2.carbon.identity.rule.evaluation.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",

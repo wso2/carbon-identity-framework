@@ -16,31 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.model;
-
-import java.util.List;
+package org.wso2.carbon.identity.rule.evaluation.api.exception;
 
 /**
- * Rule evaluation context model.
- * This class represents the context of a rule evaluation.
+ * Rule evaluation data provider exception.
+ * This exception is thrown when an error occurs while retrieving evaluation data from rule data provider.
  */
-public class RuleEvaluationContext {
+public class RuleEvaluationDataProviderException extends RuleEvaluationException {
 
-    String ruleId;
-    List<Field> fields;
+    public RuleEvaluationDataProviderException(String message) {
 
-    public RuleEvaluationContext(String ruleId, List<Field> fields) {
-        this.ruleId = ruleId;
-        this.fields = fields;
+        super(message);
     }
 
-    public String getRuleId() {
+    public RuleEvaluationDataProviderException(String message, Throwable cause) {
 
-        return ruleId;
-    }
-
-    public List<Field> getFields() {
-
-        return fields;
+        super(message, cause);
     }
 }

@@ -16,10 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.core;
+package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
-import org.wso2.carbon.identity.rule.evaluation.internal.RuleEvaluationComponentServiceHolder;
-import org.wso2.carbon.identity.rule.evaluation.model.Operator;
+import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
+import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 import java.util.HashMap;

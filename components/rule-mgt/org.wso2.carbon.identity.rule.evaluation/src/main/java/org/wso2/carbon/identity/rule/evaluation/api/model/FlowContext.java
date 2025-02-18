@@ -16,30 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.model;
+package org.wso2.carbon.identity.rule.evaluation.api.model;
+
+import java.util.Map;
 
 /**
- * Field model.
- * This class represents a field in a rule.
+ * Flow context model.
+ * This class represents the context of a flow used at rule evaluation.
  */
-public class Field {
+public class FlowContext {
 
-    private final String name;
-    private final ValueType valueType;
+    private final FlowType flowType;
+    private final Map<String, Object> contextData;
 
-    public Field(String name, ValueType valueType) {
+    public FlowContext(FlowType flowType, Map<String, Object> contextData) {
 
-        this.name = name;
-        this.valueType = valueType;
+        this.flowType = flowType;
+        this.contextData = contextData;
     }
 
-    public String getName() {
+    public FlowType getFlowType() {
 
-        return name;
+        return flowType;
     }
 
-    public ValueType getValueType() {
+    public Map<String, Object> getContextData() {
 
-        return valueType;
+        return contextData;
     }
 }

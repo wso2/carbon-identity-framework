@@ -16,11 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.core;
+package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.model.Field;
-import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
+import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;

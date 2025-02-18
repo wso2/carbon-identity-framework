@@ -16,21 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.exception;
+package org.wso2.carbon.identity.rule.evaluation.api.model;
+
+import java.util.function.BiPredicate;
 
 /**
- * Rule evaluation exception.
- * This exception is thrown when an error occurs while evaluating a rule.
+ * Operator model.
+ * This class represents an operator used in a rule and its evaluation function.
  */
-public class RuleEvaluationException extends Exception {
+public class Operator {
 
-    public RuleEvaluationException(String message) {
+    private final String name;
+    private final BiPredicate<Object, Object> predicate;
 
-        super(message);
+    public Operator(String name, BiPredicate<Object, Object> predicate) {
+
+        this.name = name;
+        this.predicate = predicate;
     }
 
-    public RuleEvaluationException(String message, Throwable cause) {
+    public boolean apply(Object fieldValue, Object expectedValue) {
 
-        super(message, cause);
+        return predicate.test(fieldValue, expectedValue);
+    }
+
+    public String getName() {
+
+        return name;
     }
 }

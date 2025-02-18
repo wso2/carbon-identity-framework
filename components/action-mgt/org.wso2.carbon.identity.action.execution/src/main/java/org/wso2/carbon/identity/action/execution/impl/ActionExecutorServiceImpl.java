@@ -64,9 +64,9 @@ import org.wso2.carbon.identity.action.management.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.model.Authentication;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.ThreadLocalAwareExecutors;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -319,7 +319,7 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             RuleEvaluationResult ruleEvaluationResult =
                     ActionExecutionServiceComponentHolder.getInstance().getRuleEvaluationService()
                             .evaluate(action.getActionRule().getId(),
-                                    new org.wso2.carbon.identity.rule.evaluation.model.FlowContext(
+                                    new org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext(
                                             FlowType.valueOf(action.getType().getActionType()),
                                             flowContext.getContextData()), tenantDomain);
 

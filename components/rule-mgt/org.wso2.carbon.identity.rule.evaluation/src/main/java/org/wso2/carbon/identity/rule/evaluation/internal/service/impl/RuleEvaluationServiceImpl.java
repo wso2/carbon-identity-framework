@@ -16,22 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.service.impl;
+package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.rule.evaluation.core.FieldExtractor;
-import org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluationDataManager;
-import org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluator;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.internal.RuleEvaluationComponentServiceHolder;
-import org.wso2.carbon.identity.rule.evaluation.model.Field;
-import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationResult;
-import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
+import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
 import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
