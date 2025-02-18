@@ -576,13 +576,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain,
                         context.getLoginTenantDomain());
                 // Since the session context is already available, audit log will be added with updated details.
-                addAuditLogs(SessionMgtConstants.UPDATE_SESSION_ACTION,
-                        authenticationResult.getSubject().getUserStoreDomain() +
-                                UserCoreConstants.DOMAIN_SEPARATOR +
-                                authenticationResult.getSubject().getUserName(), sessionContextKey,
-                        authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
-                        updatedSessionTime, sessionContext.isRememberMe(),
-                        authenticationResult.getSubject().isFederatedUser());
+                addAuditLogs(SessionMgtConstants.UPDATE_SESSION_ACTION, authenticationResult.getSubject(),
+                        sessionContextKey, FrameworkUtils.getCorrelation(),
+                        updatedSessionTime, sessionContext.isRememberMe());
             } else {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_CREATE;
                 sessionContext = new SessionContext();
@@ -628,12 +624,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // The session context will be stored from here. Since the audit log will be logged as a storing
                 // operation.
                 addAuditLogs(SessionMgtConstants.STORE_SESSION_ACTION,
-                        authenticationResult.getSubject().getUserStoreDomain() +
-                                UserCoreConstants.DOMAIN_SEPARATOR +
-                                authenticationResult.getSubject().getUserName(), sessionContextKey,
-                        authenticationResult.getSubject().getTenantDomain(), FrameworkUtils.getCorrelation(),
-                        createdTimeMillis, sessionContext.isRememberMe(),
-                        authenticationResult.getSubject().isFederatedUser());
+                        authenticationResult.getSubject(), sessionContextKey, FrameworkUtils.getCorrelation(),
+                        createdTimeMillis, sessionContext.isRememberMe());
                 if (request.getAttribute(ALLOW_SESSION_CREATION) == null
                         || Boolean.parseBoolean(request.getAttribute(ALLOW_SESSION_CREATION).toString())) {
                     setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
@@ -1232,10 +1224,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         sessionContext.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
     }
 
-    private void addAuditLogs(String sessionAction, String authenticatedUser, String sessionKey,
-                              String userTenantDomain, String traceId, Long lastAccessedTimestamp,
-                              boolean isRememberMe, boolean isFederated) {
+    private void addAuditLogs(String sessionAction, AuthenticatedUser authenticatedUser, String sessionKey,
+                              String traceId, Long lastAccessedTimestamp, boolean isRememberMe) {
 
+        String userTenantDomain = authenticatedUser.getTenantDomain();
+        String username = authenticatedUser.getUserStoreDomain() +
+                UserCoreConstants.DOMAIN_SEPARATOR + authenticatedUser.getUserName();
+        boolean isFederated = authenticatedUser.isFederatedUser();
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
         auditData.put(SessionMgtConstants.REMEMBER_ME, isRememberMe);
@@ -1244,21 +1239,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         String initiator = null;
         if (LoggerUtils.isLogMaskingEnable) {
-            String maskedUsername = LoggerUtils.getMaskedContent(authenticatedUser);
+            String maskedUsername = LoggerUtils.getMaskedContent(username);
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, maskedUsername);
             /* Not resolving the initiatorId for federated users since the subject returned from the external IDP
              * is set as the username during federated logins. Therefore, the initiatorId will be set as the masked
              * username for federated users.
              */
-            if (!isFederated && StringUtils.isNotBlank(authenticatedUser) && StringUtils.isNotBlank(userTenantDomain)) {
-                initiator = IdentityUtil.getInitiatorId(authenticatedUser, userTenantDomain);
+            if (!isFederated && StringUtils.isNotBlank(username) && StringUtils.isNotBlank(userTenantDomain)) {
+                initiator = IdentityUtil.getInitiatorId(username, userTenantDomain);
             }
             if (StringUtils.isBlank(initiator)) {
                 initiator = maskedUsername;
             }
         } else {
-            auditData.put(SessionMgtConstants.AUTHENTICATED_USER, authenticatedUser);
-            initiator = authenticatedUser;
+            auditData.put(SessionMgtConstants.AUTHENTICATED_USER, username);
+            initiator = username;
         }
         /* When the action is StoreSession, the LastAccessedTimestamp means the session created timestamp. If the
          action is UpdateSession, the LastAccessedTimestamp means the session's last accessed timestamp. */
