@@ -28,18 +28,18 @@ public class AsyncStatusMgtServiceComponent {
         LOGGER.info("Async Status Mgt Component is activated");
         asyncStatusMgtService.test("B2B App Share");
 
-        SharingOperationDO sharingOperationDO = new SharingOperationDO();
-        sharingOperationDO.setOperationType(OperationType.SHARE.toString());
-        sharingOperationDO.setResidentResourceId("resourceId");
-        sharingOperationDO.setResourceType(ResourceType.B2B_APPLICATION);
-        sharingOperationDO.setSharingPolicy("policy");
-        sharingOperationDO.setResidentOrganizationId("orgId");
-        sharingOperationDO.setInitiatorId("initiatorId");
-        sharingOperationDO.setOperationStatus("status");
+//        SharingOperationDO sharingOperationDO = new SharingOperationDO();
+//        sharingOperationDO.setOperationType(OperationType.SHARE.toString());
+//        sharingOperationDO.setResidentResourceId("resourceId");
+//        sharingOperationDO.setResourceType(ResourceType.B2B_APPLICATION);
+//        sharingOperationDO.setSharingPolicy("policy");
+//        sharingOperationDO.setResidentOrganizationId("orgId");
+//        sharingOperationDO.setInitiatorId("initiatorId");
+//        sharingOperationDO.setOperationStatus("status");
 
         LOGGER.info("SharingOperationDO created.");
 
-        asyncStatusMgtService.processB2BAsyncOperationStatus(sharingOperationDO);
+//        asyncStatusMgtService.processB2BAsyncOperationStatus(sharingOperationDO);
     }
 
     @Deactivate

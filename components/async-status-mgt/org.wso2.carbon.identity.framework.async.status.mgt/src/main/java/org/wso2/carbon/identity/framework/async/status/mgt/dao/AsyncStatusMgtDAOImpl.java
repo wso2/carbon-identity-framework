@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
-import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.framework.async.status.mgt.internal.AsyncStatusMgtServiceComponent;
 
@@ -29,7 +27,6 @@ import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants.CREATE_B2B_RESOURCE_SHARING_OPERATION;
-import static org.wso2.carbon.identity.organization.management.service.util.Utils.getNewTemplate;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 /**
