@@ -77,6 +77,8 @@ public class ActionExecutorConfig {
         switch (actionType) {
             case PRE_ISSUE_ACCESS_TOKEN:
                 return isActionTypeEnabled(ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getActionTypeEnableProperty());
+            case AUTHENTICATION:
+                return isActionTypeEnabled(ActionTypeConfig.AUTHENTICATION.getActionTypeEnableProperty());
             default:
                 return false;
         }
@@ -326,12 +328,17 @@ public class ActionExecutorConfig {
     /**
      * Enum to hold the configuration properties for each action type.
      */
-    private static enum ActionTypeConfig {
+    private enum ActionTypeConfig {
         PRE_ISSUE_ACCESS_TOKEN("Actions.Types.PreIssueAccessToken.Enable",
                 "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header",
                 "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header",
-                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter");
+                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter"),
+        AUTHENTICATION("Actions.Types.Authentication.Enable",
+                "Actions.Types.Authentication.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.Authentication.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.Authentication.ActionRequest.AllowedHeaders.Header",
+                "Actions.Types.Authentication.ActionRequest.AllowedParameters.Parameter");
 
         private final String actionTypeEnableProperty;
         private final String excludedHeadersProperty;
