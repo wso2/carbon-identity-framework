@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.action.execution.util;
 import org.apache.http.client.methods.HttpPost;
 import org.wso2.carbon.identity.action.execution.ActionExecutionLogConstants;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
-import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.utils.DiagnosticLog;
 

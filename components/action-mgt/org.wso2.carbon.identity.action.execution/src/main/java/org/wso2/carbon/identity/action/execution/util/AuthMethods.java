@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.action.execution.util;
 
 import org.apache.http.client.methods.HttpPost;
-import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

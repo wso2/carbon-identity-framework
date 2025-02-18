@@ -98,9 +98,10 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.rule.management.internal.*,
-                            org.wso2.carbon.identity.rule.management.api.*,
-                            org.wso2.carbon.identity.rule.management.core.*;
+                            org.wso2.carbon.identity.rule.management.api.*;
                             version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.rule.management.core.*;
+                            version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",

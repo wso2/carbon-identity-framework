@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.action.execution.internal;
 
-import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
 /**
