@@ -47,7 +47,7 @@ public interface ActionExecutorService {
      * @return {@link ActionExecutionStatus} The status of the action execution and the response context
      * @throws ActionExecutionException If an error occurs while executing the action
      */
-    ActionExecutionStatus<?> execute(ActionType actionType, FlowContext flowContext, String tenantDomain)
+    ActionExecutionStatus execute(ActionType actionType, FlowContext flowContext, String tenantDomain)
             throws ActionExecutionException;
 
     /**
@@ -60,6 +60,6 @@ public interface ActionExecutorService {
      * @return {@link ActionExecutionStatus} The status of the action execution and the response context
      * @throws ActionExecutionException If an error occurs while executing the action
      */
-    ActionExecutionStatus<?> execute(ActionType actionType, String actionId,
+    ActionExecutionStatus execute(ActionType actionType, String actionId,
                                   FlowContext flowContext, String tenantDomain) throws ActionExecutionException;
 }
