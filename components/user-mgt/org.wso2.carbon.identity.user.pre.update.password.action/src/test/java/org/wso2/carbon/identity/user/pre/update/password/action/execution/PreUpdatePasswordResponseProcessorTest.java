@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.user.pre.update.password.action.execution;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionResponseProcessorException;
+import org.wso2.carbon.identity.action.execution.model.ActionExecutionResponseContext;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationErrorResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationFailureResponse;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Error;
 import org.wso2.carbon.identity.action.execution.model.Event;
 import org.wso2.carbon.identity.action.execution.model.Failure;
+import org.wso2.carbon.identity.action.execution.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 import org.wso2.carbon.identity.action.execution.model.Success;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
@@ -66,23 +68,21 @@ public class PreUpdatePasswordResponseProcessorTest {
     @Test
     public void testProcessSuccessResponse() {
 
-        Map<String, Object> eventContext = new HashMap<>();
-        eventContext.put(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, mock(UserActionContext.class));
-        eventContext.put("action", mock(PreUpdatePasswordAction.class));
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, mock(UserActionContext.class));
         Event mockEvent = mock(Event.class);
         ActionInvocationSuccessResponse successResponse = new ActionInvocationSuccessResponse.Builder()
                 .actionStatus(ActionInvocationResponse.Status.SUCCESS)
                 .responseData(mock(ResponseData.class))
                 .build();
 
-        ActionExecutionStatus<Success> resultStatus = responseProcessor.processSuccessResponse(eventContext, mockEvent,
-                successResponse);
+        ActionExecutionStatus<Success> resultStatus = responseProcessor.processSuccessResponse(flowContext,
+                ActionExecutionResponseContext.create(mockEvent, successResponse));
 
         assertNotNull(resultStatus);
         assertEquals(resultStatus.getStatus(), ActionExecutionStatus.Status.SUCCESS);
         assertEquals(resultStatus.getResponseContext().get(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT),
-                eventContext.get(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT));
-        assertEquals(resultStatus.getResponseContext().get("action"), eventContext.get("action"));
+                flowContext.getContextData().get(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT));
     }
 
     @Test
