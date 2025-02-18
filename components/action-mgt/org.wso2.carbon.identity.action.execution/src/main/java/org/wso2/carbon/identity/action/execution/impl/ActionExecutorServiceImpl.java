@@ -70,7 +70,6 @@ import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -107,17 +106,10 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
         return ActionExecutorConfig.getInstance().isExecutionForActionTypeEnabled(actionType);
     }
 
-    /**
-     * Resolve the actions that need to be executed for the given action types and execute them.
-     *
-     * @param actionType   Action Type.
-     * @param eventContext The event context of the corresponding flow.
-     * @param tenantDomain Tenant domain.
-     * @return Action execution status.
-     */
     @Override
-    public ActionExecutionStatus<?> execute(ActionType actionType, Map<String, Object> eventContext,
-                                            String tenantDomain) throws ActionExecutionException {
+    public ActionExecutionStatus execute(ActionType actionType,
+                                         FlowContext flowContext,
+                                         String tenantDomain) throws ActionExecutionException {
 
         try {
             List<Action> actions = getActionsByActionType(actionType, tenantDomain);
@@ -125,56 +117,12 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
             // As of now only one action is allowed.
             Action action = actions.get(0);
 
-            FlowContext flowContext = FlowContext.create().add("action", action);
-            if (eventContext != null) {
-                eventContext.forEach(flowContext::add);
-            }
             return execute(action, flowContext, tenantDomain);
         } catch (ActionExecutionRuntimeException e) {
             LOG.debug("Skip executing actions for action type: " + actionType.name(), e);
             // Skip executing actions when no action available is considered as action execution being successful.
-            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
+            return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
         }
-    }
-
-    /**
-     * Resolve the action from given action id and execute it.
-     *
-     * @param actionType   Action Type.
-     * @param actionId     The action id of the action that need to be executed.
-     * @param eventContext The event context of the corresponding flow.
-     * @param tenantDomain Tenant domain.
-     * @return Action execution status.
-     */
-    @Override
-    public ActionExecutionStatus<?> execute(ActionType actionType, String actionId,
-                                            Map<String, Object> eventContext, String tenantDomain)
-            throws ActionExecutionException {
-
-        if (StringUtils.isBlank(actionId)) {
-            throw new ActionExecutionException("Action Id cannot be blank.");
-        }
-
-        Action action = getActionByActionId(actionType, actionId, tenantDomain);
-        try {
-            FlowContext flowContext = FlowContext.create().add("action", action);
-            if (eventContext != null) {
-                eventContext.forEach(flowContext::add);
-            }
-            return execute(action, flowContext, tenantDomain);
-        } catch (ActionExecutionRuntimeException e) {
-            LOG.debug("Skip executing action for action type: " + actionType.name(), e);
-            // Skip executing actions when no action available is considered as action execution being successful.
-            return new SuccessStatus.Builder().setResponseContext(eventContext).build();
-        }
-    }
-
-    @Override
-    public ActionExecutionStatus execute(ActionType actionType,
-                                         FlowContext flowContext,
-                                         String tenantDomain) throws ActionExecutionException {
-
-        return execute(actionType, flowContext.getContextData(), tenantDomain);
     }
 
     @Override
@@ -182,7 +130,18 @@ public class ActionExecutorServiceImpl implements ActionExecutorService {
                                          FlowContext flowContext,
                                          String tenantDomain) throws ActionExecutionException {
 
-        return execute(actionType, actionId, flowContext.getContextData(), tenantDomain);
+        if (StringUtils.isBlank(actionId)) {
+            throw new ActionExecutionException("Action Id cannot be blank.");
+        }
+
+        try {
+            Action action = getActionByActionId(actionType, actionId, tenantDomain);
+            return execute(action, flowContext, tenantDomain);
+        } catch (ActionExecutionRuntimeException e) {
+            LOG.debug("Skip executing action for action type: " + actionType.name(), e);
+            // Skip executing actions when no action available is considered as action execution being successful.
+            return new SuccessStatus.Builder().setResponseContext(flowContext.getContextData()).build();
+        }
     }
 
     private ActionExecutionStatus<?> execute(Action action, FlowContext flowContext, String tenantDomain)
