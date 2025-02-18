@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.rule.management.internal;
 
-import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 /**
  * Rule Management Component Service Holder.

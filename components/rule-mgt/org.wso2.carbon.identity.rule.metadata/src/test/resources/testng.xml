@@ -24,7 +24,7 @@
             <class name="org.wso2.carbon.identity.rule.metadata.config.OperatorConfigTest"/>
             <class name="org.wso2.carbon.identity.rule.metadata.config.FieldDefinitionConfigTest"/>
             <class name="org.wso2.carbon.identity.rule.metadata.config.FlowConfigTest"/>
-            <class name="org.wso2.carbon.identity.rule.metadata.config.RuleMetadataConfigFactory"/>
+            <class name="org.wso2.carbon.identity.rule.metadata.config.RuleMetadataConfigFactoryTest"/>
         </classes>
     </test>
     <test name="rule-metadata-provider-test">

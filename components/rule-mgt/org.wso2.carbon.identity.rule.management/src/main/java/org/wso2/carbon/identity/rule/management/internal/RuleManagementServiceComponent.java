@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
 import org.wso2.carbon.identity.rule.management.service.impl.RuleManagementServiceImpl;
-import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 /**
  * Rule Management Service Component.
