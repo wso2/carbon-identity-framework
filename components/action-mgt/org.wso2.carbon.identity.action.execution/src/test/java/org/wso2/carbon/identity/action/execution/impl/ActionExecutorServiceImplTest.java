@@ -81,7 +81,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -316,7 +315,7 @@ public class ActionExecutorServiceImplTest {
         when(actionManagementService.getActionByActionId(any(), any(), any())).thenReturn(action);
 
         ActionExecutionStatus actionExecutionStatus =
-                actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, new HashMap<>(), "tenantDomain");
+                actionExecutorService.execute(ActionType.PRE_ISSUE_ACCESS_TOKEN, FlowContext.create(), "tenantDomain");
         assertEquals(actionExecutionStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
 
         ActionExecutionStatus actionExecutionStatusWithActionIds = actionExecutorService.execute(

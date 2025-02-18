@@ -35,12 +35,8 @@ import org.wso2.carbon.identity.action.execution.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.model.ResponseData;
 import org.wso2.carbon.identity.action.execution.model.Success;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordResponseProcessor;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
@@ -88,9 +84,8 @@ public class PreUpdatePasswordResponseProcessorTest {
     @Test
     public void testProcessFailureResponse() throws ActionExecutionResponseProcessorException {
 
-        Map<String, Object> eventContext = new HashMap<>();
-        eventContext.put(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, mock(UserActionContext.class));
-        eventContext.put("action", mock(PreUpdatePasswordAction.class));
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, mock(UserActionContext.class));
         Event mockEvent = mock(Event.class);
         ActionInvocationFailureResponse failureResponse = new ActionInvocationFailureResponse.Builder()
                 .actionStatus(ActionInvocationResponse.Status.FAILED)
@@ -98,8 +93,8 @@ public class PreUpdatePasswordResponseProcessorTest {
                 .failureDescription("Compromised Password")
                 .build();
 
-        ActionExecutionStatus<Failure> resultStatus = responseProcessor.processFailureResponse(eventContext, mockEvent,
-                failureResponse);
+        ActionExecutionStatus<Failure> resultStatus = responseProcessor.processFailureResponse(flowContext,
+                ActionExecutionResponseContext.create(mockEvent, failureResponse));
 
         assertNotNull(resultStatus);
         assertEquals(resultStatus.getStatus(), ActionExecutionStatus.Status.FAILED);
@@ -111,9 +106,8 @@ public class PreUpdatePasswordResponseProcessorTest {
     @Test
     public void testProcessErrorResponse() throws ActionExecutionResponseProcessorException {
 
-        Map<String, Object> eventContext = new HashMap<>();
-        eventContext.put(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, mock(UserActionContext.class));
-        eventContext.put("action", mock(PreUpdatePasswordAction.class));
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, mock(UserActionContext.class));
         Event mockEvent = mock(Event.class);
         ActionInvocationErrorResponse errorResponse = new ActionInvocationErrorResponse.Builder()
                 .errorMessage("Internal server error")
@@ -121,8 +115,8 @@ public class PreUpdatePasswordResponseProcessorTest {
                 .actionStatus(ActionInvocationResponse.Status.ERROR)
                 .build();
 
-        ActionExecutionStatus<Error> resultStatus = responseProcessor.processErrorResponse(eventContext, mockEvent,
-                errorResponse);
+        ActionExecutionStatus<Error> resultStatus = responseProcessor.processErrorResponse(flowContext,
+                ActionExecutionResponseContext.create(mockEvent, errorResponse));
 
         assertNotNull(resultStatus);
         assertEquals(resultStatus.getStatus(), ActionExecutionStatus.Status.ERROR);

@@ -24,8 +24,6 @@ import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequestCon
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.FlowContext;
 
-import java.util.Map;
-
 /**
  * This interface defines the Action Execution Request Builder.
  * Action Execution Request Builder is the component that is responsible for building the Action Execution Request
@@ -35,18 +33,16 @@ public interface ActionExecutionRequestBuilder {
 
     ActionType getSupportedActionType();
 
-    default ActionExecutionRequest buildActionExecutionRequest(Map<String, Object> eventContext) throws
-            ActionExecutionRequestBuilderException {
-
-        throw new UnsupportedOperationException(
-                "The Action Execution Request Builder is not supported for the action type:" +
-                        getSupportedActionType());
-    }
-
-    default ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
+    /**
+     * Build the action execution request based on the flow context and the action execution context.
+     * The action execution request is the request that is sent to the http client invoking the action.
+     *
+     * @param flowContext            Flow context of the corresponding flow
+     * @param actionExecutionContext Action execution context of the corresponding action type.
+     * @return {@link ActionExecutionRequest} The action execution request
+     * @throws ActionExecutionRequestBuilderException If an error occurs while building the action execution request
+     */
+    ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
                                                                ActionExecutionRequestContext actionExecutionContext)
-            throws ActionExecutionRequestBuilderException {
-
-        return buildActionExecutionRequest(flowContext.getContextData());
-    }
+            throws ActionExecutionRequestBuilderException;
 }

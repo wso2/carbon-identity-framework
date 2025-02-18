@@ -23,8 +23,6 @@ import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.FlowContext;
 
-import java.util.Map;
-
 /**
  * This interface defines the Action Executor Service.
  * Action Executor Service is the component that is responsible for executing the action based on the action type
@@ -41,32 +39,6 @@ public interface ActionExecutorService {
     boolean isExecutionEnabled(ActionType actionType);
 
     /**
-     * Execute the action based on the action type and the event context.
-     *
-     * @param actionType   Action Type
-     * @param eventContext Context information required for the action execution.
-     * @param tenantDomain Tenant Domain
-     * @return {@link ActionExecutionStatus} The status of the action execution and the response context.
-     * @throws ActionExecutionException If an error occurs while executing the action.
-     */
-    ActionExecutionStatus execute(ActionType actionType, Map<String, Object> eventContext, String tenantDomain) throws
-            ActionExecutionException;
-
-    /**
-     * Resolve the action from given action id and execute it.
-     *
-     * @param actionType    Action Type.
-     * @param actionId      The action Id of the action that need to be executed.
-     * @param eventContext  The event context of the corresponding flow.
-     * @param tenantDomain  Tenant domain.
-     * @return {@link ActionExecutionStatus} The status of the action execution and the response context.
-     * @throws ActionExecutionException If an error occurs while executing the action.
-     */
-    ActionExecutionStatus execute(ActionType actionType, String actionId,
-                                            Map<String, Object> eventContext, String tenantDomain)
-            throws ActionExecutionException;
-
-    /**
      * Execute the action based on the action type and the flow context.
      *
      * @param actionType   Action Type
@@ -75,11 +47,8 @@ public interface ActionExecutorService {
      * @return {@link ActionExecutionStatus} The status of the action execution and the response context
      * @throws ActionExecutionException If an error occurs while executing the action
      */
-    default ActionExecutionStatus execute(ActionType actionType, FlowContext flowContext, String tenantDomain)
-            throws ActionExecutionException {
-
-        return execute(actionType, flowContext.getContextData(), tenantDomain);
-    }
+    ActionExecutionStatus<?> execute(ActionType actionType, FlowContext flowContext, String tenantDomain)
+            throws ActionExecutionException;
 
     /**
      * Execute the action based on the action type and the flow context.
@@ -91,10 +60,6 @@ public interface ActionExecutorService {
      * @return {@link ActionExecutionStatus} The status of the action execution and the response context
      * @throws ActionExecutionException If an error occurs while executing the action
      */
-    default ActionExecutionStatus execute(ActionType actionType, String actionId,
-                                          FlowContext flowContext, String tenantDomain)
-            throws ActionExecutionException {
-
-        return execute(actionType, actionId, flowContext.getContextData(), tenantDomain);
-    }
+    ActionExecutionStatus<?> execute(ActionType actionType, String actionId,
+                                  FlowContext flowContext, String tenantDomain) throws ActionExecutionException;
 }
