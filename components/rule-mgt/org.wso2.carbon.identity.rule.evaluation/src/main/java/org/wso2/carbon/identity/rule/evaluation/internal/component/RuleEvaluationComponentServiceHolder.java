@@ -16,9 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.internal;
+package org.wso2.carbon.identity.rule.evaluation.internal.component;
 
-import org.wso2.carbon.identity.rule.evaluation.core.OperatorRegistry;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.OperatorRegistry;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 

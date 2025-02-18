@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.model;
+package org.wso2.carbon.identity.rule.evaluation.api.model;
 
 /**
  * Field value model.

@@ -16,13 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.provider;
+package org.wso2.carbon.identity.rule.evaluation.api.provider;
 
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationDataProviderException;
-import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
 
 import java.util.List;
 

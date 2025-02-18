@@ -16,13 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.core;
+package org.wso2.carbon.identity.rule.evaluation.internal.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
-import org.wso2.carbon.identity.rule.evaluation.model.Operator;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.Operator;
 import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
 import org.wso2.carbon.identity.rule.management.api.model.Expression;
 import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
@@ -30,10 +30,10 @@ import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
 import java.util.Map;
 
-import static org.wso2.carbon.identity.rule.evaluation.model.ValueType.BOOLEAN;
-import static org.wso2.carbon.identity.rule.evaluation.model.ValueType.NUMBER;
-import static org.wso2.carbon.identity.rule.evaluation.model.ValueType.REFERENCE;
-import static org.wso2.carbon.identity.rule.evaluation.model.ValueType.STRING;
+import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.BOOLEAN;
+import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.NUMBER;
+import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.REFERENCE;
+import static org.wso2.carbon.identity.rule.evaluation.api.model.ValueType.STRING;
 
 /**
  * Rule evaluator.

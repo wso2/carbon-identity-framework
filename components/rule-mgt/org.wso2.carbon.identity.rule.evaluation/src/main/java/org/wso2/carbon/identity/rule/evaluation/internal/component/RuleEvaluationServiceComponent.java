@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.internal;
+package org.wso2.carbon.identity.rule.evaluation.internal.component;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,10 +28,10 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluationDataManager;
-import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvider;
-import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
-import org.wso2.carbon.identity.rule.evaluation.service.impl.RuleEvaluationServiceImpl;
+import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.RuleEvaluationDataManager;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.RuleEvaluationServiceImpl;
 import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 

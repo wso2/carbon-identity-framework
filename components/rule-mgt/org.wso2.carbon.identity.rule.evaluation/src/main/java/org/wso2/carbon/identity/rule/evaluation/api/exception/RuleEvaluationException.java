@@ -16,13 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.model;
+package org.wso2.carbon.identity.rule.evaluation.api.exception;
 
 /**
- * This class is used to define the flow types in Rule Evaluation.
+ * Rule evaluation exception.
+ * This exception is thrown when an error occurs while evaluating a rule.
  */
-public enum FlowType {
+public class RuleEvaluationException extends Exception {
 
-    PRE_ISSUE_ACCESS_TOKEN,
-    PRE_UPDATE_PASSWORD
+    public RuleEvaluationException(String message) {
+
+        super(message);
+    }
+
+    public RuleEvaluationException(String message, Throwable cause) {
+
+        super(message, cause);
+    }
 }

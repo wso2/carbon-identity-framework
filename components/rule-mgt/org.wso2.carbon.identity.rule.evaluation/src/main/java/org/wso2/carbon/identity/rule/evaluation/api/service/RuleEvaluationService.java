@@ -16,11 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.service;
+package org.wso2.carbon.identity.rule.evaluation.api.service;
 
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
 
 /**
  * Rule evaluation service interface.

@@ -16,32 +16,30 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.model;
-
-import java.util.Map;
+package org.wso2.carbon.identity.rule.evaluation.api.model;
 
 /**
- * Flow context model.
- * This class represents the context of a flow used at rule evaluation.
+ * Rule evaluation result.
+ * This class is used to represent the result of a rule evaluation.
  */
-public class FlowContext {
+public class RuleEvaluationResult {
 
-    private final FlowType flowType;
-    private final Map<String, Object> contextData;
+    private final String ruleId;
+    private final boolean ruleSatisfied;
 
-    public FlowContext(FlowType flowType, Map<String, Object> contextData) {
+    public RuleEvaluationResult(String ruleId, boolean ruleSatisfied) {
 
-        this.flowType = flowType;
-        this.contextData = contextData;
+        this.ruleId = ruleId;
+        this.ruleSatisfied = ruleSatisfied;
     }
 
-    public FlowType getFlowType() {
+    public String getRuleId() {
 
-        return flowType;
+        return ruleId;
     }
 
-    public Map<String, Object> getContextData() {
+    public boolean isRuleSatisfied() {
 
-        return contextData;
+        return ruleSatisfied;
     }
 }

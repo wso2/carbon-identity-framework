@@ -16,32 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.rule.evaluation.model;
-
-import java.util.function.BiPredicate;
+package org.wso2.carbon.identity.rule.evaluation.api.model;
 
 /**
- * Operator model.
- * This class represents an operator used in a rule and its evaluation function.
+ * This class is used to define the flow types in Rule Evaluation.
  */
-public class Operator {
+public enum FlowType {
 
-    private final String name;
-    private final BiPredicate<Object, Object> predicate;
-
-    public Operator(String name, BiPredicate<Object, Object> predicate) {
-
-        this.name = name;
-        this.predicate = predicate;
-    }
-
-    public boolean apply(Object fieldValue, Object expectedValue) {
-
-        return predicate.test(fieldValue, expectedValue);
-    }
-
-    public String getName() {
-
-        return name;
-    }
+    PRE_ISSUE_ACCESS_TOKEN,
+    PRE_UPDATE_PASSWORD
 }
