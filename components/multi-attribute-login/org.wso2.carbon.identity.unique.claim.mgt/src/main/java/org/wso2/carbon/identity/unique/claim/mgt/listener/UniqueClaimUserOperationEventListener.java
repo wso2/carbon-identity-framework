@@ -214,6 +214,7 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
      * @return The corresponding claim object, or null if retrieval fails.
      */
     private Claim getClaimObject(UserStoreManager userStoreManager, String claimUri) {
+
         try {
             return userStoreManager.getClaimManager().getClaim(claimUri);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
