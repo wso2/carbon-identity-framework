@@ -23,11 +23,14 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequestContext;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Event;
+import org.wso2.carbon.identity.action.execution.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
+import org.wso2.carbon.identity.action.management.model.Action;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
@@ -46,7 +49,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Map;
 
 /**
  * This class is responsible for building the action execution request for the pre update password action.
@@ -63,12 +65,12 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
     }
 
     @Override
-    public ActionExecutionRequest buildActionExecutionRequest(Map<String, Object> eventContext)
+    public ActionExecutionRequest buildActionExecutionRequest(FlowContext flowContext,
+                                                              ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
-        resolveAction(eventContext);
-        resolveUserActionContext(eventContext);
-
+        resolveAction(actionExecutionContext);
+        resolveUserActionContext(flowContext);
         ActionExecutionRequest.Builder actionRequestBuilder = new ActionExecutionRequest.Builder();
         actionRequestBuilder.actionType(getSupportedActionType());
         actionRequestBuilder.event(getEvent());
@@ -76,21 +78,21 @@ public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionReq
         return actionRequestBuilder.build();
     }
 
-    private void resolveUserActionContext(Map<String, Object> eventContext)
-            throws ActionExecutionRequestBuilderException {
+    private void resolveUserActionContext(FlowContext flowContext) throws ActionExecutionRequestBuilderException {
 
-        Object action = eventContext.get(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT);
-        if (!(action instanceof UserActionContext)) {
-            throw new ActionExecutionRequestBuilderException("User Action Context cannot be null.");
+        Object userContext = flowContext.getContextData().get(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT);
+        if (!(userContext instanceof UserActionContext)) {
+            throw new ActionExecutionRequestBuilderException("Provided User Action Context is not valid.");
         }
-        userActionContext = (UserActionContext) action;
+        userActionContext = (UserActionContext) userContext;
     }
 
-    private void resolveAction(Map<String, Object> eventContext) throws ActionExecutionRequestBuilderException {
+    private void resolveAction(ActionExecutionRequestContext actionExecutionContext)
+            throws ActionExecutionRequestBuilderException {
 
-        Object action = eventContext.get("action");
+        Action action = actionExecutionContext.getAction();
         if (!(action instanceof PreUpdatePasswordAction)) {
-            throw new ActionExecutionRequestBuilderException("Pre Update Password Action cannot be null.");
+            throw new ActionExecutionRequestBuilderException("Provided action is not a Pre Update Password Action.");
 
         }
         preUpdatePasswordAction = (PreUpdatePasswordAction) action;
