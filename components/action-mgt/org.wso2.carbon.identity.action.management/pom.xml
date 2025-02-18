@@ -97,7 +97,8 @@
                         </Private-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.action.management.internal.*,
-                            org.wso2.carbon.identity.action.management.api.*,
+                            org.wso2.carbon.identity.action.management.api.*;
+                            version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.identity.action.management.core.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
