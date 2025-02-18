@@ -2128,23 +2128,18 @@
                             <Parameter>{{param}}</Parameter>
                         {% endfor %}
                     </ExcludedParameters>
-                </ActionRequest>
-            </PreIssueAccessToken>
-            <Authentication>
-                <Enable>{{actions.types.authentication.enable}}</Enable>
-                <ActionRequest>
-                    <ExcludedHeaders>
-                         {% for header in actions.types.authentication.action_request.excluded_headers %}
+                    <AllowedHeaders>
+                        {% for header in actions.types.pre_issue_access_token.action_request.allowed_headers %}
                             <Header>{{header}}</Header>
-                         {% endfor %}
-                    </ExcludedHeaders>
-                    <ExcludedParameters>
-                        {% for param in actions.types.authentication.action_request.excluded_parameters %}
+                        {% endfor %}
+                    </AllowedHeaders>
+                    <AllowedParameters>
+                        {% for param in actions.types.pre_issue_access_token.action_request.allowed_parameters %}
                             <Parameter>{{param}}</Parameter>
                         {% endfor %}
-                    </ExcludedParameters>
+                    </AllowedParameters>
                 </ActionRequest>
-            </Authentication>
+            </PreIssueAccessToken>
         </Types>
     </Actions>
 

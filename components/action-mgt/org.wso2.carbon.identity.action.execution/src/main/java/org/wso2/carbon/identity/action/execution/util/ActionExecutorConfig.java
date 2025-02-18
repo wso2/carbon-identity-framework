@@ -79,6 +79,8 @@ public class ActionExecutorConfig {
                 return isActionTypeEnabled(ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getActionTypeEnableProperty());
             case AUTHENTICATION:
                 return isActionTypeEnabled(ActionTypeConfig.AUTHENTICATION.getActionTypeEnableProperty());
+            case PRE_UPDATE_PASSWORD:
+                return isActionTypeEnabled(ActionTypeConfig.PRE_UPDATE_PASSWORD.getActionTypeEnableProperty());
             default:
                 return false;
         }
@@ -205,10 +207,6 @@ public class ActionExecutorConfig {
                 excludedHeadersPropertyValue = getPropertyValues(
                         ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedHeadersProperty());
                 break;
-            case AUTHENTICATION:
-                excludedHeadersPropertyValue = getPropertyValues(
-                        ActionTypeConfig.AUTHENTICATION.getExcludedHeadersProperty());
-                break;
             default:
                 break;
         }
@@ -241,15 +239,63 @@ public class ActionExecutorConfig {
                         ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getExcludedParamsProperty());
 
                 break;
-            case AUTHENTICATION:
-                excludedParamsPropertyValue = getPropertyValues(
-                        ActionTypeConfig.AUTHENTICATION.getExcludedParamsProperty());
-                break;
             default:
                 break;
         }
         excludedParams.addAll(excludedParamsPropertyValue);
         return Collections.unmodifiableSet(excludedParams);
+    }
+
+    /**
+     * Returns the allowed headers configured in the system configuration
+     * 'actions.types.{actionType}.action_request.allowed_headers' for the given action type.
+     *
+     * @param actionType ActionType
+     * @return a set of headers to allow in the action request.
+     */
+    public Set<String> getAllowedHeadersForActionType(ActionType actionType) {
+
+        Set<String> allowedHeaders = new HashSet<>();
+        String allowedPropertyKey = null;
+        switch (actionType) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                allowedPropertyKey = ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getAllowedHeaderProperty();
+                break;
+            default:
+                break;
+        }
+
+        if (allowedPropertyKey != null) {
+            allowedHeaders.addAll(getPropertyValues(allowedPropertyKey));
+        }
+
+        return Collections.unmodifiableSet(allowedHeaders);
+    }
+
+    /**
+     * Returns the allowed parameters configured in the system configuration
+     * 'actions.types.{actionType}.action_request.allowed_parameters' for the given action type.
+     *
+     * @param actionType ActionType
+     * @return a set of parameters to allow in the action request.
+     */
+    public Set<String> getAllowedParamsForActionType(ActionType actionType) {
+
+        Set<String> allowedParameters = new HashSet<>();
+        String allowedPropertyKey = null;
+        switch (actionType) {
+            case PRE_ISSUE_ACCESS_TOKEN:
+                allowedPropertyKey = ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getAllowedParamsProperty();
+                break;
+            default:
+                break;
+        }
+
+        if (allowedPropertyKey != null) {
+            allowedParameters.addAll(getPropertyValues(allowedPropertyKey));
+        }
+
+        return Collections.unmodifiableSet(allowedParameters);
     }
 
     private Set<String> getExcludedParamsInActionRequestForAllTypes() {
@@ -284,24 +330,38 @@ public class ActionExecutorConfig {
     /**
      * Enum to hold the configuration properties for each action type.
      */
-    private static enum ActionTypeConfig {
+    private enum ActionTypeConfig {
         PRE_ISSUE_ACCESS_TOKEN("Actions.Types.PreIssueAccessToken.Enable",
                 "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedHeaders.Header",
-                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter"),
+                "Actions.Types.PreIssueAccessToken.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header",
+                "Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter"),
         AUTHENTICATION("Actions.Types.Authentication.Enable",
                 "Actions.Types.Authentication.ActionRequest.ExcludedHeaders.Header",
-                "Actions.Types.Authentication.ActionRequest.ExcludedParameters.Parameter");
+                "Actions.Types.Authentication.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.Authentication.ActionRequest.AllowedHeaders.Header",
+                "Actions.Types.Authentication.ActionRequest.AllowedParameters.Parameter"),
+
+        PRE_UPDATE_PASSWORD("Actions.Types.PreUpdatePassword.Enable",
+                "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.PreUpdatePassword.ActionRequest.AllowedHeaders.Header",
+                "Actions.Types.PreUpdatePassword.ActionRequest.AllowedParameters.Parameter");
 
         private final String actionTypeEnableProperty;
         private final String excludedHeadersProperty;
         private final String excludedParamsProperty;
+        private final String allowedHeaderProperty;
+        private final String allowedParamsProperty;
 
         ActionTypeConfig(String actionTypeEnableProperty, String excludedHeadersProperty,
-                         String excludedParamsProperty) {
+                         String excludedParamsProperty, String allowedHeaderProperty, String allowedParamsProperty) {
 
             this.actionTypeEnableProperty = actionTypeEnableProperty;
             this.excludedHeadersProperty = excludedHeadersProperty;
             this.excludedParamsProperty = excludedParamsProperty;
+            this.allowedHeaderProperty = allowedHeaderProperty;
+            this.allowedParamsProperty = allowedParamsProperty;
         }
 
         public String getActionTypeEnableProperty() {
@@ -317,6 +377,16 @@ public class ActionExecutorConfig {
         public String getExcludedParamsProperty() {
 
             return excludedParamsProperty;
+        }
+
+        public String getAllowedHeaderProperty() {
+
+            return allowedHeaderProperty;
+        }
+
+        public String getAllowedParamsProperty() {
+
+            return allowedParamsProperty;
         }
     }
 }
