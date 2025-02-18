@@ -79,6 +79,8 @@ public class ActionExecutorConfig {
                 return isActionTypeEnabled(ActionTypeConfig.PRE_ISSUE_ACCESS_TOKEN.getActionTypeEnableProperty());
             case AUTHENTICATION:
                 return isActionTypeEnabled(ActionTypeConfig.AUTHENTICATION.getActionTypeEnableProperty());
+            case PRE_UPDATE_PASSWORD:
+                return isActionTypeEnabled(ActionTypeConfig.PRE_UPDATE_PASSWORD.getActionTypeEnableProperty());
             default:
                 return false;
         }
@@ -338,7 +340,13 @@ public class ActionExecutorConfig {
                 "Actions.Types.Authentication.ActionRequest.ExcludedHeaders.Header",
                 "Actions.Types.Authentication.ActionRequest.ExcludedParameters.Parameter",
                 "Actions.Types.Authentication.ActionRequest.AllowedHeaders.Header",
-                "Actions.Types.Authentication.ActionRequest.AllowedParameters.Parameter");
+                "Actions.Types.Authentication.ActionRequest.AllowedParameters.Parameter"),
+
+        PRE_UPDATE_PASSWORD("Actions.Types.PreUpdatePassword.Enable",
+                "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedHeaders.Header",
+                "Actions.Types.PreUpdatePassword.ActionRequest.ExcludedParameters.Parameter",
+                "Actions.Types.PreUpdatePassword.ActionRequest.AllowedHeaders.Header",
+                "Actions.Types.PreUpdatePassword.ActionRequest.AllowedParameters.Parameter");
 
         private final String actionTypeEnableProperty;
         private final String excludedHeadersProperty;
