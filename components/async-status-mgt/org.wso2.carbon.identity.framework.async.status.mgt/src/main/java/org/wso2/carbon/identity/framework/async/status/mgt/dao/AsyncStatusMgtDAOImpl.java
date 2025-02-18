@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.framework.async.status.mgt.AsyncStatusMgtService;
+import org.wso2.carbon.identity.framework.async.status.mgt.AsyncStatusMgtServiceImpl;
 import org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants;
 import org.wso2.carbon.identity.framework.async.status.mgt.internal.AsyncStatusMgtServiceComponent;
 
@@ -40,6 +42,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     public void createB2BResourceSharingOperation(String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus) {
 
         LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Started...");
+
         Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
         try{
             try{
@@ -51,6 +54,8 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
                 statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_RESIDENT_ORG_ID, residentOrgId);
                 statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_OPERATION_INITIATOR_ID, initiatorId);
                 statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_SHARING_OPERATION_STATUS, operationStatus);
+                statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_LAST_MODIFIED, "2025-02-18 15:24:44.167");
+                statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_LAST_MODIFIED, "2025-02-18 15:24:44.167");
                 statement.executeUpdate();
                 LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Success.");
 
