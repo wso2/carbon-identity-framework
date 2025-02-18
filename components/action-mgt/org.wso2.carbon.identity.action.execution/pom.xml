@@ -96,7 +96,7 @@
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
-                            org.wso2.carbon.identity.action.management.*;
+                            org.wso2.carbon.identity.action.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.rule.evaluation.api.*;
                             version="${carbon.identity.package.import.version.range}",

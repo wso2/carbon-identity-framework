@@ -19,12 +19,12 @@
 package org.wso2.carbon.identity.user.pre.update.password.action.internal.management;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverClientException;
-import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverException;
-import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverServerException;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtException;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;

@@ -23,9 +23,9 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionDTOModelResolverFactory;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionDTOModelResolverFactory;
 
 import static org.mockito.Mockito.doReturn;
 

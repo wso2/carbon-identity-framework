@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.action.execution.impl.ActionExecutionRequestBuil
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutionResponseProcessorFactory;
 import org.wso2.carbon.identity.action.execution.impl.ActionExecutorServiceImpl;
 import org.wso2.carbon.identity.action.execution.impl.ActionInvocationResponseClassFactory;
-import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
 /**

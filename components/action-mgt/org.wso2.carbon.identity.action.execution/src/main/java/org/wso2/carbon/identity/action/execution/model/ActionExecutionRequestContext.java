@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.action.execution.model;
 
-import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Action;
 
 /**
  * This class models the Action Execution Request Context.

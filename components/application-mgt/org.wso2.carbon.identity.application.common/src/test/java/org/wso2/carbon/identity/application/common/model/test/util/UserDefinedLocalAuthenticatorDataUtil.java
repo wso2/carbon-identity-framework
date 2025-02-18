@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.common.model.test.util;
 
 import com.google.gson.Gson;
-import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedAuthenticatorEndpointConfig.UserDefinedAuthenticatorEndpointConfigBuilder;

@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.action.execution.model.FlowContext;
 import org.wso2.carbon.identity.action.execution.model.Tenant;
 import org.wso2.carbon.identity.action.execution.model.User;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
-import org.wso2.carbon.identity.action.management.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
