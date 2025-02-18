@@ -67,6 +67,9 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "DefinedBy")
     protected DefinedByType definedByType;
 
+    @XmlElement(name= "AmrValue")
+    protected String amrValue;
+
     public LocalAuthenticatorConfig() {
 
         definedByType = DefinedByType.SYSTEM;
@@ -122,11 +125,17 @@ public class LocalAuthenticatorConfig implements Serializable {
                 }
             } else if ("DefinedBy".equals(member.getLocalName())) {
                 localAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(member.getText()));
+            } else if("AmrValue".equals(member.getLocalName())) {
+                localAuthenticatorConfig.setAmrValue(member.getText());
             }
         }
 
         if (localAuthenticatorConfig.getDefinedByType() == null) {
             localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+        }
+
+        if(localAuthenticatorConfig.getAmrValue() == null) {
+            localAuthenticatorConfig.setAmrValue(localAuthenticatorConfig.getName());
         }
 
         return localAuthenticatorConfig;
@@ -259,5 +268,25 @@ public class LocalAuthenticatorConfig implements Serializable {
     public void setDefinedByType(DefinedByType type) {
 
         definedByType = type;
+    }
+
+    /**
+     * Get the amr value of the Local authenticator config.
+     *
+     * @return amrValue
+     */
+    public String getAmrValue() {
+
+        return amrValue;
+    }
+
+    /**
+     * Set the amr value of the Local authenticator config.
+     *
+     * @param amrValue The amr value of the local authenticator config.
+     */
+    public void setAmrValue(String amrValue) {
+
+        this.amrValue = amrValue;
     }
 }
