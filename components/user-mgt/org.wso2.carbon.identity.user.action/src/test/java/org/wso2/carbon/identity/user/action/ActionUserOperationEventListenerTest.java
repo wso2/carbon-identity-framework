@@ -20,9 +20,9 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.action.core.factory.UserActionExecutorFactory;
-import org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener;
-import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
+import org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener;
 import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -38,10 +38,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertFalse;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET;
 
 /**
  * Unit tests for ActionUserOperationEventListener.

@@ -34,8 +34,8 @@ import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationResult;
 import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
 import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
 import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
-import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 
 import java.util.Collections;
 import java.util.List;
@@ -115,7 +115,7 @@ public class RuleEvaluationServiceImpl implements RuleEvaluationService {
             List<FieldDefinition> fieldDefinitionList =
                     RuleEvaluationComponentServiceHolder.getInstance().getRuleMetadataService()
                             .getExpressionMeta(
-                                    org.wso2.carbon.identity.rule.metadata.model.FlowType.valueOf(flowType.name()),
+                                    org.wso2.carbon.identity.rule.metadata.api.model.FlowType.valueOf(flowType.name()),
                                     tenantDomain);
 
             if (fieldDefinitionList == null || fieldDefinitionList.isEmpty()) {
