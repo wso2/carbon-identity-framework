@@ -48,4 +48,9 @@ public interface AsyncStatusMgtService {
      *
      */
     void test(String operation);
+    /**
+     * Test method for the interface
+     *
+     */
+    void testCheckDatabaseConnection();
 }

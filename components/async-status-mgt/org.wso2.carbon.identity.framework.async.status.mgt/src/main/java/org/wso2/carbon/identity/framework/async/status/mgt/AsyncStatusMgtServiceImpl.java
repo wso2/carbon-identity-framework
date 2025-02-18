@@ -65,4 +65,22 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     public void test(String operation) {
         LOGGER.info("Process Started: "+operation);
     }
+
+    @Override
+    public void testCheckDatabaseConnection() {
+        try {
+            asyncStatusMgtDAO.createB2BResourceSharingOperation(
+                    "share",
+                    "123",
+                    "user",
+                    "all-orgs",
+                    "456",
+                    "789",
+                    "complete with success."
+            );
+            LOGGER.info("B2B async operation status processed successfully.");
+        } catch (Exception e) {
+            LOGGER.severe("Error while processing B2B async operation status: " + e.getMessage());
+        }
+    }
 }
