@@ -22,8 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
-import org.wso2.carbon.identity.rule.management.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
 /**
  * Represents an Action Rule.

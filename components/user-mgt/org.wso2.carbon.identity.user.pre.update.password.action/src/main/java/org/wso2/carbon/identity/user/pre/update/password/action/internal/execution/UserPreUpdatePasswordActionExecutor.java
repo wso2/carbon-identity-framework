@@ -21,13 +21,11 @@ package org.wso2.carbon.identity.user.pre.update.password.action.internal.execut
 import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
 import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.model.FlowContext;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * User Pre Update Password Action Executor.
@@ -44,10 +42,10 @@ public class UserPreUpdatePasswordActionExecutor implements UserActionExecutor {
     public ActionExecutionStatus<?> execute(UserActionContext userActionContext, String tenantDomain)
             throws ActionExecutionException {
 
-        Map<String, Object> eventContext = new HashMap<>();
-        eventContext.put(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
+        FlowContext flowContext = FlowContext.create();
+        flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
 
         return PreUpdatePasswordActionServiceComponentHolder.getInstance().getActionExecutorService()
-                .execute(getSupportedActionType(), eventContext, tenantDomain);
+                .execute(getSupportedActionType(), flowContext, tenantDomain);
     }
 }

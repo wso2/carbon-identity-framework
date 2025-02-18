@@ -24,26 +24,29 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.internal.RuleEvaluationComponentServiceHolder;
-import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
-import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
-import org.wso2.carbon.identity.rule.management.internal.RuleManagementComponentServiceHolder;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.FlowType;
-import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.management.util.RuleBuilder;
-import org.wso2.carbon.identity.rule.metadata.config.OperatorConfig;
-import org.wso2.carbon.identity.rule.metadata.config.RuleMetadataConfigFactory;
-import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
-import org.wso2.carbon.identity.rule.metadata.model.InputValue;
-import org.wso2.carbon.identity.rule.metadata.model.Link;
-import org.wso2.carbon.identity.rule.metadata.model.Operator;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsReferenceValue;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsValue;
-import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
+import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.OperatorRegistry;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.RuleEvaluator;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FlowType;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.wso2.carbon.identity.rule.management.api.util.RuleBuilder;
+import org.wso2.carbon.identity.rule.management.internal.component.RuleManagementComponentServiceHolder;
+import org.wso2.carbon.identity.rule.metadata.api.model.Field;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Link;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
+import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -82,8 +85,8 @@ public class RuleEvaluatorTest {
         when(ruleMetadataService.getApplicableOperatorsInExpressions()).thenReturn(
                 new ArrayList<>(operatorConfig.getOperatorsMap().values()));
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
         RuleEvaluationComponentServiceHolder.getInstance().setRuleMetadataService(ruleMetadataService);
         operatorRegistry = RuleEvaluationComponentServiceHolder.getInstance().getOperatorRegistry();
 
@@ -255,46 +258,42 @@ public class RuleEvaluatorTest {
 
         List<FieldDefinition> fieldDefinitionList = new ArrayList<>();
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                applicationField = new org.wso2.carbon.identity.rule.metadata.model.Field("application", "application");
+        Field applicationField = new Field("application", "application");
         List<Operator> operators = Arrays.asList(new Operator("equals", "equals"),
                 new Operator("notEquals", "not equals"));
         List<Link> links = Arrays.asList(new Link("/applications?offset=0&limit=10", "GET", "values"),
                 new Link("/applications?filter=name+eq+*&limit=10", "GET", "filter"));
-        org.wso2.carbon.identity.rule.metadata.model.Value
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
                 applicationValue = new OptionsReferenceValue.Builder().valueReferenceAttribute("id")
                 .valueDisplayAttribute("name").valueType(
-                        org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.REFERENCE).links(links).build();
+                        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.REFERENCE)
+                .links(links).build();
         fieldDefinitionList.add(new FieldDefinition(applicationField, operators, applicationValue));
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                grantTypeField = new org.wso2.carbon.identity.rule.metadata.model.Field("grantType", "grantType");
+        Field grantTypeField = new Field("grantType", "grantType");
         List<OptionsValue> optionsValues = Arrays.asList(new OptionsValue("authorization_code", "authorization code"),
                 new OptionsValue("password", "password"), new OptionsValue("refresh_token", "refresh token"),
                 new OptionsValue("client_credentials", "client credentials"),
                 new OptionsValue("urn:ietf:params:oauth:grant-type:token-exchange", "token exchange"));
-        org.wso2.carbon.identity.rule.metadata.model.Value
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
                 grantTypeValue =
-                new OptionsInputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.STRING,
+                new OptionsInputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING,
                         optionsValues);
         fieldDefinitionList.add(new FieldDefinition(grantTypeField, operators, grantTypeValue));
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                consentedField = new org.wso2.carbon.identity.rule.metadata.model.Field("consented", "consented");
-        org.wso2.carbon.identity.rule.metadata.model.Value
-                consentedValue = new InputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.BOOLEAN);
+        Field consentedField = new Field("consented", "consented");
+        org.wso2.carbon.identity.rule.metadata.api.model.Value consentedValue =
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.BOOLEAN);
         fieldDefinitionList.add(new FieldDefinition(consentedField, operators, consentedValue));
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                riskScoreField = new org.wso2.carbon.identity.rule.metadata.model.Field("riskScore", "risk score");
-        org.wso2.carbon.identity.rule.metadata.model.Value
-                riskScoreValue = new InputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.NUMBER);
+        Field riskScoreField = new Field("riskScore", "risk score");
+        org.wso2.carbon.identity.rule.metadata.api.model.Value riskScoreValue =
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.NUMBER);
         fieldDefinitionList.add(new FieldDefinition(riskScoreField, operators, riskScoreValue));
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                emailField = new org.wso2.carbon.identity.rule.metadata.model.Field("email", "user.email");
-        org.wso2.carbon.identity.rule.metadata.model.Value
-                emailValue = new InputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.STRING);
+        Field emailField = new Field("email", "user.email");
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
+                emailValue = new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING);
         fieldDefinitionList.add(
                 new FieldDefinition(emailField, Collections.singletonList(new Operator("contains", "contains")),
                         emailValue));

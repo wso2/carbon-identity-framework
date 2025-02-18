@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.action.execution.internal;
 
 import org.wso2.carbon.identity.action.management.service.ActionManagementService;
-import org.wso2.carbon.identity.rule.evaluation.service.RuleEvaluationService;
+import org.wso2.carbon.identity.rule.evaluation.api.service.RuleEvaluationService;
 
 /**
  * This class holds references for dependent services required for Action Execution Service to function.
