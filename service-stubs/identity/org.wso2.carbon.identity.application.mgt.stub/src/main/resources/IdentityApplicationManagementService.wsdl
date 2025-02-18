@@ -256,18 +256,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllLocalAuthenticators">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllLocalAuthenticatorsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2168:LocalAuthenticatorConfig"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="getAllLocalClaimUris">
                 <xs:complexType>
                     <xs:sequence/>
@@ -345,6 +333,18 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getAllLocalAuthenticators">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllLocalAuthenticatorsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2168:LocalAuthenticatorConfig"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="createApplication">
                 <xs:complexType>
                     <xs:sequence>
@@ -372,6 +372,7 @@
                     <xs:element minOccurs="0" name="clientAttestationMetaData" nillable="true" type="ax2163:ClientAttestationMetaData"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="discoverable" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="discoverableGroups" nillable="true" type="ax2163:DiscoverableGroup"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="inboundAuthenticationConfig" nillable="true" type="ax2163:InboundAuthenticationConfig"/>
                     <xs:element minOccurs="0" name="inboundProvisioningConfig" nillable="true" type="ax2163:InboundProvisioningConfig"/>
@@ -435,6 +436,18 @@
                     <xs:element minOccurs="0" name="androidPackageName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="appleAppId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="attestationEnabled" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="DiscoverableGroup">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="groups" nillable="true" type="ax2163:GroupBasicInfo"/>
+                    <xs:element minOccurs="0" name="userStore" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="GroupBasicInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="InboundAuthenticationConfig">
@@ -729,12 +742,13 @@
             </xs:complexType>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
-            <xs:simpleType name="AuthenticatorPropertyConstants_DefinedByType">
-                <xs:restriction base="xs:string">
-                    <xs:enumeration value="SYSTEM"/>
-                    <xs:enumeration value="USER"/>
-                </xs:restriction>
-            </xs:simpleType>
+            <xs:complexType name="AuthenticatorPropertyConstants_DefinedByType">
+                <xs:complexContent>
+                    <xs:extension base="xs:Enum">
+                        <xs:sequence/>
+                    </xs:extension>
+                </xs:complexContent>
+            </xs:complexType>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://script.model.common.application.identity.carbon.wso2.org/xsd">
             <xs:complexType name="AuthenticationScriptConfig">
