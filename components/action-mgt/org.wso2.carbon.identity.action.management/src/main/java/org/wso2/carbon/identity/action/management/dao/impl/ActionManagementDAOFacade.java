@@ -42,7 +42,7 @@ import org.wso2.carbon.identity.action.management.util.ActionManagementException
 import org.wso2.carbon.identity.action.management.util.ActionSecretProcessor;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 
 import java.util.List;

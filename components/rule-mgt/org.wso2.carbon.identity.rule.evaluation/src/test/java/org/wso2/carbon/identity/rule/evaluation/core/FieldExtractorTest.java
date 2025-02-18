@@ -22,21 +22,22 @@ import org.mockito.MockedStatic;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.model.Field;
-import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.metadata.config.OperatorConfig;
-import org.wso2.carbon.identity.rule.metadata.config.RuleMetadataConfigFactory;
-import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
-import org.wso2.carbon.identity.rule.metadata.model.InputValue;
-import org.wso2.carbon.identity.rule.metadata.model.Link;
-import org.wso2.carbon.identity.rule.metadata.model.Operator;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsReferenceValue;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsValue;
-import org.wso2.carbon.identity.rule.metadata.model.Value;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
+import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.FieldExtractor;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Link;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Value;
+import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
+import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -111,8 +112,8 @@ public class FieldExtractorTest {
 
         List<FieldDefinition> fieldDefinitionList = new ArrayList<>();
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                applicationField = new org.wso2.carbon.identity.rule.metadata.model.Field("application", "application");
+        org.wso2.carbon.identity.rule.metadata.api.model.Field applicationField =
+                new org.wso2.carbon.identity.rule.metadata.api.model.Field("application", "application");
         List<Operator> operators = Arrays.asList(new Operator("equals", "equals"),
                 new Operator("notEquals", "not equals"));
         List<Link> links = Arrays.asList(new Link("/applications?offset=0&limit=10", "GET", "values"),
@@ -121,8 +122,8 @@ public class FieldExtractorTest {
                 .valueDisplayAttribute("name").valueType(Value.ValueType.REFERENCE).links(links).build();
         fieldDefinitionList.add(new FieldDefinition(applicationField, operators, applicationValue));
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                grantTypeField = new org.wso2.carbon.identity.rule.metadata.model.Field("grantType", "grantType");
+        org.wso2.carbon.identity.rule.metadata.api.model.Field
+                grantTypeField = new org.wso2.carbon.identity.rule.metadata.api.model.Field("grantType", "grantType");
         List<OptionsValue> optionsValues = Arrays.asList(new OptionsValue("authorization_code", "authorization code"),
                 new OptionsValue("password", "password"), new OptionsValue("refresh_token", "refresh token"),
                 new OptionsValue("client_credentials", "client credentials"),
@@ -130,13 +131,13 @@ public class FieldExtractorTest {
         Value grantTypeValue = new OptionsInputValue(Value.ValueType.STRING, optionsValues);
         fieldDefinitionList.add(new FieldDefinition(grantTypeField, operators, grantTypeValue));
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                consentedField = new org.wso2.carbon.identity.rule.metadata.model.Field("consented", "consented");
+        org.wso2.carbon.identity.rule.metadata.api.model.Field
+                consentedField = new org.wso2.carbon.identity.rule.metadata.api.model.Field("consented", "consented");
         Value consentedValue = new InputValue(Value.ValueType.BOOLEAN);
         fieldDefinitionList.add(new FieldDefinition(consentedField, operators, consentedValue));
 
-        org.wso2.carbon.identity.rule.metadata.model.Field
-                riskScoreField = new org.wso2.carbon.identity.rule.metadata.model.Field("riskScore", "risk score");
+        org.wso2.carbon.identity.rule.metadata.api.model.Field
+                riskScoreField = new org.wso2.carbon.identity.rule.metadata.api.model.Field("riskScore", "risk score");
         Value riskScoreValue = new InputValue(Value.ValueType.NUMBER);
         fieldDefinitionList.add(new FieldDefinition(riskScoreField, operators, riskScoreValue));
 
@@ -146,18 +147,18 @@ public class FieldExtractorTest {
     List<Expression> getMockedExpressions() {
 
         Expression expression1 = new Expression.Builder().field("application").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.REFERENCE, "testapp")).build();
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.REFERENCE, "testapp")).build();
         Expression expression2 = new Expression.Builder().field("grantType").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.STRING, "authorization_code"))
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.STRING, "authorization_code"))
                 .build();
         Expression expression3 = new Expression.Builder().field("consented").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.BOOLEAN, "true")).build();
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.BOOLEAN, "true")).build();
         Expression expression4 = new Expression.Builder().field("riskScore").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.NUMBER, "5")).build();
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.NUMBER, "5")).build();
         return Arrays.asList(expression1, expression2, expression3, expression4);
     }
 }

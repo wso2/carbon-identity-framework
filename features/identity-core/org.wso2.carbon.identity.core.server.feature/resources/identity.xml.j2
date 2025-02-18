@@ -2183,7 +2183,7 @@
                        enable="{{event.default_listener.scim2_tenant_mgt.enable}}"/>
         <EventListener id="pre_update_password_action"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
-                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener"
                        orderId="{{event.default_listener.pre_update_password_action.priority}}"
                        enable="{{event.default_listener.pre_update_password_action.enable}}"/>
         <EventListener id="governance_identity_mgt"

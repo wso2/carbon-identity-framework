@@ -1,0 +1,28 @@
+{
+  "id": "two-factor-custom-authenticator",
+  "name": "2FA Authentication",
+  "description": "Register externally implemented authentication service.",
+  "docLink": "",
+  "image": "assets/images/logos/custom-authenticator.svg",
+  "category": "DEFAULT",
+  "disabled": false,
+  "templateId": "two-factor-custom-authenticator",
+  "templateGroup": "custom-authenticator",
+  "displayOrder": -1,
+  "services": [],
+  "tags": [ "Custom", "2FA" ],
+  "customLocalAuthenticator": {
+    "name": "",
+    "displayName": "",
+    "isEnabled": true,
+    "authenticationType": "VERIFICATION",
+    "description": "Only verify users in a second or later step in the login flow.",
+    "endpoint": {
+      "uri": "",
+      "authentication": {
+        "type": "",
+        "properties": {}
+      }
+    }
+  }
+}
