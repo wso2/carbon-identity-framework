@@ -25,8 +25,8 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.model.Field;
 import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
 import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Link;
@@ -146,18 +146,18 @@ public class FieldExtractorTest {
     List<Expression> getMockedExpressions() {
 
         Expression expression1 = new Expression.Builder().field("application").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.REFERENCE, "testapp")).build();
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.REFERENCE, "testapp")).build();
         Expression expression2 = new Expression.Builder().field("grantType").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.STRING, "authorization_code"))
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.STRING, "authorization_code"))
                 .build();
         Expression expression3 = new Expression.Builder().field("consented").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.BOOLEAN, "true")).build();
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.BOOLEAN, "true")).build();
         Expression expression4 = new Expression.Builder().field("riskScore").operator("equals")
-                .value(new org.wso2.carbon.identity.rule.management.model.Value(
-                        org.wso2.carbon.identity.rule.management.model.Value.Type.NUMBER, "5")).build();
+                .value(new org.wso2.carbon.identity.rule.management.api.model.Value(
+                        org.wso2.carbon.identity.rule.management.api.model.Value.Type.NUMBER, "5")).build();
         return Arrays.asList(expression1, expression2, expression3, expression4);
     }
 }

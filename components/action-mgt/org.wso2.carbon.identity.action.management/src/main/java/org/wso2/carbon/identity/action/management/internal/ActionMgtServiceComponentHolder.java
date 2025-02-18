@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.internal;
 
-import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
