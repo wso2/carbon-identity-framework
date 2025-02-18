@@ -35,7 +35,5 @@ public interface AsyncStatusMgtDAO {
      * @param initiatorId  The ID of the user who is initiating the operation.
      * @param operationStatus  The status of the asynchronous operation.
      */
-    void createB2BResourceSharingOperation(String operationType, String residentResourceId,
-                                           String resourceType, String sharingPolicy, String residentOrgId, String initiatorId,
-                                           String operationStatus);
+    void createB2BResourceSharingOperation(String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus);
 }
