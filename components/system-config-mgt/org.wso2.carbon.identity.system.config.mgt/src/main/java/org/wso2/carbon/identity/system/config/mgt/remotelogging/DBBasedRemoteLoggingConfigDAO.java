@@ -65,13 +65,6 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
     private final SecretManager secretManager;
     private final SecretResolveManager secretResolveManager;
 
-    public DBBasedRemoteLoggingConfigDAO(ConfigurationManager configurationManager) {
-
-        this.configurationManager = configurationManager;
-        this.secretManager = SystemConfigMgtServiceHolder.getInstance().getSecretManager();
-        this.secretResolveManager = SystemConfigMgtServiceHolder.getInstance().getSecretResolveManager();
-    }
-
     public DBBasedRemoteLoggingConfigDAO(ConfigurationManager configurationManager, SecretManager secretManager,
                                          SecretResolveManager secretResolveManager) {
 
