@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.action.execution.util;
 
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.ResponseData;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.ResponseData;
 
 public class UserData implements ResponseData {
 

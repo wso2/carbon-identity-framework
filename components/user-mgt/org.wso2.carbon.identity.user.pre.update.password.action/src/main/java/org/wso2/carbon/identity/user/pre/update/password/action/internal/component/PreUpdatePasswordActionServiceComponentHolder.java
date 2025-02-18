@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.user.pre.update.password.action.internal.component;
 
-import org.wso2.carbon.identity.action.execution.ActionExecutorService;
+import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.certificate.management.service.CertificateManagementService;
 
 /**

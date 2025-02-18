@@ -25,7 +25,8 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.util.Arrays;

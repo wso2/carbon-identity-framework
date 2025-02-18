@@ -27,8 +27,9 @@ import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSAEncrypter;
-import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
-import org.wso2.carbon.identity.action.execution.model.User;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.api.model.User;
 
 import java.security.Key;
 import java.security.cert.X509Certificate;
@@ -37,7 +38,7 @@ import java.security.interfaces.RSAPublicKey;
 /**
  * This class models the user object at a pre update password trigger.
  * UserRequest is the entity that represents the user object that is sent to Action
- * over {@link org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest}.
+ * over {@link ActionExecutionRequest}.
  */
 public class PasswordUpdatingUser extends User {
 

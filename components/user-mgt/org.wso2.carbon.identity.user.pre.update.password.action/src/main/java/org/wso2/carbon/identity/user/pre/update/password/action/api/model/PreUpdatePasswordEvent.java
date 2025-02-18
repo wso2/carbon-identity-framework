@@ -18,17 +18,18 @@
 
 package org.wso2.carbon.identity.user.pre.update.password.action.api.model;
 
-import org.wso2.carbon.identity.action.execution.model.Event;
-import org.wso2.carbon.identity.action.execution.model.Organization;
-import org.wso2.carbon.identity.action.execution.model.Request;
-import org.wso2.carbon.identity.action.execution.model.Tenant;
-import org.wso2.carbon.identity.action.execution.model.User;
-import org.wso2.carbon.identity.action.execution.model.UserStore;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.api.model.Event;
+import org.wso2.carbon.identity.action.execution.api.model.Organization;
+import org.wso2.carbon.identity.action.execution.api.model.Request;
+import org.wso2.carbon.identity.action.execution.api.model.Tenant;
+import org.wso2.carbon.identity.action.execution.api.model.User;
+import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 
 /**
  * This class models the event at a pre update password trigger.
  * PasswordEvent is the entity that represents the event that is sent to the Action
- * over {@link org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest}.
+ * over {@link ActionExecutionRequest}.
  */
 public class PreUpdatePasswordEvent extends Event {
 
