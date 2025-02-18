@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.user.action.internal.factory;
 
-import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
 import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
 
 import java.util.EnumMap;

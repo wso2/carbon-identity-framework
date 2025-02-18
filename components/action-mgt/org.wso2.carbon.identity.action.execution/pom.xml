@@ -84,15 +84,11 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.action.execution.internal,
-                            org.wso2.carbon.identity.action.execution.impl,
-                            org.wso2.carbon.identity.action.execution.util,
+                            org.wso2.carbon.identity.action.execution.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.action.execution.internal,
-                            !org.wso2.carbon.identity.action.execution.impl,
-                            !org.wso2.carbon.identity.action.execution.util,
-                            org.wso2.carbon.identity.action.execution.*;
+                            !org.wso2.carbon.identity.action.execution.internal.*,
+                            org.wso2.carbon.identity.action.execution.api.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>

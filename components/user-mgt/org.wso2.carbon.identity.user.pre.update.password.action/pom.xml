@@ -117,7 +117,7 @@
                             org.wso2.carbon.identity.core.context; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.context.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.action.execution.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.execution.api.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.api.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.api.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.action.management.api.service; version="${carbon.identity.package.import.version.range}",

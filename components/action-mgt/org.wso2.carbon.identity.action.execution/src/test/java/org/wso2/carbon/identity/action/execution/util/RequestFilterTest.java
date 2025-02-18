@@ -23,9 +23,11 @@ import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Header;
-import org.wso2.carbon.identity.action.execution.model.Param;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.Header;
+import org.wso2.carbon.identity.action.execution.api.model.Param;
+import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutorConfig;
+import org.wso2.carbon.identity.action.execution.internal.util.RequestFilter;
 
 import java.util.ArrayList;
 import java.util.Collections;
