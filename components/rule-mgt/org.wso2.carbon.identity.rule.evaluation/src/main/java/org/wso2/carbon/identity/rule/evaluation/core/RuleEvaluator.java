@@ -23,10 +23,10 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
 import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
 import org.wso2.carbon.identity.rule.evaluation.model.Operator;
-import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
 import java.util.Map;
 

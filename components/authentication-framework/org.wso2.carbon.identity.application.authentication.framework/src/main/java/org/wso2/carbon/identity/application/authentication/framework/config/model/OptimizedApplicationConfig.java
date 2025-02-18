@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -337,12 +337,10 @@ public class OptimizedApplicationConfig implements Serializable {
             throws FrameworkException {
 
         IdentityProvider[] idPs = new IdentityProvider[federatedIdPResourceIds.size()];
-        IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         for (int i = 0; i < federatedIdPResourceIds.size(); i++) {
             try {
-                IdentityProvider idp = manager.getIdPByResourceId(federatedIdPResourceIds.get(i), tenantDomain,
-                        false);
+                IdentityProvider idp = ApplicationAuthenticatorManager.getInstance().getSerializableIdPByResourceId(
+                        federatedIdPResourceIds.get(i), tenantDomain);
                 if (idp == null) {
                     throw new SessionDataStorageOptimizationClientException(
                             String.format("Cannot find the IdP by the resource Id: %s Tenant Domain: %s",
@@ -379,12 +377,10 @@ public class OptimizedApplicationConfig implements Serializable {
             throws FrameworkException {
 
         List<IdentityProvider> idPList = new ArrayList<>();
-        IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         for (OptimizedAuthStep.OptimizedFederatedIdP optimizedFederatedIdP : optimizedFederatedIdPs) {
             try {
-                IdentityProvider idPByResourceId = manager.getIdPByResourceId(optimizedFederatedIdP.getIdpResourceId(),
-                        tenantDomain, false);
+                IdentityProvider idPByResourceId = ApplicationAuthenticatorManager.getInstance()
+                        .getSerializableIdPByResourceId(optimizedFederatedIdP.getIdpResourceId(), tenantDomain);
                 if (idPByResourceId == null) {
                     throw new SessionDataStorageOptimizationClientException(
                             String.format("Cannot find the IdP by the resource Id: %s Tenant Domain: %s",

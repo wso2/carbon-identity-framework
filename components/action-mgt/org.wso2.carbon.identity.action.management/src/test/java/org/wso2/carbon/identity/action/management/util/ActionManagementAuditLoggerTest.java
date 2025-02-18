@@ -39,11 +39,11 @@ import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.management.util.AuditLogBuilderForRule;
+import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.wso2.carbon.identity.rule.management.api.util.AuditLogBuilderForRule;
 import org.wso2.carbon.utils.AuditLog;
 
 import java.lang.reflect.Field;

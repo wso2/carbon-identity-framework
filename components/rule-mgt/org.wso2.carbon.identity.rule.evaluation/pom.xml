@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>rule-mgt</artifactId>
-        <version>7.7.245-SNAPSHOT</version>
+        <version>7.7.264-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -101,9 +101,9 @@
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.rule.metadata.*;
+                            org.wso2.carbon.identity.rule.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.management.*;
+                            org.wso2.carbon.identity.rule.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                     </instructions>

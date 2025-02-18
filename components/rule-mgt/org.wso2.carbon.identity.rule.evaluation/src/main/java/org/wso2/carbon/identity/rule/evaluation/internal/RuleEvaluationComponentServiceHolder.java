@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.rule.evaluation.internal;
 
 import org.wso2.carbon.identity.rule.evaluation.core.OperatorRegistry;
-import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
-import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
 
 /**
  * Rule evaluation component service holder.
