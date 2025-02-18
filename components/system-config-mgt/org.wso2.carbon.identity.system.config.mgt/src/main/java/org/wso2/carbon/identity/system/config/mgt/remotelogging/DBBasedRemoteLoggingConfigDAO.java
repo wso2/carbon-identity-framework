@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.ResolvedSecret;
 import org.wso2.carbon.identity.secret.mgt.core.model.Secret;
-import org.wso2.carbon.identity.system.config.mgt.internal.SystemConfigMgtServiceHolder;
 import org.wso2.carbon.logging.service.LoggingConstants.LogType;
 import org.wso2.carbon.logging.service.RemoteLoggingServerException;
 import org.wso2.carbon.logging.service.dao.RemoteLoggingConfigDAO;
@@ -61,7 +60,7 @@ public class DBBasedRemoteLoggingConfigDAO implements RemoteLoggingConfigDAO {
     public static final String SECRET_NAME_TRUSTSTORE_PASSWORD = "TRUSTSTORE_PASSWORD";
 
     private static final Log LOG = LogFactory.getLog(DBBasedRemoteLoggingConfigDAO.class);
-    private ConfigurationManager configurationManager;
+    private final ConfigurationManager configurationManager;
     private final SecretManager secretManager;
     private final SecretResolveManager secretResolveManager;
 
