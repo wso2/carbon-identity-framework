@@ -30,21 +30,34 @@ import java.util.Set;
 /**
  * This class filters the headers and parameters of the request based on the action type.
  * Filtering is performed by validating headers and parameters received against the headers and parameters
- * configured in the system configuration to be excluded in request.
+ * configured in the system configuration to be allowed or excluded in request.
  */
 public class RequestFilter {
 
     public static List<Header> getFilteredHeaders(List<Header> headers, ActionType actionType) {
 
         List<Header> filteredHeaders = new ArrayList<>();
+        Set<String> allowedHeaders = ActionExecutorConfig.getInstance().getAllowedHeadersForActionType(actionType);
         Set<String> excludedHeaders = ActionExecutorConfig.getInstance()
                 .getExcludedHeadersInActionRequestForActionType(actionType);
 
-        headers.forEach(header -> {
-            if (!excludedHeaders.contains(header.getName().toLowerCase(Locale.ROOT))) {
-                filteredHeaders.add(header);
-            }
-        });
+        boolean isAllowedHeadersConfigured = !allowedHeaders.isEmpty();
+        boolean isExcludedHeadersConfigured = !excludedHeaders.isEmpty();
+
+        if (isAllowedHeadersConfigured && isExcludedHeadersConfigured) {
+            throw new IllegalStateException(
+                    "Both allowed and excluded header configurations cannot be present for action type: " + actionType);
+        }
+
+        if (isAllowedHeadersConfigured) {
+            headers.stream()
+                    .filter(header -> allowedHeaders.contains(header.getName().toLowerCase(Locale.ROOT)))
+                    .forEach(filteredHeaders::add);
+        } else if (isExcludedHeadersConfigured) {
+            headers.stream()
+                    .filter(header -> !excludedHeaders.contains(header.getName().toLowerCase(Locale.ROOT)))
+                    .forEach(filteredHeaders::add);
+        }
 
         return filteredHeaders;
     }
@@ -52,14 +65,27 @@ public class RequestFilter {
     public static List<Param> getFilteredParams(List<Param> params, ActionType actionType) {
 
         List<Param> filteredParams = new ArrayList<>();
+        Set<String> allowedParams = ActionExecutorConfig.getInstance().getAllowedParamsForActionType(actionType);
         Set<String> excludedParams = ActionExecutorConfig.getInstance()
                 .getExcludedParamsInActionRequestForActionType(actionType);
 
-        params.forEach(param -> {
-            if (!excludedParams.contains(param.getName())) {
-                filteredParams.add(param);
-            }
-        });
+        boolean isAllowedParamsConfigured = !allowedParams.isEmpty();
+        boolean isExcludedParamsConfigured = !excludedParams.isEmpty();
+
+        if (isAllowedParamsConfigured && isExcludedParamsConfigured) {
+            throw new IllegalStateException(
+                    "Both allowed and excluded param configurations cannot be present for action type: " + actionType);
+        }
+
+        if (isAllowedParamsConfigured) {
+            params.stream()
+                    .filter(param -> allowedParams.contains(param.getName()))
+                    .forEach(filteredParams::add);
+        } else if (isExcludedParamsConfigured) {
+            params.stream()
+                    .filter(param -> !excludedParams.contains(param.getName()))
+                    .forEach(filteredParams::add);
+        }
 
         return filteredParams;
     }
