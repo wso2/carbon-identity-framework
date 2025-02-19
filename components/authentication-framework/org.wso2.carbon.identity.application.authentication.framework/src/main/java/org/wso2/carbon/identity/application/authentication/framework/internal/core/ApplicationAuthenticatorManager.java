@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal.core;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -42,6 +43,7 @@ public class ApplicationAuthenticatorManager {
 
     private static final ApplicationAuthenticatorManager instance = new ApplicationAuthenticatorManager();
     private final List<ApplicationAuthenticator> systemDefinedAuthenticators = new ArrayList<>();
+    private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
     private static final String AUTHENTICATION_ACTION_ENABLED_PROP =
             "Actions.Types.Authentication.Enable";
@@ -209,7 +211,6 @@ public class ApplicationAuthenticatorManager {
          a FederatedAuthenticatorConfig instance. */
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
-        Gson gson = new Gson();
         return gson.fromJson(
                 gson.toJson(manager.getIdPByResourceId(resourceId, tenantDomain, false)),
                 IdentityProvider.class);
