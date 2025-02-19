@@ -41,6 +41,7 @@ public abstract class FrameworkConstants {
     public static final String LOCAL_ROLE_CLAIM_URI = "http://wso2.org/claims/role";
     public static final String ACCOUNT_LOCKED_CLAIM_URI = "http://wso2.org/claims/identity/accountLocked";
     public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
+    public static final String ACCOUNT_STATE_CLAIM_URI = "http://wso2.org/claims/identity/accountState";
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String USER_ID_CLAIM = "http://wso2.org/claims/userid";
@@ -406,6 +407,11 @@ public abstract class FrameworkConstants {
          */
         public static final String AUTHENTICATION_CONTEXT_EXPIRY_VALIDATION =
                 "EnableAuthenticationContextExpiryValidation";
+
+        /**
+         * JIT Provisioning configurations.
+         */
+        public static final String SHOW_FAILURE_REASON = "JITProvisioning.ShowFailureReason";
 
         private Config() {
         }
@@ -788,6 +794,21 @@ public abstract class FrameworkConstants {
             public static final String PROCESS_CLAIM_CONSENT = "process-claim-consent";
             public static final String AUTHENTICATION_STEP_EXECUTION = "authentication-step-execution";
             public static final String EXECUTE_ADAPTIVE_SCRIPT = "execute-adaptive-script";
+        }
+    }
+
+    /**
+     * Constants of the states of the account.
+     */
+    public static class AccountStatus {
+
+        public static final String PENDING_EV = "PENDING_EV";
+        public static final String PENDING_AP = "PENDING_AP";
+        public static final String PENDING_SR = "PENDING_SR";
+        public static final String PENDING_LR = "PENDING_LR";
+
+        private AccountStatus() {
+            // Prevent instantiation
         }
     }
 
