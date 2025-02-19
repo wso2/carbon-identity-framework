@@ -36,12 +36,12 @@ import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.api.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
-import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
-import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordEvent;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
 import org.wso2.carbon.utils.Secret;
 import org.wso2.carbon.utils.UnsupportedSecretTypeException;
 
