@@ -1228,9 +1228,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                               String traceId, Long lastAccessedTimestamp, boolean isRememberMe) {
 
         String userTenantDomain = authenticatedUser.getTenantDomain();
-        String username = authenticatedUser.getUserStoreDomain() +
-                UserCoreConstants.DOMAIN_SEPARATOR + authenticatedUser.getUserName();
         boolean isFederated = authenticatedUser.isFederatedUser();
+        String username = authenticatedUser.getUserName();
+        if (!isFederated) {
+            username = authenticatedUser.getUserStoreDomain() + UserCoreConstants.DOMAIN_SEPARATOR + username;
+        }
+
         JSONObject auditData = new JSONObject();
         auditData.put(SessionMgtConstants.SESSION_CONTEXT_ID, sessionKey);
         auditData.put(SessionMgtConstants.REMEMBER_ME, isRememberMe);
@@ -1242,8 +1245,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             String maskedUsername = LoggerUtils.getMaskedContent(username);
             auditData.put(SessionMgtConstants.AUTHENTICATED_USER, maskedUsername);
             /* Not resolving the initiatorId for federated users since the subject returned from the external IDP
-             * is set as the username during federated logins. Therefore, the initiatorId will be set as the masked
-             * username for federated users.
+             * can be set to any identifier based on the IdP. Authenticated user's subject identifier is sent as the
+             * username and initiatorId, and It could contain PII information. Therefore, the initiatorId will be set
+             * as the masked username for federated users.
              */
             if (!isFederated && StringUtils.isNotBlank(username) && StringUtils.isNotBlank(userTenantDomain)) {
                 initiator = IdentityUtil.getInitiatorId(username, userTenantDomain);
