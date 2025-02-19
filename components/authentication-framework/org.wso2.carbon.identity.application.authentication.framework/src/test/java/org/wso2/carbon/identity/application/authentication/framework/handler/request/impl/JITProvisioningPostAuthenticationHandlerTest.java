@@ -214,19 +214,20 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
     public Object[][] userAccountStatusDataProvider() {
 
         return new Object[][] {
-                { FrameworkConstants.AccountStatus.PENDING_LR , true, PostAuthnHandlerFlowStatus.INCOMPLETE, "error1"},
-                { FrameworkConstants.AccountStatus.PENDING_EV , true, PostAuthnHandlerFlowStatus.INCOMPLETE, "error2"},
-                { FrameworkConstants.AccountStatus.PENDING_SR , true, PostAuthnHandlerFlowStatus.INCOMPLETE, "error3"},
-                { FrameworkConstants.AccountStatus.PENDING_LR , true, PostAuthnHandlerFlowStatus.INCOMPLETE, "error4"},
-                { null , true, PostAuthnHandlerFlowStatus.INCOMPLETE, "error5"},
-                { null, false, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED, "error6"},
+                { FrameworkConstants.AccountStatus.PENDING_LR , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_EV , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_SR , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_AP , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_LR , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { null , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { null, false, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED },
         };
     }
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow with an associated user",
             dataProvider = "UserAccountStatusDataProvider")
     public void testHandleWithAuthenticatedUserWithPendingVerification(String testAccountState, boolean isAccountLocked,
-            PostAuthnHandlerFlowStatus expectedResult, String failMessage) throws FrameworkException,
+            PostAuthnHandlerFlowStatus expectedResult) throws FrameworkException,
             FederatedAssociationManagerException, UserStoreException, XMLStreamException,
             IdentityProviderManagementException {
 
@@ -273,8 +274,9 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
 
             PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
                     .handle(request, response, context);
-            Assert.assertEquals(postAuthnHandlerFlowStatus, expectedResult,
-                    failMessage);
+            Assert.assertEquals(postAuthnHandlerFlowStatus, expectedResult, "JIT provisioning handler executed with "
+                    + "an associated user with account status: " + testAccountState + " and account locked status: "
+                    + isAccountLocked);
         }
     }
 

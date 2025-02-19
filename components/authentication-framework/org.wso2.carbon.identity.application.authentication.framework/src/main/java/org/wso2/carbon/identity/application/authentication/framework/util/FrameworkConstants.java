@@ -803,6 +803,7 @@ public abstract class FrameworkConstants {
     public static class AccountStatus {
 
         public static final String PENDING_EV = "PENDING_EV";
+        public static final String PENDING_AP = "PENDING_AP";
         public static final String PENDING_SR = "PENDING_SR";
         public static final String PENDING_LR = "PENDING_LR";
 

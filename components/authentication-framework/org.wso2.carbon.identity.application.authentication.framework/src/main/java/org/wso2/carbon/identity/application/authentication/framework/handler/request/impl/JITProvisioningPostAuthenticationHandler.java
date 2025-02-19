@@ -388,7 +388,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                             "tenant domain: %s ", associatedLocalUser, context.getTenantDomain()));
                                 }
                                 retryParam =
-                                        "&authFailure=true&authFailureMsg=account.confirmation.pending&errorCode=" +
+                                        "&authFailure=true&errorCode=" +
                                                 IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE;
                             }
                             handleAccountLockLoginFailure(retryURL, context, response, retryParam);
@@ -533,19 +533,17 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             UserStoreManager userStoreManager = realm.getUserStoreManager();
             Map<String, String> claimValues = userStoreManager.getUserClaimValues(username, new String[]{
                     FrameworkConstants.ACCOUNT_STATE_CLAIM_URI}, UserCoreConstants.DEFAULT_PROFILE);
-            if (claimValues != null && !claimValues.isEmpty()) {
-                String accountStateClaim = claimValues.get(FrameworkConstants.ACCOUNT_STATE_CLAIM_URI);
-                return FrameworkConstants.AccountStatus.PENDING_LR.equals(accountStateClaim) ||
-                        FrameworkConstants.AccountStatus.PENDING_EV.equals(accountStateClaim) ||
-                        FrameworkConstants.AccountStatus.PENDING_SR.equals(accountStateClaim);
-            }
+            String accountStateClaim = claimValues.get(FrameworkConstants.ACCOUNT_STATE_CLAIM_URI);
+            return FrameworkConstants.AccountStatus.PENDING_LR.equals(accountStateClaim) ||
+                    FrameworkConstants.AccountStatus.PENDING_AP.equals(accountStateClaim) ||
+                    FrameworkConstants.AccountStatus.PENDING_EV.equals(accountStateClaim) ||
+                    FrameworkConstants.AccountStatus.PENDING_SR.equals(accountStateClaim);
         } catch (UserStoreException e) {
             throw new PostAuthenticationFailedException(
                     ErrorMessages.ERROR_WHILE_CHECKING_PENDING_VERIFICATION_STATUS.getCode(),
                     String.format(ErrorMessages.ERROR_WHILE_CHECKING_PENDING_VERIFICATION_STATUS.getMessage(),
                             username), e);
         }
-        return false;
     }
 
     private void handleAccountLockLoginFailure(String retryPage, AuthenticationContext context,
@@ -560,7 +558,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             + context.getContextIdentifier());
             if (!doShowFailureReason()) {
                 retryParam =
-                        "&authFailure=true&authFailureMsg=login.failed.generic&errorCode=" +
+                        "&authFailure=true&errorCode=" +
                                 IdentityCoreConstants.LOGIN_FAILED_GENERIC_ERROR_CODE;
             }
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage, retryParam);
