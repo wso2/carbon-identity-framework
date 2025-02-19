@@ -32,6 +32,7 @@ public class ActionMgtSQLConstants {
      */
     public static class Column {
 
+        public static final String SCHEMA_VERSION = "VERSION";
         public static final String ACTION_UUID = "UUID";
         public static final String ACTION_TYPE = "TYPE";
         public static final String ACTION_NAME = "NAME";
@@ -54,7 +55,8 @@ public class ActionMgtSQLConstants {
     public static class Query {
 
         public static final String ADD_ACTION_TO_ACTION_TYPE = "INSERT INTO IDN_ACTION (UUID, TYPE, NAME, " +
-                "DESCRIPTION, STATUS, TENANT_ID) VALUES (:UUID;, :TYPE;, :NAME;, :DESCRIPTION;, :STATUS;, :TENANT_ID;)";
+                "DESCRIPTION, STATUS, TENANT_ID, VERSION) VALUES (:UUID;, :TYPE;, :NAME;, :DESCRIPTION;, :STATUS;, " +
+                ":TENANT_ID;, :VERSION;)";
         public static final String ADD_ACTION_PROPERTIES = "INSERT INTO IDN_ACTION_PROPERTIES (ACTION_UUID, " +
                 "PROPERTY_NAME, PROPERTY_VALUE, TENANT_ID) VALUES (:ACTION_UUID;, :PROPERTY_NAME;, :PROPERTY_VALUE;, " +
                 ":TENANT_ID;)";

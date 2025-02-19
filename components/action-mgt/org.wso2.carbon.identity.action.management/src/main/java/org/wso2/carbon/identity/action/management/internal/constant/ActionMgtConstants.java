@@ -23,11 +23,6 @@ package org.wso2.carbon.identity.action.management.internal.constant;
  */
 public class ActionMgtConstants {
 
-    public static final String URI_PROPERTY = "uri";
-    public static final String AUTHN_TYPE_PROPERTY = "authnType";
-    public static final String RULE_PROPERTY = "rule";
-    public static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_API_ENDPOINT_AUTH_SECRETS";
-
     public static final String ACTION_NAME_FIELD = "Action name";
     public static final String ENDPOINT_URI_FIELD = "Endpoint URI";
     public static final String ENDPOINT_AUTHENTICATION_TYPE_FIELD = "Endpoint authentication type";
