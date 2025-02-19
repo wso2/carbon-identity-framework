@@ -43,7 +43,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
 
         LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Started...");
 
-        Connection connection = IdentityDatabaseUtil.getUserDBConnection(true);
+        Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
         try{
             try{
                 NamedPreparedStatement statement = new NamedPreparedStatement(connection,CREATE_B2B_RESOURCE_SHARING_OPERATION, SQLConstants.UMSharingOperationTableColumns.UM_SHARING_OPERATION_ID);
@@ -54,7 +54,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
                 statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_RESIDENT_ORG_ID, residentOrgId);
                 statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_OPERATION_INITIATOR_ID, initiatorId);
                 statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_SHARING_OPERATION_STATUS, operationStatus);
-                statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_LAST_MODIFIED, "2025-02-18 15:24:44.167");
+                statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_CREATED_TIME, "2025-02-18 15:24:44.167");
                 statement.setString(SQLConstants.UMSharingOperationTableColumns.UM_LAST_MODIFIED, "2025-02-18 15:24:44.167");
                 statement.executeUpdate();
                 LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Success.");
