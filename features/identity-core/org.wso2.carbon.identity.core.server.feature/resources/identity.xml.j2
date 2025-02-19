@@ -2627,6 +2627,11 @@
                    timeout="{{cache.push_auth_status_cache_cache.timeout}}"
                    capacity="{{cache.push_auth_status_cache_cache.capacity}}"
                    isDistributed="false"/>
+            <Cache id="push_device_registration_request_cache" name="PushDeviceRegistrationRequestCache"
+                   enable="{{cache.push_device_registration_request_cache.enable}}"
+                   timeout="{{cache.push_device_registration_request_cache.timeout}}"
+                   capacity="{{cache.push_device_registration_request_cache.capacity}}"
+                   isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
                     enable="true"

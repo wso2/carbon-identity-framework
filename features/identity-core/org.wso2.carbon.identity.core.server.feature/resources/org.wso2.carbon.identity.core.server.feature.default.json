@@ -726,6 +726,9 @@
   "cache.push_auth_status_cache.enable": true,
   "cache.push_auth_status_cache.timeout": "300",
   "cache.push_auth_status_cache.capacity": "$ref{cache.default_capacity}",
+  "cache.push_device_registration_request_cache.enable": true,
+  "cache.push_device_registration_request_cache.timeout": "300",
+  "cache.push_device_registration_request_cache.capacity": "$ref{cache.default_capacity}",
 
   "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
