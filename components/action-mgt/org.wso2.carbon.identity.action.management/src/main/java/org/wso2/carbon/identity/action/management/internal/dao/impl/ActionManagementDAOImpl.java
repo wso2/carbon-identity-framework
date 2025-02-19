@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.action.management.api.model.ActionRule;
 import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
-import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants;
 import org.wso2.carbon.identity.action.management.internal.constant.ActionMgtSQLConstants;
 import org.wso2.carbon.identity.action.management.internal.dao.ActionManagementDAO;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
@@ -46,13 +45,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants.AUTHN_TYPE_PROPERTY;
-import static org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants.URI_PROPERTY;
-
 /**
  * This class implements the {@link ActionManagementDAO} interface.
  */
 public class ActionManagementDAOImpl implements ActionManagementDAO {
+
+    private static final String V1 = "1.0.0";
+    private static final String URI_PROPERTY = "uri";
+    private static final String AUTHN_TYPE_PROPERTY = "authnType";
+    private static final String RULE_PROPERTY = "rule";
 
     @Override
     public void addAction(ActionDTO actionDTO, Integer tenantId) throws ActionMgtException {
@@ -214,6 +215,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS,
                                 String.valueOf(Action.Status.ACTIVE));
                         statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
+                        statement.setString(ActionMgtSQLConstants.Column.SCHEMA_VERSION, V1);
                     }, actionDTO, false));
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while adding Action Basic information in the system.", e);
@@ -348,7 +350,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         Authentication authentication;
         Authentication.Type authnType =
-                Authentication.Type.valueOfName(propertiesFromDB.remove(ActionMgtConstants.AUTHN_TYPE_PROPERTY));
+                Authentication.Type.valueOfName(propertiesFromDB.remove(AUTHN_TYPE_PROPERTY));
         switch (authnType) {
             case BASIC:
                 authentication = new Authentication.BasicAuthBuilder(
@@ -372,7 +374,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
 
         return new EndpointConfig.EndpointConfigBuilder()
-                .uri(propertiesFromDB.remove(ActionMgtConstants.URI_PROPERTY))
+                .uri(propertiesFromDB.remove(URI_PROPERTY))
                 .authentication(authentication)
                 .build();
     }
@@ -470,7 +472,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
         }
 
         Map<String, String> propertiesMap =
-                Collections.singletonMap(ActionMgtConstants.RULE_PROPERTY, actionDTO.getActionRule().getId());
+                Collections.singletonMap(RULE_PROPERTY, actionDTO.getActionRule().getId());
         try {
             addActionPropertiesToDB(actionDTO.getId(), propertiesMap, tenantId);
         } catch (TransactionException e) {
@@ -500,7 +502,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
         try {
             deleteActionPropertiesInDB(actionDTO.getId(),
-                    Collections.singletonList(ActionMgtConstants.RULE_PROPERTY), tenantId);
+                    Collections.singletonList(RULE_PROPERTY), tenantId);
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while removing the reference for the Rule in Action.", e);
         }
@@ -508,11 +510,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
 
     private ActionRule populateRule(Map<String, String> propertiesFromDB, Integer tenantId) {
 
-        if (!propertiesFromDB.containsKey(ActionMgtConstants.RULE_PROPERTY)) {
+        if (!propertiesFromDB.containsKey(RULE_PROPERTY)) {
             return null;
         }
 
-        return ActionRule.create(propertiesFromDB.remove(ActionMgtConstants.RULE_PROPERTY),
+        return ActionRule.create(propertiesFromDB.remove(RULE_PROPERTY),
                 IdentityTenantUtil.getTenantDomain(tenantId));
     }
 

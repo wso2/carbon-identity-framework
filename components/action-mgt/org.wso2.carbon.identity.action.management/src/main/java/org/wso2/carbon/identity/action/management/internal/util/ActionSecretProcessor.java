@@ -29,12 +29,12 @@ import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.identity.action.management.internal.constant.ActionMgtConstants.IDN_SECRET_TYPE_ACTION_SECRETS;
-
 /**
  * Action secrets processor service implementation.
  */
 public class ActionSecretProcessor {
+
+    private static final String IDN_SECRET_TYPE_ACTION_SECRETS = "ACTION_API_ENDPOINT_AUTH_SECRETS";
 
     public List<AuthProperty> encryptAssociatedSecrets(Authentication authentication, String actionId)
             throws SecretManagementException {
