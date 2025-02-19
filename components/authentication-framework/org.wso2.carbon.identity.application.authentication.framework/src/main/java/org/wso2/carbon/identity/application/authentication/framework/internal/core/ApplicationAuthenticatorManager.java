@@ -36,6 +36,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.LOCAL_IDP_NAME;
+
 /**
  * This class is used to manage the ApplicationAuthenticator instances.
  */
@@ -211,8 +213,12 @@ public class ApplicationAuthenticatorManager {
          a FederatedAuthenticatorConfig instance. */
         IdentityProviderManager manager =
                 (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
-        return gson.fromJson(
-                gson.toJson(manager.getIdPByResourceId(resourceId, tenantDomain, false)),
-                IdentityProvider.class);
+        IdentityProvider idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
+
+        if (LOCAL_IDP_NAME.equals(idp.getIdentityProviderName())) {
+            return idp;
+        }
+
+        return gson.fromJson(gson.toJson(idp), IdentityProvider.class);
     }
 }
