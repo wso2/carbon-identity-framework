@@ -54,7 +54,8 @@ public class ClaimConstants {
     public static final String MAX_LENGTH = "maxLength";
     public static final String IS_SYSTEM_CLAIM = "isSystemClaim";
     public static final String SHARED_PROFILE_VALUE_RESOLVING_METHOD = "SharedProfileValueResolvingMethod";
-    public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT = "SkipAddExternalClaim";
+    public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
+            "ExternalClaimAdditionNotAllowedForDialect";
 
     /**
      * Enum for error messages.
