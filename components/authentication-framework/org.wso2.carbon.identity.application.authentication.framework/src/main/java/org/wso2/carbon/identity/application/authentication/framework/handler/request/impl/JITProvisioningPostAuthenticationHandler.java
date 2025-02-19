@@ -388,7 +388,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                             "tenant domain: %s ", associatedLocalUser, context.getTenantDomain()));
                                 }
                                 retryParam =
-                                        "&authFailure=true&errorCode=" +
+                                        "&authFailure=true&authFailureMsg=account.confirmation.pending&errorCode=" +
                                                 IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE;
                             }
                             handleAccountLockLoginFailure(retryURL, context, response, retryParam);
@@ -558,7 +558,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                             + context.getContextIdentifier());
             if (!doShowFailureReason()) {
                 retryParam =
-                        "&authFailure=true&errorCode=" +
+                        "&authFailure=true&authFailureMsg=login.failed.generic&errorCode=" +
                                 IdentityCoreConstants.LOGIN_FAILED_GENERIC_ERROR_CODE;
             }
             retryPage = FrameworkUtils.appendQueryParamsStringToUrl(retryPage, retryParam);
