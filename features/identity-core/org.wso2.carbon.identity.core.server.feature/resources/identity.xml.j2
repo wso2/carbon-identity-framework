@@ -2131,23 +2131,18 @@
                             <Parameter>{{param}}</Parameter>
                         {% endfor %}
                     </ExcludedParameters>
-                </ActionRequest>
-            </PreIssueAccessToken>
-            <Authentication>
-                <Enable>{{actions.types.authentication.enable}}</Enable>
-                <ActionRequest>
-                    <ExcludedHeaders>
-                         {% for header in actions.types.authentication.action_request.excluded_headers %}
+                    <AllowedHeaders>
+                        {% for header in actions.types.pre_issue_access_token.action_request.allowed_headers %}
                             <Header>{{header}}</Header>
-                         {% endfor %}
-                    </ExcludedHeaders>
-                    <ExcludedParameters>
-                        {% for param in actions.types.authentication.action_request.excluded_parameters %}
+                        {% endfor %}
+                    </AllowedHeaders>
+                    <AllowedParameters>
+                        {% for param in actions.types.pre_issue_access_token.action_request.allowed_parameters %}
                             <Parameter>{{param}}</Parameter>
                         {% endfor %}
-                    </ExcludedParameters>
+                    </AllowedParameters>
                 </ActionRequest>
-            </Authentication>
+            </PreIssueAccessToken>
         </Types>
     </Actions>
 
@@ -2186,7 +2181,7 @@
                        enable="{{event.default_listener.scim2_tenant_mgt.enable}}"/>
         <EventListener id="pre_update_password_action"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
-                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener"
                        orderId="{{event.default_listener.pre_update_password_action.priority}}"
                        enable="{{event.default_listener.pre_update_password_action.enable}}"/>
         <EventListener id="governance_identity_mgt"

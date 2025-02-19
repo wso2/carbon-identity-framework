@@ -105,7 +105,7 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
     }
 
     public void init(ConfigurationContext configurationContext) {
-        log.info("User Store Configuration Deployer initiated.");
+        log.debug("User Store Configuration Deployer initiated.");
         this.axisConfig = configurationContext.getAxisConfiguration();
     }
 

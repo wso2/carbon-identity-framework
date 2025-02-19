@@ -23,26 +23,25 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
-import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.user.action.service.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.constant.PreUpdatePasswordActionConstants;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.PreUpdatePasswordActionRequestBuilder;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.Credential;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordSharing;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordUpdatingUser;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordAction;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordEvent;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.Credential;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordUpdatingUser;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordEvent;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionRequestBuilder;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -68,7 +67,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     private PreUpdatePasswordAction preUpdatePasswordAction;
     private PreUpdatePasswordAction preUpdatePasswordActionWithoutCert;
     private UserActionContext userActionContext;
-    private final Map<String, Object> eventContext = new HashMap<>();
+    private final FlowContext flowContext = FlowContext.create();
     private PreUpdatePasswordActionRequestBuilder preUpdatePasswordActionRequestBuilder;
 
     @BeforeClass
@@ -116,14 +115,13 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     public void setUp() {
 
         preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordActionRequestBuilder();
-        eventContext.put(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
+        flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
     }
 
     @AfterMethod
     public void tearDown() {
 
         IdentityContext.destroyCurrentContext();
-        eventContext.clear();
     }
 
     @Test
@@ -157,10 +155,9 @@ public class PreUpdatePasswordActionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
-        eventContext.put("action", preUpdatePasswordAction);
-
-        ActionExecutionRequest actionExecutionRequest = preUpdatePasswordActionRequestBuilder
-                .buildActionExecutionRequest(eventContext);
+        ActionExecutionRequest actionExecutionRequest =
+                preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
+                        flowContext, ActionExecutionRequestContext.create(preUpdatePasswordAction));
 
         assertNotNull(actionExecutionRequest);
         assertEquals(actionExecutionRequest.getActionType(), ActionType.PRE_UPDATE_PASSWORD);
@@ -188,10 +185,9 @@ public class PreUpdatePasswordActionRequestBuilderTest {
             throws ActionExecutionRequestBuilderException {
 
         IdentityContext.getThreadLocalIdentityContext().setFlow(mockedFlow);
-        eventContext.put("action", preUpdatePasswordActionWithoutCert);
-
-        ActionExecutionRequest actionExecutionRequest = preUpdatePasswordActionRequestBuilder
-                .buildActionExecutionRequest(eventContext);
+        ActionExecutionRequest actionExecutionRequest =
+                preUpdatePasswordActionRequestBuilder.buildActionExecutionRequest(
+                        flowContext, ActionExecutionRequestContext.create(preUpdatePasswordActionWithoutCert));
 
         assertNotNull(actionExecutionRequest);
         assertEquals(actionExecutionRequest.getActionType(), ActionType.PRE_UPDATE_PASSWORD);
