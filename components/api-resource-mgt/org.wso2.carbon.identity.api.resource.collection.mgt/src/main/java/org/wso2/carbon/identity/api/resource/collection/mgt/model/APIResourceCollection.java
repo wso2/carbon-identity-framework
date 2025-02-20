@@ -34,6 +34,10 @@ public class APIResourceCollection {
     private String type;
     private List<String> readScopes;
     private List<String> writeScopes;
+    private List<String> legacyReadScopes;
+    private List<String> legacyWriteScopes;
+    private String viewFeatureScope;
+    private String editFeatureScope;
     private Map<String, List<APIResource>> apiResources;
 
     public APIResourceCollection() {
@@ -48,6 +52,10 @@ public class APIResourceCollection {
             this.apiResources = apiResourceCollectionBuilder.apiResources;
             this.readScopes = apiResourceCollectionBuilder.readScopes;
             this.writeScopes = apiResourceCollectionBuilder.writeScopes;
+            this.legacyReadScopes = apiResourceCollectionBuilder.legacyReadScopes;
+            this.legacyWriteScopes = apiResourceCollectionBuilder.legacyWriteScopes;
+            this.viewFeatureScope = apiResourceCollectionBuilder.viewFeatureScope;
+            this.editFeatureScope = apiResourceCollectionBuilder.editFeatureScope;
     }
 
     public String getId() {
@@ -100,6 +108,46 @@ public class APIResourceCollection {
         this.writeScopes = writeScopes;
     }
 
+    public List<String> getLegacyReadScopes() {
+
+        return legacyReadScopes;
+    }
+
+    public void setLegacyReadScopes(List<String> legacyReadScopes) {
+
+        this.legacyReadScopes = legacyReadScopes;
+    }
+
+    public List<String> getLegacyWriteScopes() {
+
+        return legacyWriteScopes;
+    }
+
+    public void setLegacyWriteScopes(List<String> legacyWriteScopes) {
+
+        this.legacyWriteScopes = legacyWriteScopes;
+    }
+
+    public String getViewFeatureScope() {
+
+        return viewFeatureScope;
+    }
+
+    public void setViewFeatureScope(String viewFeatureScope) {
+
+        this.viewFeatureScope = viewFeatureScope;
+    }
+
+    public String getEditFeatureScope() {
+
+        return editFeatureScope;
+    }
+
+    public void setEditFeatureScope(String editFeatureScope) {
+
+        this.editFeatureScope = editFeatureScope;
+    }
+
     /**
      * Builder class for API Resource Collection.
      */
@@ -111,6 +159,10 @@ public class APIResourceCollection {
         private String type;
         private List<String> readScopes;
         private List<String> writeScopes;
+        private List<String> legacyReadScopes;
+        private List<String> legacyWriteScopes;
+        private String viewFeatureScope;
+        private String editFeatureScope;
         private Map<String, List<APIResource>> apiResources;
 
         public APIResourceCollectionBuilder() {
@@ -149,6 +201,31 @@ public class APIResourceCollection {
         public APIResourceCollectionBuilder writeScopes(List<String> writeScopes) {
 
             this.writeScopes = writeScopes;
+            return this;
+        }
+
+
+        public APIResourceCollectionBuilder legacyReadScopes(List<String> legacyReadScopes) {
+
+            this.legacyReadScopes = legacyReadScopes;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder legacyWriteScopes(List<String> legacyWriteScopes) {
+
+            this.legacyWriteScopes = legacyWriteScopes;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder viewFeatureScope(String viewFeatureScope) {
+
+            this.viewFeatureScope = viewFeatureScope;
+            return this;
+        }
+
+        public APIResourceCollectionBuilder editFeatureScope(String editFeatureScope) {
+
+            this.editFeatureScope = editFeatureScope;
             return this;
         }
 

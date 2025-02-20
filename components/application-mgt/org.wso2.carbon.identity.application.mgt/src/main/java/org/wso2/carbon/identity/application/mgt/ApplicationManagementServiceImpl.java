@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -1332,8 +1332,24 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ServiceProvider getApplicationWithRequiredAttributes(int applicationId, List<String> requiredAttributes)
             throws IdentityApplicationManagementException {
 
+        Collection<ApplicationMgtListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        return appDAO.getApplicationWithRequiredAttributes(applicationId, requiredAttributes);
+        ServiceProvider application = appDAO.getApplicationWithRequiredAttributes(applicationId, requiredAttributes);
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() &&
+                    !listener.doPostGetApplicationWithRequiredAttributes(application, tenantDomain)) {
+                log.error("PostGetApplicationWithRequiredAttributes operation of " +
+                        "listener: " + getName(listener) + " failed for application with id: " +
+                        application.getApplicationID());
+                break;
+            }
+        }
+
+        return application;
     }
 
     /**

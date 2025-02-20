@@ -383,13 +383,21 @@
                  description="API representation of the OIDC Scope Management API" type="TENANT">
         <Scopes>
             <Scope displayName="View OIDC Scopes" name="internal_oidc_scope_mgt_view" 
-                    description="Create new OAuth2 scopes and bindings"/>
-            <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_mgt_create" 
                     description="View OAuth2 scopes and bindings"/>
+            <Scope displayName="Create OIDC Scopes" name="internal_oidc_scope_mgt_create" 
+                    description="Create new OAuth2 scopes and bindings"/>
             <Scope displayName="Update OIDC Scopes" name="internal_oidc_scope_mgt_update" 
                     description="Update OAuth2 scopes and bindings"/>
             <Scope displayName="Delete OIDC Scopes" name="internal_oidc_scope_mgt_delete" 
                     description="Delete OAuth2 scopes and bindings"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="OIDC Scope Management API" identifier="/o/api/server/v1/oidc/scopes"
+                 requiresAuthorization="true"
+                 description="API representation of the OIDC Scope Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View OIDC Scopes" name="internal_org_oidc_scope_mgt_view"
+                    description="View OAuth2 scopes and bindings"/>
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management API" identifier="/api/server/v1/tenants"
@@ -831,6 +839,34 @@
                     description="Delete OAuth2 scopes in the organization (root)"/>
         </Scopes>
     </APIResource>
+    <APIResource name="Certificate Validation Management API" identifier="/api/server/v1/certificate-validation"
+                 requiresAuthorization="true"
+                 description="API representation of the Certificate Validation Management API" type="TENANT">
+        <Scopes>
+            <Scope displayName="View Certificate Validation Configurations" name="internal_cert_validation_mgt_view"
+                   description="View certificate validation configurations in the organization (root)"/>
+            <Scope displayName="Create Certificate Validation Configurations" name="internal_cert_validation_mgt_create"
+                   description="Create certificate validation configurations in the organization (root)"/>
+            <Scope displayName="Update Certificate Validation Configurations" name="internal_cert_validation_mgt_update"
+                   description="Update certificate validation configurations in the organization (root)"/>
+            <Scope displayName="Delete Certificate Validation Configurations" name="internal_cert_validation_mgt_delete"
+                   description="Delete certificate validation configurations in the organization (root)"/>
+        </Scopes>
+    </APIResource>
+    <APIResource name="Certificate Validation Management API" identifier="/o/api/server/v1/certificate-validation"
+                 requiresAuthorization="true"
+                 description="API representation of the Certificate Validation Management API" type="ORGANIZATION">
+        <Scopes>
+            <Scope displayName="View Certificate Validation Configurations" name="internal_org_cert_validation_mgt_view"
+                   description="View certificate validation configurations in the organization"/>
+            <Scope displayName="Create Certificate Validation Configurations" name="internal_org_cert_validation_mgt_create"
+                   description="Create certificate validation configurations in the organization"/>
+            <Scope displayName="Update Certificate Validation Configurations" name="internal_org_cert_validation_mgt_update"
+                   description="Update certificate validation configurations in the organization"/>
+            <Scope displayName="Delete Certificate Validation Configurations" name="internal_org_cert_validation_mgt_delete"
+                   description="Delete certificate validation configurations in the organization"/>
+        </Scopes>
+    </APIResource>
     <APIResource name="Email Template Management API v1/v2"
                  identifier="/api/server/v(.*)/email/template-types" requiresAuthorization="true"
                  description="API representation of the Email Template Management API" type="TENANT">
@@ -957,6 +993,10 @@
         <Scopes>
             <Scope displayName="Application Feature" name="console:applications" 
                     description="Manage applications from the Console"/>
+            <Scope displayName="Application View Feature" name="console:applications_view"
+                                description="Manage views of applications from the Console"/>
+            <Scope displayName="Application Edit Feature" name="console:applications_edit"
+                                description="Manage edits of applications from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Application Management Feature" identifier="console:org:applications"
@@ -966,6 +1006,10 @@
         <Scopes>
             <Scope displayName="Application Feature" name="console:org:applications"
                    description="Manage applications in the organization from the Console"/>
+            <Scope displayName="Application View Feature" name="console:org:applications_view"
+                   description="Manage views of applications in the organization from the Console"/>
+            <Scope displayName="Application Edit Feature" name="console:org:applications_edit"
+                   description="Manage edits of applications in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:branding"
@@ -975,6 +1019,10 @@
         <Scopes>
             <Scope displayName="Branding Feature" name="console:branding"
                     description="Manage branding from the Console"/>
+            <Scope displayName="Branding View Feature" name="console:branding_view"
+                    description="Manage views of branding from the Console"/>
+            <Scope displayName="Branding Edit Feature" name="console:branding_edit"
+                    description="Manage edits of branding from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Branding Management Feature" identifier="console:org:branding"
@@ -984,6 +1032,10 @@
         <Scopes>
             <Scope displayName="Branding Feature" name="console:org:branding"
                    description="Manage branding in the organization from the Console"/>
+            <Scope displayName="Branding View Feature" name="console:org:branding_view"
+                   description="Manage views of branding in the organization from the Console"/>
+            <Scope displayName="Branding Edit Feature" name="console:org:branding_edit"
+                   description="Manage edits of branding in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Attribute Management Feature" identifier="console:attributes"
@@ -993,6 +1045,10 @@
         <Scopes>
             <Scope displayName="Attribute Feature" name="console:attributes" 
                     description="Manage user attributes from the Console"/>
+            <Scope displayName="Attribute View Feature" name="console:attributes_view"
+                    description="Manage views of user attributes from the Console"/>
+            <Scope displayName="Attribute Edit Feature" name="console:attributes_edit"
+                    description="Manage edits of user attributes from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Attribute Management Feature" identifier="console:org:attributes"
@@ -1002,6 +1058,10 @@
            <Scopes>
                <Scope displayName="Attribute Feature" name="console:org:attributes"
                        description="Manage user attributes from the Console"/>
+               <Scope displayName="Attribute View Feature" name="console:org:attributes_view"
+                       description="Manage views of user attributes from the Console"/>
+               <Scope displayName="Attribute Edit Feature" name="console:org:attributes_edit"
+                       description="Manage edits of user attributes from the Console"/>
            </Scopes>
     </APIResource>
     <APIResource name="User Store Management Feature" identifier="console:userstores"
@@ -1011,6 +1071,10 @@
         <Scopes>
             <Scope displayName="User Store Feature" name="console:userstores" 
                     description="Manage user stores from the Console"/>
+            <Scope displayName="User views of Store View Feature" name="console:userstores_view"
+                    description="Manage user stores from the Console"/>
+            <Scope displayName="User Store Edit Feature" name="console:userstores_edit"
+                    description="Manage edits of user stores from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Store Management Feature" identifier="console:org:userstores"
@@ -1020,6 +1084,10 @@
         <Scopes>
             <Scope displayName="User Store Feature" name="console:org:userstores"
                     description="Manage user stores from the Console"/>
+            <Scope displayName="User Store View Feature" name="console:org:userstores_view"
+                    description="Manage views of user stores from the Console"/>
+            <Scope displayName="User Store Edit Feature" name="console:org:userstores_edit"
+                    description="Manage edits of user stores from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Group Management Feature" identifier="console:groups"
@@ -1029,6 +1097,10 @@
         <Scopes>
             <Scope displayName="Group Feature" name="console:groups" 
                     description="Manage groups from the Console"/>
+            <Scope displayName="Group View Feature" name="console:groups_view"
+                    description="Manage views of groups from the Console"/>
+            <Scope displayName="Group Edit Feature" name="console:groups_edit"
+                    description="Manage edits of groups from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Group Management Feature" identifier="console:org:groups"
@@ -1038,6 +1110,10 @@
         <Scopes>
             <Scope displayName="Group Feature" name="console:org:groups"
                    description="Manage groups in the organization from the Console"/>
+            <Scope displayName="Group View Feature" name="console:org:groups_view"
+                   description="Manage views of groups in the organization from the Console"/>
+            <Scope displayName="Group Edit Feature" name="console:org:groups_edit"
+                   description="Manage edits of groups in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Provider Management Feature" identifier="console:idps"
@@ -1047,6 +1123,10 @@
         <Scopes>
             <Scope displayName="Identity Provider Feature" name="console:idps" 
                     description="Manage identity providers from the Console"/>
+            <Scope displayName="Identity Provider View Feature" name="console:idps_view"
+                    description="Manage views of identity providers from the Console"/>
+            <Scope displayName="Identity Provider Edit Feature" name="console:idps_edit"
+                    description="Manage edits of identity providers from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Provider Management Feature" identifier="console:org:idps"
@@ -1056,6 +1136,10 @@
         <Scopes>
             <Scope displayName="Identity Provider Feature" name="console:org:idps"
                    description="Manage identity providers in the organization from the Console"/>
+            <Scope displayName="Identity Provider View Feature" name="console:org:idps_view"
+                   description="Manage views of identity providers in the organization from the Console"/>
+            <Scope displayName="Identity Provider Edit Feature" name="console:org:idps_edit"
+                   description="Manage edits of identity providers in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="API Resource Management Feature" identifier="console:apiResources"
@@ -1065,6 +1149,10 @@
         <Scopes>
             <Scope displayName="API Resource Feature" name="console:apiResources" 
                     description="Manage api resources from the Console"/>
+            <Scope displayName="API Resource View Feature" name="console:apiResources_view"
+                                description="Manage views of api resources from the Console"/>
+            <Scope displayName="API Resource Edit Feature" name="console:apiResources_edit"
+                                description="Manage edits of api resources from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="API Resource Management Feature" identifier="console:org:apiResources"
@@ -1074,6 +1162,10 @@
         <Scopes>
             <Scope displayName="API Resource Feature" name="console:org:apiResources"
                     description="Manage api resources in the organization from the Console"/>
+            <Scope displayName="API Resource View Feature" name="console:org:apiResources_view"
+                    description="Manage views of api resources in the organization from the Console"/>
+            <Scope displayName="API Resource Edit Feature" name="console:org:apiResources_edit"
+                    description="Manage edits of api resources in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="OIDC Scope Management Feature" identifier="console:scopes:oidc"
@@ -1083,6 +1175,10 @@
         <Scopes>
             <Scope displayName="OIDC Scope Feature" name="console:scopes:oidc" 
                     description="Manage OIDC scopes from the Console"/>
+            <Scope displayName="OIDC Scope View Feature" name="console:scopes:oidc_view"
+                    description="Manage views of OIDC scopes from the Console"/>
+            <Scope displayName="OIDC Scope Edit Feature" name="console:scopes:oidc_edit"
+                    description="Manage edits of OIDC scopes from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Login And Registration Management Feature" identifier="console:loginAndRegistration"
@@ -1092,6 +1188,10 @@
         <Scopes>
             <Scope displayName="Login And Registration Feature" name="console:loginAndRegistration" 
                     description="Manage login and regisgtration from the Console"/>
+            <Scope displayName="Login And Registration View Feature" name="console:loginAndRegistration_view"
+                    description="Manage views of login and regisgtration from the Console"/>
+            <Scope displayName="Login And Registration Edit Feature" name="console:loginAndRegistration_edit"
+                    description="Manage edits of login and regisgtration from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:organizations"
@@ -1101,6 +1201,10 @@
         <Scopes>
             <Scope displayName="Organization Feature" name="console:organizations" 
                     description="Manage organizations from the Console"/>
+            <Scope displayName="Organization View Feature" name="console:organizations_view"
+                    description="Manage views of organizations from the Console"/>
+            <Scope displayName="Organization Edit Feature" name="console:organizations_edit"
+                    description="Manage edits of organizations from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Management Feature" identifier="console:org:organizations"
@@ -1110,6 +1214,10 @@
         <Scopes>
             <Scope displayName="Organization Feature" name="console:org:organizations"
                    description="Manage organizations in the organization from the Console"/>
+            <Scope displayName="Organization View Feature" name="console:org:organizations_view"
+                   description="Manage views of organizations in the organization from the Console"/>
+            <Scope displayName="Organization Edit Feature" name="console:org:organizations_edit"
+                   description="Manage edits of organizations in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Organization Discovery Management Feature" identifier="console:organizationDiscovery"
@@ -1119,6 +1227,10 @@
         <Scopes>
             <Scope displayName="Organization Discovery Feature" name="console:organizationDiscovery" 
                     description="Manage organization discovery from the Console"/>
+            <Scope displayName="Organization Discovery View Feature" name="console:organizationDiscovery_view"
+                    description="Manage views of organization discovery from the Console"/>
+            <Scope displayName="Organization Discovery Edit Feature" name="console:organizationDiscovery_edit"
+                    description="Manage edits of organization discovery from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Resident Application Outbound Provisioning Configuration Feature" identifier="console:residentOutboundProvisioning"
@@ -1128,6 +1240,10 @@
         <Scopes>
             <Scope displayName="Resident Application Outbound Provisioning Feature" name="console:residentOutboundProvisioning" 
                     description="Manage resident application outbound provisioning configuration from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning View Feature" name="console:residentOutboundProvisioning_view"
+                    description="Manage views of resident application outbound provisioning configuration from the Console"/>
+            <Scope displayName="Resident Application Outbound Provisioning Edit Feature" name="console:residentOutboundProvisioning_edit"
+                    description="Manage edits of resident application outbound provisioning configuration from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Management Feature" identifier="console:roles"
@@ -1137,6 +1253,10 @@
         <Scopes>
             <Scope displayName="Role Feature" name="console:roles" 
                     description="Manage roles from the Console"/>
+            <Scope displayName="Role View Feature" name="console:roles_view"
+                    description="Manage views of roles from the Console"/>
+            <Scope displayName="Role Edit Feature" name="console:roles_edit"
+                    description="Manage edits of roles from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Role Management Feature" identifier="console:org:roles"
@@ -1146,6 +1266,10 @@
         <Scopes>
             <Scope displayName="Role Feature" name="console:org:roles"
                    description="Manage roles in the organization from the Console"/>
+            <Scope displayName="Role View Feature" name="console:org:roles_view"
+                   description="Manage views of roles in the organization from the Console"/>
+            <Scope displayName="Role Edit Feature" name="console:org:roles_edit"
+                   description="Manage edits of roles in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:users"
@@ -1155,6 +1279,10 @@
         <Scopes>
             <Scope displayName="User Feature" name="console:users" 
                     description="Manage users from the Console"/>
+            <Scope displayName="User View Feature" name="console:users_view"
+                    description="Manage views of users from the Console"/>
+            <Scope displayName="User Edit Feature" name="console:users_edit"
+                    description="Manage edits of users from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="User Management Feature" identifier="console:org:users"
@@ -1164,6 +1292,10 @@
         <Scopes>
             <Scope displayName="User Feature" name="console:org:users"
                    description="Manage users in the organization from the Console"/>
+            <Scope displayName="User View Feature" name="console:org:users_view"
+                   description="Manage views of users in the organization from the Console"/>
+            <Scope displayName="User Edit Feature" name="console:org:users_edit"
+                   description="Manage edits of users in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Server Management Feature" identifier="console:server"
@@ -1182,6 +1314,10 @@
         <Scopes>
             <Scope displayName="Workflow Approval Feature" name="console:workflowApprovals" 
                     description="Manage workflow approvals from the Console"/>
+            <Scope displayName="Workflow Approval View Feature" name="console:workflowApprovals_view"
+                    description="Manage views of workflow approvals from the Console"/>
+            <Scope displayName="Workflow Approval Edit Feature" name="console:workflowApprovals_edit"
+                    description="Manage edits of workflow approvals from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Notification Channel Management Feature" identifier="console:notificationChannels"
@@ -1191,6 +1327,10 @@
         <Scopes>
             <Scope displayName="Notification Channel Feature" name="console:notificationChannels" 
                     description="Manage notification channels from the Console"/>
+            <Scope displayName="Notification Channel View Feature" name="console:notificationChannels_view"
+                    description="Manage views of notification channels from the Console"/>
+            <Scope displayName="Notification Channel Edit Feature" name="console:notificationChannels_edit"
+                    description="Manage edits of notification channels from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Identity Verification Provider Management Feature" identifier="console:idvps"
@@ -1200,6 +1340,10 @@
         <Scopes>
             <Scope displayName="Identity Verification Provider Feature" name="console:idvps" 
                     description="Manage identity verfication providers from the Console"/>
+            <Scope displayName="Identity Verification Provider View Feature" name="console:idvps_view"
+                    description="Manage views of identity verfication providers from the Console"/>
+            <Scope displayName="Identity Verification Provider Edit Feature" name="console:idvps_edit"
+                    description="Manage edits of identity verfication providers from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Event Publishing Management Feature" identifier="console:eventPublishing"
@@ -1218,6 +1362,10 @@
         <Scopes>
             <Scope displayName="Email Template Feature" name="console:emailTemplates" 
                     description="Manage email templates from the Console"/>
+            <Scope displayName="Email Template View Feature" name="console:emailTemplates_view"
+                    description="Manage views of email templates from the Console"/>
+            <Scope displayName="Email Template Edit Feature" name="console:emailTemplates_edit"
+                    description="Manage edits of email templates from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Email Template Management Feature" identifier="console:org:emailTemplates"
@@ -1227,6 +1375,10 @@
         <Scopes>
             <Scope displayName="Email Template Feature" name="console:org:emailTemplates"
                    description="Manage email templates in the organization from the Console"/>
+            <Scope displayName="Email Template View Feature" name="console:org:emailTemplates_view"
+                   description="Manage views of email templates in the organization from the Console"/>
+            <Scope displayName="Email Template Edit Feature" name="console:org:emailTemplates_edit"
+                   description="Manage edits of email templates in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="SMS Template Management Feature" identifier="console:smsTemplates"
@@ -1236,6 +1388,10 @@
         <Scopes>
             <Scope displayName="SMS Template Feature" name="console:smsTemplates"
                    description="Manage SMS templates from the Console"/>
+            <Scope displayName="SMS Template View Feature" name="console:smsTemplates_view"
+                   description="Manage views of SMS templates from the Console"/>
+            <Scope displayName="SMS Template Edit Feature" name="console:smsTemplates_edit"
+                   description="Manage edits of SMS templates from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="SMS Template Management Feature" identifier="console:org:smsTemplates"
@@ -1245,6 +1401,10 @@
         <Scopes>
             <Scope displayName="SMS Template Feature" name="console:org:smsTemplates"
                    description="Manage SMS templates in the organization from the Console"/>
+            <Scope displayName="SMS Template View Feature" name="console:org:smsTemplates_view"
+                   description="Manage views of SMS templates in the organization from the Console"/>
+            <Scope displayName="SMS Template Edit Feature" name="console:org:smsTemplates_edit"
+                   description="Manage edits of SMS templates in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:settings"
@@ -1254,6 +1414,10 @@
         <Scopes>
             <Scope displayName="Console Setting Feature" name="console:settings" 
                     description="Manage console setting from the Console"/>
+            <Scope displayName="Console Setting View Feature" name="console:settings_view"
+                    description="Manage views of console setting from the Console"/>
+            <Scope displayName="Console Setting Edit Feature" name="console:settings_edit"
+                    description="Manage edits of console setting from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Console Setting Management Feature" identifier="console:org:settings"
@@ -1263,6 +1427,10 @@
         <Scopes>
             <Scope displayName="Console Setting Feature" name="console:org:settings"
                    description="Manage console setting in the organization from the Console"/>
+            <Scope displayName="Console Setting View Feature" name="console:org:settings_view"
+                   description="Manage views of console setting in the organization from the Console"/>
+            <Scope displayName="Console Setting Edit Feature" name="console:org:settings_edit"
+                   description="Manage edits of console setting in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Getting Started Feature" identifier="console:home"
@@ -1272,6 +1440,10 @@
         <Scopes>
             <Scope displayName="Getting Started Feature" name="console:home" 
                     description="Manage home settings from the Console"/>
+            <Scope displayName="Getting Started View Feature" name="console:home_view"
+                    description="Manage views of home settings from the Console"/>
+            <Scope displayName="Getting Started Edit Feature" name="console:home_edit"
+                    description="Manage edits of home settings from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Getting Started Feature" identifier="console:org:home"
@@ -1281,6 +1453,10 @@
         <Scopes>
             <Scope displayName="Getting Started Feature" name="console:org:home"
                    description="Manage home settings in the organization from the Console"/>
+            <Scope displayName="Getting Started View Feature" name="console:org:home_view"
+                   description="Manage views of home settings in the organization from the Console"/>
+            <Scope displayName="Getting Started Edit Feature" name="console:org:home_edit"
+                   description="Manage edits of home settings in the organization from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Secret Management Feature" identifier="console:secretsManagement"
@@ -1299,6 +1475,10 @@
         <Scopes>
             <Scope displayName="Certificate Feature" name="console:certificates" 
                     description="Manage certificates from the Console"/>
+            <Scope displayName="Certificate View Feature" name="console:certificates_view"
+                    description="Manage views of certificates from the Console"/>
+            <Scope displayName="Certificate Edit Feature" name="console:certificates_edit"
+                    description="Manage edits of certificates from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Action Management Feature" identifier="console:actions"
@@ -1308,6 +1488,10 @@
         <Scopes>
             <Scope displayName="Action Feature" name="console:actions" 
                     description="Manage actions from the Console"/>
+            <Scope displayName="Action View Feature" name="console:actions_view"
+                    description="Manage views of actions from the Console"/>
+            <Scope displayName="Action Edit Feature" name="console:actions_edit"
+                    description="Manage edits of actions from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Tenant Management Feature" identifier="console:tenants"
@@ -1317,6 +1501,10 @@
         <Scopes>
             <Scope displayName="Tenants Feature" name="console:tenants" 
                    description="Manage tenants from the Console"/>
+            <Scope displayName="Tenants View Feature" name="console:tenants_view"
+                   description="Manage views of tenants from the Console"/>
+            <Scope displayName="Tenants Edit Feature" name="console:tenants_edit"
+                   description="Manage edits of tenants from the Console"/>
         </Scopes>
     </APIResource>
     <APIResource name="Offline User Onboard API" identifier="/o/api/users/v1/offline-invite-link/"
@@ -1363,4 +1551,16 @@
                    description="Delete user defined local authenticator"/>
         </Scopes>
     </APIResource>
+    <APIResource name="User defined local authenticator API" identifier="/o/api/server/v1/authenticators/custom"
+                     requiresAuthorization="true"
+                     description="API representation of the User Defined Local Authenticator Management API" type="ORGANIZATION">
+            <Scopes>
+                <Scope displayName="Create Authenticator" name="internal_org_custom_authenticator_create"
+                       description="Create new user defined local authenticator in the organization"/>
+                <Scope displayName="Update Authenticator" name="internal_org_custom_authenticator_update"
+                       description="Update user defined local authenticator in the organization"/>
+                <Scope displayName="Delete Authenticator" name="internal_org_custom_authenticator_delete"
+                       description="Delete user defined local authenticator in the organization"/>
+            </Scopes>
+        </APIResource>
 </APIResources>

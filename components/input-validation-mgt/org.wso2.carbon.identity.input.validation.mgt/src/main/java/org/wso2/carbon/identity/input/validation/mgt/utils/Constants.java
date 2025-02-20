@@ -51,6 +51,11 @@ public class Constants {
             }});
     public static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
     public static final String SUPER_TENANT_DOMAIN = "carbon.super";
+    public static final String PW_POLICY_HANDLER_ENABLED = "PasswordPolicy.PasswordPolicyValidationHandler.Enable";
+    public static final String PW_POLICY_ENABLE = "passwordPolicy.enable";
+    public static final String PW_POLICY_MIN_LENGTH = "passwordPolicy.min.length";
+    public static final String PW_POLICY_MAX_LENGTH = "passwordPolicy.max.length";
+    public static final String PW_POLICY_PATTERN = "passwordPolicy.pattern";
 
     /**
      * Class contains the configuration related constants.

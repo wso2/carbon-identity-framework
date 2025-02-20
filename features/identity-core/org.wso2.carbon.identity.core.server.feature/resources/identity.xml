@@ -78,6 +78,9 @@
     <DataStorageType>
         <NotificationTemplates>database</NotificationTemplates>
         <SAML>database</SAML>
+        <CertificateValidation>database</CertificateValidation>
+        <AdminAdvisoryBanner>database</AdminAdvisoryBanner>
+        <RemoteLoggingConfig>database</RemoteLoggingConfig>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
@@ -1316,6 +1319,13 @@
                        name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
                        orderId="100" enable="true"/>
 
+        <!-- Post Authentication handler for email domain based organization discovery -->
+        <EventListener id="email_domain_validation_handler"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.organization.discovery.service.listener.EmailDomainValidationHandler"
+                       orderId="{{event.default_listener.email_domain_validation_handler.priority}}"
+                       enable="{{event.default_listener.email_domain_validation_handler.enable}}"/>
+
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener"
@@ -1327,12 +1337,6 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener"
                        orderId="85" enable="true"/>
-
-        <!-- Post Authentication handler for email domain based organization discovery -->
-        <EventListener id="email_domain_validation_handler"
-                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                       name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.EmailDomainValidationHandler"
-                       orderId="15" enable="true"/>
 
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
@@ -2534,6 +2538,7 @@
                     <Path>/api/identity/auth/v1.1/data</Path>
                     <Path>/api/users/v1/offline-invite-link</Path>
                     <Path>/api/server/v1/validation-rules</Path>
+                    <Path>/api/users/v1/me/push/devices</Path>
                 </SubPaths>
             </Context>
             <Context>
@@ -2551,8 +2556,10 @@
             <Context>/logincontext(.*)</Context>
             <Context>/samlsso(.*)</Context>
             <Context>/identity/metadata/saml2</Context>
+            <Context>/identity/oidc/slo</Context>
             <Context>/longwaitstatus(.*)</Context>
             <Context>/oidc/</Context>
+            <Context>/push-auth/(.*)</Context>
         </Servlet>
     </OrgContextsToRewrite>
 

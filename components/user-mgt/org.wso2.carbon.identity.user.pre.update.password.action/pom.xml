@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.7.167-SNAPSHOT</version>
+        <version>7.7.228</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -44,6 +44,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.action.execution</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.rule.evaluation</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -93,6 +97,7 @@
                             org.wso2.carbon.identity.user.pre.update.password.action.core.constant,
                             org.wso2.carbon.identity.user.pre.update.password.action.core.execution,
                             org.wso2.carbon.identity.user.pre.update.password.action.core.management,
+                            org.wso2.carbon.identity.user.pre.update.password.action.core.rule,
                             org.wso2.carbon.identity.user.pre.update.password.action.internal
                         </Private-Package>
                         <Export-Package>
@@ -122,6 +127,9 @@
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.exception; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.provider; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.user.action.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.user.action.service.model; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>

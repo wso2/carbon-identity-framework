@@ -1,6 +1,10 @@
 {
   "invalid": [
-    "application",
-    "grantType"
+    {
+      "fieldName": "application"
+    },
+    {
+      "fieldName": "grantType"
+    }
   ]
 }

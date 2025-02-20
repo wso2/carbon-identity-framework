@@ -168,7 +168,7 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' " +
                 "AND IDP.ID NOT IN (SELECT IDP_ID FROM IDP_METADATA WHERE TENANT_ID = IDP.TENANT_ID AND " +
-                "NAME = 'isSystemReservedIdP' AND \"VALUE\" = 'true') ORDER BY %s LIMIT ?, ?";
+                "NAME = 'isSystemReservedIdP' AND `VALUE` = 'true') ORDER BY %s LIMIT ?, ?";
 
         public static final String GET_IDP_BY_TENANT_DB2SQL =
                 "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
@@ -611,7 +611,8 @@ public class IdPManagementConstants {
                 "IDP.UUID AS IDP_ID FROM IDP_GROUP LEFT JOIN IDP ON IDP.ID = IDP_GROUP.IDP_ID WHERE " +
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
         public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
-                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER'";
+                "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER' AND IDP_ID IN " +
+                "(SELECT ID FROM IDP WHERE IDP.NAME != ? AND IDP.TENANT_ID = ?)";
     }
 
     public static class WarningMessage {

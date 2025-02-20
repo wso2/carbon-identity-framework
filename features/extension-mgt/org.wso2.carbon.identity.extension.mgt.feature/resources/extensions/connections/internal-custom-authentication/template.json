@@ -3,7 +3,7 @@
   "name": "Internal User Authentication",
   "description": "Register externally implemented authentication service.",
   "docLink": "",
-  "image": "assets/images/logos/custom-authentication.svg",
+  "image": "assets/images/logos/custom-authenticator.svg",
   "category": "DEFAULT",
   "disabled": false,
   "templateId": "internal-user-custom-authentication",

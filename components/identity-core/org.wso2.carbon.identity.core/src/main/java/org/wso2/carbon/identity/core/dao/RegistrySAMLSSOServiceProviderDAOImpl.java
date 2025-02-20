@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -186,6 +186,11 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
                     .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT);
             serviceProviderDO.setEnableAttributesByDefault(Boolean.valueOf(enableAttrByDefault));
         }
+        if (resource
+                .getProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIBUTE_NAME_FORMAT) != null) {
+            serviceProviderDO.setAttributeNameFormat(
+                    resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIBUTE_NAME_FORMAT));
+        }
         if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED) != null) {
             serviceProviderDO.setIdPInitSSOEnabled(Boolean.valueOf(resource.getProperty(
                     IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED).trim()));
@@ -347,6 +352,8 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
         String enableAttributesByDefault = String.valueOf(serviceProviderDO.isEnableAttributesByDefault());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT,
                 enableAttributesByDefault);
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ATTRIBUTE_NAME_FORMAT,
+                serviceProviderDO.getAttributeNameFormat());
         String idPInitSSOEnabled = String.valueOf(serviceProviderDO.isIdPInitSSOEnabled());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED,
                 idPInitSSOEnabled);

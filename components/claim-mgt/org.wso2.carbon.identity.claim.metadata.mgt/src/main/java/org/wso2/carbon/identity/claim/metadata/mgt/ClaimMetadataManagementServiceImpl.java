@@ -88,7 +88,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
     private static final Log log = LogFactory.getLog(ClaimMetadataManagementServiceImpl.class);
 
-    private final ReadWriteClaimMetadataManager unifiedClaimMetadataManager = new UnifiedClaimMetadataManager();
+    private final ReadWriteClaimMetadataManager unifiedClaimMetadataManager =
+            new CacheBackedUnifiedClaimMetadataManager();
     private final ReadOnlyClaimMetadataManager systemDefaultClaimMetadataManager =
             new SystemDefaultClaimMetadataManager();
     private static final int MAX_CLAIM_PROPERTY_LENGTH = 255;

@@ -162,25 +162,23 @@ public class UnifiedClaimMetadataManager implements ReadWriteClaimMetadataManage
         List<LocalClaim> localClaimsInSystem = this.systemDefaultClaimMetadataManager.getLocalClaims(tenantId);
         List<LocalClaim> localClaimsInDB = this.dbBasedClaimMetadataManager.getLocalClaims(tenantId);
 
-        List<LocalClaim> allLocalClaims = new ArrayList<>(localClaimsInDB);
-        localClaimsInSystem.forEach(systemClaim -> {
-            Optional<LocalClaim> matchingClaimInDB = allLocalClaims.stream()
-                    .filter(dbClaim -> dbClaim.getClaimURI().equals(systemClaim.getClaimURI()))
-                    .findFirst();
+        Map<String, LocalClaim> localClaimMap = localClaimsInDB.stream()
+                .collect(Collectors.toMap(LocalClaim::getClaimURI, claim -> claim));
 
-            if (matchingClaimInDB.isPresent()) {
-                markAsSystemClaim(matchingClaimInDB.get());
-            } else {
-                markAsSystemClaim(systemClaim);
-                allLocalClaims.add(systemClaim);
-            }
+        localClaimsInSystem.forEach(systemClaim -> {
+            markAsSystemClaim(systemClaim);
+            localClaimMap.merge(systemClaim.getClaimURI(), systemClaim, (existingClaim, newClaim) -> {
+                markAsSystemClaim(existingClaim);
+                return existingClaim;
+            });
         });
 
         // If SharedProfileValueResolvingMethod is missing in localClaimsInDB, set it to default value.
-        for (LocalClaim localClaim : allLocalClaims) {
+        for (LocalClaim localClaim : localClaimMap.values()) {
             setDefaultSharedProfileValueResolvingMethod(localClaim.getClaimURI(), tenantId, localClaim);
         }
-        return allLocalClaims;
+
+        return new ArrayList<>(localClaimMap.values());
     }
 
     /**

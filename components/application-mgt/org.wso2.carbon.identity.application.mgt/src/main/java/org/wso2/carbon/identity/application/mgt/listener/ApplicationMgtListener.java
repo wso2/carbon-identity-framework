@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2014-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -460,14 +460,27 @@ public interface ApplicationMgtListener {
      * key and value
      *
      * @param tenantDomain tenant domain
-     * @param username username
-     * @param key sp  property key
-     * @param value sp  property value
+     * @param username     username
+     * @param key          sp  property key
+     * @param value        sp  property value
      * @return true
      * @throws IdentityApplicationManagementException
      */
     default boolean getApplicationBasicInfoBySPProperty(String tenantDomain, String username,
                                                        String key, String value)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after retrieving an application with required attributes.
+     *
+     * @param serviceProvider Retrieved Service Provider
+     * @param tenantDomain    Tenant domain of the user.
+     * @return Whether execution of this operation is allowed to continue.
+     */
+    default boolean doPostGetApplicationWithRequiredAttributes(ServiceProvider serviceProvider, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         return true;

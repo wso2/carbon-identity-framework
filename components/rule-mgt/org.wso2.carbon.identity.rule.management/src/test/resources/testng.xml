@@ -33,6 +33,7 @@
         <classes>
             <class name="org.wso2.carbon.identity.rule.management.dao.RuleManagementDAOImplTest"/>
             <class name="org.wso2.carbon.identity.rule.management.dao.CacheBackedRuleManagementDAOTest"/>
+            <class name="org.wso2.carbon.identity.rule.management.util.AuditLogBuilderForRuleTest"/>
         </classes>
     </test>
 </suite>

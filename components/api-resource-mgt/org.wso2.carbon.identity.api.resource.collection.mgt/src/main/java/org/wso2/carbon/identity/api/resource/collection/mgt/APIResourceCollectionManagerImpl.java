@@ -191,6 +191,10 @@ public class APIResourceCollectionManagerImpl implements APIResourceCollectionMa
                 .type(apiResourceCollection.getType())
                 .readScopes(apiResourceCollection.getReadScopes())
                 .writeScopes(apiResourceCollection.getWriteScopes())
+                .legacyReadScopes(apiResourceCollection.getLegacyReadScopes())
+                .legacyWriteScopes(apiResourceCollection.getLegacyWriteScopes())
+                .viewFeatureScope(apiResourceCollection.getViewFeatureScope())
+                .editFeatureScope(apiResourceCollection.getEditFeatureScope())
                 .apiResources(apiResourceCollection.getApiResources())
                 .build();
     }

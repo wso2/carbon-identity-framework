@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.input.validation.mgt.model.FieldValidationConfigurationHandler;
 import org.wso2.carbon.identity.input.validation.mgt.model.Validator;
+import org.wso2.carbon.idp.mgt.IdpManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class InputValidationDataHolder {
     private static InputValidationDataHolder instance = new InputValidationDataHolder();
     private static ConfigurationManager configurationManager = null;
     private ClaimMetadataManagementService claimMetadataManagementService;
+    private IdpManager idpManager;
     private static Map<String, Validator> validators = new HashMap<>();
     private static Map<String, FieldValidationConfigurationHandler> validationConfigurationHandlers = new HashMap<>();
 
@@ -95,5 +97,25 @@ public class InputValidationDataHolder {
     public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
 
         this.claimMetadataManagementService = claimMetadataManagementService;
+    }
+
+    /**
+     * Get IdpManager.
+     *
+     * @return IdpManager.
+     */
+    public IdpManager getIdpManager() {
+
+        return idpManager;
+    }
+
+    /**
+     * Set IdpManager.
+     *
+     * @param idpManager IdpManager.
+     */
+    public void setIdpManager(IdpManager idpManager) {
+
+        this.idpManager = idpManager;
     }
 }

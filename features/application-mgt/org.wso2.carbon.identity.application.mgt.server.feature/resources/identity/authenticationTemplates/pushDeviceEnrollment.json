@@ -1,0 +1,58 @@
+{
+  "category": "ProgressiveEnrollment",
+  "name": "Push Device Progressive Enrollment",
+  "title": "Push Notification Device Progressive Enrollment Template",
+  "summary": "If Push Authenticator is set as a 1st authentication factor and there is a need to enable push device progressive enrollment, this adaptive script, along with the relevant connections configurations, should be added.",
+  "preRequisites": [
+    "Modify the 2nd factor authentication option(s) from defaults as required."
+  ],
+  "defaultStepsDescription": {
+    "Step 1": "Push Notification",
+    "Step 2": "Username & Password"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "push-notification-authenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "",
+  "code": [
+    "var onLoginRequest = function(context) {",
+    "    executeStep(1, {",
+    "        onFail: function(context) {",
+    "            var authenticatorStatus = context.request.params.scenario;",
+    "",
+    "            // If it is a push device progressive enrollment request trigger the following flow.",
+    "            if (authenticatorStatus != null && authenticatorStatus[0] === 'INIT_PUSH_ENROLL') {",
+    "                executeStep(2, {",
+    "                    stepOptions: {",
+    "                        markAsSubjectIdentifierStep: 'true',",
+    "                        markAsSubjectAttributeStep: 'true'",
+    "                    },",
+    "                }, {",
+    "                    onSuccess: function(context) {",
+    "                        // If user got successfully authenticated ",
+    "                        executeStep(1, {",
+    "                            stepOptions: {",
+    "                                forceAuth: 'true'",
+    "                            },",
+    "                        }, {});",
+    "                    },",
+    "                });",
+    "            }",
+    "        }",
+    "    });",
+    "};"
+  ],
+  "runtime": "any"
+}

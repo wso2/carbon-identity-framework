@@ -60,11 +60,13 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
     @Override
     public int getExecutionOrderId() {
 
+        // Set the order ID to a high value to ensure this listener executes after all other listeners,
+        // except for the {@link ActionUserOperationEventListener}
         int orderId = getOrderId();
         if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
             return orderId;
         }
-        return 15;
+        return 9999;
     }
 
     @Override

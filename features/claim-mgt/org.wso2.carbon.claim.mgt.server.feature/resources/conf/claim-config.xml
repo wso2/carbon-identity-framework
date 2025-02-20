@@ -1959,26 +1959,6 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/metadata.version</MappedLocalClaim>
 			</Claim>
-			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax</ClaimURI>
-				<DisplayName>Phone Numbers - Fax Phone Number</DisplayName>
-				<AttributeID>faxPhoneNumber</AttributeID>
-				<Description>Fax Phone Number</Description>
-				<DisplayOrder>5</DisplayOrder>
-				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
-				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.fax</MappedLocalClaim>
-			</Claim>
-			<Claim>
-				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager</ClaimURI>
-				<DisplayName>Phone Numbers - Pager Phone Number</DisplayName>
-				<AttributeID>pagerPhoneNumber</AttributeID>
-				<Description>Pager Phone Number</Description>
-				<DisplayOrder>5</DisplayOrder>
-				<SupportedByDefault />
-				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
-				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.pager</MappedLocalClaim>
-			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:core:2.0:User"
 				 claimURIRegex="urn:ietf:params:scim:schemas:core:2.0:User:[a-zA-Z0-9$\-_\.]*$">
@@ -2339,6 +2319,26 @@
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/x509Certificates</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.fax</ClaimURI>
+				<DisplayName>Phone Numbers - Fax Phone Number</DisplayName>
+				<AttributeID>faxPhoneNumber</AttributeID>
+				<Description>Fax Phone Number</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.fax</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:phoneNumbers.pager</ClaimURI>
+				<DisplayName>Phone Numbers - Pager Phone Number</DisplayName>
+				<AttributeID>pagerPhoneNumber</AttributeID>
+				<Description>Pager Phone Number</Description>
+				<DisplayOrder>5</DisplayOrder>
+				<SupportedByDefault />
+				<RegEx>^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{2,3})[-. )]*(\d{3})[-. ]*(\d{4,6})(?: *x(\d+))?\s*$</RegEx>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.pager</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"
