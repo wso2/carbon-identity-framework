@@ -529,11 +529,11 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
     }
 
     /**
-     * Check whether the tenant domain is an organization.
+     * Check whether the tenant id is an organization.
      *
      * @param tenantId Tenant Id.
-     * @return True if the tenant domain is an organization.
-     * @throws IdentityApplicationManagementException If an error occurred while checking whether the tenant domain
+     * @return True if the tenant id is an organization.
+     * @throws IdentityApplicationManagementException If an error occurred while checking whether the tenant id
      * is an organization.
      */
     private boolean isOrganization(int tenantId) throws IdentityApplicationManagementException {
@@ -542,17 +542,17 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
             return OrganizationManagementUtil.isOrganization(tenantDomain);
         } catch (OrganizationManagementException e) {
-            throw new IdentityApplicationManagementException("Error while checking whether the tenant domain is an " +
+            throw new IdentityApplicationManagementException("Error while checking whether the tenant id is an " +
                     "organization.", e);
         }
     }
 
     /**
-     * Get the primary org tenant domain of the org with given tenant domain.
+     * Get the primary org tenant id of the org with given tenant id.
      *
      * @param tenantId Tenant Id.
-     * @return Primary org tenant domain.
-     * @throws IdentityApplicationManagementException If an error occurred while getting primary org tenant domain.
+     * @return Primary org tenant id.
+     * @throws IdentityApplicationManagementException If an error occurred while getting primary org tenant id.
      */
     private int getPrimaryOrgTenantID(int tenantId) throws IdentityApplicationManagementException {
 
@@ -567,7 +567,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
             primaryOrgTenantId = IdentityTenantUtil.getTenantId(primaryOrgTenantDomain);
         } catch (OrganizationManagementException e) {
             String errorMessage = "Error while retrieving the primary organization tenant domain for the tenant " +
-                    "domain: " + tenantId;
+                    "id: " + tenantId;
             throw new IdentityApplicationManagementException(errorMessage, e);
         }
         return primaryOrgTenantId;
