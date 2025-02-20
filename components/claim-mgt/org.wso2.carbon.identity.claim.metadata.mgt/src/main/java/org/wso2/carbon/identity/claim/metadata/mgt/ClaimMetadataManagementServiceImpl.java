@@ -523,15 +523,18 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                             externalClaim.getMappedLocalClaim(), externalClaim.getClaimDialectURI()));
         }
 
-        ClaimMetadataEventPublisherProxy.getInstance().publishPreAddExternalClaim(tenantId, externalClaim);
-        if (MapUtils.isNotEmpty(IdentityUtil.threadLocalProperties.get()) &&
-                Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get()
-                        .get(ClaimConstants.EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT))) {
+        try {
+            ClaimMetadataEventPublisherProxy.getInstance().publishPreAddExternalClaim(tenantId, externalClaim);
+            if (MapUtils.isNotEmpty(IdentityUtil.threadLocalProperties.get()) &&
+                    Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get()
+                            .get(ClaimConstants.EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT))) {
+                throw new ClaimMetadataClientException(ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT.getCode(),
+                        String.format(ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT.getMessage(),
+                                externalClaim.getClaimDialectURI()));
+            }
+        } finally {
             IdentityUtil.threadLocalProperties.get()
                     .remove(ClaimConstants.EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT);
-            throw new ClaimMetadataClientException(ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT.getCode(),
-                    String.format(ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT.getMessage(),
-                            externalClaim.getClaimDialectURI()));
         }
 
         this.unifiedClaimMetadataManager.addExternalClaim(externalClaim, tenantId);
