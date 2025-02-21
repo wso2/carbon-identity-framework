@@ -61,16 +61,6 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     }
 
     @Override
-    public void processBulkUserImportAsyncOperationStatus(BulkUserImportOperationDO bulkUserImportOperationDO) {
-
-    }
-
-    @Override
-    public void test(String operation) {
-        LOGGER.info("Process Started: "+operation);
-    }
-
-    @Override
     public void testCheckDatabaseConnection() {
         try {
             asyncStatusMgtDAO.createB2BResourceSharingOperation(
@@ -86,11 +76,6 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         } catch (Exception e) {
             LOGGER.severe("Error while processing B2B async operation status: " + e.getMessage());
         }
-    }
-
-    @Override
-    public void selectiveUserShare() {
-
     }
 
     @Override

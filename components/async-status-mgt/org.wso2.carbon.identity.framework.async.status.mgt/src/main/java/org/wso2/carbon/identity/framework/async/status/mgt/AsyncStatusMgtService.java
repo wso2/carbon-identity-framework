@@ -37,24 +37,11 @@ public interface AsyncStatusMgtService {
     void processB2BAsyncOperationStatus(SharingOperationDO sharingOperationDO);
 
     /**
-     * Processing the status of Bulk User Import
-     * Operation.
+     * Test method for the interface
      *
-     * @param bulkUserImportOperationDO Sharing operation metadata is shared.
      */
-    void processBulkUserImportAsyncOperationStatus(BulkUserImportOperationDO bulkUserImportOperationDO);
 
-    /**
-     * Test method for the interface
-     *
-     */
-    void test(String operation);
-    /**
-     * Test method for the interface
-     *
-     */
     void testCheckDatabaseConnection();
-    void selectiveUserShare();
 
     /**
      * Registers the operation status for asynchronous tracking.

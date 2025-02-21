@@ -13,9 +13,9 @@ public class OperationStatusStrategyFactory {
      */
     public static OperationStatusStrategy getStrategy(String resourceType) {
         switch (resourceType.toLowerCase()) {
-            case "user":
+            case "user_share":
                 return new UserSharingStatusStrategy();
-            case "application":
+            case "application_share":
                 return new ApplicationSharingStatusStrategy();
             case "bulk_import":
                 return new BulkUserImportStatusStrategy();
