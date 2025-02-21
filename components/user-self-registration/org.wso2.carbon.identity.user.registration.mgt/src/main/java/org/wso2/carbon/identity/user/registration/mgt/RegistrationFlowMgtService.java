@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.user.registration.mgt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.wso2.carbon.identity.user.registration.mgt.adapter.FlowConvertor;
 import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAO;
+import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 
@@ -50,19 +52,17 @@ public class RegistrationFlowMgtService {
      */
     public void addRegistrationFlow(RegistrationFlowDTO flowDTO, int tenantID) {
 
-//        try {
-//            RegistrationFlowConfig flowConfig = FlowConvertor.getSequence(flowDTO);
-//            RegistrationFlowDAO.getInstance().addRegistrationObject(flowConfig, tenantID);
-//        } catch (IOException e) {
-//            LOG.error("Error while converting the flow to a DTO.", e);
-//            throw new RuntimeException(e);
-//        }
-        LOG.info("Adding registration flow for tenant: " + tenantID);
+        try {
+            RegistrationFlowConfig flowConfig = FlowConvertor.getSequence(flowDTO);
+            RegistrationFlowDAO.getInstance().addRegistrationFlow(flowConfig, tenantID, "default_flow", true );
+        } catch (RegistrationFrameworkException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public RegistrationFlowDTO getRegistrationFlow(int tenantID) {
 
-        return new RegistrationFlowDTO();
+        return RegistrationFlowDAO.getInstance().getDefaultRegistrationFlowByTenant(tenantID);
     }
 
     /**

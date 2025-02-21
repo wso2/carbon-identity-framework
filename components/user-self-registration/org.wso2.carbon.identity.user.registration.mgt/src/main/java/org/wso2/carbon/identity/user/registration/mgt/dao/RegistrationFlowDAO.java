@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.user.registration.mgt.dao;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +34,11 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
+import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.BlockDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
@@ -56,242 +61,234 @@ public class RegistrationFlowDAO {
         return instance;
     }
 
-    public void addRegistrationFlow(RegistrationFlowConfig regFlowConfig, int tenantId) {
+    public void addRegistrationFlow(RegistrationFlowConfig regFlowConfig, int tenantId, String flowName,
+                                    boolean isDefault) {
 
-            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
-            String flowId = regFlowConfig.getId();
+        String flowId = regFlowConfig.getId();
 
-            try {
-                jdbcTemplate.withTransaction(template -> {
-                    // Insert into IDN_FLOW
-                    template.executeInsert(
-                            "INSERT INTO IDN_FLOW (ID, TENANT_ID, FLOW_NAME, TYPE) VALUES (?, ?, ?, ?)",
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                // Insert into IDN_FLOW
+                template.executeInsert(
+                        "INSERT INTO IDN_FLOW (ID, TENANT_ID, FLOW_NAME, TYPE, IS_DEFAULT) VALUES (?, ?, ?, ?, ?)",
+                        preparedStatement -> {
+                            preparedStatement.setString(1, flowId);
+                            preparedStatement.setInt(2, tenantId);
+                            preparedStatement.setString(3, flowId);
+                            preparedStatement.setString(4, "REGISTRATION");
+                            preparedStatement.setBoolean(5, isDefault);
+                        }, regFlowConfig, false);
+
+                // Insert into IDN_FLOW_NODE
+                Map<String, Integer> nodeIdToRegNodeIdMap = new HashMap<>();
+                for (Map.Entry<String, NodeConfig> entry : regFlowConfig.getNodeConfigs().entrySet()) {
+                    NodeConfig node = entry.getValue();
+                    int regNodeId = template.executeInsert(
+                            "INSERT INTO IDN_FLOW_NODE (NODE_ID, FLOW_ID, NODE_TYPE, IS_FIRST_NODE) VALUES (?, ?, ?, " +
+                                    "?)",
                             preparedStatement -> {
-                                preparedStatement.setString(1, flowId);
-                                preparedStatement.setInt(2, tenantId);
-                                preparedStatement.setString(3, regFlowConfig.getName());
-                                preparedStatement.setString(4, "REGISTRATION");
-                            }, regFlowConfig, false);
+                                preparedStatement.setString(1, node.getUuid());
+                                preparedStatement.setString(2, flowId);
+                                preparedStatement.setString(3, node.getType());
+                                preparedStatement.setBoolean(4, node.isFirstNode());
+                            }, entry, true);
 
-                    // Insert into IDN_FLOW_NODE
-                    Map<String, Integer> nodeIdToRegNodeIdMap = new HashMap<>();
-                    for (Map.Entry<String, NodeConfig> entry : regFlowConfig.getNodeConfigs().entrySet()) {
-                        NodeConfig node = entry.getValue();
-                        int regNodeId = template.executeInsert("INSERT INTO IDN_FLOW_NODE (NODE_ID, FLOW_ID, NODE_TYPE, IS_FIRST_NODE) VALUES (?, ?, ?, ?)",
-                                                               preparedStatement -> {
-                                                                   preparedStatement.setString(1, node.getUuid());
-                                                                   preparedStatement.setString(2, flowId);
-                                                                   preparedStatement.setString(3, node.getType());
-                                                                   preparedStatement.setBoolean(4, node.isFirstNode());
-                                                               }, entry, true);
+                    nodeIdToRegNodeIdMap.put(node.getUuid(), regNodeId);
 
-                        nodeIdToRegNodeIdMap.put(node.getUuid(), regNodeId);
-
-                        // Insert into IDN_FLOW_NODE_EXECUTOR
-                        ExecutorDTO executorConfig = node.getExecutorConfig();
-                        if (executorConfig != null) {
+                    // Insert into IDN_FLOW_NODE_EXECUTOR
+                    ExecutorDTO executorConfig = node.getExecutorConfig();
+                    if (executorConfig != null) {
+                        template.executeInsert(
+                                "INSERT INTO IDN_FLOW_NODE_EXECUTOR (FLOW_NODE_ID, EXECUTOR_NAME, IDP_NAME) " +
+                                        "VALUES (?, ?, ?)",
+                                preparedStatement -> {
+                                    preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(node.getUuid()));
+                                    preparedStatement.setString(2, executorConfig.getName());
+                                    preparedStatement.setString(3, executorConfig.getIdpName());
+                                }, null, false);
+                    }
+                }
+                // Insert graph edges into IDN_FLOW_NODE_MAPPING
+                for (Map.Entry<String, NodeConfig> entry : regFlowConfig.getNodeConfigs().entrySet()) {
+                    NodeConfig node = entry.getValue();
+                    if (node.getEdges() != null) {
+                        for (NodeEdge edge : node.getEdges()) {
                             template.executeInsert(
-                                    "INSERT INTO IDN_FLOW_NODE_EXECUTOR (FLOW_NODE_ID, EXECUTOR_NAME, AUTHENTICATOR_ID) VALUES (?, ?, ?)",
+                                    "INSERT INTO IDN_FLOW_NODE_MAPPING (FLOW_NODE_ID, NEXT_NODE_ID, " +
+                                            "TRIGGERING_ELEMENT) VALUES (?, ?, ?)",
                                     preparedStatement -> {
-                                        preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(node.getUuid()));
-                                        preparedStatement.setString(2, executorConfig.getName());
-                                        preparedStatement.setString(3, executorConfig.getIdpName());
+                                        preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(edge.getSourceNodeId()));
+                                        preparedStatement.setInt(2, nodeIdToRegNodeIdMap.get(edge.getTargetNodeId()));
+                                        preparedStatement.setString(3, edge.getTriggeringActionId());
                                     }, null, false);
                         }
                     }
+                }
 
-                    // Insert into IDN_FLOW_PAGE
-                    for (Map.Entry<String, StepDTO> entry : regFlowConfig.getNodePageMappings().entrySet()) {
-                        int regNodeId = nodeIdToRegNodeIdMap.get(entry.getKey());
+                // Insert into IDN_FLOW_PAGE
+                for (Map.Entry<String, StepDTO> entry : regFlowConfig.getNodePageMappings().entrySet()) {
 
-                        int pageAutoIncId = template.executeInsert(
-                                "INSERT INTO IDN_FLOW_PAGE (FLOW_ID, FLOW_NODE_ID, PAGE_CONTENT, TYPE) VALUES (?, ?, ?, ?)",
-                                preparedStatement -> {
-                                    preparedStatement.setString(1, flowId);
-                                    preparedStatement.setInt(2, regNodeId);
-                                    preparedStatement.setBlob(3, resolvePageContent(entry.getValue()));
-                                    preparedStatement.setString(4, entry.getValue().getType());
-                                }, entry, true);
+                    StepDTO stepDTO = entry.getValue();
+                    int regNodeId = nodeIdToRegNodeIdMap.get(entry.getKey());
 
+                    int pageAutoIncId = template.executeInsert(
+                            "INSERT INTO IDN_FLOW_PAGE (FLOW_ID, FLOW_NODE_ID, PAGE_CONTENT, TYPE) VALUES (?, ?, ?, ?)",
+                            preparedStatement -> {
+                                preparedStatement.setString(1, flowId);
+                                preparedStatement.setInt(2, regNodeId);
+                                preparedStatement.setBinaryStream(3, serializePageContent(stepDTO));
+                                preparedStatement.setString(4, stepDTO.getType());
+                            }, entry, true);
 
-                    }
-                    return null;
-                });
-            } catch (TransactionException e) {
-                LOG.error("Failed to store the flow object", e);
-            }
+                    // Insert into IDN_FLOW_PAGE_META
+                    template.executeInsert(
+                            "INSERT INTO IDN_FLOW_PAGE_META (PAGE_ID, COORDINATE_X, COORDINATE_Y, HEIGHT, WIDTH) " +
+                                    "VALUES (?, ?, ?, ?, ?)",
+                            preparedStatement -> {
+                                preparedStatement.setInt(1, pageAutoIncId);
+                                preparedStatement.setDouble(2, stepDTO.getCoordinateX());
+                                preparedStatement.setDouble(3, stepDTO.getCoordinateY());
+                                preparedStatement.setDouble(4, stepDTO.getCoordinateX());
+                                preparedStatement.setDouble(5, stepDTO.getCoordinateY());
+                            }, null, false);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            LOG.error("Failed to store the flow object", e);
         }
+    }
 
-//    /**
-//     * Add the registration object to the database.
-//     *
-//     * @param regDTO   The registration object.
-//     * @param tenantId The tenant ID.
-//     */
-//    public void addRegistrationObject(RegistrationFlowConfig regDTO, int tenantId) {
+    public RegistrationFlowDTO getDefaultRegistrationFlowByTenant(int tenantId) {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+
+        String query =
+                "SELECT P.ID AS PAGE_ID, P.STEP_ID, P.PAGE_CONTENT, P.TYPE AS PAGE_TYPE, M.COORDINATE_X, M" +
+                        ".COORDINATE_Y, M.HEIGHT, M.WIDTH FROM IDN_FLOW F JOIN IDN_FLOW_PAGE P ON F.ID = P.FLOW_ID " +
+                        "LEFT JOIN IDN_FLOW_PAGE_META M ON P.ID = M.PAGE_ID WHERE F.TENANT_ID = 1 AND F.IS_DEFAULT = " +
+                        "TRUE AND F.TYPE = 'REGISTRATION';";
+
+        try {
+            return jdbcTemplate.fetchSingleRecord(query, (resultSet, rowNumber) -> {
+                RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
+                StepDTO stepDTO = new StepDTO.Builder()
+                        .id(resultSet.getString("STEP_ID"))
+                        .type(resultSet.getString("PAGE_TYPE"))
+                        .coordinateX(resultSet.getDouble("COORDINATE_X"))
+                        .coordinateY(resultSet.getDouble("COORDINATE_Y"))
+                        .height(resultSet.getDouble("HEIGHT"))
+                        .width(resultSet.getDouble("WIDTH"))
+                        .build();
+                resolvePageContent(stepDTO, resultSet.getBinaryStream("PAGE_CONTENT"));
+                registrationFlowDTO.getSteps().add(stepDTO);
+                return registrationFlowDTO;
+            }, preparedStatement -> preparedStatement.setInt(1, tenantId));
+        } catch (DataAccessException e) {
+            LOG.error("Failed to retrieve the default registration flow for tenant: " + tenantId, e);
+            return null;
+        }
+    }
+
+//    public RegistrationFlowConfig getDefaultRegistrationFlowConfigByTenant(int tenantId) {
 //
 //        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 //
+//        String query = "SELECT F.ID AS FLOW_ID, F.TENANT_ID, F.FLOW_NAME, F.TYPE AS FLOW_TYPE, F.IS_DEFAULT, " +
+//                "N.ID AS NODE_DB_ID, N.NODE_ID, N.NODE_TYPE, N.IS_FIRST_NODE, NM.NEXT_NODE_ID, NM.TRIGGERING_ELEMENT, " +
+//                "P.ID AS PAGE_ID, P.STEP_ID, P.PAGE_CONTENT, P.TYPE AS PAGE_TYPE, E.EXECUTOR_NAME, E.IDP_NAME AS AUTHENTICATOR_ID " +
+//                "FROM IDN_FLOW F JOIN IDN_FLOW_NODE N ON F.ID = N.FLOW_ID " +
+//                "LEFT JOIN IDN_FLOW_NODE_MAPPING NM ON N.ID = NM.FLOW_NODE_ID " +
+//                "LEFT JOIN IDN_FLOW_PAGE P ON N.ID = P.FLOW_NODE_ID " +
+//                "LEFT JOIN IDN_FLOW_NODE_EXECUTOR E ON N.ID = E.FLOW_NODE_ID " +
+//                "WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = TRUE AND F.TYPE = 'REGISTRATION';";
+//
 //        try {
-//            jdbcTemplate.withTransaction(template -> {
-//                // Insert into REG_FLOW
-//                template.executeInsert(
-//                        "INSERT INTO REG_FLOW (ID, TENANT_ID, FLOW_NAME, FLOW_JSON) VALUES (?, ?, ?, ?)",
-//                        preparedStatement -> {
-//                            preparedStatement.setString(1, regDTO.getId());
-//                            preparedStatement.setInt(2, tenantId);
-//                            preparedStatement.setString(3, "default");
-//                        }, regDTO, false);
+//            return jdbcTemplate.fetchSingleRecord(query, (resultSet, rowNumber) -> {
+//                RegistrationFlowConfig flowConfig = new RegistrationFlowConfig();
+//                flowConfig.setId(resultSet.getString("FLOW_ID"));
+//                flowConfig.setFirstNodeId(resultSet.getString("NODE_ID"));
 //
-//                // Insert into REG_NODE
-//                Map<String, Integer> nodeIdToRegNodeIdMap = new HashMap<>();
-//                for (Map.Entry<String, NodeConfig> entry : regDTO.getNodeConfigs().entrySet()) {
-//                    NodeConfig node = entry.getValue();
-//                    int regNodeId = template.executeInsert("INSERT INTO REG_NODE (NODE_ID, FLOW_ID, NODE_TYPE, " +
-//                                                                   "IS_FIRST_NODE) VALUES (?, ?, ?, ?)",
-//                                                           preparedStatement -> {
-//                                                               preparedStatement.setString(1, node.getUuid());
-//                                                               preparedStatement.setString(2, regDTO.getId());
-//                                                               preparedStatement.setString(3, node.getType());
-//                                                               preparedStatement.setBoolean(4, node.isFirstNode());
-//                                                           }, entry, true);
+//                do {
+//                    String nodeId = resultSet.getString("NODE_ID");
+//                    NodeConfig nodeConfig = flowConfig.getNodeConfigs().computeIfAbsent(nodeId, k -> new NodeConfig());
+//                    nodeConfig.setUuid(nodeId);
+//                    nodeConfig.setType(resultSet.getString("NODE_TYPE"));
+//                    nodeConfig.setFirstNode(resultSet.getBoolean("IS_FIRST_NODE"));
 //
-//                    nodeIdToRegNodeIdMap.put(node.getUuid(), regNodeId);
-//                    // Insert into REG_NODE_PROPERTIES
-//                    ExecutorDTO executorConfig = node.getExecutorConfig();
-//                    if (executorConfig != null) {
-//                        template.executeInsert(
-//                                "INSERT INTO REG_NODE_PROPERTIES (REG_NODE_ID, PROPERTY_KEY, PROPERTY_VALUE) VALUES " +
-//                                        "(?, " +
-//                                        "?, ?)",
-//                                preparedStatement -> {
-//                                    preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(node.getUuid()));
-//                                    preparedStatement.setString(2, Constants.EXECUTOR_NAME);
-//                                    preparedStatement.setString(3, executorConfig.getName());
-//                                }, null, false);
+//                    if (resultSet.getString("NEXT_NODE_ID") != null) {
 //
-//                        template.executeInsert(
-//                                "INSERT INTO REG_NODE_PROPERTIES (REG_NODE_ID, PROPERTY_KEY, PROPERTY_VALUE) VALUES " +
-//                                        "(?, " +
-//                                        "?, ?)",
-//                                preparedStatement -> {
-//                                    preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(node.getUuid()));
-//                                    preparedStatement.setString(2, Constants.AUTHENTICATOR_ID);
-//                                    preparedStatement.setString(3, executorConfig.getAuthenticatorId());
-//                                }, null, false);
+//                        int
+//                        NodeEdge edge = new NodeEdge(nodeId, );
+//                        edge.setSourceNodeId(nodeId);
+//                        edge.setTargetNodeId(resultSet.getString("NEXT_NODE_ID"));
+//                        edge.setTriggeringActionId(resultSet.getString("TRIGGERING_ELEMENT"));
+//                        nodeConfig.getEdges().add(edge);
 //                    }
-//                }
 //
-//                // Insert into REG_PAGE
-////                for (Map.Entry<String, String> entry : regDTO.getNodePageMappings().entrySet()) {
-////                    int regNodeId = nodeIdToRegNodeIdMap.get(entry.getKey());
-////                    template.executeInsert(
-////                            "INSERT INTO REG_PAGE (REG_NODE_ID, PAGE_CONTENT) VALUES (?, ?)",
-////                            preparedStatement -> {
-////                                preparedStatement.setInt(1, regNodeId);
-////                                preparedStatement.setBlob(2, new ByteArrayInputStream(entry.getValue().getBytes()));
-////                            }, entry, false);
-////                }
-//                return null;
-//            });
-//        } catch (TransactionException e) {
-//            LOG.error("Failed to store the flow object", e);
+//                    if (resultSet.getString("PAGE_ID") != null) {
+//                        StepDTO stepDTO = new StepDTO.Builder()
+//                                .id(resultSet.getString("STEP_ID"))
+//                                .type(resultSet.getString("PAGE_TYPE"))
+//                                .build();
+//                        resolvePageContent(stepDTO, resultSet.getBinaryStream("PAGE_CONTENT"));
+//                        flowConfig.addNodePageMapping(nodeId, stepDTO);
+//                    }
+//
+//                    if (resultSet.getString("EXECUTOR_NAME") != null) {
+//                        ExecutorDTO executorDTO = new ExecutorDTO();
+//                        executorDTO.setName(resultSet.getString("EXECUTOR_NAME"));
+//                        executorDTO.setIdpName(resultSet.getString("AUTHENTICATOR_ID"));
+//                        nodeConfig.setExecutorConfig(executorDTO);
+//                    }
+//
+//                } while (resultSet.next());
+//
+//                return flowConfig;
+//            }, preparedStatement -> preparedStatement.setInt(1, tenantId));
+//        } catch (DataAccessException e) {
+//            LOG.error("Failed to retrieve the default registration flow config for tenant: " + tenantId, e);
+//            return null;
 //        }
+//
 //    }
 
-    public RegistrationFlowConfig getRegistrationObjectByTenantId(int tenantId) {
+    private InputStream serializePageContent(StepDTO stepDTO) {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            // Retrieve REG_FLOW
-            RegistrationFlowConfig registrationFlowConfig =
-                    jdbcTemplate.fetchSingleRecord("SELECT * FROM REG_FLOW WHERE TENANT_ID = ?",
-                                                   (resultSet, rowNumber) -> {
-                                                       RegistrationFlowConfig config = new RegistrationFlowConfig();
-                                                       config.setId(resultSet.getString("ID"));
-                                                       return config;
-                                                   }, preparedStatement -> preparedStatement.setInt(1, tenantId));
-
-            if (registrationFlowConfig == null) {
-                return null;
-            }
-
-            String flowId = registrationFlowConfig.getId();
-
-            // Retrieve REG_NODE
-            Map<String, Integer> nodeIdToRegNodeIdMap = new HashMap<>();
-            List<NodeConfig> nodes =
-                    jdbcTemplate.executeQuery("SELECT * FROM REG_NODE WHERE FLOW_ID = ?", (resultSet, rowNumber) -> {
-                        NodeConfig node = new NodeConfig();
-                        node.setUuid(resultSet.getString("NODE_ID"));
-                        node.setType(resultSet.getString("NODE_TYPE"));
-                        node.setFirstNode(resultSet.getBoolean("IS_FIRST_NODE"));
-                        int regNodeId = resultSet.getInt("ID");
-                        nodeIdToRegNodeIdMap.put(node.getUuid(), regNodeId);
-                        return node;
-                    }, preparedStatement -> preparedStatement.setString(1, flowId));
-
-            for (NodeConfig node : nodes) {
-                // Retrieve REG_NODE_PROPERTIES
-                int regNodeId = nodeIdToRegNodeIdMap.get(node.getUuid());
-                Map<String, String> properties =
-                        jdbcTemplate.executeQuery("SELECT * FROM REG_NODE_PROPERTIES WHERE REG_NODE_ID = ?",
-                                                  (resultSet, rowNumber) -> {
-                                                      return new AbstractMap.SimpleEntry<>(
-                                                              resultSet.getString("PROPERTY_KEY"),
-                                                              resultSet.getString("PROPERTY_VALUE"));
-                                                  }, preparedStatement -> preparedStatement.setInt(1, regNodeId))
-                                .stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                if (properties.containsKey(Constants.EXECUTOR_NAME) &&
-                        properties.containsKey(Constants.AUTHENTICATOR_ID)) {
-                    ExecutorDTO executorConfig = new ExecutorDTO(properties.get(Constants.EXECUTOR_NAME),
-                                                                 properties.get(Constants.AUTHENTICATOR_ID));
-                    node.setExecutorConfig(executorConfig);
-                }
-                registrationFlowConfig.addNodeConfig(node);
-            }
-            // Retrieve REG_PAGE
-            for (NodeConfig node : nodes) {
-                int regNodeId = nodeIdToRegNodeIdMap.get(node.getUuid());
-                jdbcTemplate.executeQuery("SELECT * FROM REG_PAGE WHERE REG_NODE_ID = ?", (resultSet, rowNumber) -> {
-                    String pageContent = new String(resultSet.getBytes("PAGE_CONTENT"));
-//                    registrationFlowConfig.addNodePageMapping(node.getUuid(), pageContent);
-                    return null;
-                }, preparedStatement -> preparedStatement.setInt(1, regNodeId));
-            }
-            return registrationFlowConfig;
-        } catch (DataAccessException e) {
-            LOG.error("Failed to retrieve the flow object", e);
-            return null;
-        }
-    }
-
-    /**
-     * Retrieve the flow_json as a string by tenant ID.
-     *
-     * @param tenantId The tenant ID.
-     * @return The flow\_json as a string.
-     */
-    public String getFlowJsonByTenantId(String tenantId) {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            return jdbcTemplate.fetchSingleRecord("SELECT flow_json FROM REG_FLOW WHERE tenant_id = ?",
-                                                  (resultSet, rowNumber) -> new String(resultSet.getBytes("flow_json")),
-                                                  preparedStatement -> preparedStatement.setString(1, tenantId));
-        } catch (DataAccessException e) {
-            LOG.error("Failed to retrieve the flow_json", e);
-            return null;
-        }
-    }
-
-    private InputStream resolvePageContent(StepDTO stepDTO) {
-
-        if (Constants.StepTypes.VIEW.equals(stepDTO.getType())){
+        if (Constants.StepTypes.VIEW.equals(stepDTO.getType())) {
             return new ByteArrayInputStream(stepDTO.getBlocks().toString().getBytes());
         } else {
             return new ByteArrayInputStream(stepDTO.getActionDTO().toString().getBytes());
+        }
+    }
+
+    private void resolvePageContent(StepDTO stepDTO, InputStream pageContent) {
+
+        try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
+            Object obj = ois.readObject();
+            if (Constants.StepTypes.VIEW.equals(stepDTO.getType())) {
+                if (obj instanceof List<?>) {
+                    List<?> tempList = (List<?>) obj;
+                    if (!tempList.isEmpty() &&
+                            tempList.get(0) instanceof BlockDTO) {
+                        List<BlockDTO> blocks = tempList.stream()
+                                .map(BlockDTO.class::cast)
+                                .collect(Collectors.toList());
+                        stepDTO.setBlocks(blocks);
+                    } else {
+                        LOG.error("Deserialized list does not contain BlockDTO objects.");
+                    }
+                }
+            } else {
+                if (obj instanceof ActionDTO) {
+                    ActionDTO action = (ActionDTO) obj;
+                    stepDTO.setActionDTO(action);
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 }
