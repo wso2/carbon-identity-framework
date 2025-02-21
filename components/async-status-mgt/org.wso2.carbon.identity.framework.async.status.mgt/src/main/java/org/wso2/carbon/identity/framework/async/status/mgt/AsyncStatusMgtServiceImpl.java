@@ -23,6 +23,11 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     private final AsyncStatusMgtDAO asyncStatusMgtDAO;
     private final OperationStatusStrategy strategy;
 
+    // Constructors
+    public AsyncStatusMgtServiceImpl() {
+        this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
+        this.strategy = null;
+    }
     public AsyncStatusMgtServiceImpl(OperationStatusStrategy strategy) {
         this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
         this.strategy = strategy;
@@ -80,6 +85,11 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
 
     @Override
     public void registerOperationStatus(OperationContext operationContext) {
-        strategy.register(operationContext);
+        if (strategy != null) {
+            strategy.register(operationContext);
+        } else {
+            LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
+        }
     }
+
 }

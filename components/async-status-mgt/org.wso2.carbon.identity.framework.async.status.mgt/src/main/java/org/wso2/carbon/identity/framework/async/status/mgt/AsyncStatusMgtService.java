@@ -23,10 +23,16 @@ import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationC
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 
 /**
- * Service that processes the status of
- * asynchronous operations.
+ * Service that processes the status of asynchronous operations.
  */
 public interface AsyncStatusMgtService {
+
+    /**
+     * Registers the operation status for asynchronous tracking.
+     *
+     * @param operationContext The context of the operation to be tracked.
+     */
+    void registerOperationStatus(OperationContext operationContext);
 
     /**
      * Processing the status of B2B Asynchronous
@@ -37,16 +43,9 @@ public interface AsyncStatusMgtService {
     void processB2BAsyncOperationStatus(SharingOperationDO sharingOperationDO);
 
     /**
-     * Test method for the interface
+     * Database Test Interface.
      *
      */
 
     void testCheckDatabaseConnection();
-
-    /**
-     * Registers the operation status for asynchronous tracking.
-     *
-     * @param operationContext The context of the operation to be tracked.
-     */
-    void registerOperationStatus(OperationContext operationContext);
 }
