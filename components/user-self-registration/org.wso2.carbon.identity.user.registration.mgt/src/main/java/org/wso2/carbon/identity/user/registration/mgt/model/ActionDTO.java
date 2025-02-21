@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * DTO class for Action.
  */
@@ -30,9 +27,11 @@ public class ActionDTO {
     private ExecutorDTO executor;
     private String nextId;
 
-    public ActionDTO(String type) {
+    private ActionDTO(Builder builder) {
 
-        this.type = type;
+        this.type = builder.type;
+        this.executor = builder.executor;
+        this.nextId = builder.nextId;
     }
 
     public String getType() {
@@ -63,6 +62,36 @@ public class ActionDTO {
     public void setNextId(String nextId) {
 
         this.nextId = nextId;
+    }
+
+    public static class Builder {
+
+        private String type;
+        private ExecutorDTO executor;
+        private String nextId;
+
+        public Builder setType(String type) {
+
+            this.type = type;
+            return this;
+        }
+
+        public Builder setExecutor(ExecutorDTO executor) {
+
+            this.executor = executor;
+            return this;
+        }
+
+        public Builder setNextId(String nextId) {
+
+            this.nextId = nextId;
+            return this;
+        }
+
+        public ActionDTO build() {
+
+            return new ActionDTO(this);
+        }
     }
 }
 

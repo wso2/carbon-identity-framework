@@ -21,10 +21,16 @@ package org.wso2.carbon.identity.user.registration.mgt.model;
 public class ExecutorDTO {
 
     private String name;
-    private String authenticatorId;
+    private String idpName;
 
     public ExecutorDTO() {
 
+    }
+
+    private ExecutorDTO(Builder builder) {
+
+        this.name = builder.name;
+        this.idpName = builder.idpName;
     }
 
     public ExecutorDTO(String name) {
@@ -32,10 +38,10 @@ public class ExecutorDTO {
         this.name = name;
     }
 
-    public ExecutorDTO(String name, String authenticatorId) {
+    public ExecutorDTO(String name, String idpName) {
 
         this.name = name;
-        this.authenticatorId = authenticatorId;
+        this.idpName = idpName;
     }
 
     public String getName() {
@@ -48,13 +54,36 @@ public class ExecutorDTO {
         this.name = name;
     }
 
-    public String getAuthenticatorId() {
+    public String getIdpName() {
 
-        return authenticatorId;
+        return idpName;
     }
 
-    public void setAuthenticatorId(String authenticatorId) {
+    public void setIdpName(String idpName) {
 
-        this.authenticatorId = authenticatorId;
+        this.idpName = idpName;
+    }
+
+    public static class Builder {
+
+        private String name;
+        private String idpName;
+
+        public Builder name(String name) {
+
+            this.name = name;
+            return this;
+        }
+
+        public Builder idpName(String idpName) {
+
+            this.idpName = idpName;
+            return this;
+        }
+
+        public ExecutorDTO build() {
+
+            return new ExecutorDTO(this);
+        }
     }
 }

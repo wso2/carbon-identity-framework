@@ -20,9 +20,8 @@ package org.wso2.carbon.identity.user.registration.mgt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.user.registration.mgt.adapter.FlowConvertor;
 
-import java.io.IOException;
+import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 
@@ -74,6 +73,6 @@ public class RegistrationFlowMgtService {
     public RegistrationFlowConfig getRegistrationFlowConfig(int tenantID) {
 
         // Call the DAO to retrieve the flow.
-        return RegistrationFlowDAO.getInstance().getRegistrationObjectByTenantId(tenantID);
+        return null;
     }
 }

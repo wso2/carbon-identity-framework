@@ -32,6 +32,18 @@ public class StepDTO {
     private List<BlockDTO> blocks = new ArrayList<>();
     private ActionDTO actionDTO;
 
+    private StepDTO(Builder builder) {
+
+        this.id = builder.id;
+        this.type = builder.type;
+        this.coordinateX = builder.coordinateX;
+        this.coordinateY = builder.coordinateY;
+        this.width = builder.width;
+        this.height = builder.height;
+        this.blocks = builder.blocks;
+        this.actionDTO = builder.actionDTO;
+    }
+
     public String getId() {
 
         return id;
@@ -110,5 +122,76 @@ public class StepDTO {
     public void setActionDTO(ActionDTO actionDTO) {
 
         this.actionDTO = actionDTO;
+    }
+
+    public static class Builder {
+
+        private String id;
+        private String type;
+        private double coordinateX;
+        private double coordinateY;
+        private double width;
+        private double height;
+        private List<BlockDTO> blocks = new ArrayList<>();
+        private ActionDTO actionDTO;
+
+        public Builder id(String id) {
+
+            this.id = id;
+            return this;
+        }
+
+        public Builder type(String type) {
+
+            this.type = type;
+            return this;
+        }
+
+        public Builder coordinateX(double coordinateX) {
+
+            this.coordinateX = coordinateX;
+            return this;
+        }
+
+        public Builder coordinateY(double coordinateY) {
+
+            this.coordinateY = coordinateY;
+            return this;
+        }
+
+        public Builder width(double width) {
+
+            this.width = width;
+            return this;
+        }
+
+        public Builder height(double height) {
+
+            this.height = height;
+            return this;
+        }
+
+        public Builder blocks(List<BlockDTO> blocks) {
+
+            this.blocks = blocks;
+            return this;
+        }
+
+        public Builder block(BlockDTO block) {
+
+            this.blocks.add(block);
+            return this;
+        }
+
+        public Builder action(ActionDTO actionDTO) {
+
+            this.actionDTO = actionDTO;
+            return this;
+        }
+
+        public StepDTO build() {
+
+            return new StepDTO(this);
+        }
     }
 }

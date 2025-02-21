@@ -26,8 +26,14 @@ import java.util.List;
  */
 public class BlockDTO {
 
-    private final List<ElementDTO> elements = new ArrayList<>();
+    private final List<ComponentDTO> components;
     private String id;
+
+    private BlockDTO(Builder builder) {
+
+        this.components = builder.components;
+        this.id = builder.id;
+    }
 
     public String getId() {
 
@@ -39,13 +45,42 @@ public class BlockDTO {
         this.id = id;
     }
 
-    public List<ElementDTO> getElements() {
+    public List<ComponentDTO> getComponents() {
 
-        return elements;
+        return components;
     }
 
-    public void addElementDto(ElementDTO element) {
+    public void addComponents(ComponentDTO element) {
 
-        this.elements.add(element);
+        this.components.add(element);
+    }
+
+    public static class Builder {
+
+        private List<ComponentDTO> components = new ArrayList<>();
+        private String id;
+
+        public Builder components(List<ComponentDTO> components) {
+
+            this.components = components;
+            return this;
+        }
+
+        public Builder component(ComponentDTO component) {
+
+            this.components.add(component);
+            return this;
+        }
+
+        public Builder id(String id) {
+
+            this.id = id;
+            return this;
+        }
+
+        public BlockDTO build() {
+
+            return new BlockDTO(this);
+        }
     }
 }

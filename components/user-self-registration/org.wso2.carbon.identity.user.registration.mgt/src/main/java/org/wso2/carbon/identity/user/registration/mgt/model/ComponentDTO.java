@@ -24,20 +24,25 @@ import java.util.Map;
 /**
  * DTO class for Element.
  */
-public class ElementDTO {
+public class ComponentDTO {
 
+    private final Map<String, Object> properties = new HashMap<>();
     private String id;
     private String category;
     private String type;
     private String identifier;
-    private final Map<String, Object> properties = new HashMap<>();
     private ActionDTO action;
     private ValidationDTO validation;
 
-    public ElementDTO(String id, String type) {
+    private ComponentDTO(Builder builder) {
 
-        this.id = id;
-        this.type = type;
+        this.id = builder.id;
+        this.category = builder.category;
+        this.type = builder.type;
+        this.identifier = builder.identifier;
+        this.properties.putAll(builder.properties);
+        this.action = builder.action;
+        this.validation = builder.validation;
     }
 
     public String getId() {
@@ -108,5 +113,69 @@ public class ElementDTO {
     public void setCategory(String category) {
 
         this.category = category;
+    }
+
+    public static class Builder {
+
+        private Map<String, Object> properties = new HashMap<>();
+        private String id;
+        private String category;
+        private String type;
+        private String identifier;
+        private ActionDTO action;
+        private ValidationDTO validation;
+
+        public Builder id(String id) {
+
+            this.id = id;
+            return this;
+        }
+
+        public Builder category(String category) {
+
+            this.category = category;
+            return this;
+        }
+
+        public Builder type(String type) {
+
+            this.type = type;
+            return this;
+        }
+
+        public Builder identifier(String identifier) {
+
+            this.identifier = identifier;
+            return this;
+        }
+
+        public Builder property(String key, Object value) {
+
+            this.properties.put(key, value);
+            return this;
+        }
+
+        public Builder properties(Map<String, Object> properties) {
+
+            this.properties = properties;
+            return this;
+        }
+
+        public Builder action(ActionDTO action) {
+
+            this.action = action;
+            return this;
+        }
+
+        public Builder validation(ValidationDTO validation) {
+
+            this.validation = validation;
+            return this;
+        }
+
+        public ComponentDTO build() {
+
+            return new ComponentDTO(this);
+        }
     }
 }

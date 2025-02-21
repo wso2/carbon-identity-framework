@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFram
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
 import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.BlockDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.ElementDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
@@ -41,7 +41,6 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.COMPLETE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.EXECUTOR_FOR_PROMPT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NEXT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
-
 
 public class FlowConvertor {
 
@@ -77,11 +76,11 @@ public class FlowConvertor {
 
         boolean isExecutorEngaged = false;
         for (BlockDTO blockDTO : step.getBlocks()) {
-            for (ElementDTO elementDTO : blockDTO.getElements()) {
-                NodeConfig tempNodeInElement = processElement(elementDTO, isExecutorEngaged);
+            for (ComponentDTO componentDTO : blockDTO.getComponents()) {
+                NodeConfig tempNodeInElement = processElement(componentDTO, isExecutorEngaged);
                 if (tempNodeInElement != null) {
                     tempNodesInStep.add(tempNodeInElement);
-                    if (EXECUTOR.equals(elementDTO.getAction().getType())) {
+                    if (EXECUTOR.equals(componentDTO.getAction().getType())) {
                         isExecutorEngaged = true;
                     }
                 }
@@ -91,23 +90,24 @@ public class FlowConvertor {
         handleTempNodesInStep(tempNodesInStep, step, registrationFlowConfig, nodeMappings, endNodeId);
     }
 
-    private static NodeConfig processElement(ElementDTO elementDTO, boolean isExecutorEngaged) throws RegistrationFrameworkException {
+    private static NodeConfig processElement(ComponentDTO componentDTO, boolean isExecutorEngaged) throws RegistrationFrameworkException {
 
-        if ("ACTION".equals(elementDTO.getCategory())) {
-            if (elementDTO.getAction() == null) {
+        if ("ACTION".equals(componentDTO.getCategory())) {
+            if (componentDTO.getAction() == null) {
                 throw new RegistrationClientException("Action element should have an action.");
             }
-            ActionDTO action = elementDTO.getAction();
+            ActionDTO action = componentDTO.getAction();
             NodeConfig tempNodeInElement = null;
 
             if (NEXT.equals(action.getType())) {
-                tempNodeInElement = createTaskExecutionNode(elementDTO.getId(), new ExecutorDTO(EXECUTOR_FOR_PROMPT));
+
+                tempNodeInElement = createTaskExecutionNode(componentDTO.getId(), new ExecutorDTO(EXECUTOR_FOR_PROMPT));
                 tempNodeInElement.setNextNodeId(action.getNextId());
             } else if (EXECUTOR.equals(action.getType())) {
                 if (isExecutorEngaged) {
                     throw new RegistrationServerException("Multiple executors are not allowed in a single step.");
                 }
-                tempNodeInElement = createTaskExecutionNode(elementDTO.getId(), action.getExecutor());
+                tempNodeInElement = createTaskExecutionNode(componentDTO.getId(), action.getExecutor());
                 tempNodeInElement.setNextNodeId(action.getNextId());
             }
             return tempNodeInElement;
