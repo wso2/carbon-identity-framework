@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.UserDefined
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
@@ -47,6 +48,8 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -82,6 +85,8 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
     private final MockedStatic<IdentityProviderManager> mockedIdentityProviderManager =
             mockStatic(IdentityProviderManager.class);
     private final IdentityProviderManager identityProviderManager = mock(IdentityProviderManager.class);
+    private FederatedAuthenticatorConfig[] fedAuthConfig;
+    private IdentityProvider idp;
 
     @BeforeClass
     public void setUp() {
@@ -106,9 +111,15 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
                 List.of(new UserDefinedLocalAuthenticatorConfig(
                         AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION)));
 
+        fedAuthConfig = new FederatedAuthenticatorConfig[]{new UserDefinedFederatedAuthenticatorConfig()};
+        idp = new IdentityProvider();
+        idp.setIdentityProviderName("testIdp");
+        idp.setFederatedAuthenticatorConfigs(fedAuthConfig);
+
+        when(identityProviderManager.getAllFederatedAuthenticators(TENANT_DOMAIN)).thenReturn(fedAuthConfig);
+        when(identityProviderManager.getIdPByResourceId(anyString(), anyString(), anyBoolean())).thenReturn(idp);
         mockedIdentityProviderManager.when(IdentityProviderManager::getInstance).thenReturn(identityProviderManager);
-        when(identityProviderManager.getAllFederatedAuthenticators(TENANT_DOMAIN)).thenReturn(new
-                FederatedAuthenticatorConfig[]{new UserDefinedFederatedAuthenticatorConfig()});
+        FrameworkServiceDataHolder.getInstance().setIdentityProviderManager(identityProviderManager);
     }
 
     @AfterClass
@@ -172,6 +183,15 @@ public class ApplicationAuthenticatorManagerTest extends AbstractFrameworkTest {
         setAuthenticatorActionEnableStatus(true);
         List<ApplicationAuthenticator> result = applicationAuthenticatorService.getAllAuthenticators(TENANT_DOMAIN);
         assertEquals(1, result.size());
+    }
+
+    @Test
+    public void testGetSerializableIdPByResourceId() throws Exception {
+
+        IdentityProvider serializableIdp = applicationAuthenticatorService.getSerializableIdPByResourceId(
+                "dummyResourceId", TENANT_DOMAIN);
+        Assert.assertFalse(serializableIdp.getFederatedAuthenticatorConfigs()[0]
+                instanceof UserDefinedFederatedAuthenticatorConfig);
     }
 
     private void setAuthenticatorActionEnableStatus(boolean isEnabled) {

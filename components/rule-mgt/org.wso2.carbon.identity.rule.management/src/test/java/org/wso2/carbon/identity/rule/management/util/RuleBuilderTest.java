@@ -25,27 +25,28 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementClientException;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementServerException;
-import org.wso2.carbon.identity.rule.management.internal.RuleManagementComponentServiceHolder;
-import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.FlowType;
-import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.metadata.config.OperatorConfig;
-import org.wso2.carbon.identity.rule.metadata.config.RuleMetadataConfigFactory;
-import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataException;
-import org.wso2.carbon.identity.rule.metadata.model.Field;
-import org.wso2.carbon.identity.rule.metadata.model.FieldDefinition;
-import org.wso2.carbon.identity.rule.metadata.model.InputValue;
-import org.wso2.carbon.identity.rule.metadata.model.Link;
-import org.wso2.carbon.identity.rule.metadata.model.Operator;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsInputValue;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsReferenceValue;
-import org.wso2.carbon.identity.rule.metadata.model.OptionsValue;
-import org.wso2.carbon.identity.rule.metadata.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementClientException;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementServerException;
+import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.FlowType;
+import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.wso2.carbon.identity.rule.management.api.util.RuleBuilder;
+import org.wso2.carbon.identity.rule.management.internal.component.RuleManagementComponentServiceHolder;
+import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
+import org.wso2.carbon.identity.rule.metadata.api.model.Field;
+import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
+import org.wso2.carbon.identity.rule.metadata.api.model.InputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.Link;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsInputValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
+import org.wso2.carbon.identity.rule.metadata.api.model.OptionsValue;
+import org.wso2.carbon.identity.rule.metadata.api.service.RuleMetadataService;
+import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
+import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -98,8 +99,8 @@ public class RuleBuilderTest {
             throws Exception {
 
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                null);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(null);
 
         RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
     }
@@ -110,8 +111,8 @@ public class RuleBuilderTest {
             throws Exception {
 
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                Collections.emptyList());
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(Collections.emptyList());
 
         RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
     }
@@ -122,8 +123,8 @@ public class RuleBuilderTest {
             throws Exception {
 
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenThrow(
-                new RuleMetadataException("RULEMETA-60005", "Error while retrieving expression metadata.",
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenThrow(new RuleMetadataException("RULEMETA-60005", "Error while retrieving expression metadata.",
                         "Failed to load data from configurations."));
 
         RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -134,8 +135,8 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
         assertNotNull(ruleBuilder);
@@ -146,8 +147,8 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
@@ -176,8 +177,8 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
@@ -195,7 +196,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -214,7 +215,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -232,7 +233,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -251,7 +252,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -269,7 +270,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -287,7 +288,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -304,7 +305,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -321,7 +322,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -344,7 +345,7 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
                 .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
@@ -376,8 +377,8 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
@@ -397,8 +398,8 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
@@ -417,8 +418,8 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
@@ -455,8 +456,8 @@ public class RuleBuilderTest {
 
         List<FieldDefinition> mockedFieldDefinitions = getMockedFieldDefinitions();
         when(ruleMetadataService.getExpressionMeta(
-                org.wso2.carbon.identity.rule.metadata.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1")).thenReturn(
-                mockedFieldDefinitions);
+                org.wso2.carbon.identity.rule.metadata.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1"))
+                .thenReturn(mockedFieldDefinitions);
 
         RuleBuilder ruleBuilder = RuleBuilder.create(FlowType.PRE_ISSUE_ACCESS_TOKEN, "tenant1");
 
@@ -511,10 +512,11 @@ public class RuleBuilderTest {
 
         List<Link> links = Arrays.asList(new Link("/applications?offset=0&limit=10", "GET", "values"),
                 new Link("/applications?filter=name+eq+*&limit=10", "GET", "filter"));
-        org.wso2.carbon.identity.rule.metadata.model.Value
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
                 applicationValue = new OptionsReferenceValue.Builder().valueReferenceAttribute("id")
                 .valueDisplayAttribute("name").valueType(
-                        org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.REFERENCE).links(links).build();
+                        org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.REFERENCE)
+                .links(links).build();
         fieldDefinitionList.add(new FieldDefinition(applicationField, operators, applicationValue));
 
         Field grantTypeField = new Field("grantType", "grantType");
@@ -522,22 +524,22 @@ public class RuleBuilderTest {
                 new OptionsValue("password", "password"), new OptionsValue("refresh_token", "refresh token"),
                 new OptionsValue("client_credentials", "client credentials"),
                 new OptionsValue("urn:ietf:params:oauth:grant-type:token-exchange", "token exchange"));
-        org.wso2.carbon.identity.rule.metadata.model.Value
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
                 grantTypeValue =
-                new OptionsInputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.STRING,
+                new OptionsInputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.STRING,
                         optionsValues);
         fieldDefinitionList.add(new FieldDefinition(grantTypeField, operators, grantTypeValue));
 
         Field riskFactorField = new Field("riskFactor", "riskFactor");
-        org.wso2.carbon.identity.rule.metadata.model.Value
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
                 riskFactorValue =
-                new InputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.NUMBER);
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.NUMBER);
         fieldDefinitionList.add(new FieldDefinition(riskFactorField, operators, riskFactorValue));
 
         Field statusField = new Field("status", "status");
-        org.wso2.carbon.identity.rule.metadata.model.Value
+        org.wso2.carbon.identity.rule.metadata.api.model.Value
                 statusValue =
-                new InputValue(org.wso2.carbon.identity.rule.metadata.model.Value.ValueType.BOOLEAN);
+                new InputValue(org.wso2.carbon.identity.rule.metadata.api.model.Value.ValueType.BOOLEAN);
         fieldDefinitionList.add(new FieldDefinition(statusField, operators, statusValue));
 
         return fieldDefinitionList;

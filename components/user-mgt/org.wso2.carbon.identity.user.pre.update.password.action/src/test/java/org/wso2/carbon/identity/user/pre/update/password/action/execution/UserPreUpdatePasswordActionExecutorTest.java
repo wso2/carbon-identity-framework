@@ -22,19 +22,20 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.ActionExecutorService;
-import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
-import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Error;
-import org.wso2.carbon.identity.action.execution.model.ErrorStatus;
-import org.wso2.carbon.identity.action.execution.model.FailedStatus;
-import org.wso2.carbon.identity.action.execution.model.Failure;
-import org.wso2.carbon.identity.action.execution.model.Success;
-import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
-import org.wso2.carbon.identity.user.action.service.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.execution.UserPreUpdatePasswordActionExecutor;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.PreUpdatePasswordActionServiceComponentHolder;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.Error;
+import org.wso2.carbon.identity.action.execution.api.model.ErrorStatus;
+import org.wso2.carbon.identity.action.execution.api.model.FailedStatus;
+import org.wso2.carbon.identity.action.execution.api.model.Failure;
+import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.execution.api.model.Success;
+import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
+import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
+import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.UserPreUpdatePasswordActionExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -72,7 +73,7 @@ public class UserPreUpdatePasswordActionExecutorTest {
     public void testExecuteSuccess() throws ActionExecutionException {
 
         ActionExecutionStatus<Success> expectedStatus = new SuccessStatus.Builder().build();
-        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(), anyString());
+        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(FlowContext.class), anyString());
 
         ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
         assertTrue(resultStatus instanceof SuccessStatus);
@@ -84,7 +85,7 @@ public class UserPreUpdatePasswordActionExecutorTest {
 
         ActionExecutionStatus<Failure> expectedStatus = new FailedStatus(new Failure("Invalid Request",
                 "Compromised Password"));
-        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(), anyString());
+        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(FlowContext.class), anyString());
 
         ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
         assertTrue(resultStatus instanceof FailedStatus);
@@ -100,7 +101,7 @@ public class UserPreUpdatePasswordActionExecutorTest {
 
         ActionExecutionStatus<Error> expectedStatus = new ErrorStatus(new Error("Internal server error",
                 "Error while validating password"));
-        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(), anyString());
+        doReturn(expectedStatus).when(mockActionExecutorService).execute(any(), any(FlowContext.class), anyString());
 
         ActionExecutionStatus<?> resultStatus = executor.execute(mockUserActionContext, TENANT_DOMAIN);
         assertTrue(resultStatus instanceof ErrorStatus);

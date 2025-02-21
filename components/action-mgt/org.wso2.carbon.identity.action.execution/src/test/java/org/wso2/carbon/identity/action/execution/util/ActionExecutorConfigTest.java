@@ -25,7 +25,8 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.internal.util.ActionExecutorConfig;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.util.Arrays;
@@ -71,10 +72,14 @@ public class ActionExecutorConfigTest {
 
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("Actions.Types.PreIssueAccessToken.Enable", "true");
+        configMap.put("Actions.Types.Authentication.Enable", "true");
+        configMap.put("Actions.Types.PreUpdatePassword.Enable", "true");
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
         assertTrue(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_ISSUE_ACCESS_TOKEN));
+        assertTrue(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION));
+        assertTrue(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_UPDATE_PASSWORD));
     }
 
     @Test
@@ -82,10 +87,14 @@ public class ActionExecutorConfigTest {
 
         Map<String, Object> configMap = new HashMap<>();
         configMap.put("Actions.Types.PreIssueAccessToken.Enable", "false");
+        configMap.put("Actions.Types.Authentication.Enable", "false");
+        configMap.put("Actions.Types.PreUpdatePassword.Enable", "false");
 
         when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
 
         assertFalse(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_ISSUE_ACCESS_TOKEN));
+        assertFalse(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.AUTHENTICATION));
+        assertFalse(actionExecutorConfig.isExecutionForActionTypeEnabled(ActionType.PRE_UPDATE_PASSWORD));
     }
 
     @Test
@@ -302,6 +311,90 @@ public class ActionExecutorConfigTest {
         Set<String> excludedHeaders =
                 actionExecutorConfig.getExcludedParamsInActionRequestForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
         assertEquals(excludedHeaders, Collections.emptySet());
+    }
+
+    @Test
+    public void testGetAllowedHeadersInActionRequestForValidConfigForDefinedActionType() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header",
+                Arrays.asList("header1", "header2"));
+        configMap.put("Actions.Types.Authentication.ActionRequest.AllowedHeaders.Header",
+                Arrays.asList("header3", "header4"));
+
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        Set<String> allowedHeaders =
+                actionExecutorConfig.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(allowedHeaders, new HashSet<>(Arrays.asList("header1", "header2")));
+    }
+
+    @Test
+    public void testGetAllowedParamsInActionRequestForValidConfigForDefinedActionType() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter",
+                Arrays.asList("param1", "param2"));
+        configMap.put("Actions.Types.Authentication.ActionRequest.AllowedParameters.Parameter",
+                Arrays.asList("param3", "param4"));
+
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        Set<String> allowedParams =
+                actionExecutorConfig.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(allowedParams, new HashSet<>(Arrays.asList("param1", "param2")));
+    }
+
+    @Test
+    public void testGetAllowedHeadersInActionRequestForValidConfigWithOneValueForDefinedActionType() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header", "header1");
+
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        Set<String> allowedHeaders =
+                actionExecutorConfig.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(allowedHeaders, new HashSet<>(Collections.singletonList("header1")));
+    }
+
+    @Test
+    public void testGetAllowedParameterInActionRequestForValidConfigWithOneValueForDefinedActionType() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter", "param1");
+
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        Set<String> allowedParams =
+                actionExecutorConfig.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(allowedParams, new HashSet<>(Collections.singletonList("param1")));
+    }
+
+    @Test
+    public void testGetAllowedHeadersInActionRequestForInvalidConfigForDefinedActionType() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.AllowedHeaders.Header", 12);
+
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        Set<String> allowedParams =
+                actionExecutorConfig.getAllowedHeadersForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(allowedParams, Collections.emptySet());
+    }
+
+    @Test
+    public void testGetAllowedParamsInActionRequestForInvalidConfigForDefinedActionType() {
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("Actions.Types.PreIssueAccessToken.ActionRequest.AllowedParameters.Parameter", 12);
+
+        when(mockIdentityConfigParser.getConfiguration()).thenReturn(configMap);
+
+        Set<String> allowedParams =
+                actionExecutorConfig.getAllowedParamsForActionType(ActionType.PRE_ISSUE_ACCESS_TOKEN);
+        assertEquals(allowedParams, Collections.emptySet());
     }
 
     @Test

@@ -1739,6 +1739,8 @@ INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('33f0a41b-569d-4ea5-a891-6c0e78a1c3b0', 'ACTION_API_ENDPOINT_AUTH_SECRETS', 'Secret type to uniquely identify secrets relevant to action endpoint authentication properties')
 INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('b411dafd-e2c4-4d2f-afba-3900d802725a', 'PUSH_PROVIDER_SECRET_PROPERTIES', 'Secret type to uniquely identify secrets relevant to push provider properties')
+INTO IDN_SECRET_TYPE (ID, NAME, DESCRIPTION) VALUES
+('ce234fd5-3fb4-4a40-9911-818be9b4ee10', 'REMOTE_LOGGING_SECRETS', 'Secret type to uniquely identify secrets relevant to remote logging properties')
 SELECT 1 FROM dual
 /
 CREATE TABLE IDN_SECRET (
@@ -2188,6 +2190,7 @@ CREATE TABLE IDN_ACTION (
     DESCRIPTION VARCHAR(255),
     STATUS VARCHAR(10) NOT NULL,
     TENANT_ID INTEGER NOT NULL,
+    VERSION VARCHAR(15) NOT NULL,
     PRIMARY KEY (UUID)
 )
 /

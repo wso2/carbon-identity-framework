@@ -54,6 +54,8 @@ public class ClaimConstants {
     public static final String MAX_LENGTH = "maxLength";
     public static final String IS_SYSTEM_CLAIM = "isSystemClaim";
     public static final String SHARED_PROFILE_VALUE_RESOLVING_METHOD = "SharedProfileValueResolvingMethod";
+    public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
+            "ExternalClaimAdditionNotAllowedForDialect";
 
     /**
      * Enum for error messages.
@@ -112,6 +114,8 @@ public class ClaimConstants {
         ERROR_CODE_INVALID_SHARED_PROFILE_VALUE_RESOLVING_METHOD("CMT-60014",
                 "Invalid shared profile value resolving method: %s"),
         ERROR_CODE_INVALID_ATTRIBUTE_PROFILE("CMT-600015", "Invalid attribute profile name."),
+        ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT("CMT-60016",
+                "Adding claims to dialect %s is not allowed"),
 
         // Server Errors
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
