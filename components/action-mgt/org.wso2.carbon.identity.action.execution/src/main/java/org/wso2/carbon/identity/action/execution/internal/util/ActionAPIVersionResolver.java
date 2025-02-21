@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.action.execution.api.model.ActionType;
  */
 public class ActionAPIVersionResolver {
 
-    public static final String API_VERSION_HEADER = "X-API-Version";
+    public static final String API_VERSION_HEADER = "X-WSO2-API-Version";
 
     private ActionAPIVersionResolver() {
 
