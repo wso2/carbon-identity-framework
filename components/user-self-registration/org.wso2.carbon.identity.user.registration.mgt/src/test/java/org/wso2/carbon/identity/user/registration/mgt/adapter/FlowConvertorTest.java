@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.BlockDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.ElementDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 
@@ -40,7 +40,7 @@ public class FlowConvertorTest {
     @Test()
     void testSequenceWithNoNodes() throws IOException {
 
-        RegistrationFlowDTO registrationFlowDTO = createSampleRegistrationFlow2();
+        RegistrationFlowDTO registrationFlowDTO = createSampleRegistrationFlow1();
         try {
             RegistrationFlowConfig config = FlowConvertor.getSequence(registrationFlowDTO);
         } catch (RegistrationFrameworkException e) {
@@ -52,239 +52,133 @@ public class FlowConvertorTest {
         RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
 
         // Step 1
-        StepDTO step1 = new StepDTO();
-        step1.setId("dnd-step-3fa85f64-5717-4562-b3fc-2c963f66afa6");
-        step1.setType("VIEW");
-        step1.setCoordinateX(100);
-        step1.setCoordinateY(100);
-        step1.setWidth(600);
-        step1.setHeight(500);
+        StepDTO step1 = new StepDTO.Builder()
+                .setId("dnd-step-3fa85f64-5717-4562-b3fc-2c963f66afa6")
+                .setType("VIEW")
+                .setCoordinateX(100)
+                .setCoordinateY(100)
+                .setWidth(600)
+                .setHeight(500)
+                .build();
 
-        BlockDTO block1 = new BlockDTO();
-        block1.setId("dnd-block-345e95c0-d280-65b0-9646-754bb340f64");
+        BlockDTO block1 = new BlockDTO.Builder()
+                .setId("dnd-block-345e95c0-d280-65b0-9646-754bb340f64")
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-210e95c0-c580-40b0-9646-7054bb340f64")
+                                       .setType("INPUT")
+                                       .setCategory("FIELD")
+                                       .addProperty("label", "First Name")
+                                       .addProperty("placeholder", "Enter your first name")
+                                       .build())
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-211e95c0-c580-40b0-9646-7054bb340f65")
+                                       .setType("INPUT")
+                                       .setCategory("FIELD")
+                                       .addProperty("label", "Last Name")
+                                       .addProperty("placeholder", "Enter your last name")
+                                       .build())
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-212e95c0-c580-40b0-9646-7054bb340f66")
+                                       .setType("INPUT")
+                                       .setCategory("FIELD")
+                                       .addProperty("label", "Email")
+                                       .addProperty("placeholder", "Enter your email")
+                                       .build())
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-213e95c0-c580-40b0-9646-7054bb340f67")
+                                       .setType("INPUT")
+                                       .setCategory("FIELD")
+                                       .addProperty("label", "Password")
+                                       .addProperty("placeholder", "Enter your password")
+                                       .build())
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-214e95c0-c580-40b0-9646-7054bb340f68")
+                                       .setType("BUTTON")
+                                       .setCategory("ACTION")
+                                       .addProperty("text", "Next")
+                                       .setAction(new ActionDTO.Builder()
+                                                          .setType("EXECUTOR")
+                                                          .setExecutor(new ExecutorDTO.Builder()
+                                                                               .setName("PasswordOnboarder")
+                                                                               .build())
+                                                          .setNextId("dnd-step-4fa85f64-5717-4562-b3fc-2c963f66afa7")
+                                                          .build())
+                                       .build())
+                .build();
 
-        ElementDTO element1 = new ElementDTO("dnd-element-210e95c0-c580-40b0-9646-7054bb340f64", "INPUT");
-        element1.setCategory("FIELD");
-        element1.addProperty("label", "First Name");
-        element1.addProperty("placeholder", "Enter your first name");
-
-        ElementDTO element2 = new ElementDTO("dnd-element-211e95c0-c580-40b0-9646-7054bb340f65", "INPUT");
-        element2.setCategory("FIELD");
-        element2.addProperty("label", "Last Name");
-        element2.addProperty("placeholder", "Enter your last name");
-
-        ElementDTO element3 = new ElementDTO("dnd-element-212e95c0-c580-40b0-9646-7054bb340f66", "INPUT");
-        element3.setCategory("FIELD");
-        element3.addProperty("label", "Email");
-        element3.addProperty("placeholder", "Enter your email");
-
-        ElementDTO element4 = new ElementDTO("dnd-element-213e95c0-c580-40b0-9646-7054bb340f67", "INPUT");
-        element4.setCategory("FIELD");
-        element4.addProperty("label", "Password");
-        element4.addProperty("placeholder", "Enter your password");
-
-        ElementDTO element5 = new ElementDTO("dnd-element-214e95c0-c580-40b0-9646-7054bb340f68", "BUTTON");
-        element5.setCategory("ACTION");
-        element5.addProperty("text", "Next");
-        ActionDTO action1 = new ActionDTO("EXECUTOR");
-        ExecutorDTO executor1 = new ExecutorDTO("PasswordOnboarder");
-        action1.setExecutor(executor1);
-        action1.setNextId("dnd-step-4fa85f64-5717-4562-b3fc-2c963f66afa7");
-        element5.setAction(action1);
-
-        block1.addElementDto(element1);
-        block1.addElementDto(element2);
-        block1.addElementDto(element3);
-        block1.addElementDto(element4);
-        block1.addElementDto(element5);
-
-        BlockDTO block2 = new BlockDTO();
-        block2.setId("dnd-block-545e95c0-d280-65b0-9646-754bb340f66");
-
-        ElementDTO element6 = new ElementDTO("dnd-element-217e95c0-c580-40b0-9646-7054bb340f71", "BUTTON");
-        element6.setCategory("ACTION");
-        element6.addProperty("label", "Sign up with Google");
-        element6.addProperty("icon", "google");
-        element6.addProperty("position", "CENTER");
-        ActionDTO action2 = new ActionDTO("NEXT");
-        action2.setNextId("dnd-step-5fa85f64-5717-4562-b3fc-2c963f66afa8");
-        element6.setAction(action2);
-
-        block2.addElementDto(element6);
-
-        step1.getBlocks().add(block1);
-        step1.getBlocks().add(block2);
-
-        // Step 2
-        StepDTO step2 = new StepDTO();
-        step2.setId("dnd-step-4fa85f64-5717-4562-b3fc-2c963f66afa7");
-        step2.setType("VIEW");
-        step2.setCoordinateX(100);
-        step2.setCoordinateY(550);
-        step2.setWidth(600);
-        step2.setHeight(300);
-
-        BlockDTO block3 = new BlockDTO();
-        block3.setId("dnd-block-445e95c0-d280-65b0-9646-754bb340f65");
-
-        ElementDTO element7 = new ElementDTO("dnd-element-215e95c0-c580-40b0-9646-7054bb340f69", "INPUT");
-        element7.setCategory("FIELD");
-        element7.addProperty("label", "Email Verification Code");
-        element7.addProperty("placeholder", "Enter the OTP sent to your email");
-
-        ElementDTO element8 = new ElementDTO("dnd-element-216e95c0-c580-40b0-9646-7054bb340f70", "BUTTON");
-        element8.setCategory("ACTION");
-        element8.addProperty("label", "Submit");
-        element8.addProperty("position", "RIGHT");
-        ActionDTO action3 = new ActionDTO("EXECUTOR");
-        ExecutorDTO executor2 = new ExecutorDTO("EmailOTPExecutor");
-        action3.setExecutor(executor2);
-        action3.setNextId("COMPLETE");
-        element8.setAction(action3);
-
-        block3.addElementDto(element7);
-        block3.addElementDto(element8);
-
-        step2.getBlocks().add(block3);
-
-        // Step 3
-        StepDTO step3 = new StepDTO();
-        step3.setId("dnd-step-5fa85f64-5717-4562-b3fc-2c963f66afa8");
-        step3.setType("SERVICE");
-        step3.setCoordinateX(350);
-        step3.setCoordinateY(300);
-        step3.setWidth(150);
-        step3.setHeight(150);
-
-        ActionDTO action4 = new ActionDTO("EXECUTOR");
-        ExecutorDTO executor3 = new ExecutorDTO("GoogleOIDCAuthenticator", "google");
-        action4.setExecutor(executor3);
-        action4.setNextId("COMPLETE");
-        step3.setActionDTO(action4);
-
-        // Add steps to registration flow
-        List<StepDTO> steps = new ArrayList<>();
-        steps.add(step1);
-        steps.add(step2);
-        steps.add(step3);
-        registrationFlowDTO.setSteps(steps);
-
-        return registrationFlowDTO;
-    }
-
-    public static RegistrationFlowDTO createSampleRegistrationFlow2() {
-        RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
-
-        // Step 1
-        StepDTO step1 = new StepDTO();
-        step1.setId("step1");
-        step1.setType("VIEW");
-        step1.setCoordinateX(100);
-        step1.setCoordinateY(100);
-        step1.setWidth(600);
-        step1.setHeight(500);
-
-        BlockDTO block1 = new BlockDTO();
-        block1.setId("dnd-block-345e95c0-d280-65b0-9646-754bb340f64");
-
-        ElementDTO element1 = new ElementDTO("dnd-element-210e95c0-c580-40b0-9646-7054bb340f64", "INPUT");
-        element1.setCategory("FIELD");
-        element1.addProperty("label", "First Name");
-        element1.addProperty("placeholder", "Enter your first name");
-
-        ElementDTO element2 = new ElementDTO("dnd-element-211e95c0-c580-40b0-9646-7054bb340f65", "INPUT");
-        element2.setCategory("FIELD");
-        element2.addProperty("label", "Last Name");
-        element2.addProperty("placeholder", "Enter your last name");
-
-        ElementDTO element3 = new ElementDTO("dnd-element-212e95c0-c580-40b0-9646-7054bb340f66", "INPUT");
-        element3.setCategory("FIELD");
-        element3.addProperty("label", "Email");
-        element3.addProperty("placeholder", "Enter your email");
-
-        ElementDTO element4 = new ElementDTO("dnd-element-213e95c0-c580-40b0-9646-7054bb340f67", "INPUT");
-        element4.setCategory("FIELD");
-        element4.addProperty("label", "Password");
-        element4.addProperty("placeholder", "Enter your password");
-
-        ElementDTO element5 = new ElementDTO("pwdElementWithEx", "BUTTON");
-        element5.setCategory("ACTION");
-        element5.addProperty("text", "Next");
-        ActionDTO action1 = new ActionDTO("EXECUTOR");
-        ExecutorDTO executor1 = new ExecutorDTO("PasswordOnboarder");
-        action1.setExecutor(executor1);
-        action1.setNextId("step2");
-        element5.setAction(action1);
-
-        block1.addElementDto(element1);
-        block1.addElementDto(element2);
-        block1.addElementDto(element3);
-        block1.addElementDto(element4);
-        block1.addElementDto(element5);
-
-        BlockDTO block2 = new BlockDTO();
-        block2.setId("dnd-block-545e95c0-d280-65b0-9646-754bb340f66");
-
-        ElementDTO element6 = new ElementDTO("googleElement", "BUTTON");
-        element6.setCategory("ACTION");
-        element6.addProperty("label", "Sign up with Google");
-        element6.addProperty("icon", "google");
-        element6.addProperty("position", "CENTER");
-        ActionDTO action2 = new ActionDTO("NEXT");
-        action2.setNextId("step3");
-        element6.setAction(action2);
-
-        block2.addElementDto(element6);
+        BlockDTO block2 = new BlockDTO.Builder()
+                .setId("dnd-block-545e95c0-d280-65b0-9646-754bb340f66")
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-217e95c0-c580-40b0-9646-7054bb340f71")
+                                       .setType("BUTTON")
+                                       .setCategory("ACTION")
+                                       .addProperty("label", "Sign up with Google")
+                                       .addProperty("icon", "google")
+                                       .addProperty("position", "CENTER")
+                                       .setAction(new ActionDTO.Builder()
+                                                          .setType("NEXT")
+                                                          .setNextId("dnd-step-5fa85f64-5717-4562-b3fc-2c963f66afa8")
+                                                          .build())
+                                       .build())
+                .build();
 
         step1.getBlocks().add(block1);
         step1.getBlocks().add(block2);
 
         // Step 2
-        StepDTO step2 = new StepDTO();
-        step2.setId("step2");
-        step2.setType("VIEW");
-        step2.setCoordinateX(100);
-        step2.setCoordinateY(550);
-        step2.setWidth(600);
-        step2.setHeight(300);
+        StepDTO step2 = new StepDTO.Builder()
+                .setId("dnd-step-4fa85f64-5717-4562-b3fc-2c963f66afa7")
+                .setType("VIEW")
+                .setCoordinateX(100)
+                .setCoordinateY(550)
+                .setWidth(600)
+                .setHeight(300)
+                .build();
 
-        BlockDTO block3 = new BlockDTO();
-        block3.setId("dnd-block-445e95c0-d280-65b0-9646-754bb340f65");
-
-        ElementDTO element7 = new ElementDTO("otpElementWithEx", "INPUT");
-        element7.setCategory("FIELD");
-        element7.addProperty("label", "Email Verification Code");
-        element7.addProperty("placeholder", "Enter the OTP sent to your email");
-
-        ElementDTO element8 = new ElementDTO("dnd-element-216e95c0-c580-40b0-9646-7054bb340f70", "BUTTON");
-        element8.setCategory("ACTION");
-        element8.addProperty("label", "Submit");
-        element8.addProperty("position", "RIGHT");
-        ActionDTO action3 = new ActionDTO("EXECUTOR");
-        ExecutorDTO executor2 = new ExecutorDTO("EmailOTPExecutor");
-        action3.setExecutor(executor2);
-        action3.setNextId("COMPLETE");
-        element8.setAction(action3);
-
-        block3.addElementDto(element7);
-        block3.addElementDto(element8);
+        BlockDTO block3 = new BlockDTO.Builder()
+                .setId("dnd-block-445e95c0-d280-65b0-9646-754bb340f65")
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-215e95c0-c580-40b0-9646-7054bb340f69")
+                                       .setType("INPUT")
+                                       .setCategory("FIELD")
+                                       .addProperty("label", "Email Verification Code")
+                                       .addProperty("placeholder", "Enter the OTP sent to your email")
+                                       .build())
+                .addElement(new ComponentDTO.Builder()
+                                       .setId("dnd-element-216e95c0-c580-40b0-9646-7054bb340f70")
+                                       .setType("BUTTON")
+                                       .setCategory("ACTION")
+                                       .addProperty("label", "Submit")
+                                       .addProperty("position", "RIGHT")
+                                       .setAction(new ActionDTO.Builder()
+                                                          .setType("EXECUTOR")
+                                                          .setExecutor(new ExecutorDTO.Builder()
+                                                                               .setName("EmailOTPExecutor")
+                                                                               .build())
+                                                          .setNextId("COMPLETE")
+                                                          .build())
+                                       .build())
+                .build();
 
         step2.getBlocks().add(block3);
 
         // Step 3
-        StepDTO step3 = new StepDTO();
-        step3.setId("step3");
-        step3.setType("SERVICE");
-        step3.setCoordinateX(350);
-        step3.setCoordinateY(300);
-        step3.setWidth(150);
-        step3.setHeight(150);
-
-        ActionDTO action4 = new ActionDTO("EXECUTOR");
-        ExecutorDTO executor3 = new ExecutorDTO("GoogleOIDCAuthenticator", "google");
-        action4.setExecutor(executor3);
-        action4.setNextId("COMPLETE");
-        step3.setActionDTO(action4);
+        StepDTO step3 = new StepDTO.Builder()
+                .setId("dnd-step-5fa85f64-5717-4562-b3fc-2c963f66afa8")
+                .setType("SERVICE")
+                .setCoordinateX(350)
+                .setCoordinateY(300)
+                .setWidth(150)
+                .setHeight(150)
+                .setActionDTO(new ActionDTO.Builder()
+                                      .setType("EXECUTOR")
+                                      .setExecutor(new ExecutorDTO.Builder()
+                                                           .setName("GoogleOIDCAuthenticator")
+                                                           .setIdpName("google")
+                                                           .build())
+                                      .setNextId("COMPLETE")
+                                      .build())
+                .build();
 
         // Add steps to registration flow
         List<StepDTO> steps = new ArrayList<>();
