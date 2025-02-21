@@ -422,6 +422,7 @@ public class FrameworkUtils {
         try {
             authenticatorList = ApplicationAuthenticatorManager.getInstance()
                     .getAllAuthenticators(resolveTenantDomain(request));
+            log.debug("===== FrameworkUtils.getContextData -  tenantDomain: " + resolveTenantDomain(request));
         } catch (FrameworkException e) {
             throw new FrameworkRuntimeException("Error while getting all application authenticators.", e);
         }
@@ -4548,12 +4549,15 @@ public class FrameworkUtils {
                 log.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
             }
             tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            log.debug("===== FrameworkUtils.resolveTenantDomain from url -  tenantDomain: " + tenantDomain);
         } else {
             tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+            log.debug("===== FrameworkUtils.resolveTenantDomain request param -  tenantDomain: " + tenantDomain);
         }
 
         if (StringUtils.isEmpty(tenantDomain)) {
             tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+            log.debug("===== FrameworkUtils.resolveTenantDomain fallback to super -  tenantDomain: " + tenantDomain);
         }
         return tenantDomain;
     }
