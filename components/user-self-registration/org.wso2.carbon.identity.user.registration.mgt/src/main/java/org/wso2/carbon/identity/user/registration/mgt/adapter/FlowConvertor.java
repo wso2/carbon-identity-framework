@@ -51,7 +51,6 @@ public class FlowConvertor {
 
         RegistrationFlowConfig registrationFlowConfig = new RegistrationFlowConfig();
         registrationFlowConfig.setId(UUID.randomUUID().toString());
-        registrationFlowConfig.setName("DEFAULT");
         List<NodeEdge> nodeMappings = new ArrayList<>();
         NodeConfig endNode = createUserOnboardingNode();
         registrationFlowConfig.addNodeConfig(endNode);
