@@ -24,7 +24,6 @@ import java.util.Map;
 public class RegistrationFlowConfig {
 
     private String id;
-    private String name;
     private String firstNodeId;
     private final Map<String, NodeConfig> nodeConfigs = new HashMap<>();
     private final Map<String, StepDTO> nodePageMappings = new HashMap<>();
@@ -37,16 +36,6 @@ public class RegistrationFlowConfig {
     public void setId(String id) {
 
         this.id = id;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
     }
 
     public String getFirstNodeId() {
