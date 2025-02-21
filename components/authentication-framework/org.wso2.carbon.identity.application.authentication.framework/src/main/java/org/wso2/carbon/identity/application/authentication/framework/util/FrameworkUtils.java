@@ -404,6 +404,10 @@ public class FrameworkUtils {
      */
     public static AuthenticationContext getContextData(HttpServletRequest request) throws FrameworkRuntimeException {
 
+        log.debug("===== FrameworkUtils.getContextData - sessionDataKey: " +
+                request.getParameter("sessionDataKey"));
+        log.debug("===== FrameworkUtils.getContextData - flowId: " + request.getParameter("flowId"));
+
         AuthenticationContext context = null;
         if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
             String promptId = request.getParameter("promptId");
@@ -425,13 +429,22 @@ public class FrameworkUtils {
         for (ApplicationAuthenticator authenticator : authenticatorList) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
+                log.debug("===== FrameworkUtils.getContextData - authenticator: " + authenticator.getName() +
+                        " - contextIdentifier: " + contextIdentifier);
 
                 if (contextIdentifier != null && !contextIdentifier.isEmpty()) {
+                    log.debug("===== FrameworkUtils.getContextData - Load context from cache for authenticator: " +
+                            authenticator.getName() + " - contextIdentifier: " + contextIdentifier);
                     context = FrameworkUtils.getAuthenticationContextFromCache(contextIdentifier);
                     if (context != null) {
+                        log.debug("===== FrameworkUtils.getContextData - context loaded from cache " +
+                                "for authenticator: " + authenticator.getName() + " - contextIdentifier: "
+                                + contextIdentifier);
                         break;
                     }
                 }
+                log.debug("===== FrameworkUtils.getContextData - context not loaded from cache: " +
+                        authenticator.getName() + " - contextIdentifier: " + contextIdentifier);
             } catch (UnsupportedOperationException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Ignore UnsupportedOperationException.", e);
