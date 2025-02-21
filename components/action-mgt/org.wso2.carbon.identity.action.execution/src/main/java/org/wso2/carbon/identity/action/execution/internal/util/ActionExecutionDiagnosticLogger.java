@@ -183,8 +183,8 @@ public class ActionExecutionDiagnosticLogger {
                 DiagnosticLog.ResultStatus.SUCCESS);
         triggerLogEvent(
                 addActionConfigParams(diagnosticLogBuilder, action)
-                        .configParam("allowed operations", allowedOps.isEmpty() ? "empty" : allowedOps)
-                        .configParam("not allowed operations", notAllowedOps.isEmpty() ? "empty" : notAllowedOps));
+                        .configParam("allowedOperations", allowedOps.isEmpty() ? "empty" : allowedOps)
+                        .configParam("notAllowedOperations", notAllowedOps.isEmpty() ? "empty" : notAllowedOps));
     }
 
     public void logAPICallRetry(HttpPost request, int attempts, int retryCount) {
@@ -234,10 +234,10 @@ public class ActionExecutionDiagnosticLogger {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder, Action action) {
 
         return diagnosticLogBuilder
-                .configParam("action id", action.getId())
-                .configParam("action type", action.getType().getDisplayName())
-                .configParam("action endpoint", action.getEndpoint().getUri())
-                .configParam("action endpoint authentication type",
+                .configParam("resourceId", action.getId())
+                .configParam("actionType", action.getType().getDisplayName())
+                .configParam("actionEndpoint", action.getEndpoint().getUri())
+                .configParam("actionEndpointAuthenticationType",
                         action.getEndpoint().getAuthentication().getType().getName());
 
     }
