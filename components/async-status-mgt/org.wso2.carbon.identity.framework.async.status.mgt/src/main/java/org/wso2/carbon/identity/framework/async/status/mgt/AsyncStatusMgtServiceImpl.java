@@ -83,8 +83,26 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         }
     }
 
+//    @Override
+//    public void registerOperationStatus(OperationContext operationContext) {
+//        if (strategy != null) {
+//            strategy.register(operationContext);
+//        } else {
+//            LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
+//        }
+//    }
+
     @Override
-    public void registerOperationStatus(OperationContext operationContext) {
+    public void registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId) {
+
+        OperationContext operationContext = new OperationContext();
+        operationContext.setOperationType(operationType);
+        operationContext.setOperationSubjectId(operationSubjectId);
+        operationContext.setResourceType(resourceType);
+        operationContext.setSharingPolicy(sharingPolicy);
+        operationContext.setResidentOrgId(residentOrgId);
+        operationContext.setInitiatorId(initiatorId);
+
         if (strategy != null) {
             strategy.register(operationContext);
         } else {
