@@ -23,71 +23,71 @@ import java.util.List;
 
 public class NodeConfig {
 
-	private int id;
-	private String uuid;
-	private String type;
-	private String triggeredActionId;
-	private boolean isFirstNode;
-	private String nextNodeId = null;
-	private String previousNodeId = null;
-	private List<String> nextNodeIds = new ArrayList<>();
-	private List<NodeEdge> edges = new ArrayList<>();
-	private ExecutorDTO executorConfig = null;
+    private final List<NodeEdge> edges = new ArrayList<>();
+    private int id;
+    private String uuid;
+    private String type;
+    private String triggeredActionId;
+    private boolean isFirstNode;
+    private String nextNodeId = null;
+    private String previousNodeId = null;
+    private List<String> nextNodeIds = new ArrayList<>();
+    private ExecutorDTO executorConfig = null;
 
-	public int getId() {
+    public int getId() {
 
-		return id;
-	}
+        return id;
+    }
 
-	public void setId(int id) {
+    public void setId(int id) {
 
-		this.id = id;
-	}
+        this.id = id;
+    }
 
-	public String getUuid() {
+    public String getUuid() {
 
-		return uuid;
-	}
+        return uuid;
+    }
 
-	public void setUuid(String uuid) {
+    public void setUuid(String uuid) {
 
-		this.uuid = uuid;
-	}
+        this.uuid = uuid;
+    }
 
-	public String getType() {
+    public String getType() {
 
-		return type;
-	}
+        return type;
+    }
 
-	public void setType(String type) {
+    public void setType(String type) {
 
-		this.type = type;
-	}
+        this.type = type;
+    }
 
-	public boolean isFirstNode() {
+    public boolean isFirstNode() {
 
-		return isFirstNode;
-	}
+        return isFirstNode;
+    }
 
-	public void setFirstNode(boolean firstNode) {
+    public void setFirstNode(boolean firstNode) {
 
-		isFirstNode = firstNode;
-	}
+        isFirstNode = firstNode;
+    }
 
-	public List<String> getNextNodeIds() {
+    public List<String> getNextNodeIds() {
 
-		return nextNodeIds;
-	}
+        return nextNodeIds;
+    }
 
-	public void setNextNodeIds(List<String> nextNodeIds) {
+    public void setNextNodeIds(List<String> nextNodeIds) {
 
-		this.nextNodeIds = nextNodeIds;
-	}
+        this.nextNodeIds = nextNodeIds;
+    }
 
-	public void addNextNodeId(String nextNodeId) {
+    public void addNextNodeId(String nextNodeId) {
 
-		this.nextNodeIds.add(nextNodeId);
-	}
+        this.nextNodeIds.add(nextNodeId);
+    }
 
     public ExecutorDTO getExecutorConfig() {
 
@@ -99,35 +99,35 @@ public class NodeConfig {
         this.executorConfig = executorConfig;
     }
 
-	public String getNextNodeId() {
+    public String getNextNodeId() {
 
-		return nextNodeId;
-	}
+        return nextNodeId;
+    }
 
-	public void setNextNodeId(String nextNodeId) {
+    public void setNextNodeId(String nextNodeId) {
 
-		this.nextNodeId = nextNodeId;
-	}
+        this.nextNodeId = nextNodeId;
+    }
 
-	public String getPreviousNodeId() {
+    public String getPreviousNodeId() {
 
-		return previousNodeId;
-	}
+        return previousNodeId;
+    }
 
-	public void setPreviousNodeId(String previousNodeId) {
+    public void setPreviousNodeId(String previousNodeId) {
 
-		this.previousNodeId = previousNodeId;
-	}
+        this.previousNodeId = previousNodeId;
+    }
 
-	public String getTriggeredActionId() {
+    public String getTriggeredActionId() {
 
-		return triggeredActionId;
-	}
+        return triggeredActionId;
+    }
 
-	public void setTriggeredActionId(String triggeredActionId) {
+    public void setTriggeredActionId(String triggeredActionId) {
 
-		this.triggeredActionId = triggeredActionId;
-	}
+        this.triggeredActionId = triggeredActionId;
+    }
 
     public List<NodeEdge> getEdges() {
 
