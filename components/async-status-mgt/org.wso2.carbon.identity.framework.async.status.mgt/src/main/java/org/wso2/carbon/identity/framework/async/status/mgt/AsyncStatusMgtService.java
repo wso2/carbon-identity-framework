@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.framework.async.status.mgt;
 
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.BulkUserImportOperationDO;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 
 /**
@@ -53,4 +54,12 @@ public interface AsyncStatusMgtService {
      *
      */
     void testCheckDatabaseConnection();
+    void selectiveUserShare();
+
+    /**
+     * Registers the operation status for asynchronous tracking.
+     *
+     * @param operationContext The context of the operation to be tracked.
+     */
+    void registerOperationStatus(OperationContext operationContext);
 }

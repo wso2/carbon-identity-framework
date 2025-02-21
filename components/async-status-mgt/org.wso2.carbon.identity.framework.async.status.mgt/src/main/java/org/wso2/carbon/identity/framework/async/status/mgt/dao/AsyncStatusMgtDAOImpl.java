@@ -65,30 +65,6 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
-
-
-//        NamedJdbcTemplate namedJdbcTemplate = getNewTemplate();
-//
-//        try {
-//            LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Started...");
-//            namedJdbcTemplate.withTransaction(template -> {
-//                template.executeInsert(CREATE_B2B_RESOURCE_SHARING_OPERATION, namedPreparedStatement -> {
-//
-//                    namedPreparedStatement.setString(1, operationType);
-//                    namedPreparedStatement.setString(2, residentResourceId);
-//                    namedPreparedStatement.setString(3, resourceType);
-//                    namedPreparedStatement.setString(4, sharingPolicy);
-//                    namedPreparedStatement.setString(5, residentOrgId);
-//                    namedPreparedStatement.setString(6, initiatorId);
-//                    namedPreparedStatement.setString(7, operationStatus);
-//                    namedPreparedStatement.setString(8, "2024-12-26 17:39:38.308");
-//                    namedPreparedStatement.setString(9, "2024-12-26 17:39:38.308");
-//                },null, false);
-//                return null;
-//            });
-//            LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Success.");
-//        } catch (TransactionException e) {
-//            throw new RuntimeException(e);
-//        }
     }
+
 }

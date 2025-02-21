@@ -4,8 +4,10 @@ import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAOImpl;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.BulkUserImportOperationDO;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationUnitDO;
+import org.wso2.carbon.identity.framework.async.status.mgt.util.OperationStatusStrategy;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -19,9 +21,11 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
             Logger.getLogger(AsyncStatusMgtServiceImpl.class.getName());
 
     private final AsyncStatusMgtDAO asyncStatusMgtDAO;
+    private final OperationStatusStrategy strategy;
 
-    public AsyncStatusMgtServiceImpl() {
-        this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl(); // Using default constructor
+    public AsyncStatusMgtServiceImpl(OperationStatusStrategy strategy) {
+        this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
+        this.strategy = strategy;
     }
 
     @Override
@@ -82,5 +86,15 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         } catch (Exception e) {
             LOGGER.severe("Error while processing B2B async operation status: " + e.getMessage());
         }
+    }
+
+    @Override
+    public void selectiveUserShare() {
+
+    }
+
+    @Override
+    public void registerOperationStatus(OperationContext operationContext) {
+        strategy.register(operationContext);
     }
 }
