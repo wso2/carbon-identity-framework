@@ -116,7 +116,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNotNull(sampleAction.getId());
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
-        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
 
@@ -248,20 +248,13 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 8)
-    public void testDeactivateAction() throws ActionMgtException {
-
-        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
-        Action deactivatedAction = actionManagementService.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
-                sampleAction.getId(), TENANT_DOMAIN);
-        Assert.assertEquals(deactivatedAction.getStatus(), Action.Status.INACTIVE);
-    }
-
-    @Test(priority = 9)
     public void testActivateAction() throws ActionMgtException {
 
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
         Action activatedAction = actionManagementService.activateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 sampleAction.getId(), TENANT_DOMAIN);
         Assert.assertEquals(activatedAction.getStatus(), Action.Status.ACTIVE);
+        sampleAction = activatedAction;
     }
 
     @Test(priority = 10)
@@ -276,6 +269,15 @@ public class ActionManagementServiceImplTest {
             Assert.assertEquals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType(), entry.getKey());
             Assert.assertEquals(entry.getValue().intValue(), 1);
         }
+    }
+
+    @Test(priority = 11)
+    public void testDeactivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Action deactivatedAction = actionManagementService.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertEquals(deactivatedAction.getStatus(), Action.Status.INACTIVE);
     }
 
     @Test(priority = 11)
@@ -347,7 +349,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNotNull(sampleAction.getId());
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
-        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
 

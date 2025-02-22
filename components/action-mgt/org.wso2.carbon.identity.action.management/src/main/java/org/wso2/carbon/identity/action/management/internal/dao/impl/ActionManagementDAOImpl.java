@@ -212,8 +212,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_NAME, actionDTO.getName());
                         statement.setString(ActionMgtSQLConstants.Column.ACTION_DESCRIPTION,
                                 actionDTO.getDescription());
-                        statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS,
-                                String.valueOf(Action.Status.ACTIVE));
+                        statement.setString(ActionMgtSQLConstants.Column.ACTION_STATUS, actionDTO.getStatus().name());
                         statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId);
                         statement.setString(ActionMgtSQLConstants.Column.SCHEMA_VERSION, V1);
                     }, actionDTO, false));
