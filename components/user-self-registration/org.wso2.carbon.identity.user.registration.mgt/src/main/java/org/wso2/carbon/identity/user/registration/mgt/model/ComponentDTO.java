@@ -32,7 +32,10 @@ public class ComponentDTO {
     private String type;
     private String identifier;
     private ActionDTO action;
-    private ValidationDTO validation;
+
+    public ComponentDTO() {
+
+    }
 
     private ComponentDTO(Builder builder) {
 
@@ -42,7 +45,6 @@ public class ComponentDTO {
         this.identifier = builder.identifier;
         this.properties.putAll(builder.properties);
         this.action = builder.action;
-        this.validation = builder.validation;
     }
 
     public String getId() {
@@ -93,16 +95,6 @@ public class ComponentDTO {
     public void setIdentifier(String identifier) {
 
         this.identifier = identifier;
-    }
-
-    public ValidationDTO getValidation() {
-
-        return validation;
-    }
-
-    public void setValidation(ValidationDTO validation) {
-
-        this.validation = validation;
     }
 
     public String getCategory() {
