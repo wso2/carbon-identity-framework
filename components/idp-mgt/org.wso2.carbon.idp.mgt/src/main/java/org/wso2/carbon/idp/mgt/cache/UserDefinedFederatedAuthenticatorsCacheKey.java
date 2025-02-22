@@ -16,20 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.common.cache;
+package org.wso2.carbon.idp.mgt.cache;
 
 import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**
- * Cache key for all user defined local application authenticators.
+ * Cache key for all user defined federated authenticators.
  */
-public class AuthenticatorsCacheKey extends CacheKey {
+public class UserDefinedFederatedAuthenticatorsCacheKey extends CacheKey {
 
-    private static final long serialVersionUID = 5431869043259837612L;
+    private static final long serialVersionUID = 202502221234567890L;
 
     private final int tenantId;
 
-    public AuthenticatorsCacheKey(int tenantId) {
+    public UserDefinedFederatedAuthenticatorsCacheKey(int tenantId) {
 
         this.tenantId = tenantId;
     }
@@ -42,10 +42,10 @@ public class AuthenticatorsCacheKey extends CacheKey {
     @Override
     public boolean equals(Object o) {
 
-        if (!(o instanceof AuthenticatorsCacheKey)) {
+        if (!(o instanceof UserDefinedFederatedAuthenticatorsCacheKey)) {
             return false;
         }
-        return tenantId == ((AuthenticatorsCacheKey) o).getTenantId();
+        return tenantId == ((UserDefinedFederatedAuthenticatorsCacheKey) o).getTenantId();
     }
 
     @Override

@@ -16,20 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.common.cache;
+package org.wso2.carbon.idp.mgt.cache;
 
 import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.utils.CarbonUtils;
 
 /**
- * Cache for all user defined local application authenticators.
+ * Cache for all user defined federated authenticators.
  */
-public class AuthenticatorsCache extends BaseCache<AuthenticatorsCacheKey, AuthenticatorsCacheEntry> {
+public class UserDefinedFederatedAuthenticatorsCache extends BaseCache<UserDefinedFederatedAuthenticatorsCacheKey,
+        UserDefinedFederatedAuthenticatorsCacheEntry> {
 
-    private static final String CACHE_NAME = "AuthenticatorsCache";
-    private static final AuthenticatorsCache INSTANCE = new AuthenticatorsCache();
+    private static final String CACHE_NAME = "UserDefinedFederatedAuthenticatorsCache";
+    private static final UserDefinedFederatedAuthenticatorsCache INSTANCE =
+            new UserDefinedFederatedAuthenticatorsCache();
 
-    private AuthenticatorsCache() {
+    private UserDefinedFederatedAuthenticatorsCache() {
 
         super(CACHE_NAME);
     }
@@ -39,7 +41,7 @@ public class AuthenticatorsCache extends BaseCache<AuthenticatorsCacheKey, Authe
      *
      * @return Authenticator cache by name instance.
      */
-    public static AuthenticatorsCache getInstance() {
+    public static UserDefinedFederatedAuthenticatorsCache getInstance() {
 
         CarbonUtils.checkSecurity();
         return INSTANCE;

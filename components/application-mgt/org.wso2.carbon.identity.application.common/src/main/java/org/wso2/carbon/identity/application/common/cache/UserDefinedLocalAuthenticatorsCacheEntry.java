@@ -24,15 +24,16 @@ import org.wso2.carbon.identity.core.cache.CacheEntry;
 import java.util.List;
 
 /**
- * Cache Entry for all user defined local application authenticators.
+ * Cache Entry for all user defined local authenticators.
  */
-public class AuthenticatorsCacheEntry extends CacheEntry {
+public class UserDefinedLocalAuthenticatorsCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 7829131001232944017L;
 
     private List<UserDefinedLocalAuthenticatorConfig> userDefinedLocalAuthenticators;
 
-    public AuthenticatorsCacheEntry(List<UserDefinedLocalAuthenticatorConfig> userDefinedLocalAuthenticators) {
+    public UserDefinedLocalAuthenticatorsCacheEntry(List<UserDefinedLocalAuthenticatorConfig>
+                                                            userDefinedLocalAuthenticators) {
 
         this.userDefinedLocalAuthenticators = userDefinedLocalAuthenticators;
     }
