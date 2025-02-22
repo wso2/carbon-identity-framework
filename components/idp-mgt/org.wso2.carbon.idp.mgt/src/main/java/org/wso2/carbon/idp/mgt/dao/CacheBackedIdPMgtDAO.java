@@ -23,11 +23,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdPGroup;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -582,6 +584,7 @@ public class CacheBackedIdPMgtDAO {
     public String addIdP(IdentityProvider identityProvider, int tenantId, String
             tenantDomain) throws IdentityProviderManagementException {
 
+        clearAllUserDefinedAuthenticatorsCache(identityProvider, tenantId);
         return idPManagementFacade.addIdPWithResourceId(identityProvider, tenantId);
     }
 
@@ -794,6 +797,8 @@ public class CacheBackedIdPMgtDAO {
                         IdentityApplicationConstants.IDP_ISSUER_NAME, idPIssuerName);
                 idPCacheByMetadataProperty.clearCacheEntry(cacheKey, tenantDomain);
             }
+
+            clearAllUserDefinedAuthenticatorsCache(identityProvider, tenantId);
         } else {
             log.debug("Entry for Identity Provider " + idPName + " not found in cache or DB");
         }
@@ -1134,5 +1139,20 @@ public class CacheBackedIdPMgtDAO {
             throws IdentityProviderManagementException {
 
         return idPManagementFacade.getAllUserDefinedFederatedAuthenticators(tenantId);
+    }
+
+    /**
+     * Clear all user defined federated authenticators cache.
+     * Since custom federated authenticators are managed through idp management, it is required to clear the cache for
+     * all user defined local authenticators in {@link ApplicationAuthenticatorService}
+     *
+     * @param tenantId Tenant Id.
+     */
+    private void clearAllUserDefinedAuthenticatorsCache(IdentityProvider identityProvider, int tenantId) {
+
+        if (identityProvider.getFederatedAuthenticatorConfigs()[0].getDefinedByType() ==
+                AuthenticatorPropertyConstants.DefinedByType.USER) {
+            ApplicationAuthenticatorService.getInstance().clearAllUserDefinedLocalAuthenticatorsCache(tenantId);
+        }
     }
 }
