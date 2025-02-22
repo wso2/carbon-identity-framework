@@ -8,6 +8,7 @@ import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationC
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationUnitDO;
 import org.wso2.carbon.identity.framework.async.status.mgt.util.OperationStatusStrategy;
+import org.wso2.carbon.identity.framework.async.status.mgt.util.OperationStatusStrategyFactory;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -21,7 +22,7 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
             Logger.getLogger(AsyncStatusMgtServiceImpl.class.getName());
 
     private final AsyncStatusMgtDAO asyncStatusMgtDAO;
-    private final OperationStatusStrategy strategy;
+    private OperationStatusStrategy strategy;
 
     // Constructors
     public AsyncStatusMgtServiceImpl() {
@@ -94,6 +95,7 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
 
     @Override
     public void registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId) {
+        strategy = OperationStatusStrategyFactory.getStrategy(resourceType);
 
         OperationContext operationContext = new OperationContext();
         operationContext.setOperationType(operationType);
@@ -108,6 +110,11 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         } else {
             LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
         }
+    }
+
+    @Override
+    public void registerUnitOperationStatus(String operationId, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage) {
+
     }
 
 }

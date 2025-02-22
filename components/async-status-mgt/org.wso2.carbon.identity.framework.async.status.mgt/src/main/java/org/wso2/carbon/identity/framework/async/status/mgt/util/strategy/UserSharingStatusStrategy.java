@@ -22,7 +22,7 @@ public class UserSharingStatusStrategy implements OperationStatusStrategy {
         AsyncStatusMgtDAO dao = new AsyncStatusMgtDAOImpl();
         dao.registerB2BUserSharingAsyncOperation(dbContext);
 
-        LOGGER.info("Registering User Share Operation For: " + operationContext.getOperationSubjectId() + " Completed.");
+        LOGGER.info("Registering User Share Operation For: " + operationContext.getOperationSubjectId() + " Completed");
     }
 
     private ArrayList<String> getAudienceForOperationRegistration() {

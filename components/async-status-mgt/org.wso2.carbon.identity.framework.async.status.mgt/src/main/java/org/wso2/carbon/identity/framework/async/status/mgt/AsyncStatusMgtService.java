@@ -27,13 +27,28 @@ import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOpe
  */
 public interface AsyncStatusMgtService {
 
-//    /**
-//     * Registers the operation status for asynchronous tracking.
-//     *
-//     * @param operationContext The context of the operation to be tracked.
-//     */
-//    void registerOperationStatus(OperationContext operationContext);
+    /**
+     * Registers the operation status for asynchronous tracking.
+     *
+     * @param operationType The type of the asynchronous operation being tracked.
+     * @param operationSubjectId The unique identifier of the entity the operation is performed on.
+     * @param resourceType The type of resource the operation is related to.
+     * @param sharingPolicy The sharing policy associated with the resource, if applicable.
+     * @param residentOrgId The identifier of the organization where the resource resides, if applicable.
+     * @param initiatorId The identifier of the user or system that initiated the operation.
+     */
     void registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId);
+
+    /**
+     * Registers the unit operation status for asynchronous tracking.
+     *
+     * @param operationId The identifier of the asynchronous operation being tracked.
+     * @param operationInitiatedResourceId The unique identifier of the resource that initiated the operation.
+     * @param sharedOrgId The identifier of the organization with which the resource is shared, if applicable.
+     * @param unitOperationStatus The status of the unit operation.
+     * @param statusMessage A message providing additional information about the operation status.
+     */
+    void registerUnitOperationStatus(String operationId, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage);
 
     /**
      * Processing the status of B2B Asynchronous

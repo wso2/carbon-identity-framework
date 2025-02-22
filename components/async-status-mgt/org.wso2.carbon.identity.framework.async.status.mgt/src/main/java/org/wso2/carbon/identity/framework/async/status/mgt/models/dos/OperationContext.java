@@ -1,7 +1,5 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 
-import java.time.LocalDateTime;
-
 public class OperationContext {
 
     private String operationType;
@@ -11,7 +9,6 @@ public class OperationContext {
     private String residentOrgId;
     private String initiatorId;
 
-    // Constructors
     public OperationContext() {
     }
 
@@ -72,5 +69,4 @@ public class OperationContext {
     public void setInitiatorId(String initiatorId) {
         this.initiatorId = initiatorId;
     }
-
 }
