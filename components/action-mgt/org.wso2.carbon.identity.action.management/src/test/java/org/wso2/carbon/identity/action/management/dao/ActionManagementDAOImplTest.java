@@ -69,6 +69,7 @@ public class ActionManagementDAOImplTest {
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
                 .description(TestUtil.TEST_ACTION_DESCRIPTION)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
@@ -89,7 +90,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getType(), creatingActionDTO.getType());
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertEquals(createdActionDTO.getDescription(), creatingActionDTO.getDescription());
-        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
 
         Authentication createdAuthentication = createdActionDTO.getEndpoint().getAuthentication();
@@ -178,6 +179,7 @@ public class ActionManagementDAOImplTest {
                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
@@ -197,7 +199,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getType(), creatingActionDTO.getType());
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertNull(createdActionDTO.getDescription());
-        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
 
         Authentication createdAuthentication = createdActionDTO.getEndpoint().getAuthentication();
@@ -505,22 +507,23 @@ public class ActionManagementDAOImplTest {
         createdActionDTO = result;
     }
 
-
     @Test(priority = 14)
+    public void testActivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
+        ActionDTO activatedActionDTO = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
+                TENANT_ID);
+        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
+        createdActionDTO = activatedActionDTO;
+    }
+
+    @Test(priority = 15)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
         ActionDTO deactivatedActionDTO = daoImpl.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
         Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
-    }
-
-    @Test(priority = 15)
-    public void testActivateAction() throws ActionMgtException {
-
-        ActionDTO activatedActionDTO = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
-                TENANT_ID);
-        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
     }
 
     @Test(priority = 16)

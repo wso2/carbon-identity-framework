@@ -302,6 +302,16 @@ public class ActionManagementDAOFacadeTest {
     }
 
     @Test(priority = 8)
+    public void testActivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(actionDTORetrieved.getStatus(), Action.Status.INACTIVE);
+        ActionDTO activatedActionDTO = daoFacade.activateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
+                TENANT_ID);
+        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
+        actionDTORetrieved = activatedActionDTO;
+    }
+
+    @Test(priority = 9)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(actionDTORetrieved.getStatus(), Action.Status.ACTIVE);
@@ -309,14 +319,6 @@ public class ActionManagementDAOFacadeTest {
                 daoFacade.deactivateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
                         TENANT_ID);
         Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
-    }
-
-    @Test(priority = 9)
-    public void testActivateAction() throws ActionMgtException {
-
-        ActionDTO activatedActionDTO = daoFacade.activateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
-                TENANT_ID);
-        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
     }
 
     @Test(priority = 10)
@@ -329,6 +331,9 @@ public class ActionManagementDAOFacadeTest {
 
     @Test(priority = 11)
     public void testDeleteAction() throws ActionMgtException {
+
+        actionDTORetrieved = daoFacade.getActionByActionId(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
+                TENANT_ID);
 
         mockActionPropertyResolver(testActionPropertyResolver);
         try {
@@ -579,6 +584,7 @@ public class ActionManagementDAOFacadeTest {
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TEST_ACTION_NAME)
                 .description(TEST_ACTION_DESCRIPTION)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD))
@@ -594,7 +600,7 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(actualActionDTO.getType(), expectedActionDTO.getType());
         Assert.assertEquals(actualActionDTO.getName(), expectedActionDTO.getName());
         Assert.assertEquals(actualActionDTO.getDescription(), expectedActionDTO.getDescription());
-        Assert.assertEquals(actualActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(actualActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(actualActionDTO.getEndpoint().getUri(), expectedActionDTO.getEndpoint().getUri());
 
         Authentication createdAuthentication = actualActionDTO.getEndpoint().getAuthentication();
