@@ -404,10 +404,6 @@ public class FrameworkUtils {
      */
     public static AuthenticationContext getContextData(HttpServletRequest request) throws FrameworkRuntimeException {
 
-        log.debug("===== FrameworkUtils.getContextData - sessionDataKey: " +
-                request.getParameter("sessionDataKey"));
-        log.debug("===== FrameworkUtils.getContextData - flowId: " + request.getParameter("flowId"));
-
         AuthenticationContext context = null;
         if (request.getParameter("promptResp") != null && request.getParameter("promptId") != null) {
             String promptId = request.getParameter("promptId");
@@ -422,7 +418,6 @@ public class FrameworkUtils {
         try {
             authenticatorList = ApplicationAuthenticatorManager.getInstance()
                     .getAllAuthenticators(resolveTenantDomain(request));
-            log.debug("===== FrameworkUtils.getContextData -  tenantDomain: " + resolveTenantDomain(request));
         } catch (FrameworkException e) {
             throw new FrameworkRuntimeException("Error while getting all application authenticators.", e);
         }
@@ -430,22 +425,13 @@ public class FrameworkUtils {
         for (ApplicationAuthenticator authenticator : authenticatorList) {
             try {
                 String contextIdentifier = authenticator.getContextIdentifier(request);
-                log.debug("===== FrameworkUtils.getContextData - authenticator: " + authenticator.getName() +
-                        " - contextIdentifier: " + contextIdentifier);
 
                 if (contextIdentifier != null && !contextIdentifier.isEmpty()) {
-                    log.debug("===== FrameworkUtils.getContextData - Load context from cache for authenticator: " +
-                            authenticator.getName() + " - contextIdentifier: " + contextIdentifier);
                     context = FrameworkUtils.getAuthenticationContextFromCache(contextIdentifier);
                     if (context != null) {
-                        log.debug("===== FrameworkUtils.getContextData - context loaded from cache " +
-                                "for authenticator: " + authenticator.getName() + " - contextIdentifier: "
-                                + contextIdentifier);
                         break;
                     }
                 }
-                log.debug("===== FrameworkUtils.getContextData - context not loaded from cache: " +
-                        authenticator.getName() + " - contextIdentifier: " + contextIdentifier);
             } catch (UnsupportedOperationException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Ignore UnsupportedOperationException.", e);
@@ -4549,15 +4535,21 @@ public class FrameworkUtils {
                 log.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
             }
             tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-            log.debug("===== FrameworkUtils.resolveTenantDomain from url -  tenantDomain: " + tenantDomain);
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                return tenantDomain;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("TenantedSessionsEnabled is enabled, but the tenant domain is not set to the" +
+                            " context. Hence using the tenant domain from the carbon context.");
+                }
+                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
         } else {
             tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
-            log.debug("===== FrameworkUtils.resolveTenantDomain request param -  tenantDomain: " + tenantDomain);
         }
 
         if (StringUtils.isEmpty(tenantDomain)) {
             tenantDomain = org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-            log.debug("===== FrameworkUtils.resolveTenantDomain fallback to super -  tenantDomain: " + tenantDomain);
         }
         return tenantDomain;
     }

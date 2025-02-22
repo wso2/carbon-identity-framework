@@ -401,6 +401,10 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
     private ActionDTO buildActionDTO(String actionType, String actionId, Action action) {
 
+        Action.ActionTypes resolvedActionType = Action.ActionTypes.valueOf(actionType);
+        Action.Status resolvedStatus = resolvedActionType.getCategory() == Action.ActionTypes.Category.IN_FLOW ?
+                Action.Status.ACTIVE : Action.Status.INACTIVE;
+
         ActionConverter actionConverter =
                 ActionConverterFactory.getActionConverter(Action.ActionTypes.valueOf(actionType));
         if (actionConverter != null) {
@@ -408,13 +412,15 @@ public class ActionManagementServiceImpl implements ActionManagementService {
 
             return new ActionDTOBuilder(actionDTO)
                     .id(actionId)
-                    .type(Action.ActionTypes.valueOf(actionType))
+                    .type(resolvedActionType)
+                    .status(resolvedStatus)
                     .build();
         }
 
         return new ActionDTOBuilder(action)
                 .id(actionId)
-                .type(Action.ActionTypes.valueOf(actionType))
+                .type(resolvedActionType)
+                .status(resolvedStatus)
                 .build();
     }
 
