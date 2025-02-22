@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,13 +34,14 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.BlockDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
+import org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils;
 
 /**
  * The DAO class for the registration flow.
@@ -258,9 +258,10 @@ public class RegistrationFlowDAO {
     private InputStream serializePageContent(StepDTO stepDTO) {
 
         if (Constants.StepTypes.VIEW.equals(stepDTO.getType())) {
-            return new ByteArrayInputStream(stepDTO.getBlocks().toString().getBytes());
+
+            return new ByteArrayInputStream(RegistrationMgtUtils.getComponentDTOs(stepDTO.getData()).toString().getBytes());
         } else {
-            return new ByteArrayInputStream(stepDTO.getActionDTO().toString().getBytes());
+            return new ByteArrayInputStream(RegistrationMgtUtils.getActionDTO(stepDTO.getData()).toString().getBytes());
         }
     }
 
@@ -272,19 +273,19 @@ public class RegistrationFlowDAO {
                 if (obj instanceof List<?>) {
                     List<?> tempList = (List<?>) obj;
                     if (!tempList.isEmpty() &&
-                            tempList.get(0) instanceof BlockDTO) {
-                        List<BlockDTO> blocks = tempList.stream()
-                                .map(BlockDTO.class::cast)
+                            tempList.get(0) instanceof ComponentDTO) {
+                        List<ComponentDTO> blocks = tempList.stream()
+                                .map(ComponentDTO.class::cast)
                                 .collect(Collectors.toList());
-                        stepDTO.setBlocks(blocks);
+                        stepDTO.addData(Constants.Fields.COMPONENTS, blocks);
                     } else {
                         LOG.error("Deserialized list does not contain BlockDTO objects.");
                     }
                 }
-            } else {
+            } else if (Constants.StepTypes.REDIRECTION.equals(stepDTO.getType())) {
                 if (obj instanceof ActionDTO) {
                     ActionDTO action = (ActionDTO) obj;
-                    stepDTO.setActionDTO(action);
+                    stepDTO.addData(Constants.Fields.ACTION, action);
                 }
             }
         } catch (IOException | ClassNotFoundException e) {

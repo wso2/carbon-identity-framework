@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StepDTO {
 
@@ -29,8 +29,7 @@ public class StepDTO {
     private double coordinateY;
     private double width;
     private double height;
-    private List<BlockDTO> blocks = new ArrayList<>();
-    private ActionDTO actionDTO;
+    private final Map<String, Object> data = new HashMap<>();
 
     private StepDTO(Builder builder) {
 
@@ -40,8 +39,7 @@ public class StepDTO {
         this.coordinateY = builder.coordinateY;
         this.width = builder.width;
         this.height = builder.height;
-        this.blocks = builder.blocks;
-        this.actionDTO = builder.actionDTO;
+        this.data.putAll(builder.data);
     }
 
     public String getId() {
@@ -104,24 +102,14 @@ public class StepDTO {
         this.height = height;
     }
 
-    public List<BlockDTO> getBlocks() {
+    public Map<String, Object> getData() {
 
-        return blocks;
+        return data;
     }
 
-    public void setBlocks(List<BlockDTO> blocks) {
+    public void addData(String key, Object value) {
 
-        this.blocks = blocks;
-    }
-
-    public ActionDTO getActionDTO() {
-
-        return actionDTO;
-    }
-
-    public void setActionDTO(ActionDTO actionDTO) {
-
-        this.actionDTO = actionDTO;
+        this.data.put(key, value);
     }
 
     public static class Builder {
@@ -132,8 +120,7 @@ public class StepDTO {
         private double coordinateY;
         private double width;
         private double height;
-        private List<BlockDTO> blocks = new ArrayList<>();
-        private ActionDTO actionDTO;
+        private Map<String, Object> data;
 
         public Builder id(String id) {
 
@@ -171,21 +158,9 @@ public class StepDTO {
             return this;
         }
 
-        public Builder blocks(List<BlockDTO> blocks) {
+        public Builder data(Map<String, Object> data) {
 
-            this.blocks = blocks;
-            return this;
-        }
-
-        public Builder block(BlockDTO block) {
-
-            this.blocks.add(block);
-            return this;
-        }
-
-        public Builder action(ActionDTO actionDTO) {
-
-            this.actionDTO = actionDTO;
+            this.data = data;
             return this;
         }
 

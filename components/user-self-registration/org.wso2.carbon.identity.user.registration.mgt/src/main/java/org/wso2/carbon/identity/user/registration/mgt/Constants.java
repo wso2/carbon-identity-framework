@@ -35,6 +35,15 @@ public class Constants {
     public static final String AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
 
     /**
+     * Constants for the fields.
+     */
+    public static class Fields {
+
+        public static final String COMPONENTS = "components";
+        public static final String ACTION = "action";
+    }
+
+    /**
      * Constants for the node types.
      */
     public static class NodeTypes {
@@ -50,7 +59,7 @@ public class Constants {
     public static class StepTypes {
 
         public static final String VIEW = "VIEW";
-        public static final String TRIGGER = "SERVICE";
+        public static final String REDIRECTION = "REDIRECTION";
     }
 
     /**

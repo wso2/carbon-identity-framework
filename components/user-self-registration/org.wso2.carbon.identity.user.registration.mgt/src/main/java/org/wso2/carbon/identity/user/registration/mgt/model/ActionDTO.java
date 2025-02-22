@@ -27,6 +27,10 @@ public class ActionDTO {
     private ExecutorDTO executor;
     private String nextId;
 
+    public ActionDTO() {
+
+    }
+
     private ActionDTO(Builder builder) {
 
         this.type = builder.type;
