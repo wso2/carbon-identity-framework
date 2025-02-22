@@ -533,6 +533,7 @@ public class ActionManagementDAOImplTest {
                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TestUtil.TEST_ACTION_NAME)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(new Authentication.NoneAuthBuilder().build())
