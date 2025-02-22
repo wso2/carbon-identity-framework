@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.c
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -48,8 +46,6 @@ public class ApplicationAuthenticatorManager {
     private static final ApplicationAuthenticatorManager instance = new ApplicationAuthenticatorManager();
     private final List<ApplicationAuthenticator> systemDefinedAuthenticators = new ArrayList<>();
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-
-    private static final Log log = LogFactory.getLog(ApplicationAuthenticatorManager.class);
 
     private static final String AUTHENTICATION_ACTION_ENABLED_PROP =
             "Actions.Types.Authentication.Enable";
@@ -114,11 +110,7 @@ public class ApplicationAuthenticatorManager {
     public List<ApplicationAuthenticator> getAllAuthenticators(String tenantDomain) throws FrameworkException {
 
         List<ApplicationAuthenticator> allAuthenticators = new ArrayList<>(systemDefinedAuthenticators);
-        log.debug("===== ApplicationAuthenticatorManager.getAllAuthenticators -  tenantDomain: " + tenantDomain);
-        log.debug("===== ApplicationAuthenticatorManager.getAllAuthenticators - isAuthenticationActionEnabled: "
-                + isAuthenticationActionEnabled());
-        log.debug("===== ApplicationAuthenticatorManager.getAllAuthenticators - getUserDefinedAuthenticatorService: "
-                + FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService());
+
         if (!isAuthenticationActionEnabled() ||
                 FrameworkServiceDataHolder.getInstance().getUserDefinedAuthenticatorService() == null) {
             return allAuthenticators;
