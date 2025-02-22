@@ -19,7 +19,6 @@
 package org.wso2.carbon.idp.mgt.cache;
 
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 import java.util.List;
