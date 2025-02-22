@@ -165,9 +165,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
         AuthenticationContext context = null;
         String sessionDataKey = request.getParameter("sessionDataKey");
-
-        log.debug("===== DefaultRequestCoordinator.handle -  flowId: " + request.getParameter("flowId"));
-        log.debug("===== DefaultRequestCoordinator.handle - sessionDataKey: " + request.getParameter("sessionDataKey"));
         try {
             IdentityUtil.threadLocalProperties.get().put(FrameworkConstants.AUTHENTICATION_FRAMEWORK_FLOW, true);
             AuthenticationRequestCacheEntry authRequest = null;
@@ -246,7 +243,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 context = FrameworkUtils.getContextData(request);
                 if (request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW) != null &&
                         request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW).equals("true")) {
-                    log.debug("===== DefaultRequestCoordinator.handle - restartLoginFlow: true");
                     context = (AuthenticationContext) context.getProperty(FrameworkConstants.INITIAL_CONTEXT);
                     context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
                     context.initializeAnalyticsData();
@@ -269,8 +265,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (context != null) {
                 // Adding the context identifier(sessionDataKey) to the request to be used when the context
                 // is not available.
-                log.debug("===== DefaultRequestCoordinator.handle - Context available. context: " +
-                        context.getContextIdentifier());
                 request.setAttribute(FrameworkConstants.CONTEXT_IDENTIFIER, context.getContextIdentifier());
                 if (StringUtils.isNotBlank(context.getServiceProviderName())) {
                     MDC.put(SERVICE_PROVIDER_QUERY_KEY, context.getServiceProviderName());
