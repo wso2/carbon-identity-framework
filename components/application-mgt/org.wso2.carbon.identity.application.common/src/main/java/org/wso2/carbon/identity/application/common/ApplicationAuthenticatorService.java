@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.common;
 import jdk.vm.ci.meta.Local;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.cache.UserDefinedAuthenticatorsCache;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
@@ -112,6 +113,16 @@ public class ApplicationAuthenticatorService {
             throws AuthenticatorMgtException {
 
         return dao.getAllUserDefinedLocalAuthenticators(IdentityTenantUtil.getTenantId(tenantDomain));
+    }
+
+    /**
+     * This method is used to clear all user defined local authenticators cache.
+     *
+     * @param tenantId Tenant Id.
+     */
+    public void clearAllUserDefinedLocalAuthenticatorsCache(int tenantId) {
+
+        ((UserDefinedAuthenticatorsCache) dao).clearAllUserDefinedAuthenticatorsCache(tenantId);
     }
 
     public List<FederatedAuthenticatorConfig> getFederatedAuthenticators() {
