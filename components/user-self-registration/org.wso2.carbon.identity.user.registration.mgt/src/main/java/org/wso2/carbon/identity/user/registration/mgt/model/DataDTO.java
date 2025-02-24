@@ -22,6 +22,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DTO class for component and step data.
+ */
 public class DataDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;

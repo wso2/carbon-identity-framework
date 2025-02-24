@@ -40,6 +40,7 @@ public class RegistrationFlowMgtComponent {
         BundleContext bundleContext = context.getBundleContext();
         bundleContext.registerService(RegistrationFlowMgtService.class.getName(),
                                       RegistrationFlowMgtService.getInstance(), null);
+        LOG.debug("RegistrationFlowMgt bundle is activated ");
     }
 
     @Deactivate

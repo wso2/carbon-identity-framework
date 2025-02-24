@@ -30,7 +30,6 @@ import java.util.Map;
 public class ComponentDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private final Map<String, Object> properties = new HashMap<>();
     private String id;
     private String category;
     private String type;
@@ -115,10 +114,12 @@ public class ComponentDTO implements Serializable {
     }
 
     public List<ComponentDTO> getComponents() {
+
         return components;
     }
 
     public void setComponents(List<ComponentDTO> components) {
+
         this.components = components;
     }
 
