@@ -48,7 +48,7 @@ public interface AsyncStatusMgtService {
      * @param unitOperationStatus The status of the unit operation.
      * @param statusMessage A message providing additional information about the operation status.
      */
-    void registerUnitOperationStatus(String operationId, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage);
+    void registerUnitOperationStatus(String operationId, String operationType, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage);
 
     /**
      * Processing the status of B2B Asynchronous

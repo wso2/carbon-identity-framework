@@ -2,18 +2,20 @@ package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 
 public class UnitOperationContext {
     private String operationId;
+    private String operationType;
     private String operationInitiatedResourceId;
-    private String sharedOrgId;
+    private String targetOrgId;
     private String unitOperationStatus;
     private String statusMessage;
 
     public UnitOperationContext() {
     }
 
-    public UnitOperationContext(String operationId, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage) {
+    public UnitOperationContext(String operationId, String operationType, String operationInitiatedResourceId, String targetOrgId, String unitOperationStatus, String statusMessage) {
         this.operationId = operationId;
+        this.operationType = operationType;
         this.operationInitiatedResourceId = operationInitiatedResourceId;
-        this.sharedOrgId = sharedOrgId;
+        this.targetOrgId = targetOrgId;
         this.unitOperationStatus = unitOperationStatus;
         this.statusMessage = statusMessage;
     }
@@ -34,12 +36,12 @@ public class UnitOperationContext {
         this.operationInitiatedResourceId = operationInitiatedResourceId;
     }
 
-    public String getSharedOrgId() {
-        return sharedOrgId;
+    public String getTargetOrgId() {
+        return targetOrgId;
     }
 
-    public void setSharedOrgId(String sharedOrgId) {
-        this.sharedOrgId = sharedOrgId;
+    public void setTargetOrgId(String targetOrgId) {
+        this.targetOrgId = targetOrgId;
     }
 
     public String getUnitOperationStatus() {
@@ -56,5 +58,13 @@ public class UnitOperationContext {
 
     public void setStatusMessage(String statusMessage) {
         this.statusMessage = statusMessage;
+    }
+
+    public String getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(String operationType) {
+        this.operationType = operationType;
     }
 }

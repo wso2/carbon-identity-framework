@@ -3,10 +3,7 @@ package org.wso2.carbon.identity.framework.async.status.mgt;
 import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAOImpl;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.BulkUserImportOperationDO;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationUnitDO;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.*;
 import org.wso2.carbon.identity.framework.async.status.mgt.util.OperationStatusStrategy;
 import org.wso2.carbon.identity.framework.async.status.mgt.util.OperationStatusStrategyFactory;
 
@@ -84,37 +81,41 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         }
     }
 
-//    @Override
-//    public void registerOperationStatus(OperationContext operationContext) {
-//        if (strategy != null) {
-//            strategy.register(operationContext);
-//        } else {
-//            LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
-//        }
-//    }
-
     @Override
     public void registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId) {
         strategy = OperationStatusStrategyFactory.getStrategy(resourceType);
 
-        OperationContext operationContext = new OperationContext();
-        operationContext.setOperationType(operationType);
-        operationContext.setOperationSubjectId(operationSubjectId);
-        operationContext.setResourceType(resourceType);
-        operationContext.setSharingPolicy(sharingPolicy);
-        operationContext.setResidentOrgId(residentOrgId);
-        operationContext.setInitiatorId(initiatorId);
+        OperationContext context = new OperationContext();
+        context.setOperationType(operationType);
+        context.setOperationSubjectId(operationSubjectId);
+        context.setResourceType(resourceType);
+        context.setSharingPolicy(sharingPolicy);
+        context.setResidentOrgId(residentOrgId);
+        context.setInitiatorId(initiatorId);
 
         if (strategy != null) {
-            strategy.register(operationContext);
+            strategy.register(context);
         } else {
             LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
         }
     }
 
     @Override
-    public void registerUnitOperationStatus(String operationId, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage) {
+    public void registerUnitOperationStatus(String operationId, String operationType, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage) {
+        strategy = OperationStatusStrategyFactory.getStrategy(operationType);
 
+        UnitOperationContext context = new UnitOperationContext();
+        context.setOperationId(operationId);
+        context.setOperationType(operationType);
+        context.setOperationInitiatedResourceId(operationInitiatedResourceId);
+        context.setTargetOrgId(sharedOrgId);
+        context.setUnitOperationStatus(unitOperationStatus);
+        context.setStatusMessage(statusMessage);
+
+        if (strategy != null) {
+            strategy.registerUnitOperation(context);
+        } else {
+            LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
+        }
     }
-
 }

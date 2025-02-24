@@ -1,10 +1,10 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.util.strategy;
 
-import org.wso2.carbon.identity.framework.async.status.mgt.AsyncStatusMgtServiceImpl;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAOImpl;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.util.OperationStatusStrategy;
 
 import java.util.ArrayList;
@@ -23,6 +23,16 @@ public class UserSharingStatusStrategy implements OperationStatusStrategy {
         dao.registerB2BUserSharingAsyncOperation(dbContext);
 
         LOGGER.info("Registering User Share Operation For: " + operationContext.getOperationSubjectId() + " Completed");
+    }
+
+    @Override
+    public void registerUnitOperation(UnitOperationContext context) {
+        LOGGER.info("Registering Unit Operation For: " + context.getOperationId() + " Started.");
+
+        AsyncStatusMgtDAO dao = new AsyncStatusMgtDAOImpl();
+        dao.registerUnitAsyncOperation(context.getOperationId(), context.getOperationInitiatedResourceId(), context.getTargetOrgId(), context.getUnitOperationStatus(), context.getStatusMessage());
+
+        LOGGER.info("Registering Unit Operation For: " + context.getOperationId() + " Completed");
     }
 
     private ArrayList<String> getAudienceForOperationRegistration() {

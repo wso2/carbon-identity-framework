@@ -45,4 +45,15 @@ public interface AsyncStatusMgtDAO {
      * @param userShareDBContext Context of the user share.
      */
     void registerB2BUserSharingAsyncOperation(OperationDBContext userShareDBContext);
+
+    /**
+     * Registers a Unit Asynchronous Operation.
+     *
+     * @param operationId The unique identifier of the asynchronous user sharing operation.
+     * @param residentResourceId The unique identifier of the user resource being shared.
+     * @param targetOrgId The identifier of the organization to which the user resource is being shared.
+     * @param unitOperationStatus The status of the individual unit operation within the asynchronous process.
+     * @param statusMessage A detailed message providing additional information about the operation's status or any errors encountered.
+     */
+    void registerUnitAsyncOperation(String operationId, String residentResourceId, String targetOrgId, String unitOperationStatus, String statusMessage);
 }
