@@ -18,14 +18,16 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * DTO class for Element.
  */
-public class ComponentDTO {
+public class ComponentDTO implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final Map<String, Object> properties = new HashMap<>();
     private String id;
     private String category;
