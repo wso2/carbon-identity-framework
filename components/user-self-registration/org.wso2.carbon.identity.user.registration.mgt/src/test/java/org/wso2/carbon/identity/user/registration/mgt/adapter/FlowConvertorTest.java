@@ -18,71 +18,104 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.adapter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
-
-import java.io.IOException;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 public class FlowConvertorTest {
 
-    @Test()
-    void testSequenceWithNoNodes() throws IOException {
+    public static RegistrationFlowDTO createSampleRegistrationFlow2() {
 
-        RegistrationFlowDTO registrationFlowDTO = createSampleRegistrationFlow();
-        try {
-            RegistrationFlowConfig config = FlowConvertor.getSequence(registrationFlowDTO);
-        } catch (RegistrationFrameworkException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static RegistrationFlowDTO createSampleRegistrationFlow() {
         RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
 
         // Step 1
         StepDTO step1 = new StepDTO.Builder()
-                .id("step_23sd")
+                .id("step_1")
                 .type("VIEW")
                 .coordinateX(0)
                 .coordinateY(0)
                 .width(120)
                 .height(240)
-                .data(createStep1Data())
-                .build();
-
-        // Step 2
-        StepDTO step2 = new StepDTO.Builder()
-                .id("step_a5sf")
-                .type("VIEW")
-                .coordinateX(0)
-                .coordinateY(0)
-                .width(120)
-                .height(240)
-                .data(createStep2Data())
+                .data(createStep2_1Data())
                 .build();
 
         // Step 3
-        StepDTO step3 = new StepDTO.Builder()
-                .id("step_dfr2")
+        StepDTO step4 = new StepDTO.Builder()
+                .id("step_4")
                 .type("REDIRECTION")
                 .coordinateX(0)
                 .coordinateY(0)
                 .width(120)
                 .height(240)
-                .data(createStep3Data())
+                .data(createStepGoogleRedirection())
+                .build();
+
+        // Add steps to registration flow
+        List<StepDTO> steps = new ArrayList<>();
+        steps.add(step1);
+        steps.add(step4);
+        registrationFlowDTO.setSteps(steps);
+
+        return registrationFlowDTO;
+    }
+
+    public static RegistrationFlowDTO createSampleRegistrationFlow1() {
+
+        RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
+
+        // Step 1
+        StepDTO step1 = new StepDTO.Builder()
+                .id("step_1")
+                .type("VIEW")
+                .coordinateX(0)
+                .coordinateY(0)
+                .width(120)
+                .height(240)
+                .data(createStep1_1Data())
+                .build();
+
+        // Step 2
+        StepDTO step2 = new StepDTO.Builder()
+                .id("step_2")
+                .type("VIEW")
+                .coordinateX(0)
+                .coordinateY(0)
+                .width(120)
+                .height(240)
+                .data(createPwdEnterStep())
+                .build();
+
+        // Step 2
+        StepDTO step3 = new StepDTO.Builder()
+                .id("step_3")
+                .type("VIEW")
+                .coordinateX(0)
+                .coordinateY(0)
+                .width(120)
+                .height(240)
+                .data(createEmailOTPEnterStep())
+                .build();
+
+        // Step 3
+        StepDTO step4 = new StepDTO.Builder()
+                .id("step_4")
+                .type("REDIRECTION")
+                .coordinateX(0)
+                .coordinateY(0)
+                .width(120)
+                .height(240)
+                .data(createStepGoogleRedirection())
                 .build();
 
         // Add steps to registration flow
@@ -90,12 +123,14 @@ public class FlowConvertorTest {
         steps.add(step1);
         steps.add(step2);
         steps.add(step3);
+        steps.add(step4);
         registrationFlowDTO.setSteps(steps);
 
         return registrationFlowDTO;
     }
 
-    private static Map<String, Object> createStep1Data() {
+    private static Map<String, Object> createStep1_1Data() {
+
         Map<String, Object> data = new HashMap<>();
         Map<String, Object> components = new HashMap<>();
 
@@ -103,7 +138,7 @@ public class FlowConvertorTest {
                 .id("component_232d")
                 .category("BLOCK")
                 .type("FORM")
-                .properties(createStep1BlockComponents())
+                .properties(createForm1_1())
                 .build();
 
         ComponentDTO buttonComponent = new ComponentDTO.Builder()
@@ -113,7 +148,7 @@ public class FlowConvertorTest {
                 .property("text", "Continue with Google")
                 .action(new ActionDTO.Builder()
                                 .setType("NEXT")
-                                .setNextId("step_dfr2")
+                                .setNextId("step_4")
                                 .build())
                 .build();
 
@@ -124,11 +159,45 @@ public class FlowConvertorTest {
         return data;
     }
 
-    private static Map<String, Object> createStep1BlockComponents() {
-        Map<String, Object> components = new HashMap<>();
+    private static Map<String, Object> createStep2_1Data() {
+
+        Map<String, Object> data = new HashMap<>();
+        List<ComponentDTO> components = new ArrayList<>();
+
+        ComponentDTO blockComponent = new ComponentDTO.Builder()
+                .id("component_232d")
+                .category("BLOCK")
+                .type("FORM")
+                .properties(createForm2_1())
+                .build();
+
+        ComponentDTO buttonComponent = new ComponentDTO.Builder()
+                .id("element_gd43")
+                .category("BUTTON")
+                .type("BUTTON")
+                .property("text", "Continue with Google")
+                .action(new ActionDTO.Builder()
+                                .setType("NEXT")
+                                .setNextId("step_4")
+                                .build())
+                .build();
+
+//        components.put(blockComponent.getId(), blockComponent);
+//        components.put(buttonComponent.getId(), buttonComponent);
+        components.add(blockComponent);
+        components.add(buttonComponent);
+        data.put("components", components);
+
+        return data;
+    }
+
+    private static Map<String, Object> createForm1_1() {
+
+//        Map<String, Object> components = new HashMap<>();
+        List<ComponentDTO> components = new ArrayList<>();
 
         ComponentDTO usernameField = new ComponentDTO.Builder()
-                .id("element_gd43")
+                .id("element_un")
                 .category("FIELD")
                 .type("INPUT")
                 .property("label", "Username")
@@ -137,6 +206,107 @@ public class FlowConvertorTest {
                 .property("type", "text")
                 .build();
 
+        ComponentDTO emailField = new ComponentDTO.Builder()
+                .id("element_email")
+                .category("FIELD")
+                .type("INPUT")
+                .property("label", "EmailAddress")
+                .property("placeholder", "Enter your emailaddress")
+                .property("required", true)
+                .property("type", "text")
+                .build();
+
+        ComponentDTO continueWithPasswordBtn = new ComponentDTO.Builder()
+                .id("element_cntPwd")
+                .category("BUTTON")
+                .type("BUTTON")
+                .property("text", "Continue")
+                .action(new ActionDTO.Builder()
+                                .setType("NEXT")
+                                .setNextId("step_2")
+                                .build())
+                .build();
+
+        ComponentDTO continueWithEmailOtpBtn = new ComponentDTO.Builder()
+                .id("element_ctdEmail")
+                .category("BUTTON")
+                .type("BUTTON")
+                .property("text", "Continue")
+                .action(new ActionDTO.Builder()
+                                .setType("NEXT")
+                                .setNextId("step_3")
+                                .build())
+                .build();
+
+//        components.put(usernameField.getId(), usernameField);
+//        components.put(emailField.getId(), emailField);
+//        components.put(continueWithPasswordBtn.getId(), continueWithPasswordBtn);
+//        components.put(continueWithEmailOtpBtn.getId(), continueWithEmailOtpBtn);
+
+        components.add(usernameField);
+        components.add(emailField);
+        components.add(continueWithPasswordBtn);
+        components.add(continueWithEmailOtpBtn);
+        Map<String, Object> subComponents = new HashMap<>();
+        subComponents.put(Constants.Fields.COMPONENTS, components);
+        return subComponents;
+    }
+
+    private static Map<String, Object> createForm2_1() {
+
+        Map<String, Object> components = new HashMap<>();
+//        List<ComponentDTO> components = new ArrayList<>();
+        ComponentDTO usernameField = new ComponentDTO.Builder()
+                .id("element_un")
+                .category("FIELD")
+                .type("INPUT")
+                .property("label", "Username")
+                .property("placeholder", "Enter your username")
+                .property("required", true)
+                .property("type", "text")
+                .build();
+
+        ComponentDTO pwdField = new ComponentDTO.Builder()
+                .id("element_pwd")
+                .category("FIELD")
+                .type("INPUT")
+                .property("label", "Password")
+                .property("placeholder", "Enter your password")
+                .property("required", true)
+                .property("type", "text")
+                .build();
+
+        ComponentDTO submitPwdBtn = new ComponentDTO.Builder()
+                .id("element_56jd")
+                .category("BUTTON")
+                .type("BUTTON")
+                .property("text", "Continue")
+                .action(new ActionDTO.Builder()
+                                .setType("EXECUTOR")
+                                .setExecutor(new ExecutorDTO.Builder().name("PasswordOnboardExecutor").build())
+                                .setNextId("COMPLETE")
+                                .build())
+                .build();
+
+        components.put(usernameField.getId(), usernameField);
+        components.put(pwdField.getId(), pwdField);
+        components.put(submitPwdBtn.getId(), submitPwdBtn);
+//
+//        components.add(usernameField);
+//        components.add(pwdField);
+//        components.add(submitPwdBtn);
+
+        Map<String, Object> subComponents = new HashMap<>();
+        subComponents.put(Constants.Fields.COMPONENTS, components);
+        return subComponents;
+    }
+
+    private static Map<String, Object> createPwdEnterStep() {
+
+        Map<String, Object> data = new HashMap<>();
+        Map<String, ComponentDTO> components = new HashMap<>();
+//        List<ComponentDTO> components = new ArrayList<>();
+//
         ComponentDTO passwordField = new ComponentDTO.Builder()
                 .id("element_23dx")
                 .category("FIELD")
@@ -147,7 +317,7 @@ public class FlowConvertorTest {
                 .property("type", "password")
                 .build();
 
-        ComponentDTO continueButton = new ComponentDTO.Builder()
+        ComponentDTO submitPwdBtn = new ComponentDTO.Builder()
                 .id("element_56jd")
                 .category("BUTTON")
                 .type("BUTTON")
@@ -155,76 +325,58 @@ public class FlowConvertorTest {
                 .action(new ActionDTO.Builder()
                                 .setType("EXECUTOR")
                                 .setExecutor(new ExecutorDTO.Builder().name("PasswordOnboardExecutor").build())
-                                .setNextId("step_a5sf")
+                                .setNextId("COMPLETE")
                                 .build())
                 .build();
 
-        components.put(usernameField.getId(), usernameField);
         components.put(passwordField.getId(), passwordField);
-        components.put(continueButton.getId(), continueButton);
-
-        return components;
-    }
-
-    private static Map<String, Object> createStep2Data() {
-        Map<String, Object> data = new HashMap<>();
-        Map<String, ComponentDTO> components = new HashMap<>();
-
-        ComponentDTO blockComponent = new ComponentDTO.Builder()
-                .id("component_232d")
-                .category("BLOCK")
-                .type("FORM")
-                .properties(createStep2BlockComponents())
-                .build();
-
-        components.put(blockComponent.getId(), blockComponent);
+        components.put(submitPwdBtn.getId(), submitPwdBtn);
+//        components.add(passwordField);
+//        components.add(submitPwdBtn);
         data.put("components", components);
 
         return data;
     }
 
-    private static Map<String, Object> createStep2BlockComponents() {
-        Map<String, Object> components = new HashMap<>();
+    private static Map<String, Object> createEmailOTPEnterStep() {
 
-        ComponentDTO emailField = new ComponentDTO.Builder()
-                .id("element_gd43")
+        Map<String, Object> data = new HashMap<>();
+        Map<String, ComponentDTO> components = new HashMap<>();
+
+//        List<ComponentDTO> components = new ArrayList<>();
+        ComponentDTO emailOtpField = new ComponentDTO.Builder()
+                .id("element_emailOTP")
                 .category("FIELD")
                 .type("INPUT")
-                .property("label", "Email")
-                .property("placeholder", "Enter your email")
+                .property("label", "emailOTP")
+                .property("placeholder", "Enter your otp")
                 .property("required", true)
-                .property("type", "text")
+                .property("type", "otp")
                 .build();
 
-        ComponentDTO phoneField = new ComponentDTO.Builder()
-                .id("element_23dx")
-                .category("FIELD")
-                .type("INPUT")
-                .property("label", "Phone")
-                .property("placeholder", "Enter your phone")
-                .property("required", true)
-                .property("type", "text")
-                .build();
-
-        ComponentDTO completeButton = new ComponentDTO.Builder()
-                .id("element_56jd")
+        ComponentDTO submitOtpBtn = new ComponentDTO.Builder()
+                .id("element_otpBtn")
                 .category("BUTTON")
                 .type("BUTTON")
-                .property("text", "Complete Registration")
+                .property("text", "Continue")
                 .action(new ActionDTO.Builder()
-                                .setType("NEXT")
+                                .setType("EXECUTOR")
+                                .setExecutor(new ExecutorDTO.Builder().name("EmailOTP").build())
                                 .setNextId("COMPLETE")
                                 .build())
                 .build();
 
-        components.put(emailField.getId(), emailField);
-        components.put(phoneField.getId(), phoneField);
-        components.put(completeButton.getId(), completeButton);
+        components.put(emailOtpField.getId(), emailOtpField);
+        components.put(submitOtpBtn.getId(), submitOtpBtn);
+//        components.add(emailOtpField);
+//        components.add(submitOtpBtn);
+        data.put("components", components);
 
-        return components;
+        return data;
     }
 
-    private static Map<String, Object> createStep3Data() {
+    private static Map<String, Object> createStepGoogleRedirection() {
+
         Map<String, Object> data = new HashMap<>();
 
         ActionDTO action = new ActionDTO.Builder()
@@ -238,4 +390,25 @@ public class FlowConvertorTest {
         return data;
     }
 
+    @Test()
+    void testScenario1() throws IOException {
+
+        RegistrationFlowDTO registrationFlowDTO = createSampleRegistrationFlow1();
+        try {
+            RegistrationFlowConfig config = FlowConvertor.convert(registrationFlowDTO);
+        } catch (RegistrationFrameworkException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test()
+    void testScenario2() throws IOException {
+
+        RegistrationFlowDTO registrationFlowDTO = createSampleRegistrationFlow2();
+        try {
+            RegistrationFlowConfig config = FlowConvertor.convert(registrationFlowDTO);
+        } catch (RegistrationFrameworkException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
