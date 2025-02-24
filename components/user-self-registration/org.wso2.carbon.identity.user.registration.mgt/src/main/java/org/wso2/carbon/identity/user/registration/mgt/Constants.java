@@ -62,6 +62,13 @@ public class Constants {
         public static final String REDIRECTION = "REDIRECTION";
     }
 
+    public static class ComponentTypes {
+
+        public static final String FORM = "FORM";
+        public static final String BUTTON = "BUTTON";
+
+    }
+
     /**
      * Constants for the action types.
      */

@@ -39,7 +39,9 @@ public class StepDTO {
         this.coordinateY = builder.coordinateY;
         this.width = builder.width;
         this.height = builder.height;
-        this.data.putAll(builder.data);
+        if (builder.data != null) {
+            this.data.putAll(builder.data);
+        }
     }
 
     public String getId() {

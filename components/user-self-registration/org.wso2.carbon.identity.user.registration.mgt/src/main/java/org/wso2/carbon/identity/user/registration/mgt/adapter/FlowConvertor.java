@@ -19,12 +19,14 @@
 package org.wso2.carbon.identity.user.registration.mgt.adapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationClientException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
@@ -41,6 +43,8 @@ import org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils
 
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ActionTypes.EXECUTOR;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.COMPLETE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.BUTTON;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.FORM;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.EXECUTOR_FOR_PROMPT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NEXT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
@@ -50,26 +54,38 @@ public class FlowConvertor {
     // Define a constant to LOG the information.
     private static final Log LOG = LogFactory.getLog(FlowConvertor.class);
 
-    public static RegistrationFlowConfig getSequence(RegistrationFlowDTO flowDTO) throws RegistrationFrameworkException {
+    public static RegistrationFlowConfig convert(RegistrationFlowDTO flowDTO)
+            throws RegistrationFrameworkException {
 
-        RegistrationFlowConfig registrationFlowConfig = new RegistrationFlowConfig();
-        registrationFlowConfig.setId(UUID.randomUUID().toString());
-        List<NodeEdge> nodeMappings = new ArrayList<>();
-        NodeConfig endNode = createUserOnboardingNode();
-        registrationFlowConfig.addNodeConfig(endNode);
+        RegistrationFlowConfig flowConfig = new RegistrationFlowConfig();
+        flowConfig.setId(UUID.randomUUID().toString());
+
+        Map<String, NodeConfig> nodeMap = new HashMap<>();
+        Map<String, StepDTO> stepContentMap = new HashMap<>();
+        List<NodeEdge> nodeEdges = new ArrayList<>();
+
+        NodeConfig userOnboardingNode = createUserOnboardingNode();
+        nodeMap.put(userOnboardingNode.getUuid(), userOnboardingNode);
+        String endNodeId = userOnboardingNode.getUuid();
 
         for (StepDTO step : flowDTO.getSteps()) {
             validateStep(step);
+            NodeConfig stepNode;
             if (Constants.StepTypes.VIEW.equals(step.getType())) {
-                processViewStep(step, registrationFlowConfig, nodeMappings, endNode.getUuid());
+                stepNode = processViewStep(step, nodeMap, nodeEdges, endNodeId);
             } else if (Constants.StepTypes.REDIRECTION.equals(step.getType())) {
-                processRedirectionStep(step, registrationFlowConfig, nodeMappings, endNode.getUuid());
+                stepNode = processRedirectionStep(step, nodeMap, nodeEdges, endNodeId);
+            } else {
+                throw new RegistrationClientException("Invalid step type: " + step.getType());
             }
+            stepContentMap.put(step.getId(), step);
+            setFirstNodeIfNeeded(flowConfig, stepNode);
         }
 
-        updateNodeMappings(registrationFlowConfig, nodeMappings);
-
-        return registrationFlowConfig;
+        updateNodeMappings(nodeMap, nodeEdges);
+        flowConfig.setNodeConfigs(nodeMap);
+        flowConfig.setNodePageMappings(stepContentMap);
+        return flowConfig;
     }
 
     // TODO: Remove if we don't need this
@@ -80,61 +96,101 @@ public class FlowConvertor {
         }
     }
 
-    private static void processViewStep(StepDTO step, RegistrationFlowConfig registrationFlowConfig,
-                                        List<NodeEdge> nodeMappings, String endNodeId) throws RegistrationFrameworkException {
-
-        List<NodeConfig> tempNodesInStep = new ArrayList<>();
+    private static NodeConfig processRedirectionStep(StepDTO step, Map<String, NodeConfig> nodeMap,
+                                                     List<NodeEdge> nodeMappings, String endNodeId)
+            throws RegistrationFrameworkException {
 
         Map<String, Object> data = step.getData();
-        if (!data.containsKey(Constants.Fields.COMPONENTS)) {
-            throw new RegistrationServerException("Components should be available in the view step.");
+        if (!data.containsKey(Constants.Fields.ACTION)) {
+            throw new RegistrationServerException("Action should be available in the redirection step.");
+        }
+        ActionDTO action = RegistrationMgtUtils.getActionDTO(data);
+
+        NodeConfig redirectionNode;
+        if (action != null && EXECUTOR.equals(action.getType())) {
+            redirectionNode = createTaskExecutionNode(step.getId(), action.getExecutor());
+            nodeMap.put(redirectionNode.getUuid(), redirectionNode);
+        } else {
+            throw new RegistrationClientException("Invalid step configurations. Action type should be " + "EXECUTOR");
         }
 
-        List<ComponentDTO> components = RegistrationMgtUtils.getComponentDTOs(data);
+        String nextNodeId = COMPLETE.equals(action.getNextId()) ? endNodeId : action.getNextId();
 
-        boolean isExecutorEngaged = false;
-        for (ComponentDTO componentDTO : components) {
-            NodeConfig tempNodeInComponent = processComponentsOfView(componentDTO, isExecutorEngaged);
-            if (tempNodeInComponent != null) {
-                tempNodesInStep.add(tempNodeInComponent);
-                if (EXECUTOR.equals(componentDTO.getAction().getType())) {
-                    isExecutorEngaged = true;
-                }
-            }
+        NodeEdge edge = new NodeEdge(redirectionNode.getUuid(), nextNodeId, null);
+        nodeMappings.add(edge);
 
-        }
-
-        handleTempNodesInStep(tempNodesInStep, step, registrationFlowConfig, nodeMappings, endNodeId);
+        return redirectionNode;
     }
 
-    private static NodeConfig processComponentsOfView(ComponentDTO componentDTO, boolean isExecutorEngaged) throws RegistrationFrameworkException {
+    private static NodeConfig processViewStep(StepDTO step, Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeEdges, String endNodeId) throws RegistrationFrameworkException {
 
-        if ("BUTTON".equals(componentDTO.getType())) {
-            if (componentDTO.getAction() == null) {
-                throw new RegistrationClientException("Action should be available in the component.");
-            }
-            ActionDTO action = componentDTO.getAction();
-            NodeConfig tempNodeInComponent = null;
-
-            if (NEXT.equals(action.getType())) {
-                tempNodeInComponent = createTaskExecutionNode(componentDTO.getId(), new ExecutorDTO(EXECUTOR_FOR_PROMPT));
-                tempNodeInComponent.setNextNodeId(action.getNextId());
-            } else if (EXECUTOR.equals(action.getType())) {
-                if (isExecutorEngaged) {
-                    throw new RegistrationServerException("Multiple executors are not allowed in a single step.");
-                }
-                tempNodeInComponent = createTaskExecutionNode(componentDTO.getId(), action.getExecutor());
-                tempNodeInComponent.setNextNodeId(action.getNextId());
-            }
-            return tempNodeInComponent;
+        List<NodeConfig> stepNodes = new ArrayList<>();
+        if (!step.getData().containsKey(Constants.Fields.COMPONENTS)) {
+            throw new RegistrationClientException("Components should be available in the view step.");
         }
-        return null;
+        List<ComponentDTO> componentDTOS = RegistrationMgtUtils.getComponentDTOs(step.getData());
+        for (ComponentDTO component : componentDTOS) {
+            processComponent(component, stepNodes);
+        }
+        return handleTempNodesInStep(stepNodes, step, nodeMap, nodeEdges, endNodeId);
+
     }
 
-    private static void handleTempNodesInStep(List<NodeConfig> tempNodesInStep, StepDTO step,
-                                              RegistrationFlowConfig registrationFlowConfig,
-                                              List<NodeEdge> nodeMappings, String endNodeId) {
+    private static void processComponent(ComponentDTO component, List<NodeConfig> stepNodes)
+            throws RegistrationFrameworkException {
 
+        if (FORM.equals(component.getType())) {
+            List<ComponentDTO> componentDTOS = RegistrationMgtUtils.getComponentDTOs(component.getProperties());
+            for (ComponentDTO subComponent : componentDTOS) {
+                processComponent(subComponent, stepNodes);
+            }
+        } else if (BUTTON.equals(component.getType()) && component.getAction() != null) {
+            validateStepActions(component.getAction(), stepNodes);
+            ActionDTO action = component.getAction();
+            NodeConfig node = createNodeFromAction(action, component);
+            if (node != null) {
+                stepNodes.add(node);
+            }
+        }
+    }
+
+    private static void validateStepActions(ActionDTO action, List<NodeConfig> stepNodes) throws RegistrationFrameworkException {
+
+        if (action == null) {
+            throw new RegistrationClientException("Button component must have an action");
+        }
+        if (action.getNextId() == null) {
+            throw new RegistrationClientException("Next id must be available in the action.");
+        }
+        if (EXECUTOR.equals(action.getType())) {
+            if (action.getExecutor() == null) {
+                throw new RegistrationClientException("Executor details must be available in the action.");
+            }
+            if (stepNodes.stream().anyMatch(nodeConfig -> (nodeConfig.getType().equals(TASK_EXECUTION)) &&
+                    !EXECUTOR_FOR_PROMPT.equals(nodeConfig.getExecutorConfig().getName()))) {
+                throw new RegistrationClientException("Multiple executors are not allowed in a single step.");
+            }
+        }
+    }
+
+    private static NodeConfig createNodeFromAction(ActionDTO action, ComponentDTO component)
+            throws RegistrationClientException {
+
+        NodeConfig tempNodeInComponent;
+        if (NEXT.equals(action.getType())) {
+            tempNodeInComponent = createTaskExecutionNode(component.getId(), new ExecutorDTO(EXECUTOR_FOR_PROMPT));
+        } else if (EXECUTOR.equals(action.getType())) {
+            tempNodeInComponent = createTaskExecutionNode(component.getId(), action.getExecutor());
+        } else {
+            throw new RegistrationClientException("Invalid action type: " + action.getType());
+        }
+        tempNodeInComponent.setNextNodeId(action.getNextId());
+        return tempNodeInComponent;
+    }
+
+    private static NodeConfig handleTempNodesInStep(List<NodeConfig> tempNodesInStep, StepDTO step, Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeMappings, String endNodeId) {
+
+        NodeConfig stepNode = null;
         if (tempNodesInStep.size() > 1) {
             NodeConfig decisionNode = createDecisionNode(step.getId());
             for (NodeConfig nodeConfig : tempNodesInStep) {
@@ -143,9 +199,9 @@ public class FlowConvertor {
                         !EXECUTOR_FOR_PROMPT.equals(nodeConfig.getExecutorConfig().getName())) {
                     // Edge from executor node to the next node.
                     NodeEdge nextNodeEdge = new NodeEdge(nodeConfig.getUuid(), nextNodeId, null);
-                    nodeMappings.add(nextNodeEdge);
                     nodeConfig.setNextNodeId(null);
-                    registrationFlowConfig.addNodeConfig(nodeConfig);
+                    nodeMap.put(nodeConfig.getUuid(), nodeConfig);
+                    nodeMappings.add(nextNodeEdge);
 
                     // Edge from decision node to the executor node.
                     NodeEdge decisionEdge = new NodeEdge(decisionNode.getUuid(), nodeConfig.getUuid(),
@@ -157,25 +213,22 @@ public class FlowConvertor {
                     nodeMappings.add(decisionEdge);
                 }
             }
-            setFirstNodeIfNeeded(registrationFlowConfig, decisionNode);
-            registrationFlowConfig.addNodeConfig(decisionNode);
-            registrationFlowConfig.addNodePageMapping(decisionNode.getUuid(), step);
+            stepNode = decisionNode;
         } else if (tempNodesInStep.size() == 1) {
 
             NodeConfig tempNode = tempNodesInStep.get(0);
 
             String nextNodeId = COMPLETE.equals(tempNode.getNextNodeId()) ? endNodeId : tempNode.getNextNodeId();
-            NodeConfig stepNode = new NodeConfig();
+            stepNode = new NodeConfig();
             stepNode.setUuid(step.getId());
             stepNode.setType(tempNode.getType());
             stepNode.setExecutorConfig(tempNode.getExecutorConfig());
 
             NodeEdge edge = new NodeEdge(stepNode.getUuid(), nextNodeId, tempNode.getUuid());
             nodeMappings.add(edge);
-            setFirstNodeIfNeeded(registrationFlowConfig, stepNode);
-            registrationFlowConfig.addNodeConfig(stepNode);
-            registrationFlowConfig.addNodePageMapping(stepNode.getUuid(), step);
         }
+        nodeMap.put(step.getId(), stepNode);
+        return stepNode;
     }
 
     private static void setFirstNodeIfNeeded(RegistrationFlowConfig registrationFlowConfig, NodeConfig nodeConfig) {
@@ -186,39 +239,20 @@ public class FlowConvertor {
         }
     }
 
-    private static void processRedirectionStep(StepDTO step, RegistrationFlowConfig registrationFlowConfig,
-                                               List<NodeEdge> nodeMappings, String endNodeId) throws RegistrationFrameworkException {
-
-        Map<String, Object> data = step.getData();
-        if (!data.containsKey(Constants.Fields.ACTION)) {
-            throw new RegistrationServerException("Action should be available in the redirection step.");
-        }
-        ActionDTO action = RegistrationMgtUtils.getActionDTO(data);
-        String nextNodeId = COMPLETE.equals(action.getNextId()) ? endNodeId : action.getNextId();
-
-        NodeConfig triggerNode = createTaskExecutionNode(step.getId(), action.getExecutor());
-        NodeEdge edge = new NodeEdge(triggerNode.getUuid(), nextNodeId, null);
-        nodeMappings.add(edge);
-
-        setFirstNodeIfNeeded(registrationFlowConfig, triggerNode);
-        registrationFlowConfig.addNodeConfig(triggerNode);
-        registrationFlowConfig.addNodePageMapping(triggerNode.getUuid(), step);
-    }
-
-    private static void updateNodeMappings(RegistrationFlowConfig registrationFlowConfig,
-                                           List<NodeEdge> nodeMappings) throws RegistrationFrameworkException {
+    private static void updateNodeMappings(Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeMappings)
+            throws RegistrationFrameworkException {
 
         for (NodeEdge edge : nodeMappings) {
             String nodeId = edge.getSourceNodeId();
             String nextNodeId = edge.getTargetNodeId();
 
-            if (!registrationFlowConfig.getNodeConfigs().containsKey(nodeId)) {
+            if (!nodeMap.containsKey(nodeId)) {
                 throw new RegistrationServerException("Node id is not found: " + nodeId);
             }
-            if (!registrationFlowConfig.getNodeConfigs().containsKey(nextNodeId)) {
+            if (!nodeMap.containsKey(nextNodeId)) {
                 throw new RegistrationServerException("Next node id is not found: " + nextNodeId);
             }
-            registrationFlowConfig.getNodeConfigs().get(nodeId).addEdge(edge);
+            nodeMap.get(nodeId).addEdge(edge);
         }
     }
 
