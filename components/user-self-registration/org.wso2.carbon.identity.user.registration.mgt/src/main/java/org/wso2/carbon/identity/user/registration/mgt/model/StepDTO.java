@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class StepDTO {
 
     private String id;
@@ -29,7 +26,7 @@ public class StepDTO {
     private double coordinateY;
     private double width;
     private double height;
-    private final Map<String, Object> data = new HashMap<>();
+    private DataDTO data;
 
     private StepDTO(Builder builder) {
 
@@ -39,9 +36,7 @@ public class StepDTO {
         this.coordinateY = builder.coordinateY;
         this.width = builder.width;
         this.height = builder.height;
-        if (builder.data != null) {
-            this.data.putAll(builder.data);
-        }
+        this.data = builder.data;
     }
 
     public String getId() {
@@ -104,14 +99,14 @@ public class StepDTO {
         this.height = height;
     }
 
-    public Map<String, Object> getData() {
+    public DataDTO getData() {
 
         return data;
     }
 
-    public void addData(String key, Object value) {
+    public void setData(DataDTO data) {
 
-        this.data.put(key, value);
+        this.data = data;
     }
 
     public static class Builder {
@@ -122,7 +117,7 @@ public class StepDTO {
         private double coordinateY;
         private double width;
         private double height;
-        private Map<String, Object> data;
+        private DataDTO data;
 
         public Builder id(String id) {
 
@@ -160,7 +155,7 @@ public class StepDTO {
             return this;
         }
 
-        public Builder data(Map<String, Object> data) {
+        public Builder data(DataDTO data) {
 
             this.data = data;
             return this;
