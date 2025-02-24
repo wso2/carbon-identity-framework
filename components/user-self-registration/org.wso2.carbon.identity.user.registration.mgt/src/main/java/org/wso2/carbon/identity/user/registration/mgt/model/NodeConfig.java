@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.user.registration.mgt.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class is responsible for holding the node configuration.
+ */
 public class NodeConfig {
 
     private final List<NodeEdge> edges = new ArrayList<>();
