@@ -53,6 +53,11 @@ public class RegistrationFlowConfig {
         return nodeConfigs;
     }
 
+    public void setNodeConfigs(Map<String, NodeConfig> nodeConfigs) {
+
+        this.nodeConfigs.putAll(nodeConfigs);
+    }
+
     public void addNodeConfig(NodeConfig node) {
 
         this.nodeConfigs.put(node.getUuid(), node);
@@ -61,6 +66,11 @@ public class RegistrationFlowConfig {
     public Map<String, StepDTO> getNodePageMappings() {
 
         return nodePageMappings;
+    }
+
+    public void setNodePageMappings(Map<String, StepDTO> stepContent) {
+
+        this.nodePageMappings.putAll(stepContent);
     }
 
     public void addNodePageMapping(String nodeId, StepDTO stepDTO) {
