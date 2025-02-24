@@ -606,6 +606,14 @@ public class CacheBackedIdPMgtDAOTest {
                     .getAllUserDefinedFederatedAuthenticators(SUPER_TENANT_ID);
             assertEquals(result.size(), 1);
             assertEquals(result.get(0).getName(), userDefinedIdP.getFederatedAuthenticatorConfigs()[0].getName());
+
+            // Test user defined federated authenticators caching.
+            IdPManagementDAO mockedIdPManagementDAO = mock(IdPManagementDAO.class);
+            CacheBackedIdPMgtDAO mockedCacheBackedIdPMgtDAO = new CacheBackedIdPMgtDAO(mockedIdPManagementDAO);
+            List<FederatedAuthenticatorConfig> cachedResult = mockedCacheBackedIdPMgtDAO
+                    .getAllUserDefinedFederatedAuthenticators(SUPER_TENANT_ID);
+            verify(mockedIdPManagementDAO, never()).getAllUserDefinedFederatedAuthenticators(anyInt());
+            assertEquals(cachedResult, result);
         }
     }
 
