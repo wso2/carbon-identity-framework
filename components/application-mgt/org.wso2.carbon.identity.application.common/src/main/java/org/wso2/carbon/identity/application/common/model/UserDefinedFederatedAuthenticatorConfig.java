@@ -54,4 +54,19 @@ public class UserDefinedFederatedAuthenticatorConfig extends FederatedAuthentica
 
         this.endpointConfig = endpointConfig;
     }
+
+    @Override
+    public void setDisplayName(String displayName) {
+
+        /* Since the displayName must be same as the authenticator name for user defined federated authenticators,
+         we are ignoring the displayName setting here and instead setting the displayName when configuring the
+         authenticator name. */
+    }
+
+    @Override
+    public void setName(String name) {
+
+        super.setName(name);
+        displayName = name;
+    }
 }
