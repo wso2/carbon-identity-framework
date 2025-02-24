@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.user.registration.mgt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.user.registration.mgt.adapter.FlowConvertor;
+import org.wso2.carbon.identity.user.registration.mgt.utils.GraphBuilder;
 import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAO;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
@@ -54,7 +54,7 @@ public class RegistrationFlowMgtService {
             throws RegistrationFrameworkException {
 
 
-        RegistrationFlowConfig flowConfig = FlowConvertor.convert(flowDTO);
+        RegistrationFlowConfig flowConfig = GraphBuilder.convert(flowDTO);
         RegistrationFlowDAO.getInstance().updateDefaultRegistrationFlowByTenant(flowConfig, tenantID, "default_flow");
     }
 

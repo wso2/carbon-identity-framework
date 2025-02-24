@@ -37,14 +37,4 @@ public class RegistrationServerException extends RegistrationFrameworkException 
 
         super(errorCode, message, description);
     }
-
-    public RegistrationServerException(String message, Throwable cause) {
-
-        super(message, cause);
-    }
-
-    public RegistrationServerException(Throwable cause) {
-
-        super(cause);
-    }
 }

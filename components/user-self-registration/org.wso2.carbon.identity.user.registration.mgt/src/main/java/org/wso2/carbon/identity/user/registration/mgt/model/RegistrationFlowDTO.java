@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.user.registration.mgt.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DTO class for RegistrationFlow.
+ */
 public class RegistrationFlowDTO {
 
     private List<StepDTO> steps = new ArrayList<>();

@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.user.registration.mgt.exception;
 
 public class RegistrationFrameworkException extends Exception {
 
-    private static final long serialVersionUID = 1L;
-
     private String errorCode;
     private String description;
 
@@ -42,15 +40,5 @@ public class RegistrationFrameworkException extends Exception {
         super(message);
         this.errorCode = errorCode;
         this.description = description;
-    }
-
-    public RegistrationFrameworkException(String message, Throwable cause) {
-
-        super(message, cause);
-    }
-
-    public RegistrationFrameworkException(Throwable cause) {
-
-        super(cause);
     }
 }
