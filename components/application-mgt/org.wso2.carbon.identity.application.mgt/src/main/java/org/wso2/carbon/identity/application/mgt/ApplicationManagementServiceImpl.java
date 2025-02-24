@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2014-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -3175,21 +3175,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void deleteApplicationByResourceId(String resourceId,
-                                              String tenantDomain,
-                                              String username) throws IdentityApplicationManagementException {
+    public void deleteApplicationByResourceId(String resourceId, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
 
-        // Invoking listeners.
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
-        for (ApplicationResourceManagementListener listener : listeners) {
-            if (listener.isEnabled() &&
-                    !listener.doPreDeleteApplicationByResourceId(resourceId, tenantDomain, username)) {
-
-                throw buildServerException("Pre Delete application operation of listener: " + getName(listener) +
-                        " failed for application with resourceId: " + resourceId);
-            }
-        }
 
         ServiceProvider application;
         try {
@@ -3199,7 +3189,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
 
             if (application != null) {
+                if (isFragmentApplication(application)) {
+                    log.error("Cannot delete a shared application using a fragment ID. " +
+                            "It can only be deleted by the parent organization.");
+                    return;
+                }
+                for (ApplicationResourceManagementListener listener : listeners) {
+                    if (listener.isEnabled() &&
+                            !listener.doPreDeleteApplicationByResourceId(resourceId, tenantDomain, username)) {
 
+                        throw buildServerException("Pre Delete application operation of listener: "
+                                + getName(listener) + " failed for application with resourceId: " + resourceId);
+                    }
+                }
                 String applicationName = application.getApplicationName();
                 doPreDeleteChecks(applicationName, tenantDomain, username);
 
@@ -3237,6 +3239,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     LogConstants.ApplicationManagement.DELETE_APPLICATION_ACTION);
             triggerAuditLogEvent(auditLogBuilder, true);
         }
+    }
+
+    private boolean isFragmentApplication(ServiceProvider application) {
+
+        return application.getSpProperties() != null &&
+                Arrays.stream(application.getSpProperties()).anyMatch(
+                        property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                                Boolean.parseBoolean(property.getValue()));
     }
 
     private void doPreDeleteChecks(String applicationName, String tenantDomain,
