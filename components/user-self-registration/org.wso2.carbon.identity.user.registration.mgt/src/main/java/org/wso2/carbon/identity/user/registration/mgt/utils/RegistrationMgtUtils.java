@@ -33,25 +33,5 @@ import java.util.Map;
 
 public class RegistrationMgtUtils {
 
-    public static List<ComponentDTO> getComponentDTOs(Map<String, Object> data) {
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        //        return mapper.convertValue(data.get(Constants.Fields.COMPONENTS), new TypeReference<List<ComponentDTO>>() {});
-        Object components = data.get(Constants.Fields.COMPONENTS);
-        if (components instanceof List) {
-            return mapper.convertValue(components, new TypeReference<List<ComponentDTO>>() {});
-        } else if (components instanceof Map) {
-            return new ArrayList<>(mapper.convertValue(components, new TypeReference<Map<String, ComponentDTO>>() {}).values());
-        } else {
-            return new ArrayList<>();
-        }
-    }
-
-    public static ActionDTO getActionDTO(Map<String, Object> data) {
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper.convertValue(data.get(Constants.Fields.ACTION), ActionDTO.class);
-    }
 }
