@@ -94,6 +94,7 @@ public class CacheBackedIdPMgtDAOTest {
     private static final String SUPER_TENANT_DOMAIN = "carbon.super";
     private static final String SAMPLE_TENANT_DOMAIN1 = "custom.tenant.1";
     private static final String SAMPLE_TENANT_DOMAIN2 = "custom.tenant.2";
+    private static final String NOT_EXISTING_TENANT_DOMAIN = "not.exist";
     private static final String IDP_GROUP1 = "idpGroup1";
     private static final String IDP_GROUP2 = "idpGroup2";
     private static final String IDP_GROUP2_ID = "idpGroup2Id";
@@ -227,8 +228,8 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDBConnection).thenReturn(connection);
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             // Deleting IDP.
-            cacheBackedIdPMgtDAO.deleteIdP("testIdP1New", -1234, SUPER_TENANT_DOMAIN);
-            cacheBackedIdPMgtDAO.deleteIdP("testIdP2New", -1234, SUPER_TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.deleteIdP("testIdP1New", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.deleteIdP("testIdP2New", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN);
             cacheBackedIdPMgtDAO.deleteIdP("testIdP3New", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1);
         }
 
@@ -240,14 +241,14 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIdPsData() {
 
         return new Object[][]{
-                {SUPER_TENANT_ID, 3},
-                {SAMPLE_TENANT_ID1, 1},
-                {NOT_EXISTING_TENANT_ID, 0}
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, 3},
+                {SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, 1},
+                {NOT_EXISTING_TENANT_ID, NOT_EXISTING_TENANT_DOMAIN, 0}
         };
     }
 
     @Test(dataProvider = "getIdPsData")
-    public void testGetIdPs(int tenantId, int idpCount) throws Exception {
+    public void testGetIdPs(int tenantId, String tenantDomain, int idpCount) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -256,17 +257,17 @@ public class CacheBackedIdPMgtDAOTest {
             addTestIdps();
 
             // Directly providing initiated db connection as connection parameter.
-            List<IdentityProvider> idpList1 = cacheBackedIdPMgtDAO.getIdPs(connection, tenantId, SUPER_TENANT_DOMAIN);
+            List<IdentityProvider> idpList1 = cacheBackedIdPMgtDAO.getIdPs(connection, tenantId, tenantDomain);
             assertEquals(idpList1.size(), idpCount);
             // Providing null as connection parameter so value of connection parameter will be retrieved
             // from the mock above.
-            List<IdentityProvider> idpList2 = cacheBackedIdPMgtDAO.getIdPs(null, tenantId, SUPER_TENANT_DOMAIN);
+            List<IdentityProvider> idpList2 = cacheBackedIdPMgtDAO.getIdPs(null, tenantId, tenantDomain);
             assertEquals(idpList2.size(), idpCount);
         }
     }
 
     @Test(dataProvider = "getIdPsData")
-    public void testGetIdPsException(int tenantId, int idpCount) throws Exception {
+    public void testGetIdPsException(int tenantId, String tenantDomain, int idpCount) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
             try (Connection connection = getConnection(DB_NAME)) {
@@ -276,7 +277,7 @@ public class CacheBackedIdPMgtDAOTest {
                 addTestIdps();
             }
             assertThrows(IdentityProviderManagementException.class, () ->
-                    cacheBackedIdPMgtDAO.getIdPs(null, tenantId, SUPER_TENANT_DOMAIN));
+                    cacheBackedIdPMgtDAO.getIdPs(null, tenantId, tenantDomain));
         }
     }
 
@@ -284,19 +285,19 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIdPsSearchData() {
 
         return new Object[][]{
-                {SUPER_TENANT_ID, "testIdP1", 1},
-                {SAMPLE_TENANT_ID1, "testIdP3", 1},
-                {SUPER_TENANT_ID, "", 3},
-                {SUPER_TENANT_ID, "test*", 2},
-                {SUPER_TENANT_ID, "????IdP*", 2},
-                {SUPER_TENANT_ID, "tes_I*", 2},
-                {SUPER_TENANT_ID, "*1", 1},
-                {SUPER_TENANT_ID, "Notexist", 0},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, "testIdP1", 1},
+                {SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, "testIdP3", 1},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, "", 3},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, "test*", 2},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, "????IdP*", 2},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, "tes_I*", 2},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, "*1", 1},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, "Notexist", 0},
         };
     }
 
     @Test(dataProvider = "getIdPsSearchData")
-    public void testGetIdPsSearch(int tenantId, String filter, int resultCount) throws Exception {
+    public void testGetIdPsSearch(int tenantId, String tenantDomain,  String filter, int resultCount) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -307,18 +308,18 @@ public class CacheBackedIdPMgtDAOTest {
 
             // Directly providing initiated db connection as connection parameter.
             List<IdentityProvider> idpList1 = cacheBackedIdPMgtDAO.getIdPsSearch(connection, tenantId,
-                    SUPER_TENANT_DOMAIN, filter);
+                    tenantDomain, filter);
             assertEquals(idpList1.size(), resultCount);
             // Providing null as connection parameter so value of connection parameter will be retrieved
             // from the mock above.
             List<IdentityProvider> idpList2 = cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId,
-                    SUPER_TENANT_DOMAIN, filter);
+                    tenantDomain, filter);
             assertEquals(idpList2.size(), resultCount);
         }
     }
 
     @Test(dataProvider = "getIdPsSearchData")
-    public void testGetIdPsSearchException(int tenantId, String filter, int resultCount)
+    public void testGetIdPsSearchException(int tenantId, String tenantDomain, String filter, int resultCount)
             throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class)) {
@@ -329,7 +330,7 @@ public class CacheBackedIdPMgtDAOTest {
                 addTestIdps();
             }
             assertThrows(IdentityProviderManagementException.class, () ->
-                    cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId, SUPER_TENANT_DOMAIN, filter));
+                    cacheBackedIdPMgtDAO.getIdPsSearch(null, tenantId, tenantDomain, filter));
         }
     }
 
@@ -438,15 +439,15 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIdPByNameData() {
 
         return new Object[][]{
-                {"testIdP1", SUPER_TENANT_ID, true},
-                {"testIdP3", SAMPLE_TENANT_ID1, true},
-                {"notExist", SUPER_TENANT_ID, false},
+                {"testIdP1", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN,  true},
+                {"testIdP3", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, true},
+                {"notExist", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, false},
         };
     }
 
     // TODO failing test start
     @Test(dataProvider = "getIdPByNameData")
-    public void testGetIdPByName(String idpName, int tenantId, boolean isExist) throws Exception {
+    public void testGetIdPByName(String idpName, int tenantId, String tenantDomain, boolean isExist) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -456,7 +457,7 @@ public class CacheBackedIdPMgtDAOTest {
 
             // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
 
             IdentityProvider idpFromCache = null;
             if (isExist) {
@@ -480,14 +481,15 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIdPByIdData() {
 
         return new Object[][]{
-                {"testIdP1", 1, SUPER_TENANT_ID, true},
-                {"testIdP3", 3, SAMPLE_TENANT_ID1, true},
-                {"notExist", 99, SUPER_TENANT_ID, false},
+                {"testIdP1", 1, SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, true},
+                {"testIdP3", 3, SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, true},
+                {"notExist", 99, SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, false},
         };
     }
 
     @Test(dataProvider = "getIdPByIdData")
-    public void testGetIdPById(String idpName, int idpId, int tenantId, boolean isExist) throws Exception {
+    public void testGetIdPById(String idpName, int idpId, int tenantId, String tenantDomain, boolean isExist)
+            throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -495,8 +497,7 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP form DB and adding to cache.
-            IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPById(connection, idpId, tenantId,
-                    SUPER_TENANT_DOMAIN);
+            IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPById(connection, idpId, tenantId, tenantDomain);
 
             IdentityProvider idpFromCache = null;
             if (isExist) {
@@ -541,14 +542,15 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIDPbyResourceIdData() {
 
         return new Object[][]{
-                {"testIdP1", SUPER_TENANT_ID, true},
-                {"testIdP3", SAMPLE_TENANT_ID1, true},
-                {"notExist", SUPER_TENANT_ID, false},
+                {"testIdP1", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, true},
+                {"testIdP3", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, true},
+                {"notExist", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, false},
         };
     }
 
     @Test(dataProvider = "getIDPbyResourceIdData")
-    public void testGetIDPbyResourceId(String idpName, int tenantId, boolean isExist) throws Exception {
+    public void testGetIDPbyResourceId(String idpName, int tenantId, String tenantDomain, boolean isExist)
+            throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -557,15 +559,14 @@ public class CacheBackedIdPMgtDAOTest {
             addTestIdps();
             String uuid = "";
             // Retrieving IDP from DB.
-            IdentityProvider idpResults = idPManagementDAO.getIdPByName(connection, idpName, tenantId,
-                    SUPER_TENANT_DOMAIN);
+            IdentityProvider idpResults = idPManagementDAO.getIdPByName(connection, idpName, tenantId, tenantDomain);
             IdentityProvider idpFromDB = new IdentityProvider();
             IdentityProvider idpFromCache = new IdentityProvider();
 
             if (idpResults != null) {
                 uuid = idpResults.getResourceId();
                 // Retrieving IDP from DB and adds it to the cache.
-                idpFromDB = cacheBackedIdPMgtDAO.getIdPByResourceId(uuid, tenantId, SUPER_TENANT_DOMAIN);
+                idpFromDB = cacheBackedIdPMgtDAO.getIdPByResourceId(uuid, tenantId, tenantDomain);
                 // Retrieving IDP using cache entry.
                 idpFromCache = idpFromCacheByResourceId(uuid);
             }
@@ -658,6 +659,7 @@ public class CacheBackedIdPMgtDAOTest {
         }
     }
 
+    @Test
     public void testGetConnectedAppsOfLocalAuthenticator() throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
@@ -1063,14 +1065,15 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIdPByRealmIdData() {
 
         return new Object[][]{
-                {"testIdP1", "1", SUPER_TENANT_ID, true},
-                {"testIdP2", "2", SUPER_TENANT_ID, true},
-                {"notExist", "99", SAMPLE_TENANT_ID1, false},
+                {"testIdP1", "1", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, true},
+                {"testIdP2", "2", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, true},
+                {"notExist", "99", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, false},
         };
     }
 
     @Test(dataProvider = "getIdPByRealmIdData")
-    public void testGetIdPRealmId(String idpName, String realmId, int tenantId, boolean isExist) throws Exception {
+    public void testGetIdPRealmId(String idpName, String realmId, int tenantId, String tenantDomain, boolean isExist)
+            throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1078,14 +1081,14 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // Retrieving IDP from DB.
-            IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByRealmId(realmId, tenantId, SUPER_TENANT_DOMAIN);
+            IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByRealmId(realmId, tenantId, tenantDomain);
 
             IdentityProvider idpFromCache = null;
             if (isExist) {
                 // Retrieving IDP from cache using realmID as cache key.
                 IdPCacheByHRI idPCacheByHRI = IdPCacheByHRI.getInstance();
                 IdPHomeRealmIdCacheKey cacheKey = new IdPHomeRealmIdCacheKey(realmId);
-                IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, SUPER_TENANT_DOMAIN);
+                IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, tenantDomain);
                 idpFromCache = entry.getIdentityProvider();
             }
             if (isExist) {
@@ -1103,14 +1106,14 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getEnabledIdPByRealmIdData() {
 
         return new Object[][]{
-                {"testIdP4", "4", SAMPLE_TENANT_ID2, true, true},
-                {"testIdP5", "5", SAMPLE_TENANT_ID2, true, false},
-                {"notExist", "99", SAMPLE_TENANT_ID2, false, false},
+                {"testIdP4", "4", SAMPLE_TENANT_ID2, SAMPLE_TENANT_DOMAIN2, true, true},
+                {"testIdP5", "5", SAMPLE_TENANT_ID2, SAMPLE_TENANT_DOMAIN2, true, false},
+                {"notExist", "99", SAMPLE_TENANT_ID2, SAMPLE_TENANT_DOMAIN2, false, false},
         };
     }
 
     @Test(dataProvider = "getEnabledIdPByRealmIdData")
-    public void testGetEnabledIdPRealmId(String idpName, String realmId, int tenantId, boolean isExist, boolean isEnabled) throws Exception {
+    public void testGetEnabledIdPRealmId(String idpName, String realmId, int tenantId, String tenantDomain, boolean isExist, boolean isEnabled) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
               Connection connection = getConnection(DB_NAME)) {
@@ -1119,15 +1122,14 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps(connection);
             // Retrieving IDP from DB.
-            IdentityProvider idpResult = cacheBackedIdPMgtDAO.getEnabledIdPByRealmId(realmId, tenantId,
-                    SUPER_TENANT_DOMAIN);
+            IdentityProvider idpResult = cacheBackedIdPMgtDAO.getEnabledIdPByRealmId(realmId, tenantId, tenantDomain);
 
             IdentityProvider idpFromCache = null;
             if (isExist && isEnabled) {
                 // Retrieving IDP from cache using realmID as cache key.
                 IdPCacheByHRI idPCacheByHRI = IdPCacheByHRI.getInstance();
                 IdPHomeRealmIdCacheKey cacheKey = new IdPHomeRealmIdCacheKey(realmId);
-                IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, SUPER_TENANT_DOMAIN);
+                IdPCacheEntry entry = idPCacheByHRI.getValueFromCache(cacheKey, tenantDomain);
                 idpFromCache = entry.getIdentityProvider();
             }
             if (isExist && isEnabled) {
@@ -1378,16 +1380,16 @@ public class CacheBackedIdPMgtDAOTest {
 
         return new Object[][]{
                 // Update PermissionsAndRoleConfig,FederatedAuthenticatorConfig,ProvisioningConnectorConfig,ClaimConfig.
-                {idp1, idp1New, SUPER_TENANT_ID},
+                {idp1, idp1New, SUPER_TENANT_ID, SUPER_TENANT_DOMAIN},
                 // Update name, LocalClaimDialect, ClaimConfig.
-                {idp2, idp2New, SUPER_TENANT_ID},
+                {idp2, idp2New, SUPER_TENANT_ID, SUPER_TENANT_DOMAIN},
                 // Update name.
-                {idp3, idp3New, SAMPLE_TENANT_ID1},
+                {idp3, idp3New, SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1},
         };
     }
 
     @Test(dataProvider = "updateIdPData")
-    public void testUpdateIdP(Object oldIdP, Object newIdP, int tenantId) throws Exception {
+    public void testUpdateIdP(Object oldIdP, Object newIdP, int tenantId, String tenantDomain) throws Exception {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
              MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
@@ -1400,12 +1402,12 @@ public class CacheBackedIdPMgtDAOTest {
                     .thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             cacheBackedIdPMgtDAO.updateIdP((IdentityProvider) newIdP, (IdentityProvider) oldIdP,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
 
             String newIdpName = ((IdentityProvider)  newIdP).getIdentityProviderName();
             // Retrieving updated IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, newIdpName,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
             assertEquals(idpResult.getIdentityProviderName(), newIdpName);
             // Retrieving IDP from cache using name as cache key.
             IdentityProvider idpFromCache = idpFromCacheByName(newIdpName);
@@ -1416,7 +1418,8 @@ public class CacheBackedIdPMgtDAOTest {
     }
 
     @Test(dataProvider = "updateIdPData")
-    public void testGetUpdatedIdPByResourceId(Object oldIdP, Object newIdP, int tenantId) throws Exception {
+    public void testGetUpdatedIdPByResourceId(Object oldIdP, Object newIdP, int tenantId, String tenantDomain)
+            throws Exception {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
              MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
@@ -1429,13 +1432,13 @@ public class CacheBackedIdPMgtDAOTest {
             String oldIdPName = ((IdentityProvider) oldIdP).getIdentityProviderName();
             // Retrieving IDP from DB.
             IdentityProvider idpFromDB = idPManagementDAO.getIdPByName(connection, oldIdPName, tenantId,
-                    SUPER_TENANT_DOMAIN);
+                    tenantDomain);
             assertEquals(idpFromDB.getIdentityProviderName(), oldIdPName);
 
             String resourceId = idpFromDB.getResourceId();
             // Retrieving IDP from DB and adding cache using resourceId.
             IdentityProvider idpFromDBByResourceId = cacheBackedIdPMgtDAO.getIdPByResourceId(resourceId,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
             // Retrieving IDP from cache.
             IdentityProvider idpFromCache = idpFromCacheByResourceId(resourceId);
             if (idpFromCache != null) {
@@ -1443,17 +1446,17 @@ public class CacheBackedIdPMgtDAOTest {
             }
             // updating IDP.
             cacheBackedIdPMgtDAO.updateIdP((IdentityProvider) newIdP, (IdentityProvider) oldIdP,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
             String newIdPName = ((IdentityProvider) newIdP).getIdentityProviderName();
             // Retrieving updated IDP from DB.
             IdentityProvider updatedIDPFromDB = idPManagementDAO.getIdPByName(connection, newIdPName,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
             assertEquals(updatedIDPFromDB.getIdentityProviderName(), newIdPName);
 
             String updatedIDPResourceId = updatedIDPFromDB.getResourceId();
             // Retrieving updated IDP from DB and adding cache using resourceId.
             IdentityProvider updatedIdpByResourceId = cacheBackedIdPMgtDAO.getUpdatedIdPByResourceId(
-                    updatedIDPResourceId, tenantId, SUPER_TENANT_DOMAIN);
+                    updatedIDPResourceId, tenantId, tenantDomain);
             // Retrieving updated IDP from cache.
             IdentityProvider updatedIDPFromCache = idpFromCacheByResourceId(resourceId);
             if (updatedIDPFromCache != null) {
@@ -1464,7 +1467,8 @@ public class CacheBackedIdPMgtDAOTest {
     }
 
     @Test(dataProvider = "updateIdPData")
-    public void testUpdateIdPException(Object oldIdp, Object newIdp, int tenantId) throws Exception {
+    public void testUpdateIdPException(Object oldIdp, Object newIdp, int tenantId, String tenantDomain)
+            throws Exception {
 
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class);
@@ -1476,7 +1480,7 @@ public class CacheBackedIdPMgtDAOTest {
 
             assertThrows(IdentityProviderManagementException.class, () ->
                     cacheBackedIdPMgtDAO.updateIdP((IdentityProvider) newIdp, ((IdentityProvider) oldIdp), tenantId,
-                            SUPER_TENANT_DOMAIN));
+                            tenantDomain));
         }
     }
 
@@ -1484,13 +1488,13 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] deleteIdPData() {
 
         return new Object[][]{
-                {"testIdP1", SUPER_TENANT_ID},
-                {"testIdP3", SAMPLE_TENANT_ID1},
+                {"testIdP1", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN},
+                {"testIdP3", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1},
         };
     }
 
     @Test(dataProvider = "deleteIdPData")
-    public void testDeleteIdP(String idpName, int tenantId) throws Exception {
+    public void testDeleteIdP(String idpName, int tenantId, String tenantDomain) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1500,14 +1504,14 @@ public class CacheBackedIdPMgtDAOTest {
             addTestIdps();
             // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
             // Retrieving IDP from cache.
             IdentityProvider idpFromCache = idpFromCacheByName(idpName);
             if (idpFromCache != null) {
                 assertEquals(idpFromCache.getIdentityProviderName(), idpName);
             }
             // Deleting IDP.
-            cacheBackedIdPMgtDAO.deleteIdP(idpName, tenantId, SUPER_TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.deleteIdP(idpName, tenantId, tenantDomain);
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'deleteIdP' method fails");
             IdentityProvider idpFromCacheAfterDeletion = idpFromCacheByName(idpName);
@@ -1519,13 +1523,13 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] deleteIdPsData() {
 
         return new Object[][]{
-                {SUPER_TENANT_ID},
-                {SAMPLE_TENANT_ID1},
+                {SUPER_TENANT_ID, SUPER_TENANT_DOMAIN},
+                {SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1},
         };
     }
 
     @Test(dataProvider = "deleteIdPsData")
-    public void testDeleteIdPs(int tenantId) throws Exception {
+    public void testDeleteIdPs(int tenantId, String tenantDomain) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1575,7 +1579,7 @@ public class CacheBackedIdPMgtDAOTest {
     }
 
     @Test(dataProvider = "deleteIdPData")
-    public void testDeleteIdPByResourceId(String idpName, int tenantId) throws Exception {
+    public void testDeleteIdPByResourceId(String idpName, int tenantId, String tenantDomain) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1584,10 +1588,10 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // ResourceId of IDP retrieved from DB.
-            String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, SUPER_TENANT_DOMAIN)
+            String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, tenantDomain)
                     .getResourceId();
             // Delete IDP using resourceId.
-            cacheBackedIdPMgtDAO.deleteIdPByResourceId(uuid, tenantId, SUPER_TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.deleteIdPByResourceId(uuid, tenantId, tenantDomain);
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'deleteIdPByResourceId' method fails");
             IdentityProvider idpFromCache = idpFromCacheByResourceId(uuid);
@@ -1596,7 +1600,7 @@ public class CacheBackedIdPMgtDAOTest {
     }
 
     @Test(dataProvider = "deleteIdPData")
-    public void testForceDeleteIdPByResourceId(String idpName, int tenantId) throws Exception {
+    public void testForceDeleteIdPByResourceId(String idpName, int tenantId, String tenantDomain) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1605,10 +1609,10 @@ public class CacheBackedIdPMgtDAOTest {
             identityDatabaseUtil.when(IdentityDatabaseUtil::getDataSource).thenReturn(dataSourceMap.get(DB_NAME));
             addTestIdps();
             // ResourceId of IDP retrieved from DB.
-            String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, SUPER_TENANT_DOMAIN)
+            String uuid = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName, tenantId, tenantDomain)
                     .getResourceId();
             // Force delete IDP using resourceId.
-            cacheBackedIdPMgtDAO.forceDeleteIdPByResourceId(uuid, tenantId, SUPER_TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.forceDeleteIdPByResourceId(uuid, tenantId, tenantDomain);
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'forceDeleteIdPByResourceId' method fails");
             IdentityProvider idpFromCache = idpFromCacheByResourceId(uuid);
@@ -1617,7 +1621,7 @@ public class CacheBackedIdPMgtDAOTest {
     }
 
     @Test(dataProvider = "deleteIdPData")
-    public void testForceDeleteIdP(String idpName, int tenantId) throws Exception {
+    public void testForceDeleteIdP(String idpName, int tenantId, String tenantDomain) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1627,7 +1631,7 @@ public class CacheBackedIdPMgtDAOTest {
             addTestIdps();
 
             // Force delete IDP using resourceId.
-            cacheBackedIdPMgtDAO.forceDeleteIdP(idpName, tenantId, SUPER_TENANT_DOMAIN);
+            cacheBackedIdPMgtDAO.forceDeleteIdP(idpName, tenantId, tenantDomain);
             int resultSize = getIdPCount(connection, idpName, tenantId);
             assertEquals(resultSize, 0, "'forceDeleteIdP' method fails");
             IdentityProvider idpFromCache = idpFromCacheByName(idpName);
@@ -1687,14 +1691,14 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] addIdPCacheData() {
 
         return new Object[][]{
-                {"testIdP1", SUPER_TENANT_ID, true},
-                {"testIdP3", SAMPLE_TENANT_ID1, true},
-                {"notExist", SUPER_TENANT_ID, false},
+                {"testIdP1", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, true},
+                {"testIdP3", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, true},
+                {"notExist", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, false},
         };
     }
 
     @Test(dataProvider = "addIdPCacheData")
-    public void testAddIdPCache(String idpName, int tenantId, boolean isExist) throws Exception{
+    public void testAddIdPCache(String idpName, int tenantId, String tenantDomain, boolean isExist) throws Exception{
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1704,10 +1708,10 @@ public class CacheBackedIdPMgtDAOTest {
             addTestIdps();
             // Retrieving IDP from DB.
             IdentityProvider idpResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId,
-                    SUPER_TENANT_DOMAIN);
+                    tenantDomain);
             if (isExist) {
                 // Adding IDP to cache.
-                cacheBackedIdPMgtDAO.addIdPCache(idpResult, SUPER_TENANT_DOMAIN);
+                cacheBackedIdPMgtDAO.addIdPCache(idpResult, tenantDomain);
                 // Retrieving IDP from cache using name as cache key.
                 IdentityProvider idpCacheResult = idpFromCacheByName(idpName);
                 if (idpCacheResult != null) {
@@ -1722,14 +1726,14 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] clearIdPCacheData() {
 
         return new Object[][]{
-                {"testIdP1", SUPER_TENANT_ID, true},
-                {"testIdP3", SAMPLE_TENANT_ID1, true},
-                {"notExist", SUPER_TENANT_ID, false},
+                {"testIdP1", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, true},
+                {"testIdP3", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1, true},
+                {"notExist", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN, false},
         };
     }
 
     @Test(dataProvider = "clearIdPCacheData")
-    public void testClearIdpCache(String idpName, int tenantId, boolean isExist) throws Exception {
+    public void testClearIdpCache(String idpName, int tenantId, String tenantDomain, boolean isExist) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1739,10 +1743,10 @@ public class CacheBackedIdPMgtDAOTest {
             addTestIdps();
             // Retrieving IDP from DB and adding to cache.
             IdentityProvider idpResult = cacheBackedIdPMgtDAO.getIdPByName(connection, idpName,
-                    tenantId, SUPER_TENANT_DOMAIN);
+                    tenantId, tenantDomain);
             if (idpResult != null) {
                 // Clear cache entry of IDP.
-                cacheBackedIdPMgtDAO.clearIdpCache(idpName, tenantId, SUPER_TENANT_DOMAIN);
+                cacheBackedIdPMgtDAO.clearIdpCache(idpName, tenantId, tenantDomain);
                 IdentityProvider idpCacheResult = idpFromCacheByName(idpName);
                 assertNull(idpCacheResult, "'clearIdpCache' method failed!");
             }
@@ -1916,14 +1920,14 @@ public class CacheBackedIdPMgtDAOTest {
     public Object[][] getIdPNameByMetadataPropertyData() {
 
         return new Object[][]{
-                {"testIdP1", "idpPropertyName", "idpPropertyValue", SUPER_TENANT_ID},
-                {null, "notExist", "4", SAMPLE_TENANT_ID1},
+                {"testIdP1", "idpPropertyName", "idpPropertyValue", SUPER_TENANT_ID, SUPER_TENANT_DOMAIN},
+                {null, "notExist", "4", SAMPLE_TENANT_ID1, SAMPLE_TENANT_DOMAIN1},
         };
     }
 
     @Test(dataProvider = "getIdPNameByMetadataPropertyData")
-    public void testGetIdPNameByMetadataProperty(String idpName, String property, String value, int tenantId)
-            throws Exception {
+    public void testGetIdPNameByMetadataProperty(String idpName, String property, String value, int tenantId,
+                                                 String tenantDomain) throws Exception {
 
         try (MockedStatic<IdentityDatabaseUtil> identityDatabaseUtil = mockStatic(IdentityDatabaseUtil.class);
              Connection connection = getConnection(DB_NAME)) {
@@ -1933,12 +1937,12 @@ public class CacheBackedIdPMgtDAOTest {
             addTestIdps();
             // Retrieving IDP from DB and adding to cache using Metadata property.
             String outputName = cacheBackedIdPMgtDAO.getIdPNameByMetadataProperty(connection, property, value, tenantId,
-                    SUPER_TENANT_DOMAIN);
+                    tenantDomain);
             assertEquals(outputName, idpName, "'getIdPNameByMetadataProperty' method failed!");
             // Retrieving IDP from cache using metadata property.
             IdPCacheByMetadataProperty idPCacheByMetadataProperty = IdPCacheByMetadataProperty.getInstance();
             IdPMetadataPropertyCacheKey cacheKey = new IdPMetadataPropertyCacheKey(property, value);
-            String idPNameCache = idPCacheByMetadataProperty.getValueFromCache(cacheKey, SUPER_TENANT_DOMAIN);
+            String idPNameCache = idPCacheByMetadataProperty.getValueFromCache(cacheKey, tenantDomain);
             assertEquals(idPNameCache, idpName, "Cannot find idP in cache!");
         }
     }
