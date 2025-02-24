@@ -937,7 +937,7 @@ public class CacheBackedIdPMgtDAOTest {
             IdentityProvider idPResult = idPManagementDAO.getIdPByName(connection, idpName, tenantId, tenantDomain);
             uuid = idPResult.getResourceId();
             // Retrieving IDP using resourceId from DB and adding to cache.
-            IdentityProvider idpFromDB = cacheBackedIdPMgtDAO.getIdPByResourceId(uuid, tenantId, tenantDomain);
+            cacheBackedIdPMgtDAO.getIdPByResourceId(uuid, tenantId, tenantDomain);
             IdentityProvider idpFromCache = idpFromCacheByResourceId(uuid);
 
             try (MockedStatic<CarbonContext> carbonContext = mockStatic(CarbonContext.class)) {
