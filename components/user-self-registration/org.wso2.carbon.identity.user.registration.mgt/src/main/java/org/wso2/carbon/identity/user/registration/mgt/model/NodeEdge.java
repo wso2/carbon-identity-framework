@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
+/**
+ * DTO class for NodeEdge in the registration graph.
+ */
 public class NodeEdge {
 
     String sourceNodeId;
