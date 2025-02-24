@@ -19,9 +19,11 @@
 package org.wso2.carbon.identity.user.registration.mgt.dao;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,12 +136,14 @@ public class RegistrationFlowDAO {
                     int regNodeId = nodeIdToRegNodeIdMap.get(entry.getKey());
 
                     int pageAutoIncId = template.executeInsert(
-                            "INSERT INTO IDN_FLOW_PAGE (FLOW_ID, FLOW_NODE_ID, PAGE_CONTENT, TYPE) VALUES (?, ?, ?, ?)",
+                            "INSERT INTO IDN_FLOW_PAGE (FLOW_ID, FLOW_NODE_ID, STEP_ID, PAGE_CONTENT, TYPE) VALUES " +
+                                    "(?, ?, ?, ?, ?)",
                             preparedStatement -> {
                                 preparedStatement.setString(1, flowId);
                                 preparedStatement.setInt(2, regNodeId);
-                                preparedStatement.setBinaryStream(3, serializePageContent(stepDTO));
-                                preparedStatement.setString(4, stepDTO.getType());
+                                preparedStatement.setString(3, stepDTO.getId());
+                                preparedStatement.setBinaryStream(4, serializeStepData(stepDTO));
+                                preparedStatement.setString(5, stepDTO.getType());
                             }, entry, true);
 
                     // Insert into IDN_FLOW_PAGE_META
@@ -172,8 +176,7 @@ public class RegistrationFlowDAO {
                         "TRUE AND F.TYPE = 'REGISTRATION';";
 
         try {
-            return jdbcTemplate.fetchSingleRecord(query, (resultSet, rowNumber) -> {
-                RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
+            List<StepDTO> steps = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) -> {
                 StepDTO stepDTO = new StepDTO.Builder()
                         .id(resultSet.getString("STEP_ID"))
                         .type(resultSet.getString("PAGE_TYPE"))
@@ -182,10 +185,19 @@ public class RegistrationFlowDAO {
                         .height(resultSet.getDouble("HEIGHT"))
                         .width(resultSet.getDouble("WIDTH"))
                         .build();
+
                 resolvePageContent(stepDTO, resultSet.getBinaryStream("PAGE_CONTENT"));
-                registrationFlowDTO.getSteps().add(stepDTO);
-                return registrationFlowDTO;
+                return stepDTO;
             }, preparedStatement -> preparedStatement.setInt(1, tenantId));
+
+            if (steps.isEmpty()) {
+                return null;
+            }
+
+            RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
+            registrationFlowDTO.getSteps().addAll(steps);
+            return registrationFlowDTO;
+
         } catch (DataAccessException e) {
             LOG.error("Failed to retrieve the default registration flow for tenant: " + tenantId, e);
             return null;
@@ -291,5 +303,27 @@ public class RegistrationFlowDAO {
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static ByteArrayInputStream serializeObject(Object obj) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(obj);
+            oos.flush();
+            return new ByteArrayInputStream(baos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Error serializing object", e);
+        }
+    }
+
+    public static InputStream serializeStepData(StepDTO stepDTO) {
+        if (Constants.StepTypes.VIEW.equals(stepDTO.getType())) {
+            List<ComponentDTO> components = RegistrationMgtUtils.getComponentDTOs(stepDTO.getData());
+            return serializeObject(components);
+        } else if (Constants.StepTypes.REDIRECTION.equals(stepDTO.getType())) {
+            ActionDTO action = RegistrationMgtUtils.getActionDTO(stepDTO.getData());
+            return serializeObject(action);
+        }
+        return new ByteArrayInputStream(new byte[0]); // Return empty input stream if type is unknown
     }
 }
