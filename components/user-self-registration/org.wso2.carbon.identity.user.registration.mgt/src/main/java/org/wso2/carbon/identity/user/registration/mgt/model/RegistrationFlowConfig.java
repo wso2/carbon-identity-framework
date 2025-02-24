@@ -60,7 +60,7 @@ public class RegistrationFlowConfig {
 
     public void addNodeConfig(NodeConfig node) {
 
-        this.nodeConfigs.put(node.getUuid(), node);
+        this.nodeConfigs.put(node.getId(), node);
     }
 
     public Map<String, StepDTO> getNodePageMappings() {

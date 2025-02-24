@@ -24,34 +24,32 @@ import java.util.List;
 public class NodeConfig {
 
     private final List<NodeEdge> edges = new ArrayList<>();
-    private int id;
-    private String uuid;
+    private String id;
     private String type;
-    private String triggeredActionId;
     private boolean isFirstNode;
     private String nextNodeId = null;
     private String previousNodeId = null;
-    private List<String> nextNodeIds = new ArrayList<>();
     private ExecutorDTO executorConfig = null;
 
-    public int getId() {
+    public NodeConfig(Builder builder) {
+
+        this.id = builder.id;
+        this.type = builder.type;
+        this.isFirstNode = builder.isFirstNode;
+        this.nextNodeId = builder.nextNodeId;
+        this.previousNodeId = builder.previousNodeId;
+        this.executorConfig = builder.executorConfig;
+        this.edges.addAll(builder.edges);
+    }
+
+    public String getId() {
 
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
 
         this.id = id;
-    }
-
-    public String getUuid() {
-
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-
-        this.uuid = uuid;
     }
 
     public String getType() {
@@ -72,21 +70,6 @@ public class NodeConfig {
     public void setFirstNode(boolean firstNode) {
 
         isFirstNode = firstNode;
-    }
-
-    public List<String> getNextNodeIds() {
-
-        return nextNodeIds;
-    }
-
-    public void setNextNodeIds(List<String> nextNodeIds) {
-
-        this.nextNodeIds = nextNodeIds;
-    }
-
-    public void addNextNodeId(String nextNodeId) {
-
-        this.nextNodeIds.add(nextNodeId);
     }
 
     public ExecutorDTO getExecutorConfig() {
@@ -119,16 +102,6 @@ public class NodeConfig {
         this.previousNodeId = previousNodeId;
     }
 
-    public String getTriggeredActionId() {
-
-        return triggeredActionId;
-    }
-
-    public void setTriggeredActionId(String triggeredActionId) {
-
-        this.triggeredActionId = triggeredActionId;
-    }
-
     public List<NodeEdge> getEdges() {
 
         return edges;
@@ -137,5 +110,63 @@ public class NodeConfig {
     public void addEdge(NodeEdge edge) {
 
         this.edges.add(edge);
+    }
+
+    public static class Builder {
+
+        private final List<NodeEdge> edges = new ArrayList<>();
+        private String id;
+        private String type;
+        private boolean isFirstNode;
+        private String nextNodeId = null;
+        private String previousNodeId = null;
+        private ExecutorDTO executorConfig = null;
+
+        public Builder id(String id) {
+
+            this.id = id;
+            return this;
+        }
+
+        public Builder type(String type) {
+
+            this.type = type;
+            return this;
+        }
+
+        public Builder isFirstNode(boolean isFirstNode) {
+
+            this.isFirstNode = isFirstNode;
+            return this;
+        }
+
+        public Builder nextNodeId(String nextNodeId) {
+
+            this.nextNodeId = nextNodeId;
+            return this;
+        }
+
+        public Builder previousNodeId(String previousNodeId) {
+
+            this.previousNodeId = previousNodeId;
+            return this;
+        }
+
+        public Builder executorConfig(ExecutorDTO executorConfig) {
+
+            this.executorConfig = executorConfig;
+            return this;
+        }
+
+        public Builder edges(List<NodeEdge> edges) {
+
+            this.edges.addAll(edges);
+            return this;
+        }
+
+        public NodeConfig build() {
+
+            return new NodeConfig(this);
+        }
     }
 }
