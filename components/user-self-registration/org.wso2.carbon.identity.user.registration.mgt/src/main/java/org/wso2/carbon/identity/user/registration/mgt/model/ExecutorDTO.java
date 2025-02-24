@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
-public class ExecutorDTO {
+import java.io.Serializable;
 
+public class ExecutorDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     private String name;
     private String idpName;
 
