@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,6 +36,8 @@ public class ComponentDTO implements Serializable {
     private String type;
     private String identifier;
     private ActionDTO action;
+    private Map<String, Object> configs = new HashMap<>();
+    private List<ComponentDTO> components = new ArrayList<>();
 
     public ComponentDTO() {
 
@@ -45,7 +49,8 @@ public class ComponentDTO implements Serializable {
         this.category = builder.category;
         this.type = builder.type;
         this.identifier = builder.identifier;
-        this.properties.putAll(builder.properties);
+        this.configs = builder.configs;
+        this.components = builder.components;
         this.action = builder.action;
     }
 
@@ -69,14 +74,14 @@ public class ComponentDTO implements Serializable {
         this.type = type;
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, Object> getConfigs() {
 
-        return properties;
+        return configs;
     }
 
-    public void addProperty(String key, Object value) {
+    public void addConfig(String key, Object value) {
 
-        this.properties.put(key, value);
+        this.configs.put(key, value);
     }
 
     public ActionDTO getAction() {
@@ -109,9 +114,18 @@ public class ComponentDTO implements Serializable {
         this.category = category;
     }
 
+    public List<ComponentDTO> getComponents() {
+        return components;
+    }
+
+    public void setComponents(List<ComponentDTO> components) {
+        this.components = components;
+    }
+
     public static class Builder {
 
-        private Map<String, Object> properties = new HashMap<>();
+        private Map<String, Object> configs = new HashMap<>();
+        private List<ComponentDTO> components = new ArrayList<>();
         private String id;
         private String category;
         private String type;
@@ -143,15 +157,21 @@ public class ComponentDTO implements Serializable {
             return this;
         }
 
-        public Builder property(String key, Object value) {
+        public Builder configs(Map<String, Object> configs) {
 
-            this.properties.put(key, value);
+            if (configs != null && !configs.isEmpty()) {
+                this.configs.putAll(configs);
+            }
+            this.configs = configs;
             return this;
         }
 
-        public Builder properties(Map<String, Object> properties) {
+        public Builder components(List<ComponentDTO> components) {
 
-            this.properties = properties;
+            if (components != null && !components.isEmpty()) {
+                this.components.addAll(components);
+            }
+            this.components = components;
             return this;
         }
 
