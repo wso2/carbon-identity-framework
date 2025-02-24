@@ -26,13 +26,40 @@ public class Constants {
     public static final String EXECUTOR_FOR_USER_ONBOARDING = "UserOnboardingExecutor";
     public static final String EXECUTOR_FOR_PROMPT = "ViewPromptExecutor";
 
-
-    // Constants for the registration flow json definition.
     public static final String COMPLETE = "COMPLETE";
-    public static final String NEXT = "NEXT";
-    public static final String EXECUTOR = "EXECUTOR";
-    public static final String EXECUTOR_NAME = "EXECUTOR_NAME";
-    public static final String AUTHENTICATOR_ID = "AUTHENTICATOR_ID";
+
+    /**
+     * Constants for the node types.
+     */
+    public static class NodeTypes {
+
+        public static final String DECISION = "DECISION";
+        public static final String TASK_EXECUTION = "TASK_EXECUTION";
+    }
+
+    /**
+     * Constants for the step types.
+     */
+    public static class StepTypes {
+
+        public static final String VIEW = "VIEW";
+        public static final String REDIRECTION = "REDIRECTION";
+    }
+
+    public static class ComponentTypes {
+
+        public static final String FORM = "FORM";
+        public static final String BUTTON = "BUTTON";
+    }
+
+    /**
+     * Constants for the action types.
+     */
+    public static class ActionTypes {
+
+        public static final String EXECUTOR = "EXECUTOR";
+        public static final String NEXT = "NEXT";
+    }
 
     public enum ErrorMessages {
 
@@ -69,8 +96,11 @@ public class Constants {
         ERROR_CODE_UNSUPPORTED_ACTION_TYPE("60008", "Unsupported action type.",
                                            "The action type, %s defined for component %s is not supported."),
         ERROR_CODE_INVALID_NEXT_STEP("600009", "Invalid next step configuration.", "Cannot resolve a step for the " +
-                "next id, %s.");
-
+                "next id, %s."),
+        ERROR_CODE_ACTION_DATA_NOT_FOUND("60010", "Action data not found.",
+                                       "The step, %s of type redirection must have action defined"),
+        ERROR_CODE_INVALID_ACTION_TYPE("60011", "Invalid action type.",
+                                      "The action type, %s is not supported for step, %s of type redirection."),;
 
         private static final String ERROR_PREFIX = "RFM";
         private final String code;
@@ -104,48 +134,5 @@ public class Constants {
 
             return code + ":" + message;
         }
-    }
-
-    /**
-     * Constants for the fields.
-     */
-    public static class Fields {
-
-        public static final String COMPONENTS = "components";
-        public static final String ACTION = "action";
-    }
-
-    /**
-     * Constants for the node types.
-     */
-    public static class NodeTypes {
-
-        public static final String PROMPT = "PROMPT";
-        public static final String DECISION = "DECISION";
-        public static final String TASK_EXECUTION = "TASK_EXECUTION";
-    }
-
-    /**
-     * Constants for the step types.
-     */
-    public static class StepTypes {
-
-        public static final String VIEW = "VIEW";
-        public static final String REDIRECTION = "REDIRECTION";
-    }
-
-    public static class ComponentTypes {
-
-        public static final String FORM = "FORM";
-        public static final String BUTTON = "BUTTON";
-    }
-
-    /**
-     * Constants for the action types.
-     */
-    public static class ActionTypes {
-
-        public static final String EXECUTOR = "EXECUTOR";
-        public static final String NEXT = "NEXT";
     }
 }

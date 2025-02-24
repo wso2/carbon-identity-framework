@@ -18,12 +18,38 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.utils;
 
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ActionTypes.EXECUTOR;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ActionTypes.NEXT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.COMPLETE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.BUTTON;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.FORM;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.EXECUTOR_FOR_PROMPT;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_ACTION_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_COMPONENT_DATA_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_INFO_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_FOR_BUTTON;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_TYPE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_NEXT_STEP;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_NODE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_MULTIPLE_STEP_EXECUTORS;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_NEXT_ACTION_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
+import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleServerException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationClientException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
 import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
@@ -32,33 +58,6 @@ import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ActionTypes.EXECUTOR;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.COMPLETE;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.BUTTON;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.FORM;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.EXECUTOR_FOR_PROMPT;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_COMPONENT_DATA_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_INFO_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_FOR_BUTTON;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_NEXT_STEP;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_NODE;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_MULTIPLE_STEP_EXECUTORS;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_NEXT_ACTION_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.NEXT;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
-import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleClientException;
-import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleServerException;
 
 /**
  * This class is responsible for building the registration flow graph.
@@ -114,22 +113,16 @@ public class GraphBuilder {
 
         ActionDTO action = step.getData().getAction();
         if (action == null) {
-            throw new RegistrationServerException("Action should be available in the redirection step.");
+            throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId());
+        }
+        if (!EXECUTOR.equals(action.getType())) {
+            throw handleClientException(ERROR_CODE_INVALID_ACTION_TYPE, action.getType(), step.getId());
         }
 
-        NodeConfig redirectionNode;
-        if (EXECUTOR.equals(action.getType())) {
-            redirectionNode = createTaskExecutionNode(step.getId(), action.getExecutor());
-            nodeMap.put(redirectionNode.getId(), redirectionNode);
-        } else {
-            throw new RegistrationClientException("Invalid step configurations. Action type should be " + "EXECUTOR");
-        }
-
+        NodeConfig redirectionNode = createTaskExecutionNode(step.getId(), action.getExecutor());
         String nextNodeId = COMPLETE.equals(action.getNextId()) ? endNodeId : action.getNextId();
-
-        NodeEdge edge = new NodeEdge(redirectionNode.getId(), nextNodeId, null);
-        nodeMappings.add(edge);
-
+        nodeMap.put(redirectionNode.getId(), redirectionNode);
+        nodeMappings.add(new NodeEdge(redirectionNode.getId(), nextNodeId, null));
         return redirectionNode;
     }
 
