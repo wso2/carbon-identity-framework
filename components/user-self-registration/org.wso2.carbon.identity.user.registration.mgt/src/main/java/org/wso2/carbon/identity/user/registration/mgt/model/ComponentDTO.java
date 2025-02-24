@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DTO class for Element.
+ * DTO class for component in the step.
  */
 public class ComponentDTO implements Serializable {
 
@@ -132,7 +132,6 @@ public class ComponentDTO implements Serializable {
         private String type;
         private String identifier;
         private ActionDTO action;
-        private ValidationDTO validation;
 
         public Builder id(String id) {
 
@@ -179,12 +178,6 @@ public class ComponentDTO implements Serializable {
         public Builder action(ActionDTO action) {
 
             this.action = action;
-            return this;
-        }
-
-        public Builder validation(ValidationDTO validation) {
-
-            this.validation = validation;
             return this;
         }
 
