@@ -35,15 +35,16 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
+import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
 import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
-import org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils;
 
 /**
  * The DAO class for the registration flow.
@@ -63,8 +64,98 @@ public class RegistrationFlowDAO {
         return instance;
     }
 
-    public void addRegistrationFlow(RegistrationFlowConfig regFlowConfig, int tenantId, String flowName,
-                                    boolean isDefault) {
+    private static ByteArrayInputStream serializeObject(Object obj) {
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(obj);
+            oos.flush();
+            return new ByteArrayInputStream(baos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Error serializing object", e);
+        }
+    }
+
+    public static InputStream serializeStepData(StepDTO stepDTO) {
+
+        if (Constants.StepTypes.VIEW.equals(stepDTO.getType())) {
+            List<ComponentDTO> components = stepDTO.getData().getComponents();
+            return serializeObject(components);
+        } else if (Constants.StepTypes.REDIRECTION.equals(stepDTO.getType())) {
+            ActionDTO action = stepDTO.getData().getAction();
+            return serializeObject(action);
+        }
+        return new ByteArrayInputStream(new byte[0]); // Return empty input stream if type is unknown
+    }
+
+//    public RegistrationFlowConfig getDefaultRegistrationFlowConfigByTenant(int tenantId) {
+//
+//        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+//
+//        String query = "SELECT F.ID AS FLOW_ID, F.TENANT_ID, F.FLOW_NAME, F.TYPE AS FLOW_TYPE, F.IS_DEFAULT, " +
+//                "N.ID AS NODE_DB_ID, N.NODE_ID, N.NODE_TYPE, N.IS_FIRST_NODE, NM.NEXT_NODE_ID, NM
+//                .TRIGGERING_ELEMENT, " +
+//                "P.ID AS PAGE_ID, P.STEP_ID, P.PAGE_CONTENT, P.TYPE AS PAGE_TYPE, E.EXECUTOR_NAME, E.IDP_NAME AS
+//                AUTHENTICATOR_ID " +
+//                "FROM IDN_FLOW F JOIN IDN_FLOW_NODE N ON F.ID = N.FLOW_ID " +
+//                "LEFT JOIN IDN_FLOW_NODE_MAPPING NM ON N.ID = NM.FLOW_NODE_ID " +
+//                "LEFT JOIN IDN_FLOW_PAGE P ON N.ID = P.FLOW_NODE_ID " +
+//                "LEFT JOIN IDN_FLOW_NODE_EXECUTOR E ON N.ID = E.FLOW_NODE_ID " +
+//                "WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = TRUE AND F.TYPE = 'REGISTRATION';";
+//
+//        try {
+//            return jdbcTemplate.fetchSingleRecord(query, (resultSet, rowNumber) -> {
+//                RegistrationFlowConfig flowConfig = new RegistrationFlowConfig();
+//                flowConfig.setId(resultSet.getString("FLOW_ID"));
+//                flowConfig.setFirstNodeId(resultSet.getString("NODE_ID"));
+//
+//                do {
+//                    String nodeId = resultSet.getString("NODE_ID");
+//                    NodeConfig nodeConfig = flowConfig.getNodeConfigs().computeIfAbsent(nodeId, k -> new NodeConfig
+//                    ());
+//                    nodeConfig.setUuid(nodeId);
+//                    nodeConfig.setType(resultSet.getString("NODE_TYPE"));
+//                    nodeConfig.setFirstNode(resultSet.getBoolean("IS_FIRST_NODE"));
+//
+//                    if (resultSet.getString("NEXT_NODE_ID") != null) {
+//
+//                        int
+//                        NodeEdge edge = new NodeEdge(nodeId, );
+//                        edge.setSourceNodeId(nodeId);
+//                        edge.setTargetNodeId(resultSet.getString("NEXT_NODE_ID"));
+//                        edge.setTriggeringActionId(resultSet.getString("TRIGGERING_ELEMENT"));
+//                        nodeConfig.getEdges().add(edge);
+//                    }
+//
+//                    if (resultSet.getString("PAGE_ID") != null) {
+//                        StepDTO stepDTO = new StepDTO.Builder()
+//                                .id(resultSet.getString("STEP_ID"))
+//                                .type(resultSet.getString("PAGE_TYPE"))
+//                                .build();
+//                        resolvePageContent(stepDTO, resultSet.getBinaryStream("PAGE_CONTENT"));
+//                        flowConfig.addNodePageMapping(nodeId, stepDTO);
+//                    }
+//
+//                    if (resultSet.getString("EXECUTOR_NAME") != null) {
+//                        ExecutorDTO executorDTO = new ExecutorDTO();
+//                        executorDTO.setName(resultSet.getString("EXECUTOR_NAME"));
+//                        executorDTO.setIdpName(resultSet.getString("AUTHENTICATOR_ID"));
+//                        nodeConfig.setExecutorConfig(executorDTO);
+//                    }
+//
+//                } while (resultSet.next());
+//
+//                return flowConfig;
+//            }, preparedStatement -> preparedStatement.setInt(1, tenantId));
+//        } catch (DataAccessException e) {
+//            LOG.error("Failed to retrieve the default registration flow config for tenant: " + tenantId, e);
+//            return null;
+//        }
+//
+//    }
+
+    public void updateDefaultRegistrationFlowByTenant(RegistrationFlowConfig regFlowConfig, int tenantId,
+                                                      String flowName) {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
@@ -72,15 +163,24 @@ public class RegistrationFlowDAO {
 
         try {
             jdbcTemplate.withTransaction(template -> {
+                // Delete the existing flow for the tenant.
+
+                template.executeUpdate("DELETE FROM IDN_FLOW WHERE TENANT_ID = ? AND IS_DEFAULT = ? AND TYPE = ?",
+                                       preparedStatement -> {
+                                           preparedStatement.setInt(1, tenantId);
+                                           preparedStatement.setBoolean(2, true);
+                                           preparedStatement.setString(3, "REGISTRATION");
+                                       });
+
                 // Insert into IDN_FLOW
                 template.executeInsert(
                         "INSERT INTO IDN_FLOW (ID, TENANT_ID, FLOW_NAME, TYPE, IS_DEFAULT) VALUES (?, ?, ?, ?, ?)",
                         preparedStatement -> {
                             preparedStatement.setString(1, flowId);
                             preparedStatement.setInt(2, tenantId);
-                            preparedStatement.setString(3, flowId);
+                            preparedStatement.setString(3, flowName);
                             preparedStatement.setString(4, "REGISTRATION");
-                            preparedStatement.setBoolean(5, isDefault);
+                            preparedStatement.setBoolean(5, true);
                         }, regFlowConfig, false);
 
                 // Insert into IDN_FLOW_NODE
@@ -165,7 +265,7 @@ public class RegistrationFlowDAO {
         }
     }
 
-    public RegistrationFlowDTO getDefaultRegistrationFlowByTenant(int tenantId) {
+    public RegistrationFlowDTO getDefaultRegistrationFlowByTenant(int tenantId) throws RegistrationServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
@@ -197,83 +297,19 @@ public class RegistrationFlowDAO {
             RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
             registrationFlowDTO.getSteps().addAll(steps);
             return registrationFlowDTO;
-
         } catch (DataAccessException e) {
-            LOG.error("Failed to retrieve the default registration flow for tenant: " + tenantId, e);
-            return null;
+            throw new RegistrationServerException("Error retrieving the default registration flow for tenant: " +
+                                                  tenantId, e);
         }
     }
-
-//    public RegistrationFlowConfig getDefaultRegistrationFlowConfigByTenant(int tenantId) {
-//
-//        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-//
-//        String query = "SELECT F.ID AS FLOW_ID, F.TENANT_ID, F.FLOW_NAME, F.TYPE AS FLOW_TYPE, F.IS_DEFAULT, " +
-//                "N.ID AS NODE_DB_ID, N.NODE_ID, N.NODE_TYPE, N.IS_FIRST_NODE, NM.NEXT_NODE_ID, NM.TRIGGERING_ELEMENT, " +
-//                "P.ID AS PAGE_ID, P.STEP_ID, P.PAGE_CONTENT, P.TYPE AS PAGE_TYPE, E.EXECUTOR_NAME, E.IDP_NAME AS AUTHENTICATOR_ID " +
-//                "FROM IDN_FLOW F JOIN IDN_FLOW_NODE N ON F.ID = N.FLOW_ID " +
-//                "LEFT JOIN IDN_FLOW_NODE_MAPPING NM ON N.ID = NM.FLOW_NODE_ID " +
-//                "LEFT JOIN IDN_FLOW_PAGE P ON N.ID = P.FLOW_NODE_ID " +
-//                "LEFT JOIN IDN_FLOW_NODE_EXECUTOR E ON N.ID = E.FLOW_NODE_ID " +
-//                "WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = TRUE AND F.TYPE = 'REGISTRATION';";
-//
-//        try {
-//            return jdbcTemplate.fetchSingleRecord(query, (resultSet, rowNumber) -> {
-//                RegistrationFlowConfig flowConfig = new RegistrationFlowConfig();
-//                flowConfig.setId(resultSet.getString("FLOW_ID"));
-//                flowConfig.setFirstNodeId(resultSet.getString("NODE_ID"));
-//
-//                do {
-//                    String nodeId = resultSet.getString("NODE_ID");
-//                    NodeConfig nodeConfig = flowConfig.getNodeConfigs().computeIfAbsent(nodeId, k -> new NodeConfig());
-//                    nodeConfig.setUuid(nodeId);
-//                    nodeConfig.setType(resultSet.getString("NODE_TYPE"));
-//                    nodeConfig.setFirstNode(resultSet.getBoolean("IS_FIRST_NODE"));
-//
-//                    if (resultSet.getString("NEXT_NODE_ID") != null) {
-//
-//                        int
-//                        NodeEdge edge = new NodeEdge(nodeId, );
-//                        edge.setSourceNodeId(nodeId);
-//                        edge.setTargetNodeId(resultSet.getString("NEXT_NODE_ID"));
-//                        edge.setTriggeringActionId(resultSet.getString("TRIGGERING_ELEMENT"));
-//                        nodeConfig.getEdges().add(edge);
-//                    }
-//
-//                    if (resultSet.getString("PAGE_ID") != null) {
-//                        StepDTO stepDTO = new StepDTO.Builder()
-//                                .id(resultSet.getString("STEP_ID"))
-//                                .type(resultSet.getString("PAGE_TYPE"))
-//                                .build();
-//                        resolvePageContent(stepDTO, resultSet.getBinaryStream("PAGE_CONTENT"));
-//                        flowConfig.addNodePageMapping(nodeId, stepDTO);
-//                    }
-//
-//                    if (resultSet.getString("EXECUTOR_NAME") != null) {
-//                        ExecutorDTO executorDTO = new ExecutorDTO();
-//                        executorDTO.setName(resultSet.getString("EXECUTOR_NAME"));
-//                        executorDTO.setIdpName(resultSet.getString("AUTHENTICATOR_ID"));
-//                        nodeConfig.setExecutorConfig(executorDTO);
-//                    }
-//
-//                } while (resultSet.next());
-//
-//                return flowConfig;
-//            }, preparedStatement -> preparedStatement.setInt(1, tenantId));
-//        } catch (DataAccessException e) {
-//            LOG.error("Failed to retrieve the default registration flow config for tenant: " + tenantId, e);
-//            return null;
-//        }
-//
-//    }
 
     private InputStream serializePageContent(StepDTO stepDTO) {
 
         if (Constants.StepTypes.VIEW.equals(stepDTO.getType())) {
 
-            return new ByteArrayInputStream(RegistrationMgtUtils.getComponentDTOs(stepDTO.getData()).toString().getBytes());
+            return new ByteArrayInputStream(stepDTO.getData().getComponents().toString().getBytes());
         } else {
-            return new ByteArrayInputStream(RegistrationMgtUtils.getActionDTO(stepDTO.getData()).toString().getBytes());
+            return new ByteArrayInputStream(stepDTO.getData().getAction().toString().getBytes());
         }
     }
 
@@ -286,10 +322,10 @@ public class RegistrationFlowDAO {
                     List<?> tempList = (List<?>) obj;
                     if (!tempList.isEmpty() &&
                             tempList.get(0) instanceof ComponentDTO) {
-                        List<ComponentDTO> blocks = tempList.stream()
+                        List<ComponentDTO> components = tempList.stream()
                                 .map(ComponentDTO.class::cast)
                                 .collect(Collectors.toList());
-                        stepDTO.addData(Constants.Fields.COMPONENTS, blocks);
+                        stepDTO.setData(new DataDTO.Builder().components(components).build());
                     } else {
                         LOG.error("Deserialized list does not contain BlockDTO objects.");
                     }
@@ -297,33 +333,11 @@ public class RegistrationFlowDAO {
             } else if (Constants.StepTypes.REDIRECTION.equals(stepDTO.getType())) {
                 if (obj instanceof ActionDTO) {
                     ActionDTO action = (ActionDTO) obj;
-                    stepDTO.addData(Constants.Fields.ACTION, action);
+                    stepDTO.setData(new DataDTO.Builder().action(action).build());
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static ByteArrayInputStream serializeObject(Object obj) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-            oos.writeObject(obj);
-            oos.flush();
-            return new ByteArrayInputStream(baos.toByteArray());
-        } catch (IOException e) {
-            throw new RuntimeException("Error serializing object", e);
-        }
-    }
-
-    public static InputStream serializeStepData(StepDTO stepDTO) {
-        if (Constants.StepTypes.VIEW.equals(stepDTO.getType())) {
-            List<ComponentDTO> components = RegistrationMgtUtils.getComponentDTOs(stepDTO.getData());
-            return serializeObject(components);
-        } else if (Constants.StepTypes.REDIRECTION.equals(stepDTO.getType())) {
-            ActionDTO action = RegistrationMgtUtils.getActionDTO(stepDTO.getData());
-            return serializeObject(action);
-        }
-        return new ByteArrayInputStream(new byte[0]); // Return empty input stream if type is unknown
     }
 }

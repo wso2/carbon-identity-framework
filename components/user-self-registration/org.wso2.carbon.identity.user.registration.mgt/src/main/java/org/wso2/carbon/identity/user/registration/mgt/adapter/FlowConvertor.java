@@ -18,15 +18,8 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.adapter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationClientException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
@@ -39,7 +32,12 @@ import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
-import org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ActionTypes.EXECUTOR;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.COMPLETE;
@@ -91,23 +89,20 @@ public class FlowConvertor {
     // TODO: Remove if we don't need this
     private static void validateStep(StepDTO step) throws RegistrationFrameworkException {
 
-        if (step.getData() == null || step.getData().isEmpty()) {
-            throw new RegistrationClientException("Data element should be available in the step.");
-        }
+
     }
 
     private static NodeConfig processRedirectionStep(StepDTO step, Map<String, NodeConfig> nodeMap,
                                                      List<NodeEdge> nodeMappings, String endNodeId)
             throws RegistrationFrameworkException {
 
-        Map<String, Object> data = step.getData();
-        if (!data.containsKey(Constants.Fields.ACTION)) {
+        ActionDTO action = step.getData().getAction();
+        if (action == null) {
             throw new RegistrationServerException("Action should be available in the redirection step.");
         }
-        ActionDTO action = RegistrationMgtUtils.getActionDTO(data);
 
         NodeConfig redirectionNode;
-        if (action != null && EXECUTOR.equals(action.getType())) {
+        if (EXECUTOR.equals(action.getType())) {
             redirectionNode = createTaskExecutionNode(step.getId(), action.getExecutor());
             nodeMap.put(redirectionNode.getUuid(), redirectionNode);
         } else {
@@ -125,11 +120,11 @@ public class FlowConvertor {
     private static NodeConfig processViewStep(StepDTO step, Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeEdges, String endNodeId) throws RegistrationFrameworkException {
 
         List<NodeConfig> stepNodes = new ArrayList<>();
-        if (!step.getData().containsKey(Constants.Fields.COMPONENTS)) {
+        List<ComponentDTO> components = step.getData().getComponents();
+        if (components == null || components.isEmpty()) {
             throw new RegistrationClientException("Components should be available in the view step.");
         }
-        List<ComponentDTO> componentDTOS = RegistrationMgtUtils.getComponentDTOs(step.getData());
-        for (ComponentDTO component : componentDTOS) {
+        for (ComponentDTO component : components) {
             processComponent(component, stepNodes);
         }
         return handleTempNodesInStep(stepNodes, step, nodeMap, nodeEdges, endNodeId);
@@ -140,17 +135,14 @@ public class FlowConvertor {
             throws RegistrationFrameworkException {
 
         if (FORM.equals(component.getType())) {
-            List<ComponentDTO> componentDTOS = RegistrationMgtUtils.getComponentDTOs(component.getProperties());
-            for (ComponentDTO subComponent : componentDTOS) {
+            for (ComponentDTO subComponent : component.getComponents()) {
                 processComponent(subComponent, stepNodes);
             }
         } else if (BUTTON.equals(component.getType()) && component.getAction() != null) {
             validateStepActions(component.getAction(), stepNodes);
             ActionDTO action = component.getAction();
             NodeConfig node = createNodeFromAction(action, component);
-            if (node != null) {
-                stepNodes.add(node);
-            }
+            stepNodes.add(node);
         }
     }
 
