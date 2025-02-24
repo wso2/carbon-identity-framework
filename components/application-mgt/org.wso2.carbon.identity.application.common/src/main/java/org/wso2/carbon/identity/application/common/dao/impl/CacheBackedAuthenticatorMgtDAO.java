@@ -59,13 +59,10 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
 
         AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(authenticatorConfig.getName());
         authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(createdConfig), tenantId);
+        LOG.debug("Adding cache entry for newly created authenticator " + authenticatorConfig.getName());
         userDefinedLocalAuthenticatorsCache.clearCacheEntry(new UserDefinedLocalAuthenticatorsCacheKey(tenantId),
                 tenantId);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format(
-                    "Adding cache entry for newly created authenticator %s.", authenticatorConfig.getName()));
-            LOG.debug("Delete Cache entry for all user defined authenticators of tenant id: " + tenantId);
-        }
+        LOG.debug("Delete Cache entry for all user defined local authenticators of tenant id: " + tenantId);
         return createdConfig;
     }
 
@@ -76,13 +73,10 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
 
         AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(existingAuthenticatorConfig.getName());
         authenticatorCache.clearCacheEntry(cacheKey, tenantId);
+        LOG.debug("Delete cache entry of updating authenticator " + existingAuthenticatorConfig.getName());
         userDefinedLocalAuthenticatorsCache.clearCacheEntry(new UserDefinedLocalAuthenticatorsCacheKey(tenantId),
                 tenantId);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format(
-                    "Delete cache entry of updating authenticator %s.", existingAuthenticatorConfig.getName()));
-            LOG.debug("Delete Cache entry for all user defined authenticators of tenant id: " + tenantId);
-        }
+        LOG.debug("Delete Cache entry for all user defined local authenticators of tenant id: " + tenantId);
 
         return authenticatorMgtFacade.updateUserDefinedLocalAuthenticator(
                 existingAuthenticatorConfig, newAuthenticatorConfig, tenantId);
@@ -110,24 +104,16 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         AuthenticatorCacheEntry entry = authenticatorCache.getValueFromCache(cacheKey, tenantId);
 
         if (entry != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Cache entry found for authenticator %s.", authenticatorConfigName));
-            }
+            LOG.debug("Cache entry found for authenticator " + authenticatorConfigName);
             return entry.getAuthenticatorConfig();
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format(
-                    "Cache entry not found for authenticator %s. Fetching from DB.", authenticatorConfigName));
-        }
+        LOG.debug("Cache entry not found for authenticator " + authenticatorConfigName + ". Fetching from DB.");
         UserDefinedLocalAuthenticatorConfig authenticatorConfig = authenticatorMgtFacade
                 .getUserDefinedLocalAuthenticator(authenticatorConfigName, tenantId);
 
         authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(authenticatorConfig), tenantId);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format(
-                    "Entry fetched from DB for authenticator %s. Adding cache entry.", authenticatorConfigName));
-        }
+        LOG.debug("Entry fetched from DB for authenticator " + authenticatorConfigName + ". Adding cache entry.");
         return authenticatorConfig;
     }
 
@@ -162,11 +148,11 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
                 userDefinedLocalAuthenticatorsCache.getValueFromCache(cacheKey, tenantId);
 
         if (entry != null) {
-            LOG.debug("Cache entry found for all user defined authenticators of tenant id: " + tenantId);
+            LOG.debug("Cache entry found for all user defined local authenticators of tenant id: " + tenantId);
             return entry.getUserDefinedLocalAuthenticators();
         }
 
-        LOG.debug("Cache entry not found for all user defined authenticators of tenant id: " + tenantId +
+        LOG.debug("Cache entry not found for all user defined local authenticators of tenant id: " + tenantId +
                 ". Fetching from DB.");
         List<UserDefinedLocalAuthenticatorConfig> userDefinedLocalAuthenticators =
                 authenticatorMgtFacade.getAllUserDefinedLocalAuthenticators(tenantId);
@@ -174,7 +160,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         if (userDefinedLocalAuthenticators != null) {
             userDefinedLocalAuthenticatorsCache.addToCache(cacheKey,
                     new UserDefinedLocalAuthenticatorsCacheEntry(userDefinedLocalAuthenticators), tenantId);
-            LOG.debug("Entry fetched from DB for all user defined authenticators of tenant id: " + tenantId +
+            LOG.debug("Entry fetched from DB for all user defined local authenticators of tenant id: " + tenantId +
                     ". Adding cache entry.");
         }
         return userDefinedLocalAuthenticators;
@@ -185,12 +171,10 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
         authenticatorCache.clearCacheEntry(new AuthenticatorCacheKey(authenticatorConfigName), tenantId);
+        LOG.debug("Delete cache entry of deleting authenticator " + authenticatorConfigName);
         userDefinedLocalAuthenticatorsCache.clearCacheEntry(new UserDefinedLocalAuthenticatorsCacheKey(tenantId),
                 tenantId);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Delete cache entry of deleting authenticator %s.", authenticatorConfigName));
-            LOG.debug("Delete Cache entry for all user defined authenticators of tenant id: " + tenantId);
-        }
+        LOG.debug("Delete Cache entry for all user defined authenticators of tenant id: " + tenantId);
         authenticatorMgtFacade.deleteUserDefinedLocalAuthenticator(authenticatorConfigName, authenticatorConfig,
                 tenantId);
     }
