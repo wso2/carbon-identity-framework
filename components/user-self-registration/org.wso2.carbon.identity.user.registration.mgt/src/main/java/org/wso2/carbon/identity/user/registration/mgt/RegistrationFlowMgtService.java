@@ -18,14 +18,22 @@
 
 package org.wso2.carbon.identity.user.registration.mgt;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.wso2.carbon.identity.user.registration.mgt.adapter.FlowConvertor;
 import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAO;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
+import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
 
 /**
  * This class is responsible for managing the registration flow.
@@ -53,7 +61,7 @@ public class RegistrationFlowMgtService {
     public void addRegistrationFlow(RegistrationFlowDTO flowDTO, int tenantID) {
 
         try {
-            RegistrationFlowConfig flowConfig = FlowConvertor.getSequence(flowDTO);
+            RegistrationFlowConfig flowConfig = FlowConvertor.convert(flowDTO);
             RegistrationFlowDAO.getInstance().addRegistrationFlow(flowConfig, tenantID, "default_flow", true );
         } catch (RegistrationFrameworkException e) {
             throw new RuntimeException(e);
