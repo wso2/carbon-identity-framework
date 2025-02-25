@@ -30,9 +30,9 @@ import org.wso2.carbon.identity.user.registration.mgt.RegistrationFlowMgtService
 @Component(
         name = "user.registration.flow.mgt.component",
         immediate = true)
-public class RegistrationFlowMgtComponent {
+public class RegistrationFlowMgtServiceComponent {
 
-    private static final Log LOG = LogFactory.getLog(RegistrationFlowMgtComponent.class);
+    private static final Log LOG = LogFactory.getLog(RegistrationFlowMgtServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {

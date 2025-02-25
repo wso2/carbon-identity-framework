@@ -73,6 +73,9 @@ public class DataDTO implements Serializable {
         this.url = url;
     }
 
+    /**
+     * Builder class to build {@link DataDTO} objects.
+     */
     public static class Builder {
 
         private final List<ComponentDTO> components = new ArrayList<>();

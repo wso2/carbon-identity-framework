@@ -25,40 +25,10 @@ public class Constants {
 
     public static final String EXECUTOR_FOR_USER_ONBOARDING = "UserOnboardingExecutor";
     public static final String EXECUTOR_FOR_PROMPT = "ViewPromptExecutor";
-
     public static final String COMPLETE = "COMPLETE";
+    public static final String DEFAULT_FLOW_NAME = "defaultFlow";
+    private Constants() {
 
-    /**
-     * Constants for the node types.
-     */
-    public static class NodeTypes {
-
-        public static final String DECISION = "DECISION";
-        public static final String TASK_EXECUTION = "TASK_EXECUTION";
-    }
-
-    /**
-     * Constants for the step types.
-     */
-    public static class StepTypes {
-
-        public static final String VIEW = "VIEW";
-        public static final String REDIRECTION = "REDIRECTION";
-    }
-
-    public static class ComponentTypes {
-
-        public static final String FORM = "FORM";
-        public static final String BUTTON = "BUTTON";
-    }
-
-    /**
-     * Constants for the action types.
-     */
-    public static class ActionTypes {
-
-        public static final String EXECUTOR = "EXECUTOR";
-        public static final String NEXT = "NEXT";
     }
 
     public enum ErrorMessages {
@@ -71,7 +41,7 @@ public class Constants {
                                     "Unexpected server error while retrieving the default flow from database in " +
                                             "tenant, %s"),
 
-        ERROR_CORE_SERIALIZE_PAGE_CONTENT("65003", "Error while serializing the page content.",
+        ERROR_CODE_SERIALIZE_PAGE_CONTENT("65003", "Error while serializing the page content.",
                                           "Unexpected server error while serializing the page content for step %s" +
                                                   " in tenant, %s"),
         ERROR_CODE_INVALID_NODE("65004", "Node id not found.", "Could not resolve a valid node with id, %s to create " +
@@ -98,9 +68,10 @@ public class Constants {
         ERROR_CODE_INVALID_NEXT_STEP("600009", "Invalid next step configuration.", "Cannot resolve a step for the " +
                 "next id, %s."),
         ERROR_CODE_ACTION_DATA_NOT_FOUND("60010", "Action data not found.",
-                                       "The step, %s of type redirection must have action defined"),
+                                         "The step, %s of type redirection must have action defined"),
         ERROR_CODE_INVALID_ACTION_TYPE("60011", "Invalid action type.",
-                                      "The action type, %s is not supported for step, %s of type redirection."),;
+                                       "The action type, %s is not supported for step, %s of type redirection."),
+        ;
 
         private static final String ERROR_PREFIX = "RFM";
         private final String code;
@@ -133,6 +104,55 @@ public class Constants {
         public String toString() {
 
             return code + ":" + message;
+        }
+    }
+
+    /**
+     * Constants for the node types.
+     */
+    public static class NodeTypes {
+
+        public static final String DECISION = "DECISION";
+        public static final String TASK_EXECUTION = "TASK_EXECUTION";
+
+        private NodeTypes() {
+
+        }
+    }
+
+    /**
+     * Constants for the step types.
+     */
+    public static class StepTypes {
+
+        public static final String VIEW = "VIEW";
+        public static final String REDIRECTION = "REDIRECTION";
+
+        private StepTypes() {
+
+        }
+    }
+
+    public static class ComponentTypes {
+
+        public static final String FORM = "FORM";
+        public static final String BUTTON = "BUTTON";
+
+        private ComponentTypes() {
+
+        }
+    }
+
+    /**
+     * Constants for the action types.
+     */
+    public static class ActionTypes {
+
+        public static final String EXECUTOR = "EXECUTOR";
+        public static final String NEXT = "NEXT";
+
+        private ActionTypes() {
+
         }
     }
 }

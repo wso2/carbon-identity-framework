@@ -18,14 +18,16 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * This class is responsible for holding the registration flow configuration.
  */
-public class RegistrationFlowConfig {
+public class RegistrationGraphConfig implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final Map<String, NodeConfig> nodeConfigs = new HashMap<>();
     private final Map<String, StepDTO> nodePageMappings = new HashMap<>();
     private String id;

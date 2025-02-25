@@ -25,6 +25,10 @@ import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServ
 
 public class RegistrationMgtUtils {
 
+    private RegistrationMgtUtils() {
+
+    }
+
     /**
      * Handle the registration flow management server exceptions.
      *

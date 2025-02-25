@@ -71,25 +71,28 @@ public class ActionDTO implements Serializable {
         this.nextId = nextId;
     }
 
+    /**
+     * Builder class to build {@link ActionDTO} objects.
+     */
     public static class Builder {
 
         private String type;
         private ExecutorDTO executor;
         private String nextId;
 
-        public Builder setType(String type) {
+        public Builder type(String type) {
 
             this.type = type;
             return this;
         }
 
-        public Builder setExecutor(ExecutorDTO executor) {
+        public Builder executor(ExecutorDTO executor) {
 
             this.executor = executor;
             return this;
         }
 
-        public Builder setNextId(String nextId) {
+        public Builder nextId(String nextId) {
 
             this.nextId = nextId;
             return this;
