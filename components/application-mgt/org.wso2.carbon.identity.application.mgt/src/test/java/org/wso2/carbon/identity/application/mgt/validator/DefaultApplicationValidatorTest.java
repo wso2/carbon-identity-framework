@@ -555,7 +555,7 @@ public class DefaultApplicationValidatorTest {
     }
 
     @Test(description = "Validate the success scenario of discoverable groups validation")
-    private void testValidateDiscoverableGroupsSuccess() throws IdentityApplicationManagementException {
+    public void testValidateDiscoverableGroupsSuccess() throws IdentityApplicationManagementException {
 
         validateDiscoverableGroupsCommon((sp) -> {
             when(mockAbstractUserStoreManager.getSecondaryUserStoreManager(DEFAULT_USER_STORE_DOMAIN)).thenReturn(
@@ -570,6 +570,27 @@ public class DefaultApplicationValidatorTest {
                         applicationValidator.validateApplication(sp, SUPER_TENANT_DOMAIN_NAME, USERNAME);
                 assertEquals(validationErrors.size(), 0);
             } catch (IdentityApplicationManagementException | UserStoreException e) {
+                fail("Unexpected Exception occurred.", e);
+            }
+        });
+    }
+
+    @Test(description = "Validate the success scenario for null or empty discoverable groups validation")
+    public void testValidateEmptyDiscoverableGroupsSuccess() throws IdentityApplicationManagementException {
+
+        validateDiscoverableGroupsCommon((sp) -> {
+            when(mockAbstractUserStoreManager.getSecondaryUserStoreManager(DEFAULT_USER_STORE_DOMAIN)).thenReturn(
+                    mockAbstractUserStoreManager);
+            ApplicationValidator applicationValidator = new DefaultApplicationValidator();
+            try {
+                sp.setDiscoverableGroups(null);
+                List<String> validationErrors =
+                        applicationValidator.validateApplication(sp, SUPER_TENANT_DOMAIN_NAME, USERNAME);
+                assertEquals(validationErrors.size(), 0);
+                sp.setDiscoverableGroups(new DiscoverableGroup[0]);
+                applicationValidator.validateApplication(sp, SUPER_TENANT_DOMAIN_NAME, USERNAME);
+                assertEquals(validationErrors.size(), 0);
+            } catch (IdentityApplicationManagementException e) {
                 fail("Unexpected Exception occurred.", e);
             }
         });

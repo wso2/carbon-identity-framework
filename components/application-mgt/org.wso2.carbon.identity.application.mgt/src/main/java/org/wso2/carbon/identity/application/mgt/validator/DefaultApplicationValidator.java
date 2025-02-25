@@ -216,7 +216,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
                                             String tenantDomain) throws IdentityApplicationManagementException {
 
         DiscoverableGroup[] discoverableGroups = serviceProvider.getDiscoverableGroups();
-        if (discoverableGroups != null) {
+        if (discoverableGroups != null && discoverableGroups.length > 0) {
             if (!serviceProvider.isDiscoverable()) {
                 validationErrors.add(DISCOVERABLE_GROUPS_FOR_NON_DISCOVERABLE_APPLICATION);
                 return;
