@@ -55,8 +55,8 @@ import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
-import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
 
 /**
@@ -66,10 +66,21 @@ public class GraphBuilder {
 
     private static final Log LOG = LogFactory.getLog(GraphBuilder.class);
 
-    public static RegistrationFlowConfig convert(RegistrationFlowDTO flowDTO)
+    private GraphBuilder() {
+
+    }
+
+    /**
+     * Converts the registration flow DTO to a registration graph configuration.
+     *
+     * @param flowDTO The registration flow DTO.
+     * @return The registration graph configuration.
+     * @throws RegistrationFrameworkException If an error occurs while converting the flow.
+     */
+    public static RegistrationGraphConfig convert(RegistrationFlowDTO flowDTO)
             throws RegistrationFrameworkException {
 
-        RegistrationFlowConfig flowConfig = new RegistrationFlowConfig();
+        RegistrationGraphConfig flowConfig = new RegistrationGraphConfig();
         flowConfig.setId(UUID.randomUUID().toString());
 
         Map<String, NodeConfig> nodeMap = new HashMap<>();
@@ -144,11 +155,13 @@ public class GraphBuilder {
             throws RegistrationFrameworkException {
 
         if (FORM.equals(component.getType())) {
-            LOG.debug("Processing form component: " + component.getId());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Processing form component: " + component.getId());
+            }
             for (ComponentDTO subComponent : component.getComponents()) {
                 processComponent(subComponent, stepNodes, stepId);
             }
-        } else if (BUTTON.equals(component.getType()) && component.getAction() != null) {
+        } else if (BUTTON.equals(component.getType())) {
             validateStepActions(component.getAction(), stepNodes, component.getId(), stepId);
             stepNodes.add(createNodeFromAction(component.getAction(), component.getId()));
         }
@@ -195,15 +208,21 @@ public class GraphBuilder {
 
         NodeConfig stepNode = null;
         if (tempNodesInStep.size() > 1) {
-            LOG.debug("Multiple nodes are derived from the step: " + step.getId() + ". Creating a decision node.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Multiple nodes are derived from the step: " + step.getId() + ". Creating a decision node.");
+            }
             NodeConfig decisionNode = createDecisionNode(step.getId());
             for (NodeConfig nodeConfig : tempNodesInStep) {
                 String nextNodeId =
                         COMPLETE.equals(nodeConfig.getNextNodeId()) ? endNodeId : nodeConfig.getNextNodeId();
                 if (TASK_EXECUTION.equals(nodeConfig.getType()) &&
                         !EXECUTOR_FOR_PROMPT.equals(nodeConfig.getExecutorConfig().getName())) {
-                    LOG.debug("A node with an execution found in the step. Therefore adding it to the node list with " +
-                                      "id, " + nodeConfig.getId());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(
+                                "A node with an execution found in the step. Therefore adding it to the node list " +
+                                        "with " +
+                                        "id, " + nodeConfig.getId());
+                    }
                     nodeConfig.setNextNodeId(null);
                     nodeMap.put(nodeConfig.getId(), nodeConfig);
                     nodeMappings.add(new NodeEdge(nodeConfig.getId(), nextNodeId, null));
@@ -215,7 +234,9 @@ public class GraphBuilder {
             }
             stepNode = decisionNode;
         } else if (tempNodesInStep.size() == 1) {
-            LOG.debug("Only one node derived from the step: " + step.getId() + ". Adding it to the node list.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Only one node derived from the step: " + step.getId() + ". Adding it to the node list.");
+            }
 
             NodeConfig tempNode = tempNodesInStep.get(0);
 
@@ -231,10 +252,13 @@ public class GraphBuilder {
         return stepNode;
     }
 
-    private static void setFirstNodeIfNeeded(RegistrationFlowConfig flowConfig, NodeConfig nodeConfig) {
+    private static void setFirstNodeIfNeeded(RegistrationGraphConfig flowConfig, NodeConfig nodeConfig) {
 
         if (flowConfig.getFirstNodeId() == null) {
-            LOG.debug("Setting node: " + nodeConfig.getId() + " as the first node in the flow " + flowConfig.getId());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(
+                        "Setting node: " + nodeConfig.getId() + " as the first node in the flow " + flowConfig.getId());
+            }
             flowConfig.setFirstNodeId(nodeConfig.getId());
             nodeConfig.setFirstNode(true);
         }
@@ -264,7 +288,9 @@ public class GraphBuilder {
                 .type(TASK_EXECUTION)
                 .executorConfig(executorDTO)
                 .build();
-        LOG.debug("Created a task execution node " + id + " with executor " + executorDTO.getName() + ".");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created a task execution node " + id + " with executor " + executorDTO.getName() + ".");
+        }
         return node;
     }
 
@@ -274,7 +300,9 @@ public class GraphBuilder {
                 .id(id)
                 .type(DECISION)
                 .build();
-        LOG.debug("Created a decision node " + id + ".");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created a decision node " + id + ".");
+        }
         return nodeConfig;
     }
 
@@ -285,7 +313,9 @@ public class GraphBuilder {
                 .type(TASK_EXECUTION)
                 .executorConfig(new ExecutorDTO(Constants.EXECUTOR_FOR_USER_ONBOARDING))
                 .build();
-        LOG.debug("Created a node with id " + nodeConfig.getId() + " for user onboarding.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created a node with id " + nodeConfig.getId() + " for user onboarding.");
+        }
         return nodeConfig;
     }
 }

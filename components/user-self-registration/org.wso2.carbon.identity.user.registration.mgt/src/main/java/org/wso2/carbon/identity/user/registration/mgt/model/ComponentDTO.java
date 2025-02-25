@@ -123,6 +123,9 @@ public class ComponentDTO implements Serializable {
         this.components = components;
     }
 
+    /**
+     * Builder class to build {@link ComponentDTO} objects.
+     */
     public static class Builder {
 
         private Map<String, Object> configs = new HashMap<>();

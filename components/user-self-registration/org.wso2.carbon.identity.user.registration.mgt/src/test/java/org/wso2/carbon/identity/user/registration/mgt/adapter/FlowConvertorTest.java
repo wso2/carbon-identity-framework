@@ -18,21 +18,6 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.adapter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.testng.annotations.Test;
-import org.wso2.carbon.identity.user.registration.mgt.Constants;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.ExecutorDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
-import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
-
 public class FlowConvertorTest {
 
 //    public static RegistrationFlowDTO createSampleRegistrationFlow2() {
