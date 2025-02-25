@@ -23,7 +23,6 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.ActionTyp
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.COMPLETE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.BUTTON;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ComponentTypes.FORM;
-import static org.wso2.carbon.identity.user.registration.mgt.Constants.EXECUTOR_FOR_PROMPT;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_ACTION_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_COMPONENT_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_INFO_NOT_FOUND;
@@ -35,6 +34,7 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMess
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_NEXT_ACTION_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
@@ -180,8 +180,7 @@ public class GraphBuilder {
             if (action.getExecutor() == null) {
                 throw handleClientException(ERROR_CODE_EXECUTOR_INFO_NOT_FOUND, id);
             }
-            if (stepNodes.stream().anyMatch(nodeConfig -> (TASK_EXECUTION.equals(nodeConfig.getType())) &&
-                    !EXECUTOR_FOR_PROMPT.equals(nodeConfig.getExecutorConfig().getName()))) {
+            if (stepNodes.stream().anyMatch(nodeConfig -> (TASK_EXECUTION.equals(nodeConfig.getType())))) {
                 throw handleClientException(ERROR_CODE_MULTIPLE_STEP_EXECUTORS, stepId);
             }
         }
@@ -192,7 +191,7 @@ public class GraphBuilder {
 
         NodeConfig tempNodeInComponent;
         if (NEXT.equals(action.getType())) {
-            tempNodeInComponent = createTaskExecutionNode(componentId, new ExecutorDTO(EXECUTOR_FOR_PROMPT));
+            tempNodeInComponent = createPagePromptNode(componentId);
         } else if (EXECUTOR.equals(action.getType())) {
             tempNodeInComponent = createTaskExecutionNode(componentId, action.getExecutor());
         } else {
@@ -215,13 +214,10 @@ public class GraphBuilder {
             for (NodeConfig nodeConfig : tempNodesInStep) {
                 String nextNodeId =
                         COMPLETE.equals(nodeConfig.getNextNodeId()) ? endNodeId : nodeConfig.getNextNodeId();
-                if (TASK_EXECUTION.equals(nodeConfig.getType()) &&
-                        !EXECUTOR_FOR_PROMPT.equals(nodeConfig.getExecutorConfig().getName())) {
+                if (TASK_EXECUTION.equals(nodeConfig.getType())) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(
-                                "A node with an execution found in the step. Therefore adding it to the node list " +
-                                        "with " +
-                                        "id, " + nodeConfig.getId());
+                        LOG.debug("A node with an execution found in the step. Therefore adding it to the node list " +
+                                          "with id, " + nodeConfig.getId());
                     }
                     nodeConfig.setNextNodeId(null);
                     nodeMap.put(nodeConfig.getId(), nodeConfig);
@@ -315,6 +311,18 @@ public class GraphBuilder {
                 .build();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Created a node with id " + nodeConfig.getId() + " for user onboarding.");
+        }
+        return nodeConfig;
+    }
+
+    private static NodeConfig createPagePromptNode(String id) {
+
+        NodeConfig nodeConfig = new NodeConfig.Builder()
+                .id(id)
+                .type(PROMPT_ONLY)
+                .build();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created a node with id " + nodeConfig.getId() + " to prompt a page.");
         }
         return nodeConfig;
     }
