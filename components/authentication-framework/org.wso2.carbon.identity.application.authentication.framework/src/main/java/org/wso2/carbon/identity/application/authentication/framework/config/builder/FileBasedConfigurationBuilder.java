@@ -1028,6 +1028,14 @@ public class FileBasedConfigurationBuilder {
             enabled = Boolean.parseBoolean(enabledAttr.getAttributeValue());
         }
 
+
+        OMAttribute amrAttr = authenticatorConfigElem.getAttribute(new QName(FrameworkConstants.Config
+                .ATTR_AUTHENTICATOR_AMR));
+        String amr = amrAttr.getAttributeValue();
+        if (amr.isEmpty()){
+            amr = authenticatorName;
+        }
+
         // read the config parameters
         Map<String, String> parameterMap = new HashMap<>();
 
@@ -1046,7 +1054,8 @@ public class FileBasedConfigurationBuilder {
             parameterMap.put(paramNameAttr.getAttributeValue(), paramElem.getText());
         }
 
-        AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig(authenticatorName, enabled, parameterMap);
+        AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig(authenticatorName, enabled, amr,
+                parameterMap);
         authenticatorConfig.setApplicationAuthenticator(ApplicationAuthenticatorManager.getInstance()
                 .getSystemDefinedAuthenticatorByName(authenticatorName));
 
