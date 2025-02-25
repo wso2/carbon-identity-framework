@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
+import java.io.Serializable;
+
 /**
  * DTO class for Step.
  */
-public class StepDTO {
+public class StepDTO implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private String id;
     private String type;
     private double coordinateX;
@@ -112,6 +115,9 @@ public class StepDTO {
         this.data = data;
     }
 
+    /**
+     * Builder class to build {@link StepDTO}.
+     */
     public static class Builder {
 
         private String id;

@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
+import java.io.Serializable;
+
 /**
  * DTO class for NodeEdge in the registration graph.
  */
-public class NodeEdge {
+public class NodeEdge implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     String sourceNodeId;
     String targetNodeId;
     String triggeringActionId;

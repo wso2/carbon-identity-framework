@@ -18,21 +18,23 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * This class is responsible for holding the node configuration.
  */
-public class NodeConfig {
+public class NodeConfig implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final List<NodeEdge> edges = new ArrayList<>();
     private String id;
     private String type;
     private boolean isFirstNode;
-    private String nextNodeId = null;
-    private String previousNodeId = null;
-    private ExecutorDTO executorConfig = null;
+    private String nextNodeId;
+    private String previousNodeId;
+    private ExecutorDTO executorConfig;
 
     public NodeConfig(Builder builder) {
 
