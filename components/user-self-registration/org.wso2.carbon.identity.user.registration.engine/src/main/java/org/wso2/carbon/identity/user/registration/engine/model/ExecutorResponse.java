@@ -32,7 +32,6 @@ public class ExecutorResponse {
     private Map<String, String> userCredentials;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
-    private Message message;
 
     public ExecutorResponse() {
 
@@ -61,16 +60,6 @@ public class ExecutorResponse {
     public void setRequiredData(List<String> requiredData) {
 
         this.requiredData = requiredData;
-    }
-
-    public Message getMessage() {
-
-        return message;
-    }
-
-    public void setMessage(Message message) {
-
-        this.message = message;
     }
 
     public Map<String, Object> getUpdatedUserClaims() {

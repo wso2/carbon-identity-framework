@@ -19,13 +19,18 @@
 package org.wso2.carbon.identity.user.registration.engine.executor;
 
 import java.util.List;
+import org.wso2.carbon.identity.user.registration.engine.model.ExecutorResponse;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 
 /**
- * A wrapper interface for all the action types of registration.
+ * Interface for the executor.
  */
 public interface Executor {
 
     String getName();
+
+    ExecutorResponse execute(RegistrationContext registrationRequest) throws RegistrationFrameworkException;
 
     List<String> getInitiationData();
 }

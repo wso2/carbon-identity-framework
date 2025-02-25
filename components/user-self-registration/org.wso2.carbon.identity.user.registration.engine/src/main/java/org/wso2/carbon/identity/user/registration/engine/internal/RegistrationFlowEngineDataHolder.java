@@ -30,49 +30,41 @@ import java.util.List;
 /**
  * Data holder for the User Registration Service.
  */
-public class UserRegistrationServiceDataHolder {
+public class RegistrationFlowEngineDataHolder {
 
     private static final List<Executor> executors = new ArrayList<>();
     private static final List<Node> nodes = new ArrayList<>();
-    private static ApplicationManagementService applicationManagementService;
-    private static RegistrationFlowMgtService registrationFlowMgtService;
-    private static RealmService realmService;
+    private RegistrationFlowMgtService registrationFlowMgtService;
+    private RealmService realmService;
+    private static final RegistrationFlowEngineDataHolder instance = new RegistrationFlowEngineDataHolder();
+
+    private RegistrationFlowEngineDataHolder() {
+
+    }
+
+    public static RegistrationFlowEngineDataHolder getInstance() {
+
+        return instance;
+    }
 
     /**
      * Get the list of registered executors.
      *
      * @return List of executors.
      */
-    public static List<Executor> getExecutors() {
+    public List<Executor> getExecutors() {
 
-        // TODO: 9/27/17 do the null check
         return executors;
     }
 
-    public static List<Node> getNodes() {
+    /**
+     * Get the list of registered nodes.
+     *
+     * @return List of nodes.
+     */
+    public List<Node> getNodes() {
 
         return nodes;
-    }
-
-    /**
-     * Get the registered ApplicationManagementService.
-     *
-     * @return  Application management service.
-     */
-    public static ApplicationManagementService getApplicationManagementService() {
-
-        // TODO: 9/27/17 do the null check
-        return applicationManagementService;
-    }
-
-    /**
-     * Set the application management service.
-     *
-     * @param appMgtService Application management service.
-     */
-    public static void setApplicationManagementService(ApplicationManagementService appMgtService) {
-
-        applicationManagementService = appMgtService;
     }
 
     /**
@@ -80,7 +72,7 @@ public class UserRegistrationServiceDataHolder {
      *
      * @return Realm service.
      */
-    public static RealmService getRealmService() {
+    public RealmService getRealmService() {
 
         return realmService;
     }
@@ -90,19 +82,28 @@ public class UserRegistrationServiceDataHolder {
      *
      * @param realmService  Realm service.
      */
-    public static void setRealmService(RealmService realmService) {
+    public void setRealmService(RealmService realmService) {
 
-        UserRegistrationServiceDataHolder.realmService = realmService;
+        this.realmService = realmService;
     }
 
-    public static RegistrationFlowMgtService getRegistrationFlowMgtService() {
+    /**
+     * Get the registration flow management service.
+     *
+     * @return  Registration flow management service.
+     */
+    public RegistrationFlowMgtService getRegistrationFlowMgtService() {
 
         return registrationFlowMgtService;
     }
 
-    public static void setRegistrationFlowMgtService(
-            RegistrationFlowMgtService registrationFlowMgtService) {
+    /**
+     * Set the registration flow management service.
+     *
+     * @param registrationFlowMgtService    Registration flow management service.
+     */
+    public void setRegistrationFlowMgtService(RegistrationFlowMgtService registrationFlowMgtService) {
 
-        UserRegistrationServiceDataHolder.registrationFlowMgtService = registrationFlowMgtService;
+        this.registrationFlowMgtService = registrationFlowMgtService;
     }
 }

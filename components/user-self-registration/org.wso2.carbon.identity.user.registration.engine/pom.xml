@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.8.13-SNAPSHOT</version>
+        <version>7.8.24-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -79,6 +79,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.registration.mgt</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
@@ -152,5 +153,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

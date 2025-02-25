@@ -18,40 +18,32 @@
 
 package org.wso2.carbon.identity.user.registration.engine.node;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_PROMPT_ONLY;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.Constants;
-import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.user.registration.engine.model.NodeResponse;
+import org.wso2.carbon.identity.user.registration.engine.model.Response;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
+import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_PROMPT_ONLY;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.EXECUTOR_FOR_PROMPT;
 
-/**
- * Node that would prompt a view associated with the node.
- */
-public class ViewPromptingNode implements Node {
-
-    private static final Log LOG = LogFactory.getLog(ViewPromptingNode.class);
+public class PagePromptNode implements Node {
 
     @Override
     public String getName() {
 
-        return Constants.NodeTypes.PROMPT;
+        return EXECUTOR_FOR_PROMPT;
     }
 
     @Override
-    public NodeResponse execute(RegistrationContext context, NodeConfig nodeConfig)
+    public Response execute(RegistrationContext context, NodeConfig nodeConfig)
             throws RegistrationFrameworkException {
 
-        return new NodeResponse(STATUS_PROMPT_ONLY);
+        return new Response.Builder().status(STATUS_PROMPT_ONLY).build();
     }
 
     @Override
-    public NodeResponse rollback(RegistrationContext context, NodeConfig nodeConfig)
+    public Response rollback(RegistrationContext context, NodeConfig nodeConfig)
             throws RegistrationFrameworkException {
 
-        LOG.debug("Rollback is not supported for TaskExecutionNode.");
         return null;
     }
 }

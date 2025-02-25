@@ -18,48 +18,53 @@
 
 package org.wso2.carbon.identity.user.registration.engine.executor.impl;
 
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_LOADING_USERSTORE_MANAGER;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ExecutorStatus.STATUS_USER_CREATED;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.PASSWORD;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationClientException;
+import org.wso2.carbon.identity.user.registration.engine.executor.Executor;
+import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
+import org.wso2.carbon.identity.user.registration.engine.model.ExecutorResponse;
+import org.wso2.carbon.identity.user.registration.engine.model.RegisteringUser;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
-import org.wso2.carbon.identity.user.registration.engine.executor.RegistrationExecutor;
-import org.wso2.carbon.identity.user.registration.engine.internal.UserRegistrationServiceDataHolder;
-import org.wso2.carbon.identity.user.registration.engine.model.ExecutorResponse;
-import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
-import org.wso2.carbon.identity.user.registration.engine.model.RegistrationRequestedUser;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_LOADING_USERSTORE_MANAGER;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_ONBOARDING_USER;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.PASSWORD;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
 
-public class UserOnboardingExecutor implements RegistrationExecutor {
+public class UserOnboardingExecutor implements Executor {
+
+    private static final Log LOG = LogFactory.getLog(UserOnboardingExecutor.class);
 
     @Override
     public ExecutorResponse execute(RegistrationContext context) throws RegistrationFrameworkException {
 
         String tenantDomain = context.getTenantDomain();
         updateUserProfile(context);
-        RegistrationRequestedUser user = context.getRegisteringUser();
-        UserStoreManager userStoreManager = getUserstoreManager(tenantDomain);
+        RegisteringUser user = context.getRegisteringUser();
+        UserStoreManager userStoreManager = getUserstoreManager(tenantDomain, context.getContextIdentifier());
 
         Map<String, String> credentials = user.getUserCredentials();
 
-        String password;
-        if (credentials.containsKey(PASSWORD)) {
-            password = credentials.get(PASSWORD);
-        } else {
-            password = String.valueOf(new DefaultPasswordGenerator().generatePassword());
-        }
+        String password =
+                credentials.getOrDefault(PASSWORD, String.valueOf(new DefaultPasswordGenerator().generatePassword()));
 
         Map<String, Object> claims = user.getClaims();
         Map<String, String> userClaims = new HashMap<>();
@@ -67,44 +72,32 @@ public class UserOnboardingExecutor implements RegistrationExecutor {
             userClaims.put(entry.getKey(), entry.getValue().toString());
         }
 
-        String username = Optional.ofNullable(user.getUsername())
-                .orElseGet(() -> userClaims.get("http://wso2.org/claims/username"));
+        String username = Optional.ofNullable(user.getUsername()).orElseGet(() -> userClaims.get(USERNAME_CLAIM_URI));
         if (username == null) {
-            throw new RegistrationClientException("Username is not provided.");
+            throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, context.getContextIdentifier());
         }
         user.setUsername(username);
 
         // TODO:  Identify the userdomain properly.
         try {
-            userStoreManager
-                    .addUser(IdentityUtil.addDomainToName(user.getUsername(), "PRIMARY"), password, null, userClaims,
-                             null);
+            userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), "PRIMARY"), password, null,
+                                     userClaims, null);
             String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
-//            Optional<String> userAssertion = RegistrationFrameworkUtils.getSignedUserAssertion(userid, context);
-            Optional<String> userAssertion = Optional.ofNullable(userid);
             context.setUserId(userid);
-            userAssertion.ifPresent(context::setUserAssertion);
-            return new ExecutorResponse(STATUS_COMPLETE);
+            return new ExecutorResponse(STATUS_USER_CREATED);
         } catch (UserStoreException e) {
-            throw new RegistrationServerException(ERROR_ONBOARDING_USER.getCode(),
-                                                  ERROR_ONBOARDING_USER.getMessage(),
-                                                  String.format(ERROR_ONBOARDING_USER.getDescription(),
-                                                                user.getUsername()),
-                                                  e);
+            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, context.getContextIdentifier());
         }
     }
 
-    private UserStoreManager getUserstoreManager(String tenantDomain) throws RegistrationFrameworkException {
+    private UserStoreManager getUserstoreManager(String tenantDomain, String flowId) throws RegistrationFrameworkException {
 
-        RealmService realmService = UserRegistrationServiceDataHolder.getRealmService();
+        RealmService realmService = RegistrationFlowEngineDataHolder.getInstance().getRealmService();
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         try {
             return realmService.getTenantUserRealm(tenantId).getUserStoreManager();
         } catch (UserStoreException e) {
-            throw new RegistrationServerException(ERROR_LOADING_USERSTORE_MANAGER.getCode(),
-                                                  ERROR_LOADING_USERSTORE_MANAGER.getMessage(),
-                                                  String.format(ERROR_LOADING_USERSTORE_MANAGER.getDescription(),
-                                                                tenantDomain));
+            throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, e, tenantDomain, flowId);
         }
     }
 
@@ -122,12 +115,13 @@ public class UserOnboardingExecutor implements RegistrationExecutor {
     @Override
     public String getName() {
 
-        return "user-onboarding-executor";
+        return Constants.EXECUTOR_FOR_USER_ONBOARDING;
     }
 
     @Override
     public List<String> getInitiationData() {
 
+        LOG.debug("Initiation data is not required for the executor: " + getName());
         return null;
     }
 }

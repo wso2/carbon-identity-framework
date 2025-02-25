@@ -18,21 +18,22 @@
 
 package org.wso2.carbon.identity.user.registration.engine;
 
+import java.util.Map;
+import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
+import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
-import org.wso2.carbon.identity.user.registration.engine.internal.UserRegistrationServiceDataHolder;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
-import org.wso2.carbon.identity.user.registration.engine.model.ExecutionState;
-import org.wso2.carbon.identity.user.registration.engine.model.InputData;
-import org.wso2.carbon.identity.user.registration.engine.model.NodeResponse;
-import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
-import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFrameworkUtils;
-
-import java.util.UUID;
-
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_SEQUENCE_NOT_DEFINED_FOR_ORG;
+import org.wso2.carbon.user.api.UserStoreException;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 
 /**
  * Service class to handle the user registration flow.
@@ -47,41 +48,41 @@ public class UserRegistrationFlowService {
 
     }
 
-    // todo why osgi services?
     public static UserRegistrationFlowService getInstance() {
 
         return instance;
     }
 
     /**
-     * Initiates the registration flow for the given application.
+     * Initiates the registration flow for the given tenant domain.
      *
-     * @param tenantDomain Tenant Domain.
-     * @return ExecutionState.
+     * @param tenantDomain Tenant domain.
+     * @return RegistrationStep.
      * @throws RegistrationFrameworkException if something goes wrong while initiating the registration flow.
      */
-    public ExecutionState initiateFlow(String tenantDomain) throws RegistrationFrameworkException {
+    public RegistrationStep initiateRegistrationFlow(String tenantDomain) throws RegistrationFrameworkException {
 
         String flowId = UUID.randomUUID().toString();
         RegistrationContext context = new RegistrationContext();
-        RegistrationFlowConfig flowConfig =
-                UserRegistrationServiceDataHolder.getRegistrationFlowMgtService().getRegistrationFlowConfig(superTenantDomain);
-        context.setTenantDomain(tenantDomain);
-        context.setRegSequence(flowConfig);
-        context.setContextIdentifier(flowId);
+        try {
+            int tenantId = RegistrationFlowEngineDataHolder.getInstance().getRealmService().getTenantManager()
+                    .getTenantId(tenantDomain);
+            RegistrationFlowConfig flowConfig =
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationFlowMgtService()
+                            .getRegistrationFlowConfig(tenantId);
 
-        if (flowConfig.getFirstNodeId() == null) {
-            throw new RegistrationServerException(ERROR_SEQUENCE_NOT_DEFINED_FOR_ORG.getCode(),
-                                                  ERROR_SEQUENCE_NOT_DEFINED_FOR_ORG.getMessage(),
-                                                  String.format(ERROR_SEQUENCE_NOT_DEFINED_FOR_ORG.getDescription(),
-                                                                tenantDomain));
+            if (flowConfig == null) {
+                throw handleServerException(ERROR_CODE_REG_FLOW_NOT_FOUND, tenantDomain);
+            }
+            context.setTenantDomain(tenantDomain);
+            context.setRegGraph(flowConfig);
+            context.setContextIdentifier(flowId);
+            RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context, flowConfig);
+            RegistrationFlowEngineUtils.addRegContextToCache(context);
+            return step;
+        } catch (UserStoreException e) {
+            throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         }
-
-        NodeResponse response = RegistrationFlowEngine.getInstance().execute(context, flowConfig);
-        // todo implement the context and profile storing layer.
-        RegistrationFrameworkUtils.addRegContextToCache(context);
-
-        return new ExecutionState(flowId, response);
     }
 
     /**
@@ -92,52 +93,17 @@ public class UserRegistrationFlowService {
      * @return ExecutionState.
      * @throws RegistrationFrameworkException if something goes wrong while continuing the registration flow.
      */
-    public ExecutionState continueFlow(String flowId, InputData inputs)
+    public RegistrationStep continueFlow(String flowId, Map<String, String> inputs)
             throws RegistrationFrameworkException {
 
-        RegistrationContext context = RegistrationFrameworkUtils.retrieveRegContextFromCache(flowId);
-        RegistrationFlowConfig flowConfig = context.getRegSequence();
-//        if (!validateInputs(inputs.getUserInput(), context)) {
-//            throw new RegistrationFrameworkException("Invalid inputs provided.");
-//        }
-        NodeResponse response = RegistrationFlowEngine.getInstance().execute(context, flowConfig);
-        ExecutionState state = new ExecutionState(flowId, response);
-
-        // todo implement the context and profile storing layer.
-        RegistrationFrameworkUtils.addRegContextToCache(context);
-
-        // todo include the details for UI rendering.
-        return state;
+        RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
+        RegistrationFlowConfig flowConfig = context.getRegGraph();
+        RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context, flowConfig);
+        if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
+            RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
+        } else {
+            RegistrationFlowEngineUtils.addRegContextToCache(context);
+        }
+        return step;
     }
-
-//    private boolean validateInputs(Map<String, String> inputs, RegistrationContext context) {
-//
-//        if (context.getRequiredMetaData() == null) {
-//            return true;
-//        }
-//        if (context.getRequiredMetaData() != null && (inputs == null || inputs.isEmpty())) {
-//            return false;
-//        }
-//
-//        for (InputMetaData metaData : context.getRequiredMetaData()) {
-//
-//            if (metaData.isMandatory() && inputs.get(metaData.getName()) == null) {
-//                return false;
-//            }
-//
-//            if (metaData.getValidationRegex() != null &&
-//                    !inputs.get(metaData.getName()).matches(metaData.getValidationRegex())) {
-//                return false;
-//            }
-//
-////            // Return false if the given option is not in the list of provided options.
-////            List<Object> providedOptions = metaData.getOptions();
-////            if (providedOptions != null && !providedOptions.isEmpty() &&
-////                    !providedOptions.contains(inputs.get(metaData.getName()))) {
-////                return false;
-////            }
-//        }
-//
-//        return true;
-//    }
 }

@@ -20,22 +20,28 @@ package org.wso2.carbon.identity.user.registration.engine;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
-import org.wso2.carbon.identity.user.registration.engine.internal.UserRegistrationServiceDataHolder;
+import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
+import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
-import org.wso2.carbon.identity.user.registration.engine.model.NodeResponse;
+import org.wso2.carbon.identity.user.registration.engine.model.Response;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.node.Node;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_ATTR_REQUIRED;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_EXTERNAL_REDIRECTION;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_FLOW_COMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_NODE_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NODE_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_PROMPT_ONLY;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_USER_CREATED;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_USER_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 
+/**
+ * Engine to execute the registration flow.
+ */
 public class RegistrationFlowEngine {
 
     private static final Log LOG = LogFactory.getLog(RegistrationFlowEngine.class);
@@ -58,53 +64,38 @@ public class RegistrationFlowEngine {
      * @return Node response.
      * @throws RegistrationFrameworkException If an error occurs while executing the registration sequence.
      */
-    public NodeResponse execute(RegistrationContext context, RegistrationFlowConfig sequence) throws RegistrationFrameworkException {
+    public RegistrationStep execute(RegistrationContext context, RegistrationFlowConfig graph)
+            throws RegistrationFrameworkException {
+
+        String tenantDomain = context.getTenantDomain();
+        if (graph.getFirstNodeId() == null) {
+            throw handleServerException(ERROR_CODE_FIRST_NODE_NODE_FOUND, graph.getId(), tenantDomain);
+        }
 
         NodeConfig currentNode = context.getCurrentNode();
         if (currentNode == null) {
             LOG.debug("Current node is not set. Setting the first node as the current node and starting the " +
                               "registration sequence.");
-            String firstNodeId = sequence.getFirstNodeId();
-            currentNode = sequence.getNodeConfigs().get(firstNodeId);
+            currentNode = graph.getNodeConfigs().get(graph.getFirstNodeId());
         }
 
         while (currentNode != null) {
 
-            NodeResponse nodeResponse = triggerNode(currentNode, context);
+            Response nodeResponse = triggerNode(currentNode, context);
 
-            if (STATUS_USER_CREATED.equals(nodeResponse.getStatus())) {
-                if (LOG.isDebugEnabled()){
-                    LOG.debug("User is successfully registered. Move to next node if there are any.");
-                }
-                currentNode = moveToNextNode(sequence, currentNode);
-            } else if (STATUS_PROMPT_ONLY.equals(nodeResponse.getStatus())) {
-                if (LOG.isDebugEnabled()){
-                    LOG.debug("Prompt only node is completed. Move to next node if there are any.");
-                }
-                nodeResponse.setPageDTO(sequence.getNodePageMappings().get(currentNode.getUuid()));
-                nodeResponse.setStatus(STATUS_USER_INPUT_REQUIRED);
-                currentNode = moveToNextNode(sequence, currentNode);
-                context.setCurrentNode(currentNode);
-                return nodeResponse;
-            }else if (!STATUS_NODE_COMPLETE.equals(nodeResponse.getStatus())) {
-                context.setCurrentNode(currentNode);
-                if (LOG.isDebugEnabled()){
-                    LOG.debug("User input is required for the current node: " + currentNode.getUuid());
-                }
-                if (STATUS_EXTERNAL_REDIRECTION.equals(nodeResponse.getStatus())) {
-                    nodeResponse.setStatus(STATUS_EXTERNAL_REDIRECTION);
-                    // TODO: Implement the external redirection sumbit logic.
-                    context.setExecutorStatus(STATUS_ATTR_REQUIRED);
-                } else {
-                    nodeResponse.setPageDTO(sequence.getNodePageMappings().get(currentNode.getUuid()));
-                    nodeResponse.setStatus(STATUS_USER_INPUT_REQUIRED);
-                }
-                return nodeResponse;
+            if (STATUS_PROMPT_ONLY.equals(nodeResponse.getStatus())) {
+                currentNode = moveToNextNode(graph, currentNode);
+                return resolveStepDetailsForPrompt(graph, currentNode, context);
+            } else if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && VIEW.equals(nodeResponse.getType())) {
+                return resolveStepDetailsForPrompt(graph, currentNode, context);
+            } else if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
+                    REDIRECTION.equals(nodeResponse.getType())) {
+                return resolveStepDetailsForRedirection(context, nodeResponse);
             } else {
-                currentNode = moveToNextNode(sequence, currentNode);
+                currentNode = moveToNextNode(graph, currentNode);
             }
         }
-        return handleExitLogic(context);
+        return new RegistrationStep.Builder().flowStatus(STATUS_COMPLETE).build();
     }
 
     /**
@@ -118,40 +109,64 @@ public class RegistrationFlowEngine {
         String nextNodeId = currentNode.getNextNodeId();
         NodeConfig nextNode = regConfig.getNodeConfigs().get(nextNodeId);
         if (nextNode != null) {
-            if(LOG.isDebugEnabled()) {
-                LOG.debug("Current node " + currentNode.getUuid() + " is completed. "
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Current node " + currentNode.getId() + " is completed. "
                                   + "Moving to the next node: " + nextNodeId
-                                  + " and setting " + currentNode.getUuid() + " as the previous node.");
+                                  + " and setting " + currentNode.getId() + " as the previous node.");
             }
-            nextNode.setPreviousNodeId(currentNode.getUuid());
+            nextNode.setPreviousNodeId(currentNode.getId());
         }
         return nextNode;
     }
 
-    // TODO: Implement the exit logic of the registration flow.
-    private NodeResponse handleExitLogic(RegistrationContext context) {
-
-        NodeResponse response = new NodeResponse(STATUS_FLOW_COMPLETE);
-        if (context.getUserAssertion() != null ) {
-            response.setUserAssertion(context.getUserAssertion());
-        }
-        return response;
-    }
-
-    private NodeResponse triggerNode(NodeConfig nodeConfig, RegistrationContext context)
+    /**
+     * Trigger the node.
+     *
+     * @param nodeConfig Node configuration.
+     * @param context    Registration context.
+     * @return Node response.
+     * @throws RegistrationFrameworkException If an error occurs while triggering the node.
+     */
+    private Response triggerNode(NodeConfig nodeConfig, RegistrationContext context)
             throws RegistrationFrameworkException {
 
         Node nodeImpl = null;
-        for (Node node : UserRegistrationServiceDataHolder.getNodes()) {
+        for (Node node : RegistrationFlowEngineDataHolder.getInstance().getNodes()) {
             if (nodeConfig.getType().equals(node.getName())) {
-                 nodeImpl = node;
+                nodeImpl = node;
                 break;
             }
         }
 
         if (nodeImpl == null) {
-            throw new RegistrationServerException("Unsupported node type: " + nodeConfig.getType());
+            throw handleServerException(ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(),
+                                        context.getRegGraph().getId(), context.getTenantDomain());
         }
         return nodeImpl.execute(context, nodeConfig);
+    }
+
+    private RegistrationStep resolveStepDetailsForPrompt(RegistrationFlowConfig graph, NodeConfig currentNode,
+                                                         RegistrationContext context) {
+
+        return new RegistrationStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus(STATUS_INCOMPLETE)
+                .stepType(VIEW)
+                .data(graph.getNodePageMappings().get(currentNode.getId()).getData())
+                .build();
+        // TODO: Implement the logic to validate the inputs in the page and required data by the executors.
+    }
+
+    private RegistrationStep resolveStepDetailsForRedirection(RegistrationContext context, Response response) {
+
+        // TODO: Implement logic to add required inputs after redirection.
+        return new RegistrationStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus(STATUS_INCOMPLETE)
+                .stepType(REDIRECTION)
+                .data(new DataDTO.Builder()
+                              .url(response.getAdditionalInfo().get("url"))
+                              .build())
+                .build();
     }
 }

@@ -18,34 +18,26 @@
 
 package org.wso2.carbon.identity.user.registration.engine.model;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_NEXT_ACTION_PENDING;
-
+/**
+ * This class is responsible for holding the registration context.
+ */
 public class RegistrationContext implements Serializable {
 
     private static final long serialVersionUID = 542871476395078667L;
-
-    // Constants introduced with graph execution.
+    private final Map<String, String> userInputData = new HashMap<>();
+    private final Map<String, Object> properties = new HashMap<>();
     private NodeConfig currentNode;
-    private RegistrationFlowConfig regSequence;
-    private RegistrationRequestedUser registeringUser = new RegistrationRequestedUser();
+    private RegistrationFlowConfig regGraph;
+    private RegisteringUser registeringUser = new RegisteringUser();
     private String tenantDomain;
     private String contextIdentifier;
-    private final Map<String, String> userInputData = new HashMap<>();
-    private String executorStatus = STATUS_NEXT_ACTION_PENDING;
-    private String userAssertion;
     private String userId;
-
-    // todo separate general and registration specific properties.
-    private final List<String> authenticatedMethods = new ArrayList<>();
-    private final Map<String, Object> properties = new HashMap<>();
 
     public NodeConfig getCurrentNode() {
 
@@ -57,14 +49,14 @@ public class RegistrationContext implements Serializable {
         this.currentNode = currentNode;
     }
 
-    public RegistrationFlowConfig getRegSequence() {
+    public RegistrationFlowConfig getRegGraph() {
 
-        return regSequence;
+        return regGraph;
     }
 
-    public void setRegSequence(RegistrationFlowConfig regSequence) {
+    public void setRegGraph(RegistrationFlowConfig regGraph) {
 
-        this.regSequence = regSequence;
+        this.regGraph = regGraph;
     }
 
     public Map<String, String> getUserInputData() {
@@ -97,22 +89,12 @@ public class RegistrationContext implements Serializable {
         this.tenantDomain = tenantDomain;
     }
 
-    public String getExecutorStatus() {
-
-        return executorStatus;
-    }
-
-    public void setExecutorStatus(String executorStatus) {
-
-        this.executorStatus = executorStatus;
-    }
-
-    public RegistrationRequestedUser getRegisteringUser() {
+    public RegisteringUser getRegisteringUser() {
 
         return registeringUser;
     }
 
-    public void setRegisteringUser(RegistrationRequestedUser registeringUser) {
+    public void setRegisteringUser(RegisteringUser registeringUser) {
 
         this.registeringUser = registeringUser;
     }
@@ -135,26 +117,6 @@ public class RegistrationContext implements Serializable {
     public void setProperty(String key, Object value) {
 
         this.properties.put(key, value);
-    }
-
-    public void addAuthenticatedMethod(String authenticator) {
-
-        this.authenticatedMethods.add(authenticator);
-    }
-
-    public List<String> getAuthenticatedMethods() {
-
-        return authenticatedMethods;
-    }
-
-    public String getUserAssertion() {
-
-        return userAssertion;
-    }
-
-    public void setUserAssertion(String userAssertion) {
-
-        this.userAssertion = userAssertion;
     }
 
     public String getUserId() {

@@ -18,19 +18,20 @@
 
 package org.wso2.carbon.identity.user.registration.engine.model;
 
-import org.wso2.carbon.identity.user.registration.engine.temp.RegistrationConstants;
-
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.USERNAME_CLAIM_URI;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RegistrationRequestedUser implements Serializable {
+/**
+ * This class is responsible for holding the user profile of the registering user.
+ */
+public class RegisteringUser implements Serializable {
 
     private static final long serialVersionUID = -1873658743998134877L;
-
-    private String username;
     private final Map<String, Object> claims = new HashMap<>();
     private final Map<String, String> userCredentials = new HashMap<>();
+    private String username;
 
     public String getUsername() {
 
@@ -40,8 +41,7 @@ public class RegistrationRequestedUser implements Serializable {
     public void setUsername(String username) {
 
         this.username = username;
-        // Update the username claim as well.
-        this.claims.put(RegistrationConstants.USERNAME_CLAIM_URI, username);
+        this.claims.put(USERNAME_CLAIM_URI, username);
     }
 
     public Map<String, Object> getClaims() {
