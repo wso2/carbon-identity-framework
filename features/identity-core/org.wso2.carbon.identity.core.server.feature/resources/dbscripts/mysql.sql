@@ -1609,7 +1609,7 @@ CREATE TABLE IDN_FLOW_NODE_MAPPING (
     NEXT_NODE_ID INT,                    -- References the next node
     TRIGGERING_ELEMENT VARCHAR(100),     -- Defines the UI/event element triggering the transition
     FOREIGN KEY (FLOW_NODE_ID) REFERENCES IDN_FLOW_NODE(ID) ON DELETE CASCADE,  -- Delete mappings when node is deleted
-    FOREIGN KEY (NEXT_NODE_ID) REFERENCES IDN_FLOW_NODE(ID) ON DELETE CASCADE   -- Delete dependent mappings
+    FOREIGN KEY (NEXT_NODE_ID) REFERENCES IDN_FLOW_NODE(ID)
 );
 
 CREATE TABLE IDN_FLOW_PAGE (

@@ -18,14 +18,15 @@
 
 package org.wso2.carbon.identity.user.registration.mgt;
 
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.DEFAULT_FLOW_NAME;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.user.registration.mgt.utils.GraphBuilder;
 import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAO;
+import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAOImpl;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
-import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
+import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
+import org.wso2.carbon.identity.user.registration.mgt.utils.GraphBuilder;
 
 /**
  * This class is responsible for managing the registration flow.
@@ -34,6 +35,7 @@ public class RegistrationFlowMgtService {
 
     private static final Log LOG = LogFactory.getLog(RegistrationFlowMgtService.class);
     private static final RegistrationFlowMgtService instance = new RegistrationFlowMgtService();
+    private static final RegistrationFlowDAO registrationFlowDAO = new RegistrationFlowDAOImpl();
 
     private RegistrationFlowMgtService() {
 
@@ -53,14 +55,20 @@ public class RegistrationFlowMgtService {
     public void updateDefaultRegistrationFlow(RegistrationFlowDTO flowDTO, int tenantID)
             throws RegistrationFrameworkException {
 
-
-        RegistrationFlowConfig flowConfig = GraphBuilder.convert(flowDTO);
-        RegistrationFlowDAO.getInstance().updateDefaultRegistrationFlowByTenant(flowConfig, tenantID, "default_flow");
+        RegistrationGraphConfig flowConfig = GraphBuilder.convert(flowDTO);
+        registrationFlowDAO.updateDefaultRegistrationFlowByTenant(flowConfig, tenantID, DEFAULT_FLOW_NAME);
     }
 
-    public RegistrationFlowDTO getRegistrationFlow(int tenantID) throws RegistrationServerException {
+    /**
+     * Get the default registration flow of the given tenant.
+     *
+     * @param tenantID The tenant ID.
+     * @return The registration flow.
+     * @throws RegistrationFrameworkException If an error occurs while retrieving the default flow.
+     */
+    public RegistrationFlowDTO getRegistrationFlow(int tenantID) throws RegistrationFrameworkException {
 
-        return RegistrationFlowDAO.getInstance().getDefaultRegistrationFlowByTenant(tenantID);
+        return registrationFlowDAO.getDefaultRegistrationFlowByTenant(tenantID);
     }
 
     /**
@@ -68,9 +76,9 @@ public class RegistrationFlowMgtService {
      *
      * @param tenantID The tenant ID.
      */
-    public RegistrationFlowConfig getRegistrationFlowConfig(int tenantID) {
+    public RegistrationGraphConfig getRegistrationFlowConfig(int tenantID) {
 
-        // Call the DAO to retrieve the flow.
+        // TODO: Implement this method.
         return null;
     }
 }
