@@ -24,9 +24,9 @@ package org.wso2.carbon.identity.user.registration.mgt;
 public class Constants {
 
     public static final String EXECUTOR_FOR_USER_ONBOARDING = "UserOnboardingExecutor";
-    public static final String EXECUTOR_FOR_PROMPT = "ViewPromptExecutor";
     public static final String COMPLETE = "COMPLETE";
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
+
     private Constants() {
 
     }
@@ -114,6 +114,7 @@ public class Constants {
 
         public static final String DECISION = "DECISION";
         public static final String TASK_EXECUTION = "TASK_EXECUTION";
+        public static final String PROMPT_ONLY = "PROMPT_ONLY";
 
         private NodeTypes() {
 
