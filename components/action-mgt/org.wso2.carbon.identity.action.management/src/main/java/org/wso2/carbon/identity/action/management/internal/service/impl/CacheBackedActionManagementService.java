@@ -78,7 +78,7 @@ public class CacheBackedActionManagementService implements ActionManagementServi
 
         List<Action> actions = ACTION_MGT_SERVICE.getActionsByActionType(actionType, tenantDomain);
 
-        if (actions != null && !actions.isEmpty()) {
+        if (actions != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Entry fetched from DB for Action Type " + actionType + ". Updating cache.");
             }
