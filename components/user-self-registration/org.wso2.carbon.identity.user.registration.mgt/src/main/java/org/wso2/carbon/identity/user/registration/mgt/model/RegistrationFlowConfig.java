@@ -21,12 +21,15 @@ package org.wso2.carbon.identity.user.registration.mgt.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class is responsible for holding the registration flow configuration.
+ */
 public class RegistrationFlowConfig {
 
-    private String id;
-    private String firstNodeId;
     private final Map<String, NodeConfig> nodeConfigs = new HashMap<>();
     private final Map<String, StepDTO> nodePageMappings = new HashMap<>();
+    private String id;
+    private String firstNodeId;
 
     public String getId() {
 
@@ -60,7 +63,7 @@ public class RegistrationFlowConfig {
 
     public void addNodeConfig(NodeConfig node) {
 
-        this.nodeConfigs.put(node.getUuid(), node);
+        this.nodeConfigs.put(node.getId(), node);
     }
 
     public Map<String, StepDTO> getNodePageMappings() {

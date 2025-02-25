@@ -25,12 +25,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DTO class for Element.
+ * DTO class for component in the step.
  */
 public class ComponentDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private final Map<String, Object> properties = new HashMap<>();
     private String id;
     private String category;
     private String type;
@@ -115,10 +114,12 @@ public class ComponentDTO implements Serializable {
     }
 
     public List<ComponentDTO> getComponents() {
+
         return components;
     }
 
     public void setComponents(List<ComponentDTO> components) {
+
         this.components = components;
     }
 
@@ -131,7 +132,6 @@ public class ComponentDTO implements Serializable {
         private String type;
         private String identifier;
         private ActionDTO action;
-        private ValidationDTO validation;
 
         public Builder id(String id) {
 
@@ -178,12 +178,6 @@ public class ComponentDTO implements Serializable {
         public Builder action(ActionDTO action) {
 
             this.action = action;
-            return this;
-        }
-
-        public Builder validation(ValidationDTO validation) {
-
-            this.validation = validation;
             return this;
         }
 

@@ -18,20 +18,76 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import org.wso2.carbon.identity.user.registration.mgt.Constants;
-import org.wso2.carbon.identity.user.registration.mgt.model.ActionDTO;
-import org.wso2.carbon.identity.user.registration.mgt.model.ComponentDTO;
-
-import java.util.List;
-import java.util.Map;
+import org.apache.commons.lang.ArrayUtils;
+import org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages;
+import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationClientException;
+import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
 
 public class RegistrationMgtUtils {
 
+    /**
+     * Handle the registration flow management server exceptions.
+     *
+     * @param error Error message.
+     * @param e     Throwable.
+     * @param data  The error message data.
+     * @return RegistrationServerException.
+     */
+    public static RegistrationServerException handleServerException(ErrorMessages error, Throwable e, Object... data) {
 
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new RegistrationServerException(error.getCode(), error.getMessage(), description, e);
+    }
+
+    /**
+     * Handle the registration flow management server exceptions.
+     *
+     * @param error Error message.
+     * @param data  The error message data.
+     * @return RegistrationServerException.
+     */
+    public static RegistrationServerException handleServerException(ErrorMessages error, Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new RegistrationServerException(error.getCode(), error.getMessage(), description);
+    }
+
+    /**
+     * Handle the registration flow management client exceptions.
+     *
+     * @param error Error message.
+     * @param e     Throwable.
+     * @param data  The error message data.
+     * @return RegistrationClientException.
+     */
+    public static RegistrationClientException handleClientException(ErrorMessages error, Throwable e, Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new RegistrationClientException(error.getCode(), error.getMessage(), description, e);
+    }
+
+    /**
+     * Handle the registration flow management client exceptions.
+     *
+     * @param error Error message.
+     * @param data  The error message data.
+     * @return RegistrationClientException.
+     */
+    public static RegistrationClientException handleClientException(ErrorMessages error, Object... data) {
+
+        String description = error.getDescription();
+        if (ArrayUtils.isNotEmpty(data)) {
+            description = String.format(description, data);
+        }
+        return new RegistrationClientException(error.getCode(), error.getMessage(), description);
+    }
 }

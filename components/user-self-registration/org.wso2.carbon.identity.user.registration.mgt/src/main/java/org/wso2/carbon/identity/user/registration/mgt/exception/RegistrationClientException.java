@@ -37,14 +37,4 @@ public class RegistrationClientException extends RegistrationFrameworkException 
 
         super(errorCode, message, description);
     }
-
-    public RegistrationClientException(String message, Throwable cause) {
-
-        super(message, cause);
-    }
-
-    public RegistrationClientException(Throwable cause) {
-
-        super(cause);
-    }
 }
