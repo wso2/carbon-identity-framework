@@ -61,6 +61,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.setString(Column.IMAGE_URL, authenticatorConfig.getImageUrl());
                         statement.setString(Column.DESCRIPTION, authenticatorConfig.getDescription());
                         statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
+                        statement.setString(Column.AMR_VALUE, authenticatorConfig.getAmrValue());
                         statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType()
                                 .toString());
                         statement.setString(Column.IS_ENABLED,
@@ -94,6 +95,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
                         statement.setString(Column.IMAGE_URL, updatedAuthenticatorConfig.getImageUrl());
                         statement.setString(Column.DESCRIPTION, updatedAuthenticatorConfig.getDescription());
+                        statement.setString(Column.AMR_VALUE, updatedAuthenticatorConfig.getAmrValue());
                         statement.setString(Column.IS_ENABLED,
                                 updatedAuthenticatorConfig.isEnabled() ? IS_TRUE_VALUE : IS_FALSE_VALUE);
                         statement.setString(Column.NAME, existingAuthenticatorConfig.getName());

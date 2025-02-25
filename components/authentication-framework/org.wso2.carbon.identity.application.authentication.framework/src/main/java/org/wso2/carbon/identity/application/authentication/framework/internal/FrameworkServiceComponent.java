@@ -517,7 +517,7 @@ public class FrameworkServiceComponent {
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
-//            localAuthenticatorConfig.setAmrValue(authenticator.getAmrValue());
+            localAuthenticatorConfig.setAmrValue(authenticator.getAmrValue());
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
