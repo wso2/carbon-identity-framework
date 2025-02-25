@@ -70,6 +70,9 @@ public class ExecutorDTO implements Serializable {
         this.idpName = idpName;
     }
 
+    /**
+     * Builder class to build {@link ExecutorDTO}.
+     */
     public static class Builder {
 
         private String name;
