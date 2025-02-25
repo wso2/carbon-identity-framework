@@ -1958,7 +1958,7 @@ public class FrameworkUtils {
         List<String> queryParams;
         String action;
         if (!configAvailable) {
-            queryParams = Arrays.asList("loggedInUser", "ske");
+            queryParams = Arrays.asList("loggedInUser", "ske", "pushEnrollData");
             action = "exclude";
         } else {
             queryParams = FileBasedConfigurationBuilder.getInstance()
@@ -4535,6 +4535,15 @@ public class FrameworkUtils {
                 log.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
             }
             tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                return tenantDomain;
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("TenantedSessionsEnabled is enabled, but the tenant domain is not set to the" +
+                            " context. Hence using the tenant domain from the carbon context.");
+                }
+                return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
         } else {
             tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
         }

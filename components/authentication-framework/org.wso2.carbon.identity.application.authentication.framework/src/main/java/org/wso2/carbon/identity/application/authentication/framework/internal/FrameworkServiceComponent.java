@@ -487,6 +487,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetAuthenticator"
     )
     protected void setAuthenticator(ApplicationAuthenticator authenticator)
+
             throws IdentityProviderManagementServerException, DataAccessException {
 
         /* All custom authenticator names must start with the `custom-` prefix. If a system-defined authenticator is

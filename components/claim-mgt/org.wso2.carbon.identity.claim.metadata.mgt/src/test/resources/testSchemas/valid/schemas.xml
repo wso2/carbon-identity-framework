@@ -1,4 +1,12 @@
 <SchemaManager xmlns="http://wso2.org/projects/carbon/carbon.xml">
+    <DefaultSchema>
+        <Schemas>
+            <Schema id="urn:ietf:params:scim:schemas:core:2.0">
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:id</Attribute>
+                <Attribute>urn:ietf:params:scim:schemas:core:2.0:User:meta.created</Attribute>
+            </Schema>
+        </Schemas>
+    </DefaultSchema>
     <AddSchema>
         <Schemas>
             <Schema id="urn:ietf:params:scim:schemas:core:2.0">

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.action.management.model;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.action.management.api.model.Action;
 
 /**
  * Test class for ActionTypes.

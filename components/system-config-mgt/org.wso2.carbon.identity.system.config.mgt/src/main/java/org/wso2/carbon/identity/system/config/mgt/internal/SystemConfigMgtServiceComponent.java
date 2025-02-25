@@ -32,6 +32,8 @@ import org.wso2.carbon.admin.advisory.mgt.dao.AdminAdvisoryBannerDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.system.config.mgt.advisory.DBBasedAdminBannerDAO;
 import org.wso2.carbon.identity.system.config.mgt.remotelogging.DBBasedRemoteLoggingConfigDAO;
 import org.wso2.carbon.logging.service.dao.RemoteLoggingConfigDAO;
@@ -57,12 +59,20 @@ public class SystemConfigMgtServiceComponent {
 
         try {
             BundleContext bundleContext = context.getBundleContext();
+            ConfigurationManager configManager = SystemConfigMgtServiceHolder.getInstance().getConfigurationManager();
+            SecretManager secretManager = SystemConfigMgtServiceHolder.getInstance().getSecretManager();
+            SecretResolveManager secretResolveManager =
+                    SystemConfigMgtServiceHolder.getInstance().getSecretResolveManager();
+
             if (isDBBasedConfigMgtEnabled("AdminAdvisoryBanner")) {
-                bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(), null);
+                bundleContext.registerService(AdminAdvisoryBannerDAO.class, new DBBasedAdminBannerDAO(configManager),
+                        null);
                 LOG.debug("DB based Admin Banner DAO registered.");
             }
             if (isDBBasedConfigMgtEnabled("RemoteLoggingConfig")) {
-                bundleContext.registerService(RemoteLoggingConfigDAO.class, new DBBasedRemoteLoggingConfigDAO(), null);
+                DBBasedRemoteLoggingConfigDAO dbBasedLoggingConfigDAO =
+                        new DBBasedRemoteLoggingConfigDAO(configManager, secretManager, secretResolveManager);
+                bundleContext.registerService(RemoteLoggingConfigDAO.class, dbBasedLoggingConfigDAO, null);
                 LOG.debug("DB based Remote Logging Config DAO registered.");
             }
             LOG.debug("System Config Mgt Service Component is activated.");
@@ -132,5 +142,43 @@ public class SystemConfigMgtServiceComponent {
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
     /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretManager",
+            service = SecretManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretManager"
+    )
+    private void setSecretManager(SecretManager secretManager) {
+
+        SystemConfigMgtServiceHolder.getInstance().setSecretManager(secretManager);
+        LOG.debug("SecretManager set in System Config Mgt Service.");
+    }
+
+    private void unsetSecretManager(SecretManager secretManager) {
+
+        SystemConfigMgtServiceHolder.getInstance().setSecretManager(null);
+        LOG.debug("SecretManager unset in System Config Mgt Service.");
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager",
+            service = SecretResolveManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetSecretResolveManager"
+    )
+    private void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        SystemConfigMgtServiceHolder.getInstance().setSecretResolveManager(secretResolveManager);
+        LOG.debug("SecretResolveManager set in System Config Mgt Service.");
+    }
+
+    private void unsetSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        SystemConfigMgtServiceHolder.getInstance().setSecretResolveManager(null);
+        LOG.debug("SecretResolveManager unset in System Config Mgt Service.");
     }
 }

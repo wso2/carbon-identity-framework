@@ -469,6 +469,9 @@ public class RegistrySAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProv
     @Override
     public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
+        if (!isServiceProviderExists(issuer, tenantId)) {
+            return null;
+        }
         Registry registry = getRegistry(tenantId);
         String path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS + encodePath(issuer);
         SAMLSSOServiceProviderDO serviceProviderDO = null;

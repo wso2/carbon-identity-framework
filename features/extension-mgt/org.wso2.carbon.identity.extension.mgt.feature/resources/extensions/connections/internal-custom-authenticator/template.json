@@ -1,0 +1,28 @@
+{
+  "id": "internal-user-custom-authenticator",
+  "name": "Internal User Authentication",
+  "description": "Register externally implemented authentication service.",
+  "docLink": "",
+  "image": "assets/images/logos/custom-authenticator.svg",
+  "category": "DEFAULT",
+  "disabled": false,
+  "templateId": "internal-user-custom-authenticator",
+  "templateGroup": "custom-authenticator",
+  "displayOrder": -1,
+  "services": [],
+  "tags": [ "Custom" ],
+  "customLocalAuthenticator": {
+    "name": "",
+    "displayName": "",
+    "description": "Collect identifier and authenticate user accounts managed in the organization.",
+    "isEnabled": true,
+    "authenticationType": "IDENTIFICATION",
+    "endpoint": {
+      "uri": "",
+      "authentication": {
+        "type": "",
+        "properties": {}
+      }
+    }
+  }
+}

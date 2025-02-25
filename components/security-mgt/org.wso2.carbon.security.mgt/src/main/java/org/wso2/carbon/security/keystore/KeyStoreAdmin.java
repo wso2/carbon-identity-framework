@@ -68,7 +68,25 @@ public class KeyStoreAdmin {
     private final KeyStoreManager keyStoreManager;
     private boolean includeCert = false;
 
+    /**
+     * Constructor to create a KeyStoreAdmin object.
+     *
+     * @param tenantId Tenant id.
+     * @param registry Registry.
+     * @deprecated Use {@link #KeyStoreAdmin(int)} instead.
+     */
+    @Deprecated
     public KeyStoreAdmin(int tenantId, Registry registry) {
+
+        keyStoreManager = KeyStoreManager.getInstance(tenantId);
+    }
+
+    /**
+     * Constructor to create a KeyStoreAdmin object.
+     *
+     * @param tenantId Tenant id.
+     */
+    public KeyStoreAdmin(int tenantId) {
 
         keyStoreManager = KeyStoreManager.getInstance(tenantId);
     }
@@ -174,7 +192,7 @@ public class KeyStoreAdmin {
             throws SecurityConfigException {
 
         try {
-            keyStoreManager.addKeyStore(content, filename, password, provider, type, null);
+            keyStoreManager.addKeyStore(content, filename, password.toCharArray(), provider, type, null);
         } catch (SecurityException e) {
             String msg = "Error when adding a trustStore";
             log.error(msg, e);

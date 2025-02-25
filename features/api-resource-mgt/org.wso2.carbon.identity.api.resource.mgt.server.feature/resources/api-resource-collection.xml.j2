@@ -765,6 +765,7 @@
                 <Scope name="console:org:emailTemplates"/>
             </Feature>
             <Update>
+                <Scope name="internal_org_email_mgt_update"/>
             </Update>
             <Delete>
             </Delete>
@@ -1072,12 +1073,15 @@
             <Update>
                 <Scope name="internal_idp_update"/>
                 <Scope name="internal_governance_update"/>
+                <Scope name="internal_custom_authenticator_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_idp_delete"/>
+                <Scope name="internal_custom_authenticator_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_idp_create"/>
+                <Scope name="internal_custom_authenticator_create"/>
             </Create>
             <Read>
                 <Scope name="internal_userstore_view"/>
@@ -1439,12 +1443,15 @@
             </Feature>
             <Update>
                 <Scope name="internal_org_idp_update"/>
+                <Scope name="internal_org_custom_authenticator_update"/>
             </Update>
             <Delete>
                 <Scope name="internal_org_idp_delete"/>
+                <Scope name="internal_org_custom_authenticator_delete"/>
             </Delete>
             <Create>
                 <Scope name="internal_org_idp_create"/>
+                <Scope name="internal_org_custom_authenticator_create"/>
             </Create>
             <Read>
                 <Scope name="internal_org_userstore_view"/>

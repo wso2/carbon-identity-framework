@@ -82,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.xml.stream.XMLStreamException;
@@ -881,6 +882,19 @@ public class IdentityProviderManager implements IdpManager {
         return identityProvider;
     }
 
+    /**
+     * Returns extended IDP with resource ID.
+     * Note: The UserDefinedFederatedAuthenticatorConfig object in the IdentityProvider is not serializable using
+     *       org.apache.commons.lang3.SerializationUtils, which is used in the authentication framework to clone the
+     *       authentication context. Hence, use getSerializableIdPByResourceId(String, String) in
+     *       ApplicationAuthenticatorManager which provides an in IdentityProvider instance with the
+     *       UserDefinedFederatedAuthenticatorConfig converted to a FederatedAuthenticatorConfig.
+     * @param resourceId            Resource ID of the IDP.
+     * @param tenantDomain          Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps   Whether to ignore file based idps or not.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
     @Override
     public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean
             ignoreFileBasedIdps) throws IdentityProviderManagementException {
@@ -1516,6 +1530,7 @@ public class IdentityProviderManager implements IdpManager {
 
         markConfidentialPropertiesUsingMetadata(identityProvider);
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        resolveAuthenticatorDefinedByProperty(identityProvider, true, tenantDomain);
         validateFederatedAuthenticatorConfigName(identityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         validateOutboundProvisioningRoles(identityProvider, tenantDomain);
 
@@ -1542,7 +1557,6 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         handleMetadata(tenantId, identityProvider);
-        resolveAuthenticatorDefinedByProperty(identityProvider, true, tenantDomain);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
         identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
@@ -1882,6 +1896,9 @@ public class IdentityProviderManager implements IdpManager {
     private void updateIDP(IdentityProvider currentIdentityProvider, IdentityProvider newIdentityProvider, int tenantId,
                            String tenantDomain) throws IdentityProviderManagementException {
 
+        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false, tenantDomain);
+        validateNamesForNewAuthenticatorWithUpdateOperation(currentIdentityProvider.getFederatedAuthenticatorConfigs(),
+                newIdentityProvider.getFederatedAuthenticatorConfigs(), tenantDomain);
         if (isPermissionAndRoleConfigExist(newIdentityProvider)) {
             verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, newIdentityProvider.getPermissionAndRoleConfig());
         }
@@ -1892,8 +1909,30 @@ public class IdentityProviderManager implements IdpManager {
 
         validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
-        resolveAuthenticatorDefinedByProperty(newIdentityProvider, false, tenantDomain);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
+    }
+
+    private void validateNamesForNewAuthenticatorWithUpdateOperation(
+            FederatedAuthenticatorConfig[] currentFederatedAuthenticators,
+            FederatedAuthenticatorConfig[] newFederatedAuthenticators,
+            String tenantDomain) throws IdentityProviderManagementException {
+
+        List<FederatedAuthenticatorConfig> newAuthenticators = new ArrayList<>();
+        for (FederatedAuthenticatorConfig authenticatorInNewIdp : newFederatedAuthenticators) {
+            boolean isNewAuthenticator = true;
+            for (FederatedAuthenticatorConfig authenticatorInOldIdp : currentFederatedAuthenticators) {
+                if (authenticatorInNewIdp.getName().equals(authenticatorInOldIdp.getName())) {
+                    isNewAuthenticator = false;
+                    break;
+                }
+            }
+            if (isNewAuthenticator) {
+                newAuthenticators.add(authenticatorInNewIdp);
+            }
+        }
+
+        validateFederatedAuthenticatorConfigName(
+                newAuthenticators.toArray(new FederatedAuthenticatorConfig[0]), tenantDomain);
     }
 
     /**
@@ -2236,14 +2275,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         for (FederatedAuthenticatorConfig config : federatedAuthConfigs) {
-            if (config.getDefinedByType() == DefinedByType.SYSTEM) {
-                // Check if there is a system registered authenticator given authenticator name.
-                if (getFederatedAuthenticatorByName(config.getName(), tenantDomain) == null) {
-                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                            .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, new String(
-                            Base64.getEncoder().encode(config.getName().getBytes(StandardCharsets.UTF_8))));
-                }
-            } else {
+            if (config.getDefinedByType() == DefinedByType.USER) {
                 // Check if the given authenticator name is already taken.
                 if (isExistingAuthentication(config.getName(), tenantDomain)) {
                     throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
@@ -2255,6 +2287,14 @@ public class IdentityProviderManager implements IdpManager {
                             .ERROR_INVALID_AUTHENTICATOR_NAME,
                             IdPManagementConstants.USER_DEFINED_AUTHENTICATOR_NAME_REGEX);
                 }
+                continue;
+            }
+            // Check if there is a system registered authenticator given authenticator name.
+            if (ApplicationAuthenticatorService.getInstance().getFederatedAuthenticators().stream()
+                    .noneMatch(authConfig -> authConfig.getName().equals(config.getName()))) {
+                throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                        .ERROR_CODE_NO_SYSTEM_AUTHENTICATOR_FOUND, new String(
+                        Base64.getEncoder().encode(config.getName().getBytes(StandardCharsets.UTF_8))));
             }
         }
     }
