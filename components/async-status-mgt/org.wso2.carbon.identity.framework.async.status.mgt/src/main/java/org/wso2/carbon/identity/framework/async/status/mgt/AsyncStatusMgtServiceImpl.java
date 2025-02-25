@@ -32,58 +32,9 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     }
 
     @Override
-    public void processB2BAsyncOperationStatus(SharingOperationDO sharingOperationDO) {
-        LOGGER.info("processB2BAsyncOperationStatus Started...");
-        if (sharingOperationDO == null) {
-            LOGGER.warning("Received null SharingOperationDO.");
-            return;
-        }
-        String operationType = sharingOperationDO.getOperationType();
-        String residentResourceId = sharingOperationDO.getResidentResourceId();
-        String resourceType = String.valueOf(sharingOperationDO.getResourceType());
-        String sharingPolicy = sharingOperationDO.getSharingPolicy();
-        String residentOrgId = sharingOperationDO.getResidentOrganizationId();
-        String initiatorId = sharingOperationDO.getInitiatorId();
-        String operationStatus = sharingOperationDO.getOperationStatus();
-        ArrayList<SharingOperationUnitDO> unitSharingList = sharingOperationDO.getUnitSharingList();
-
-        try {
-            asyncStatusMgtDAO.createB2BResourceSharingOperation(
-                    operationType,
-                    residentResourceId,
-                    resourceType,
-                    sharingPolicy,
-                    residentOrgId,
-                    initiatorId,
-                    operationStatus
-            );
-            LOGGER.info("B2B async operation status processed successfully.");
-        } catch (Exception e) {
-            LOGGER.severe("Error while processing B2B async operation status: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void testCheckDatabaseConnection() {
-        try {
-            asyncStatusMgtDAO.createB2BResourceSharingOperation(
-                    "share",
-                    "123",
-                    "user",
-                    "all-orgs",
-                    "456",
-                    "789",
-                    "complete with success."
-            );
-            LOGGER.info("B2B async operation status processed successfully.");
-        } catch (Exception e) {
-            LOGGER.severe("Error while processing B2B async operation status: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId) {
+    public String registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId) {
         strategy = OperationStatusStrategyFactory.getStrategy(resourceType);
+        String operationId = null;
 
         OperationContext context = new OperationContext();
         context.setOperationType(operationType);
@@ -94,10 +45,11 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         context.setInitiatorId(initiatorId);
 
         if (strategy != null) {
-            strategy.register(context);
+            operationId = strategy.register(context);
         } else {
             LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
         }
+        return operationId;
     }
 
     @Override
@@ -114,6 +66,18 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
 
         if (strategy != null) {
             strategy.registerUnitOperation(context);
+        } else {
+            LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
+        }
+    }
+
+    @Override
+    public void registerBulkUnitOperationStatus(ResponseUnitOperationContext context) {
+//        strategy = OperationStatusStrategyFactory.getStrategy(context.getOperationType());
+
+
+        if (strategy != null) {
+            strategy.registerBulkUnitOperations(context);
         } else {
             LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
         }

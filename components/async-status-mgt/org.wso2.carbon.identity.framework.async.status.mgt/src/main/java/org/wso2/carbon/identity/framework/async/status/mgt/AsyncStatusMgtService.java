@@ -18,8 +18,7 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt;
 
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.BulkUserImportOperationDO;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseUnitOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 
 /**
@@ -37,7 +36,7 @@ public interface AsyncStatusMgtService {
      * @param residentOrgId The identifier of the organization where the resource resides, if applicable.
      * @param initiatorId The identifier of the user or system that initiated the operation.
      */
-    void registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId);
+    String registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId);
 
     /**
      * Registers the unit operation status for asynchronous tracking.
@@ -51,17 +50,9 @@ public interface AsyncStatusMgtService {
     void registerUnitOperationStatus(String operationId, String operationType, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage);
 
     /**
-     * Processing the status of B2B Asynchronous
-     * Resource Share Operation.
+     * Registers the unit operation status for asynchronous tracking.
      *
-     * @param sharingOperationDO Sharing operation metadata is shared.
+     * @param context Aggregated unit operation context.
      */
-    void processB2BAsyncOperationStatus(SharingOperationDO sharingOperationDO);
-
-    /**
-     * Database Test Interface.
-     *
-     */
-
-    void testCheckDatabaseConnection();
+    void registerBulkUnitOperationStatus(ResponseUnitOperationContext context);
 }

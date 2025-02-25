@@ -19,6 +19,9 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * DAO interface for Asynchronous Operation
@@ -44,7 +47,7 @@ public interface AsyncStatusMgtDAO {
      *
      * @param userShareDBContext Context of the user share.
      */
-    void registerB2BUserSharingAsyncOperation(OperationDBContext userShareDBContext);
+    String registerB2BUserSharingAsyncOperation(OperationDBContext userShareDBContext);
 
     /**
      * Registers a Unit Asynchronous Operation.
@@ -56,4 +59,14 @@ public interface AsyncStatusMgtDAO {
      * @param statusMessage A detailed message providing additional information about the operation's status or any errors encountered.
      */
     void registerUnitAsyncOperation(String operationId, String residentResourceId, String targetOrgId, String unitOperationStatus, String statusMessage);
+
+    /**
+     * Registers A Batch Of Unit Asynchronous Operations.
+     *
+     * @param operationId The unique identifier of the asynchronous user sharing operation.
+     * @param operationType The type of the operation.
+     * @param queue The queue containing the statuses of unit asynchronous operations.
+     */
+    void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue);
+
 }

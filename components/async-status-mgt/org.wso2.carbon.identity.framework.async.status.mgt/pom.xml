@@ -38,7 +38,8 @@
                         <private-package>org.wso2.carbon.identity.framework.async.status.mgt.internal</private-package>
                         <Export-Package>
                             !org.wso2.carbon.identity.framework.async.status.mgt.internal,
-                            org.wso2.carbon.identity.framework.async.status.mgt.*
+                            org.wso2.carbon.identity.framework.async.status.mgt.*,
+                            org.wso2.carbon.identity.framework.async.status.mgt.models.dos
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                         <ListenerManager-RequiredServices>

@@ -23,9 +23,11 @@ import org.wso2.carbon.identity.framework.async.status.mgt.constant.OperationSta
 import org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants.CREATE_ASYNC_OPERATION;
@@ -33,6 +35,7 @@ import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLCo
 
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
 
 /**
  * DAO implementation for Asynchronous Operation Status Management.
@@ -47,31 +50,42 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     }
 
     @Override
-    public void registerB2BUserSharingAsyncOperation(OperationDBContext context) {
+    public String registerB2BUserSharingAsyncOperation(OperationDBContext context) {
         LOGGER.info("B2BUserSharingAsyncOperation Registering Started.");
         Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+        String generatedOperationId = null;
         try{
-            try{
-                String currentTimestamp = new Timestamp(new Date().getTime()).toString();
-                NamedPreparedStatement statement = new NamedPreparedStatement(connection,CREATE_ASYNC_OPERATION, SQLConstants.OperationStatusTableColumns.UM_OPERATION_ID);
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_TYPE, context.getOperationContext().getOperationType());
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID, context.getOperationContext().getOperationSubjectId());
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_RESOURCE_TYPE, context.getOperationContext().getOperationType());
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_POLICY, context.getOperationContext().getSharingPolicy());
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_RESIDENT_ORG_ID, context.getOperationContext().getResidentOrgId());
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID, context.getOperationContext().getInitiatorId());
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_STATUS, OperationStatus.ONGOING.toString());
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_CREATED_TIME, currentTimestamp);
-                statement.setString(SQLConstants.OperationStatusTableColumns.UM_LAST_MODIFIED, currentTimestamp);
-                statement.executeUpdate();
-                LOGGER.info("B2BUserSharingAsyncOperation Registering Success.");
+            String currentTimestamp = new Timestamp(new Date().getTime()).toString();
 
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+            NamedPreparedStatement statement = new NamedPreparedStatement(connection,CREATE_ASYNC_OPERATION, SQLConstants.OperationStatusTableColumns.UM_OPERATION_ID);
+
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_TYPE, context.getOperationContext().getOperationType());
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID, context.getOperationContext().getOperationSubjectId());
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_RESOURCE_TYPE, context.getOperationContext().getOperationType());
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_POLICY, context.getOperationContext().getSharingPolicy());
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_RESIDENT_ORG_ID, context.getOperationContext().getResidentOrgId());
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID, context.getOperationContext().getInitiatorId());
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_STATUS, OperationStatus.ONGOING.toString());
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_CREATED_TIME, currentTimestamp);
+            statement.setString(SQLConstants.OperationStatusTableColumns.UM_LAST_MODIFIED, currentTimestamp);
+            statement.executeUpdate();
+
+            // Execute insert
+            int rowsAffected = statement.executeUpdate();
+            LOGGER.info("B2BUserSharingAsyncOperation Registering Success. Rows affected: " + rowsAffected);
+
+            // Retrieve generated key
+            ResultSet generatedKeys = statement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                generatedOperationId = generatedKeys.getString(1);  // Assuming UM_OPERATION_ID is the first key
+                LOGGER.info("Generated UM_OPERATION_ID: " + generatedOperationId);
+            } else {
+                throw new SQLException("Creating operation failed, no ID obtained.");
             }
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | SQLException e) {
             throw new RuntimeException(e);
         }
+        return generatedOperationId;
     }
 
     @Override
@@ -98,5 +112,38 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue) {
+        LOGGER.info("Batch Unit Operation Registration Started.");
+        Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+
+        try {
+            String currentTimestamp = new Timestamp(new Date().getTime()).toString();
+
+            NamedPreparedStatement statement = new NamedPreparedStatement(
+                    connection, CREATE_ASYNC_OPERATION_UNIT, SQLConstants.UnitOperationStatusTableColumns.UM_UNIT_OPERATION_ID
+            );
+
+            for (UnitOperationContext context : queue) {
+                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_OPERATION_ID, context.getOperationId());
+                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_RESIDENT_RESOURCE_ID, context.getOperationInitiatedResourceId());
+                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_TARGET_ORG_ID, context.getTargetOrgId());
+                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_UNIT_OPERATION_STATUS, context.getUnitOperationStatus());
+                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_OPERATION_STATUS_MESSAGE, context.getStatusMessage());
+                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_CREATED_AT, currentTimestamp);
+
+                statement.addBatch();
+            }
+
+            int[] batchResults = statement.executeBatch();
+            LOGGER.info("Batch Unit Operation Registration Success. Total Records Inserted: " + batchResults.length);
+
+        } catch (SQLException e) {
+            LOGGER.info("Error during batch unit operation registration.");
+            throw new RuntimeException(e);
+        }
+
     }
 }
