@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.action.execution.util;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.model.Operation;
-import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
+import org.wso2.carbon.identity.action.execution.api.model.Operation;
+import org.wso2.carbon.identity.action.execution.api.model.PerformableOperation;
 
 import java.util.ArrayList;
 

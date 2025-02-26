@@ -5,24 +5,24 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
-import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Error;
-import org.wso2.carbon.identity.action.execution.model.ErrorStatus;
-import org.wso2.carbon.identity.action.execution.model.FailedStatus;
-import org.wso2.carbon.identity.action.execution.model.Failure;
-import org.wso2.carbon.identity.action.execution.model.Success;
-import org.wso2.carbon.identity.action.execution.model.SuccessStatus;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.Error;
+import org.wso2.carbon.identity.action.execution.api.model.ErrorStatus;
+import org.wso2.carbon.identity.action.execution.api.model.FailedStatus;
+import org.wso2.carbon.identity.action.execution.api.model.Failure;
+import org.wso2.carbon.identity.action.execution.api.model.Success;
+import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.action.core.factory.UserActionExecutorFactory;
-import org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener;
-import org.wso2.carbon.identity.user.action.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.api.service.UserActionExecutor;
+import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
+import org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener;
 import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -38,10 +38,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertFalse;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR;
-import static org.wso2.carbon.identity.user.action.service.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR;
+import static org.wso2.carbon.identity.user.action.api.constant.UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET;
 
 /**
  * Unit tests for ActionUserOperationEventListener.
@@ -68,7 +68,7 @@ public class ActionUserOperationEventListenerTest {
         listener = new ActionUserOperationEventListener();
         userCoreUtil.when(() -> UserCoreUtil.getDomainName(any())).thenReturn("PRIMARY");
         IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
-                .name(Flow.Name.PASSWORD_UPDATE)
+                .name(Flow.Name.PASSWORD_RESET)
                 .initiatingPersona(Flow.InitiatingPersona.USER)
                 .build());
     }
@@ -97,7 +97,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_WithDisabledListener()
+    public void testPreUpdatePasswordActionExecutionWithDisabledListener()
             throws UserStoreException, UnsupportedSecretTypeException {
 
         IdentityEventListenerConfig mockConfig = mock(IdentityEventListenerConfig.class);
@@ -111,7 +111,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_Success()
+    public void testPreUpdatePasswordActionExecutionSuccess()
             throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         ActionExecutionStatus<Success> successStatus =
@@ -126,7 +126,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_Failed() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionFailure() throws ActionExecutionException {
 
         Failure failureResponse = new Failure("FailureReason", "FailureDescription");
         ActionExecutionStatus<Failure> failedStatus = new FailedStatus(failureResponse);
@@ -145,7 +145,26 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_Error() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionFailureWithoutDescription() throws ActionExecutionException {
+
+        Failure failureResponse = new Failure("FailureReason", null);
+        ActionExecutionStatus<Failure> failedStatus = new FailedStatus(failureResponse);
+        doReturn(failedStatus).when(mockExecutor).execute(any(), any());
+        doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();
+        UserActionExecutorFactory.registerUserActionExecutor(mockExecutor);
+
+        try {
+            listener.doPreUpdateCredentialByAdminWithID(USER_NAME, Secret.getSecret(PASSWORD), userStoreManager);
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof UserStoreClientException);
+            Assert.assertEquals(e.getMessage(), "FailureReason");
+            Assert.assertEquals(((UserStoreClientException) e).getErrorCode(),
+                    PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
+        }
+    }
+
+    @Test
+    public void testPreUpdatePasswordActionExecutionError() throws ActionExecutionException {
 
         Error errorResponse = new Error("ErrorMessage", "ErrorDescription");
         ActionExecutionStatus<Error> errorStatus = new ErrorStatus(errorResponse);
@@ -163,7 +182,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_UnsupportedSecret() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionWithUnsupportedSecret() throws ActionExecutionException {
 
         Error errorResponse = new Error("ErrorMessage", "ErrorDescription");
         ActionExecutionStatus<Error> errorStatus = new ErrorStatus(errorResponse);
@@ -181,7 +200,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_UnknownStatus()
+    public void testPreUpdatePasswordActionExecutionWithUnknownStatus()
             throws UserStoreException, ActionExecutionException, UnsupportedSecretTypeException {
 
         ActionExecutionStatus<?> unknownStatus = mock(ActionExecutionStatus.class);
@@ -195,7 +214,7 @@ public class ActionUserOperationEventListenerTest {
     }
 
     @Test
-    public void testDoPreUpdateCredentialByAdminWithID_ActionExecutionException() throws ActionExecutionException {
+    public void testPreUpdatePasswordActionExecutionWithActionExecutionException() throws ActionExecutionException {
 
         doThrow(new ActionExecutionException("Execution error")).when(mockExecutor).execute(any(), any());
         doReturn(ActionType.PRE_UPDATE_PASSWORD).when(mockExecutor).getSupportedActionType();

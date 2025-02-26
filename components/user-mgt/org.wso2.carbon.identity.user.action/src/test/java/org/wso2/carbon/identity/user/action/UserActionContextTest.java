@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.user.action;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.user.action.service.model.UserActionContext;
+import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 
 /**
  * Test class for UserActionContext.
