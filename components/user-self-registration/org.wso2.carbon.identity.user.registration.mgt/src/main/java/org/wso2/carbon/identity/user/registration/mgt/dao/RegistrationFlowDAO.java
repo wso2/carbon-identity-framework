@@ -47,4 +47,13 @@ public interface RegistrationFlowDAO {
      * @throws RegistrationServerException If an error occurs while retrieving the default flow.
      */
     RegistrationFlowDTO getDefaultRegistrationFlowByTenant(int tenantId) throws RegistrationServerException;
+
+    /**
+     * Get the default registration graph of the given tenant.
+     *
+     * @param tenantId The tenant ID.
+     * @return The registration graph.
+     * @throws RegistrationServerException If an error occurs while retrieving the flow.
+     */
+    RegistrationGraphConfig getDefaultRegistrationGraphByTenant(int tenantId) throws RegistrationFrameworkException;
 }
