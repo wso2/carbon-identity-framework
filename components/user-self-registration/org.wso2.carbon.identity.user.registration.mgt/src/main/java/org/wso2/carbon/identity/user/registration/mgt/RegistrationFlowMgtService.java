@@ -18,22 +18,25 @@
 
 package org.wso2.carbon.identity.user.registration.mgt;
 
+import static org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils.triggerAuditLogEvent;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.DEFAULT_FLOW_NAME;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.getInitiatorId;
+import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.isEnableV2AuditLogs;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAO;
 import org.wso2.carbon.identity.user.registration.mgt.dao.RegistrationFlowDAOImpl;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationFlowDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 import org.wso2.carbon.identity.user.registration.mgt.utils.GraphBuilder;
+import org.wso2.carbon.utils.AuditLog;
 
 /**
  * This class is responsible for managing the registration flow.
  */
 public class RegistrationFlowMgtService {
 
-    private static final Log LOG = LogFactory.getLog(RegistrationFlowMgtService.class);
     private static final RegistrationFlowMgtService instance = new RegistrationFlowMgtService();
     private static final RegistrationFlowDAO registrationFlowDAO = new RegistrationFlowDAOImpl();
 
@@ -57,6 +60,14 @@ public class RegistrationFlowMgtService {
 
         RegistrationGraphConfig flowConfig = GraphBuilder.convert(flowDTO);
         registrationFlowDAO.updateDefaultRegistrationFlowByTenant(flowConfig, tenantID, DEFAULT_FLOW_NAME);
+        if (isEnableV2AuditLogs()) {
+            AuditLog.AuditLogBuilder auditLogBuilder =
+                    new AuditLog.AuditLogBuilder(getInitiatorId(), LoggerUtils.getInitiatorType(getInitiatorId()),
+                                                 flowConfig.getId(),
+                                                 LoggerUtils.Target.Flow.name(),
+                                                 LogConstants.RegistrationFlowManagement.UPDATE_REGISTRATION_FLOW);
+            triggerAuditLogEvent(auditLogBuilder, true);
+        }
     }
 
     /**
