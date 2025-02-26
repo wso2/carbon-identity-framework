@@ -32,7 +32,7 @@
   "session_data.cleanup.clean_expired_session_data_every": "1d",
   "session_data.cleanup.clean_expired_session_data_in_chunks_of": "8192",
   "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": false,
-  "session_data.cleanup.enable_pre_session_data_cleanup": false,
+  "session_data.cleanup.enable_pre_session_data_cleanup": true,
   "session_data.cleanup.enable_periodic_pre_session_data_cleanup": true,
   "session_data.session_data_persist.session_and_temp_data_separation_enabled.enable": true,
   "session_data.session_data_persist.check_existing_entry_for_delete_operation_insert": false,
@@ -1756,6 +1756,7 @@
   "actions.maximum_actions_per_action_type": 1,
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.authentication.enable": true,
+  "actions.types.authentication.default_userstore": "PRIMARY",
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
