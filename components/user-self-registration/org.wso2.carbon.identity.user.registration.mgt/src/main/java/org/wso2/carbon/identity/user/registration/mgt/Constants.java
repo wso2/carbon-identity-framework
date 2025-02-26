@@ -46,6 +46,11 @@ public class Constants {
                                                   " in tenant, %s"),
         ERROR_CODE_INVALID_NODE("65004", "Node id not found.", "Could not resolve a valid node with id, %s to create " +
                 "a link."),
+        ERROR_CODE_DESERIALIZE_PAGE_CONTENT("65005", "Error while deserializing the page content.",
+                                            "Unexpected server error while deserializing the page content for step %s" +
+                                                    " in tenant, %s"),
+        ERROR_CODE_GET_REG_GRAPH_FAILED("65006", "Error while retrieving the registration graph.",
+                                        "Unexpected server error while retrieving the registration graph for tenant, %s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
