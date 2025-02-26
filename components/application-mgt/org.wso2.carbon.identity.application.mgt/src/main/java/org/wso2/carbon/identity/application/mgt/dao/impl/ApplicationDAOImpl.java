@@ -27,6 +27,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.security.AuthenticatorsConfiguration;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
@@ -79,6 +81,7 @@ import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -5132,6 +5135,63 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
         }
         return authenticatorId;
+    }
+
+    public String getAmrValue(Connection conn, String authenticatorName) throws SQLException {
+        String sqlStmt = ApplicationMgtDBQueries.AMR_VALUE_EXISTS;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        String amrValue = null;
+
+        try {
+            prepStmt = conn.prepareStatement(sqlStmt);
+            prepStmt.setString(1, authenticatorName);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                amrValue = rs.getString(1);
+            }
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(rs);
+        }
+        return amrValue;
+    }
+
+    public void insertAuthenticator(Connection conn, String name, String displayName, String isEnabled,
+                                    String amrValue) throws SQLException {
+        String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR_2;
+        PreparedStatement prepStmt = null;
+
+        try {
+            prepStmt = conn.prepareStatement(sqlStmt);
+            prepStmt.setString(1, name);
+            prepStmt.setString(2, displayName);
+            prepStmt.setBoolean(3, Boolean.parseBoolean(String.valueOf(isEnabled)));
+            prepStmt.setString(4, String.valueOf(DefinedByType.SYSTEM));
+            prepStmt.setString(5, AuthenticationType.IDENTIFICATION.toString());
+            prepStmt.setString(6, amrValue);
+
+            prepStmt.executeUpdate();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+        }
+    }
+
+
+    public void updateAmrValue(Connection conn, String authenticatorName, String amrValue) throws SQLException {
+        String sqlStmt = ApplicationMgtDBQueries.UPDATE_AMR_VALUE;
+        PreparedStatement prepStmt = null;
+
+        try {
+            prepStmt = conn.prepareStatement(sqlStmt);
+            prepStmt.setString(1, amrValue);
+            prepStmt.setString(2, authenticatorName);
+
+            prepStmt.executeUpdate();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+        }
     }
 
     /**
