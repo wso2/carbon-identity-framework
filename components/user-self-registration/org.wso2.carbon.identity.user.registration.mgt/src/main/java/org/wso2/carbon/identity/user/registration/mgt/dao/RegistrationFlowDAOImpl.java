@@ -54,6 +54,7 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.util.JdbcUtils;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
@@ -215,24 +216,20 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
-            List<StepDTO> steps = jdbcTemplate.executeQuery(GET_FLOW, (resultSet, rowNumber) -> {
-                StepDTO stepDTO = new StepDTO.Builder()
-                        .id(resultSet.getString(STEP_ID))
-                        .type(resultSet.getString(PAGE_TYPE))
-                        .coordinateX(resultSet.getDouble(COORDINATE_X))
-                        .coordinateY(resultSet.getDouble(COORDINATE_Y))
-                        .height(resultSet.getDouble(HEIGHT))
-                        .width(resultSet.getDouble(WIDTH))
-                        .build();
+            List<StepDTO> steps = jdbcTemplate
+                    .executeQuery(GET_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+                                      StepDTO stepDTO = new StepDTO.Builder()
+                                              .id(resultSet.getString(STEP_ID))
+                                              .type(resultSet.getString(PAGE_TYPE))
+                                              .coordinateX(resultSet.getDouble(COORDINATE_X))
+                                              .coordinateY(resultSet.getDouble(COORDINATE_Y))
+                                              .height(resultSet.getDouble(HEIGHT))
+                                              .width(resultSet.getDouble(WIDTH))
+                                              .build();
 
-
-                try {
-                    resolvePageContent(stepDTO, resultSet.getBinaryStream(PAGE_CONTENT));
-                } catch (IOException | ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-                return stepDTO;
-            }, preparedStatement -> preparedStatement.setInt(1, tenantId));
+                                      resolvePageContent(stepDTO, resultSet.getBinaryStream(PAGE_CONTENT), tenantId);
+                                      return stepDTO;
+                                  })), preparedStatement -> preparedStatement.setInt(1, tenantId));
 
             RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
             if (steps.isEmpty()) {
@@ -241,13 +238,13 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             }
             registrationFlowDTO.getSteps().addAll(steps);
             return registrationFlowDTO;
-        } catch (DataAccessException | RuntimeException e) {
+        } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
         }
     }
 
-    private void resolvePageContent(StepDTO stepDTO, InputStream pageContent)
-            throws IOException, ClassNotFoundException {
+    private void resolvePageContent(StepDTO stepDTO, InputStream pageContent, int tenantId)
+            throws DataAccessException, RegistrationServerException {
 
         try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
             Object obj = ois.readObject();
@@ -267,6 +264,16 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                     stepDTO.setData(new DataDTO.Builder().action(action).build());
                 }
             }
+        } catch (IOException | ClassNotFoundException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
+                                        tenantId);
         }
+    }
+
+    @Override
+    public RegistrationGraphConfig getDefaultRegistrationGraphByTenant(int tenantId)
+            throws RegistrationFrameworkException {
+
+        return null;
     }
 }
