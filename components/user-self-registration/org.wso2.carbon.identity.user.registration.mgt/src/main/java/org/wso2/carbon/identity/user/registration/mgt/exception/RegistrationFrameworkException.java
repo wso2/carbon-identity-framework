@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.user.registration.mgt.exception;
 
+/**
+ * Represents the exception that occurs in the registration framework.
+ */
 public class RegistrationFrameworkException extends Exception {
 
     private String errorCode;
@@ -39,6 +42,26 @@ public class RegistrationFrameworkException extends Exception {
 
         super(message);
         this.errorCode = errorCode;
+        this.description = description;
+    }
+
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+
+        this.errorCode = errorCode;
+    }
+
+    public String getDescription() {
+
+        return description;
+    }
+
+    public void setDescription(String description) {
+
         this.description = description;
     }
 }
