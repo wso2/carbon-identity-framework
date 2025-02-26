@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -105,6 +107,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
@@ -487,7 +490,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetAuthenticator"
     )
     protected void setAuthenticator(ApplicationAuthenticator authenticator)
-            throws IdentityProviderManagementServerException, DataAccessException {
+            throws IdentityProviderManagementServerException, DataAccessException, SQLException {
 
         /* All custom authenticator names must start with the `custom-` prefix. If a system-defined authenticator is
          attempted to be registered at server startup with a name starting with this prefix, an error will be thrown. */
@@ -526,44 +529,60 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
             localAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
 
-            NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-            String amr;
-            try {
-                try{
-                amr = jdbcTemplate.fetchSingleRecord(ApplicationMgtDBQueries.AMR_VALUE_EXISTS,
-                        (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
-                            preparedStatement.setString(1, authenticator.getName());
-                        });
-                } catch (DataAccessException e) {
-                    throw new DataAccessException("Error while checking the AMR_VALUE", e);
-                }
-                if(amr == null){
-                    try{
-                        jdbcTemplate.executeInsert(ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR_2, PrepStmt -> {
-                            PrepStmt.setString(1, authenticator.getName());
-                            PrepStmt.setString(2, authenticator.getFriendlyName());
-                            PrepStmt.setBoolean(3, fileBasedConfig.isEnabled());
-                            PrepStmt.setString(4, String.valueOf(DefinedByType.SYSTEM));
-                            PrepStmt.setString(5, AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION.toString());
-                            PrepStmt.setString(6, fileBasedConfig.getAmrValue());
-                        }, authenticator, false);
-                    }catch (DataAccessException e) {
-                        throw new DataAccessException("Error while Inserting Authenticator data", e);
-                    }
+//            NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+//            String amr;
+//            try {
+//                try{
+//                amr = jdbcTemplate.fetchSingleRecord(ApplicationMgtDBQueries.AMR_VALUE_EXISTS,
+//                        (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
+//                            preparedStatement.setString(1, authenticator.getName());
+//                        });
+//                } catch (DataAccessException e) {
+//                    throw new DataAccessException("Error while checking the AMR_VALUE", e);
+//                }
+//                if(amr == null){
+//                    try{
+//                        jdbcTemplate.executeInsert(ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR_2, PrepStmt -> {
+//                            PrepStmt.setString(1, authenticator.getName());
+//                            PrepStmt.setString(2, authenticator.getFriendlyName());
+//                            PrepStmt.setBoolean(3, fileBasedConfig.isEnabled());
+//                            PrepStmt.setString(4, String.valueOf(DefinedByType.SYSTEM));
+//                            PrepStmt.setString(5, AuthenticatorPropertyConstants.AuthenticationType.IDENTIFICATION.toString());
+//                            PrepStmt.setString(6, fileBasedConfig.getAmrValue());
+//                        }, authenticator, false);
+//                    }catch (DataAccessException e) {
+//                        throw new DataAccessException("Error while Inserting Authenticator data", e);
+//                    }
+//
+//                } else if(amr.isEmpty()){
+//                    try{
+//                        jdbcTemplate.executeUpdate(ApplicationMgtDBQueries.UPDATE_AMR_VALUE, PrepStmt -> {
+//                            PrepStmt.setString(1, fileBasedConfig.getAmrValue());
+//                            PrepStmt.setString(2, authenticator.getName());
+//                        });
+//                    }catch(DataAccessException e){
+//                        throw new DataAccessException("Error while updating the AMR_VALUE", e);
+//                    }
+//
+//                }
+//            } catch (DataAccessException e) {
+//                throw new DataAccessException("Error while setting AMR Value to the authenticator", e);
+//            }
 
-                } else if(amr.isEmpty()){
-                    try{
-                        jdbcTemplate.executeUpdate(ApplicationMgtDBQueries.UPDATE_AMR_VALUE, PrepStmt -> {
-                            PrepStmt.setString(1, fileBasedConfig.getAmrValue());
-                            PrepStmt.setString(2, authenticator.getName());
-                        });
-                    }catch(DataAccessException e){
-                        throw new DataAccessException("Error while updating the AMR_VALUE", e);
-                    }
+            final ApplicationDAOImpl dao = new ApplicationDAOImpl();
+            Connection conn = IdentityDatabaseUtil.getDBConnection(true);
+            String isEnabled = fileBasedConfig.isEnabled() ? "1" : "0";
+            String amrValue = dao.getAmrValue(conn, authenticator.getName());
 
-                }
-            } catch (DataAccessException e) {
-                throw new DataAccessException("Error while setting AMR Value to the authenticator", e);
+
+            if(amrValue == null){
+                dao.insertAuthenticator(conn, authenticator.getName(),
+                        authenticator.getFriendlyName(),
+                        isEnabled,
+                        fileBasedConfig.getAmrValue());
+            }
+            else if(amrValue.isEmpty()){
+                dao.updateAmrValue(conn, authenticator.getName(), fileBasedConfig.getAmrValue());
             }
 
 
