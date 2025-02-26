@@ -853,6 +853,7 @@ public class DefaultStepHandler implements StepHandler {
             // store authenticated idp
             stepConfig.setAuthenticatedIdP(idpName);
             authenticatedIdPData.setIdpName(idpName);
+            authenticatedIdPData.setAmrValue(authenticatorConfig.getAmrValue());
             authenticatedIdPData.addAuthenticator(authenticatorConfig);
             //add authenticated idp data to the session wise map
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);

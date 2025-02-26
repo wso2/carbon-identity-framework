@@ -47,6 +47,7 @@ public class AuthenticatorMgtSQLConstants {
         public static final String IS_SECRET = "IS_SECRET";
         public static final String IMAGE_URL = "IMAGE_URL";
         public static final String DESCRIPTION = "DESCRIPTION";
+    public static final String AMR_VALUE = "AMR_VALUE";
 
         private Column() {
 
@@ -74,7 +75,8 @@ public class AuthenticatorMgtSQLConstants {
         public static final String IS_AUTHENTICATOR_EXISTS_BY_NAME_SQL = "SELECT ID FROM IDP_AUTHENTICATOR " +
                 "WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL =
-                "SELECT AUTHENTICATION_TYPE, NAME, DISPLAY_NAME, IMAGE_URL, DESCRIPTION, IS_ENABLED, DEFINED_BY, ID " +
+                "SELECT AUTHENTICATION_TYPE, NAME, DISPLAY_NAME, AMR_VALUE, IMAGE_URL, DESCRIPTION, IS_ENABLED, " +
+                        "DEFINED_BY, ID " +
                         "FROM IDP_AUTHENTICATOR " +
                         "WHERE DEFINED_BY = :DEFINED_BY; AND TENANT_ID = :TENANT_ID; " +
                         "AND IDP_ID IN (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; " +
