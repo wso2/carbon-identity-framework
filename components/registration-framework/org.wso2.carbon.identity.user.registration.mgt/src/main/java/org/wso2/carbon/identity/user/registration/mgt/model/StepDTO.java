@@ -34,6 +34,10 @@ public class StepDTO implements Serializable {
     private double height;
     private DataDTO data;
 
+    public StepDTO() {
+
+    }
+
     private StepDTO(Builder builder) {
 
         this.id = builder.id;

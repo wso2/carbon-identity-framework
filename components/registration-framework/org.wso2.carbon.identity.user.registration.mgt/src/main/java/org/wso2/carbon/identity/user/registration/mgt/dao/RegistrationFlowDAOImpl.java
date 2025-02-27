@@ -118,8 +118,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                 template.executeUpdate(DELETE_FLOW,
                                        preparedStatement -> {
                                            preparedStatement.setInt(1, tenantId);
-                                           preparedStatement.setBoolean(2, true);
-                                           preparedStatement.setString(3, REGISTRATION_FLOW);
+                                           preparedStatement.setString(2, REGISTRATION_FLOW);
                                        });
 
                 // Insert into IDN_FLOW.
