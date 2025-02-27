@@ -43,12 +43,14 @@ import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+/**
+ * Test class for RegistrationFlowDAOImpl.
+ */
 public class RegistrationFlowDAOImplTest {
 
     private static final String DB_NAME = "registration_flow_mgt_dao_db";
     private RegistrationFlowDAOImpl daoImpl;
     private static final Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
-
 
     @BeforeClass
     public void setUp() throws Exception {
