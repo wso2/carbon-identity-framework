@@ -40,12 +40,14 @@ public class RegistrationFlowMgtServiceComponent {
         BundleContext bundleContext = context.getBundleContext();
         bundleContext.registerService(RegistrationFlowMgtService.class.getName(),
                                       RegistrationFlowMgtService.getInstance(), null);
-        LOG.debug("RegistrationFlowMgt bundle is activated ");
+        LOG.debug("RegistrationFlowMgt bundle is activated.");
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        LOG.debug("RegistrationFlowMgt bundle is deactivated ");
+        BundleContext bundleCtx = context.getBundleContext();
+        bundleCtx.ungetService(bundleCtx.getServiceReference(RegistrationFlowMgtService.class));
+        LOG.debug("RegistrationFlowMgt bundle is deactivated.");
     }
 }

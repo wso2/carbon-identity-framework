@@ -23,7 +23,6 @@ package org.wso2.carbon.identity.user.registration.mgt;
  */
 public class Constants {
 
-    public static final String EXECUTOR_FOR_USER_ONBOARDING = "UserOnboardingExecutor";
     public static final String COMPLETE = "COMPLETE";
     public static final String DEFAULT_FLOW_NAME = "defaultFlow";
 
@@ -50,7 +49,8 @@ public class Constants {
                                             "Unexpected server error while deserializing the page content for step %s" +
                                                     " in tenant, %s"),
         ERROR_CODE_GET_REG_GRAPH_FAILED("65006", "Error while retrieving the registration graph.",
-                                        "Unexpected server error while retrieving the registration graph for tenant, %s"),
+                                        "Unexpected server error while retrieving the registration graph for tenant, " +
+                                                "%s"),
 
         // Client errors.
         ERROR_CODE_UNSUPPORTED_STEP_TYPE("60001", "Unsupported step type.",
@@ -158,6 +158,18 @@ public class Constants {
         public static final String NEXT = "NEXT";
 
         private ActionTypes() {
+
+        }
+    }
+
+    /**
+     * Constants for defined executor types.
+     */
+    public static class ExecutorTypes {
+
+        public static final String USER_ONBOARDING = "UserOnboardingExecutor";
+
+        private ExecutorTypes() {
 
         }
     }

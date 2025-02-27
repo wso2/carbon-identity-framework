@@ -256,7 +256,8 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                             .collect(Collectors.toList());
                     stepDTO.setData(new DataDTO.Builder().components(components).build());
                 } else {
-                    LOG.error("Deserialized list does not contain component objects.");
+                    throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
+                                                stepDTO.getId(), tenantId);
                 }
             } else if (REDIRECTION.equals(stepDTO.getType())) {
                 if (obj instanceof ActionDTO) {
