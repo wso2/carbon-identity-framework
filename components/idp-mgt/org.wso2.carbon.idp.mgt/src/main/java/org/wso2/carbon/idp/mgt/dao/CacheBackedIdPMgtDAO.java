@@ -43,6 +43,9 @@ import org.wso2.carbon.idp.mgt.cache.IdPHomeRealmIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPMetadataPropertyCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
+import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCache;
+import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCacheEntry;
+import org.wso2.carbon.idp.mgt.cache.UserDefinedFederatedAuthenticatorsCacheKey;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -63,6 +66,7 @@ public class CacheBackedIdPMgtDAO {
     private IdPCacheByAuthProperty idPCacheByAuthProperty = null;
     private IdPCacheByResourceId idPCacheByResourceId = null;
     private IdPCacheByMetadataProperty idPCacheByMetadataProperty = null;
+    private UserDefinedFederatedAuthenticatorsCache userDefinedFederatedAuthenticatorsCache = null;
 
     /**
      * @param idPMgtDAO
@@ -74,6 +78,7 @@ public class CacheBackedIdPMgtDAO {
         idPCacheByAuthProperty = IdPCacheByAuthProperty.getInstance();
         idPCacheByResourceId = IdPCacheByResourceId.getInstance();
         idPCacheByMetadataProperty = IdPCacheByMetadataProperty.getInstance();
+        userDefinedFederatedAuthenticatorsCache = UserDefinedFederatedAuthenticatorsCache.getInstance();
     }
 
     /**
@@ -582,6 +587,8 @@ public class CacheBackedIdPMgtDAO {
     public String addIdP(IdentityProvider identityProvider, int tenantId, String
             tenantDomain) throws IdentityProviderManagementException {
 
+        userDefinedFederatedAuthenticatorsCache.clearCacheEntry(
+                new UserDefinedFederatedAuthenticatorsCacheKey(tenantId), tenantId);
         return idPManagementFacade.addIdPWithResourceId(identityProvider, tenantId);
     }
 
@@ -794,6 +801,9 @@ public class CacheBackedIdPMgtDAO {
                         IdentityApplicationConstants.IDP_ISSUER_NAME, idPIssuerName);
                 idPCacheByMetadataProperty.clearCacheEntry(cacheKey, tenantDomain);
             }
+
+            userDefinedFederatedAuthenticatorsCache.clearCacheEntry(
+                    new UserDefinedFederatedAuthenticatorsCacheKey(tenantId), tenantId);
         } else {
             log.debug("Entry for Identity Provider " + idPName + " not found in cache or DB");
         }
@@ -1133,6 +1143,26 @@ public class CacheBackedIdPMgtDAO {
     public List<FederatedAuthenticatorConfig> getAllUserDefinedFederatedAuthenticators(int tenantId)
             throws IdentityProviderManagementException {
 
-        return idPManagementFacade.getAllUserDefinedFederatedAuthenticators(tenantId);
+        UserDefinedFederatedAuthenticatorsCacheKey cacheKey = new UserDefinedFederatedAuthenticatorsCacheKey(tenantId);
+        UserDefinedFederatedAuthenticatorsCacheEntry entry =
+                userDefinedFederatedAuthenticatorsCache.getValueFromCache(cacheKey, tenantId);
+
+        if (entry != null) {
+            log.debug("Cache entry found for all user defined federated authenticators of tenant id: " + tenantId);
+            return entry.getUserDefinedFederatedAuthenticators();
+        }
+
+        log.debug("Cache entry not found for all user defined federated authenticators of tenant id: " + tenantId +
+                ". Fetching from DB.");
+        List<FederatedAuthenticatorConfig> userDefinedFederatedAuthenticators =
+                idPManagementFacade.getAllUserDefinedFederatedAuthenticators(tenantId);
+
+        if (userDefinedFederatedAuthenticators != null) {
+            userDefinedFederatedAuthenticatorsCache.addToCache(cacheKey,
+                    new UserDefinedFederatedAuthenticatorsCacheEntry(userDefinedFederatedAuthenticators), tenantId);
+            log.debug("Entry fetched from DB for all user defined federated authenticators of tenant id: "
+                    + tenantId + ". Adding cache entry.");
+        }
+        return userDefinedFederatedAuthenticators;
     }
 }

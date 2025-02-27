@@ -74,7 +74,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
                         dao.addUserDefinedLocalAuthenticator(authenticatorConfig, tenantId), tenantId);
             });
         } catch (TransactionException e) {
-            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e,
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e,
                     authenticatorConfig.getName());
         }
     }
