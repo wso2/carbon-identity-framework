@@ -33,6 +33,7 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMess
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_MULTIPLE_STEP_EXECUTORS;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_NEXT_ACTION_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_ACTION_TYPE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
@@ -307,7 +308,7 @@ public class GraphBuilder {
         NodeConfig nodeConfig = new NodeConfig.Builder()
                 .id(UUID.randomUUID().toString())
                 .type(TASK_EXECUTION)
-                .executorConfig(new ExecutorDTO(Constants.EXECUTOR_FOR_USER_ONBOARDING))
+                .executorConfig(new ExecutorDTO(USER_ONBOARDING))
                 .build();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Created a node with id " + nodeConfig.getId() + " for user onboarding.");
