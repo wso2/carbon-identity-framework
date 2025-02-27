@@ -43,6 +43,9 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+/**
+ * Test class for GraphBuilder.
+ */
 public class GraphBuilderTest {
 
     public static final String STEP_1 = "step_qx3a";
@@ -65,7 +68,7 @@ public class GraphBuilderTest {
     @Test
     public void testConvert() throws RegistrationFrameworkException {
 
-        // Create a sample RegistrationFlowDTO
+        // Create a sample RegistrationFlowDTO.
         RegistrationFlowDTO flowDTO = new RegistrationFlowDTO();
         flowDTO.setSteps(new ArrayList<>());
 
@@ -84,7 +87,7 @@ public class GraphBuilderTest {
                         .build())
                 .build();
 
-        // Add a sample StepDTO
+        // Add a sample StepDTO.
         StepDTO stepDTO1 = new StepDTO.Builder()
                 .id(STEP_1)
                 .type(Constants.StepTypes.VIEW)
@@ -144,10 +147,10 @@ public class GraphBuilderTest {
 
         flowDTO.setSteps(Arrays.asList(stepDTO1, stepDTO2, stepDTO3));
 
-        // Convert the flowDTO to a RegistrationGraphConfig
+        // Convert the flowDTO to a RegistrationGraphConfig.
         RegistrationGraphConfig graphConfig = GraphBuilder.convert(flowDTO);
 
-        // Assert the converted graphConfig
+        // Assert the converted graphConfig.
         assertNotNull(graphConfig);
         assertNotNull(graphConfig.getId());
         assertEquals(graphConfig.getNodeConfigs().size(), 4);
