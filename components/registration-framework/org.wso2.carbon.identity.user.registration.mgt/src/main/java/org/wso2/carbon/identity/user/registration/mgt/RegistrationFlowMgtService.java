@@ -87,9 +87,8 @@ public class RegistrationFlowMgtService {
      *
      * @param tenantID The tenant ID.
      */
-    public RegistrationGraphConfig getRegistrationFlowConfig(int tenantID) {
+    public RegistrationGraphConfig getRegistrationGraphConfig(int tenantID) throws RegistrationFrameworkException {
 
-        // TODO: Implement this method.
-        return null;
+        return registrationFlowDAO.getDefaultRegistrationGraphByTenant(tenantID);
     }
 }

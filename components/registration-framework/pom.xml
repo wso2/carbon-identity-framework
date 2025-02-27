@@ -36,6 +36,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.user.registration.mgt</module>
+        <module>org.wso2.carbon.identity.user.registration.engine</module>
     </modules>
 
 </project>
