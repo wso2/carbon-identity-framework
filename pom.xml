@@ -77,7 +77,7 @@
         <module>components/certificate-mgt</module>
         <module>components/servlet-mgt</module>
         <module>components/system-config-mgt</module>
-        <module>components/user-self-registration</module>
+        <module>components/registration-framework</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -117,6 +117,7 @@
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
+        <module>features/registration-framework</module>
     </modules>
 
 
@@ -754,6 +755,12 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.registration.mgt.server.feature</artifactId>
+                <type>zip</type>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1776,6 +1783,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.registration.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
