@@ -18,10 +18,10 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="org.wso2.carbon.identity.application.mgt.test">
-    <test name="org.wso2.carbon.identity.application.mgt.test" preserve-order="true" parallel="false">
+<suite name="org.wso2.carbon.identity.user.registration.mgt">
+    <test name="registration-mgt-tests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.user.registration.mgt.adapter.FlowConvertorTest"/>
+            <class name="org.wso2.carbon.identity.user.registration.mgt.utils.GraphBuilderTest"/>
         </classes>
     </test>
 </suite>
