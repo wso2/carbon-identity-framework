@@ -256,6 +256,18 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getAllLocalAuthenticators">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllLocalAuthenticatorsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2168:LocalAuthenticatorConfig"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="getAllLocalClaimUris">
                 <xs:complexType>
                     <xs:sequence/>
@@ -330,18 +342,6 @@
                     <xs:sequence>
                         <xs:element minOccurs="0" name="templateName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="spTemplate" nillable="true" type="ax2168:SpTemplate"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllLocalAuthenticators">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllLocalAuthenticatorsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2168:LocalAuthenticatorConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -742,13 +742,12 @@
             </xs:complexType>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
-            <xs:complexType name="AuthenticatorPropertyConstants_DefinedByType">
-                <xs:complexContent>
-                    <xs:extension base="xs:Enum">
-                        <xs:sequence/>
-                    </xs:extension>
-                </xs:complexContent>
-            </xs:complexType>
+            <xs:simpleType name="AuthenticatorPropertyConstants_DefinedByType">
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="SYSTEM"/>
+                    <xs:enumeration value="USER"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://script.model.common.application.identity.carbon.wso2.org/xsd">
             <xs:complexType name="AuthenticationScriptConfig">
