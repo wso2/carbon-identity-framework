@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.user.registration.mgt.utils;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
@@ -53,6 +52,7 @@ public class GraphBuilderTest {
     public static final String OIDC_AUTHENTICATOR = "OIDCAuthenticator";
     public static final String OIDC_IDP = "OIDC_IDP";
     public static final String GOOGLE_OIDC_AUTHENTICATOR = "GoogleOIDCAuthenticator";
+    public static Map<String, String> stepIdToNextNodeIdMap = new HashMap<>();
 
     @BeforeClass
     public void setUpClass() {
@@ -155,29 +155,33 @@ public class GraphBuilderTest {
         assertEquals(graphConfig.getFirstNodeId(), STEP_1);
 
         graphConfig.getNodePageMappings().forEach((nodeId, stepDTO) -> {
+            stepIdToNextNodeIdMap.put(stepDTO.getId(), graphConfig.getNodeConfigs().get(nodeId).getNextNodeId());
+        });
+
+        graphConfig.getNodePageMappings().forEach((nodeId, stepDTO) -> {
             assertNotNull(nodeId);
             assertNotNull(stepDTO);
             NodeConfig nodeConfig = graphConfig.getNodeConfigs().get(nodeId);
             assertNotNull(nodeConfig);
 
-            switch (stepDTO.getId()){
+            switch (stepDTO.getId()) {
                 case STEP_1:
-                    System.out.println("=========");
-                    System.out.println(nodeConfig);
                     assertEquals(nodeConfig.getType(), Constants.NodeTypes.PROMPT_ONLY);
                     assertTrue(nodeConfig.isFirstNode());
-                    assertNull(nodeConfig.getPreviousNodeId());
+                    assertEquals(nodeConfig.getNextNodeId(), stepIdToNextNodeIdMap.get(STEP_1));
                     assertNull(nodeConfig.getExecutorConfig());
                     break;
                 case STEP_2:
                     assertEquals(nodeConfig.getType(), Constants.NodeTypes.TASK_EXECUTION);
                     assertEquals(nodeConfig.getExecutorConfig().getName(), OIDC_AUTHENTICATOR);
                     assertEquals(nodeConfig.getExecutorConfig().getIdpName(), OIDC_IDP);
+                    assertEquals(nodeConfig.getNextNodeId(), stepIdToNextNodeIdMap.get(STEP_2));
                     break;
                 case STEP_3:
                     assertEquals(nodeConfig.getType(), Constants.NodeTypes.TASK_EXECUTION);
                     assertEquals(nodeConfig.getExecutorConfig().getName(), GOOGLE_OIDC_AUTHENTICATOR);
                     assertEquals(nodeConfig.getExecutorConfig().getIdpName(), GOOGLE_IDP_NAME);
+                    assertEquals(nodeConfig.getNextNodeId(), stepIdToNextNodeIdMap.get(STEP_3));
                     break;
                 default:
                     break;
