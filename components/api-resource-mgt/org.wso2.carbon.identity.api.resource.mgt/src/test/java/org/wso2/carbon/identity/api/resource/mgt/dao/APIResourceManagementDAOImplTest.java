@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -269,7 +269,7 @@ public class APIResourceManagementDAOImplTest {
     public Object[][] getAPIResourceByIdData() {
         return new Object[][]{
                 {"testGetAPIResourceById", TENANT_ID, TENANT_ID, false, true},
-                {"testGetOrgAPIResourceById", TENANT_ID, ORGANIZATION_TENANT_ID, true, true},
+                {"testGetOrgAPIResourceById", TENANT_ID, ORGANIZATION_TENANT_ID, true, false},
                 {"testGetAPIResourceByIdInvalidTenant", TENANT_ID, INVALID_TENANT_ID, false, false}
         };
     }
@@ -550,8 +550,8 @@ public class APIResourceManagementDAOImplTest {
     public Object[][] updateAPIResourceScopeAddition() {
 
         return new Object[][]{
-                {APIResourceManagementConstants.BUSINESS_TYPE, 2},
-                {APIResourceManagementConstants.SYSTEM_TYPE, 2},
+                {APIResourceManagementConstants.APIResourceTypes.BUSINESS, 2},
+                {APIResourceManagementConstants.APIResourceTypes.SYSTEM, 2},
                 {ORGANIZATION_TYPE, 2},
                 {TENANT_TYPE, 2},
                 {CONSOLE_ORG_LEVEL_TYPE, 2}
