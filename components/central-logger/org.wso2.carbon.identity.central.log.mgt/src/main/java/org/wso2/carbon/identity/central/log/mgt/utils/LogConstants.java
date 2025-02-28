@@ -161,4 +161,16 @@ public class LogConstants {
         public static final String DELETED_PERMISSIONS_FIELD = "DeletedPermissions";
         public static final String DELETED_IDP_GROUPS_FIELD = "DeletedIdpGroups";
     }
+
+    /**
+     * Registration flow management related log constants.
+     */
+    public static class RegistrationFlowManagement {
+
+        public static final String UPDATE_REGISTRATION_FLOW = "update-registration-flow";
+
+        private RegistrationFlowManagement() {
+
+        }
+    }
 }
