@@ -206,6 +206,15 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
     /**
      * Validate whether the provided discoverable groups are valid.
+     * This will perform the following validations if discoverable groups are defined.
+     * 1. Check whether the application is discoverable.
+     * 2. Check whether the user store is defined for the discoverable group.
+     * 3. Check whether the user store is available.
+     * 4. Check whether groups are defined for the discoverable group.
+     * 5. Check whether group ID is defined for the group.
+     * 6. Check whether the group exists in the user store.
+     * If any of the above validations fail, the corresponding error message will be added to the validation errors
+     * list.
      *
      * @param validationErrors List of validation errors.
      * @param serviceProvider  Service provider configuration.

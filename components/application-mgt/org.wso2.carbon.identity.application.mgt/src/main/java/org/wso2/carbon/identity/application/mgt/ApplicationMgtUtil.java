@@ -1374,7 +1374,13 @@ public class ApplicationMgtUtil {
     }
 
     /**
-     * Add the current discoverable group to the list of discoverable groups.
+     * This method is used to build the discoverable groups list from the database result.
+     * Note: Group association list should be sorted by domain and provide group IDs in order.
+     * Where `discoverableGroups` list keeps the complete list of discoverable groups and
+     *  currentDomainGroups  list keeps the list of groups in the current iterating domain.
+     * The method will add the `currentDomainGroups` list to the `discoverableGroups` list
+     * if the domain name is change from the previous iteration.
+     * If the domain name is same, the group will be added to the `currentDomainGroups` list.
      *
      * @param discoverableGroups  All list of discoverable groups.
      * @param currentDomainGroups List of groups in the current iterating domain.
