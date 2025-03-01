@@ -37,10 +37,14 @@ public class RegistrationFlowMgtServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        BundleContext bundleContext = context.getBundleContext();
-        bundleContext.registerService(RegistrationFlowMgtService.class.getName(),
-                                      RegistrationFlowMgtService.getInstance(), null);
-        LOG.debug("RegistrationFlowMgt bundle is activated.");
+        try{
+            BundleContext bundleContext = context.getBundleContext();
+            bundleContext.registerService(RegistrationFlowMgtService.class.getName(),
+                                          RegistrationFlowMgtService.getInstance(), null);
+            LOG.debug("RegistrationFlowMgt bundle is activated.");
+        } catch (Throwable e) {
+            LOG.error("Error occurred while activating RegistrationFlowMgt bundle.", e);
+        }
     }
 
     @Deactivate

@@ -28,7 +28,7 @@ import java.util.List;
 public class NodeConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private final List<NodeEdge> edges = new ArrayList<>();
+    private List<NodeEdge> edges = new ArrayList<>();
     private String id;
     private String type;
     private boolean isFirstNode;
