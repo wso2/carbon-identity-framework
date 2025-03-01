@@ -18,13 +18,13 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ExecutorStatus.STATUS_USER_CREATED;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.PASSWORD;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
 import java.util.HashMap;
@@ -46,6 +46,9 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
 
+/**
+ * Implementation of the executor which handles onboarding the user to the system.
+ */
 public class UserOnboardingExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(UserOnboardingExecutor.class);
@@ -53,10 +56,10 @@ public class UserOnboardingExecutor implements Executor {
     @Override
     public ExecutorResponse execute(RegistrationContext context) throws RegistrationFrameworkException {
 
-        String tenantDomain = context.getTenantDomain();
         updateUserProfile(context);
         RegisteringUser user = context.getRegisteringUser();
-        UserStoreManager userStoreManager = getUserstoreManager(tenantDomain, context.getContextIdentifier());
+        UserStoreManager userStoreManager =
+                getUserstoreManager(context.getTenantDomain(), context.getContextIdentifier());
 
         Map<String, String> credentials = user.getUserCredentials();
 
@@ -66,7 +69,7 @@ public class UserOnboardingExecutor implements Executor {
         Map<String, Object> claims = user.getClaims();
         Map<String, String> userClaims = new HashMap<>();
         for (Map.Entry<String, Object> entry : claims.entrySet()) {
-            userClaims.put(entry.getKey(), entry.getValue().toString());
+            userClaims.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
 
         String username = Optional.ofNullable(user.getUsername()).orElseGet(() -> userClaims.get(USERNAME_CLAIM_URI));
@@ -84,7 +87,8 @@ public class UserOnboardingExecutor implements Executor {
             context.setUserId(userid);
             return new ExecutorResponse(STATUS_USER_CREATED);
         } catch (UserStoreException e) {
-            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, context.getContextIdentifier());
+            throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
+                                        context.getContextIdentifier());
         }
     }
 

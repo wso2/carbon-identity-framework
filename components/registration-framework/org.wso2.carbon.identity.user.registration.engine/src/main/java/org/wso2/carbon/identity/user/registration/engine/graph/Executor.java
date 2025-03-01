@@ -28,9 +28,26 @@ import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFram
  */
 public interface Executor {
 
+    /**
+     * Get the unique name of the executor.
+     *
+     * @return  Name of the executor.
+     */
     String getName();
 
-    ExecutorResponse execute(RegistrationContext registrationRequest) throws RegistrationFrameworkException;
+    /**
+     * Execute the logic of the executor.
+     *
+     * @param context   Registration context.
+     * @return        Executor response.
+     * @throws RegistrationFrameworkException If an error occurs while executing the executor.
+     */
+    ExecutorResponse execute(RegistrationContext context) throws RegistrationFrameworkException;
 
+    /**
+     * Get the initiation data of the executor.
+     *
+     * @return  List of initiation data.
+     */
     List<String> getInitiationData();
 }

@@ -18,14 +18,12 @@
 
 package org.wso2.carbon.identity.user.registration.engine;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.SELECTED_ACTION;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
 import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
-import org.wso2.carbon.identity.user.registration.engine.util.Constants;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 
@@ -74,7 +72,7 @@ public class UserRegistrationFlowService {
 
         RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
         context.getUserInputData().putAll(inputs);
-        context.getUserInputData().put(SELECTED_ACTION, actionId);
+        context.setCurrentActionId(actionId);
         RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
         if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
             RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);

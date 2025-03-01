@@ -87,8 +87,10 @@ public class RegistrationFlowEngine {
             Response nodeResponse = triggerNode(currentNode, context);
 
             if (STATUS_PROMPT_ONLY.equals(nodeResponse.getStatus())) {
+                RegistrationStep step = resolveStepDetailsForPrompt(graph, currentNode, context);
                 currentNode = moveToNextNode(graph, currentNode);
-                return resolveStepDetailsForPrompt(graph, currentNode, context);
+                context.setCurrentNode(currentNode);
+                return step;
             } else if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && VIEW.equals(nodeResponse.getType())) {
                 return resolveStepDetailsForPrompt(graph, currentNode, context);
             } else if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
@@ -96,6 +98,7 @@ public class RegistrationFlowEngine {
                 return resolveStepDetailsForRedirection(context, nodeResponse);
             } else {
                 currentNode = moveToNextNode(graph, currentNode);
+                context.setCurrentNode(currentNode);
             }
         }
         return new RegistrationStep.Builder().flowStatus(STATUS_COMPLETE).build();

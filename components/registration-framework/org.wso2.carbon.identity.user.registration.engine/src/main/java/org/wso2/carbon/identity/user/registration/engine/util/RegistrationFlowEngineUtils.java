@@ -26,6 +26,8 @@ import java.util.UUID;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCache;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCacheEntry;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCacheKey;
@@ -104,21 +106,20 @@ public class RegistrationFlowEngineUtils {
             throws RegistrationFrameworkException {
 
         try {
-            int tenantId = RegistrationFlowEngineDataHolder.getInstance().getRealmService().getTenantManager()
-                    .getTenantId(tenantDomain);
-            RegistrationGraphConfig flowConfig =
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            RegistrationGraphConfig graphConfig =
                     RegistrationFlowEngineDataHolder.getInstance().getRegistrationFlowMgtService()
                             .getRegistrationGraphConfig(tenantId);
 
-            if (flowConfig == null) {
+            if (graphConfig == null) {
                 throw handleServerException(ERROR_CODE_REG_FLOW_NOT_FOUND, tenantDomain);
             }
             RegistrationContext context = new RegistrationContext();
             context.setTenantDomain(tenantDomain);
-            context.setRegGraph(flowConfig);
+            context.setRegGraph(graphConfig);
             context.setContextIdentifier(UUID.randomUUID().toString());
             return context;
-        } catch (UserStoreException e) {
+        } catch (IdentityRuntimeException e) {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
         }
     }

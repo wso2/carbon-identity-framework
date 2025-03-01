@@ -45,16 +45,6 @@ public class SQLConstants {
                     "LEFT JOIN IDN_FLOW_PAGE_META M ON P.ID = M.PAGE_ID " +
                     "WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = ? AND F.TYPE = ?;";
 
-    public static final String GET_DEFAULT_REG_GRAPH_INFO =
-            "SELECT f.ID AS flow_id, n.NODE_ID, n.NODE_TYPE, n.IS_FIRST_NODE, nextNode.NODE_ID AS next_node_id, nm" +
-                    ".TRIGGERING_ELEMENT, ne.EXECUTOR_NAME, ne.IDP_NAME, p.STEP_ID, p.PAGE_CONTENT FROM IDN_FLOW f " +
-                    "LEFT JOIN IDN_FLOW_NODE n ON f.ID = n.FLOW_ID " +
-                    "LEFT JOIN IDN_FLOW_NODE_MAPPING nm ON n.ID = nm.FLOW_NODE_ID " +
-                    "LEFT JOIN IDN_FLOW_NODE nextNode ON nm.NEXT_NODE_ID = nextNode.ID " +
-                    "LEFT JOIN IDN_FLOW_NODE_EXECUTOR ne ON n.ID = ne.FLOW_NODE_ID " +
-                    "LEFT JOIN IDN_FLOW_PAGE p ON n.ID = p.FLOW_NODE_ID AND p.TYPE = 'VIEW' " +
-                    "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? AND f.TYPE = ?;";
-
     public static final String GET_NODES_WITH_MAPPINGS_QUERY =
             "SELECT f.ID AS FLOW_ID, n.NODE_ID, n.NODE_TYPE, n.IS_FIRST_NODE, " +
                     "ne.EXECUTOR_NAME, ne.IDP_NAME, " +

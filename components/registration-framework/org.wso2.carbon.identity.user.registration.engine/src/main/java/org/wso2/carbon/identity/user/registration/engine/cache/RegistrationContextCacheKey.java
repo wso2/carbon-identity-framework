@@ -27,9 +27,10 @@ public class RegistrationContextCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 3829856934531448120L;
 
-    private String contextId;
+    private final String contextId;
 
     public RegistrationContextCacheKey(String contextId) {
+
         this.contextId = contextId;
     }
 

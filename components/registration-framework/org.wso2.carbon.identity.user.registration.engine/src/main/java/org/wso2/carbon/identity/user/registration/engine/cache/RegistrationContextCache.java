@@ -42,7 +42,7 @@ public class RegistrationContextCache extends BaseCache<RegistrationContextCache
      */
     public static RegistrationContextCache getInstance() {
 
-        LOG.debug("Returning instance of RegistrationContextCache");
+        LOG.debug("Returning instance of RegistrationContextCache.");
         return instance;
     }
 
