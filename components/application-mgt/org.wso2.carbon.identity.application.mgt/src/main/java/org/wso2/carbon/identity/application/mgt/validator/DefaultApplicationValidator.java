@@ -1,20 +1,19 @@
 /*
- *  Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2015-2025, WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
- *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.application.mgt.validator;
@@ -29,7 +28,9 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -59,6 +60,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreClientException;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,6 +72,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_CHECKING_GROUP_EXISTENCE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.TRUSTED_APP_MAX_THUMBPRINT_COUNT_PROPERTY;
 import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
 import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
@@ -104,6 +108,16 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             "if FIDO trusted app feature is enabled.";
     private static final String INCORRECT_TRUSTED_ANDROID_APP_DETAILS = "Both package name and thumbprints are " +
             "required when configuring an android application as a trusted mobile application.";
+    private static final String DISCOVERABLE_GROUPS_FOR_NON_DISCOVERABLE_APPLICATION =
+            "Discoverable groups are defined for a non-discoverable application.";
+    private static final String NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP =
+            "No user store defined for the discoverable groups indexed at %d.";
+    private static final String USER_STORE_NOT_FOUND = "The provided user store: '%s' is not found.";
+    private static final String NO_GROUPS_FOR_THE_DISCOVERABLE_GROUP =
+            "No groups defined for the user store: '%s' in the discoverable groups configuration.";
+    private static final String NO_GROUP_ID = "Group ID is not defined for the group indexed at %d for the user " +
+            "store: '%s' in the discoverable groups configuration.";
+    private static final String NO_GROUP_WITH_GIVEN_ID = "No group found for the given group ID: '%s'.";
     public static final String IS_HANDLER = "IS_HANDLER";
     private static Pattern loopPattern;
     private static final int MODE_DEFAULT = 1;
@@ -130,7 +144,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
 
         List<String> validationErrors = new ArrayList<>();
         validateApplicationVersion(validationErrors, serviceProvider);
-        validateDiscoverabilityConfigs(validationErrors, serviceProvider);
+        validateDiscoverabilityConfigs(validationErrors, serviceProvider, tenantDomain);
         validateInboundAuthenticationConfig(serviceProvider.getInboundAuthenticationConfig(), tenantDomain,
                 serviceProvider.getApplicationID());
         validateLocalAndOutBoundAuthenticationConfig(validationErrors,
@@ -169,13 +183,88 @@ public class DefaultApplicationValidator implements ApplicationValidator {
         }
     }
 
-    private void validateDiscoverabilityConfigs(List<String> validationErrors,
-                                                ServiceProvider serviceProvider) {
+    /**
+     * Validate whether the discoverability configurations are valid.
+     *
+     * @param validationErrors List of validation errors.
+     * @param serviceProvider  Service provider configuration.
+     * @param tenantDomain     Tenant domain of the application.
+     * @throws IdentityApplicationManagementException If an error occurs while validating the discoverability
+     *                                                configurations.
+     */
+    private void validateDiscoverabilityConfigs(List<String> validationErrors, ServiceProvider serviceProvider,
+                                                String tenantDomain) throws IdentityApplicationManagementException {
 
         String validationErrorFormat = "A valid %s needs to be defined if an application is marked as discoverable.";
         if (serviceProvider.isDiscoverable()) {
             if (StringUtils.isBlank(serviceProvider.getAccessUrl())) {
                 validationErrors.add(String.format(validationErrorFormat, "accessURL"));
+            }
+        }
+        validateDiscoverableGroups(validationErrors, serviceProvider, tenantDomain);
+    }
+
+    /**
+     * Validate whether the provided discoverable groups are valid.
+     * This will perform the following validations if discoverable groups are defined.
+     * 1. Check whether the application is discoverable.
+     * 2. Check whether the user store is defined for the discoverable group.
+     * 3. Check whether the user store is available.
+     * 4. Check whether groups are defined for the discoverable group.
+     * 5. Check whether group ID is defined for the group.
+     * 6. Check whether the group exists in the user store.
+     * If any of the above validations fail, the corresponding error message will be added to the validation errors
+     * list.
+     *
+     * @param validationErrors List of validation errors.
+     * @param serviceProvider  Service provider configuration.
+     * @param tenantDomain     Tenant domain of the application.
+     * @throws IdentityApplicationManagementException If an error occurs while validating the discoverable groups.
+     */
+    private void validateDiscoverableGroups(List<String> validationErrors, ServiceProvider serviceProvider,
+                                            String tenantDomain) throws IdentityApplicationManagementException {
+
+        DiscoverableGroup[] discoverableGroups = serviceProvider.getDiscoverableGroups();
+        if (discoverableGroups != null && discoverableGroups.length > 0) {
+            if (!serviceProvider.isDiscoverable()) {
+                validationErrors.add(DISCOVERABLE_GROUPS_FOR_NON_DISCOVERABLE_APPLICATION);
+                return;
+            }
+            AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+            for (int i = 0; i < discoverableGroups.length; i++) {
+                DiscoverableGroup discoverableGroup = discoverableGroups[i];
+                GroupBasicInfo[] groupBasicInfos = discoverableGroup.getGroups();
+                if (StringUtils.isBlank(discoverableGroup.getUserStore())) {
+                    validationErrors.add(String.format(NO_USER_STORE_FOR_THE_DISCOVERABLE_GROUP, i));
+                    continue;
+                }
+                if (userStoreManager.getSecondaryUserStoreManager(discoverableGroup.getUserStore()) == null) {
+                    validationErrors.add(String.format(USER_STORE_NOT_FOUND, discoverableGroup.getUserStore()));
+                    continue;
+                }
+                if (groupBasicInfos == null || groupBasicInfos.length == 0) {
+                    validationErrors.add(
+                            String.format(NO_GROUPS_FOR_THE_DISCOVERABLE_GROUP, discoverableGroup.getUserStore()));
+                    continue;
+                }
+                for (int j = 0; j < groupBasicInfos.length; j++) {
+                    GroupBasicInfo groupBasicInfo = groupBasicInfos[j];
+                    if (StringUtils.isBlank(groupBasicInfo.getId())) {
+                        validationErrors.add(String.format(NO_GROUP_ID, j, discoverableGroup.getUserStore()));
+                        continue;
+                    }
+                    try {
+                        userStoreManager.getGroupNameByGroupId(groupBasicInfo.getId());
+                    } catch (UserStoreException e) {
+                        if (e instanceof UserStoreClientException) {
+                            validationErrors.add(String.format(NO_GROUP_WITH_GIVEN_ID, groupBasicInfo.getId()));
+                            continue;
+                        }
+                        throw new IdentityApplicationManagementException(ERROR_CHECKING_GROUP_EXISTENCE.getCode(),
+                                String.format(ERROR_CHECKING_GROUP_EXISTENCE.getDescription(), groupBasicInfo.getId()),
+                                e);
+                    }
+                }
             }
         }
     }
