@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -36,6 +37,7 @@ import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
@@ -632,6 +634,21 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      * @throws IdentityApplicationManagementException If an error occurred while adding role to application.
      */
     public void addAssociatedRoleToApplication(ServiceProvider serviceProvider, String roleId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Get the groups list based on the filter.
+     *
+     * @param tenantDomain Tenant domain.
+     * @param domainName   User store domain name.
+     * @param filter       Filtering that should be applied.
+     * @return The list of groups.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving groups list.
+     */
+    public List<GroupBasicInfo> getGroups(String tenantDomain, String domainName, Node filter)
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();
