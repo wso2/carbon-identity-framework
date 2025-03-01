@@ -33,9 +33,11 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementServiceImpl;
+import org.wso2.carbon.identity.role.v2.mgt.core.cache.invalidation.CacheInvalidatorByUserOperation;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementListener;
 import org.wso2.carbon.identity.role.v2.mgt.core.listener.RoleManagementV2AuditLogger;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.user.core.listener.UniqueIDUserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -54,6 +56,9 @@ public class RoleManagementServiceComponent {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(RoleManagementService.class, new RoleManagementServiceImpl(), null);
             bundleContext.registerService(RoleManagementListener.class, new RoleManagementV2AuditLogger(), null);
+
+            // Cache invalidation listeners.
+            bundleContext.registerService(UniqueIDUserOperationEventListener.class, new CacheInvalidatorByUserOperation(), null);
 
             log.debug("Role V2 management service is activated.");
         } catch (Throwable e) {
