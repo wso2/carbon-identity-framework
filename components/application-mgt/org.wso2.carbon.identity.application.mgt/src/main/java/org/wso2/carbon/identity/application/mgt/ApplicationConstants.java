@@ -55,6 +55,7 @@ public class ApplicationConstants {
     public static final String IDP_AUTHENTICATOR_NAME = "authenticatorName";
     public static final String IDP_AUTHENTICATOR_DISPLAY_NAME = "authenticatorDisplayName";
     public static final String IDP_AUTHENTICATOR_DEFINED_BY_TYPE = "definedByType";
+    public static final String IDP_AUTHENTICATOR_AMR = "amrValue";
     public static final String APPLICATION_DOMAIN = "Application";
     // Regex for validating application name.
     public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";

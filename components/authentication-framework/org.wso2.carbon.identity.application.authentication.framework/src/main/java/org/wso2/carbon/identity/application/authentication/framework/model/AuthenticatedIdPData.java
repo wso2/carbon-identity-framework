@@ -38,6 +38,8 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
 
     private String idpName;
 
+    private String amrValue;
+
     @Deprecated
     /**
      * @deprecated use {@link #authenticators} instead.
@@ -57,6 +59,14 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
 
     public void setIdpName(String idpName) {
         this.idpName = idpName;
+    }
+
+    public String getAmrValue() {
+        return amrValue;
+    }
+
+    public void setAmrValue(String amrValue) {
+        this.amrValue = amrValue;
     }
 
     public AuthenticatedUser getUser() {
