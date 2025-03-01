@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.registration.engine.model;// model.ExecutionState.java
+package org.wso2.carbon.identity.user.registration.engine.model;
 
 import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
 

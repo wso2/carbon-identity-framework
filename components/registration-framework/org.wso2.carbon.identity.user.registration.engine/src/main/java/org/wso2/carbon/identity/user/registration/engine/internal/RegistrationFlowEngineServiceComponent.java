@@ -38,6 +38,9 @@ import org.wso2.carbon.identity.user.registration.engine.graph.UserChoiceDecisio
 import org.wso2.carbon.identity.user.registration.mgt.RegistrationFlowMgtService;
 import org.wso2.carbon.user.core.service.RealmService;
 
+/**
+ * OSGi declarative services component which handles registration flow engine service.
+ */
 @Component(
         name = "user.registration.flow.engine.component",
         immediate = true)
@@ -62,7 +65,13 @@ public class RegistrationFlowEngineServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        LOG.debug("Registration Flow Engine service is deactivated.");
+        try {
+            BundleContext bundleCtx = context.getBundleContext();
+            bundleCtx.ungetService(bundleCtx.getServiceReference(UserRegistrationFlowService.class));
+            LOG.debug("Registration Flow Engine service successfully deactivated");
+        } catch (Throwable e) {
+            LOG.error("Error while deactivating Registration Flow Engine service.", e);
+        }
     }
 
     @Reference(
@@ -110,11 +119,12 @@ public class RegistrationFlowEngineServiceComponent {
     protected void setExecutors(Executor executor) {
 
         LOG.debug("Setting executor in the Registration Flow Engine component.");
-        RegistrationFlowEngineDataHolder.getInstance().getExecutors().add(executor);
+        RegistrationFlowEngineDataHolder.getInstance().getExecutors().put(executor.getName(), executor);
     }
 
     protected void unsetExecutors(Executor executor) {
 
-        RegistrationFlowEngineDataHolder.getInstance().getExecutors().remove(executor);
+        LOG.debug("Unsetting executor in the Registration Flow Engine component.");
+        RegistrationFlowEngineDataHolder.getInstance().getExecutors().remove(executor.getName());
     }
 }

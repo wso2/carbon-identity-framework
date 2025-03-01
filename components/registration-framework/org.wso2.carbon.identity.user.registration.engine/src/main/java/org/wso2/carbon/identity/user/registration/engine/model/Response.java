@@ -29,16 +29,14 @@ public class Response {
 
     private String status;
     private String type;
-    private final List<String> requiredData =  new ArrayList<>();
+    private final List<String> requiredData;
     private Map<String, String> additionalInfo;
 
     private Response(Builder builder) {
 
         this.status = builder.status;
         this.type = builder.type;
-        if (builder.requiredData != null) {
-            this.requiredData.addAll(builder.requiredData);
-        }
+        this.requiredData = builder.requiredData;
         this.additionalInfo = builder.additionalInfo;
     }
 

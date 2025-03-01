@@ -18,14 +18,10 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_UNRESOLVED_NEXT_NODE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.SELECTED_ACTION;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_INCOMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
-import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
@@ -35,7 +31,7 @@ import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 
 /**
- * Implementation of a node specific to prompting user to select a choice out of multiple registration executor options.
+ * Implementation of node that prompts users to choose from multiple registration options.
  */
 public class UserChoiceDecisionNode implements Node {
 
@@ -50,21 +46,15 @@ public class UserChoiceDecisionNode implements Node {
     @Override
     public Response execute(RegistrationContext context, NodeConfig config) throws RegistrationFrameworkException {
 
-        Map<String, String> inputData = context.getUserInputData();
-
-        if (inputData != null && inputData.containsKey(SELECTED_ACTION)) {
-            String triggeredAction = inputData.get(SELECTED_ACTION);
-            if (triggeredAction != null) {
-                for (NodeEdge edge : config.getEdges()) {
-                    if (triggeredAction.equals(edge.getTriggeringActionId())) {
-                        config.setNextNodeId(triggeredAction);
-                        break;
-                    }
+        String triggeredAction = context.getCurrentActionId();
+        if (triggeredAction != null) {
+            for (NodeEdge edge : config.getEdges()) {
+                if (context.getCurrentActionId().equals(edge.getTriggeringActionId())) {
+                    config.setNextNodeId(edge.getTargetNodeId());
+                    break;
                 }
             }
-            if (config.getNextNodeId() == null) {
-                throw handleClientException(ERROR_CODE_UNRESOLVED_NEXT_NODE, config.getId(), context.getContextIdentifier());
-            }
+            context.setCurrentActionId(null);
         }
         if (config.getNextNodeId() != null) {
             return new Response.Builder().status(STATUS_COMPLETE).build();

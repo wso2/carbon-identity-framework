@@ -38,6 +38,7 @@ public class RegistrationContext implements Serializable {
     private String tenantDomain;
     private String contextIdentifier;
     private String userId;
+    private String currentActionId;
 
     public NodeConfig getCurrentNode() {
 
@@ -127,5 +128,15 @@ public class RegistrationContext implements Serializable {
     public void setUserId(String userId) {
 
         this.userId = userId;
+    }
+
+    public String getCurrentActionId() {
+
+        return currentActionId;
+    }
+
+    public void setCurrentActionId(String currentActionId) {
+
+        this.currentActionId = currentActionId;
     }
 }

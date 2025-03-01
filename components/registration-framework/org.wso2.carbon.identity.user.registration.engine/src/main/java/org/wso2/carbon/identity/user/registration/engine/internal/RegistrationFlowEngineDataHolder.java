@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.registration.engine.internal;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.wso2.carbon.identity.user.registration.engine.graph.Executor;
 import org.wso2.carbon.identity.user.registration.mgt.RegistrationFlowMgtService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Node;
@@ -31,8 +33,7 @@ import java.util.List;
  */
 public class RegistrationFlowEngineDataHolder {
 
-    private static final List<Executor> executors = new ArrayList<>();
-    private static final List<Node> nodes = new ArrayList<>();
+    private static final Map<String, Executor> executors = new HashMap<>();
     private RegistrationFlowMgtService registrationFlowMgtService;
     private RealmService realmService;
     private static final RegistrationFlowEngineDataHolder instance = new RegistrationFlowEngineDataHolder();
@@ -47,23 +48,13 @@ public class RegistrationFlowEngineDataHolder {
     }
 
     /**
-     * Get the list of registered executors.
+     * Add an executor to the executors map.
      *
-     * @return List of executors.
+     * @return  Registered map of executors.
      */
-    public List<Executor> getExecutors() {
+    public Map<String, Executor> getExecutors() {
 
         return executors;
-    }
-
-    /**
-     * Get the list of registered nodes.
-     *
-     * @return List of nodes.
-     */
-    public List<Node> getNodes() {
-
-        return nodes;
     }
 
     /**

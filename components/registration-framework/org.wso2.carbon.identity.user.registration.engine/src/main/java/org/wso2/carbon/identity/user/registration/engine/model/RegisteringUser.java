@@ -30,7 +30,7 @@ public class RegisteringUser implements Serializable {
 
     private static final long serialVersionUID = -1873658743998134877L;
     private final Map<String, Object> claims = new HashMap<>();
-    private final Map<String, String> userCredentials = new HashMap<>();
+    private final Map<String, char[]> userCredentials = new HashMap<>();
     private String username;
 
     public String getUsername() {
@@ -64,18 +64,13 @@ public class RegisteringUser implements Serializable {
         this.claims.put(claimUri, claimValue);
     }
 
-    public Map<String, String> getUserCredentials() {
+    public Map<String, char[]> getUserCredentials() {
 
         return userCredentials;
     }
 
-    public void addUserCredentials(Map<String, String> credentials) {
+    public void setUserCredentials(Map<String, char[]> credentials) {
 
         this.userCredentials.putAll(credentials);
-    }
-
-    public void addUserCredential(String key, String value) {
-
-        this.userCredentials.put(key, value);
     }
 }

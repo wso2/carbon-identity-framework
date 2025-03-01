@@ -30,6 +30,7 @@ import static org.wso2.carbon.identity.user.registration.engine.util.Registratio
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
@@ -62,23 +63,16 @@ public class TaskExecutionNode implements Node {
             throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getRegGraph().getId(),
                                         context.getTenantDomain());
         }
-
-        Executor mappedRegExecutor = resolveExecutor(configs, context.getRegGraph().getId(), context.getTenantDomain());
         // TODO: 2021/4/6 Add executor configuration to the context where application
-        return triggerExecutor(context, mappedRegExecutor);
+        return triggerExecutor(context, configs);
     }
 
     private Executor resolveExecutor(NodeConfig configs, String graphId, String tenantDomain)
             throws RegistrationServerException {
 
         String executorName = configs.getExecutorConfig().getName();
-        Executor mappedRegExecutor = null;
-        for (Executor executor : RegistrationFlowEngineDataHolder.getInstance().getExecutors()) {
-            if (executorName.equals(executor.getName())) {
-                mappedRegExecutor = executor;
-                break;
-            }
-        }
+
+        Executor mappedRegExecutor = RegistrationFlowEngineDataHolder.getInstance().getExecutors().get(executorName);
         if (mappedRegExecutor == null) {
             throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR, executorName, graphId, tenantDomain);
         }
@@ -93,15 +87,16 @@ public class TaskExecutionNode implements Node {
         return null;
     }
 
-    private Response triggerExecutor(RegistrationContext context, Executor executor)
+    private Response triggerExecutor(RegistrationContext context, NodeConfig configs)
             throws RegistrationFrameworkException {
 
-        ExecutorResponse response = executor.execute(context);
+        Executor mappedRegExecutor = resolveExecutor(configs, context.getRegGraph().getId(), context.getTenantDomain());
+
+        ExecutorResponse response = mappedRegExecutor.execute(context);
         if (STATUS_COMPLETE.equals(response.getResult()) || STATUS_USER_CREATED.equals(response.getResult())) {
-            handleCompleteStatus(context, response, executor.getName());
-            return new Response.Builder().status(STATUS_COMPLETE).build();
+            return handleCompleteStatus(context, response, mappedRegExecutor.getName(), configs);
         } else {
-            return handleIncompleteStatus(context, response, executor.getName());
+            return handleIncompleteStatus(context, response, mappedRegExecutor.getName());
         }
     }
 
@@ -128,7 +123,8 @@ public class TaskExecutionNode implements Node {
         throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
     }
 
-    private void handleCompleteStatus(RegistrationContext context, ExecutorResponse response, String executorName) {
+    private Response handleCompleteStatus(RegistrationContext context, ExecutorResponse response, String executorName
+            , NodeConfig configs) {
 
         if ((response.getRequiredData() != null && !response.getRequiredData().isEmpty()) ||
                 (response.getAdditionalInfo() != null && !response.getAdditionalInfo().isEmpty())) {
@@ -142,7 +138,12 @@ public class TaskExecutionNode implements Node {
             user.addClaims(response.getUpdatedUserClaims());
         }
         if (response.getUserCredentials() != null) {
-            user.addUserCredentials(response.getUserCredentials());
+            user.getUserCredentials().putAll(response.getUserCredentials());
         }
+
+        if (CollectionUtils.isNotEmpty(configs.getEdges())) {
+            configs.setNextNodeId(configs.getEdges().get(0).getTargetNodeId());
+        }
+        return new Response.Builder().status(STATUS_COMPLETE).build();
     }
 }

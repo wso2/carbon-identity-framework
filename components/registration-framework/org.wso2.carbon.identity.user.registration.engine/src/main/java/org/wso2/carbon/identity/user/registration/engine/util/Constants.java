@@ -28,7 +28,7 @@ public class Constants {
     public static final String STATUS_PROMPT_ONLY = "PROMPT_ONLY";
     public static final String PASSWORD = "password";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
-    public static final String SELECTED_ACTION = "SELECTED_ACTION";
+    public static final String REDIRECT_URL = "redirectUrl";
 
     private Constants() {
 

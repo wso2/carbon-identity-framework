@@ -29,7 +29,7 @@ public class ExecutorResponse {
     private String result;
     private List<String> requiredData;
     private Map<String, Object> updatedUserClaims;
-    private Map<String, String> userCredentials;
+    private Map<String, char[]> userCredentials;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
 
@@ -72,12 +72,12 @@ public class ExecutorResponse {
         this.updatedUserClaims = updatedUserClaims;
     }
 
-    public Map<String, String> getUserCredentials() {
+    public Map<String, char[]> getUserCredentials() {
 
         return userCredentials;
     }
 
-    public void setUserCredentials(Map<String, String> userCredentials) {
+    public void setUserCredentials(Map<String, char[]> userCredentials) {
 
         this.userCredentials = userCredentials;
     }

@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.user.registration.engine.model.RegistrationConte
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NODE_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
+import static org.wso2.carbon.identity.user.registration.engine.util.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_PROMPT_ONLY;
@@ -87,8 +88,10 @@ public class RegistrationFlowEngine {
             Response nodeResponse = triggerNode(currentNode, context);
 
             if (STATUS_PROMPT_ONLY.equals(nodeResponse.getStatus())) {
+                RegistrationStep step = resolveStepDetailsForPrompt(graph, currentNode, context);
                 currentNode = moveToNextNode(graph, currentNode);
-                return resolveStepDetailsForPrompt(graph, currentNode, context);
+                context.setCurrentNode(currentNode);
+                return step;
             } else if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) && VIEW.equals(nodeResponse.getType())) {
                 return resolveStepDetailsForPrompt(graph, currentNode, context);
             } else if (STATUS_INCOMPLETE.equals(nodeResponse.getStatus()) &&
@@ -96,6 +99,7 @@ public class RegistrationFlowEngine {
                 return resolveStepDetailsForRedirection(context, nodeResponse);
             } else {
                 currentNode = moveToNextNode(graph, currentNode);
+                context.setCurrentNode(currentNode);
             }
         }
         return new RegistrationStep.Builder().flowStatus(STATUS_COMPLETE).build();
@@ -160,13 +164,16 @@ public class RegistrationFlowEngine {
 
     private RegistrationStep resolveStepDetailsForRedirection(RegistrationContext context, Response response) {
 
-        // TODO: Implement logic to add required inputs after redirection.
+        String redirectUrl = response.getAdditionalInfo().get(REDIRECT_URL);
+        response.getAdditionalInfo().remove(REDIRECT_URL);
         return new RegistrationStep.Builder()
                 .flowId(context.getContextIdentifier())
                 .flowStatus(STATUS_INCOMPLETE)
                 .stepType(REDIRECTION)
                 .data(new DataDTO.Builder()
-                              .url(response.getAdditionalInfo().get("url"))
+                              .url(redirectUrl)
+                              .additionalData(response.getAdditionalInfo())
+                              .requiredParams(response.getRequiredData())
                               .build())
                 .build();
     }
