@@ -127,6 +127,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
             );
 
             for (UnitOperationContext context : queue) {
+                LOGGER.info("OperationId:"+context.getOperationId());
                 statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_OPERATION_ID, context.getOperationId());
                 statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_RESIDENT_RESOURCE_ID, context.getOperationInitiatedResourceId());
                 statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_TARGET_ORG_ID, context.getTargetOrgId());

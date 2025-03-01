@@ -1,10 +1,14 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.util.strategy;
 
+import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
+import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAOImpl;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseUnitOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.util.OperationStatusStrategy;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class ApplicationSharingStatusStrategy implements OperationStatusStrategy {
@@ -13,8 +17,14 @@ public class ApplicationSharingStatusStrategy implements OperationStatusStrategy
 
     @Override
     public String register(OperationContext operationContext) {
-        LOGGER.info("Registering Application Share Operation: " + operationContext.getOperationType());
-        return "";
+        LOGGER.info("Registering User Share Operation For: " + operationContext.getOperationSubjectId() + " Started.");
+
+        OperationDBContext dbContext = new OperationDBContext(operationContext, getAudienceForOperationRegistration());
+        AsyncStatusMgtDAO dao = new AsyncStatusMgtDAOImpl();
+        String operationId = dao.registerB2BUserSharingAsyncOperation(dbContext);
+
+        LOGGER.info("Registering User Share Operation For: " + operationContext.getOperationSubjectId() + " Completed");
+        return operationId;
     }
 
     @Override
@@ -23,7 +33,17 @@ public class ApplicationSharingStatusStrategy implements OperationStatusStrategy
     }
 
     @Override
-    public void registerBulkUnitOperations(ResponseUnitOperationContext bulkUnitOperationContext) {
+    public void registerBulkUnitOperations(ResponseUnitOperationContext context) {
+        LOGGER.info("This is bulk application share..");
+        LOGGER.info("Registering Bulk Unit Operations For: " + context.getOperationId() + " Started.");
 
+        AsyncStatusMgtDAO dao = new AsyncStatusMgtDAOImpl();
+        dao.registerBulkUnitAsyncOperation(context.getOperationId(), context.getOperationType(), context.getQueue());
+
+        LOGGER.info("Registering Bulk Unit Operations For: " + context.getOperationId() + " Completed");
+    }
+
+    private ArrayList<String> getAudienceForOperationRegistration() {
+        return new ArrayList<>();
     }
 }
