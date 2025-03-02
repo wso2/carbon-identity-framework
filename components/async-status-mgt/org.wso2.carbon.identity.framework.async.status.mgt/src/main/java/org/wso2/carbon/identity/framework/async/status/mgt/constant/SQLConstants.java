@@ -28,6 +28,60 @@ public class SQLConstants {
             ":" + UnitOperationStatusTableColumns.UM_OPERATION_STATUS_MESSAGE + ";, " +
             ":" + UnitOperationStatusTableColumns.UM_CREATED_AT + ";)";
 
+//    public static final String FETCH_LATEST_ASYNC_OPERATION =
+//            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
+//                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
+//                    "FROM UM_ASYNC_OPERATION_STATUS " +
+//                    "WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
+//                    "AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
+//                    "AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
+//                    "AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
+//                    "AND UM_CREATED_TIME = (" +
+//                    "    SELECT MAX(UM_CREATED_TIME) " +
+//                    "    FROM UM_ASYNC_OPERATION_STATUS " +
+//                    "    WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
+//                    "    AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
+//                    "    AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
+//                    "    AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
+//                    ") " +
+//                    "ORDER BY UM_CREATED_TIME DESC " +
+//                    "LIMIT 1;";
+//    public static final String FETCH_LATEST_ASYNC_OPERATION =
+//            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
+//                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
+//                    "FROM UM_ASYNC_OPERATION_STATUS " +
+//                    "WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
+//                    "AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
+//                    "AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
+//                    "AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
+//                    "ORDER BY UM_CREATED_TIME DESC " +
+//                    "LIMIT 1;";
+    public static final String FETCH_LATEST_ASYNC_OPERATION =
+            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
+                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
+                    "FROM UM_ASYNC_OPERATION_STATUS " +
+                    "WHERE UM_OPERATION_SUBJECT_ID = :UM_OPERATION_SUBJECT_ID " +
+                    "AND UM_RESIDENT_ORG_ID = :UM_RESIDENT_ORG_ID " +
+                    "AND UM_RESOURCE_TYPE = :UM_RESOURCE_TYPE " +
+                    "AND UM_OPERATION_INITIATOR_ID = :UM_OPERATION_INITIATOR_ID " +
+                    "ORDER BY UM_CREATED_TIME DESC " +
+                    "LIMIT 1;";
+
+    public static final String FETCH_LATEST_ASYNC_OPERATION_IDN =
+            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
+                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
+                    "FROM UM_ASYNC_OPERATION_STATUS " +
+                    "WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
+                    "AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
+                    "AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
+                    "AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
+                    "ORDER BY UM_CREATED_TIME DESC " +
+                    "LIMIT 1;";
+
+//    public static final String TEST_FETCH = "SELECT * FROM UM_ASYNC_OPERATION_STATUS WHERE UM_ROLE_ID = :" +
+//            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_UM_ROLE_ID + "; AND UM_ORG_ID=:" +
+//            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_UM_ORG_ID + ";";
+
     public static class OperationStatusTableColumns {
         public static final String UM_OPERATION_ID = "UM_OPERATION_ID";
         public static final String UM_OPERATION_TYPE = "UM_OPERATION_TYPE";

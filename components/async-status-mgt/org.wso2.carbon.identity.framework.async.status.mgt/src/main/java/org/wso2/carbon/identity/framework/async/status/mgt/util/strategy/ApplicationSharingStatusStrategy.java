@@ -21,7 +21,7 @@ public class ApplicationSharingStatusStrategy implements OperationStatusStrategy
 
         OperationDBContext dbContext = new OperationDBContext(operationContext, getAudienceForOperationRegistration());
         AsyncStatusMgtDAO dao = new AsyncStatusMgtDAOImpl();
-        String operationId = dao.registerB2BUserSharingAsyncOperation(dbContext);
+        String operationId = dao.registerAsyncOperation(dbContext);
 
         LOGGER.info("Registering User Share Operation For: " + operationContext.getOperationSubjectId() + " Completed");
         return operationId;

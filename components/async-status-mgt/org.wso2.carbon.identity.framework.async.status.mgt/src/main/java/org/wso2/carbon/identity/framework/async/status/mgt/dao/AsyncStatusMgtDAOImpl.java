@@ -18,14 +18,13 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.framework.async.status.mgt.constant.OperationStatus;
 import org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -35,6 +34,7 @@ import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLCo
 
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
 
 /**
@@ -45,12 +45,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
             Logger.getLogger(AsyncStatusMgtDAOImpl.class.getName());
 
     @Override
-    public void createB2BResourceSharingOperation(String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus) {
-        LOGGER.info("CREATE_B2B_RESOURCE_SHARING_OPERATION Started...");
-    }
-
-    @Override
-    public String registerB2BUserSharingAsyncOperation(OperationDBContext context) {
+    public String registerAsyncOperation(OperationDBContext context) {
         LOGGER.info("B2BUserSharingAsyncOperation Registering Started.");
         Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
         String generatedOperationId = null;
@@ -68,13 +63,10 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
             statement.setString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_STATUS, OperationStatus.ONGOING.toString());
             statement.setString(SQLConstants.OperationStatusTableColumns.UM_CREATED_TIME, currentTimestamp);
             statement.setString(SQLConstants.OperationStatusTableColumns.UM_LAST_MODIFIED, currentTimestamp);
-            statement.executeUpdate();
 
-            // Execute insert
             int rowsAffected = statement.executeUpdate();
             LOGGER.info("B2BUserSharingAsyncOperation Registering Success. Rows affected: " + rowsAffected);
 
-            // Retrieve generated key
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 generatedOperationId = generatedKeys.getString(1);  // Assuming UM_OPERATION_ID is the first key
@@ -146,5 +138,49 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public ResponseOperationContext getLatestAsyncOperationStatus(String operationSubjectId, String residentOrgId, String resourceType, String initiatorId) {
+        LOGGER.info("Fetching latest async operation status for subject: " + operationSubjectId);
+
+        ResponseOperationContext responseContext = new ResponseOperationContext();
+
+        String sql = "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
+                "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
+                "FROM UM_ASYNC_OPERATION_STATUS " +
+                "WHERE UM_OPERATION_SUBJECT_ID = ? " +
+                "AND UM_RESIDENT_ORG_ID = ? " +
+                "AND UM_RESOURCE_TYPE = ? " +
+                "AND UM_OPERATION_INITIATOR_ID = ? " +
+                "ORDER BY UM_CREATED_TIME DESC " +
+                "LIMIT 1;";
+
+        try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, operationSubjectId);
+            statement.setString(2, residentOrgId);
+            statement.setString(3, resourceType);
+            statement.setString(4, initiatorId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    responseContext.setOperationId(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_ID));
+                    responseContext.setOperationType(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_TYPE));
+                    responseContext.setOperationSubjectId(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID));
+                    responseContext.setResourceType(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_RESOURCE_TYPE));
+                    responseContext.setSharingPolicy(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_POLICY));
+                    responseContext.setResidentOrgId(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_RESIDENT_ORG_ID));
+                    responseContext.setInitiatorId(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID));
+                    responseContext.setOperationStatus(resultSet.getString(SQLConstants.OperationStatusTableColumns.UM_OPERATION_STATUS));
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error fetching latest async operation status for subject: " + operationSubjectId;
+            LOGGER.info(errorMessage+e);
+            throw new RuntimeException(errorMessage, e);
+        }
+        return responseContext;
     }
 }

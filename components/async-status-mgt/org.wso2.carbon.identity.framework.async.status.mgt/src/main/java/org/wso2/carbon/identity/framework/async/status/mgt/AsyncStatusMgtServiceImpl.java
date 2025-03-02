@@ -15,13 +15,11 @@ import java.util.logging.Logger;
         immediate = true
 )
 public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
-    private static final Logger LOGGER =
-            Logger.getLogger(AsyncStatusMgtServiceImpl.class.getName());
-
     private final AsyncStatusMgtDAO asyncStatusMgtDAO;
     private OperationStatusStrategy strategy;
 
-    // Constructors
+    private static final Logger LOGGER = Logger.getLogger(AsyncStatusMgtServiceImpl.class.getName());
+
     public AsyncStatusMgtServiceImpl() {
         this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
         this.strategy = null;
@@ -81,5 +79,12 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
         } else {
             LOGGER.warning("Strategy is not initialized. Cannot register operation status.");
         }
+    }
+
+    @Override
+    public ResponseOperationContext getLatestAsyncOperationStatus(String orgId, String operationSubjectId, String resourceType, String userId) {
+        LOGGER.info("Hit Interface.");
+        LOGGER.info(":"+operationSubjectId);
+        return asyncStatusMgtDAO.getLatestAsyncOperationStatus(operationSubjectId, orgId, resourceType, userId);
     }
 }

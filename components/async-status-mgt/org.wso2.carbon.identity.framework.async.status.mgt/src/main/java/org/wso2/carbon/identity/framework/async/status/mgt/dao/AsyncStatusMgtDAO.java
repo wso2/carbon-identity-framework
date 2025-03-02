@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -30,24 +31,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public interface AsyncStatusMgtDAO {
 
     /**
-     * Create B2B Resource Sharing Operation
-     *
-     * @param operationType Type of the share.
-     * @param residentResourceId ID of the resource which is shared.
-     * @param resourceType Type of the resource.
-     * @param sharingPolicy  The sharing policy related with the share.
-     * @param residentOrgId  The organization ID of the resource which is shared.
-     * @param initiatorId  The ID of the user who is initiating the operation.
-     * @param operationStatus  The status of the asynchronous operation.
-     */
-    void createB2BResourceSharingOperation(String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus);
-
-    /**
      * Registering a B2B User Sharing Asynchronous Operation.
      *
      * @param userShareDBContext Context of the user share.
      */
-    String registerB2BUserSharingAsyncOperation(OperationDBContext userShareDBContext);
+    String registerAsyncOperation(OperationDBContext userShareDBContext);
 
     /**
      * Registers a Unit Asynchronous Operation.
@@ -68,5 +56,7 @@ public interface AsyncStatusMgtDAO {
      * @param queue The queue containing the statuses of unit asynchronous operations.
      */
     void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue);
+
+    ResponseOperationContext getLatestAsyncOperationStatus(String operationSubjectId, String residentOrgId, String resourceType, String initiatorId);
 
 }

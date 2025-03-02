@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt;
 
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseUnitOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
 
@@ -55,4 +57,8 @@ public interface AsyncStatusMgtService {
      * @param context Aggregated unit operation context.
      */
     void registerBulkUnitOperationStatus(ResponseUnitOperationContext context);
+
+    ResponseOperationContext getLatestAsyncOperationStatus(String orgId, String operationSubjectId, String resourceType, String userId);
+
+
 }
