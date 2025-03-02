@@ -40,9 +40,26 @@ public class SQLConstants {
                     "?)";
     public static final String GET_FLOW =
             "SELECT P.ID AS PAGE_ID, P.STEP_ID, P.PAGE_CONTENT, P.TYPE AS PAGE_TYPE, M.COORDINATE_X, M" +
-                    ".COORDINATE_Y, M.HEIGHT, M.WIDTH FROM IDN_FLOW F JOIN IDN_FLOW_PAGE P ON F.ID = P.FLOW_ID " +
-                    "LEFT JOIN IDN_FLOW_PAGE_META M ON P.ID = M.PAGE_ID WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = " +
-                    "? AND F.TYPE = 'REGISTRATION';";
+                    ".COORDINATE_Y, M.HEIGHT, M.WIDTH " +
+                    "FROM IDN_FLOW F JOIN IDN_FLOW_PAGE P ON F.ID = P.FLOW_ID " +
+                    "LEFT JOIN IDN_FLOW_PAGE_META M ON P.ID = M.PAGE_ID " +
+                    "WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = ? AND F.TYPE = ?;";
+
+    public static final String GET_NODES_WITH_MAPPINGS_QUERY =
+            "SELECT f.ID AS FLOW_ID, n.NODE_ID, n.NODE_TYPE, n.IS_FIRST_NODE, " +
+                    "ne.EXECUTOR_NAME, ne.IDP_NAME, " +
+                    "nextNode.NODE_ID AS NEXT_NODE_ACTUAL_ID, nm.TRIGGERING_ELEMENT " +
+                    "FROM IDN_FLOW f " +
+                    "JOIN IDN_FLOW_NODE n ON f.ID = n.FLOW_ID " +
+                    "LEFT JOIN IDN_FLOW_NODE_EXECUTOR ne ON n.ID = ne.FLOW_NODE_ID " +
+                    "LEFT JOIN IDN_FLOW_NODE_MAPPING nm ON n.ID = nm.FLOW_NODE_ID " +
+                    "LEFT JOIN IDN_FLOW_NODE nextNode ON nm.NEXT_NODE_ID = nextNode.ID " +
+                    "WHERE f.TENANT_ID = ? AND f.IS_DEFAULT = ? AND f.TYPE = ? " +
+                    "ORDER BY n.NODE_ID;";
+
+    public static final String GET_VIEW_PAGES_IN_FLOW =
+            "SELECT n.NODE_ID, p.STEP_ID, p.PAGE_CONTENT FROM IDN_FLOW_PAGE p " +
+                    "JOIN IDN_FLOW_NODE n ON p.FLOW_NODE_ID = n.ID WHERE p.FLOW_ID = ? AND p.TYPE = ?;";
 
     private SQLConstants() {
 
@@ -54,13 +71,22 @@ public class SQLConstants {
     public static final class SQLPlaceholders {
 
         public static final String REGISTRATION_FLOW = "REGISTRATION";
-        public static final String STEP_ID = "STEP_ID";
-        public static final String PAGE_CONTENT = "PAGE_CONTENT";
-        public static final String PAGE_TYPE = "PAGE_TYPE";
-        public static final String COORDINATE_X = "COORDINATE_X";
-        public static final String COORDINATE_Y = "COORDINATE_Y";
-        public static final String HEIGHT = "HEIGHT";
-        public static final String WIDTH = "WIDTH";
+        public static final String DB_SCHEMA_COLUMN_NAME_STEP_ID = "STEP_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT = "PAGE_CONTENT";
+        public static final String DB_SCHEMA_COLUMN_NAME_PAGE_TYPE = "PAGE_TYPE";
+        public static final String DB_SCHEMA_COLUMN_NAME_COORDINATE_X = "COORDINATE_X";
+        public static final String DB_SCHEMA_COLUMN_NAME_COORDINATE_Y = "COORDINATE_Y";
+        public static final String DB_SCHEMA_COLUMN_NAME_HEIGHT = "HEIGHT";
+        public static final String DB_SCHEMA_COLUMN_NAME_WIDTH = "WIDTH";
+        public static final String DB_SCHEMA_COLUMN_NAME_NODE_ID = "NODE_ID";
+        public static final String DB_SCHEMA_COLUMN_NAME_NODE_TYPE = "NODE_TYPE";
+        public static final String DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE = "IS_FIRST_NODE";
+        public static final String DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT = "TRIGGERING_ELEMENT";
+        public static final String DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME = "EXECUTOR_NAME";
+        public static final String DB_SCHEMA_COLUMN_NAME_IDP_NAME = "IDP_NAME";
+
+        public static final String DB_SCHEMA_ALIAS_FLOW_ID = "FLOW_ID";
+        public static final String DB_SCHEMA_ALIAS_NEXT_NODE_ID = "NEXT_NODE_ACTUAL_ID";
 
         private SQLPlaceholders() {
 

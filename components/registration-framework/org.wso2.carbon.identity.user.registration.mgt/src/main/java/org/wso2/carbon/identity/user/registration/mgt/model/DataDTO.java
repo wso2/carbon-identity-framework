@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.user.registration.mgt.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * DTO class for component and step data.
@@ -31,6 +32,8 @@ public class DataDTO implements Serializable {
     private ActionDTO action;
     private String url;
     private List<ComponentDTO> components = new ArrayList<>();
+    private List<String> requiredParams;
+    private Map<String, String> additionalData;
 
     public DataDTO() {
 
@@ -41,6 +44,8 @@ public class DataDTO implements Serializable {
         this.components = builder.components;
         this.action = builder.action;
         this.url = builder.url;
+        this.requiredParams = builder.requiredParams;
+        this.additionalData = builder.additionalData;
     }
 
     public List<ComponentDTO> getComponents() {
@@ -73,6 +78,16 @@ public class DataDTO implements Serializable {
         this.url = url;
     }
 
+    public List<String> getRequiredParams() {
+
+        return requiredParams;
+    }
+
+    public Map<String, String> getAdditionalData() {
+
+        return additionalData;
+    }
+
     /**
      * Builder class to build {@link DataDTO} objects.
      */
@@ -81,6 +96,8 @@ public class DataDTO implements Serializable {
         private final List<ComponentDTO> components = new ArrayList<>();
         private ActionDTO action;
         private String url;
+        private List<String> requiredParams;
+        private Map<String, String> additionalData;
 
         public Builder components(List<ComponentDTO> components) {
 
@@ -99,6 +116,18 @@ public class DataDTO implements Serializable {
         public Builder url(String url) {
 
             this.url = url;
+            return this;
+        }
+
+        public Builder requiredParams(List<String> requiredParams) {
+
+            this.requiredParams = requiredParams;
+            return this;
+        }
+
+        public Builder additionalData(Map<String, String> additionalData) {
+
+            this.additionalData = additionalData;
             return this;
         }
 
