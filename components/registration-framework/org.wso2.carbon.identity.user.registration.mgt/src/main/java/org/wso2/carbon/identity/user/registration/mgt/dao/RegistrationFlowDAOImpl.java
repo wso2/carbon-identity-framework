@@ -190,8 +190,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                                 preparedStatement.setInt(2, regNodeId);
                                 preparedStatement.setString(3, stepDTO.getId());
                                 preparedStatement.setBinaryStream(4,
-                                        new ByteArrayInputStream(
-                                                pageContent));
+                                        new ByteArrayInputStream(pageContent));
                                 preparedStatement.setString(5, stepDTO.getType());
                             }, entry, true);
 
