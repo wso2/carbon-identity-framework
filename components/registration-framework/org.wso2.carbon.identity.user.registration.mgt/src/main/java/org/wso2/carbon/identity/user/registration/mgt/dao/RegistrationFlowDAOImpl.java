@@ -38,6 +38,7 @@ import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQ
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.WIDTH;
 import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleServerException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
@@ -98,11 +100,11 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                 return serializeObject(action);
             } else {
                 throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
-                                            stepDTO.getType());
+                        stepDTO.getType());
             }
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
-                                        stepDTO.getId(), tenantId);
+                    stepDTO.getId(), tenantId);
         }
     }
 
@@ -116,32 +118,33 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             jdbcTemplate.withTransaction(template -> {
                 // Delete the existing flow for the tenant.
                 template.executeUpdate(DELETE_FLOW,
-                                       preparedStatement -> {
-                                           preparedStatement.setInt(1, tenantId);
-                                           preparedStatement.setString(2, REGISTRATION_FLOW);
-                                       });
+                        preparedStatement -> {
+                            preparedStatement.setInt(1, tenantId);
+                            preparedStatement.setBoolean(2, true);
+                            preparedStatement.setString(3, REGISTRATION_FLOW);
+                        });
 
                 // Insert into IDN_FLOW.
                 template.executeInsert(INSERT_FLOW_INTO_IDN_FLOW,
-                                       preparedStatement -> {
-                                           preparedStatement.setString(1, flowId);
-                                           preparedStatement.setInt(2, tenantId);
-                                           preparedStatement.setString(3, flowName);
-                                           preparedStatement.setString(4, REGISTRATION_FLOW);
-                                           preparedStatement.setBoolean(5, true);
-                                       }, regFlowConfig, false);
+                        preparedStatement -> {
+                            preparedStatement.setString(1, flowId);
+                            preparedStatement.setInt(2, tenantId);
+                            preparedStatement.setString(3, flowName);
+                            preparedStatement.setString(4, REGISTRATION_FLOW);
+                            preparedStatement.setBoolean(5, true);
+                        }, regFlowConfig, false);
 
                 // Insert into IDN_FLOW_NODE.
                 Map<String, Integer> nodeIdToRegNodeIdMap = new HashMap<>();
                 for (Map.Entry<String, NodeConfig> entry : regFlowConfig.getNodeConfigs().entrySet()) {
                     NodeConfig node = entry.getValue();
                     int regNodeId = template.executeInsert(INSERT_FLOW_NODE_INFO,
-                                                           preparedStatement -> {
-                                                               preparedStatement.setString(1, node.getId());
-                                                               preparedStatement.setString(2, flowId);
-                                                               preparedStatement.setString(3, node.getType());
-                                                               preparedStatement.setBoolean(4, node.isFirstNode());
-                                                           }, entry, true);
+                            preparedStatement -> {
+                                preparedStatement.setString(1, node.getId());
+                                preparedStatement.setString(2, flowId);
+                                preparedStatement.setString(3, node.getType());
+                                preparedStatement.setBoolean(4, node.isFirstNode());
+                            }, entry, true);
 
                     nodeIdToRegNodeIdMap.put(node.getId(), regNodeId);
 
@@ -149,12 +152,12 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                     ExecutorDTO executorConfig = node.getExecutorConfig();
                     if (executorConfig != null) {
                         template.executeInsert(INSERT_NODE_EXECUTOR_INFO,
-                                               preparedStatement -> {
-                                                   preparedStatement.setInt(1,
-                                                                            nodeIdToRegNodeIdMap.get(node.getId()));
-                                                   preparedStatement.setString(2, executorConfig.getName());
-                                                   preparedStatement.setString(3, executorConfig.getIdpName());
-                                               }, null, false);
+                                preparedStatement -> {
+                                    preparedStatement.setInt(1,
+                                            nodeIdToRegNodeIdMap.get(node.getId()));
+                                    preparedStatement.setString(2, executorConfig.getName());
+                                    preparedStatement.setString(3, executorConfig.getIdpName());
+                                }, null, false);
                     }
                 }
                 // Insert graph edges into IDN_FLOW_NODE_MAPPING.
@@ -163,13 +166,13 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                     if (node.getEdges() != null) {
                         for (NodeEdge edge : node.getEdges()) {
                             template.executeInsert(INSERT_NODE_EDGES,
-                                                   preparedStatement -> {
-                                                       preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(
-                                                               edge.getSourceNodeId()));
-                                                       preparedStatement.setInt(2, nodeIdToRegNodeIdMap.get(
-                                                               edge.getTargetNodeId()));
-                                                       preparedStatement.setString(3, edge.getTriggeringActionId());
-                                                   }, null, false);
+                                    preparedStatement -> {
+                                        preparedStatement.setInt(1, nodeIdToRegNodeIdMap.get(
+                                                edge.getSourceNodeId()));
+                                        preparedStatement.setInt(2, nodeIdToRegNodeIdMap.get(
+                                                edge.getTargetNodeId()));
+                                        preparedStatement.setString(3, edge.getTriggeringActionId());
+                                    }, null, false);
                         }
                     }
                 }
@@ -182,25 +185,24 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                     int regNodeId = nodeIdToRegNodeIdMap.get(entry.getKey());
 
                     int pageAutoIncId = template.executeInsert(INSERT_FLOW_PAGE_INFO,
-                                                               preparedStatement -> {
-                                                                   preparedStatement.setString(1, flowId);
-                                                                   preparedStatement.setInt(2, regNodeId);
-                                                                   preparedStatement.setString(3, stepDTO.getId());
-                                                                   preparedStatement.setBinaryStream(4,
-                                                                                                     new ByteArrayInputStream(
-                                                                                                             pageContent));
-                                                                   preparedStatement.setString(5, stepDTO.getType());
-                                                               }, entry, true);
+                            preparedStatement -> {
+                                preparedStatement.setString(1, flowId);
+                                preparedStatement.setInt(2, regNodeId);
+                                preparedStatement.setString(3, stepDTO.getId());
+                                preparedStatement.setBinaryStream(4,
+                                        new ByteArrayInputStream(pageContent));
+                                preparedStatement.setString(5, stepDTO.getType());
+                            }, entry, true);
 
                     // Insert into IDN_FLOW_PAGE_META.
                     template.executeInsert(INSERT_FLOW_PAGE_META,
-                                           preparedStatement -> {
-                                               preparedStatement.setInt(1, pageAutoIncId);
-                                               preparedStatement.setDouble(2, stepDTO.getCoordinateX());
-                                               preparedStatement.setDouble(3, stepDTO.getCoordinateY());
-                                               preparedStatement.setDouble(4, stepDTO.getCoordinateX());
-                                               preparedStatement.setDouble(5, stepDTO.getCoordinateY());
-                                           }, null, false);
+                            preparedStatement -> {
+                                preparedStatement.setInt(1, pageAutoIncId);
+                                preparedStatement.setDouble(2, stepDTO.getCoordinateX());
+                                preparedStatement.setDouble(3, stepDTO.getCoordinateY());
+                                preparedStatement.setDouble(4, stepDTO.getCoordinateX());
+                                preparedStatement.setDouble(5, stepDTO.getCoordinateY());
+                            }, null, false);
                 }
                 return null;
             });
@@ -217,18 +219,21 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         try {
             List<StepDTO> steps = jdbcTemplate
                     .executeQuery(GET_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
-                                      StepDTO stepDTO = new StepDTO.Builder()
-                                              .id(resultSet.getString(STEP_ID))
-                                              .type(resultSet.getString(PAGE_TYPE))
-                                              .coordinateX(resultSet.getDouble(COORDINATE_X))
-                                              .coordinateY(resultSet.getDouble(COORDINATE_Y))
-                                              .height(resultSet.getDouble(HEIGHT))
-                                              .width(resultSet.getDouble(WIDTH))
-                                              .build();
+                        StepDTO stepDTO = new StepDTO.Builder()
+                                .id(resultSet.getString(STEP_ID))
+                                .type(resultSet.getString(PAGE_TYPE))
+                                .coordinateX(resultSet.getDouble(COORDINATE_X))
+                                .coordinateY(resultSet.getDouble(COORDINATE_Y))
+                                .height(resultSet.getDouble(HEIGHT))
+                                .width(resultSet.getDouble(WIDTH))
+                                .build();
 
-                                      resolvePageContent(stepDTO, resultSet.getBinaryStream(PAGE_CONTENT), tenantId);
-                                      return stepDTO;
-                                  })), preparedStatement -> preparedStatement.setInt(1, tenantId));
+                        resolvePageContent(stepDTO, resultSet.getBinaryStream(PAGE_CONTENT), tenantId);
+                        return stepDTO;
+                    })), preparedStatement -> {
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setBoolean(2, true);
+                    });
 
             RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
             if (steps.isEmpty()) {
@@ -256,7 +261,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                     stepDTO.setData(new DataDTO.Builder().components(components).build());
                 } else {
                     throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
-                                                stepDTO.getId(), tenantId);
+                            stepDTO.getId(), tenantId);
                 }
             } else if (REDIRECTION.equals(stepDTO.getType())) {
                 if (obj instanceof ActionDTO) {
@@ -266,7 +271,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             }
         } catch (IOException | ClassNotFoundException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
-                                        tenantId);
+                    tenantId);
         }
     }
 
