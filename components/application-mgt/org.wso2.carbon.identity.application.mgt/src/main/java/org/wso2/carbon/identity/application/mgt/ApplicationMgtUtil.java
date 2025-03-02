@@ -78,6 +78,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -1363,7 +1364,9 @@ public class ApplicationMgtUtil {
         try {
             List<Group> groupList = userStoreManager.getGroupListOfUser(loggedInUserId, null, null);
             if (groupList != null) {
-                return groupList.stream().map((group) -> UserCoreUtil.removeDomainFromName(group.getGroupID()))
+                return groupList.stream().map(Group::getGroupID)
+                        .filter(Objects::nonNull)
+                        .map(UserCoreUtil::removeDomainFromName)
                         .toArray(String[]::new);
             }
             return new String[0];
