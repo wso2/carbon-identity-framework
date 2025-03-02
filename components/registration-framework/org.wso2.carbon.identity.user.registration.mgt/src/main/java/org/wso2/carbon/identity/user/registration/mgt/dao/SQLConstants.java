@@ -24,7 +24,7 @@ package org.wso2.carbon.identity.user.registration.mgt.dao;
 public class SQLConstants {
 
     public static final String DELETE_FLOW =
-            "DELETE FROM IDN_FLOW WHERE TENANT_ID = ? AND IS_DEFAULT = TRUE AND TYPE = ?";
+            "DELETE FROM IDN_FLOW WHERE TENANT_ID = ? AND IS_DEFAULT = ? AND TYPE = ?";
     public static final String INSERT_FLOW_INTO_IDN_FLOW =
             "INSERT INTO IDN_FLOW (ID, TENANT_ID, FLOW_NAME, TYPE, IS_DEFAULT) VALUES (?, ?, ?, ?, ?)";
     public static final String INSERT_FLOW_NODE_INFO =
@@ -42,7 +42,7 @@ public class SQLConstants {
             "SELECT P.ID AS PAGE_ID, P.STEP_ID, P.PAGE_CONTENT, P.TYPE AS PAGE_TYPE, M.COORDINATE_X, M" +
                     ".COORDINATE_Y, M.HEIGHT, M.WIDTH FROM IDN_FLOW F JOIN IDN_FLOW_PAGE P ON F.ID = P.FLOW_ID " +
                     "LEFT JOIN IDN_FLOW_PAGE_META M ON P.ID = M.PAGE_ID WHERE F.TENANT_ID = ? AND F.IS_DEFAULT = " +
-                    "TRUE AND F.TYPE = 'REGISTRATION';";
+                    "? AND F.TYPE = 'REGISTRATION';";
 
     private SQLConstants() {
 
