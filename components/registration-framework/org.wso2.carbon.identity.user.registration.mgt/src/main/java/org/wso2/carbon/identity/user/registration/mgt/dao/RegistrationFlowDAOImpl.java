@@ -22,20 +22,30 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.DELETE_FLOW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_FLOW;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_INTO_IDN_FLOW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_NODE_INFO;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_INFO;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_FLOW_PAGE_META;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_NODE_EDGES;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.INSERT_NODE_EXECUTOR_INFO;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.COORDINATE_X;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.COORDINATE_Y;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.HEIGHT;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.PAGE_CONTENT;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.PAGE_TYPE;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_FLOW_ID;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_ALIAS_NEXT_NODE_ID;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_X;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_COORDINATE_Y;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_HEIGHT;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IDP_NAME;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_ID;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_NODE_TYPE;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_PAGE_TYPE;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_STEP_ID;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.REGISTRATION_FLOW;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.STEP_ID;
-import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.WIDTH;
 import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleServerException;
 
@@ -76,37 +86,6 @@ import org.wso2.carbon.identity.user.registration.mgt.model.StepDTO;
 public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
 
     private static final Log LOG = LogFactory.getLog(RegistrationFlowDAOImpl.class);
-
-    private static byte[] serializeObject(Object obj) throws IOException {
-
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-            oos.writeObject(obj);
-            oos.flush();
-            return baos.toByteArray();
-        }
-    }
-
-
-    private static byte[] serializeStepData(StepDTO stepDTO, int tenantId)
-            throws RegistrationFrameworkException {
-
-        try {
-            if (VIEW.equals(stepDTO.getType())) {
-                List<ComponentDTO> components = stepDTO.getData().getComponents();
-                return serializeObject(components);
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
-                ActionDTO action = stepDTO.getData().getAction();
-                return serializeObject(action);
-            } else {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
-                        stepDTO.getType());
-            }
-        } catch (IOException e) {
-            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
-                    stepDTO.getId(), tenantId);
-        }
-    }
 
     @Override
     public void updateDefaultRegistrationFlowByTenant(RegistrationGraphConfig regFlowConfig, int tenantId,
@@ -220,19 +199,20 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             List<StepDTO> steps = jdbcTemplate
                     .executeQuery(GET_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
                         StepDTO stepDTO = new StepDTO.Builder()
-                                .id(resultSet.getString(STEP_ID))
-                                .type(resultSet.getString(PAGE_TYPE))
-                                .coordinateX(resultSet.getDouble(COORDINATE_X))
-                                .coordinateY(resultSet.getDouble(COORDINATE_Y))
-                                .height(resultSet.getDouble(HEIGHT))
-                                .width(resultSet.getDouble(WIDTH))
+                                .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                                .type(resultSet.getString(DB_SCHEMA_COLUMN_NAME_PAGE_TYPE))
+                                .coordinateX(resultSet.getDouble(DB_SCHEMA_COLUMN_NAME_COORDINATE_X))
+                                .coordinateY(resultSet.getDouble(DB_SCHEMA_COLUMN_NAME_COORDINATE_Y))
+                                .height(resultSet.getDouble(DB_SCHEMA_COLUMN_NAME_HEIGHT))
+                                .width(resultSet.getDouble(DB_SCHEMA_COLUMN_NAME_WIDTH))
                                 .build();
 
-                        resolvePageContent(stepDTO, resultSet.getBinaryStream(PAGE_CONTENT), tenantId);
+                        resolvePageContent(stepDTO, resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
                         return stepDTO;
                     })), preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
                         preparedStatement.setBoolean(2, true);
+                        preparedStatement.setString(3, REGISTRATION_FLOW);
                     });
 
             RegistrationFlowDTO registrationFlowDTO = new RegistrationFlowDTO();
@@ -247,8 +227,110 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         }
     }
 
+    @Override
+    public RegistrationGraphConfig getDefaultRegistrationGraphByTenant(int tenantId) throws RegistrationFrameworkException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            // Step 1: Fetch Nodes with Executors and Mappings.
+            List<Map<String, Object>> rows = getGraphNodes(tenantId, jdbcTemplate);
+
+            // Step 2: Process Data to Avoid Duplication.
+            RegistrationGraphConfig regGraph = buildGraph(rows);
+
+            // Step 3: Fetch Page Content with JOIN (Updated Query).
+            Map<String, StepDTO> nodePageMappings = getViewPagesForFlow(regGraph.getId(),tenantId, jdbcTemplate);
+
+            // Step 4: Set the page mappings.
+            regGraph.setNodePageMappings(nodePageMappings);
+            return regGraph;
+        } catch (DataAccessException e) {
+            LOG.error("Failed to retrieve registration graph for tenant: " + tenantId, e);
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_REG_GRAPH_FAILED, e, tenantId);
+        }
+    }
+
+    private List<Map<String, Object>> getGraphNodes(int tenantId, JdbcTemplate jdbcTemplate) throws DataAccessException {
+
+        return jdbcTemplate.executeQuery(GET_NODES_WITH_MAPPINGS_QUERY, (resultSet, rowNumber) -> {
+            Map<String, Object> row = new HashMap<>();
+            row.put(DB_SCHEMA_ALIAS_FLOW_ID, resultSet.getString(DB_SCHEMA_ALIAS_FLOW_ID));
+            row.put(DB_SCHEMA_COLUMN_NAME_NODE_ID, resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID));
+            row.put(DB_SCHEMA_COLUMN_NAME_NODE_TYPE, resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_TYPE));
+            row.put(DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE, resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE));
+            row.put(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME, resultSet.getString(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME));
+            row.put(DB_SCHEMA_COLUMN_NAME_IDP_NAME, resultSet.getString(DB_SCHEMA_COLUMN_NAME_IDP_NAME));
+            row.put(DB_SCHEMA_ALIAS_NEXT_NODE_ID, resultSet.getString(DB_SCHEMA_ALIAS_NEXT_NODE_ID));
+            row.put(DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT, resultSet.getString(DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT));
+            return row;
+        }, preparedStatement -> {
+            preparedStatement.setInt(1, tenantId);
+            preparedStatement.setBoolean(2, true);
+            preparedStatement.setString(3, REGISTRATION_FLOW);
+        });
+    }
+
+    private Map<String, StepDTO> getViewPagesForFlow(String flowId, int tenantId, JdbcTemplate jdbcTemplate)
+            throws DataAccessException {
+
+        Map<String, StepDTO> nodePageMappings = new HashMap<>();
+        jdbcTemplate.executeQuery(GET_VIEW_PAGES_IN_FLOW, (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+            StepDTO stepDTO = new StepDTO.Builder()
+                    .id(resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID))
+                    .type(VIEW)
+                    .build();
+            resolvePageContent(stepDTO, resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_PAGE_CONTENT), tenantId);
+            nodePageMappings.put(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NODE_ID), stepDTO);
+            return null;
+        })), preparedStatement -> {
+            preparedStatement.setString(1, flowId);
+            preparedStatement.setString(2, VIEW);
+        });
+        return nodePageMappings;
+    }
+
+    private RegistrationGraphConfig buildGraph(List<Map<String, Object>> rows) {
+
+        RegistrationGraphConfig registrationGraphConfig = new RegistrationGraphConfig();
+        Map<String, NodeConfig> nodeConfigs = new HashMap<>();
+
+        for (Map<String, Object> row : rows) {
+            if (registrationGraphConfig.getId() == null) {
+                registrationGraphConfig.setId((String) row.get(DB_SCHEMA_ALIAS_FLOW_ID));
+            }
+            String nodeId = (String) row.get(DB_SCHEMA_COLUMN_NAME_NODE_ID);
+            nodeConfigs.putIfAbsent(nodeId, new NodeConfig.Builder()
+                    .id(nodeId)
+                    .type((String) row.get(DB_SCHEMA_COLUMN_NAME_NODE_TYPE))
+                    .isFirstNode((Boolean) row.get(DB_SCHEMA_COLUMN_NAME_IS_FIRST_NODE))
+                    .build());
+
+            NodeConfig nodeConfig = nodeConfigs.get(nodeId);
+
+            // Update first node of the graph.
+            if (nodeConfig.isFirstNode()) {
+                registrationGraphConfig.setFirstNodeId(nodeId);
+            }
+            // Attach executor details if present.
+            if (row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME) != null) {
+                nodeConfig.setExecutorConfig(
+                        new ExecutorDTO((String) row.get(DB_SCHEMA_COLUMN_NAME_EXECUTOR_NAME),
+                                        (String) row.get(DB_SCHEMA_COLUMN_NAME_IDP_NAME)));
+            }
+
+            // Attach edges (mappings).
+            if (row.get(DB_SCHEMA_ALIAS_NEXT_NODE_ID) != null) {
+                nodeConfig.addEdge(new NodeEdge(nodeId, (String) row.get(DB_SCHEMA_ALIAS_NEXT_NODE_ID),
+                                     (String) row.get(DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT))
+                );
+            }
+        }
+        registrationGraphConfig.setNodeConfigs(nodeConfigs);
+        return registrationGraphConfig;
+    }
+
     private void resolvePageContent(StepDTO stepDTO, InputStream pageContent, int tenantId)
-            throws DataAccessException, RegistrationServerException {
+            throws RegistrationServerException {
 
         try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
             Object obj = ois.readObject();
@@ -275,10 +357,33 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         }
     }
 
-    @Override
-    public RegistrationGraphConfig getDefaultRegistrationGraphByTenant(int tenantId)
+    private static byte[] serializeObject(Object obj) throws IOException {
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(obj);
+            oos.flush();
+            return baos.toByteArray();
+        }
+    }
+
+    private static byte[] serializeStepData(StepDTO stepDTO, int tenantId)
             throws RegistrationFrameworkException {
 
-        return null;
+        try {
+            if (VIEW.equals(stepDTO.getType())) {
+                List<ComponentDTO> components = stepDTO.getData().getComponents();
+                return serializeObject(components);
+            } else if (REDIRECTION.equals(stepDTO.getType())) {
+                ActionDTO action = stepDTO.getData().getAction();
+                return serializeObject(action);
+            } else {
+                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
+                                            stepDTO.getType());
+            }
+        } catch (IOException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
+                                        stepDTO.getId(), tenantId);
+        }
     }
 }
