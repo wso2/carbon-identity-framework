@@ -291,7 +291,7 @@ public class ApplicationDAOImplTest {
         ApplicationDAO applicationDAO = new ApplicationDAOImpl();
         when(mockAbstractUserStoreManager.getGroupListOfUser(eq(USER_ID), nullable(String.class),
                 nullable(String.class))).thenReturn(
-                Arrays.asList(new Group("test-group-id-0"), new Group("test-group-id-1")));
+                Arrays.asList(new Group("test-group-id-0"), new Group("test-group-id-1"), new Group(null)));
         List<ApplicationBasicInfo> applicationBasicInfos =
                 applicationDAO.getDiscoverableApplicationBasicInfo(10, 0, "medical*", null, null,
                         SUPER_TENANT_DOMAIN_NAME);
