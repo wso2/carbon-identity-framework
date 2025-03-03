@@ -148,6 +148,8 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils;
                             version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}"
                         </Import-Package>
                         <Export-Package>
