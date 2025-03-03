@@ -1937,7 +1937,7 @@ public class ApplicationManagementServiceImplTest {
                 ArgumentCaptor<String> userDomainArgumentCaptor = ArgumentCaptor.forClass(String.class);
                 verify(mockAbstractUserStoreManager).listGroups(conditionArgumentCaptor.capture(),
                         userDomainArgumentCaptor.capture(),
-                        eq(0), eq(0), nullable(String.class), nullable(String.class));
+                        eq(100), eq(0), nullable(String.class), nullable(String.class));
                 if (filter == null) {
                     assertEquals(conditionArgumentCaptor.getValue().getOperation(), "SW");
                     assertEquals(((ExpressionCondition) conditionArgumentCaptor.getValue()).getAttributeName(),
