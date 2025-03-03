@@ -72,8 +72,6 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     @Override
     public void registerBulkUnitOperationStatus(ResponseUnitOperationContext context) {
 //        strategy = OperationStatusStrategyFactory.getStrategy(context.getOperationType());
-
-
         if (strategy != null) {
             strategy.registerBulkUnitOperations(context);
         } else {
@@ -83,8 +81,6 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
 
     @Override
     public ResponseOperationContext getLatestAsyncOperationStatus(String orgId, String operationSubjectId, String resourceType, String userId) {
-        LOGGER.info("Hit Interface.");
-        LOGGER.info(":"+operationSubjectId);
         return asyncStatusMgtDAO.getLatestAsyncOperationStatus(operationSubjectId, orgId, resourceType, userId);
     }
 }

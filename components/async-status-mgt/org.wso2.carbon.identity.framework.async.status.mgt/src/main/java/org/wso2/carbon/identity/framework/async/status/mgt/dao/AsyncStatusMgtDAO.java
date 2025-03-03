@@ -57,6 +57,11 @@ public interface AsyncStatusMgtDAO {
      */
     void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue);
 
+    /**
+     * TODO
+     */
     ResponseOperationContext getLatestAsyncOperationStatus(String operationSubjectId, String residentOrgId, String resourceType, String initiatorId);
+
+    void updateAsyncOperationStatus(String operationID, String status);
 
 }

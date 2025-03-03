@@ -18,6 +18,11 @@ public class SQLConstants {
             ":" + OperationStatusTableColumns.UM_CREATED_TIME + ";, " +
             ":" + OperationStatusTableColumns.UM_LAST_MODIFIED + ";)";
 
+    public static final String UPDATE_ASYNC_OPERATION_STATUS =
+            "UPDATE UM_ASYNC_OPERATION_STATUS " +
+                    "SET UM_OPERATION_STATUS = :" + OperationStatusTableColumns.UM_OPERATION_STATUS + "; " +
+                    "WHERE UM_OPERATION_ID = :" + OperationStatusTableColumns.UM_OPERATION_ID + ";";
+
     public static final String CREATE_ASYNC_OPERATION_UNIT = "INSERT INTO UM_ASYNC_OPERATION_STATUS_UNIT (" +
             "UM_OPERATION_ID, UM_RESIDENT_RESOURCE_ID, UM_TARGET_ORG_ID," +
             "UM_UNIT_OPERATION_STATUS, UM_OPERATION_STATUS_MESSAGE, UM_CREATED_AT ) VALUES("+

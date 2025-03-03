@@ -29,13 +29,12 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
-import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants.CREATE_ASYNC_OPERATION;
-import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants.CREATE_ASYNC_OPERATION_UNIT;
-
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
+
+import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants.*;
 
 /**
  * DAO implementation for Asynchronous Operation Status Management.
@@ -46,7 +45,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
 
     @Override
     public String registerAsyncOperation(OperationDBContext context) {
-        LOGGER.info("B2BUserSharingAsyncOperation Registering Started.");
+        LOGGER.info("Async Operation Registering Started.");
         Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
         String generatedOperationId = null;
         try{
@@ -182,5 +181,26 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
             throw new RuntimeException(errorMessage, e);
         }
         return responseContext;
+    }
+
+    @Override
+    public void updateAsyncOperationStatus(String operationId, String status) {
+        Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
+        try{
+            try{
+                String currentTimestamp = new Timestamp(new Date().getTime()).toString();
+
+                NamedPreparedStatement statement = new NamedPreparedStatement(connection,UPDATE_ASYNC_OPERATION_STATUS, SQLConstants.OperationStatusTableColumns.UM_OPERATION_ID);
+                statement.setString(OperationStatusTableColumns.UM_OPERATION_ID, operationId);
+                statement.setString(OperationStatusTableColumns.UM_OPERATION_STATUS, status);
+                statement.executeUpdate();
+                LOGGER.info("Operation Updated Success.");
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
