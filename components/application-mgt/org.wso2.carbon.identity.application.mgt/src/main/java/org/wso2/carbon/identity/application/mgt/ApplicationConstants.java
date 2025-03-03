@@ -108,6 +108,7 @@ public class ApplicationConstants {
 
     // Filtering operations.
     public static final String FILTER_CO = "co";
+    public static final int MAX_NUMBER_OF_GROUPS_FROM_META_ENDPOINT = 100;
 
     // System application config elements
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
