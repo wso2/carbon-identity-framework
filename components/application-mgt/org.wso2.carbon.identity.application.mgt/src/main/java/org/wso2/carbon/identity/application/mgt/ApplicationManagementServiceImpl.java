@@ -3283,8 +3283,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         String.format(INVALID_USER_STORE_DOMAIN.getDescription(), domainName, tenantDomain));
             }
             List<GroupBasicInfo> groupBasicInfos = new ArrayList<>();
-            // Group endpoint does not support pagination.
-            List<Group> groups = userStoreManager.listGroups(filterCondition, domainName, 0, 0, null, null);
+            /*
+             * JDBC user store does not support pagination.
+             * LDAP and AD require a limit greater than zero to retrieve groups.
+             * Since the meta endpoint supports searching, the group limit will be set to a constant,
+             * allowing users to find relevant groups by searching.
+             */
+            List<Group> groups = userStoreManager.listGroups(filterCondition, domainName,
+                    ApplicationConstants.MAX_NUMBER_OF_GROUPS_FROM_META_ENDPOINT, 0, null, null);
             for (Group group : groups) {
                 GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
                 groupBasicInfo.setId(group.getGroupID());
