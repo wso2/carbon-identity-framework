@@ -25,7 +25,7 @@
     "idpIssuerName": "",
     "claims": {
       "userIdClaim": {
-        "uri": ""
+        "uri": "http://wso2.org/claims/username"
       },
       "roleClaim": {
         "uri": ""
