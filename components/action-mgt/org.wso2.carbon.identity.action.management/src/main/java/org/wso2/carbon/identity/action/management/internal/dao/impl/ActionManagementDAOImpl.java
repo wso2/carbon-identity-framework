@@ -183,8 +183,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         actionTypesCountMap.put(resultSet.getString(ActionMgtSQLConstants.Column.ACTION_TYPE),
                                 resultSet.getInt(ActionMgtSQLConstants.Column.ACTION_COUNT));
                         return null;
-                    }, statement -> statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID,
-                                tenantId)));
+                    }, statement -> statement.setInt(ActionMgtSQLConstants.Column.TENANT_ID, tenantId)));
             return actionTypesCountMap;
         } catch (TransactionException e) {
             throw new ActionMgtServerException("Error while retrieving Actions count per Action Type from the system.",
@@ -308,8 +307,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             endpointProperties.put(URI_PROPERTY, endpoint.getUri());
             endpointProperties.put(AUTHN_TYPE_PROPERTY, endpoint.getAuthentication().getType().name());
             endpoint.getAuthentication().getProperties().forEach(
-                    authProperty -> endpointProperties.put(authProperty.getName(),
-                            authProperty.getValue()));
+                    authProperty -> endpointProperties.put(authProperty.getName(), authProperty.getValue()));
 
             addActionPropertiesToDB(actionDTO.getId(), endpointProperties, tenantId);
         } catch (TransactionException e) {
@@ -616,8 +614,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
      * @return A map of action properties, including any additional data based on action type.
      * @throws ActionMgtException If an error occurs while retrieving action properties from the database.
      */
-    private Map<String, String> getActionPropertiesFromDB(String actionId, Integer tenantId)
-            throws ActionMgtException {
+    private Map<String, String> getActionPropertiesFromDB(String actionId, Integer tenantId) throws ActionMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         Map<String, String> actionEndpointProperties = new HashMap<>();
