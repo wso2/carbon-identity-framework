@@ -31,10 +31,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.user.registration.engine.UserRegistrationFlowService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Executor;
 import org.wso2.carbon.identity.user.registration.engine.graph.UserOnboardingExecutor;
-import org.wso2.carbon.identity.user.registration.engine.graph.Node;
-import org.wso2.carbon.identity.user.registration.engine.graph.PagePromptNode;
-import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
-import org.wso2.carbon.identity.user.registration.engine.graph.UserChoiceDecisionNode;
 import org.wso2.carbon.identity.user.registration.mgt.RegistrationFlowMgtService;
 import org.wso2.carbon.user.core.service.RealmService;
 
