@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.user.registration.engine.util;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
 import java.util.UUID;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
@@ -33,12 +34,12 @@ import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationConte
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCacheKey;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
-import org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationClientException;
+import org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineClientException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
-import org.wso2.carbon.user.api.UserStoreException;
 
 /**
  * Utility class for registration flow engine.
@@ -67,10 +68,10 @@ public class RegistrationFlowEngineUtils {
      *
      * @param contextId Context identifier.
      * @return Registration context.
-     * @throws RegistrationFrameworkException Registration framework exception.
+     * @throws RegistrationEngineException Registration framework exception.
      */
     public static RegistrationContext retrieveRegContextFromCache(String contextId)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         if (contextId == null) {
             throw handleClientException(ERROR_CODE_UNDEFINED_FLOW_ID);
@@ -103,7 +104,7 @@ public class RegistrationFlowEngineUtils {
      * @return Registration context.
      */
     public static RegistrationContext initiateContext(String tenantDomain)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         try {
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -121,6 +122,8 @@ public class RegistrationFlowEngineUtils {
             return context;
         } catch (IdentityRuntimeException e) {
             throw handleServerException(ERROR_CODE_TENANT_RESOLVE_FAILURE, tenantDomain);
+        } catch (RegistrationFrameworkException e) {
+            throw handleServerException(ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE, tenantDomain);
         }
     }
 
@@ -130,15 +133,15 @@ public class RegistrationFlowEngineUtils {
      * @param error Error message.
      * @param e     Throwable.
      * @param data  The error message data.
-     * @return RegistrationServerException.
+     * @return RegistrationEngineServerException.
      */
-    public static RegistrationServerException handleServerException(ErrorMessages error, Throwable e, Object... data) {
+    public static RegistrationEngineServerException handleServerException(ErrorMessages error, Throwable e, Object... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new RegistrationServerException(error.getCode(), error.getMessage(), description, e);
+        return new RegistrationEngineServerException(error.getCode(), error.getMessage(), description, e);
     }
 
     /**
@@ -146,15 +149,15 @@ public class RegistrationFlowEngineUtils {
      *
      * @param error Error message.
      * @param data  The error message data.
-     * @return RegistrationServerException.
+     * @return RegistrationEngineServerException.
      */
-    public static RegistrationServerException handleServerException(ErrorMessages error, Object... data) {
+    public static RegistrationEngineServerException handleServerException(ErrorMessages error, Object... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new RegistrationServerException(error.getCode(), error.getMessage(), description);
+        return new RegistrationEngineServerException(error.getCode(), error.getMessage(), description);
     }
 
     /**
@@ -163,15 +166,15 @@ public class RegistrationFlowEngineUtils {
      * @param error Error message.
      * @param e     Throwable.
      * @param data  The error message data.
-     * @return RegistrationClientException.
+     * @return RegistrationEngineClientException.
      */
-    public static RegistrationClientException handleClientException(ErrorMessages error, Throwable e, Object... data) {
+    public static RegistrationEngineClientException handleClientException(ErrorMessages error, Throwable e, Object... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new RegistrationClientException(error.getCode(), error.getMessage(), description, e);
+        return new RegistrationEngineClientException(error.getCode(), error.getMessage(), description, e);
     }
 
     /**
@@ -179,14 +182,14 @@ public class RegistrationFlowEngineUtils {
      *
      * @param error Error message.
      * @param data  The error message data.
-     * @return RegistrationClientException.
+     * @return RegistrationEngineClientException.
      */
-    public static RegistrationClientException handleClientException(ErrorMessages error, Object... data) {
+    public static RegistrationEngineClientException handleClientException(ErrorMessages error, Object... data) {
 
         String description = error.getDescription();
         if (ArrayUtils.isNotEmpty(data)) {
             description = String.format(description, data);
         }
-        return new RegistrationClientException(error.getCode(), error.getMessage(), description);
+        return new RegistrationEngineClientException(error.getCode(), error.getMessage(), description);
     }
 }

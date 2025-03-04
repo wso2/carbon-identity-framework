@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.user.registration.engine.model;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.USERNAME_CLAIM_URI;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.USERNAME_CLAIM_URI;
 
 /**
  * This class is responsible for holding the user profile of the registering user.

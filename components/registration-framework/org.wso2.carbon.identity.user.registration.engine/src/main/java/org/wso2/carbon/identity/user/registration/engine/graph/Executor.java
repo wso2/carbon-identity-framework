@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
 import java.util.List;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 
 /**
  * Interface for the executor.
@@ -40,9 +40,9 @@ public interface Executor {
      *
      * @param context   Registration context.
      * @return        Executor response.
-     * @throws RegistrationFrameworkException If an error occurs while executing the executor.
+     * @throws RegistrationEngineException If an error occurs while executing the executor.
      */
-    ExecutorResponse execute(RegistrationContext context) throws RegistrationFrameworkException;
+    ExecutorResponse execute(RegistrationContext context) throws RegistrationEngineException;
 
     /**
      * Get the initiation data of the executor.

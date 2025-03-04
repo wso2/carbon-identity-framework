@@ -20,9 +20,9 @@ package org.wso2.carbon.identity.user.registration.engine.graph;
 
 import org.wso2.carbon.identity.user.registration.engine.model.Response;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_PROMPT_ONLY;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
 
 public class PagePromptNode implements Node {
@@ -35,7 +35,7 @@ public class PagePromptNode implements Node {
 
     @Override
     public Response execute(RegistrationContext context, NodeConfig nodeConfig)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         if (nodeConfig.getEdges() != null) {
             nodeConfig.setNextNodeId(nodeConfig.getEdges().get(0).getTargetNodeId());
@@ -45,7 +45,7 @@ public class PagePromptNode implements Node {
 
     @Override
     public Response rollback(RegistrationContext context, NodeConfig nodeConfig)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         return null;
     }
