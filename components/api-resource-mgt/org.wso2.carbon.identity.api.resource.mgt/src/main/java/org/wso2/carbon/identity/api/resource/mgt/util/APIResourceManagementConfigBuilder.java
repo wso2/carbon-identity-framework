@@ -51,7 +51,6 @@ public class APIResourceManagementConfigBuilder {
 
     private static final Log LOG = LogFactory.getLog(APIResourceManagementConfigBuilder.class);
     private static final Map<String, APIResource> apiResourceMgtConfigurations = new HashMap<>();
-    private static final Map<String, APIResource> duplicateAPIResourceConfigs = new HashMap<>();
     private static final List<String> disabledAPIResourceIdentifiers = new ArrayList<>();
     private static final APIResourceManagementConfigBuilder apiResourceManagementConfigBuilder =
             new APIResourceManagementConfigBuilder();
@@ -76,16 +75,6 @@ public class APIResourceManagementConfigBuilder {
     public Map<String, APIResource> getAPIResourceMgtConfigurations() {
 
         return apiResourceMgtConfigurations;
-    }
-
-    /**
-     * Get duplicate system API resource configs.
-     *
-     * @return Map of duplicate API resource configs.
-     */
-    public Map<String, APIResource> getDuplicateAPIResourceConfigs() {
-
-        return duplicateAPIResourceConfigs;
     }
 
     /**
@@ -152,15 +141,14 @@ public class APIResourceManagementConfigBuilder {
                     apiResourceObj.setScopes(scopeList);
                 }
             }
-            /* If an API resource with the same identifier already exists in the config map, add the second one
-            to the duplicate list. During API resource registration, diff will be applied as a patch to the existing
-            API resource. API resource in the duplicate config map will be considered as the original API resource.
+            /* If an API resource with the same identifier already exists in the config map, we skip it as a duplicate.
+            The duplicate API resource will be treated as the original API resource.
             */
             if (apiResourceMgtConfigurations.containsKey(apiResourceObj.getIdentifier())) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("API resource with duplicate identifier: " + apiResourceObj.getIdentifier() + " found.");
+                    LOG.debug("API resource with duplicate identifier: " + apiResourceObj.getIdentifier()
+                            + " found.");
                 }
-                duplicateAPIResourceConfigs.put(apiResourceObj.getIdentifier(), apiResourceObj);
                 continue;
             }
             if (disabledAPIResourceIdentifiers.contains(apiResourceObj.getIdentifier())) {
