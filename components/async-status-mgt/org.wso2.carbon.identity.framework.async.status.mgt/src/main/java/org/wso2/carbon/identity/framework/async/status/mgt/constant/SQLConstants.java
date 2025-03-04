@@ -18,10 +18,29 @@ public class SQLConstants {
             ":" + OperationStatusTableColumns.UM_CREATED_TIME + ";, " +
             ":" + OperationStatusTableColumns.UM_LAST_MODIFIED + ";)";
 
+    public static final String CREATE_ASYNC_OPERATION_IDN = "INSERT INTO IDN_ASYNC_OPERATION_STATUS(" +
+            "IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, IDN_RESOURCE_TYPE," +
+            "IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS," +
+            "IDN_CREATED_TIME, IDN_LAST_MODIFIED) VALUES("+
+            ":" + OperationStatusTableColumns.IDN_OPERATION_TYPE + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID + ";, " +
+            ":" + OperationStatusTableColumns.IDN_RESOURCE_TYPE + ";, " +
+            ":" + OperationStatusTableColumns.IDN_RESIDENT_ORG_ID + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_STATUS + ";, " +
+            ":" + OperationStatusTableColumns.IDN_CREATED_TIME + ";, " +
+            ":" + OperationStatusTableColumns.IDN_LAST_MODIFIED + ";)";
+
     public static final String UPDATE_ASYNC_OPERATION_STATUS =
             "UPDATE UM_ASYNC_OPERATION_STATUS " +
                     "SET UM_OPERATION_STATUS = :" + OperationStatusTableColumns.UM_OPERATION_STATUS + "; " +
                     "WHERE UM_OPERATION_ID = :" + OperationStatusTableColumns.UM_OPERATION_ID + ";";
+
+    public static final String UPDATE_ASYNC_OPERATION_STATUS_IDN =
+            "UPDATE IDN_ASYNC_OPERATION_STATUS " +
+                    "SET IDN_OPERATION_STATUS = :" + OperationStatusTableColumns.IDN_OPERATION_STATUS + ", " +
+                    "IDN_LAST_MODIFIED = :" + OperationStatusTableColumns.IDN_LAST_MODIFIED + " " +
+                    "WHERE IDN_OPERATION_ID = :" + OperationStatusTableColumns.IDN_OPERATION_ID;
 
     public static final String CREATE_ASYNC_OPERATION_UNIT = "INSERT INTO UM_ASYNC_OPERATION_STATUS_UNIT (" +
             "UM_OPERATION_ID, UM_RESIDENT_RESOURCE_ID, UM_TARGET_ORG_ID," +
@@ -33,59 +52,27 @@ public class SQLConstants {
             ":" + UnitOperationStatusTableColumns.UM_OPERATION_STATUS_MESSAGE + ";, " +
             ":" + UnitOperationStatusTableColumns.UM_CREATED_AT + ";)";
 
-//    public static final String FETCH_LATEST_ASYNC_OPERATION =
-//            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
-//                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
-//                    "FROM UM_ASYNC_OPERATION_STATUS " +
-//                    "WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
-//                    "AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
-//                    "AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
-//                    "AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
-//                    "AND UM_CREATED_TIME = (" +
-//                    "    SELECT MAX(UM_CREATED_TIME) " +
-//                    "    FROM UM_ASYNC_OPERATION_STATUS " +
-//                    "    WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
-//                    "    AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
-//                    "    AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
-//                    "    AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
-//                    ") " +
-//                    "ORDER BY UM_CREATED_TIME DESC " +
-//                    "LIMIT 1;";
-//    public static final String FETCH_LATEST_ASYNC_OPERATION =
-//            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
-//                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
-//                    "FROM UM_ASYNC_OPERATION_STATUS " +
-//                    "WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
-//                    "AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
-//                    "AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
-//                    "AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
-//                    "ORDER BY UM_CREATED_TIME DESC " +
-//                    "LIMIT 1;";
-    public static final String FETCH_LATEST_ASYNC_OPERATION =
-            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
-                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
-                    "FROM UM_ASYNC_OPERATION_STATUS " +
-                    "WHERE UM_OPERATION_SUBJECT_ID = :UM_OPERATION_SUBJECT_ID " +
-                    "AND UM_RESIDENT_ORG_ID = :UM_RESIDENT_ORG_ID " +
-                    "AND UM_RESOURCE_TYPE = :UM_RESOURCE_TYPE " +
-                    "AND UM_OPERATION_INITIATOR_ID = :UM_OPERATION_INITIATOR_ID " +
-                    "ORDER BY UM_CREATED_TIME DESC " +
-                    "LIMIT 1;";
+    public static final String CREATE_ASYNC_OPERATION_UNIT_IDN = "INSERT INTO IDN_ASYNC_OPERATION_STATUS_UNIT (" +
+            "IDN_OPERATION_ID, IDN_UNIT_OPERATION_TYPE, IDN_RESIDENT_RESOURCE_ID, IDN_TARGET_ORG_ID," +
+            "IDN_UNIT_OPERATION_STATUS, IDN_OPERATION_STATUS_MESSAGE, IDN_CREATED_AT ) VALUES("+
+            ":" + UnitOperationStatusTableColumns.IDN_OPERATION_ID + ";, " +
+            ":" + UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_TYPE + ";, " +
+            ":" + UnitOperationStatusTableColumns.IDN_RESIDENT_RESOURCE_ID + ";, " +
+            ":" + UnitOperationStatusTableColumns.IDN_TARGET_ORG_ID + ";, " +
+            ":" + UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_STATUS + ";, " +
+            ":" + UnitOperationStatusTableColumns.IDN_OPERATION_STATUS_MESSAGE + ";, " +
+            ":" + UnitOperationStatusTableColumns.IDN_CREATED_AT + ";)";
 
     public static final String FETCH_LATEST_ASYNC_OPERATION_IDN =
-            "SELECT UM_OPERATION_ID, UM_OPERATION_TYPE, UM_OPERATION_SUBJECT_ID, UM_RESOURCE_TYPE, " +
-                    "UM_OPERATION_POLICY, UM_RESIDENT_ORG_ID, UM_OPERATION_INITIATOR_ID, UM_OPERATION_STATUS " +
-                    "FROM UM_ASYNC_OPERATION_STATUS " +
-                    "WHERE UM_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.UM_OPERATION_SUBJECT_ID + " " +
-                    "AND UM_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.UM_RESIDENT_ORG_ID + " " +
-                    "AND UM_RESOURCE_TYPE = :" + OperationStatusTableColumns.UM_RESOURCE_TYPE + " " +
-                    "AND UM_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.UM_OPERATION_INITIATOR_ID + " " +
-                    "ORDER BY UM_CREATED_TIME DESC " +
+            "SELECT IDN_OPERATION_ID, IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, IDN_RESOURCE_TYPE, " +
+                    "IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS " +
+                    "FROM IDN_ASYNC_OPERATION_STATUS " +
+                    "WHERE IDN_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID + " " +
+                    "AND IDN_RESIDENT_ORG_ID = :" + OperationStatusTableColumns.IDN_RESIDENT_ORG_ID + " " +
+                    "AND IDN_RESOURCE_TYPE = :" + OperationStatusTableColumns.IDN_RESOURCE_TYPE + " " +
+                    "AND IDN_OPERATION_INITIATOR_ID = :" + OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID + " " +
+                    "ORDER BY IDN_CREATED_TIME DESC " +
                     "LIMIT 1;";
-
-//    public static final String TEST_FETCH = "SELECT * FROM UM_ASYNC_OPERATION_STATUS WHERE UM_ROLE_ID = :" +
-//            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_UM_ROLE_ID + "; AND UM_ORG_ID=:" +
-//            SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_UM_ORG_ID + ";";
 
     public static class OperationStatusTableColumns {
         public static final String UM_OPERATION_ID = "UM_OPERATION_ID";
@@ -98,6 +85,16 @@ public class SQLConstants {
         public static final String UM_OPERATION_STATUS = "UM_OPERATION_STATUS";
         public static final String UM_CREATED_TIME = "UM_CREATED_TIME";
         public static final String UM_LAST_MODIFIED = "UM_LAST_MODIFIED";
+
+        public static final String IDN_OPERATION_ID = "IDN_OPERATION_ID";
+        public static final String IDN_OPERATION_TYPE = "IDN_OPERATION_TYPE";
+        public static final String IDN_OPERATION_SUBJECT_ID = "IDN_OPERATION_SUBJECT_ID";
+        public static final String IDN_RESOURCE_TYPE = "IDN_RESOURCE_TYPE";
+        public static final String IDN_RESIDENT_ORG_ID = "IDN_RESIDENT_ORG_ID";
+        public static final String IDN_OPERATION_INITIATOR_ID = "IDN_OPERATION_INITIATOR_ID";
+        public static final String IDN_OPERATION_STATUS = "IDN_OPERATION_STATUS";
+        public static final String IDN_CREATED_TIME = "IDN_CREATED_TIME";
+        public static final String IDN_LAST_MODIFIED = "IDN_LAST_MODIFIED";
     }
 
     public static class UnitOperationStatusTableColumns {
@@ -108,5 +105,14 @@ public class SQLConstants {
         public static final String UM_UNIT_OPERATION_STATUS = "UM_UNIT_OPERATION_STATUS";
         public static final String UM_OPERATION_STATUS_MESSAGE = "UM_OPERATION_STATUS_MESSAGE";
         public static final String UM_CREATED_AT = "UM_CREATED_AT";
+
+        public static final String IDN_UNIT_OPERATION_ID = "IDN_UNIT_OPERATION_ID";
+        public static final String IDN_OPERATION_ID = "IDN_OPERATION_ID";
+        public static final String IDN_UNIT_OPERATION_TYPE = "IDN_UNIT_OPERATION_TYPE";
+        public static final String IDN_RESIDENT_RESOURCE_ID = "IDN_RESIDENT_RESOURCE_ID";
+        public static final String IDN_TARGET_ORG_ID = "IDN_TARGET_ORG_ID";
+        public static final String IDN_UNIT_OPERATION_STATUS = "IDN_UNIT_OPERATION_STATUS";
+        public static final String IDN_OPERATION_STATUS_MESSAGE = "IDN_OPERATION_STATUS_MESSAGE";
+        public static final String IDN_CREATED_AT = "IDN_CREATED_AT";
     }
  }

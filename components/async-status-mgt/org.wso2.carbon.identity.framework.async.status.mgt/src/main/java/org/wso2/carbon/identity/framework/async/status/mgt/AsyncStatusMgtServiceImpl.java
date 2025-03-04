@@ -51,6 +51,11 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     }
 
     @Override
+    public void updateOperationStatus(String operationId, String status) {
+        asyncStatusMgtDAO.updateAsyncOperationStatus(operationId, status);
+    }
+
+    @Override
     public void registerUnitOperationStatus(String operationId, String operationType, String operationInitiatedResourceId, String sharedOrgId, String unitOperationStatus, String statusMessage) {
         strategy = OperationStatusStrategyFactory.getStrategy(operationType);
 

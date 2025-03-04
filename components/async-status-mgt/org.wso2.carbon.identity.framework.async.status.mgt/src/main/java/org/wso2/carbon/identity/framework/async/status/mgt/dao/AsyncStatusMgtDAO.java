@@ -31,11 +31,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public interface AsyncStatusMgtDAO {
 
     /**
-     * Registering a B2B User Sharing Asynchronous Operation.
+     * Registering an Asynchronous Operation.
      *
-     * @param userShareDBContext Context of the user share.
+     * @param operationDBContext Context of the asynchronous operation.
      */
-    String registerAsyncOperation(OperationDBContext userShareDBContext);
+    String registerAsyncOperation(OperationDBContext operationDBContext);
 
     /**
      * Registers a Unit Asynchronous Operation.
@@ -58,10 +58,21 @@ public interface AsyncStatusMgtDAO {
     void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue);
 
     /**
-     * TODO
+     * Fetching the latest Asynchronous Operation.
+     *
+     * @param operationSubjectId ID of the subject of the asynchronous operation.
+     * @param residentOrgId Organization ID of the subject of the asynchronous operation.
+     * @param resourceType Resource type of the asynchronous operation.
+     * @param initiatorId Initiator ID of the asynchronous operation.
      */
     ResponseOperationContext getLatestAsyncOperationStatus(String operationSubjectId, String residentOrgId, String resourceType, String initiatorId);
 
+    /**
+     * Updating the registered Asynchronous Operation.
+     *
+     * @param operationID Operation ID of the asynchronous operation.
+     * @param status Status of the asynchronous operation.
+     */
     void updateAsyncOperationStatus(String operationID, String status);
 
 }

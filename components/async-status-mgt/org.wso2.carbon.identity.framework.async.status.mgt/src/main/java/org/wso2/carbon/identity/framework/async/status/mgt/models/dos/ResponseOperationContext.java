@@ -5,7 +5,6 @@ public class ResponseOperationContext {
     private String operationType;
     private String operationSubjectId;
     private String resourceType;
-    private String sharingPolicy;
     private String residentOrgId;
     private String initiatorId;
     private String operationStatus;
@@ -13,12 +12,11 @@ public class ResponseOperationContext {
     public ResponseOperationContext() {
     }
 
-    public ResponseOperationContext(String operationId, String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus) {
+    public ResponseOperationContext(String operationId, String operationType, String operationSubjectId, String resourceType, String residentOrgId, String initiatorId, String operationStatus) {
         this.operationId = operationId;
         this.operationType = operationType;
         this.operationSubjectId = operationSubjectId;
         this.resourceType = resourceType;
-        this.sharingPolicy = sharingPolicy;
         this.residentOrgId = residentOrgId;
         this.initiatorId = initiatorId;
         this.operationStatus = operationStatus;
@@ -54,14 +52,6 @@ public class ResponseOperationContext {
 
     public void setResourceType(String resourceType) {
         this.resourceType = resourceType;
-    }
-
-    public String getSharingPolicy() {
-        return sharingPolicy;
-    }
-
-    public void setSharingPolicy(String sharingPolicy) {
-        this.sharingPolicy = sharingPolicy;
     }
 
     public String getResidentOrgId() {

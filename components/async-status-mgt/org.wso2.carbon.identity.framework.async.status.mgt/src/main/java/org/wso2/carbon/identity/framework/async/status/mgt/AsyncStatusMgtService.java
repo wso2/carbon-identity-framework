@@ -40,6 +40,8 @@ public interface AsyncStatusMgtService {
      */
     String registerOperationStatus(String operationType, String operationSubjectId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId);
 
+    void updateOperationStatus(String operationId, String status);
+
     /**
      * Registers the unit operation status for asynchronous tracking.
      *
