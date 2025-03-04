@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -83,6 +83,7 @@ public class PreferenceRetrievalClient {
     private static final String ACCOUNT_MGT_GOVERNANCE = "Account Management";
     private static final String USER_ONBOARDING_GOVERNANCE = "User Onboarding";
     private static final String CONNECTORS = "connectors";
+    private static final String ENABLE_DYNAMIC_REGISTRATION_PORTAL = "SelfRegistration.EnableDynamicPortal";
 
     /**
      * Check self registration is enabled or not.
@@ -131,6 +132,19 @@ public class PreferenceRetrievalClient {
             throws PreferenceRetrievalClientException {
 
         return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, SHOW_USERNAME_UNAVAILABILITY);
+    }
+
+    /**
+     * Check if dynamic self registration portal is enabled or not.
+     *
+     * @param tenant Tenant domain.
+     * @return returns true if dynamic self registration portal is enabled.
+     * @throws PreferenceRetrievalClientException If any PreferenceRetrievalClientException occurs.
+     */
+    public boolean checkSelfRegistrationEnableDynamicPortal(String tenant)
+            throws PreferenceRetrievalClientException {
+
+        return checkPreference(tenant, SELF_SIGN_UP_CONNECTOR, ENABLE_DYNAMIC_REGISTRATION_PORTAL);
     }
 
     /**
