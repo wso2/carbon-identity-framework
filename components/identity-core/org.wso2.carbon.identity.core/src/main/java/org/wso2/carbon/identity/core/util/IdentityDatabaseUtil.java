@@ -32,6 +32,7 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.DB2;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ORACLE;
 
 /**
  * Utility class for database operations.
@@ -44,6 +45,16 @@ public class IdentityDatabaseUtil {
     public static Connection getDBConnection() throws IdentityRuntimeException {
 
         return getDBConnection(true);
+    }
+
+    /**
+     * This method returns the parent schema of oracle db configurations.
+     *
+     * @return Parent Schema.
+     */
+    public static String getParentSchema() {
+
+        return JDBCPersistenceManager.getInstance().getParentSchema();
     }
 
     /**
@@ -212,6 +223,13 @@ public class IdentityDatabaseUtil {
             }
             String schemaName = connection.getSchema();
             String catalogName = connection.getCatalog();
+
+            if (ORACLE.equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())) {
+                String parentSchema = getParentSchema();
+                if (parentSchema != null) {
+                    schemaName = parentSchema;
+                }
+            }
             try (ResultSet resultSet = metaData.getTables(catalogName, schemaName, tableName, new String[]{"TABLE"})) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
