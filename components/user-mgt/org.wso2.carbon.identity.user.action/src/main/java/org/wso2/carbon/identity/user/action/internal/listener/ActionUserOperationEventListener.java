@@ -37,6 +37,8 @@ import org.wso2.carbon.user.core.listener.SecretHandleableListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.Secret;
 
+import java.util.Map;
+
 /**
  * This class is responsible for handling the action invocation related to user flows.
  */
@@ -69,6 +71,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreUpdateCredentialByAdminWithID(String userName, Object credential,
                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
+        //TODO: this configuration only checks for listener configuration. check for the action configuration as well.
         if (!isEnable()) {
             return true;
         }
@@ -106,6 +109,49 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
         } catch (ActionExecutionException e) {
             throw new UserStoreException("Error while executing pre update password action.",
                     UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR, e);
+        }
+    }
+
+    @Override
+    public boolean doPreSetUserClaimValues(String userName, Map<String, String> claims, String profileName,
+                                           UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable()) {
+            return true;
+        }
+
+        if (!isExecutableFlow()) {
+            return true;
+        }
+
+        try {
+            UserActionContext userActionContext = new UserActionContext.Builder()
+                    .userId(userName)
+                    .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
+                    .build();
+
+            ActionExecutionStatus<?> executionStatus =
+                    UserActionExecutorFactory.getUserActionExecutor(ActionType.PRE_UPDATE_PROFILE)
+                            .execute(userActionContext,
+                                    IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
+
+            if (executionStatus.getStatus() == ActionExecutionStatus.Status.SUCCESS) {
+                return true;
+            } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.FAILED) {
+                Failure failure = (Failure) executionStatus.getResponse();
+                String errorMsg = buildErrorMessage(failure.getFailureReason(), failure.getFailureDescription());
+                throw new UserStoreClientException(errorMsg,
+                        UserActionError.PRE_UPDATE_PROFILE_ACTION_EXECUTION_FAILED);
+            } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.ERROR) {
+                Error error = (Error) executionStatus.getResponse();
+                String errorMsg = buildErrorMessage(error.getErrorMessage(), error.getErrorDescription());
+                throw new UserStoreException(errorMsg, UserActionError.PRE_UPDATE_PROFILE_ACTION_EXECUTION_ERROR);
+            } else {
+                return false;
+            }
+        } catch (ActionExecutionException e) {
+            throw new UserStoreException("Error while executing pre update profile action.",
+                    UserActionError.PRE_UPDATE_PROFILE_ACTION_SERVER_ERROR, e);
         }
     }
 

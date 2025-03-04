@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,22 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.action.execution.api.model;
+package org.wso2.carbon.identity.user.pre.update.profile.action.api.model;
 
-import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
 
-/**
- * This class models the Action Type.
- * Action Type is the type of the action that is executed by the Action Executor Service.
- */
-public enum ActionType {
-    PRE_ISSUE_ACCESS_TOKEN,
-    PRE_UPDATE_PASSWORD,
-    PRE_UPDATE_PROFILE,
-    AUTHENTICATION;
+public class ProfileUserClaim extends UserClaim {
 
-    public String getDisplayName() {
+    private final String updatingValue;
 
-        return Action.ActionTypes.valueOf(this.name()).getDisplayName();
+    public ProfileUserClaim(String uri, String value, String updatingValue) {
+        super(uri, value);
+        this.updatingValue = updatingValue;
+    }
+
+    public String getUpdatingValue() {
+        return updatingValue;
     }
 }

@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.user.action.api.model;
 
+import org.wso2.carbon.identity.action.execution.api.model.UserClaim;
+
+import java.util.List;
+
 /**
  * Model class for User Action Context.
  * This class holds the user action context details for a given user flow.
@@ -26,12 +30,14 @@ public class UserActionContext {
 
     private final String userId;
     private final char[] password;
+    private final List<UserClaim> claims;
     private final String userStoreDomain;
 
     private UserActionContext(Builder builder) {
 
         this.userId = builder.userId;
         this.password = builder.password;
+        this.claims = builder.claims;
         this.userStoreDomain = builder.userStoreDomain;
     }
 
@@ -43,6 +49,10 @@ public class UserActionContext {
     public char[] getPassword() {
 
         return password;
+    }
+
+    public List<UserClaim> getClaims() {
+        return claims;
     }
 
     public String getUserStoreDomain() {
@@ -57,6 +67,7 @@ public class UserActionContext {
 
         private String userId;
         private char[] password;
+        private List<UserClaim> claims;
         private String userStoreDomain;
 
         public Builder userId(String userId) {
@@ -68,6 +79,12 @@ public class UserActionContext {
         public Builder password(char[] password) {
 
             this.password = password;
+            return this;
+        }
+
+        public Builder claims(List<UserClaim> claims) {
+
+            this.claims = claims;
             return this;
         }
 
