@@ -42,6 +42,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.pre.update.profile.action</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -71,6 +75,9 @@
                                 </bundleDef>
                                 <bundleDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.pre.update.password.action
+                                </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.pre.update.profile.action
                                 </bundleDef>
                             </bundles>
                         </configuration>
