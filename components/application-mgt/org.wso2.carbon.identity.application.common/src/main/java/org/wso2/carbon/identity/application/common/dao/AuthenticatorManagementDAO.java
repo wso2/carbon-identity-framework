@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.dao;
 
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 
 import java.util.List;
@@ -54,6 +55,17 @@ public interface AuthenticatorManagementDAO {
             throws AuthenticatorMgtException;
 
     /**
+     *
+     * @param existingAuthenticatorConfig
+     * @param amrValue
+     * @param tenantId
+     * @return
+     * @throws AuthenticatorMgtException
+     */
+    LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(LocalAuthenticatorConfig existingAuthenticatorConfig,
+                                                                   LocalAuthenticatorConfig amrValue, int tenantId) throws AuthenticatorMgtException;
+
+    /**
      * Retrieve a local user defined application authenticator configuration by name.
      *
      * @param authenticatorConfigName   Name of the local application authenticator configuration.
@@ -63,6 +75,16 @@ public interface AuthenticatorManagementDAO {
      */
     UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException;
+
+    /**
+     *
+     * @param authenticatorConfigName
+     * @param tenantId
+     * @return
+     * @throws AuthenticatorMgtException
+     */
+    LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtException;
 
     /**
      * Retrieve all user defined local application authenticator configurations.

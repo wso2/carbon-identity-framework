@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDA
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder;
@@ -111,6 +112,29 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     }
 
     /**
+     * Update the AMR value of the system local authenticator.
+     *
+     * @param existingAuthenticatorConfig Existing local authenticator configuration.
+     * @param updatedConfig                   New local authenticator configuration.
+     * @param tenantId                   Tenant ID.
+     * @return Updated local authenticator configuration.
+     * @throws AuthenticatorMgtException If an error occurs while updating the local authenticator.
+     */
+    @Override
+    public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
+            LocalAuthenticatorConfig existingAuthenticatorConfig, LocalAuthenticatorConfig updatedConfig, int tenantId)
+            throws AuthenticatorMgtException {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template -> dao.updateSystemLocalAuthenticatorAmrValue(
+                    existingAuthenticatorConfig, updatedConfig, tenantId));
+        } catch (TransactionException e) {
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e,
+                    updatedConfig.getName());
+        }
+    }
+
+    /**
      * Get user defined local authenticator by name and resolving associated data (endpoint configurations)
      * by invoking external service.
      *
@@ -128,6 +152,19 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             return jdbcTemplate.withTransaction(template ->
                     endpointConfigManager.resolveEndpointConfigurations(dao.getUserDefinedLocalAuthenticator(
                             authenticatorConfigName, tenantId), tenantId));
+        } catch (TransactionException e) {
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e,
+                    authenticatorConfigName);
+        }
+    }
+
+    @Override
+    public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtException {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template -> dao.getSystemLocalAuthenticator(authenticatorConfigName,
+                    tenantId));
         } catch (TransactionException e) {
             throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e,
                     authenticatorConfigName);

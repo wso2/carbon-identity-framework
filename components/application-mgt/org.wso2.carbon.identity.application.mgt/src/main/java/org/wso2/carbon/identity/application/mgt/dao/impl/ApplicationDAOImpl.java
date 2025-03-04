@@ -5105,7 +5105,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws SQLException
      */
-    private int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
+    public int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
                                  String authenticatorDispalyName, String definedByType, String amrValue) throws SQLException {
 
         int authenticatorId = -1;
@@ -5158,24 +5158,26 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return amrValue;
     }
 
-    public void insertAuthenticator(Connection conn, String name, String displayName, String isEnabled,
-                                    String amrValue) throws SQLException {
-        String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR_2;
+    public boolean getLocalAuthenticatorName(Connection conn, String authenticatorName){
+        String sqlStmt = ApplicationMgtDBQueries.LOCAL_AUTHENTICATOR_EXISTS;
         PreparedStatement prepStmt = null;
+        ResultSet rs = null;
 
-        try {
+        try{
             prepStmt = conn.prepareStatement(sqlStmt);
-            prepStmt.setString(1, name);
-            prepStmt.setString(2, displayName);
-            prepStmt.setBoolean(3, Boolean.parseBoolean(String.valueOf(isEnabled)));
-            prepStmt.setString(4, String.valueOf(DefinedByType.SYSTEM));
-            prepStmt.setString(5, AuthenticationType.IDENTIFICATION.toString());
-            prepStmt.setString(6, amrValue);
+            prepStmt.setString(1, authenticatorName);
+            rs = prepStmt.executeQuery();
 
-            prepStmt.executeUpdate();
+            if(rs.next()){
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(rs);
         }
+        return false;
     }
 
 

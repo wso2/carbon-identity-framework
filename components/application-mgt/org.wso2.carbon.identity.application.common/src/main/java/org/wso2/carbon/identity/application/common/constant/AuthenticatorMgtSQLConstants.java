@@ -66,8 +66,12 @@ public class AuthenticatorMgtSQLConstants {
                 ":NAME;, :IS_ENABLED;, :DEFINED_BY;, :AUTHENTICATION_TYPE;, :DISPLAY_NAME;, " +
                 ":IMAGE_URL;, :DESCRIPTION;)";
         public static final String UPDATE_AUTHENTICATOR_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED = " +
-                ":IS_ENABLED;, DISPLAY_NAME = :DISPLAY_NAME;, IMAGE_URL = :IMAGE_URL;, DESCRIPTION = :DESCRIPTION; " +
+                ":IS_ENABLED;, DISPLAY_NAME = :DISPLAY_NAME;, IMAGE_URL = :IMAGE_URL;, DESCRIPTION = :DESCRIPTION;, " +
+                "AMR_VALUE = :AMR_VALUE" +
+                " " +
                 "WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
+        public static final String UPDATE_AUTHENTICATOR_AMR_VALUE_SQL = "UPDATE IDP_AUTHENTICATOR SET AMR_VALUE = " +
+                ":AMR_VALUE; WHERE NAME = :NAME; AND TENANT_ID = :TENANT_ID;";
         public static final String GET_USER_DEFINED_LOCAL_AUTHENTICATOR_SQL = "SELECT * FROM IDP_AUTHENTICATOR " +
                 "WHERE DEFINED_BY = :DEFINED_BY; AND NAME = :NAME; AND TENANT_ID = :TENANT_ID;" +
                 "AND IDP_ID IN (SELECT ID FROM IDP WHERE IDP.NAME = :IDP_NAME; " +
