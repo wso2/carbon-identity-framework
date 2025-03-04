@@ -368,6 +368,12 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.pre.update.profile.action</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.consent.server.configs.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
