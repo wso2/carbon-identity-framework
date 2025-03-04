@@ -18,14 +18,15 @@
 
 package org.wso2.carbon.identity.user.registration.engine;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
 import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
+import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 
 /**
  * Service class to handle the user registration flow.
@@ -49,9 +50,9 @@ public class UserRegistrationFlowService {
      *
      * @param tenantDomain Tenant domain.
      * @return RegistrationStep.
-     * @throws RegistrationFrameworkException if something goes wrong while initiating the registration flow.
+     * @throws RegistrationEngineException if something goes wrong while initiating the registration flow.
      */
-    public RegistrationStep initiateDefaultRegistrationFlow(String tenantDomain) throws RegistrationFrameworkException {
+    public RegistrationStep initiateDefaultRegistrationFlow(String tenantDomain) throws RegistrationEngineException {
 
         RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
         RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
@@ -65,10 +66,10 @@ public class UserRegistrationFlowService {
      * @param flowId Flow ID.
      * @param inputs User inputs.
      * @return ExecutionState.
-     * @throws RegistrationFrameworkException if something goes wrong while continuing the registration flow.
+     * @throws RegistrationEngineException if something goes wrong while continuing the registration flow.
      */
     public RegistrationStep continueFlow(String flowId, String actionId, Map<String, String> inputs)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
         context.getUserInputData().putAll(inputs);

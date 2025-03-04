@@ -18,15 +18,15 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_INCOMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.DECISION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.Response;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeEdge;
 
@@ -44,7 +44,7 @@ public class UserChoiceDecisionNode implements Node {
     }
 
     @Override
-    public Response execute(RegistrationContext context, NodeConfig config) throws RegistrationFrameworkException {
+    public Response execute(RegistrationContext context, NodeConfig config) throws RegistrationEngineException {
 
         String triggeredAction = context.getCurrentActionId();
         if (triggeredAction != null) {
@@ -68,7 +68,7 @@ public class UserChoiceDecisionNode implements Node {
 
     @Override
     public Response rollback(RegistrationContext context, NodeConfig nodeConfig)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         LOG.debug("Rollback is not supported.");
         return null;

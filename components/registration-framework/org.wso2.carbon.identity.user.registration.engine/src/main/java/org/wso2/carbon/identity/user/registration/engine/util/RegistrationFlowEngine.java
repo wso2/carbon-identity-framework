@@ -16,27 +16,29 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.registration.engine;
+package org.wso2.carbon.identity.user.registration.engine.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
+
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.graph.PagePromptNode;
 import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
 import org.wso2.carbon.identity.user.registration.engine.graph.UserChoiceDecisionNode;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
+import org.wso2.carbon.identity.user.registration.engine.model.Response;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
-import org.wso2.carbon.identity.user.registration.engine.model.Response;
-import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NODE_FOUND;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.REDIRECT_URL;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_INCOMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_PROMPT_ONLY;
+
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NODE_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.REDIRECT_URL;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
@@ -64,10 +66,10 @@ public class RegistrationFlowEngine {
      *
      * @param context Registration context.
      * @return Node response.
-     * @throws RegistrationFrameworkException If an error occurs while executing the registration sequence.
+     * @throws RegistrationEngineException If an error occurs while executing the registration sequence.
      */
     public RegistrationStep execute(RegistrationContext context)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         RegistrationGraphConfig graph = context.getRegGraph();
 
@@ -132,10 +134,10 @@ public class RegistrationFlowEngine {
      * @param nodeConfig Node configuration.
      * @param context    Registration context.
      * @return Node response.
-     * @throws RegistrationFrameworkException If an error occurs while triggering the node.
+     * @throws RegistrationEngineException If an error occurs while triggering the node.
      */
     private Response triggerNode(NodeConfig nodeConfig, RegistrationContext context)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         switch (nodeConfig.getType()) {
             case Constants.NodeTypes.DECISION:
