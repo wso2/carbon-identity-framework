@@ -18,12 +18,12 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ExecutorStatus.STATUS_USER_CREATED;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.PASSWORD;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.USERNAME_CLAIM_URI;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
@@ -40,8 +40,7 @@ import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFl
 import org.wso2.carbon.identity.user.registration.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.user.registration.engine.model.RegisteringUser;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationClientException;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -71,7 +70,7 @@ public class UserOnboardingExecutor implements Executor {
     }
 
     @Override
-    public ExecutorResponse execute(RegistrationContext context) throws RegistrationFrameworkException {
+    public ExecutorResponse execute(RegistrationContext context) throws RegistrationEngineException {
 
         updateUserProfile(context);
         RegisteringUser user = context.getRegisteringUser();
@@ -107,7 +106,7 @@ public class UserOnboardingExecutor implements Executor {
         }
     }
 
-    private void updateUserProfile(RegistrationContext context) throws RegistrationClientException {
+    private void updateUserProfile(RegistrationContext context) throws RegistrationEngineException {
 
         RegisteringUser user = context.getRegisteringUser();
         context.getUserInputData().forEach((key, value) -> {
@@ -126,7 +125,7 @@ public class UserOnboardingExecutor implements Executor {
     }
 
     private UserStoreManager getUserStoreManager(String tenantDomain, String userdomain, String flowId)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         RealmService realmService = RegistrationFlowEngineDataHolder.getInstance().getRealmService();
         UserStoreManager userStoreManager;

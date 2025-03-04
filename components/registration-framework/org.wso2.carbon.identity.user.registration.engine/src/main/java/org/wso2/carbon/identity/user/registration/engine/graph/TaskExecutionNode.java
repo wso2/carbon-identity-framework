@@ -18,14 +18,14 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ExecutorStatus.STATUS_USER_CREATED;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_COMPLETE;
-import static org.wso2.carbon.identity.user.registration.engine.util.Constants.STATUS_INCOMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
@@ -38,8 +38,8 @@ import org.wso2.carbon.identity.user.registration.engine.model.ExecutorResponse;
 import org.wso2.carbon.identity.user.registration.engine.model.RegisteringUser;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.Response;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
-import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationServerException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 
 /**
@@ -57,7 +57,7 @@ public class TaskExecutionNode implements Node {
 
     @Override
     public Response execute(RegistrationContext context, NodeConfig configs)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         if (configs.getExecutorConfig() == null) {
             throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getRegGraph().getId(),
@@ -68,7 +68,7 @@ public class TaskExecutionNode implements Node {
     }
 
     private Executor resolveExecutor(NodeConfig configs, String graphId, String tenantDomain)
-            throws RegistrationServerException {
+            throws RegistrationEngineException {
 
         String executorName = configs.getExecutorConfig().getName();
 
@@ -81,14 +81,14 @@ public class TaskExecutionNode implements Node {
 
     @Override
     public Response rollback(RegistrationContext context, NodeConfig nodeConfig)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         LOG.debug("Rollback is not supported for TaskExecutionNode.");
         return null;
     }
 
     private Response triggerExecutor(RegistrationContext context, NodeConfig configs)
-            throws RegistrationFrameworkException {
+            throws RegistrationEngineException {
 
         Executor mappedRegExecutor = resolveExecutor(configs, context.getRegGraph().getId(), context.getTenantDomain());
 
@@ -101,7 +101,7 @@ public class TaskExecutionNode implements Node {
     }
 
     private Response handleIncompleteStatus(RegistrationContext context, ExecutorResponse response, String name)
-            throws RegistrationServerException {
+            throws RegistrationEngineServerException {
 
         if (response.getContextProperties() != null && !response.getContextProperties().isEmpty()) {
             context.addProperties(response.getContextProperties());
