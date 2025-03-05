@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.registration.engine.util;
+package org.wso2.carbon.identity.user.registration.engine;
 
 /**
  * Constants for the graph executor.
@@ -42,6 +42,9 @@ public class Constants {
         public static final String STATUS_USER_INPUT_REQUIRED = "USER_INPUT_REQUIRED";
         public static final String STATUS_EXTERNAL_REDIRECTION = "EXTERNAL_REDIRECTION";
         public static final String STATUS_USER_CREATED = "USER_CREATED";
+        public static final String STATUS_COMPLETE = "COMPLETE";
+        public static final String STATUS_RETRY = "RETRY";
+        public static final String STATUS_ERROR = "ERROR";
         private ExecutorStatus() {
 
         }
@@ -84,6 +87,9 @@ public class Constants {
                                         "Error while loading the userstore manager.",
                                         "Error occurred loading the userstore manager of tenant: %s while serving the" +
                                                      " registration request of flow id: %s."),
+        ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE("65010",
+                                                "Error while loading the registration flow.",
+                                                "Error occurred loading the default registration flow of tenant: %s."),
 
         // Client errors.
         ERROR_CODE_UNRESOLVED_NEXT_NODE("60001",
