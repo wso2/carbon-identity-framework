@@ -34,6 +34,7 @@ public class ComponentDTO implements Serializable {
     private String category;
     private String type;
     private String identifier;
+    private String variant;
     private ActionDTO action;
     private Map<String, Object> configs = new HashMap<>();
     private List<ComponentDTO> components = new ArrayList<>();
@@ -48,6 +49,7 @@ public class ComponentDTO implements Serializable {
         this.category = builder.category;
         this.type = builder.type;
         this.identifier = builder.identifier;
+        this.variant = builder.variant;
         this.configs = builder.configs;
         this.components = builder.components;
         this.action = builder.action;
@@ -123,6 +125,16 @@ public class ComponentDTO implements Serializable {
         this.components = components;
     }
 
+    public String getVariant() {
+
+        return variant;
+    }
+
+    public void setVariant(String variant) {
+
+        this.variant = variant;
+    }
+
     /**
      * Builder class to build {@link ComponentDTO} objects.
      */
@@ -134,6 +146,7 @@ public class ComponentDTO implements Serializable {
         private String category;
         private String type;
         private String identifier;
+        private String variant;
         private ActionDTO action;
 
         public Builder id(String id) {
@@ -157,6 +170,12 @@ public class ComponentDTO implements Serializable {
         public Builder identifier(String identifier) {
 
             this.identifier = identifier;
+            return this;
+        }
+
+        public Builder variant(String variant) {
+
+            this.variant = variant;
             return this;
         }
 
