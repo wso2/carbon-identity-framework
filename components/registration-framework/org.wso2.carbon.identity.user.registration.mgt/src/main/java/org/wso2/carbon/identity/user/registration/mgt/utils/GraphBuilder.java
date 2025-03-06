@@ -38,6 +38,7 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.PROMPT_ONLY;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.NodeTypes.TASK_EXECUTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.USER_ONBOARD;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleServerException;
@@ -46,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.mgt.Constants;
@@ -88,17 +90,14 @@ public class GraphBuilder {
         Map<String, StepDTO> stepContentMap = new HashMap<>();
         List<NodeEdge> nodeEdges = new ArrayList<>();
 
-        String endNodeId = handleEndNode(nodeMap);
-
         for (StepDTO step : flowDTO.getSteps()) {
-            if (step.getData() == null) {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
-            }
             NodeConfig stepNode;
             if (VIEW.equals(step.getType())) {
-                stepNode = processViewStep(step, nodeMap, nodeEdges, endNodeId);
+                stepNode = processViewStep(step, nodeMap, nodeEdges);
             } else if (REDIRECTION.equals(step.getType())) {
-                stepNode = processRedirectionStep(step, nodeMap, nodeEdges, endNodeId);
+                stepNode = processRedirectionStep(step, nodeMap, nodeEdges);
+            } else if (USER_ONBOARD.equals(step.getType())) {
+                stepNode = processUserOnboardStep(step, nodeMap);
             } else {
                 throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE, step.getType());
             }
@@ -112,17 +111,13 @@ public class GraphBuilder {
         return flowConfig;
     }
 
-    private static String handleEndNode(Map<String, NodeConfig> nodeMap) {
-
-        NodeConfig userOnboardingNode = createUserOnboardingNode();
-        nodeMap.put(userOnboardingNode.getId(), userOnboardingNode);
-        return userOnboardingNode.getId();
-    }
-
     private static NodeConfig processRedirectionStep(StepDTO step, Map<String, NodeConfig> nodeMap,
-                                                     List<NodeEdge> nodeMappings, String endNodeId)
+                                                     List<NodeEdge> nodeMappings)
             throws RegistrationFrameworkException {
 
+        if (step.getData() == null) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
+        }
         ActionDTO action = step.getData().getAction();
         if (action == null) {
             throw handleClientException(ERROR_CODE_ACTION_DATA_NOT_FOUND, step.getId());
@@ -132,16 +127,27 @@ public class GraphBuilder {
         }
 
         NodeConfig redirectionNode = createTaskExecutionNode(step.getId(), action.getExecutor());
-        String nextNodeId = COMPLETE.equals(action.getNextId()) ? endNodeId : action.getNextId();
         nodeMap.put(redirectionNode.getId(), redirectionNode);
-        nodeMappings.add(new NodeEdge(redirectionNode.getId(), nextNodeId, null));
+        nodeMappings.add(new NodeEdge(redirectionNode.getId(), action.getNextId(), null));
         return redirectionNode;
     }
 
-    private static NodeConfig processViewStep(StepDTO step, Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeEdges,
-                                              String endNodeId) throws RegistrationFrameworkException {
+    private static NodeConfig processUserOnboardStep(StepDTO step, Map<String, NodeConfig> nodeMap) {
+
+        NodeConfig userOnboardNode = createUserOnboardingNode(step.getId());
+        nodeMap.put(userOnboardNode.getId(), userOnboardNode);
+        // UserOnboard node is considered as the last node in the flow, hence not adding an edge to the next node.
+        return userOnboardNode;
+    }
+
+
+    private static NodeConfig processViewStep(StepDTO step, Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeEdges)
+            throws RegistrationFrameworkException {
 
         List<NodeConfig> stepNodes = new ArrayList<>();
+        if (step.getData() == null) {
+            throw handleClientException(Constants.ErrorMessages.ERROR_CODE_STEP_DATA_NOT_FOUND, step.getId());
+        }
         List<ComponentDTO> components = step.getData().getComponents();
         if (components == null || components.isEmpty()) {
             throw handleClientException(ERROR_CODE_COMPONENT_DATA_NOT_FOUND, step.getId());
@@ -149,7 +155,7 @@ public class GraphBuilder {
         for (ComponentDTO component : components) {
             processComponent(component, stepNodes, step.getId());
         }
-        return handleTempNodesInStep(stepNodes, step, nodeMap, nodeEdges, endNodeId);
+        return handleTempNodesInStep(stepNodes, step, nodeMap, nodeEdges);
     }
 
     private static void processComponent(ComponentDTO component, List<NodeConfig> stepNodes, String stepId)
@@ -203,8 +209,7 @@ public class GraphBuilder {
     }
 
     private static NodeConfig handleTempNodesInStep(List<NodeConfig> tempNodesInStep, StepDTO step,
-                                                    Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeMappings,
-                                                    String endNodeId) {
+                                                    Map<String, NodeConfig> nodeMap, List<NodeEdge> nodeMappings) {
 
         NodeConfig stepNode = null;
         if (tempNodesInStep.size() > 1) {
@@ -213,8 +218,6 @@ public class GraphBuilder {
             }
             NodeConfig decisionNode = createDecisionNode(step.getId());
             for (NodeConfig nodeConfig : tempNodesInStep) {
-                String nextNodeId =
-                        COMPLETE.equals(nodeConfig.getNextNodeId()) ? endNodeId : nodeConfig.getNextNodeId();
                 if (TASK_EXECUTION.equals(nodeConfig.getType())) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("A node with an execution found in the step. Therefore adding it to the node list " +
@@ -222,11 +225,12 @@ public class GraphBuilder {
                     }
                     nodeConfig.setNextNodeId(null);
                     nodeMap.put(nodeConfig.getId(), nodeConfig);
-                    nodeMappings.add(new NodeEdge(nodeConfig.getId(), nextNodeId, null));
+                    nodeMappings.add(new NodeEdge(nodeConfig.getId(), nodeConfig.getNextNodeId(), null));
                     nodeMappings.add(new NodeEdge(decisionNode.getId(), nodeConfig.getId(), nodeConfig.getId()));
                 } else {
                     // Edge from decision node to the next node derived from NEXT actions.
-                    nodeMappings.add(new NodeEdge(decisionNode.getId(), nextNodeId, nodeConfig.getId()));
+                    nodeMappings.add(
+                            new NodeEdge(decisionNode.getId(), nodeConfig.getNextNodeId(), nodeConfig.getId()));
                 }
             }
             stepNode = decisionNode;
@@ -237,13 +241,12 @@ public class GraphBuilder {
 
             NodeConfig tempNode = tempNodesInStep.get(0);
 
-            String nextNodeId = COMPLETE.equals(tempNode.getNextNodeId()) ? endNodeId : tempNode.getNextNodeId();
             stepNode = new NodeConfig.Builder()
                     .id(step.getId())
                     .type(tempNode.getType())
                     .executorConfig(tempNode.getExecutorConfig())
                     .build();
-            nodeMappings.add(new NodeEdge(stepNode.getId(), nextNodeId, tempNode.getId()));
+            nodeMappings.add(new NodeEdge(stepNode.getId(), tempNode.getNextNodeId(), tempNode.getId()));
         }
         nodeMap.put(step.getId(), stepNode);
         return stepNode;
@@ -271,10 +274,18 @@ public class GraphBuilder {
             if (!nodeMap.containsKey(nodeId)) {
                 throw handleServerException(ERROR_CODE_INVALID_NODE, nodeId);
             }
-            if (!nodeMap.containsKey(nextNodeId)) {
-                throw handleClientException(ERROR_CODE_INVALID_NEXT_STEP, nextNodeId);
+
+            if (StringUtils.isEmpty(nextNodeId)) {
+                System.out.println("========= Next node id is empty");
+                throw handleServerException(ERROR_CODE_INVALID_NEXT_STEP, nextNodeId);
             }
-            nodeMap.get(nodeId).addEdge(edge);
+
+            if (StringUtils.isNotEmpty(nextNodeId)) {
+                if (!nodeMap.containsKey(nextNodeId)) {
+                    throw handleClientException(ERROR_CODE_INVALID_NEXT_STEP, nextNodeId);
+                }
+                nodeMap.get(nodeId).addEdge(edge);
+            }
         }
     }
 
@@ -303,10 +314,10 @@ public class GraphBuilder {
         return nodeConfig;
     }
 
-    private static NodeConfig createUserOnboardingNode() {
+    private static NodeConfig createUserOnboardingNode(String stepId) {
 
         NodeConfig nodeConfig = new NodeConfig.Builder()
-                .id(UUID.randomUUID().toString())
+                .id(stepId)
                 .type(TASK_EXECUTION)
                 .executorConfig(new ExecutorDTO(USER_ONBOARDING))
                 .build();

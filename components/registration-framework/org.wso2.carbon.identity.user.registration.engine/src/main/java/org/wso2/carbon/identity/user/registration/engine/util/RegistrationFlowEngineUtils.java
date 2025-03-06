@@ -27,7 +27,10 @@ import java.util.UUID;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCache;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCacheEntry;
@@ -191,5 +194,10 @@ public class RegistrationFlowEngineUtils {
             description = String.format(description, data);
         }
         return new RegistrationEngineClientException(error.getCode(), error.getMessage(), description);
+    }
+
+    public static String buildAccessURL(String tenantDomain) {
+
+        return ApplicationMgtUtil.getMyAccountAccessUrlFromServerConfig(tenantDomain);
     }
 }
