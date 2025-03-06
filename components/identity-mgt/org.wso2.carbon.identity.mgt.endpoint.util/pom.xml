@@ -264,6 +264,18 @@
             <artifactId>httpclient</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.http.client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -296,6 +308,9 @@
                             org.apache.http.entity; version="${httpcore.version.osgi.import.range}",
                             org.apache.http.impl.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
 
+                            org.apache.hc.client5.http; version="${httpclient5.osgi.version.range}",
+                            org.apache.hc.core5.http; version="${httpcore5.osgi.version.range}",
+
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
@@ -314,6 +329,7 @@
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.http.client; version="${carbon.kernel.package.import.version.range}",
 
                             org.wso2.carbon.identity.application.common.model;
                             version="${carbon.identity.package.import.version.range}",
