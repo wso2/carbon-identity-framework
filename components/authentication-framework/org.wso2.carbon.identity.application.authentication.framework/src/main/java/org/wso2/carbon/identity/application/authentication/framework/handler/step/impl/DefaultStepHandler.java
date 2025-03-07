@@ -853,6 +853,7 @@ public class DefaultStepHandler implements StepHandler {
             // store authenticated idp
             stepConfig.setAuthenticatedIdP(idpName);
             authenticatedIdPData.setIdpName(idpName);
+            authenticatedIdPData.setAmrValue(authenticatorConfig.getAmrValue());
             authenticatedIdPData.addAuthenticator(authenticatorConfig);
             //add authenticated idp data to the session wise map
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
@@ -1494,6 +1495,11 @@ public class DefaultStepHandler implements StepHandler {
             return getAuthenticatorPropertyMapForUserDefinedLocalAuthenticators(
                     authenticator.getName(), context.getTenantDomain());
         }
+        else if(authenticator instanceof LocalApplicationAuthenticator &&
+                AuthenticatorPropertyConstants.DefinedByType.SYSTEM.equals(authenticator.getDefinedByType())) {
+            return getAuthenticatorPropertyMapForSystemDefinedLocalAuthenticators(authenticator.getName(),
+                    context.getTenantDomain());
+        }
 
         return FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
                 context.getExternalIdP(), authenticator.getName());
@@ -1511,6 +1517,23 @@ public class DefaultStepHandler implements StepHandler {
             }
         } catch (AuthenticatorMgtException e) {
             LOG.error(String.format("Error while resolving the user defined local authenticator properties:%s",
+                    name), e);
+        }
+        return propertyMap;
+    }
+
+    private static Map<String, String> getAuthenticatorPropertyMapForSystemDefinedLocalAuthenticators(
+            String name, String tenantDomain) {
+
+        Map<String, String> propertyMap = new HashMap<>();
+        try {
+            LocalAuthenticatorConfig authenticatorConfig = ApplicationAuthenticatorService.getInstance()
+                    .getSystemLocalAuthenticator(name, tenantDomain);
+            for (Property property : authenticatorConfig.getProperties()) {
+                propertyMap.put(property.getName(), property.getValue());
+            }
+        } catch (AuthenticatorMgtException e) {
+            LOG.error(String.format("Error while resolving the system defined local authenticator properties:%s",
                     name), e);
         }
         return propertyMap;

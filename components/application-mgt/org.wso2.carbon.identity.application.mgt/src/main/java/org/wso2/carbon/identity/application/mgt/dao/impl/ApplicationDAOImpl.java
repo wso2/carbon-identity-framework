@@ -27,6 +27,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.security.AuthenticatorsConfiguration;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
@@ -77,6 +79,7 @@ import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.AuthenticationType;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -1582,7 +1585,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                         ApplicationConstants.LOCAL_IDP_NAME,
                                         lclAuthenticator.getName(),
                                         lclAuthenticator.getDisplayName(),
-                                        DefinedByType.SYSTEM.toString());
+                                        DefinedByType.SYSTEM.toString(), lclAuthenticator.getAmrValue());
                             }
                             if (authenticatorId > 0) {
                                 // ID, TENANT_ID, AUTHENTICATOR_ID
@@ -3134,6 +3137,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     localAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
+                    localAuthenticator.setAmrValue(authenticatorInfo
+                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                 } else {
                     Map<String, List<FederatedAuthenticatorConfig>> stepFedIdps = stepFedIdPAuthenticators
                             .get(step);
@@ -3153,6 +3158,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
                     fedAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
+                    fedAuthenticator.setAmrValue(authenticatorInfo
+                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                     idpAuths.add(fedAuthenticator);
                 }
 
@@ -5071,6 +5078,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 returnData
                         .put(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME, rs.getString(3));
                 returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE, rs.getString(4));
+                returnData.put(ApplicationConstants.IDP_AUTHENTICATOR_AMR, rs.getString(5));
             }
         } finally {
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
@@ -5087,8 +5095,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws SQLException
      */
-    private int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
-                                 String authenticatorDispalyName, String definedByType) throws SQLException {
+    public int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
+                                 String authenticatorDispalyName, String definedByType, String amrValue) throws SQLException {
 
         int authenticatorId = -1;
         PreparedStatement prepStmt = null;
@@ -5107,6 +5115,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             prepStmt.setString(7, definedByType);
             // By default, unless specified, the authentication type is 'IDENTIFICATION' for local authenticators.
             prepStmt.setString(8, AuthenticationType.IDENTIFICATION.toString());
+            prepStmt.setString(9, amrValue);
             prepStmt.execute();
             rs = prepStmt.getGeneratedKeys();
             if (rs.next()) {
@@ -5116,6 +5125,65 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
         }
         return authenticatorId;
+    }
+
+    public String getAmrValue(Connection conn, String authenticatorName) throws SQLException {
+        String sqlStmt = ApplicationMgtDBQueries.AMR_VALUE_EXISTS;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        String amrValue = null;
+
+        try {
+            prepStmt = conn.prepareStatement(sqlStmt);
+            prepStmt.setString(1, authenticatorName);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                amrValue = rs.getString(1);
+            }
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(rs);
+        }
+        return amrValue;
+    }
+
+    public boolean getLocalAuthenticatorName(Connection conn, String authenticatorName){
+        String sqlStmt = ApplicationMgtDBQueries.LOCAL_AUTHENTICATOR_EXISTS;
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+
+        try{
+            prepStmt = conn.prepareStatement(sqlStmt);
+            prepStmt.setString(1, authenticatorName);
+            rs = prepStmt.executeQuery();
+
+            if(rs.next()){
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+            IdentityApplicationManagementUtil.closeResultSet(rs);
+        }
+        return false;
+    }
+
+
+    public void updateAmrValue(Connection conn, String authenticatorName, String amrValue) throws SQLException {
+        String sqlStmt = ApplicationMgtDBQueries.UPDATE_AMR_VALUE;
+        PreparedStatement prepStmt = null;
+
+        try {
+            prepStmt = conn.prepareStatement(sqlStmt);
+            prepStmt.setString(1, amrValue);
+            prepStmt.setString(2, authenticatorName);
+
+            prepStmt.executeUpdate();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+        }
     }
 
     /**

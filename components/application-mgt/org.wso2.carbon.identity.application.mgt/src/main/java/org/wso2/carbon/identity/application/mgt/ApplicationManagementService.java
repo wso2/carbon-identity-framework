@@ -17,7 +17,9 @@
  */
 package org.wso2.carbon.identity.application.mgt;
 
+import java.sql.Connection;
 import org.apache.commons.lang.NotImplementedException;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -32,7 +34,10 @@ import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.TrustedApp;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.PlatformType;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 
 import java.util.ArrayList;
@@ -630,6 +635,42 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException {
 
         throw new NotImplementedException();
+    }
+
+
+    public void processLocalAuthenticator(LocalAuthenticatorConfig localAuthenticatorConfig)
+            throws IdentityApplicationManagementException {
+        Connection conn = null;
+        try {
+            conn = IdentityDatabaseUtil.getDBConnection(true);
+            ApplicationDAOImpl dao = new ApplicationDAOImpl();
+
+            String isEnabled = localAuthenticatorConfig.isEnabled() ? "1" : "0";
+            String amrValue = dao.getAmrValue(conn, localAuthenticatorConfig.getName());
+            boolean authenticatorExists = dao.getLocalAuthenticatorName(conn, localAuthenticatorConfig.getName());
+            int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            String IdPName = ApplicationConstants.LOCAL_IDP_NAME;
+
+            if (!authenticatorExists) {
+                dao.addAuthenticator(
+                        conn,
+                        tenantID,
+                        IdPName,
+                        localAuthenticatorConfig.getName(),
+                        localAuthenticatorConfig.getDisplayName(),
+                        AuthenticatorPropertyConstants.DefinedByType.SYSTEM.toString(),
+                        localAuthenticatorConfig.getAmrValue()
+                );
+            } else if (amrValue == null) {
+                dao.updateAmrValue(conn, localAuthenticatorConfig.getName(), localAuthenticatorConfig.getAmrValue());
+            }
+
+            IdentityDatabaseUtil.commitTransaction(conn);
+        } catch (Exception e) {
+            throw new IdentityApplicationManagementException("Error while processing local authenticator.", e);
+        } finally {
+            IdentityDatabaseUtil.closeConnection(conn);
+        }
     }
 }
 

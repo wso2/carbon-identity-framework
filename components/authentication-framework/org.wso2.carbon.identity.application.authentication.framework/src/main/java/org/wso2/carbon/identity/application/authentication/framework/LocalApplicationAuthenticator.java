@@ -23,4 +23,5 @@ package org.wso2.carbon.identity.application.authentication.framework;
  */
 public interface LocalApplicationAuthenticator extends ApplicationAuthenticator {
 
+
 }

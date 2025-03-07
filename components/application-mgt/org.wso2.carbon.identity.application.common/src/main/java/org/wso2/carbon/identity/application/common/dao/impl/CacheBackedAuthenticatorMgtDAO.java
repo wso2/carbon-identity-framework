@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.common.cache.AuthenticatorCacheEntry
 import org.wso2.carbon.identity.application.common.cache.AuthenticatorCacheKey;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 
 import java.util.List;
@@ -77,6 +78,20 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
     }
 
     @Override
+    public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
+            LocalAuthenticatorConfig existingAuthenticatorConfig, LocalAuthenticatorConfig updatedConfig, int tenantId)
+            throws AuthenticatorMgtException {
+        AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(existingAuthenticatorConfig.getName());
+        authenticatorCache.clearCacheEntry(cacheKey, tenantId);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(
+                    "Delete cache entry of updating authenticator %s.", existingAuthenticatorConfig.getName()));
+        }
+        return authenticatorMgtFacade.updateSystemLocalAuthenticatorAmrValue(existingAuthenticatorConfig, updatedConfig,
+                tenantId);
+    }
+
+    @Override
     public UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException {
 
@@ -98,6 +113,28 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
                 .getUserDefinedLocalAuthenticator(authenticatorConfigName, tenantId);
 
         authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(authenticatorConfig), tenantId);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format(
+                    "Entry fetched from DB for authenticator %s. Adding cache entry.", authenticatorConfigName));
+        }
+        return authenticatorConfig;
+    }
+
+    @Override
+    public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtException {
+        AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(authenticatorConfigName);
+        AuthenticatorCacheEntry entry = authenticatorCache.getValueFromCache(cacheKey, tenantId);
+
+        if (entry != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Cache entry found for authenticator %s.", authenticatorConfigName));
+            }
+            return entry.getAuthenticatorConfig();
+        }
+        LocalAuthenticatorConfig authenticatorConfig = authenticatorMgtFacade.getSystemLocalAuthenticator(
+                authenticatorConfigName, tenantId);
+        authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry((UserDefinedLocalAuthenticatorConfig) authenticatorConfig), tenantId);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Entry fetched from DB for authenticator %s. Adding cache entry.", authenticatorConfigName));

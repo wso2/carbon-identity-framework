@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLC
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError;
@@ -61,6 +62,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.setString(Column.IMAGE_URL, authenticatorConfig.getImageUrl());
                         statement.setString(Column.DESCRIPTION, authenticatorConfig.getDescription());
                         statement.setString(Column.DEFINED_BY, authenticatorConfig.getDefinedByType().toString());
+                        statement.setString(Column.AMR_VALUE, authenticatorConfig.getAmrValue());
                         statement.setString(Column.AUTHENTICATION_TYPE, authenticatorConfig.getAuthenticationType()
                                 .toString());
                         statement.setString(Column.IS_ENABLED,
@@ -94,6 +96,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
                         statement.setString(Column.IMAGE_URL, updatedAuthenticatorConfig.getImageUrl());
                         statement.setString(Column.DESCRIPTION, updatedAuthenticatorConfig.getDescription());
+                        statement.setString(Column.AMR_VALUE, updatedAuthenticatorConfig.getAmrValue());
                         statement.setString(Column.IS_ENABLED,
                                 updatedAuthenticatorConfig.isEnabled() ? IS_TRUE_VALUE : IS_FALSE_VALUE);
                         statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
@@ -109,6 +112,54 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     @Override
+    public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(LocalAuthenticatorConfig existingAuthenticatorConfig,
+                                                                           LocalAuthenticatorConfig updatedAuthenticatorConfig, int tenantId) throws AuthenticatorMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(Query.UPDATE_AUTHENTICATOR_AMR_VALUE_SQL,
+                    statement -> {
+                        statement.setString(Column.AMR_VALUE, updatedAuthenticatorConfig.getAmrValue());
+                        statement.setString(Column.NAME, existingAuthenticatorConfig.getName());
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                    });
+                return null;
+            });
+
+            return getSystemLocalAuthenticatorByName(updatedAuthenticatorConfig.getName(), tenantId);
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e);
+        }
+    }
+
+    private LocalAuthenticatorConfig getSystemLocalAuthenticatorByName(String authenticatorConfigName, int tenantId)
+            throws TransactionException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        LocalAuthenticatorConfig config = jdbcTemplate.withTransaction(template ->
+            template.fetchSingleRecord(Query.GET_USER_DEFINED_LOCAL_AUTHENTICATOR_SQL,
+                (resultSet, rowNumber) -> {
+                    LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
+                    localAuthenticatorConfig.setName(resultSet.getString(Column.NAME));
+                    localAuthenticatorConfig.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                    localAuthenticatorConfig.setAmrValue(resultSet.getString(Column.AMR_VALUE));
+                    localAuthenticatorConfig.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
+                    return localAuthenticatorConfig;
+                },
+                statement -> {
+                    statement.setString(Column.NAME, authenticatorConfigName);
+                    statement.setInt(Column.TENANT_ID, tenantId);
+                    statement.setString(Column.DEFINED_BY, DefinedByType.SYSTEM.toString());
+                }));
+
+        if (config == null) {
+            return null;
+        }
+        return config;
+    }
+
+    @Override
     public UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticator(
             String authenticatorConfigName, int tenantId) throws AuthenticatorMgtException {
 
@@ -116,6 +167,17 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             return getUserDefinedLocalAuthenticatorByName(authenticatorConfigName, tenantId);
         } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
+        }
+    }
+
+    @Override
+    public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
+            throws AuthenticatorMgtException {
+        try{
+            return getSystemLocalAuthenticatorByName(authenticatorConfigName, tenantId);
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
+
         }
     }
 
@@ -133,6 +195,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                                 resultSet.getString(Column.AUTHENTICATION_TYPE));
                         config.setName(resultSet.getString(Column.NAME));
                         config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                        config.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                         config.setImageUrl(resultSet.getString(Column.IMAGE_URL));
                         config.setDescription(resultSet.getString(Column.DESCRIPTION));
                         config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
@@ -206,6 +269,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                             resultSet.getString(Column.AUTHENTICATION_TYPE));
                     config.setName(resultSet.getString(Column.NAME));
                     config.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
+                    config.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                     config.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
                     config.setDefinedByType(DefinedByType.USER);
                     config.setImageUrl(resultSet.getString(Column.IMAGE_URL));

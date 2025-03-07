@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -33,6 +35,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
@@ -96,6 +102,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -106,6 +113,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
@@ -480,7 +488,8 @@ public class FrameworkServiceComponent {
             unbind = "unsetAuthenticator"
     )
     protected void setAuthenticator(ApplicationAuthenticator authenticator)
-            throws IdentityProviderManagementServerException {
+            throws IdentityProviderManagementServerException,
+            IdentityApplicationManagementException {
 
         /* All custom authenticator names must start with the `custom-` prefix. If a system-defined authenticator is
          attempted to be registered at server startup with a name starting with this prefix, an error will be thrown. */
@@ -517,6 +526,11 @@ public class FrameworkServiceComponent {
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            localAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
+
+//            ApplicationManagementService.getInstance()
+//                    .processLocalAuthenticator(localAuthenticatorConfig);
+//See where the addLocalAuthenticator goes change th eimplementtion
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
@@ -535,6 +549,7 @@ public class FrameworkServiceComponent {
             AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
             reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             reqPathAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
+            reqPathAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
         }
 
