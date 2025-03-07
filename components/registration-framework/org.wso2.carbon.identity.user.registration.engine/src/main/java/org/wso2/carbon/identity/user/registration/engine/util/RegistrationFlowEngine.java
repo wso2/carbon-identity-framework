@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.user.registration.engine.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.graph.PagePromptNode;
 import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
@@ -81,7 +80,7 @@ public class RegistrationFlowEngine {
         NodeConfig currentNode = context.getCurrentNode();
         if (currentNode == null) {
             LOG.debug("Current node is not set. Setting the first node as the current node and starting the " +
-                              "registration sequence.");
+                    "registration sequence.");
             currentNode = graph.getNodeConfigs().get(graph.getFirstNodeId());
         }
 
@@ -104,7 +103,14 @@ public class RegistrationFlowEngine {
                 context.setCurrentNode(currentNode);
             }
         }
-        return new RegistrationStep.Builder().flowStatus(STATUS_COMPLETE).build();
+        return new RegistrationStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus(STATUS_COMPLETE)
+                .stepType(REDIRECTION)
+                .data(new DataDTO.Builder()
+                        .url(RegistrationFlowEngineUtils.buildAccessURL(tenantDomain))
+                        .build())
+                .build();
     }
 
     /**
@@ -120,8 +126,8 @@ public class RegistrationFlowEngine {
         if (nextNode != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Current node " + currentNode.getId() + " is completed. "
-                                  + "Moving to the next node: " + nextNodeId
-                                  + " and setting " + currentNode.getId() + " as the previous node.");
+                        + "Moving to the next node: " + nextNodeId
+                        + " and setting " + currentNode.getId() + " as the previous node.");
             }
             nextNode.setPreviousNodeId(currentNode.getId());
         }
@@ -148,7 +154,7 @@ public class RegistrationFlowEngine {
                 return new PagePromptNode().execute(context, nodeConfig);
             default:
                 throw handleServerException(ERROR_CODE_UNSUPPORTED_NODE, nodeConfig.getType(),
-                                            context.getRegGraph().getId(), context.getTenantDomain());
+                        context.getRegGraph().getId(), context.getTenantDomain());
         }
     }
 
@@ -173,10 +179,10 @@ public class RegistrationFlowEngine {
                 .flowStatus(STATUS_INCOMPLETE)
                 .stepType(REDIRECTION)
                 .data(new DataDTO.Builder()
-                              .url(redirectUrl)
-                              .additionalData(response.getAdditionalInfo())
-                              .requiredParams(response.getRequiredData())
-                              .build())
+                        .url(redirectUrl)
+                        .additionalData(response.getAdditionalInfo())
+                        .requiredParams(response.getRequiredData())
+                        .build())
                 .build();
     }
 }

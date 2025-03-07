@@ -95,7 +95,7 @@ public class RegistrationFlowDAOImplTest {
             daoImpl.updateDefaultRegistrationFlowByTenant(regFlowConfig, tenantId, flowName);
             RegistrationFlowDTO flowDTO = daoImpl.getDefaultRegistrationFlowByTenant(tenantId);
             assertNotNull(flowDTO);
-            assertEquals(flowDTO.getSteps().size(), 3);
+            assertEquals(flowDTO.getSteps().size(), 4);
             assertEquals(flowDTO.getSteps().get(0).getId(), "step_1");
         }
     }

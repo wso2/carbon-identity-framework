@@ -46,7 +46,6 @@ import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQ
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_TRIGGERING_ELEMENT;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.DB_SCHEMA_COLUMN_NAME_WIDTH;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.SQLPlaceholders.REGISTRATION_FLOW;
-import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.mgt.utils.RegistrationMgtUtils.handleServerException;
 
 import java.io.ByteArrayInputStream;
@@ -332,28 +331,35 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
     private void resolvePageContent(StepDTO stepDTO, InputStream pageContent, int tenantId)
             throws RegistrationServerException {
 
-        try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
-            Object obj = ois.readObject();
-            if (VIEW.equals(stepDTO.getType()) && obj instanceof List<?>) {
-                List<?> tempList = (List<?>) obj;
-                if (!tempList.isEmpty() && tempList.get(0) instanceof ComponentDTO) {
-                    List<ComponentDTO> components = tempList.stream()
-                            .map(ComponentDTO.class::cast)
-                            .collect(Collectors.toList());
-                    stepDTO.setData(new DataDTO.Builder().components(components).build());
-                } else {
-                    throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
-                            stepDTO.getId(), tenantId);
-                }
-            } else if (REDIRECTION.equals(stepDTO.getType())) {
-                if (obj instanceof ActionDTO) {
-                    ActionDTO action = (ActionDTO) obj;
-                    stepDTO.setData(new DataDTO.Builder().action(action).build());
+        try {
+            if (pageContent.available() == 0) {
+                // The step does not have any data to be resolved.
+                stepDTO.setData(new DataDTO.Builder().build());
+                return;
+            }
+            try (ObjectInputStream ois = new ObjectInputStream(pageContent)) {
+                Object obj = ois.readObject();
+                if (VIEW.equals(stepDTO.getType()) && obj instanceof List<?>) {
+                    List<?> tempList = (List<?>) obj;
+                    if (!tempList.isEmpty() && tempList.get(0) instanceof ComponentDTO) {
+                        List<ComponentDTO> components = tempList.stream()
+                                .map(ComponentDTO.class::cast)
+                                .collect(Collectors.toList());
+                        stepDTO.setData(new DataDTO.Builder().components(components).build());
+                    } else {
+                        throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT,
+                                                    stepDTO.getId(), tenantId);
+                    }
+                } else if (REDIRECTION.equals(stepDTO.getType())) {
+                    if (obj instanceof ActionDTO) {
+                        ActionDTO action = (ActionDTO) obj;
+                        stepDTO.setData(new DataDTO.Builder().action(action).build());
+                    }
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_DESERIALIZE_PAGE_CONTENT, e, stepDTO.getId(),
-                    tenantId);
+                                        tenantId);
         }
     }
 
@@ -378,8 +384,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                 ActionDTO action = stepDTO.getData().getAction();
                 return serializeObject(action);
             } else {
-                throw handleClientException(Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_STEP_TYPE,
-                                            stepDTO.getType());
+                return new byte[0];
             }
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
