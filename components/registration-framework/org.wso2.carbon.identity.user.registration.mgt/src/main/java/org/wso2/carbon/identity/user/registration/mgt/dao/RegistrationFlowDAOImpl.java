@@ -57,6 +57,7 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -159,7 +160,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                 for (Map.Entry<String, StepDTO> entry : regFlowConfig.getNodePageMappings().entrySet()) {
 
                     StepDTO stepDTO = entry.getValue();
-                    byte[] pageContent = serializeStepData(stepDTO, tenantId);
+                    Optional<byte[]> pageContent = serializeStepData(stepDTO, tenantId);
                     int regNodeId = nodeIdToRegNodeIdMap.get(entry.getKey());
 
                     int pageAutoIncId = template.executeInsert(INSERT_FLOW_PAGE_INFO,
@@ -167,8 +168,11 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                                 preparedStatement.setString(1, flowId);
                                 preparedStatement.setInt(2, regNodeId);
                                 preparedStatement.setString(3, stepDTO.getId());
-                                preparedStatement.setBinaryStream(4,
-                                        new ByteArrayInputStream(pageContent));
+                                if (pageContent.isPresent()) {
+                                    preparedStatement.setBinaryStream(4, new ByteArrayInputStream(pageContent.get()));
+                                } else {
+                                    preparedStatement.setBinaryStream(4, null);
+                                }
                                 preparedStatement.setString(5, stepDTO.getType());
                             }, entry, true);
 
@@ -332,7 +336,7 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             throws RegistrationServerException {
 
         try {
-            if (pageContent.available() == 0) {
+            if (pageContent == null) {
                 // The step does not have any data to be resolved.
                 stepDTO.setData(new DataDTO.Builder().build());
                 return;
@@ -373,18 +377,18 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         }
     }
 
-    private static byte[] serializeStepData(StepDTO stepDTO, int tenantId)
+    private static Optional<byte[]> serializeStepData(StepDTO stepDTO, int tenantId)
             throws RegistrationFrameworkException {
 
         try {
             if (VIEW.equals(stepDTO.getType())) {
                 List<ComponentDTO> components = stepDTO.getData().getComponents();
-                return serializeObject(components);
+                return Optional.of(serializeObject(components));
             } else if (REDIRECTION.equals(stepDTO.getType())) {
                 ActionDTO action = stepDTO.getData().getAction();
-                return serializeObject(action);
+                return Optional.of(serializeObject(action));
             } else {
-                return new byte[0];
+                return Optional.empty();
             }
         } catch (IOException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_SERIALIZE_PAGE_CONTENT, e,
