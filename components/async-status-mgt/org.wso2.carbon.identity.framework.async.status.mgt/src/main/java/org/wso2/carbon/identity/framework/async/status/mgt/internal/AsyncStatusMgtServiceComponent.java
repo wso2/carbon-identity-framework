@@ -7,6 +7,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.wso2.carbon.identity.framework.async.status.mgt.AsyncStatusMgtService;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 @Component(

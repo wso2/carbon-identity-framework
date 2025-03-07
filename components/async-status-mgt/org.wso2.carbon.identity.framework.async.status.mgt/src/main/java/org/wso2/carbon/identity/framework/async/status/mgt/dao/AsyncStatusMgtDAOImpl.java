@@ -137,6 +137,36 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     }
 
     @Override
+    public void saveOperationsBatch(ConcurrentLinkedQueue<UnitOperationContext> queue) {
+        LOGGER.info("Batch Unit Operation Registration Started.");
+
+        String currentTimestamp = new Timestamp(new Date().getTime()).toString();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             NamedPreparedStatement statement = new NamedPreparedStatement(connection, CREATE_ASYNC_OPERATION_UNIT_IDN, UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_ID)) {
+
+            for (UnitOperationContext context : queue) {
+                LOGGER.info("OperationId:" + context.getOperationId());
+                statement.setString(UnitOperationStatusTableColumns.IDN_OPERATION_ID, context.getOperationId());
+                statement.setString(UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_TYPE, "");
+                statement.setString(UnitOperationStatusTableColumns.IDN_RESIDENT_RESOURCE_ID, context.getOperationInitiatedResourceId());
+                statement.setString(UnitOperationStatusTableColumns.IDN_TARGET_ORG_ID, context.getTargetOrgId());
+                statement.setString(UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_STATUS, context.getUnitOperationStatus());
+                statement.setString(UnitOperationStatusTableColumns.IDN_OPERATION_STATUS_MESSAGE, context.getStatusMessage());
+                statement.setString(UnitOperationStatusTableColumns.IDN_CREATED_AT, currentTimestamp);
+                statement.addBatch();
+            }
+
+            int[] batchResults = statement.executeBatch();
+            LOGGER.info("Batch Unit Operation Registration Success. Total Records Inserted: " + batchResults.length);
+
+        } catch (SQLException e) {
+            LOGGER.info("Error during batch unit operation registration.");
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public ResponseOperationContext getLatestAsyncOperationStatus(String operationSubjectId, String residentOrgId, String resourceType, String initiatorId) {
         LOGGER.info("Fetching latest async operation status for subject: " + operationSubjectId);
 

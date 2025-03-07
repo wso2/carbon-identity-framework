@@ -18,10 +18,7 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt;
 
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationContext;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseUnitOperationContext;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.SharingOperationDO;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.*;
 
 /**
  * Service that processes the status of asynchronous operations.
@@ -61,6 +58,13 @@ public interface AsyncStatusMgtService {
     void registerBulkUnitOperationStatus(ResponseUnitOperationContext context);
 
     ResponseOperationContext getLatestAsyncOperationStatus(String orgId, String operationSubjectId, String resourceType, String userId);
+
+    void handleOperation(UnitOperationContext unitOperationContext);
+
+    void finalizeOperation(String operationId);
+
+    void addOperation(UnitOperationContext operation);
+    void shutdown();
 
 
 }

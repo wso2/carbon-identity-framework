@@ -58,6 +58,13 @@ public interface AsyncStatusMgtDAO {
     void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue);
 
     /**
+     * Registers A Batch Of Unit Asynchronous Operations.
+     *
+     * @param queue The queue containing the statuses of unit asynchronous operations.
+     */
+    void saveOperationsBatch(ConcurrentLinkedQueue<UnitOperationContext> queue);
+
+    /**
      * Fetching the latest Asynchronous Operation.
      *
      * @param operationSubjectId ID of the subject of the asynchronous operation.
