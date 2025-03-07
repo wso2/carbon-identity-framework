@@ -137,7 +137,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        LocalAuthenticatorConfig config = jdbcTemplate.withTransaction(template ->
+        LocalAuthenticatorConfigDaoModel configDaoModel = jdbcTemplate.withTransaction(template ->
             template.fetchSingleRecord(Query.GET_USER_DEFINED_LOCAL_AUTHENTICATOR_SQL,
                 (resultSet, rowNumber) -> {
                     LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
@@ -145,17 +145,21 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     localAuthenticatorConfig.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                     localAuthenticatorConfig.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                     localAuthenticatorConfig.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
-                    return localAuthenticatorConfig;
+                    return new LocalAuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), localAuthenticatorConfig);
                 },
                 statement -> {
                     statement.setString(Column.NAME, authenticatorConfigName);
                     statement.setInt(Column.TENANT_ID, tenantId);
                     statement.setString(Column.DEFINED_BY, DefinedByType.SYSTEM.toString());
+                    statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                 }));
 
-        if (config == null) {
+        if (configDaoModel == null) {
             return null;
         }
+
+        LocalAuthenticatorConfig config = configDaoModel.getConfig();
+        config.setProperties(getAuthenticatorProperties(configDaoModel.getEntryId(), tenantId));
         return config;
     }
 
@@ -372,6 +376,26 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
 
         public UserDefinedLocalAuthenticatorConfig getConfig() {
+            return config;
+        }
+    }
+
+    private static class LocalAuthenticatorConfigDaoModel{
+
+        private final int entryId;
+        private final LocalAuthenticatorConfig config;
+
+
+        private LocalAuthenticatorConfigDaoModel(int entryId, LocalAuthenticatorConfig config){
+            this.entryId = entryId;
+            this.config = config;
+        }
+
+        public int getEntryId() {
+            return entryId;
+        }
+
+        public LocalAuthenticatorConfig getConfig() {
             return config;
         }
     }

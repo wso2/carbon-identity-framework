@@ -353,19 +353,19 @@ public class ApplicationAuthenticatorService {
                 authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
-    /**
-     * Retrieve a Local Application Authenticator configuration by name.
-     *
-     * @param authenticatorName   Name of Local Application Authenticator configuration to be deleted.
-     * @param tenantDomain        Tenant domain.
-     * @return Retrieved LocalAuthenticatorConfig.
-     * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration.
-     */
-    public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorName, String tenantDomain)
-            throws AuthenticatorMgtException {
-
-        return dao.getSystemLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
-    }
+//    /**
+//     * Retrieve a Local Application Authenticator configuration by name.
+//     *
+//     * @param authenticatorName   Name of Local Application Authenticator configuration to be deleted.
+//     * @param tenantDomain        Tenant domain.
+//     * @return Retrieved LocalAuthenticatorConfig.
+//     * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration.
+//     */
+//    public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorName, String tenantDomain)
+//            throws AuthenticatorMgtException {
+//
+//        return dao.getSystemLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
+//    }
 
     /**
      * Check whether any local or federated authenticator configuration exists with the given name.
