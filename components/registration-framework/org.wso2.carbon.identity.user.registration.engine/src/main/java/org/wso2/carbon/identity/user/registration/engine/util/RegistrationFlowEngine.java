@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.user.registration.engine.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.graph.PagePromptNode;
 import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
@@ -104,7 +103,14 @@ public class RegistrationFlowEngine {
                 context.setCurrentNode(currentNode);
             }
         }
-        return new RegistrationStep.Builder().flowStatus(STATUS_COMPLETE).build();
+        return new RegistrationStep.Builder()
+                .flowId(context.getContextIdentifier())
+                .flowStatus(STATUS_COMPLETE)
+                .stepType(REDIRECTION)
+                .data(new DataDTO.Builder()
+                        .url(RegistrationFlowEngineUtils.buildMyAccountAccessURL(context.getTenantDomain()))
+                        .build())
+                .build();
     }
 
     /**
