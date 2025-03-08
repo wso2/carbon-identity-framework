@@ -109,17 +109,6 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     }
 
     @Override
-    public void handleOperation(UnitOperationContext unitOperationContext) {
-        try {
-            eventQueue.put(unitOperationContext); // This automatically wakes up the processor thread
-            LOGGER.info("Sub-operation enqueued for operation ID: " + unitOperationContext.getOperationId());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOGGER.severe("Failed to enqueue event.");
-        }
-    }
-
-    @Override
     public void finalizeOperation(String operationId) {
         List<UnitOperationContext> subOperations = operationSubTasks.remove(operationId);
         if (subOperations != null) {

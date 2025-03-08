@@ -3,7 +3,6 @@ package org.wso2.carbon.identity.framework.async.status.mgt.queue;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
 
-import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -13,7 +12,6 @@ import java.util.logging.Logger;
  */
 public class AsyncOperationQueue {
     private static final Logger LOGGER = Logger.getLogger(AsyncOperationQueue.class.getName());
-
     private final ConcurrentLinkedQueue<UnitOperationContext> queue = new ConcurrentLinkedQueue<>();
     private final AsyncStatusMgtDAO asyncStatusMgtDAO;
     private final int threshold;
@@ -26,7 +24,6 @@ public class AsyncOperationQueue {
         this.threshold = threshold;
         this.flushIntervalSeconds = flushIntervalSeconds;
 
-        // Start a periodic flush task
         startPeriodicFlushTask();
     }
 

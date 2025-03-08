@@ -59,8 +59,6 @@ public interface AsyncStatusMgtService {
 
     ResponseOperationContext getLatestAsyncOperationStatus(String orgId, String operationSubjectId, String resourceType, String userId);
 
-    void handleOperation(UnitOperationContext unitOperationContext);
-
     void finalizeOperation(String operationId);
 
     void addOperation(UnitOperationContext operation);

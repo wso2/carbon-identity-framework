@@ -18,14 +18,13 @@ public class AsyncOperationConsumer implements Runnable {
     @Override
     public void run() {
         while (running) {
-            UnitOperationContext operation = queue.dequeue(); // Blocks until new data
+            UnitOperationContext operation = queue.dequeue();
             processOperation(operation);
         }
     }
 
     private void processOperation(UnitOperationContext operation) {
         LOGGER.info("Processing operation: " + operation.getOperationId());
-        // Process the operation (e.g., update status, notify users)
     }
 
     public void stop() {
