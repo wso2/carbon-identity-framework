@@ -819,6 +819,7 @@ public abstract class FrameworkConstants {
 
         STRING,
         INTEGER,
+        MULTI_VALUED
     }
 
     /**
