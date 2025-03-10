@@ -32,6 +32,7 @@ public class ExecutorResponse {
     private Map<String, char[]> userCredentials;
     private Map<String, Object> contextProperties;
     private Map<String, String> additionalInfo;
+    private String errorMessage;
 
     public ExecutorResponse() {
 
@@ -100,5 +101,15 @@ public class ExecutorResponse {
     public void setAdditionalInfo(Map<String, String> additionalInfo) {
 
         this.additionalInfo = additionalInfo;
+    }
+
+    public String getErrorMessage() {
+
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+
+        this.errorMessage = errorMessage;
     }
 }

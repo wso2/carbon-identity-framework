@@ -58,7 +58,7 @@ public class RegistrationFlowMgtService {
     public void updateDefaultRegistrationFlow(RegistrationFlowDTO flowDTO, int tenantID)
             throws RegistrationFrameworkException {
 
-        RegistrationGraphConfig flowConfig = GraphBuilder.convert(flowDTO);
+        RegistrationGraphConfig flowConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         registrationFlowDAO.updateDefaultRegistrationFlowByTenant(flowConfig, tenantID, DEFAULT_FLOW_NAME);
         if (isEnableV2AuditLogs()) {
             AuditLog.AuditLogBuilder auditLogBuilder =

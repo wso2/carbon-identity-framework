@@ -55,9 +55,6 @@ import java.security.cert.X509Certificate;
  */
 public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBuilder {
 
-    private UserActionContext userActionContext;
-    private PreUpdatePasswordAction preUpdatePasswordAction;
-
     @Override
     public ActionType getSupportedActionType() {
 
@@ -69,25 +66,27 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
                                                               ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
-        resolveAction(actionExecutionContext);
-        resolveUserActionContext(flowContext);
+        PreUpdatePasswordAction preUpdatePasswordAction = resolveAction(actionExecutionContext);
+        UserActionContext userActionContext = resolveUserActionContext(flowContext);
+
         ActionExecutionRequest.Builder actionRequestBuilder = new ActionExecutionRequest.Builder();
         actionRequestBuilder.actionType(getSupportedActionType());
-        actionRequestBuilder.event(getEvent());
+        actionRequestBuilder.event(getEvent(userActionContext, preUpdatePasswordAction));
 
         return actionRequestBuilder.build();
     }
 
-    private void resolveUserActionContext(FlowContext flowContext) throws ActionExecutionRequestBuilderException {
+    private UserActionContext resolveUserActionContext(FlowContext flowContext)
+            throws ActionExecutionRequestBuilderException {
 
         Object userContext = flowContext.getContextData().get(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT);
         if (!(userContext instanceof UserActionContext)) {
             throw new ActionExecutionRequestBuilderException("Provided User Action Context is not valid.");
         }
-        userActionContext = (UserActionContext) userContext;
+        return (UserActionContext) userContext;
     }
 
-    private void resolveAction(ActionExecutionRequestContext actionExecutionContext)
+    private PreUpdatePasswordAction resolveAction(ActionExecutionRequestContext actionExecutionContext)
             throws ActionExecutionRequestBuilderException {
 
         Action action = actionExecutionContext.getAction();
@@ -95,16 +94,17 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             throw new ActionExecutionRequestBuilderException("Provided action is not a Pre Update Password Action.");
 
         }
-        preUpdatePasswordAction = (PreUpdatePasswordAction) action;
+        return (PreUpdatePasswordAction) action;
     }
 
-    private Event getEvent() throws ActionExecutionRequestBuilderException {
+    private Event getEvent(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
+            throws ActionExecutionRequestBuilderException {
 
         return new PreUpdatePasswordEvent.Builder()
                 .initiatorType(getInitiatorType())
                 .action(getAction())
                 .tenant(getTenant())
-                .user(getUser())
+                .user(getUser(userActionContext, preUpdatePasswordAction))
                 .userStore(new UserStore(userActionContext.getUserStoreDomain()))
                 .build();
     }
@@ -156,15 +156,17 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
                 IdentityContext.getThreadLocalCarbonContext().getTenantDomain());
     }
 
-    private User getUser() throws ActionExecutionRequestBuilderException {
+    private User getUser(UserActionContext userActionContext, PreUpdatePasswordAction preUpdatePasswordAction)
+            throws ActionExecutionRequestBuilderException {
 
         PasswordUpdatingUser.Builder userBuilder = new PasswordUpdatingUser.Builder()
                 .id(userActionContext.getUserId());
-        populateCredential(userBuilder);
+        populateCredential(userBuilder, userActionContext, preUpdatePasswordAction);
         return userBuilder.build();
     }
 
-    private void populateCredential(PasswordUpdatingUser.Builder userBuilder)
+    private void populateCredential(PasswordUpdatingUser.Builder userBuilder, UserActionContext userActionContext,
+                                    PreUpdatePasswordAction preUpdatePasswordAction)
             throws ActionExecutionRequestBuilderException {
 
         Certificate certificate = preUpdatePasswordAction.getPasswordSharing().getCertificate();
@@ -172,16 +174,20 @@ public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBu
             try {
                 X509Certificate publicCert = (X509Certificate)
                         IdentityUtil.convertPEMEncodedContentToCertificate(certificate.getCertificateContent());
-                userBuilder.updatingCredential(getUnEncryptedCredential(), true, publicCert);
+                userBuilder.updatingCredential(getUnEncryptedCredential(userActionContext, preUpdatePasswordAction),
+                        true, publicCert);
             } catch (CertificateException e) {
                 throw new ActionExecutionRequestBuilderException("Error while building X509 certificate.", e);
             }
         } else {
-            userBuilder.updatingCredential(getUnEncryptedCredential(), false, null);
+            userBuilder.updatingCredential(getUnEncryptedCredential(userActionContext, preUpdatePasswordAction), false,
+                    null);
         }
     }
 
-    private Credential getUnEncryptedCredential() throws ActionExecutionRequestBuilderException {
+    private Credential getUnEncryptedCredential(UserActionContext userActionContext,
+                                                PreUpdatePasswordAction preUpdatePasswordAction)
+            throws ActionExecutionRequestBuilderException {
 
         PasswordSharing.Format passwordSharingFormat = preUpdatePasswordAction.getPasswordSharing().getFormat();
         if (PasswordSharing.Format.SHA256_HASHED.equals(passwordSharingFormat)) {

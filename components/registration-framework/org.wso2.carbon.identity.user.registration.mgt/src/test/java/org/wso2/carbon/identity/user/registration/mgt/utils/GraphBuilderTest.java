@@ -51,6 +51,7 @@ public class GraphBuilderTest {
     public static final String STEP_1 = "step_qx3a";
     public static final String STEP_2 = "step_we12";
     public static final String STEP_3 = "step_sd21";
+    public static final String STEP_4 = "step_on12";
     public static final String GOOGLE_IDP_NAME = "Google1";
     public static final String OIDC_AUTHENTICATOR = "OIDCAuthenticator";
     public static final String OIDC_IDP = "OIDC_IDP";
@@ -140,21 +141,28 @@ public class GraphBuilderTest {
                                         .name(GOOGLE_OIDC_AUTHENTICATOR)
                                         .idpName(GOOGLE_IDP_NAME)
                                         .build())
-                                .nextId(Constants.COMPLETE)
+                                .nextId(STEP_4)
                                 .build())
                         .build())
                 .build();
 
-        flowDTO.setSteps(Arrays.asList(stepDTO1, stepDTO2, stepDTO3));
+        StepDTO stepDTO4 = new StepDTO.Builder()
+                .id(STEP_4)
+                .type(Constants.StepTypes.USER_ONBOARD)
+                .coordinateX(0)
+                .coordinateY(0)
+                .height(100.15)
+                .width(200.25)
+                .build();
+        flowDTO.setSteps(Arrays.asList(stepDTO1, stepDTO2, stepDTO3, stepDTO4));
 
         // Convert the flowDTO to a RegistrationGraphConfig.
-        RegistrationGraphConfig graphConfig = GraphBuilder.convert(flowDTO);
-
+        RegistrationGraphConfig graphConfig = new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         // Assert the converted graphConfig.
         assertNotNull(graphConfig);
         assertNotNull(graphConfig.getId());
         assertEquals(graphConfig.getNodeConfigs().size(), 4);
-        assertEquals(graphConfig.getNodePageMappings().size(), 3);
+        assertEquals(graphConfig.getNodePageMappings().size(), 4);
         assertEquals(graphConfig.getFirstNodeId(), STEP_1);
 
         graphConfig.getNodePageMappings().forEach((nodeId, stepDTO) -> {

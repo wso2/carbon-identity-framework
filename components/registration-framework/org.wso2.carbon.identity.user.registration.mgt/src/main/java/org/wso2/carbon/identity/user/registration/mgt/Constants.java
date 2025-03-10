@@ -133,6 +133,7 @@ public class Constants {
 
         public static final String VIEW = "VIEW";
         public static final String REDIRECTION = "REDIRECTION";
+        public static final String USER_ONBOARD = "USER_ONBOARD";
 
         private StepTypes() {
 

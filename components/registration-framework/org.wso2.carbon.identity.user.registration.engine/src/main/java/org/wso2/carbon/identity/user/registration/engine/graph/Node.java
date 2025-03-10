@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.engine.model.Response;
@@ -35,9 +36,9 @@ public interface Node {
      *
      * @param context The registration context.
      * @return The response of the node.
-     * @throws RegistrationFrameworkException If an error occurs while executing the node.
+     * @throws RegistrationEngineException If an error occurs while executing the node.
      */
-    Response execute(RegistrationContext context, NodeConfig nodeConfig) throws RegistrationFrameworkException;
+    Response execute(RegistrationContext context, NodeConfig nodeConfig) throws RegistrationEngineException;
 
     /**
      * Rollback the functionality of the node.
@@ -45,5 +46,5 @@ public interface Node {
      * @param context The registration context.
      * @return The response of the node.
      */
-    Response rollback(RegistrationContext context, NodeConfig nodeConfig) throws RegistrationFrameworkException;
+    Response rollback(RegistrationContext context, NodeConfig nodeConfig) throws RegistrationEngineException;
 }
