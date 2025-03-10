@@ -29,6 +29,7 @@ public class Constants {
     public static final String PASSWORD = "password";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String REDIRECT_URL = "redirectUrl";
+    public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
 
     private Constants() {
 
@@ -95,7 +96,6 @@ public class Constants {
                                                 "Error occurred loading the configurations of identity provider: %s " +
                                                   "of tenant: %s."),
 
-
         // Client errors.
          ERROR_CODE_INVALID_FLOW_ID("60001",
                                    "Invalid flow id.",
@@ -104,9 +104,15 @@ public class Constants {
                                          "Username not provided.",
                                          "Username is not provided in the registration request of flow id: %s"),
         ERROR_CODE_UNDEFINED_FLOW_ID("60003",
-                                           "Flow id is not defined",
-                                           "The flow id is not defined in the registration request."),;
-
+                                           "Flow id is not defined.",
+                                           "The flow id is not defined in the registration request."),
+        ERROR_CODE_INVALID_USERNAME("60004",
+                                     "Invalid username.",
+                                     "The given username: %s must be an email address."),
+        ERROR_CODE_REQUEST_PROCESSING_FAILURE("60005",
+                                              "Error while processing the registration request.",
+                                              "While processing the registration request for flow id %s, server " +
+                                                      "returned an error, \"%s\".");
 
         private static final String ERROR_PREFIX = "RFE";
         private final String code;

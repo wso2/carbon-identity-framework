@@ -18,20 +18,27 @@
 
 package org.wso2.carbon.identity.user.registration.engine.graph;
 
+import static java.util.Locale.ENGLISH;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USERNAME;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleServerException;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ExecutorTypes.USER_ONBOARDING;
+import static org.wso2.carbon.user.core.UserCoreConstants.APPLICATION_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -55,6 +62,7 @@ import org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator;
 public class UserOnboardingExecutor implements Executor {
 
     private static final Log LOG = LogFactory.getLog(UserOnboardingExecutor.class);
+    private static final String WSO2_CLAIM_DIALECT = "http://wso2.org/claims/";
 
     @Override
     public String getName() {
@@ -72,8 +80,7 @@ public class UserOnboardingExecutor implements Executor {
     @Override
     public ExecutorResponse execute(RegistrationContext context) throws RegistrationEngineException {
 
-        updateUserProfile(context);
-        RegisteringUser user = context.getRegisteringUser();
+        RegisteringUser user = updateUserProfile(context);
         Map<String, char[]> credentials = user.getUserCredentials();
 
         char[] password =
@@ -86,14 +93,10 @@ public class UserOnboardingExecutor implements Executor {
         }
 
         try {
-            String userStoreDomainName = IdentityUtil.extractDomainFromName(user.getUsername());
-            UserStoreManager userStoreManager = getUserStoreManager(context.getTenantDomain(),
-                                                                    userStoreDomainName,
+            String userStoreDomainName = resolveUserStoreDomain(user.getUsername());
+            UserStoreManager userStoreManager = getUserStoreManager(context.getTenantDomain(), userStoreDomainName,
                                                                     context.getContextIdentifier());
-            String domainName = userStoreManager.getRealmConfiguration()
-                    .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-
-            userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), domainName),
+            userStoreManager.addUser(IdentityUtil.addDomainToName(user.getUsername(), userStoreDomainName),
                                      String.valueOf(password), null, userClaims, null);
             String userid = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(user.getUsername());
             context.setUserId(userid);
@@ -106,22 +109,18 @@ public class UserOnboardingExecutor implements Executor {
         }
     }
 
-    private void updateUserProfile(RegistrationContext context) throws RegistrationEngineException {
+    private RegisteringUser updateUserProfile(RegistrationContext context) throws RegistrationEngineException {
 
         RegisteringUser user = context.getRegisteringUser();
         context.getUserInputData().forEach((key, value) -> {
-            if (key.startsWith("http://wso2.org/claims/")) {
+            if (key.startsWith(WSO2_CLAIM_DIALECT)) {
                 if (!user.getClaims().containsKey(key)) {
                     user.addClaim(key, value);
                 }
             }
         });
-        String username = Optional.ofNullable(user.getUsername())
-                .orElseGet(() -> user.getClaims().get(USERNAME_CLAIM_URI).toString());
-        if (username == null) {
-            throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, context.getContextIdentifier());
-        }
-        user.setUsername(username);
+        user.setUsername(resolveUsername(user, context.getContextIdentifier()));
+        return user;
     }
 
     private UserStoreManager getUserStoreManager(String tenantDomain, String userdomain, String flowId)
@@ -137,12 +136,42 @@ public class UserOnboardingExecutor implements Executor {
                 userStoreManager =
                         ((UserStoreManager) tenantUserRealm.getUserStoreManager()).getSecondaryUserStoreManager(userdomain);
             }
+            if (userStoreManager == null) {
+                throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, tenantDomain, flowId);
+            }
+            return userStoreManager;
         } catch (UserStoreException e) {
             throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, e, tenantDomain, flowId);
         }
-        if (userStoreManager == null) {
-            throw handleServerException(ERROR_CODE_USERSTORE_MANAGER_FAILURE, tenantDomain, flowId);
+    }
+
+    private String resolveUserStoreDomain(String username) {
+
+        int separatorIndex = username.indexOf(UserCoreConstants.DOMAIN_SEPARATOR);
+        if (separatorIndex >= 0) {
+            String domain = username.substring(0, separatorIndex);
+            if (INTERNAL_DOMAIN.equalsIgnoreCase(domain) || WORKFLOW_DOMAIN.equalsIgnoreCase(domain)
+                    || APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
+                return domain.substring(0, 1).toUpperCase(ENGLISH) + domain.substring(1).toLowerCase(ENGLISH);
+            }
+            return domain.toUpperCase(ENGLISH);
         }
-        return userStoreManager;
+
+        String domainName = IdentityUtil.getProperty(SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG);
+        return domainName != null ? domainName.toUpperCase(ENGLISH) :
+                IdentityUtil.getPrimaryDomainName().toUpperCase(ENGLISH);
+    }
+
+    private String resolveUsername(RegisteringUser user, String flowId) throws RegistrationEngineException {
+
+        String username = Optional.ofNullable(user.getUsername())
+                .orElseGet(() -> user.getClaims().get(USERNAME_CLAIM_URI).toString());
+        if (StringUtils.isBlank(username)) {
+            throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, flowId);
+        }
+        if (IdentityUtil.isEmailUsernameEnabled() && !username.contains("@")) {
+            throw handleClientException(ERROR_CODE_INVALID_USERNAME, username);
+        }
+        return username;
     }
 }
