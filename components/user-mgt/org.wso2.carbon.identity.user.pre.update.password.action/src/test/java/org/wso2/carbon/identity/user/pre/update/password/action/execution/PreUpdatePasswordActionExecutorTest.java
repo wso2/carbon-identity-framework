@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.action.execution.api.model.SuccessStatus;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.component.PreUpdatePasswordActionServiceComponentHolder;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.UserPreUpdatePasswordActionExecutor;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,20 +47,20 @@ import static org.wso2.carbon.identity.user.pre.update.password.action.util.Test
 /**
  * User Pre Update Password Action Executor Test.
  */
-public class UserPreUpdatePasswordActionExecutorTest {
+public class PreUpdatePasswordActionExecutorTest {
 
     @Mock
     private UserActionContext mockUserActionContext;
     @Mock
     private ActionExecutorService mockActionExecutorService;
-    private UserPreUpdatePasswordActionExecutor executor;
+    private PreUpdatePasswordActionExecutor executor;
 
     @BeforeClass
     public void setUp() {
 
         MockitoAnnotations.initMocks(this);
         PreUpdatePasswordActionServiceComponentHolder.getInstance().setActionExecutorService(mockActionExecutorService);
-        executor = new UserPreUpdatePasswordActionExecutor();
+        executor = new PreUpdatePasswordActionExecutor();
     }
 
     @Test

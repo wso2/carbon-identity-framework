@@ -29,6 +29,7 @@ public class Constants {
     public static final String PASSWORD = "password";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String REDIRECT_URL = "redirectUrl";
+    public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
 
     private Constants() {
 
@@ -90,21 +91,28 @@ public class Constants {
         ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE("65010",
                                                 "Error while loading the registration flow.",
                                                 "Error occurred loading the default registration flow of tenant: %s."),
+        ERROR_CODE_GET_IDP_CONFIG_FAILURE("65011",
+                                                "Error while loading identity provider configurations.",
+                                                "Error occurred loading the configurations of identity provider: %s " +
+                                                  "of tenant: %s."),
 
         // Client errors.
-        ERROR_CODE_UNRESOLVED_NEXT_NODE("60001",
-                                        "Unresolved next node.",
-                                        "Decision node %s cannot resolve a next node to proceed for flow id: %s"),
-        ERROR_CODE_INVALID_FLOW_ID("60002",
+         ERROR_CODE_INVALID_FLOW_ID("60001",
                                    "Invalid flow id.",
                                    "The given flow id: %s is invalid."),
-        ERROR_CODE_USERNAME_NOT_PROVIDED("60003",
+        ERROR_CODE_USERNAME_NOT_PROVIDED("60002",
                                          "Username not provided.",
                                          "Username is not provided in the registration request of flow id: %s"),
-        ERROR_CODE_UNDEFINED_FLOW_ID("60004",
-                                           "Flow id is not defined",
-                                           "The flow id is not defined in the registration request."),;
-
+        ERROR_CODE_UNDEFINED_FLOW_ID("60003",
+                                           "Flow id is not defined.",
+                                           "The flow id is not defined in the registration request."),
+        ERROR_CODE_INVALID_USERNAME("60004",
+                                     "Invalid username.",
+                                     "The given username: %s must be an email address."),
+        ERROR_CODE_REQUEST_PROCESSING_FAILURE("60005",
+                                              "Error while processing the registration request.",
+                                              "While processing the registration request for flow id %s, server " +
+                                                      "returned an error, \"%s\".");
 
         private static final String ERROR_PREFIX = "RFE";
         private final String code;

@@ -95,7 +95,7 @@ public class RegistrationFlowDAOImplTest {
             daoImpl.updateDefaultRegistrationFlowByTenant(regFlowConfig, tenantId, flowName);
             RegistrationFlowDTO flowDTO = daoImpl.getDefaultRegistrationFlowByTenant(tenantId);
             assertNotNull(flowDTO);
-            assertEquals(flowDTO.getSteps().size(), 3);
+            assertEquals(flowDTO.getSteps().size(), 4);
             assertEquals(flowDTO.getSteps().get(0).getId(), "step_1");
         }
     }
@@ -107,7 +107,7 @@ public class RegistrationFlowDAOImplTest {
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             RegistrationFlowDTO flowDTO = objectMapper.readValue(new File(getFilePath("reg_flow.json")),
                     RegistrationFlowDTO.class);
-            return GraphBuilder.convert(flowDTO);
+            return new GraphBuilder().withSteps(flowDTO.getSteps()).build();
         } catch (Exception e) {
             throw new RuntimeException("Error while reading the JSON file.", e);
         }

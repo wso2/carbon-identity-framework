@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.user.registration.engine.model;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import org.slf4j.MDC;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 
@@ -30,8 +32,10 @@ import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphCon
 public class RegistrationContext implements Serializable {
 
     private static final long serialVersionUID = 542871476395078667L;
+    private static final String CORRELATION_ID_MDC = "Correlation-ID";
     private final Map<String, String> userInputData = new HashMap<>();
     private final Map<String, Object> properties = new HashMap<>();
+    private Map<String, String> authenticatorProperties;
     private NodeConfig currentNode;
     private RegistrationGraphConfig regGraph;
     private RegisteringUser registeringUser = new RegisteringUser();
@@ -138,5 +142,20 @@ public class RegistrationContext implements Serializable {
     public void setCurrentActionId(String currentActionId) {
 
         this.currentActionId = currentActionId;
+    }
+
+    public String getCorrelationId() {
+
+        return Optional.ofNullable(MDC.get(CORRELATION_ID_MDC)).orElse("");
+    }
+
+    public Map<String, String> getAuthenticatorProperties() {
+
+        return authenticatorProperties;
+    }
+
+    public void setAuthenticatorProperties(Map<String, String> authenticatorProperties) {
+
+        this.authenticatorProperties = authenticatorProperties;
     }
 }
