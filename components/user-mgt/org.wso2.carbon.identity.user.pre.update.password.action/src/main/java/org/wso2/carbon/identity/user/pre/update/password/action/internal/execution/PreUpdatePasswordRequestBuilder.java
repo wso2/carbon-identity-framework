@@ -53,7 +53,7 @@ import java.security.cert.X509Certificate;
 /**
  * This class is responsible for building the action execution request for the pre update password action.
  */
-public class PreUpdatePasswordActionRequestBuilder implements ActionExecutionRequestBuilder {
+public class PreUpdatePasswordRequestBuilder implements ActionExecutionRequestBuilder {
 
     private UserActionContext userActionContext;
     private PreUpdatePasswordAction preUpdatePasswordAction;

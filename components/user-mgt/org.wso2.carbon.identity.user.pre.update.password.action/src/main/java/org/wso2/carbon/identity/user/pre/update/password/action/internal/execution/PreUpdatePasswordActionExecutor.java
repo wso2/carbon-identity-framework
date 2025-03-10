@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.user.pre.update.password.action.internal.constan
 /**
  * User Pre Update Password Action Executor.
  */
-public class UserPreUpdatePasswordActionExecutor implements UserActionExecutor {
+public class PreUpdatePasswordActionExecutor implements UserActionExecutor {
 
     @Override
     public ActionType getSupportedActionType() {
