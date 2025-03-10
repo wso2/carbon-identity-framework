@@ -30,6 +30,9 @@ public class AuthServiceResponseData {
 
     private boolean isAuthenticatorSelectionRequired = false;
     private List<AuthenticatorData> authenticatorOptions = new ArrayList<>();
+    private String sessionDataCacheKey;
+
+    // Add new filed for sessionDataKey (cacheKey / just the thumbprint from cache)
 
     public AuthServiceResponseData() {
 
@@ -58,5 +61,15 @@ public class AuthServiceResponseData {
     public void setAuthenticatorOptions(List<AuthenticatorData> authenticatorOptions) {
 
         this.authenticatorOptions = authenticatorOptions;
+    }
+
+    public String getSessionDataCacheKey() {
+
+        return sessionDataCacheKey;
+    }
+
+    public void setSessionDataCacheKey(String sessionDataCacheKey) {
+
+        this.sessionDataCacheKey = sessionDataCacheKey;
     }
 }

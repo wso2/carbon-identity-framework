@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.auth.service.AuthServiceException;
@@ -148,6 +149,10 @@ public class AuthenticationService {
             authenticatorDataList = request.getAuthInitiationData();
         }
         responseData.setAuthenticatorOptions(authenticatorDataList);
+        AuthenticationContext context = FrameworkUtils.getContextData(request);
+        if (context != null) {
+            responseData.setSessionDataCacheKey(context.getCallerSessionKey());
+        }
         authServiceResponse.setData(responseData);
     }
 
