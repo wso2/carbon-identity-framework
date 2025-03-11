@@ -6076,6 +6076,7 @@ public class IdPManagementDAO {
                     federatedAuthenticatorConfig.setName(resultSet.getString("NAME"));
                     federatedAuthenticatorConfig.setDisplayName(resultSet.getString("DISPLAY_NAME"));
                     federatedAuthenticatorConfig.setEnabled(resultSet.getBoolean("IS_ENABLED"));
+                    federatedAuthenticatorConfig.setAmrValue(resultSet.getString("AMR_VALUE"));
                     federatedAuthenticatorConfig.setDefinedByType(DefinedByType.USER);
                     federatedAuthenticatorConfigs.add(federatedAuthenticatorConfig);
                     int authnId = resultSet.getInt("ID");

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.dao;
 
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 
@@ -115,4 +116,22 @@ public interface AuthenticatorManagementDAO {
      * @throws AuthenticatorMgtException If an error occurs while checking the existence of the authenticator.
      */
     boolean isExistingAuthenticatorName(String authenticatorName, int tenantId) throws AuthenticatorMgtException;
+
+    /**
+     * Add a new system local authenticator configuration.
+     *
+     * @param authenticatorConfig   Local application authenticator configuration.
+     * @param tenantId              Tenant Id.
+     * @return Created LocalAuthenticatorConfig.
+     */
+    LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException;
+
+    /**
+     * Update a system local authenticator configuration.
+     *
+     * @param authenticatorName   Name of the authenticator
+     * @param tenantId                      Tenant Id.
+     * @return Updated LocalAuthenticatorConfig.
+     */
+    boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId) throws AuthenticatorMgtException;
 }
