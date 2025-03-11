@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.authorization.framework.model;
 
-import org.json.JSONArray;
+import java.util.List;
 
 /**
  * The {@code ErrorResponse} class is a generic model class for an error response from an authorization engine.
@@ -27,7 +27,7 @@ public class ErrorResponse {
 
     private String errorCode;
     private String errorMessage;
-    private JSONArray errorDetails;
+    private List<String> errorDetails;
 
     /**
      * Constructs an {@code ErrorResponse} object with the error message.
@@ -52,7 +52,7 @@ public class ErrorResponse {
      * Sets the error details of the error response.
      * @param errorDetails The error details.
      */
-    public void setErrorDetails(JSONArray errorDetails) {
+    public void setErrorDetails(List<String> errorDetails) {
 
         this.errorDetails = errorDetails;
     }
@@ -82,7 +82,7 @@ public class ErrorResponse {
      *
      * @return The error details of the error response.
      */
-    public JSONArray getErrorDetails() {
+    public List<String> getErrorDetails() {
 
         return errorDetails;
     }
