@@ -262,6 +262,53 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
     }
 
+    @Override
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtServerException {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            int authenticatorConfigID = jdbcTemplate.withTransaction(template ->
+                template.executeInsert(Query.ADD_SYSTEM_LOCAL_AUTHENTICATOR_SQL,
+                    statement -> {
+                        statement.setString(Column.NAME, authenticatorConfig.getName());
+                        statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
+                        statement.setString(Column.DEFINED_BY, DefinedByType.SYSTEM.toString());
+                        statement.setString(Column.AMR_VALUE, authenticatorConfig.getAmrValue());
+                        statement.setString(Column.IS_ENABLED,
+                                authenticatorConfig.isEnabled() ? IS_TRUE_VALUE : IS_FALSE_VALUE);
+                        statement.setString(Column.AUTHENTICATION_TYPE, "IDENTIFICATION");
+                        statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                    }, null, true));
+
+            if (authenticatorConfigID == 0) {
+                authenticatorConfigID = getAuthenticatorEntryId(authenticatorConfig.getName(), tenantId);
+            }
+            addAuthenticatorProperty(authenticatorConfigID, authenticatorConfig.getProperties(), tenantId);
+
+            return getSystemLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e);
+        }
+    }
+
+    @Override
+    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId) throws AuthenticatorMgtException {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            ResultSet results = jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(Query.IS_AUTHENTICATOR_EXISTS_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet,
+                        statement -> {
+                            statement.setString(Column.NAME, authenticatorName);
+                            statement.setInt(Column.TENANT_ID, tenantId);
+                        }));
+            return results != null;
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e,
+                    authenticatorName);
+        }
+    }
+
     private UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticatorByName(String authenticatorConfigName,
             int tenantId) throws TransactionException {
 
