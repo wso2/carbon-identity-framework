@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.base.IdentityException;
  */
 public class AccessEvaluationException extends IdentityException {
 
+    private static final long serialVersionUID = 9162001723200243731L;
     private String errorCode = null;
 
     public AccessEvaluationException(String message) {
