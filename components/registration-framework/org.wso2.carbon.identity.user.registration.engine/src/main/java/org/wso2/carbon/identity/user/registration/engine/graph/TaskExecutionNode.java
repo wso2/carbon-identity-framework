@@ -20,11 +20,14 @@ package org.wso2.carbon.identity.user.registration.engine.graph;
 
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_IDP_CONFIG_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REGISTRATION_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REQUEST_PROCESSING_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
@@ -42,7 +45,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.user.registration.engine.Constants;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
@@ -119,6 +121,13 @@ public class TaskExecutionNode implements Node {
             context.addProperties(response.getContextProperties());
         }
         switch (response.getResult()) {
+            case STATUS_RETRY:
+                return new Response.Builder()
+                        .status(STATUS_INCOMPLETE)
+                        .type(VIEW)
+                        .requiredData(response.getRequiredData())
+                        .error(response.getErrorMessage())
+                        .build();
             case STATUS_USER_INPUT_REQUIRED:
                 return new Response.Builder()
                         .status(STATUS_INCOMPLETE)
@@ -132,6 +141,8 @@ public class TaskExecutionNode implements Node {
                         .requiredData(response.getRequiredData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
+            case STATUS_USER_ERROR:
+                throw handleClientException(ERROR_CODE_REGISTRATION_FAILURE, response.getErrorMessage());
             case STATUS_ERROR:
                 throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, context.getContextIdentifier(),
                                             response.getErrorMessage());

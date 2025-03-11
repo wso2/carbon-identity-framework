@@ -23,12 +23,19 @@ package org.wso2.carbon.identity.user.registration.engine;
  */
 public class Constants {
 
+    // Constants for node status.
     public static final String STATUS_COMPLETE = "COMPLETE";
     public static final String STATUS_INCOMPLETE = "INCOMPLETE";
     public static final String STATUS_PROMPT_ONLY = "PROMPT_ONLY";
-    public static final String PASSWORD = "password";
+    // Constants for user attributes.
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
+    public static final String PASSWORD = "password";
+    // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
+    public static final String VALIDATIONS = "validations";
+    public static final String IDENTIFIER = "identifier";
+    public static final String ERROR = "error";
+    // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
 
     private Constants() {
@@ -46,6 +53,7 @@ public class Constants {
         public static final String STATUS_COMPLETE = "COMPLETE";
         public static final String STATUS_RETRY = "RETRY";
         public static final String STATUS_ERROR = "ERROR";
+        public static final String STATUS_USER_ERROR = "USER_ERROR";
         private ExecutorStatus() {
 
         }
@@ -75,7 +83,7 @@ public class Constants {
                                                 "%s"),
         ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS("65006",
                                                "Unsupported executor status.",
-                                               "Unsupported executor status %s returned from executor %s."),
+                                               "Unsupported executor status %s."),
         ERROR_CODE_TENANT_RESOLVE_FAILURE("65007",
                                           "Error while resolving tenant id.",
                                           "Unexpected server error occurs while resolving tenant id for the given " +
@@ -95,6 +103,12 @@ public class Constants {
                                                 "Error while loading identity provider configurations.",
                                                 "Error occurred loading the configurations of identity provider: %s " +
                                                   "of tenant: %s."),
+        ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE("65012",
+                                                "Error while loading input validation configurations.",
+                                                "Error occurred loading the input validation configurations of tenant: %s."),
+        ERROR_CODE_GET_CLAIM_METADATA_FAILURE("65013",
+                                                "Error while loading claim metadata.",
+                                                "Error occurred loading the claim metadata of tenant: %s."),
 
         // Client errors.
          ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -109,9 +123,12 @@ public class Constants {
         ERROR_CODE_INVALID_USERNAME("60004",
                                      "Invalid username.",
                                      "The given username: %s must be an email address."),
-        ERROR_CODE_REQUEST_PROCESSING_FAILURE("60005",
-                                              "Error while processing the registration request.",
-                                              "While processing the registration request for flow id %s, server " +
+        ERROR_CODE_REGISTRATION_FAILURE("60005",
+                                              "Registration failed.",
+                                              "%s"),
+        ERROR_CODE_REQUEST_PROCESSING_FAILURE("60006",
+                                                      "Error while processing the registration request.",
+                                                      "While processing the registration request for flow id %s, server " +
                                                       "returned an error, \"%s\".");
 
         private static final String ERROR_PREFIX = "RFE";

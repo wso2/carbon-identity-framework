@@ -74,6 +74,7 @@ public class UserRegistrationFlowService {
         RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
         context.getUserInputData().putAll(inputs);
         context.setCurrentActionId(actionId);
+        // TODO: Validate inputs here.
         RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
         if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
             RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);

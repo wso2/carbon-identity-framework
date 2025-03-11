@@ -88,6 +88,14 @@ public class DataDTO implements Serializable {
         return additionalData;
     }
 
+    public void addAdditionalData(String key, String value) {
+
+        if (this.additionalData == null) {
+            this.additionalData = new java.util.HashMap<>();
+        }
+        this.additionalData.put(key, value);
+    }
+
     /**
      * Builder class to build {@link DataDTO} objects.
      */

@@ -28,6 +28,8 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
+import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.registration.engine.UserRegistrationFlowService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Executor;
 import org.wso2.carbon.identity.user.registration.engine.graph.UserOnboardingExecutor;
@@ -50,7 +52,7 @@ public class RegistrationFlowEngineServiceComponent {
         try {
             BundleContext bundleContext = context.getBundleContext();
             bundleContext.registerService(UserRegistrationFlowService.class.getName(),
-                                          UserRegistrationFlowService.getInstance(), null);
+                    UserRegistrationFlowService.getInstance(), null);
             bundleContext.registerService(Executor.class.getName(), new UserOnboardingExecutor(), null);
             LOG.debug("Registration Flow Engine service successfully activated.");
         } catch (Throwable e) {
@@ -122,5 +124,24 @@ public class RegistrationFlowEngineServiceComponent {
 
         LOG.debug("Unsetting executor in the Registration Flow Engine component.");
         RegistrationFlowEngineDataHolder.getInstance().getExecutors().remove(executor.getName());
+    }
+
+    @Reference(
+            name = "InputValidationManagementService",
+            service = InputValidationManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetInputValidationManagementService")
+    protected void setInputValidationManagementService(InputValidationManagementService inputValidationManagementService) {
+
+        LOG.debug("Setting the Input Validation Mgt Service in the Registration Flow Engine component.");
+        RegistrationFlowEngineDataHolder.getInstance()
+                .setInputValidationManagementService(inputValidationManagementService);
+    }
+
+    protected void unsetInputValidationManagementService(InputValidationManagementService inputValidationManagementService) {
+
+        LOG.debug("Unsetting the Input Validation Mgt Service in the Registration Flow Engine component.");
+        RegistrationFlowEngineDataHolder.getInstance().setInputValidationManagementService(null);
     }
 }
