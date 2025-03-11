@@ -144,8 +144,7 @@ public class TaskExecutionNode implements Node {
             case STATUS_USER_ERROR:
                 throw handleClientException(ERROR_CODE_REGISTRATION_FAILURE, response.getErrorMessage());
             case STATUS_ERROR:
-                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, context.getContextIdentifier(),
-                                            response.getErrorMessage());
+                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
             default:
                 throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }

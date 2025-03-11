@@ -109,9 +109,9 @@ public class Constants {
         ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE("65012",
                                                 "Error while loading input validation configurations.",
                                                 "Error occurred loading the input validation configurations of tenant: %s."),
-        ERROR_CODE_GET_CLAIM_METADATA_FAILURE("65013",
-                                                "Error while loading claim metadata.",
-                                                "Error occurred loading the claim metadata of tenant: %s."),
+        ERROR_CODE_EXECUTOR_FAILURE("65013",
+                "An error occurred during executor processing.",
+                "%s"),
 
         // Client errors.
          ERROR_CODE_INVALID_FLOW_ID("60001",
@@ -134,8 +134,7 @@ public class Constants {
                                               "%s"),
         ERROR_CODE_REQUEST_PROCESSING_FAILURE("60007",
                                                       "Error while processing the registration request.",
-                                                      "While processing the registration request for flow id %s, server " +
-                                                      "returned an error, \"%s\".");
+                                                      "%s"),;
 
         private static final String ERROR_PREFIX = "RFE";
         private final String code;
