@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -109,11 +110,15 @@ public class AuthenticationResultCache extends
 
     private boolean isCacheEntryExpired(AuthenticationResultCacheEntry entry) {
 
+        if (entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP) == null) {
+            log.warn("Cache entry does not have a created timestamp.");
+            return false;
+        }
         String createdTimestamp = entry.getResult().getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString();
-        if (createdTimestamp != null &&
+        if (StringUtils.isNotBlank(createdTimestamp) &&
                 (FrameworkUtils.getCurrentStandardNano() >
                     entry.getValidityPeriod() + Long.parseLong(createdTimestamp) * 1000000)) {
-            log.debug("Authentication result cache is expired");
+            log.warn("Authentication result cache is expired");
             return true;
         }
         return false;
