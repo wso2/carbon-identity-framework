@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.user.registration.engine.internal;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
+import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Executor;
 import org.wso2.carbon.identity.user.registration.mgt.RegistrationFlowMgtService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Node;
@@ -36,6 +39,7 @@ public class RegistrationFlowEngineDataHolder {
     private static final Map<String, Executor> executors = new HashMap<>();
     private RegistrationFlowMgtService registrationFlowMgtService;
     private RealmService realmService;
+    private InputValidationManagementService inputValidationManagementService;
     private static final RegistrationFlowEngineDataHolder instance = new RegistrationFlowEngineDataHolder();
 
     private RegistrationFlowEngineDataHolder() {
@@ -95,5 +99,25 @@ public class RegistrationFlowEngineDataHolder {
     public void setRegistrationFlowMgtService(RegistrationFlowMgtService registrationFlowMgtService) {
 
         this.registrationFlowMgtService = registrationFlowMgtService;
+    }
+
+    /**
+     * Get the input validation management service.
+     *
+     * @return  Input validation management service.
+     */
+    public InputValidationManagementService getInputValidationManagementService() {
+
+        return inputValidationManagementService;
+    }
+
+    /**
+     * Set the input validation management service.
+     *
+     * @param inputValidationManagementService    Input validation management service.
+     */
+    public void setInputValidationManagementService(InputValidationManagementService inputValidationManagementService) {
+
+        this.inputValidationManagementService = inputValidationManagementService;
     }
 }
