@@ -238,7 +238,6 @@ public class RegistrationFlowEngine {
                 validationMap.put(input, getValidationDTOs(tenantDomain, input));
             }
         }
-
         // Process all components and apply validations at once.
         processComponentValidations(dataDTO.getComponents(), validationMap);
     }
@@ -302,19 +301,22 @@ public class RegistrationFlowEngine {
         } catch (InputValidationMgtException e) {
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
         }
-
         return validationDTOs.isEmpty() ? Collections.emptyList() : validationDTOs.values();
     }
 
     private void processRuleValidations(ValidationConfiguration config, Map<String, ValidationDTO> validationDTOs) {
+
         processValidations(config.getRules(), "RULE", validationDTOs);
     }
 
     private void processRegexValidations(ValidationConfiguration config, Map<String, ValidationDTO> validationDTOs) {
+
         processValidations(config.getRegEx(), "REGEX", validationDTOs);
     }
 
-    private void processValidations(List<RulesConfiguration> rules, String type, Map<String, ValidationDTO> validationDTOs) {
+    private void processValidations(List<RulesConfiguration> rules, String type, Map<String,
+            ValidationDTO> validationDTOs) {
+
         if (rules == null || rules.isEmpty()) {
             return;
         }
@@ -330,32 +332,32 @@ public class RegistrationFlowEngine {
                 newValidation.setConditions(new ArrayList<>());
                 return newValidation;
             });
-
             validationDTO.getConditions().addAll(conditions);
         }
     }
 
     private List<ValidationDTO.Condition> createConditionsFromProperties(Map<String, String> properties) {
+
         if (properties == null || properties.isEmpty()) {
             return Collections.emptyList();
         }
-
         return properties.entrySet().stream()
                 .map(entry -> new ValidationDTO.Condition(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
     }
 
     private List<String> getInputsFromDataDTO(DataDTO dataDTO) {
+
         if (dataDTO == null || dataDTO.getComponents() == null) {
             return Collections.emptyList();
         }
-
         return dataDTO.getComponents().stream()
                 .flatMap(this::extractInputs)
                 .collect(Collectors.toList());
     }
 
     private Stream<String> extractInputs(ComponentDTO componentDTO) {
+
         if (componentDTO == null) {
             return Stream.empty();
         }
@@ -371,11 +373,11 @@ public class RegistrationFlowEngine {
                     .map(this::getIdentifier)
                     .filter(Objects::nonNull);
         }
-
         return Stream.empty();
     }
 
     private String getIdentifier(ComponentDTO componentDTO) {
+
         Object identifier = componentDTO.getConfigs().get(IDENTIFIER);
         return identifier != null ? String.valueOf(identifier) : null;
     }
