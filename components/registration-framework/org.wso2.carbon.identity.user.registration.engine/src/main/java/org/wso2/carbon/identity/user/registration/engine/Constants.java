@@ -54,6 +54,9 @@ public class Constants {
         public static final String STATUS_RETRY = "RETRY";
         public static final String STATUS_ERROR = "ERROR";
         public static final String STATUS_USER_ERROR = "USER_ERROR";
+        // User store manager related statuses.
+        public static final String USER_ALREADY_EXISTING_USERNAME = "UserAlreadyExistingUsername";
+
         private ExecutorStatus() {
 
         }
@@ -117,16 +120,19 @@ public class Constants {
         ERROR_CODE_USERNAME_NOT_PROVIDED("60002",
                                          "Username not provided.",
                                          "Username is not provided in the registration request of flow id: %s"),
-        ERROR_CODE_UNDEFINED_FLOW_ID("60003",
+        ERROR_CODE_USERNAME_ALREADY_EXISTS("60003",
+                                           "Username already exists.",
+                                           "The provided username already exists in the tenant: %s"),
+        ERROR_CODE_UNDEFINED_FLOW_ID("60004",
                                            "Flow id is not defined.",
                                            "The flow id is not defined in the registration request."),
-        ERROR_CODE_INVALID_USERNAME("60004",
+        ERROR_CODE_INVALID_USERNAME("60005",
                                      "Invalid username.",
                                      "The given username: %s must be an email address."),
-        ERROR_CODE_REGISTRATION_FAILURE("60005",
+        ERROR_CODE_REGISTRATION_FAILURE("60006",
                                               "Registration failed.",
                                               "%s"),
-        ERROR_CODE_REQUEST_PROCESSING_FAILURE("60006",
+        ERROR_CODE_REQUEST_PROCESSING_FAILURE("60007",
                                                       "Error while processing the registration request.",
                                                       "While processing the registration request for flow id %s, server " +
                                                       "returned an error, \"%s\".");
