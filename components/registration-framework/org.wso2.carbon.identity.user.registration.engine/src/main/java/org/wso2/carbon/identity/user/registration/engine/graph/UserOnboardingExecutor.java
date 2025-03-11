@@ -26,7 +26,7 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorM
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.USER_ALREADY_EXISTING_USERNAME;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
@@ -86,7 +86,7 @@ public class UserOnboardingExecutor implements Executor {
         Map<String, char[]> credentials = user.getUserCredentials();
 
         char[] password =
-                credentials.getOrDefault(PASSWORD, new DefaultPasswordGenerator().generatePassword());
+                credentials.getOrDefault(PASSWORD_KEY, new DefaultPasswordGenerator().generatePassword());
 
         Map<String, Object> claims = user.getClaims();
         Map<String, String> userClaims = new HashMap<>();

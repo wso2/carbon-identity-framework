@@ -29,7 +29,7 @@ public class Constants {
     public static final String STATUS_PROMPT_ONLY = "PROMPT_ONLY";
     // Constants for user attributes.
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
-    public static final String PASSWORD = "password";
+    public static final String PASSWORD_KEY = "password";
     // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
     public static final String VALIDATIONS = "validations";

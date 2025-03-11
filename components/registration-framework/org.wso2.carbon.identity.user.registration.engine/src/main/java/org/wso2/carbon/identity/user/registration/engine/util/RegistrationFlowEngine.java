@@ -56,7 +56,7 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorM
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.IDENTIFIER;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.REDIRECT_URL;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_INCOMPLETE;
@@ -234,7 +234,7 @@ public class RegistrationFlowEngine {
 
         // Fetch validations for expected inputs upfront to avoid repeated calls.
         for (String input : expectedInputs) {
-            if (USERNAME_CLAIM_URI.equals(input) || PASSWORD.equals(input)) {
+            if (USERNAME_CLAIM_URI.equals(input) || PASSWORD_KEY.equals(input)) {
                 validationMap.put(input, getValidationDTOs(tenantDomain, input));
             }
         }
@@ -272,7 +272,7 @@ public class RegistrationFlowEngine {
     private Collection<ValidationDTO> getValidationDTOs(String tenantDomain, String key)
             throws RegistrationEngineServerException {
 
-        if (!USERNAME_CLAIM_URI.equals(key) && !PASSWORD.equals(key)) {
+        if (!USERNAME_CLAIM_URI.equals(key) && !PASSWORD_KEY.equals(key)) {
             return Collections.emptyList();
         }
 
