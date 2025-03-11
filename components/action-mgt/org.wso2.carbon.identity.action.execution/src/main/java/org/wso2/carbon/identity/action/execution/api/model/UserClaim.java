@@ -37,11 +37,13 @@ public class UserClaim {
     private final Object value;
 
     public UserClaim(String uri, String[] value) {
+
         this.uri = uri;
         this.value = value;
     }
 
     public UserClaim(String uri, String value) {
+
         this.uri = uri;
         this.value = value;
     }
@@ -52,6 +54,7 @@ public class UserClaim {
      * @return Claim value.
      */
     public Object getValue() {
+
         return value;
     }
 
@@ -61,6 +64,7 @@ public class UserClaim {
      * @return Claim URI.
      */
     public String getUri() {
+
         return uri;
     }
 
