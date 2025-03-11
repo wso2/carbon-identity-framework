@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.authorization.framework.model;
 
-import java.util.HashMap;
+import java.util.List;
 
 /**
  * The {@code BulkAccessEvaluationResponse} class is a generic model class for a bulk access evaluation response
@@ -27,20 +27,16 @@ import java.util.HashMap;
  */
 public class BulkAccessEvaluationResponse {
 
-    private HashMap<AccessEvaluationRequest, AccessEvaluationResponse> results;
-    private HashMap<AccessEvaluationRequest, ErrorResponse> errorResults;
+    private List<AccessEvaluationResponse> results;
 
     /**
-     * Constructs a {@code BulkAccessEvaluationResponse} object with the results and error results.
+     * Constructs a {@code BulkAccessEvaluationResponse} object with the results.
      *
-     * @param results      The results of the bulk access evaluation.
-     * @param errorResults The error results of the bulk access evaluation.
+     * @param results      The list of results of the bulk access evaluation.
      */
-    public BulkAccessEvaluationResponse(HashMap<AccessEvaluationRequest, AccessEvaluationResponse> results, HashMap<AccessEvaluationRequest,
-            ErrorResponse> errorResults) {
+    public BulkAccessEvaluationResponse(List<AccessEvaluationResponse> results) {
 
         this.results = results;
-        this.errorResults = errorResults;
     }
 
     /**
@@ -48,18 +44,8 @@ public class BulkAccessEvaluationResponse {
      *
      * @return The results of the bulk access evaluation.
      */
-    public HashMap<AccessEvaluationRequest, AccessEvaluationResponse> getResults() {
+    public List<AccessEvaluationResponse> getResults() {
 
         return this.results;
-    }
-
-    /**
-     * Returns the error results of the bulk access evaluation.
-     *
-     * @return The error results of the bulk access evaluation.
-     */
-    public HashMap<AccessEvaluationRequest, ErrorResponse> getErrorResults() {
-
-        return this.errorResults;
     }
 }

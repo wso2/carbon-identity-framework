@@ -27,19 +27,19 @@ import java.util.Objects;
  */
 public class AuthorizationResource {
 
-    private String resourceObjectType;
-    private String resourceObjectId;
+    private String resourceType;
+    private String resourceId;
     private Map<String, Object> properties;
 
     /**
      * Constructs an {@code AuthorizationResource} object with the resource object type and the resource object ID.
      *
-     * @param resourceObjectType The type of the resource object.
-     * @param resourceObjectId   The ID of the resource object.
+     * @param resourceType The type of the resource object.
+     * @param resourceId   The ID of the resource object.
      */
-    public AuthorizationResource(String resourceObjectType, String resourceObjectId) {
-        this.resourceObjectType = resourceObjectType;
-        this.resourceObjectId = resourceObjectId;
+    public AuthorizationResource(String resourceType, String resourceId) {
+        this.resourceType = resourceType;
+        this.resourceId = resourceId;
     }
 
     /**
@@ -56,8 +56,8 @@ public class AuthorizationResource {
      *
      * @return The type of the resource object.
      */
-    public String getResourceObjectType() {
-        return resourceObjectType;
+    public String getResourceType() {
+        return resourceType;
     }
 
     /**
@@ -65,8 +65,8 @@ public class AuthorizationResource {
      *
      * @return The ID of the resource object.
      */
-    public String getResourceObjectId() {
-        return resourceObjectId;
+    public String getResourceId() {
+        return resourceId;
     }
 
     /**
@@ -93,13 +93,13 @@ public class AuthorizationResource {
         if (properties == null || that.properties == null) {
             return false;
         }
-        return resourceObjectType.equals(that.resourceObjectType) &&
-                resourceObjectId.equals(that.resourceObjectId) &&
+        return resourceType.equals(that.resourceType) &&
+                resourceId.equals(that.resourceId) &&
                 properties.equals(that.properties);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(resourceObjectType, resourceObjectId, properties);
+        return Objects.hash(resourceType, resourceId, properties);
     }
 }
