@@ -266,7 +266,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     public LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtServerException {
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
-            int authenticatorConfigID = jdbcTemplate.withTransaction(template ->
+            jdbcTemplate.withTransaction(template ->
                 template.executeInsert(Query.ADD_SYSTEM_LOCAL_AUTHENTICATOR_SQL,
                     statement -> {
                         statement.setString(Column.NAME, authenticatorConfig.getName());
@@ -279,11 +279,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                         statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                         statement.setInt(Column.TENANT_ID, tenantId);
                     }, null, true));
-
-            if (authenticatorConfigID == 0) {
-                authenticatorConfigID = getAuthenticatorEntryId(authenticatorConfig.getName(), tenantId);
-            }
-            addAuthenticatorProperty(authenticatorConfigID, authenticatorConfig.getProperties(), tenantId);
 
             return getSystemLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);
         } catch (TransactionException e) {
