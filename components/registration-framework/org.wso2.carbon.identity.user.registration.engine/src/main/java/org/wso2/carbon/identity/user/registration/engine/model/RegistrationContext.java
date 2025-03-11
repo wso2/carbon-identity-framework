@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.MDC;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.NodeConfig;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 
@@ -43,6 +44,7 @@ public class RegistrationContext implements Serializable {
     private String contextIdentifier;
     private String userId;
     private String currentActionId;
+    private ExternalIdPConfig externalIdPConfig;
 
     public NodeConfig getCurrentNode() {
 
@@ -157,5 +159,16 @@ public class RegistrationContext implements Serializable {
     public void setAuthenticatorProperties(Map<String, String> authenticatorProperties) {
 
         this.authenticatorProperties = authenticatorProperties;
+    }
+
+    public ExternalIdPConfig getExternalIdPConfig() {
+
+        return externalIdPConfig;
+    }
+
+    public void setExternalIdPConfig(
+            ExternalIdPConfig externalIdPConfig) {
+
+        this.externalIdPConfig = externalIdPConfig;
     }
 }
