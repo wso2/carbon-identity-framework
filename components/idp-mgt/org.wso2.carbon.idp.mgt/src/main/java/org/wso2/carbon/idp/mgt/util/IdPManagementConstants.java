@@ -126,6 +126,8 @@ public class IdPManagementConstants {
             = "Recovery.Notification.Password.Enable";
     public static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.emailLink.Enable";
+    public static final String EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY =
+            "Recovery.Notification.Password.OTP.SendOTPInEmail";
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY
             = "Recovery.Notification.Password.smsOtp.Enable";
 
