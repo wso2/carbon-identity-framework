@@ -95,6 +95,10 @@ public class Constants {
                                                 "Error while loading identity provider configurations.",
                                                 "Error occurred loading the configurations of identity provider: %s " +
                                                   "of tenant: %s."),
+        ERROR_CODE_EXECUTOR_FAILURE("65012",
+                                    "An error occurred during executor processing.",
+                                    "While processing the registration request for flow id: %s, executor returns an " +
+                                            "error, \"%s\"."),
 
         // Client errors.
          ERROR_CODE_INVALID_FLOW_ID("60001",
