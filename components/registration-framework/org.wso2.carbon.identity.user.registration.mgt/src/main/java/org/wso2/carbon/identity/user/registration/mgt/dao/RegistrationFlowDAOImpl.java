@@ -270,7 +270,8 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
             return jdbcTemplate.executeQuery(GET_FIRST_STEP_ID, (resultSet, rowNumber) -> {
                 return resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID);
             }, preparedStatement -> {
-                preparedStatement.setInt(1, tenantId);
+                preparedStatement.setBoolean(1, true);
+                preparedStatement.setInt(2, tenantId);
             }).get(0);
         } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_FIRST_STEP_ID, e, tenantId);
