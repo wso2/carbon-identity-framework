@@ -40,6 +40,7 @@
                             !org.wso2.carbon.identity.framework.async.status.mgt.internal,
                             org.wso2.carbon.identity.framework.async.status.mgt.*,
                             org.wso2.carbon.identity.framework.async.status.mgt.models.dos
+                            org.wso2.carbon.identity.framework.async.status.mgt.queue
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                         <ListenerManager-RequiredServices>
@@ -90,6 +91,11 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>5.24.0</version>
         </dependency>
         <!--Test Dependencies-->
         <dependency>

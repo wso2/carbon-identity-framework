@@ -20,17 +20,22 @@ package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.framework.async.status.mgt.constant.OperationStatus;
-import org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants;
 
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationRecord;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationRecord;
 
 import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLConstants.*;
 
@@ -40,27 +45,26 @@ import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLCo
 public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     private static final Logger LOGGER =
             Logger.getLogger(AsyncStatusMgtDAOImpl.class.getName());
-
+    
     @Override
-    public String registerAsyncOperation(OperationDBContext operationDBContext) {
-        LOGGER.info("Async Operation Registering Started.");
-
-        String generatedOperationId = null;
-
+    public String registerAsyncOperationWithoutUpdate(OperationRecord record) {
+        
+        LOGGER.info("Asynchronous operation without update started.");
+        String generatedOperationId;
         String currentTimestamp = new Timestamp(new Date().getTime()).toString();
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection,
                      CREATE_ASYNC_OPERATION_IDN, OperationStatusTableColumns.IDN_OPERATION_ID)) {
 
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_TYPE, operationDBContext.getOperationContext().getOperationType());
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID, operationDBContext.getOperationContext().getOperationSubjectId());
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_RESOURCE_TYPE, operationDBContext.getOperationContext().getOperationType());
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_RESIDENT_ORG_ID, operationDBContext.getOperationContext().getResidentOrgId());
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID, operationDBContext.getOperationContext().getInitiatorId());
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_STATUS, OperationStatus.ONGOING.toString());
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_CREATED_TIME, currentTimestamp);
-            statement.setString(SQLConstants.OperationStatusTableColumns.IDN_LAST_MODIFIED, currentTimestamp);
+            statement.setString(OperationStatusTableColumns.IDN_OPERATION_TYPE, record.getOperationType());
+            statement.setString(OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID, record.getOperationSubjectId());
+            statement.setString(OperationStatusTableColumns.IDN_RESOURCE_TYPE, record.getOperationPolicy());
+            statement.setString(OperationStatusTableColumns.IDN_RESIDENT_ORG_ID, record.getResidentOrgId());
+            statement.setString(OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID, record.getInitiatorId());
+            statement.setString(OperationStatusTableColumns.IDN_OPERATION_STATUS, OperationStatus.ONGOING.toString());
+            statement.setString(OperationStatusTableColumns.IDN_CREATED_TIME, currentTimestamp);
+            statement.setString(OperationStatusTableColumns.IDN_LAST_MODIFIED, currentTimestamp);
 
             int rowsAffected = statement.executeUpdate();
             LOGGER.info("Async Operation Registering Success. Rows affected: " + rowsAffected);
@@ -81,6 +85,59 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     }
 
     @Override
+    public String registerAsyncOperationWithUpdate(OperationRecord record) {
+        String generatedOperationId;
+        String currentTimestamp = new Timestamp(new Date().getTime()).toString();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            String deleteSql = "DELETE FROM IDN_ASYNC_OPERATION_STATUS " +
+                    "WHERE IDN_OPERATION_ID = ( " +
+                    "    SELECT IDN_OPERATION_ID " +
+                    "    FROM IDN_ASYNC_OPERATION_STATUS " +
+                    "    WHERE IDN_OPERATION_TYPE = ? " +
+                    "    AND IDN_OPERATION_SUBJECT_ID = ? " +
+                    "    ORDER BY IDN_CREATED_TIME DESC " +
+                    "    LIMIT 1 " +
+                    ")";
+
+            try (PreparedStatement deleteStatement = connection.prepareStatement(deleteSql)) {
+                deleteStatement.setString(1, record.getOperationType());
+                deleteStatement.setString(2, record.getOperationSubjectId());
+                deleteStatement.executeUpdate();
+            }
+
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
+                    CREATE_ASYNC_OPERATION_IDN, OperationStatusTableColumns.IDN_OPERATION_ID)) {
+                statement.setString(OperationStatusTableColumns.IDN_OPERATION_TYPE, record.getOperationType());
+                statement.setString(OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID, record.getOperationSubjectId());
+                statement.setString(OperationStatusTableColumns.IDN_RESOURCE_TYPE, record.getOperationPolicy());
+                statement.setString(OperationStatusTableColumns.IDN_RESIDENT_ORG_ID, record.getResidentOrgId());
+                statement.setString(OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID, record.getInitiatorId());
+                statement.setString(OperationStatusTableColumns.IDN_OPERATION_STATUS, OperationStatus.ONGOING.toString());
+                statement.setString(OperationStatusTableColumns.IDN_CREATED_TIME, currentTimestamp);
+                statement.setString(OperationStatusTableColumns.IDN_LAST_MODIFIED, currentTimestamp);
+
+                int rowsAffected = statement.executeUpdate();
+                LOGGER.info("Async Operation Registering Success. Rows affected: " + rowsAffected);
+
+                ResultSet generatedKeys = statement.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    generatedOperationId = generatedKeys.getString(1);
+                    LOGGER.info("Generated IDN_OPERATION_ID: " + generatedOperationId);
+                } else {
+                    throw new SQLException("Creating operation failed, no ID obtained.");
+                }
+            }
+            LOGGER.info("Asynchronous operation-wu updated (delete and insert).");
+        } catch (SQLException e) {
+            String errorMessage = "Error during Asynchronous operation-wu update (delete and insert).";
+            LOGGER.info(errorMessage + e);
+            throw new RuntimeException(errorMessage, e);
+        }
+        return generatedOperationId;
+    }
+
+    @Override
     public void registerUnitAsyncOperation(String operationId, String residentResourceId, String targetOrgId, String unitOperationStatus, String statusMessage) {
         LOGGER.info("Unit Operation Registration Started.");
         Connection connection = IdentityDatabaseUtil.getUserDBConnection(false);
@@ -88,13 +145,13 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
             try{
                 String currentTimestamp = new Timestamp(new Date().getTime()).toString();
 
-                NamedPreparedStatement statement = new NamedPreparedStatement(connection,CREATE_ASYNC_OPERATION_UNIT, SQLConstants.UnitOperationStatusTableColumns.UM_UNIT_OPERATION_ID);
-                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_OPERATION_ID, operationId);
-                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_RESIDENT_RESOURCE_ID, residentResourceId);
-                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_TARGET_ORG_ID, targetOrgId);
-                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_UNIT_OPERATION_STATUS, unitOperationStatus);
-                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_OPERATION_STATUS_MESSAGE, statusMessage);
-                statement.setString(SQLConstants.UnitOperationStatusTableColumns.UM_CREATED_AT, currentTimestamp);
+                NamedPreparedStatement statement = new NamedPreparedStatement(connection,CREATE_ASYNC_OPERATION_UNIT, UnitOperationStatusTableColumns.UM_UNIT_OPERATION_ID);
+                statement.setString(UnitOperationStatusTableColumns.UM_OPERATION_ID, operationId);
+                statement.setString(UnitOperationStatusTableColumns.UM_RESIDENT_RESOURCE_ID, residentResourceId);
+                statement.setString(UnitOperationStatusTableColumns.UM_TARGET_ORG_ID, targetOrgId);
+                statement.setString(UnitOperationStatusTableColumns.UM_UNIT_OPERATION_STATUS, unitOperationStatus);
+                statement.setString(UnitOperationStatusTableColumns.UM_OPERATION_STATUS_MESSAGE, statusMessage);
+                statement.setString(UnitOperationStatusTableColumns.UM_CREATED_AT, currentTimestamp);
                 statement.executeUpdate();
                 LOGGER.info("Unit Operation Registration Success.");
 
@@ -107,7 +164,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     }
 
     @Override
-    public void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue) {
+    public void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationRecord> queue) {
         LOGGER.info("Batch Unit Operation Registration Started.");
 
         String currentTimestamp = new Timestamp(new Date().getTime()).toString();
@@ -115,7 +172,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, CREATE_ASYNC_OPERATION_UNIT_IDN, UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_ID)) {
 
-            for (UnitOperationContext context : queue) {
+            for (UnitOperationRecord context : queue) {
                 LOGGER.info("OperationId:" + context.getOperationId());
                 statement.setString(UnitOperationStatusTableColumns.IDN_OPERATION_ID, context.getOperationId());
                 statement.setString(UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_TYPE, "");
@@ -137,7 +194,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     }
 
     @Override
-    public void saveOperationsBatch(ConcurrentLinkedQueue<UnitOperationContext> queue) {
+    public void saveOperationsBatch(ConcurrentLinkedQueue<UnitOperationRecord> queue) {
         LOGGER.info("Batch Unit Operation Registration Started.");
 
         String currentTimestamp = new Timestamp(new Date().getTime()).toString();
@@ -145,7 +202,7 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              NamedPreparedStatement statement = new NamedPreparedStatement(connection, CREATE_ASYNC_OPERATION_UNIT_IDN, UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_ID)) {
 
-            for (UnitOperationContext context : queue) {
+            for (UnitOperationRecord context : queue) {
                 LOGGER.info("OperationId:" + context.getOperationId());
                 statement.setString(UnitOperationStatusTableColumns.IDN_OPERATION_ID, context.getOperationId());
                 statement.setString(UnitOperationStatusTableColumns.IDN_UNIT_OPERATION_TYPE, "");
@@ -167,15 +224,95 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     }
 
     @Override
-    public ResponseOperationContext getLatestAsyncOperationStatus(String operationSubjectId, String residentOrgId, String resourceType, String initiatorId) {
+    public ResponseOperationContext getLatestAsyncOperationStatus(String resourceType, String operationSubjectId) {
+        String sql = "SELECT IDN_OPERATION_ID, IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, IDN_RESOURCE_TYPE, IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS " +
+                "FROM IDN_ASYNC_OPERATION_STATUS " +
+                "WHERE IDN_RESOURCE_TYPE = ? " +
+                "AND IDN_OPERATION_SUBJECT_ID = ? " +
+                "ORDER BY IDN_CREATED_TIME DESC " +
+                "LIMIT 1;";
+        ResponseOperationContext responseContext = new ResponseOperationContext();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, resourceType);
+            statement.setString(2, operationSubjectId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    responseContext.setOperationId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_ID));
+                    responseContext.setOperationType(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_TYPE));
+                    responseContext.setOperationSubjectId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID));
+                    responseContext.setResourceType(resultSet.getString(OperationStatusTableColumns.IDN_RESOURCE_TYPE));
+                    responseContext.setResidentOrgId(resultSet.getString(OperationStatusTableColumns.IDN_RESIDENT_ORG_ID));
+                    responseContext.setInitiatorId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID));
+                    responseContext.setOperationStatus(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_STATUS));
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error fetching latest async operation status for subject: " + operationSubjectId;
+            LOGGER.info(errorMessage+e);
+            throw new RuntimeException(errorMessage, e);
+        }
+        LOGGER.info("Fetching latest async operation status for subject: " + operationSubjectId);
+        return responseContext;
+    }
+
+    @Override
+    public List<ResponseOperationContext> getAsyncOperationStatusWithinDays(String resourceType, String operationSubjectId, int days) {
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime cutoff = now.minusDays(days);
+        Timestamp cutoffTimestamp = Timestamp.valueOf(cutoff);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC")); // Ensure UTC time zone
+        String cutoffTimestampString = sdf.format(cutoffTimestamp);
+
+        String sql = "SELECT IDN_OPERATION_ID, IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, IDN_RESOURCE_TYPE, IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS " +
+                "FROM IDN_ASYNC_OPERATION_STATUS " +
+                "WHERE IDN_RESOURCE_TYPE = ? " +
+                "AND IDN_OPERATION_SUBJECT_ID = ? " +
+                "AND IDN_CREATED_TIME >= ? " +
+                "ORDER BY IDN_CREATED_TIME DESC;";
+
+        List<ResponseOperationContext> responseContexts = new ArrayList<>();
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, resourceType);
+            statement.setString(2, operationSubjectId);
+            statement.setString(3, cutoffTimestampString);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ResponseOperationContext responseContext = new ResponseOperationContext();
+                    responseContext.setOperationId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_ID));
+                    responseContext.setOperationType(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_TYPE));
+                    responseContext.setOperationSubjectId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID));
+                    responseContext.setResourceType(resultSet.getString(OperationStatusTableColumns.IDN_RESOURCE_TYPE));
+                    responseContext.setResidentOrgId(resultSet.getString(OperationStatusTableColumns.IDN_RESIDENT_ORG_ID));
+                    responseContext.setInitiatorId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID));
+                    responseContext.setOperationStatus(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_STATUS));
+                    responseContexts.add(responseContext);
+                }
+            }
+        } catch (SQLException e) {
+            String errorMessage = "Error fetching async operation status for subject: " + operationSubjectId + " within " + days + " days.";
+             LOGGER.info(errorMessage + e);
+            throw new RuntimeException(errorMessage, e);
+        }
+        LOGGER.info("Fetching async operation status for subject: " + operationSubjectId + " within " + days + " days.");
+        return responseContexts;
+    }
+
+    @Override
+    public ResponseOperationContext getLatestAsyncOperationStatusByInitiatorId(String resourceType, String operationSubjectId, String initiatorId) {
         LOGGER.info("Fetching latest async operation status for subject: " + operationSubjectId);
 
-        String sql = "SELECT IDN_OPERATION_ID, IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, IDN_RESOURCE_TYPE, " +
-                "IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS " +
+        String sql = "SELECT IDN_OPERATION_ID, IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, IDN_RESOURCE_TYPE, IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS " +
                 "FROM IDN_ASYNC_OPERATION_STATUS " +
-                "WHERE IDN_OPERATION_SUBJECT_ID = ? " +
-                "AND IDN_RESIDENT_ORG_ID = ? " +
-                "AND IDN_RESOURCE_TYPE = ? " +
+                "WHERE IDN_RESOURCE_TYPE = ? " +
+                "AND IDN_OPERATION_SUBJECT_ID = ? " +
                 "AND IDN_OPERATION_INITIATOR_ID = ? " +
                 "ORDER BY IDN_CREATED_TIME DESC " +
                 "LIMIT 1;";
@@ -183,26 +320,19 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            LOGGER.info(":"+operationSubjectId);
-            LOGGER.info(":"+residentOrgId);
-            LOGGER.info(":"+resourceType);
-            LOGGER.info(":"+initiatorId);
-
-            statement.setString(1, operationSubjectId);
-            statement.setString(2, residentOrgId);
-            statement.setString(3, resourceType);
-            statement.setString(4, initiatorId);
+            statement.setString(1, resourceType);
+            statement.setString(2, operationSubjectId);
+            statement.setString(3, initiatorId);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    responseContext.setOperationId(resultSet.getString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_ID));
-                    responseContext.setOperationType(resultSet.getString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_TYPE));
-                    responseContext.setOperationSubjectId(resultSet.getString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID));
-                    responseContext.setResourceType(resultSet.getString(SQLConstants.OperationStatusTableColumns.IDN_RESOURCE_TYPE));
-                    responseContext.setResidentOrgId(resultSet.getString(SQLConstants.OperationStatusTableColumns.IDN_RESIDENT_ORG_ID));
-                    responseContext.setInitiatorId(resultSet.getString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID));
-                    responseContext.setOperationStatus(resultSet.getString(SQLConstants.OperationStatusTableColumns.IDN_OPERATION_STATUS));
+                    responseContext.setOperationId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_ID));
+                    responseContext.setOperationType(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_TYPE));
+                    responseContext.setOperationSubjectId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID));
+                    responseContext.setResourceType(resultSet.getString(OperationStatusTableColumns.IDN_RESOURCE_TYPE));
+                    responseContext.setResidentOrgId(resultSet.getString(OperationStatusTableColumns.IDN_RESIDENT_ORG_ID));
+                    responseContext.setInitiatorId(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID));
+                    responseContext.setOperationStatus(resultSet.getString(OperationStatusTableColumns.IDN_OPERATION_STATUS));
                 }
             }
         } catch (SQLException e) {

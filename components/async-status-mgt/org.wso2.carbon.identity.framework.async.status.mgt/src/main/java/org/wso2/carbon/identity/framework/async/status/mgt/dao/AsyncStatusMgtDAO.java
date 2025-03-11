@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationDBContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationRecord;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationRecord;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -31,54 +32,88 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public interface AsyncStatusMgtDAO {
 
     /**
-     * Registering an Asynchronous Operation.
+     * Registers a new asynchronous operation without checking for existing records.
+     * This method directly inserts a new operation record into the database.
      *
-     * @param operationDBContext Context of the asynchronous operation.
+     * @param record The {@link OperationRecord} containing the details of the asynchronous operation.
+     * @return The unique identifier (operation ID) of the newly registered operation.
      */
-    String registerAsyncOperation(OperationDBContext operationDBContext);
+    String registerAsyncOperationWithoutUpdate(OperationRecord record);
 
     /**
-     * Registers a Unit Asynchronous Operation.
+     * Registers a new asynchronous operation or updates an existing one if a record with the same operation ID exists.
+     * This method allows for idempotent operation registration, ensuring that subsequent calls with the same record
+     * either create a new entry or update the existing one.
      *
-     * @param operationId The unique identifier of the asynchronous user sharing operation.
-     * @param residentResourceId The unique identifier of the user resource being shared.
-     * @param targetOrgId The identifier of the organization to which the user resource is being shared.
-     * @param unitOperationStatus The status of the individual unit operation within the asynchronous process.
-     * @param statusMessage A detailed message providing additional information about the operation's status or any errors encountered.
+     * @param record The {@link OperationRecord} containing the details of the asynchronous operation.
+     * @return The unique identifier (operation ID) of the registered or updated operation.
+     */
+    String registerAsyncOperationWithUpdate(OperationRecord record);
+
+    /**
+     * Registers a unit asynchronous operation, which is a sub-task within a larger asynchronous operation.
+     * This method records the status of individual units of work that contribute to a complex asynchronous task.
+     *
+     * @param operationId The unique identifier of the parent asynchronous operation.
+     * @param residentResourceId The unique identifier of the resource being operated on.
+     * @param targetOrgId The identifier of the target organization involved in the operation.
+     * @param unitOperationStatus The status of the unit operation.
+     * @param statusMessage A message providing additional information about the unit operation status.
      */
     void registerUnitAsyncOperation(String operationId, String residentResourceId, String targetOrgId, String unitOperationStatus, String statusMessage);
 
     /**
-     * Registers A Batch Of Unit Asynchronous Operations.
+     * Registers a batch of unit asynchronous operations.
+     * This method efficiently inserts multiple unit operation statuses into the database.
      *
-     * @param operationId The unique identifier of the asynchronous user sharing operation.
-     * @param operationType The type of the operation.
-     * @param queue The queue containing the statuses of unit asynchronous operations.
+     * @param operationId The unique identifier of the parent asynchronous operation.
+     * @param operationType The type of the parent asynchronous operation.
+     * @param queue A queue containing {@link UnitOperationRecord} objects, each representing a unit operation.
      */
-    void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue);
+    void registerBulkUnitAsyncOperation(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationRecord> queue);
 
     /**
-     * Registers A Batch Of Unit Asynchronous Operations.
+     * Saves a batch of unit asynchronous operations to the database.
+     * This method is optimized for bulk insertion of unit operation records.
      *
-     * @param queue The queue containing the statuses of unit asynchronous operations.
+     * @param queue A queue containing {@link UnitOperationRecord} objects to be saved.
      */
-    void saveOperationsBatch(ConcurrentLinkedQueue<UnitOperationContext> queue);
+    void saveOperationsBatch(ConcurrentLinkedQueue<UnitOperationRecord> queue);
 
     /**
-     * Fetching the latest Asynchronous Operation.
+     * Retrieves the latest asynchronous operation status for a given resource type and operation subject.
      *
-     * @param operationSubjectId ID of the subject of the asynchronous operation.
-     * @param residentOrgId Organization ID of the subject of the asynchronous operation.
-     * @param resourceType Resource type of the asynchronous operation.
-     * @param initiatorId Initiator ID of the asynchronous operation.
+     * @param resourceType The type of resource associated with the operation.
+     * @param operationSubjectId The identifier of the subject related to the operation.
+     * @return A {@link ResponseOperationContext} object containing the latest operation status, or null if not found.
      */
-    ResponseOperationContext getLatestAsyncOperationStatus(String operationSubjectId, String residentOrgId, String resourceType, String initiatorId);
+    ResponseOperationContext getLatestAsyncOperationStatus(String resourceType, String operationSubjectId);
 
     /**
-     * Updating the registered Asynchronous Operation.
+     * Retrieves the latest asynchronous operation status for a given resource type, operation subject, and initiator.
      *
-     * @param operationID Operation ID of the asynchronous operation.
-     * @param status Status of the asynchronous operation.
+     * @param resourceType The type of resource associated with the operation.
+     * @param operationSubjectId The identifier of the subject related to the operation.
+     * @param initiatorId The identifier of the initiator of the operation.
+     * @return A {@link ResponseOperationContext} object containing the latest operation status, or null if not found.
+     */
+    ResponseOperationContext getLatestAsyncOperationStatusByInitiatorId(String resourceType, String operationSubjectId, String initiatorId);
+
+    /**
+     * Retrieves a list of asynchronous operation statuses within a specified number of days.
+     *
+     * @param resourceType The type of resource associated with the operations.
+     * @param operationSubjectId The identifier of the subject related to the operations.
+     * @param days The number of days within which to retrieve operation statuses.
+     * @return A list of {@link ResponseOperationContext} objects, or an empty list if no matching operations are found.
+     */
+    List<ResponseOperationContext> getAsyncOperationStatusWithinDays(String resourceType, String operationSubjectId, int days);
+
+    /**
+     * Updates the status of an existing asynchronous operation.
+     *
+     * @param operationID The unique identifier of the operation to be updated.
+     * @param status The new status of the operation.
      */
     void updateAsyncOperationStatus(String operationID, String status);
 

@@ -5,14 +5,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ResponseUnitOperationContext {
     private String operationId;
     private String operationType;
-    private ConcurrentLinkedQueue<UnitOperationContext> queue;
+    private ConcurrentLinkedQueue<UnitOperationRecord> queue;
     private String unitOperationStatus;
     private String statusMessage;
 
     public ResponseUnitOperationContext() {
     }
 
-    public ResponseUnitOperationContext(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationContext> queue, String unitOperationStatus, String statusMessage) {
+    public ResponseUnitOperationContext(String operationId, String operationType, ConcurrentLinkedQueue<UnitOperationRecord> queue, String unitOperationStatus, String statusMessage) {
         this.operationId = operationId;
         this.operationType = operationType;
         this.queue = queue;
@@ -36,11 +36,11 @@ public class ResponseUnitOperationContext {
         this.operationType = operationType;
     }
 
-    public ConcurrentLinkedQueue<UnitOperationContext> getQueue() {
+    public ConcurrentLinkedQueue<UnitOperationRecord> getQueue() {
         return queue;
     }
 
-    public void setQueue(ConcurrentLinkedQueue<UnitOperationContext> queue) {
+    public void setQueue(ConcurrentLinkedQueue<UnitOperationRecord> queue) {
         this.queue = queue;
     }
 

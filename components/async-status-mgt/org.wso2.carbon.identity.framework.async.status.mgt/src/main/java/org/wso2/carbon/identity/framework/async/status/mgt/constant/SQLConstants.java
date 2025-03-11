@@ -31,6 +31,25 @@ public class SQLConstants {
             ":" + OperationStatusTableColumns.IDN_CREATED_TIME + ";, " +
             ":" + OperationStatusTableColumns.IDN_LAST_MODIFIED + ";)";
 
+    public static final String CREATE_ASYNC_OPERATION_WITH_UPDATE = "UPDATE IDN_ASYNC_OPERATION_STATUS(" +
+            "IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, IDN_RESOURCE_TYPE," +
+            "IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS," +
+            "IDN_CREATED_TIME, IDN_LAST_MODIFIED) VALUES("+
+            ":" + OperationStatusTableColumns.IDN_OPERATION_TYPE + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID + ";, " +
+            ":" + OperationStatusTableColumns.IDN_RESOURCE_TYPE + ";, " +
+            ":" + OperationStatusTableColumns.IDN_RESIDENT_ORG_ID + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_STATUS + ";, " +
+            ":" + OperationStatusTableColumns.IDN_CREATED_TIME + ";, " +
+            ":" + OperationStatusTableColumns.IDN_LAST_MODIFIED + ";)";
+
+    public static final String UPDATE_ASYNC_OPERATION_IDN = "UPDATE IDN_ASYNC_OPERATION_STATUS SET " +
+            "IDN_OPERATION_STATUS = :" + OperationStatusTableColumns.IDN_OPERATION_STATUS + ";, " +
+            "IDN_LAST_MODIFIED = :" + OperationStatusTableColumns.IDN_LAST_MODIFIED + "; " +
+            "WHERE IDN_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID + ";";
+
+
     public static final String UPDATE_ASYNC_OPERATION_STATUS =
             "UPDATE UM_ASYNC_OPERATION_STATUS " +
                     "SET UM_OPERATION_STATUS = :" + OperationStatusTableColumns.UM_OPERATION_STATUS + "; " +

@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.queue;
 
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationRecord;
 
 import java.util.concurrent.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,16 +10,16 @@ import java.util.logging.Logger;
 /**
  * In-memory queue to store async operations, with database fallback.
  */
-public class AsyncOperationQueue {
-    private static final Logger LOGGER = Logger.getLogger(AsyncOperationQueue.class.getName());
-    private final ConcurrentLinkedQueue<UnitOperationContext> queue = new ConcurrentLinkedQueue<>();
+public class AsyncOperationDataBuffer {
+    private static final Logger LOGGER = Logger.getLogger(AsyncOperationDataBuffer.class.getName());
+    private final ConcurrentLinkedQueue<UnitOperationRecord> queue = new ConcurrentLinkedQueue<>();
     private final AsyncStatusMgtDAO asyncStatusMgtDAO;
     private final int threshold;
     private final int flushIntervalSeconds;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
 
-    public AsyncOperationQueue(AsyncStatusMgtDAO asyncStatusMgtDAO, int threshold, int flushIntervalSeconds) {
+    public AsyncOperationDataBuffer(AsyncStatusMgtDAO asyncStatusMgtDAO, int threshold, int flushIntervalSeconds) {
         this.asyncStatusMgtDAO = asyncStatusMgtDAO;
         this.threshold = threshold;
         this.flushIntervalSeconds = flushIntervalSeconds;
@@ -31,7 +31,7 @@ public class AsyncOperationQueue {
      * Add an operation to the queue. If queue exceeds threshold, persist to DB.
      * @param operation The operation to add.
      */
-    public synchronized void enqueue(UnitOperationContext operation) {
+    public synchronized void add(UnitOperationRecord operation) {
         queue.offer(operation);
         LOGGER.info("Queue size: " + queue.size());
         if (queue.size() >= threshold) {
@@ -55,7 +55,7 @@ public class AsyncOperationQueue {
      * Retrieve and remove an operation from the queue.
      * @return The next operation, or null if the queue is empty.
      */
-    public synchronized UnitOperationContext dequeue() {
+    public synchronized UnitOperationRecord dequeue() {
         return queue.poll();
     }
 

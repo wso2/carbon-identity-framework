@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 
-public class UnitOperationContext {
+public class UnitOperationRecord {
     private String operationId;
     private String operationType;
     private String operationInitiatedResourceId;
@@ -8,10 +8,10 @@ public class UnitOperationContext {
     private String unitOperationStatus;
     private String statusMessage;
 
-    public UnitOperationContext() {
+    public UnitOperationRecord() {
     }
 
-    public UnitOperationContext(String operationId, String operationType, String operationInitiatedResourceId, String targetOrgId, String unitOperationStatus, String statusMessage) {
+    public UnitOperationRecord(String operationId, String operationType, String operationInitiatedResourceId, String targetOrgId, String unitOperationStatus, String statusMessage) {
         this.operationId = operationId;
         this.operationType = operationType;
         this.operationInitiatedResourceId = operationInitiatedResourceId;
