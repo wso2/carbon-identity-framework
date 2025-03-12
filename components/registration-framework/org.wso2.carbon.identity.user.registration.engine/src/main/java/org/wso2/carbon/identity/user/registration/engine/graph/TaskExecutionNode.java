@@ -134,6 +134,7 @@ public class TaskExecutionNode implements Node {
                         .status(STATUS_INCOMPLETE)
                         .type(VIEW)
                         .requiredData(response.getRequiredData())
+                        .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_EXTERNAL_REDIRECTION:
                 return new Response.Builder()

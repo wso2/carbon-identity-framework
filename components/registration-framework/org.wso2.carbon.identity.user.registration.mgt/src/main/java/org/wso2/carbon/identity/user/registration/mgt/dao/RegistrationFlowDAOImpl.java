@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
@@ -230,10 +231,11 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                     .findFirst()
                     .orElseThrow(() -> handleServerException(Constants.ErrorMessages.ERROR_CODE_INVALID_NODE, firstStepId,
                                                              tenantId));
-            registrationFlowDTO.getSteps().add(firstStep);
-            steps.stream()
-                    .filter(step -> !step.getId().equals(firstStepId))
-                    .forEach(step -> registrationFlowDTO.getSteps().add(step));
+            if (StringUtils.isNotBlank(firstStepId)) {
+                registrationFlowDTO.getSteps().add(firstStep);
+                steps.remove(firstStep);
+            }
+            registrationFlowDTO.getSteps().addAll(steps);
             return registrationFlowDTO;
         } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_FLOW, e, tenantId);
@@ -267,12 +269,13 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return jdbcTemplate.executeQuery(GET_FIRST_STEP_ID, (resultSet, rowNumber) -> {
+            List<String> stepIds = jdbcTemplate.executeQuery(GET_FIRST_STEP_ID, (resultSet, rowNumber) -> {
                 return resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID);
             }, preparedStatement -> {
                 preparedStatement.setBoolean(1, true);
                 preparedStatement.setInt(2, tenantId);
-            }).get(0);
+            });
+            return stepIds.isEmpty() ? null : stepIds.get(0);
         } catch (DataAccessException e) {
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_FIRST_STEP_ID, e, tenantId);
         }
