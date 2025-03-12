@@ -51,6 +51,11 @@ public class User {
         return id;
     }
 
+    public List<UserClaim> getClaims() {
+
+        return Collections.unmodifiableList(claims);
+    }
+
     public void addClaim(UserClaim userClaim) {
 
         claims.add(userClaim);
@@ -61,14 +66,14 @@ public class User {
         return Collections.unmodifiableList(groups);
     }
 
+    public void addGroup(String group) {
+
+        groups.add(group);
+    }
+
     public List<String> getRoles() {
 
         return Collections.unmodifiableList(roles);
-    }
-
-    public List<UserClaim> getClaims() {
-
-        return Collections.unmodifiableList(claims);
     }
 
     /**
