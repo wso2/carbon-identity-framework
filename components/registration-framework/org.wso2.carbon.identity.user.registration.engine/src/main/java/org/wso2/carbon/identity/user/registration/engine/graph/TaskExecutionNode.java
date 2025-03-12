@@ -40,8 +40,10 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -78,8 +80,7 @@ public class TaskExecutionNode implements Node {
             throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getRegGraph().getId(),
                                         context.getTenantDomain());
         }
-        context.setAuthenticatorProperties(
-                getAuthenticatorProperties(context.getTenantDomain(), configs.getExecutorConfig()));
+        addIdpConfigsToContext(context, configs.getExecutorConfig());
         return triggerExecutor(context, configs);
     }
 
@@ -174,24 +175,28 @@ public class TaskExecutionNode implements Node {
         return new Response.Builder().status(STATUS_COMPLETE).build();
     }
 
-    private Map<String, String> getAuthenticatorProperties(String tenantDomain, ExecutorDTO executorDTO)
+    private void addIdpConfigsToContext(RegistrationContext context, ExecutorDTO executorDTO)
             throws RegistrationEngineServerException {
 
+        String tenantDomain = context.getTenantDomain();
         Map<String, String> propertyMap = new HashMap<>();
-        if (executorDTO.getIdpName() == null){
-            return propertyMap;
+        if (StringUtils.isBlank(executorDTO.getIdpName())){
+            return;
         }
         try {
             IdentityProvider idp =
                     IdentityProviderManager.getInstance().getIdPByName(executorDTO.getIdpName(), tenantDomain);
-            if (idp != null && idp.getDefaultAuthenticatorConfig() != null) {
+            if (idp == null) {
+                throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain);
+            }
+            if (idp.getDefaultAuthenticatorConfig() != null) {
                 FederatedAuthenticatorConfig authenticatorConfig = idp.getDefaultAuthenticatorConfig();
                 for (Property property : authenticatorConfig.getProperties()) {
                     propertyMap.put(property.getName(), property.getValue());
                 }
-                return propertyMap;
+                context.setAuthenticatorProperties(propertyMap);
+                context.setExternalIdPConfig(new ExternalIdPConfig(idp));
             }
-            throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain);
         } catch (IdentityProviderManagementException e) {
             throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain, e);
         }
