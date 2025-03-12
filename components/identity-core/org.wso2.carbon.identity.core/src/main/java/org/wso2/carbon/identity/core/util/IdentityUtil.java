@@ -222,7 +222,7 @@ public class IdentityUtil {
     public static String getPropertyWithoutStandardPort(String key) {
 
         String strValue = getPropertyValue(key);
-        strValue = replacePortNumberPlaceholder(strValue);
+        strValue = replacePortNumberPlaceholder(strValue, Boolean.TRUE);
         strValue = fillURLPlaceholders(strValue);
         return strValue;
     }
@@ -1009,7 +1009,7 @@ public class IdentityUtil {
      * @param urlWithPlaceholders URL with the placeholders.
      * @return URL with the port number placeholder replaced.
      */
-    public static String replacePortNumberPlaceholder(String urlWithPlaceholders) {
+    public static String replacePortNumberPlaceholder(String urlWithPlaceholders, boolean dropStandardPort) {
 
         if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT)) {
 
@@ -1030,10 +1030,10 @@ public class IdentityUtil {
                 }
             }
 
-            if ((StringUtils.equals(mgtTransport, HTTP) &&
+            if (dropStandardPort && ((StringUtils.equals(mgtTransport, HTTP) &&
                     StringUtils.equals(mgtTransportPort, String.valueOf(HttpURL.DEFAULT_PORT))) ||
                     (StringUtils.equals(mgtTransport, HTTPS) &&
-                            StringUtils.equals(mgtTransportPort, String.valueOf(HttpsURL.DEFAULT_PORT)))) {
+                            StringUtils.equals(mgtTransportPort, String.valueOf(HttpsURL.DEFAULT_PORT))))) {
                 urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders, ":" +
                         IdentityConstants.CarbonPlaceholders.CARBON_PORT, StringUtils.EMPTY);
             } else {
@@ -1076,28 +1076,7 @@ public class IdentityUtil {
                     hostName);
         }
 
-        if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT)) {
-
-            String mgtTransport = CarbonUtils.getManagementTransport();
-            AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
-                    getServerConfigContext().getAxisConfiguration();
-
-            int mgtTransportProxyPort = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
-            String mgtTransportPort = Integer.toString(mgtTransportProxyPort);
-
-            if (mgtTransportProxyPort <= 0) {
-                if (StringUtils.equals(mgtTransport, HTTP)) {
-                    mgtTransportPort = System.getProperty(
-                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP_PROPERTY);
-                } else {
-                    mgtTransportPort = System.getProperty(
-                            IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTPS_PROPERTY);
-                }
-            }
-
-            urlWithPlaceholders = StringUtils.replace(urlWithPlaceholders,
-                    IdentityConstants.CarbonPlaceholders.CARBON_PORT, mgtTransportPort);
-        }
+        urlWithPlaceholders = replacePortNumberPlaceholder(urlWithPlaceholders, Boolean.FALSE);
 
         if (StringUtils.contains(urlWithPlaceholders, IdentityConstants.CarbonPlaceholders.CARBON_PORT_HTTP)) {
 
