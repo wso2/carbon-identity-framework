@@ -61,11 +61,6 @@ public class User {
         return Collections.unmodifiableList(groups);
     }
 
-    public void addGroup(String group) {
-
-        groups.add(group);
-    }
-
     public List<String> getRoles() {
 
         return Collections.unmodifiableList(roles);
