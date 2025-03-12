@@ -76,6 +76,11 @@ public class RegistrationFlowEngine {
 
     private static final RegistrationFlowEngine instance = new RegistrationFlowEngine();
 
+    // Constants related for OTP field length handling.
+    private static final String OTP_LENGTH = "otpLength";
+    private static final String OTP_VARIANT = "OTP";
+    private static final String LENGTH_CONFIG = "length";
+
     private RegistrationFlowEngine() {
 
     }
@@ -191,6 +196,7 @@ public class RegistrationFlowEngine {
 
         DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
         handleValidationDTO(dataDTO, context.getTenantDomain());
+        handleFieldLengths(dataDTO, response);
         handleError(dataDTO, response);
         return new RegistrationStep.Builder()
                 .flowId(context.getContextIdentifier())
@@ -240,6 +246,37 @@ public class RegistrationFlowEngine {
         }
         // Process all components and apply validations at once.
         processComponentValidations(dataDTO.getComponents(), validationMap);
+    }
+
+    /**
+     * Handle OTP field lengths. If the response contains the OTP length, set the length for the OTP fields.
+     *
+     * @param dataDTO  DataDTO.
+     * @param response Response.
+     */
+    private void handleFieldLengths(DataDTO dataDTO, Response response) {
+
+        if (response == null || response.getAdditionalInfo() == null ||
+                !response.getAdditionalInfo().containsKey(OTP_LENGTH)) {
+            return;
+        }
+        int otpLength = Integer.parseInt(response.getAdditionalInfo().get(OTP_LENGTH));
+        for (ComponentDTO component : dataDTO.getComponents()) {
+            if (Constants.ComponentTypes.INPUT.equals(component.getType())) {
+                if (OTP_VARIANT.equals(component.getVariant())) {
+                    component.addConfig(LENGTH_CONFIG, otpLength);
+                }
+            }
+            if (Constants.ComponentTypes.FORM.equals(component.getType())) {
+                for (ComponentDTO nestedComponent : component.getComponents()) {
+                    if (Constants.ComponentTypes.INPUT.equals(nestedComponent.getType())) {
+                        if (OTP_VARIANT.equals(nestedComponent.getVariant())) {
+                            nestedComponent.addConfig(LENGTH_CONFIG, otpLength);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void processComponentValidations(List<ComponentDTO> components,
