@@ -56,11 +56,6 @@ public class User {
         return Collections.unmodifiableList(claims);
     }
 
-    public void addClaim(UserClaim userClaim) {
-
-        claims.add(userClaim);
-    }
-
     public List<String> getGroups() {
 
         return Collections.unmodifiableList(groups);
