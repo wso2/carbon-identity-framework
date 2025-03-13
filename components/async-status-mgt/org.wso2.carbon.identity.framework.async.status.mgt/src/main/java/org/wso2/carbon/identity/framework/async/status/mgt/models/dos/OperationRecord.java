@@ -3,19 +3,16 @@ package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 public class OperationRecord {
     private String operationType;
     private String operationSubjectId;
-    private String resourceType;
-    private String operationPolicy;
     private String residentOrgId;
     private String initiatorId;
+    private String operationPolicy;
 
-    public OperationRecord(String operationType, String operationSubjectId, String resourceType,
-                           String operationPolicy, String residentOrgId, String initiatorId) {
+    public OperationRecord(String operationType, String operationSubjectId, String residentOrgId, String initiatorId, String operationPolicy) {
         this.operationType = operationType;
         this.operationSubjectId = operationSubjectId;
-        this.resourceType = resourceType;
-        this.operationPolicy = operationPolicy;
         this.residentOrgId = residentOrgId;
         this.initiatorId = initiatorId;
+        this.operationPolicy = operationPolicy;
     }
 
     public String getOperationType() {
@@ -24,10 +21,6 @@ public class OperationRecord {
 
     public String getOperationSubjectId() {
         return operationSubjectId;
-    }
-
-    public String getResourceType() {
-        return resourceType;
     }
 
     public String getOperationPolicy() {
@@ -50,10 +43,6 @@ public class OperationRecord {
         this.operationSubjectId = operationSubjectId;
     }
 
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
-    }
-
     public void setOperationPolicy(String operationPolicy) {
         this.operationPolicy = operationPolicy;
     }
@@ -71,10 +60,9 @@ public class OperationRecord {
         return "OperationRecord{" +
                 "operationType='" + operationType + '\'' +
                 ", operationSubjectId='" + operationSubjectId + '\'' +
-                ", resourceType='" + resourceType + '\'' +
-                ", sharingPolicy='" + operationPolicy + '\'' +
                 ", residentOrgId='" + residentOrgId + '\'' +
                 ", initiatorId='" + initiatorId + '\'' +
+                ", sharingPolicy='" + operationPolicy + '\'' +
                 '}';
     }
 }

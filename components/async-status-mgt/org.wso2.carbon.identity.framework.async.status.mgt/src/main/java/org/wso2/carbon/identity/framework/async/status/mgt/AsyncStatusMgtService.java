@@ -52,34 +52,34 @@ public interface AsyncStatusMgtService {
      * This method is useful for querying the most recent status of an operation related to a particular resource and subject,
      * providing insight into the current state of asynchronous tasks.
      *
-     * @param resourceType The type of resource associated with the asynchronous operation.
+     * @param operationType The type of the asynchronous operation.
      * @param operationSubjectId The identifier of the subject (e.g., user, application) related to the operation.
-     * @return A {@link ResponseOperationContext} object containing the details of the latest operation status, or null if no matching operation is found.
+     * @return A {@link ResponseOperationRecord} object containing the details of the latest operation status, or null if no matching operation is found.
      */
-    ResponseOperationContext getLatestAsyncOperationStatus(String resourceType, String operationSubjectId);
+    ResponseOperationRecord getLatestAsyncOperationStatus(String operationType, String operationSubjectId);
 
     /**
      * Retrieves the latest asynchronous operation status for a specific resource type, operation subject, and initiator.
      * This method extends the functionality of {@link #getLatestAsyncOperationStatus(String, String)} by allowing filtering based on the initiator of the operation,
      * providing more granular control over status retrieval.
      *
-     * @param resourceType The type of resource associated with the asynchronous operation.
+     * @param operationType The type of the asynchronous operation.
      * @param operationSubjectId The identifier of the subject related to the operation.
      * @param initiatorId The identifier of the user or system that initiated the operation.
-     * @return A {@link ResponseOperationContext} object containing the details of the latest operation status, or null if no matching operation is found.
+     * @return A {@link ResponseOperationRecord} object containing the details of the latest operation status, or null if no matching operation is found.
      */
-    ResponseOperationContext getLatestAsyncOperationStatusByInitiatorId(String resourceType, String operationSubjectId, String initiatorId);
+    ResponseOperationRecord getLatestAsyncOperationStatusByInitiatorId(String operationType, String operationSubjectId, String initiatorId);
 
     /**
      * Retrieves a list of asynchronous operation statuses within a specified number of days for a given resource type and operation subject.
      * This method allows for the retrieval of historical operation statuses, enabling auditing and monitoring of past asynchronous tasks.
      *
-     * @param resourceType The type of resource associated with the asynchronous operations.
+     * @param operationType The type of the asynchronous operation.
      * @param operationSubjectId The identifier of the subject related to the operations.
      * @param days The number of days within which the operation statuses should be retrieved.
-     * @return A list of {@link ResponseOperationContext} objects, each representing an operation status within the specified time frame. Returns an empty list if no matching operations are found.
+     * @return A list of {@link ResponseOperationRecord} objects, each representing an operation status within the specified time frame. Returns an empty list if no matching operations are found.
      */
-    List<ResponseOperationContext> getAsyncOperationStatusWithinDays(String resourceType, String operationSubjectId, int days);
+    List<ResponseOperationRecord> getAsyncOperationStatusWithinDays(String operationType, String operationSubjectId, int days);
 
     /**
      * Registers the status of a unit operation, which is a sub-task within a larger asynchronous operation.

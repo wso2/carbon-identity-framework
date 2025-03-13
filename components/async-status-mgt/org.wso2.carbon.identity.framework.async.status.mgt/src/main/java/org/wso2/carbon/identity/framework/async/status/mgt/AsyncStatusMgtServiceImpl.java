@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.framework.async.status.mgt;
 import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
 import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAOImpl;
+import org.wso2.carbon.identity.framework.async.status.mgt.internal.AsyncStatusMgtDataHolder;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.*;
 import org.wso2.carbon.identity.framework.async.status.mgt.queue.AsyncOperationDataBuffer;
 
@@ -19,23 +20,23 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     private final AsyncOperationDataBuffer operationDataBuffer;
 
     public AsyncStatusMgtServiceImpl() {
-        this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
+        this.asyncStatusMgtDAO = AsyncStatusMgtDataHolder.getInstance().getAsyncStatusMgtDAO();
         this.operationDataBuffer = new AsyncOperationDataBuffer(asyncStatusMgtDAO, 100, 5);
     }
 
     @Override
-    public ResponseOperationContext getLatestAsyncOperationStatus(String resourceType, String operationSubjectId) {
-        return asyncStatusMgtDAO.getLatestAsyncOperationStatus(resourceType, operationSubjectId);
+    public ResponseOperationRecord getLatestAsyncOperationStatus(String operationType, String operationSubjectId) {
+        return asyncStatusMgtDAO.getLatestAsyncOperationStatus(operationType, operationSubjectId);
     }
 
     @Override
-    public ResponseOperationContext getLatestAsyncOperationStatusByInitiatorId(String resourceType, String operationSubjectId, String initiatorId) {
-        return asyncStatusMgtDAO.getLatestAsyncOperationStatusByInitiatorId(resourceType, operationSubjectId, initiatorId);
+    public ResponseOperationRecord getLatestAsyncOperationStatusByInitiatorId(String operationType, String operationSubjectId, String initiatorId) {
+        return asyncStatusMgtDAO.getLatestAsyncOperationStatusByInitiatorId(operationType, operationSubjectId, initiatorId);
     }
 
     @Override
-    public List<ResponseOperationContext> getAsyncOperationStatusWithinDays(String resourceType, String operationSubjectId, int days) {
-        return asyncStatusMgtDAO.getAsyncOperationStatusWithinDays(resourceType, operationSubjectId, days);
+    public List<ResponseOperationRecord> getAsyncOperationStatusWithinDays(String operationType, String operationSubjectId, int days) {
+        return asyncStatusMgtDAO.getAsyncOperationStatusWithinDays(operationType, operationSubjectId, days);
     }
 
     @Override
@@ -53,6 +54,7 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
 
     @Override
     public void registerUnitOperationStatus(UnitOperationRecord unitOperationRecord) {
+
         operationDataBuffer.add(unitOperationRecord);
     }
 }

@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.dao;
 
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.OperationRecord;
-import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationContext;
+import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.ResponseOperationRecord;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.UnitOperationRecord;
 
 import java.util.List;
@@ -51,18 +51,6 @@ public interface AsyncStatusMgtDAO {
     String registerAsyncOperationWithUpdate(OperationRecord record);
 
     /**
-     * Registers a unit asynchronous operation, which is a sub-task within a larger asynchronous operation.
-     * This method records the status of individual units of work that contribute to a complex asynchronous task.
-     *
-     * @param operationId The unique identifier of the parent asynchronous operation.
-     * @param residentResourceId The unique identifier of the resource being operated on.
-     * @param targetOrgId The identifier of the target organization involved in the operation.
-     * @param unitOperationStatus The status of the unit operation.
-     * @param statusMessage A message providing additional information about the unit operation status.
-     */
-    void registerUnitAsyncOperation(String operationId, String residentResourceId, String targetOrgId, String unitOperationStatus, String statusMessage);
-
-    /**
      * Registers a batch of unit asynchronous operations.
      * This method efficiently inserts multiple unit operation statuses into the database.
      *
@@ -83,31 +71,31 @@ public interface AsyncStatusMgtDAO {
     /**
      * Retrieves the latest asynchronous operation status for a given resource type and operation subject.
      *
-     * @param resourceType The type of resource associated with the operation.
+     * @param operationType The type of the operation.
      * @param operationSubjectId The identifier of the subject related to the operation.
-     * @return A {@link ResponseOperationContext} object containing the latest operation status, or null if not found.
+     * @return A {@link ResponseOperationRecord} object containing the latest operation status, or null if not found.
      */
-    ResponseOperationContext getLatestAsyncOperationStatus(String resourceType, String operationSubjectId);
+    ResponseOperationRecord getLatestAsyncOperationStatus(String operationType, String operationSubjectId);
 
     /**
      * Retrieves the latest asynchronous operation status for a given resource type, operation subject, and initiator.
      *
-     * @param resourceType The type of resource associated with the operation.
+     * @param operationType The type of the operation.
      * @param operationSubjectId The identifier of the subject related to the operation.
      * @param initiatorId The identifier of the initiator of the operation.
-     * @return A {@link ResponseOperationContext} object containing the latest operation status, or null if not found.
+     * @return A {@link ResponseOperationRecord} object containing the latest operation status, or null if not found.
      */
-    ResponseOperationContext getLatestAsyncOperationStatusByInitiatorId(String resourceType, String operationSubjectId, String initiatorId);
+    ResponseOperationRecord getLatestAsyncOperationStatusByInitiatorId(String operationType, String operationSubjectId, String initiatorId);
 
     /**
      * Retrieves a list of asynchronous operation statuses within a specified number of days.
      *
-     * @param resourceType The type of resource associated with the operations.
+     * @param operationType The type of the operation.
      * @param operationSubjectId The identifier of the subject related to the operations.
      * @param days The number of days within which to retrieve operation statuses.
-     * @return A list of {@link ResponseOperationContext} objects, or an empty list if no matching operations are found.
+     * @return A list of {@link ResponseOperationRecord} objects, or an empty list if no matching operations are found.
      */
-    List<ResponseOperationContext> getAsyncOperationStatusWithinDays(String resourceType, String operationSubjectId, int days);
+    List<ResponseOperationRecord> getAsyncOperationStatusWithinDays(String operationType, String operationSubjectId, int days);
 
     /**
      * Updates the status of an existing asynchronous operation.

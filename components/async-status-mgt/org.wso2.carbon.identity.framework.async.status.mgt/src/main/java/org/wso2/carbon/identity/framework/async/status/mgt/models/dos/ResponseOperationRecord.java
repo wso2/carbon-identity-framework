@@ -1,25 +1,25 @@
 package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 
-public class ResponseOperationContext {
+public class ResponseOperationRecord {
     private String operationId;
     private String operationType;
     private String operationSubjectId;
-    private String resourceType;
     private String residentOrgId;
     private String initiatorId;
     private String operationStatus;
+    private String operationPolicy;
 
-    public ResponseOperationContext() {
+    public ResponseOperationRecord() {
     }
 
-    public ResponseOperationContext(String operationId, String operationType, String operationSubjectId, String resourceType, String residentOrgId, String initiatorId, String operationStatus) {
+    public ResponseOperationRecord(String operationId, String operationType, String operationSubjectId, String residentOrgId, String initiatorId, String operationStatus, String operationPolicy) {
         this.operationId = operationId;
         this.operationType = operationType;
         this.operationSubjectId = operationSubjectId;
-        this.resourceType = resourceType;
         this.residentOrgId = residentOrgId;
         this.initiatorId = initiatorId;
         this.operationStatus = operationStatus;
+        this.operationPolicy = operationPolicy;
     }
 
     public String getOperationId() {
@@ -46,12 +46,12 @@ public class ResponseOperationContext {
         this.operationSubjectId = operationSubjectId;
     }
 
-    public String getResourceType() {
-        return resourceType;
+    public String getOperationPolicy() {
+        return operationPolicy;
     }
 
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
+    public void setOperationPolicy(String operationPolicy) {
+        this.operationPolicy = operationPolicy;
     }
 
     public String getResidentOrgId() {
