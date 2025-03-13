@@ -639,8 +639,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
             jdbcTemplate.withTransaction(template ->
                 template.executeQuery(ActionMgtSQLConstants.Query.GET_ACTION_PROPERTIES_INFO_BY_ID,
                     (resultSet, rowNumber) -> {
-                        if (resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_TYPE)
-                                .equals(ActionProperty.Type.PRIMITIVE.name())) {
+                        if (ActionProperty.Type.PRIMITIVE.name().equals(resultSet.getString(ActionMgtSQLConstants
+                                .Column.ACTION_PROPERTIES_PROPERTY_TYPE))) {
                             actionEndpointProperties.put(
                                     resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
                                     new ActionPropertyForDAO(resultSet.getString(ActionMgtSQLConstants.Column
