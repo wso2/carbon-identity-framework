@@ -187,17 +187,15 @@ public class TaskExecutionNode implements Node {
         try {
             IdentityProvider idp =
                     IdentityProviderManager.getInstance().getIdPByName(executorDTO.getIdpName(), tenantDomain);
-            if (idp == null) {
+            if (idp == null || idp.getId() == null || idp.getDefaultAuthenticatorConfig() == null) {
                 throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain);
             }
-            if (idp.getDefaultAuthenticatorConfig() != null) {
-                FederatedAuthenticatorConfig authenticatorConfig = idp.getDefaultAuthenticatorConfig();
-                for (Property property : authenticatorConfig.getProperties()) {
-                    propertyMap.put(property.getName(), property.getValue());
-                }
-                context.setAuthenticatorProperties(propertyMap);
-                context.setExternalIdPConfig(new ExternalIdPConfig(idp));
+            FederatedAuthenticatorConfig authenticatorConfig = idp.getDefaultAuthenticatorConfig();
+            for (Property property : authenticatorConfig.getProperties()) {
+                propertyMap.put(property.getName(), property.getValue());
             }
+            context.setAuthenticatorProperties(propertyMap);
+            context.setExternalIdPConfig(new ExternalIdPConfig(idp));
         } catch (IdentityProviderManagementException e) {
             throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain, e);
         }
