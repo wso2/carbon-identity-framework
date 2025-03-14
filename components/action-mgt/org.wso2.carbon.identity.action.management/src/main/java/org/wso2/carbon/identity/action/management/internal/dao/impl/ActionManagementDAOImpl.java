@@ -609,8 +609,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                 statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
                                         null, 0);
                             } else {
-                                statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
-                                        (String) null);
+                                statement.setNull(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                        java.sql.Types.VARCHAR);
                                 statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
                                         ((BinaryObject) property.getValue().getValue()).getInputStream(),
                                         ((BinaryObject) property.getValue().getValue()).getLength());
@@ -687,8 +687,8 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                     statement.setBinaryStream(ActionMgtSQLConstants.Column
                                                     .ACTION_PROPERTIES_OBJECT_VALUE, null, 0);
                                 } else {
-                                    statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
-                                            (String) null);
+                                    statement.setNull(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
+                                            java.sql.Types.VARCHAR);
                                     statement.setBinaryStream(ActionMgtSQLConstants.Column
                                                     .ACTION_PROPERTIES_OBJECT_VALUE,
                                             ((BinaryObject) property.getValue().getValue()).getInputStream(),
