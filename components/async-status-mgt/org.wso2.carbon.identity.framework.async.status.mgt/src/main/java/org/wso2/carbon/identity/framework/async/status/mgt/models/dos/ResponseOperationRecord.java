@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 public class ResponseOperationRecord {
     private String operationId;
     private String operationType;
+    private String operationSubjectType;
     private String operationSubjectId;
     private String residentOrgId;
     private String initiatorId;
@@ -12,9 +13,10 @@ public class ResponseOperationRecord {
     public ResponseOperationRecord() {
     }
 
-    public ResponseOperationRecord(String operationId, String operationType, String operationSubjectId, String residentOrgId, String initiatorId, String operationStatus, String operationPolicy) {
+    public ResponseOperationRecord(String operationId, String operationType, String operationSubjectType, String operationSubjectId, String residentOrgId, String initiatorId, String operationStatus, String operationPolicy) {
         this.operationId = operationId;
         this.operationType = operationType;
+        this.operationSubjectType = operationSubjectType;
         this.operationSubjectId = operationSubjectId;
         this.residentOrgId = residentOrgId;
         this.initiatorId = initiatorId;
@@ -36,6 +38,16 @@ public class ResponseOperationRecord {
 
     public void setOperationType(String operationType) {
         this.operationType = operationType;
+    }
+
+    public String getOperationSubjectType() {
+
+        return operationSubjectType;
+    }
+
+    public void setOperationSubjectType(String operationSubjectType) {
+
+        this.operationSubjectType = operationSubjectType;
     }
 
     public String getOperationSubjectId() {

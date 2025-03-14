@@ -6,6 +6,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.wso2.carbon.identity.framework.async.status.mgt.AsyncStatusMgtService;
+import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAOImpl;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -23,6 +24,8 @@ public class AsyncStatusMgtServiceComponent {
 
     @Activate
     protected void activate(final ComponentContext context) {
+        LOGGER.info("Async Status Mgt Component is activated");
+        AsyncStatusMgtDataHolder.getInstance().setAsyncStatusMgtDAO(new AsyncStatusMgtDAOImpl());
         LOGGER.info("Async Status Mgt Component is activated");
     }
 

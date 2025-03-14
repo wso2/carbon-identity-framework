@@ -15,12 +15,14 @@ import java.util.logging.Logger;
         immediate = true
 )
 public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
+
     private final AsyncStatusMgtDAO asyncStatusMgtDAO;
     private static final Logger LOGGER = Logger.getLogger(AsyncStatusMgtServiceImpl.class.getName());
     private final AsyncOperationDataBuffer operationDataBuffer;
 
     public AsyncStatusMgtServiceImpl() {
         this.asyncStatusMgtDAO = AsyncStatusMgtDataHolder.getInstance().getAsyncStatusMgtDAO();
+//        this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
         this.operationDataBuffer = new AsyncOperationDataBuffer(asyncStatusMgtDAO, 100, 5);
     }
 
@@ -56,5 +58,10 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     public void registerUnitOperationStatus(UnitOperationRecord unitOperationRecord) {
 
         operationDataBuffer.add(unitOperationRecord);
+    }
+
+    @Override
+    public AsyncStatusMgtDAO getAsyncStatusMgtDAO() {
+        return asyncStatusMgtDAO;
     }
 }

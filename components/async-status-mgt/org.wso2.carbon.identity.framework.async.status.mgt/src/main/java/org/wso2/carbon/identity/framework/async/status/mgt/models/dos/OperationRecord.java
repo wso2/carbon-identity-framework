@@ -2,13 +2,17 @@ package org.wso2.carbon.identity.framework.async.status.mgt.models.dos;
 
 public class OperationRecord {
     private String operationType;
+    private String operationSubjectType;
     private String operationSubjectId;
     private String residentOrgId;
     private String initiatorId;
     private String operationPolicy;
 
-    public OperationRecord(String operationType, String operationSubjectId, String residentOrgId, String initiatorId, String operationPolicy) {
+    public OperationRecord(String operationType, String operationSubjectType, String operationSubjectId,
+                           String residentOrgId, String initiatorId, String operationPolicy) {
+
         this.operationType = operationType;
+        this.operationSubjectType = operationSubjectType;
         this.operationSubjectId = operationSubjectId;
         this.residentOrgId = residentOrgId;
         this.initiatorId = initiatorId;
@@ -17,6 +21,11 @@ public class OperationRecord {
 
     public String getOperationType() {
         return operationType;
+    }
+
+    public String getOperationSubjectType() {
+
+        return operationSubjectType;
     }
 
     public String getOperationSubjectId() {
@@ -39,6 +48,11 @@ public class OperationRecord {
         this.operationType = operationType;
     }
 
+    public void setOperationSubjectType(String operationSubjectType) {
+
+        this.operationSubjectType = operationSubjectType;
+    }
+
     public void setOperationSubjectId(String operationSubjectId) {
         this.operationSubjectId = operationSubjectId;
     }
@@ -59,6 +73,7 @@ public class OperationRecord {
     public String toString() {
         return "OperationRecord{" +
                 "operationType='" + operationType + '\'' +
+                ", operationSubjectType='" + operationSubjectType + '\'' +
                 ", operationSubjectId='" + operationSubjectId + '\'' +
                 ", residentOrgId='" + residentOrgId + '\'' +
                 ", initiatorId='" + initiatorId + '\'' +

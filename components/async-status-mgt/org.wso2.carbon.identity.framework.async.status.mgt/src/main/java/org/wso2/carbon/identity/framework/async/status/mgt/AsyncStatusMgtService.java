@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.framework.async.status.mgt;
 
+import org.wso2.carbon.identity.framework.async.status.mgt.dao.AsyncStatusMgtDAO;
 import org.wso2.carbon.identity.framework.async.status.mgt.models.dos.*;
 
 import java.util.List;
@@ -89,4 +90,6 @@ public interface AsyncStatusMgtService {
      * resident resource ID, target organization, unit operation status, status message, and creation timestamp.
      */
     void registerUnitOperationStatus(UnitOperationRecord operation);
+
+    AsyncStatusMgtDAO getAsyncStatusMgtDAO();
 }

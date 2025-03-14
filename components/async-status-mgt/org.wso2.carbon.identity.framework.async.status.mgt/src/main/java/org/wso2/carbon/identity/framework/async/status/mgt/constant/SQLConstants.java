@@ -3,10 +3,11 @@ package org.wso2.carbon.identity.framework.async.status.mgt.constant;
 public class SQLConstants {
     
     public static final String CREATE_ASYNC_OPERATION_IDN = "INSERT INTO IDN_ASYNC_OPERATION_STATUS(" +
-            "IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID," +
+            "IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_TYPE, IDN_OPERATION_SUBJECT_ID," +
             "IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS," +
             "IDN_CREATED_TIME, IDN_LAST_MODIFIED, IDN_OPERATION_POLICY) VALUES("+
             ":" + OperationStatusTableColumns.IDN_OPERATION_TYPE + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_TYPE + ";, " +
             ":" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID + ";, " +
             ":" + OperationStatusTableColumns.IDN_RESIDENT_ORG_ID + ";, " +
             ":" + OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID + ";, " +
@@ -16,10 +17,11 @@ public class SQLConstants {
             ":" + OperationStatusTableColumns.IDN_OPERATION_POLICY + ";)";
 
     public static final String CREATE_ASYNC_OPERATION_WITH_UPDATE = "UPDATE IDN_ASYNC_OPERATION_STATUS(" +
-            "IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID," +
+            "IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_TYPE, IDN_OPERATION_SUBJECT_ID," +
             "IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS," +
             "IDN_CREATED_TIME, IDN_LAST_MODIFIED, IDN_OPERATION_POLICY) VALUES("+
             ":" + OperationStatusTableColumns.IDN_OPERATION_TYPE + ";, " +
+            ":" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_TYPE + ";, " +
             ":" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID + ";, " +
             ":" + OperationStatusTableColumns.IDN_RESIDENT_ORG_ID + ";, " +
             ":" + OperationStatusTableColumns.IDN_OPERATION_INITIATOR_ID + ";, " +
@@ -50,7 +52,7 @@ public class SQLConstants {
             ":" + UnitOperationStatusTableColumns.IDN_CREATED_AT + ";)";
 
     public static final String FETCH_LATEST_ASYNC_OPERATION_IDN =
-            "SELECT IDN_OPERATION_ID, IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_ID, " +
+            "SELECT IDN_OPERATION_ID, IDN_OPERATION_TYPE, IDN_OPERATION_SUBJECT_TYPE, IDN_OPERATION_SUBJECT_ID, " +
                     "IDN_RESIDENT_ORG_ID, IDN_OPERATION_INITIATOR_ID, IDN_OPERATION_STATUS, IDN_OPERATION_POLICY " +
                     "FROM IDN_ASYNC_OPERATION_STATUS " +
                     "WHERE IDN_OPERATION_SUBJECT_ID = :" + OperationStatusTableColumns.IDN_OPERATION_SUBJECT_ID + " " +
@@ -64,6 +66,7 @@ public class SQLConstants {
 
         public static final String IDN_OPERATION_ID = "IDN_OPERATION_ID";
         public static final String IDN_OPERATION_TYPE = "IDN_OPERATION_TYPE";
+        public static final String IDN_OPERATION_SUBJECT_TYPE = "IDN_OPERATION_SUBJECT_TYPE";
         public static final String IDN_OPERATION_SUBJECT_ID = "IDN_OPERATION_SUBJECT_ID";
         public static final String IDN_RESIDENT_ORG_ID = "IDN_RESIDENT_ORG_ID";
         public static final String IDN_OPERATION_INITIATOR_ID = "IDN_OPERATION_INITIATOR_ID";
