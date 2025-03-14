@@ -22,10 +22,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.*;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
+import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionConverter;
+import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionDTOModelResolver;
 
 /**
  * OSGI Service component for the Pre Update Profile Action.
@@ -46,6 +53,9 @@ public class PreUpdateProfileActionServiceComponent {
 
             bundleCtx.registerService(ActionConverter.class, new PreUpdateProfileActionConverter(), null);
             LOG.debug("Pre Update Profile Action Converter is enabled");
+
+            bundleCtx.registerService(ActionDTOModelResolver.class, new PreUpdateProfileActionDTOModelResolver(), null);
+            LOG.debug("Pre Update Profile Action DTO Model Resolver is enabled");
 
             LOG.debug("Pre Update Profile Action bundle is activated");
         } catch (Throwable e) {

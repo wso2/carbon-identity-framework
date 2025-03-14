@@ -40,6 +40,8 @@ public class ActionDTOModelResolverFactory {
     public static ActionDTOModelResolver getActionDTOModelResolver(Action.ActionTypes actionType) {
 
         switch (actionType) {
+            case PRE_UPDATE_PROFILE:
+                return actionDTOModelResolvers.get(Action.ActionTypes.PRE_UPDATE_PROFILE);
             case PRE_UPDATE_PASSWORD:
                 return actionDTOModelResolvers.get(Action.ActionTypes.PRE_UPDATE_PASSWORD);
             case PRE_ISSUE_ACCESS_TOKEN:

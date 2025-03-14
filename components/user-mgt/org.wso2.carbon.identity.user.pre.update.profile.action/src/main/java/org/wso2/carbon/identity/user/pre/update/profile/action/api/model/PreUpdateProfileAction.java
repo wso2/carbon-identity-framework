@@ -23,6 +23,9 @@ import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
 import java.util.List;
 
+/**
+ * Pre Update Profile Action.
+ */
 public class PreUpdateProfileAction extends Action {
 
     private final List<String> attributes;

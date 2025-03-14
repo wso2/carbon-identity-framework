@@ -21,7 +21,9 @@
 <suite name="org.wso2.carbon.identity.user.pre.update.profile.action">
     <test name="pre-update-profile-action-mgt-tests" preserve-order="true" parallel="false">
         <classes>
-
+            <class name="org.wso2.carbon.identity.user.pre.update.profile.action.management.PreUpdateProfileActionConverterTest"></class>
+            <class name="org.wso2.carbon.identity.user.pre.update.profile.action.management.PreUpdateProfileActionDTOModelResolverTest"></class>
+            <class name="org.wso2.carbon.identity.user.pre.update.profile.action.model.PreUpdateProfileActionBuilderTest"></class>
         </classes>
     </test>
 </suite>

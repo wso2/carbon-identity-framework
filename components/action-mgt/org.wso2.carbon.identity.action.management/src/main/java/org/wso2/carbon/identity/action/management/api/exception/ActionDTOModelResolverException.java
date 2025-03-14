@@ -24,12 +24,17 @@ package org.wso2.carbon.identity.action.management.api.exception;
  */
 public class ActionDTOModelResolverException extends Exception {
 
-    private final String description;
+    private String description;
 
     public ActionDTOModelResolverException(String message, String description) {
 
         super(message);
         this.description = description;
+    }
+
+    public ActionDTOModelResolverException(String message, Throwable cause) {
+
+        super(message, cause);
     }
 
     public ActionDTOModelResolverException(String message, String description, Throwable cause) {

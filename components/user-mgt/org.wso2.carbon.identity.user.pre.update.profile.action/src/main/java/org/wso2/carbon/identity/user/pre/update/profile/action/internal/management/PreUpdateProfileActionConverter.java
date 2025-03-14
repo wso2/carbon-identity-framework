@@ -23,10 +23,11 @@ import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.ATTRIBUTES;
 
 /**
  * This class implements the methods required to build Action objects in Pre Update Profile extension.
@@ -53,10 +54,8 @@ public class PreUpdateProfileActionConverter implements ActionConverter {
         List<String> attributes = preUpdateProfileAction.getAttributes();
 
         Map<String, Object> properties = new HashMap<>();
-        //TODO: check for the attributes key existance and validate
         if (attributes != null) {
-            //TODO: this gets changed depending on the DB solution
-            properties.put("attributes", attributes.toString());
+            properties.put(ATTRIBUTES, attributes);
         }
 
         return new ActionDTO.Builder(preUpdateProfileAction)
@@ -68,7 +67,10 @@ public class PreUpdateProfileActionConverter implements ActionConverter {
     public Action buildAction(ActionDTO actionDTO) {
 
         Map<String, Object> properties = actionDTO.getProperties();
-        String attributes = properties.get("attributes").toString();
+        List<String> attributes = null;
+        if (properties.get(ATTRIBUTES) != null) {
+             attributes = (List<String>) properties.get(ATTRIBUTES);
+        }
 
         return new PreUpdateProfileAction.ResponseBuilder()
                 .id(actionDTO.getId())
@@ -77,8 +79,7 @@ public class PreUpdateProfileActionConverter implements ActionConverter {
                 .description(actionDTO.getDescription())
                 .status(actionDTO.getStatus())
                 .endpoint(actionDTO.getEndpoint())
-                //TODO: this gets changed depending on the DB solution
-                .attributes(Arrays.asList(attributes.substring(1, attributes.length() - 1).split(", ")))
+                .attributes(attributes)
                 .rule(actionDTO.getActionRule())
                 .build();
     }
