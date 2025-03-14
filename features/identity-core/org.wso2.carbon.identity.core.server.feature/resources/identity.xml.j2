@@ -1065,6 +1065,11 @@
                     <SupportedTokenEndpointSigningAlgorithm>{{algorithm}}</SupportedTokenEndpointSigningAlgorithm>
                 {% endfor %}
             </SupportedTokenEndpointSigningAlgorithms>
+            <SupportedDPoPSigningAlgorithms>
+                {% for algorithm in oauth.oidc.dpop.signing_algorithms %}
+                    <SupportedDPoPSigningAlgorithm>{{algorithm}}</SupportedDPoPSigningAlgorithm>
+                {% endfor %}
+            </SupportedDPoPSigningAlgorithms>
             <SupportedIDTokenSigningAlgorithms>
                 {% for algorithm in oauth.oidc.id_token.signing_algorithms %}
                     <SupportedIDTokenSigningAlgorithm>{{algorithm}}</SupportedIDTokenSigningAlgorithm>
