@@ -302,7 +302,7 @@ public class IdPManagementUtil {
 
             if (recoveryNotificationPasswordProperty &&
                     StringUtils.isNotBlank(emailLinkPwRecProp) && !emailLinkPasswordRecoveryProperty &&
-                    StringUtils.isBlank(emailOtpPwRecProp) && !emailOtpPasswordRecoveryProperty &&
+                    StringUtils.isNotBlank(emailOtpPwRecProp) && !emailOtpPasswordRecoveryProperty &&
                     StringUtils.isNotBlank(smsOtpPwRecProp) && !smsOtpPasswordRecoveryProperty) {
                 // Disabling all recovery options when recovery connector is enabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
