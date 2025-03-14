@@ -151,6 +151,20 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         }
     }
 
+    @Test(expectedExceptions = IdentityRoleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid role name: RN\\. " +
+                    "Role names must be between 3 and 255 characters long\\.")
+    public void testAddRoleInvalidRoleName() throws Exception {
+
+        String roleName = "RN";
+        String audience = "APPLICATION";
+        String audienceId = "application_id_01";
+        String tenantDomain = "tenantDomain";
+
+        roleManagementService.addRole(roleName, new ArrayList<>(), new ArrayList<>(),
+                new ArrayList<>(), audience, audienceId, tenantDomain);
+    }
+
     @Test
     public void testAddRoleWithIsFragmentAppProperty() throws Exception {
 
