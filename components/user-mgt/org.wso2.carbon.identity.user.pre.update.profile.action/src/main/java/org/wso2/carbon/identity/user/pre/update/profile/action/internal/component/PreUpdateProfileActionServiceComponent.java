@@ -25,10 +25,6 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionConverter;
@@ -67,24 +63,5 @@ public class PreUpdateProfileActionServiceComponent {
     protected void deactivate(ComponentContext context) {
 
         LOG.debug("Pre Update Profile Action bundle is deactivated");
-    }
-
-    @Reference(
-            name = "action.execution.service",
-            service = ActionExecutorService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetActionExecutorService"
-    )
-    protected void setActionExecutionService(ActionExecutorService actionExecutorService) {
-
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
-        LOG.debug("ActionExecutorService set in PreUpdateProfileActionServiceComponentHolder bundle.");
-    }
-
-    protected void unsetActionExecutorService(ActionExecutorService actionExecutorService) {
-
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setActionExecutorService(null);
-        LOG.debug("ActionExecutorService unset in PreUpdateProfileActionServiceComponentHolder bundle.");
     }
 }

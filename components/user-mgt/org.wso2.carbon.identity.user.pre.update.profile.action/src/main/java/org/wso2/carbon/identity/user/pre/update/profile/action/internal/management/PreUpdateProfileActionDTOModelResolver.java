@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.ATTRIBUTES;
 
 /**
@@ -122,17 +123,9 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         Map<String, ActionPropertyForDAO> properties = new HashMap<>();
         // Action Properties updating operation is treated as a PUT in DAO layer. Therefore if no properties are updated
         // the existing properties should be sent to the DAO layer.
-        if (updatingActionDTO.getProperty(ATTRIBUTES) != null) {
-            List<String> validatedAttributes = validateAttributes(updatingActionDTO.getProperty(ATTRIBUTES));
-            if (!validatedAttributes.isEmpty()) {
-                BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream
-                        (validatedAttributes));
-                properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
-            }
-        } else {
-            BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream((List<String>)
-                    existingActionDTO.getProperty(ATTRIBUTES)));
-            properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
+        List<String> attributes = getResolvedUpdatingOrExistingAttributes(updatingActionDTO, existingActionDTO);
+        if (!attributes.isEmpty()) {
+            properties.put(ATTRIBUTES, createActionProperty(attributes));
         }
         return new ActionDTO.BuilderForData(updatingActionDTO)
                 .properties(properties)
@@ -143,6 +136,27 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
     public void resolveForDeleteOperation(ActionDTO deletingActionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
+    }
+
+    private List<String> getResolvedUpdatingOrExistingAttributes(ActionDTO updatingActionDTO,
+                                                                 ActionDTO existingActionDTO)
+            throws ActionDTOModelResolverClientException {
+
+        if (updatingActionDTO.getProperty(ATTRIBUTES) != null) {
+            // return updating attributes after validation
+            return validateAttributes(updatingActionDTO.getProperty(ATTRIBUTES));
+        } else if (existingActionDTO.getProperty(ATTRIBUTES) != null) {
+            // return existing attributes
+            return (List<String>) existingActionDTO.getProperty(ATTRIBUTES);
+        }
+        // if attributes are not getting updated or not configured earlier, return empty list.
+        return emptyList();
+    }
+
+    private ActionPropertyForDAO createActionProperty(List<String> attributes) throws ActionDTOModelResolverException {
+
+        BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream(attributes));
+        return new ActionPropertyForDAO(attributesBinaryObject);
     }
 
     private InputStream convertAttributesToInputStream(List<String> attributes) throws ActionDTOModelResolverException {

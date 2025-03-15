@@ -134,7 +134,7 @@ public class PreUpdateProfileActionConverterTest {
         assertEquals(attributes, TEST_ATTRIBUTES);
     }
 
-    @Test(description = "Test ActionConverter returns action dto with partial properties ")
+    @Test(description = "Test ActionConverter returns action dto with partial properties")
     public void testBuildActionForGetOperationWithPartialAttributes() {
 
         Action dummyAction = new Action.ActionRequestBuilder().name(TEST_ACTION).build();
