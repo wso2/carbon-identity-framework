@@ -47,18 +47,18 @@ import java.util.Map;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.ATTRIBUTES;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.INVALID_TEST_ATTRIBUTES;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.INVALID_TEST_ATTRIBUTES_VALUES;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TENANT_DOMAIN;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_ACTION;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_ATTRIBUTES;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_DESCRIPTION;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_ID;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_PASSWORD;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_URL;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_USERNAME;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.UPDATED_TEST_ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.INVALID_TEST_ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.INVALID_TEST_ATTRIBUTES_VALUES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACTION;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_DESCRIPTION;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_PASSWORD;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_URL;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_USERNAME;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.UPDATED_TEST_ATTRIBUTES;
 
 /**
  * Unit tests for PreUpdateProfileDTOModelResolver.
@@ -90,14 +90,14 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         existingActionDTOWithoutProperties = new ActionDTO.Builder(action).build();
     }
 
-    @Test(priority = 1)
+    @Test
     public void testGetSupportedActionType() {
 
         Action.ActionTypes actionType = resolver.getSupportedActionType();
         assertEquals(actionType, Action.ActionTypes.PRE_UPDATE_PROFILE);
     }
 
-    @Test(priority = 2)
+    @Test
     public void testResolveForAddOperation() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -118,7 +118,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
                 .getInputStream()), TEST_ATTRIBUTES);
     }
 
-    @Test(priority = 3)
+    @Test
     public void testResolveForAddOperationWithoutAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -133,7 +133,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertEquals(result.getProperties().size(), 0);
     }
 
-    @Test(priority = 4, expectedExceptions = ActionDTOModelResolverClientException.class,
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
             expectedExceptionsMessageRegExp = "Invalid attributes format.")
     public void testResolveForAddOperationWithInvalidAttributesFormat() throws Exception {
 
@@ -145,7 +145,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
     }
 
-    @Test(priority = 5, expectedExceptions = ActionDTOModelResolverClientException.class,
+    @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
             expectedExceptionsMessageRegExp = "Invalid attributes format.")
     public void testResolveForAddOperationWithInvalidAttributesValueType() throws Exception {
 
@@ -157,7 +157,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
     }
 
-    @Test(priority = 6, dependsOnMethods = "testResolveForAddOperation")
+    @Test
     public void testResolveForGetOperation() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -174,7 +174,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertEquals(result.getProperty(ATTRIBUTES), TEST_ATTRIBUTES);
     }
 
-    @Test(priority = 7, expectedExceptions = ActionDTOModelResolverServerException.class,
+    @Test(expectedExceptions = ActionDTOModelResolverServerException.class,
             expectedExceptionsMessageRegExp = "Unable to retrieve attributes.")
     public void testResolveForGetOperationWithInvalidPropertyValue() throws Exception {
 
@@ -188,7 +188,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         resolver.resolveForGetOperation(actionDTO, TENANT_DOMAIN);
     }
 
-    @Test(priority = 8, dependsOnMethods = "testResolveForAddOperation")
+    @Test
     public void testResolveForGetOperationForActionList() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -206,7 +206,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         }
     }
 
-    @Test(priority = 9)
+    @Test
     public void testResolveForUpdateOperationWithExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -227,7 +227,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
                 .getInputStream()), UPDATED_TEST_ATTRIBUTES);
     }
 
-    @Test(priority = 10)
+    @Test
     public void testResolveUpdateOperationWithoutUpdatingAttributesWithExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -248,7 +248,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
                 .getInputStream()), existingActionDTO.getProperty(ATTRIBUTES));
     }
 
-    @Test(priority = 11)
+    @Test
     public void testResolveForUpdateOperationWithoutExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -270,7 +270,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
                 .getInputStream()), TEST_ATTRIBUTES);
     }
 
-    @Test(priority = 12)
+    @Test
     public void testResolveUpdateOperationWithoutBothUpdatingAndExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();

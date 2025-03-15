@@ -197,7 +197,6 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                     "Attributes should be provided as a list of Strings.");
         }
 
-        // Validate that all elements are in String data type
         List<?> attributesList = (List<?>) attributes;
         for (Object item : attributesList) {
             if (!(item instanceof String)) {
@@ -206,7 +205,6 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
             }
         }
 
-        // If validation passes, cast it safely
         return (List<String>) attributes;
     }
 }

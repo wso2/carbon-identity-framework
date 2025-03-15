@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Utility class for the Pre Update Profile action component tests.
  */
-public class TestUtil {
+public class TestConstants {
 
     public static final String TENANT_DOMAIN = "wso2.com";
     public static final String TEST_ID = "test-id";

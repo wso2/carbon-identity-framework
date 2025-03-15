@@ -33,14 +33,14 @@ import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.ATTRIBUTES;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_ACTION;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_ATTRIBUTES;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_DESCRIPTION;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_ID;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_PASSWORD;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_URL;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_USERNAME;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACTION;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_DESCRIPTION;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ID;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_PASSWORD;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_URL;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_USERNAME;
 
 /**
  * Unit tests for PreUpdateProfileActionConverter.
