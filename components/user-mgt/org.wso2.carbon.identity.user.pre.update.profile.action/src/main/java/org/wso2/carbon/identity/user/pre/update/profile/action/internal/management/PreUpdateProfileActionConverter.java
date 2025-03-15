@@ -45,7 +45,6 @@ public class PreUpdateProfileActionConverter implements ActionConverter {
      *
      * @param action PreUpdateProfileAction object.
      * @return ActionDTO object.
-     *
      */
     @Override
     public ActionDTO buildActionDTO(Action action) {

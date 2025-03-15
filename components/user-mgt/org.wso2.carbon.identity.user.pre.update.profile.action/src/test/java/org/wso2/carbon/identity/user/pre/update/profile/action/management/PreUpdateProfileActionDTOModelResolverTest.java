@@ -38,7 +38,7 @@ import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.INVALID_TEST_ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.INVALID_TEST_ATTRIBUTES_VALUES;
@@ -50,9 +50,12 @@ import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestU
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_PASSWORD;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_URL;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.TEST_USERNAME;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestUtil.UPDATED_TEST_ATTRIBUTES;
 
+/**
+ * Unit tests for PreUpdateProfileDTOModelResolver.
+ */
 public class PreUpdateProfileActionDTOModelResolverTest {
-
 
     private PreUpdateProfileActionDTOModelResolver resolver;
     private Action action;
@@ -63,6 +66,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     @BeforeClass
     public void init() {
 
+        resolver = new PreUpdateProfileActionDTOModelResolver();
         action = new Action.ActionResponseBuilder()
                 .id(TEST_ID)
                 .name(TEST_ACTION)
@@ -81,7 +85,6 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     @BeforeMethod
     public void setUp() {
 
-        resolver = new PreUpdateProfileActionDTOModelResolver();
     }
 
     @Test(priority = 1)
@@ -107,6 +110,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         verifyCommonFields(actionDTO, resolvedGetActionDTO);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) resolvedGetActionDTO.getProperty(ATTRIBUTES)).getValue())
                 .getInputStream());
+        assertTrue(resolvedGetActionDTO.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
     }
 
     @Test(priority = 3)
@@ -121,7 +125,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(actionDTO, result);
-        assertNull(result.getProperty(ATTRIBUTES));
+        assertEquals(result.getProperties().size(), 0);
     }
 
     @Test(priority = 4, expectedExceptions = ActionDTOModelResolverClientException.class,
@@ -148,7 +152,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
     }
 
-    @Test(priority = 6)
+    @Test(priority = 6, dependsOnMethods = "testResolveForAddOperation")
     public void testResolveForGetOperation() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -178,7 +182,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         resolver.resolveForGetOperation(actionDTO, TENANT_DOMAIN);
     }
 
-    @Test(priority = 8)
+    @Test(priority = 8, dependsOnMethods = "testResolveForAddOperation")
     public void testResolveForGetOperationForActionList() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -201,7 +205,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     public void testResolveForUpdateOperation() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, TEST_ATTRIBUTES);
+        properties.put(ATTRIBUTES, UPDATED_TEST_ATTRIBUTES);
         ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();
@@ -209,13 +213,14 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
         assertNotNull(result);
         verifyCommonFields(updatingActionDTO, result);
+        assertEquals(result.getProperties().size(), 1);
+        assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
     }
 
     @Test(priority = 10)
-    public void testResolveForUpdateOperationWithNullAttributes() throws Exception {
+    public void testResolveForUpdateOperationWithoutAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, null);
         ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
                 .build();

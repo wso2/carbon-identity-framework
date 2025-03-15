@@ -57,7 +57,7 @@ public class PreUpdateProfileActionConverterTest {
         converter = new PreUpdateProfileActionConverter();
         action = new PreUpdateProfileAction.ResponseBuilder()
                 .id(TEST_ID)
-                .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
+                .type(Action.ActionTypes.PRE_UPDATE_PROFILE)
                 .name(TEST_ACTION)
                 .description(TEST_DESCRIPTION)
                 .status(Action.Status.ACTIVE)
@@ -76,7 +76,7 @@ public class PreUpdateProfileActionConverterTest {
                 "Supported action type should be PRE_UPDATE_PROFILE");
     }
 
-    @Test
+    @Test(description = "Test ActionConverter returns action dto ")
     public void testBuildActionForGetOperationDTOWithAllAttributes() {
 
         // Convert the action to DTO
@@ -102,7 +102,7 @@ public class PreUpdateProfileActionConverterTest {
         assertEquals(properties.get(ATTRIBUTES), action.getAttributes());
     }
 
-    @Test
+    @Test(description = "Test ActionConverter returns action dto with all the properties ")
     public void testBuildActionForGetOperationWithAllAttributes() {
 
         Map<String, Object> properties = new HashMap<>();
@@ -134,7 +134,7 @@ public class PreUpdateProfileActionConverterTest {
         assertEquals(attributes, TEST_ATTRIBUTES);
     }
 
-    @Test
+    @Test(description = "Test ActionConverter returns action dto with partial properties ")
     public void testBuildActionForGetOperationWithPartialAttributes() {
 
         Action dummyAction = new Action.ActionRequestBuilder().name(TEST_ACTION).build();

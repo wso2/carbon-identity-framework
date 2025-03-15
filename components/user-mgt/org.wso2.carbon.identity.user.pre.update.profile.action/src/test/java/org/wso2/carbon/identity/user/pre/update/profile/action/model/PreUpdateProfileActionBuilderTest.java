@@ -66,7 +66,6 @@ public class PreUpdateProfileActionBuilderTest {
         assertEquals(preUpdateProfileAction.getEndpoint().getAuthentication()
                 .getProperty(Authentication.Property.PASSWORD).getValue(), TEST_PASSWORD);
         assertEquals(preUpdateProfileAction.getAttributes(), TEST_ATTRIBUTES);
-
     }
 
     @Test

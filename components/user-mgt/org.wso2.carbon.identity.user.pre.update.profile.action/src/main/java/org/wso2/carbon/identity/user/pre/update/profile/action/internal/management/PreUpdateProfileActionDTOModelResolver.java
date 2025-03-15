@@ -63,7 +63,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         // Attributes is an optional field.
         if (attributes != null) {
             List<String> validatedAttributes = validateAttributes(attributes);
-            BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToJsonArray(validatedAttributes));
+            BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream(validatedAttributes));
             properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
         }
 
@@ -120,17 +120,17 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                                                String tenantDomain) throws ActionDTOModelResolverException {
 
         Map<String, ActionPropertyForDAO> properties = new HashMap<>();
-        //Action Properties updating operation is treated as a PUT in DAO layer. Therefore if no properties are updated
+        // Action Properties updating operation is treated as a PUT in DAO layer. Therefore if no properties are updated
         // the existing properties should be sent to the DAO layer.
         if (updatingActionDTO.getProperty(ATTRIBUTES) != null) {
             List<String> validatedAttributes = validateAttributes(updatingActionDTO.getProperty(ATTRIBUTES));
             if (!validatedAttributes.isEmpty()) {
-                BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToJsonArray
+                BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream
                         (validatedAttributes));
                 properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
             }
         } else {
-            BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToJsonArray((List<String>)
+            BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream((List<String>)
                     existingActionDTO.getProperty(ATTRIBUTES)));
             properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
         }
@@ -145,7 +145,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
     }
 
-    private InputStream convertAttributesToJsonArray(List<String> attributes) throws ActionDTOModelResolverException {
+    private InputStream convertAttributesToInputStream(List<String> attributes) throws ActionDTOModelResolverException {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -168,8 +168,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
             }
 
             ObjectMapper objectMapper = new ObjectMapper();
-            attributes = objectMapper.readValue(sb.toString(), new TypeReference<List<String>>() {
-            });
+            attributes = objectMapper.readValue(sb.toString(), new TypeReference<List<String>>() { });
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error while reading the attribute values from storage.", e);
         }

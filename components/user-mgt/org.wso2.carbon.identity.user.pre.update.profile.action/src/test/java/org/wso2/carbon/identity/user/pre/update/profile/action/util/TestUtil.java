@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.util;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,7 +41,9 @@ public class TestUtil {
     public static final String TEST_USER_STORE_DOMAIN_ID = Base64.getEncoder()
             .encodeToString(TEST_USER_STORE_DOMAIN_NAME.getBytes(StandardCharsets.UTF_8));
     public static final String ATTRIBUTES = "attributes";
-    public static final List<String> TEST_ATTRIBUTES = Arrays.asList("attribute1", "attribute2");
+    public static final List<String> TEST_ATTRIBUTES = Arrays.asList("http://wso2.org/attribute1",
+            "http://wso2.org/attribute2");
+    public static final List<String> UPDATED_TEST_ATTRIBUTES = Collections.singletonList("http://wso2.org/attribute3");
     public static final String INVALID_TEST_ATTRIBUTES = "attribute1";
     public static final List<Integer> INVALID_TEST_ATTRIBUTES_VALUES = Arrays.asList(1, 1);
 }
