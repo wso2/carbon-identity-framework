@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.8.50-SNAPSHOT</version>
+        <version>7.8.65-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -72,6 +72,11 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.registration.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.input.validation.mgt</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -117,7 +122,13 @@
                             org.wso2.carbon.identity.user.registration.mgt.model;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.user.registration.mgt.exception;
-                            version="${carbon.identity.package.import.version.range}"
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.input.validation.mgt.exceptions;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.input.validation.mgt.model;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.input.validation.mgt.services;
+                            version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.registration.engine.internal,

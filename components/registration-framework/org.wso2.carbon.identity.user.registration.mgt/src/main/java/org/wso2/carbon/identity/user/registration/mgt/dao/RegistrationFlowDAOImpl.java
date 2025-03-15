@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.user.registration.mgt.dao;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.REDIRECTION;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.DELETE_FLOW;
+import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_FIRST_STEP_ID;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_FLOW;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_NODES_WITH_MAPPINGS_QUERY;
 import static org.wso2.carbon.identity.user.registration.mgt.dao.SQLConstants.GET_VIEW_PAGES_IN_FLOW;
@@ -60,6 +61,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
@@ -182,8 +184,8 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                                 preparedStatement.setInt(1, pageAutoIncId);
                                 preparedStatement.setDouble(2, stepDTO.getCoordinateX());
                                 preparedStatement.setDouble(3, stepDTO.getCoordinateY());
-                                preparedStatement.setDouble(4, stepDTO.getCoordinateX());
-                                preparedStatement.setDouble(5, stepDTO.getCoordinateY());
+                                preparedStatement.setDouble(4, stepDTO.getHeight());
+                                preparedStatement.setDouble(5, stepDTO.getWidth());
                             }, null, false);
                 }
                 return null;
@@ -223,6 +225,16 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
                 LOG.debug("No steps are found in the default flow of tenant " + tenantId);
                 return registrationFlowDTO;
             }
+            String firstStepId = getFirstStepId(tenantId);
+            StepDTO firstStep = steps.stream()
+                    .filter(step -> step.getId().equals(firstStepId))
+                    .findFirst()
+                    .orElseThrow(() -> handleServerException(Constants.ErrorMessages.ERROR_CODE_INVALID_NODE, firstStepId,
+                                                             tenantId));
+            if (StringUtils.isNotBlank(firstStepId)) {
+                registrationFlowDTO.getSteps().add(firstStep);
+                steps.remove(firstStep);
+            }
             registrationFlowDTO.getSteps().addAll(steps);
             return registrationFlowDTO;
         } catch (DataAccessException e) {
@@ -250,6 +262,22 @@ public class RegistrationFlowDAOImpl implements RegistrationFlowDAO {
         } catch (DataAccessException e) {
             LOG.error("Failed to retrieve registration graph for tenant: " + tenantId, e);
             throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_REG_GRAPH_FAILED, e, tenantId);
+        }
+    }
+
+    private String getFirstStepId(int tenantId) throws RegistrationServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            List<String> stepIds = jdbcTemplate.executeQuery(GET_FIRST_STEP_ID, (resultSet, rowNumber) -> {
+                return resultSet.getString(DB_SCHEMA_COLUMN_NAME_STEP_ID);
+            }, preparedStatement -> {
+                preparedStatement.setBoolean(1, true);
+                preparedStatement.setInt(2, tenantId);
+            });
+            return stepIds.isEmpty() ? null : stepIds.get(0);
+        } catch (DataAccessException e) {
+            throw handleServerException(Constants.ErrorMessages.ERROR_CODE_GET_FIRST_STEP_ID, e, tenantId);
         }
     }
 

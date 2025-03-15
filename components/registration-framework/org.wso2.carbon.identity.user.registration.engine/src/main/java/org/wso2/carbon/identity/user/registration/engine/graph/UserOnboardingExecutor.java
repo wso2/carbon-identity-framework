@@ -20,11 +20,13 @@ package org.wso2.carbon.identity.user.registration.engine.graph;
 
 import static java.util.Locale.ENGLISH;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_USERNAME;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERNAME_NOT_PROVIDED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USERSTORE_MANAGER_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_USER_ONBOARD_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.USER_ALREADY_EXISTING_USERNAME;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD_KEY;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.USERNAME_CLAIM_URI;
 import static org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils.handleClientException;
@@ -84,7 +86,7 @@ public class UserOnboardingExecutor implements Executor {
         Map<String, char[]> credentials = user.getUserCredentials();
 
         char[] password =
-                credentials.getOrDefault(PASSWORD, new DefaultPasswordGenerator().generatePassword());
+                credentials.getOrDefault(PASSWORD_KEY, new DefaultPasswordGenerator().generatePassword());
 
         Map<String, Object> claims = user.getClaims();
         Map<String, String> userClaims = new HashMap<>();
@@ -102,6 +104,9 @@ public class UserOnboardingExecutor implements Executor {
             context.setUserId(userid);
             return new ExecutorResponse(STATUS_USER_CREATED);
         } catch (UserStoreException e) {
+            if (e.getMessage().contains(USER_ALREADY_EXISTING_USERNAME)) {
+                throw handleClientException(ERROR_CODE_USERNAME_ALREADY_EXISTS, context.getTenantDomain());
+            }
             throw handleServerException(ERROR_CODE_USER_ONBOARD_FAILURE, e, user.getUsername(),
                                         context.getContextIdentifier());
         } finally {
@@ -165,7 +170,7 @@ public class UserOnboardingExecutor implements Executor {
     private String resolveUsername(RegisteringUser user, String flowId) throws RegistrationEngineException {
 
         String username = Optional.ofNullable(user.getUsername())
-                .orElseGet(() -> user.getClaims().get(USERNAME_CLAIM_URI).toString());
+                .orElseGet(() -> Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse("").toString());
         if (StringUtils.isBlank(username)) {
             throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, flowId);
         }

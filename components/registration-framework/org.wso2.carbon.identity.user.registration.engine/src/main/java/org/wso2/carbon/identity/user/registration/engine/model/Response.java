@@ -29,6 +29,7 @@ public class Response {
 
     private String status;
     private String type;
+    private String error;
     private final List<String> requiredData;
     private Map<String, String> additionalInfo;
 
@@ -36,6 +37,7 @@ public class Response {
 
         this.status = builder.status;
         this.type = builder.type;
+        this.error = builder.error;
         this.requiredData = builder.requiredData;
         this.additionalInfo = builder.additionalInfo;
     }
@@ -68,6 +70,16 @@ public class Response {
         this.type = type;
     }
 
+    public String getError() {
+
+        return error;
+    }
+
+    public void setError(String error) {
+
+        this.error = error;
+    }
+
     public void setAdditionalInfo(Map<String, String> additionalInfo) {
 
         this.additionalInfo = additionalInfo;
@@ -80,6 +92,7 @@ public class Response {
 
         private String status;
         private String type;
+        private String error;
         private List<String> requiredData;
         private Map<String, String> additionalInfo;
 
@@ -92,6 +105,12 @@ public class Response {
         public Builder type(String type){
 
             this.type = type;
+            return this;
+        }
+
+        public Builder error(String error){
+
+            this.error = error;
             return this;
         }
 

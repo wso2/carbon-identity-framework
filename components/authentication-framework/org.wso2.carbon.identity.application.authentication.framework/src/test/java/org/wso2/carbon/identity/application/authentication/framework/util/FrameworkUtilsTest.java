@@ -581,6 +581,32 @@ public class FrameworkUtilsTest extends IdentityBaseTest {
     }
 
     @Test
+    public void testGetAuthenticationResultFromSessionDataStoreNoTimestamp() {
+
+        try (MockedStatic<SessionDataStore> sessionDataStore = mockStatic(SessionDataStore.class);
+             MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
+
+            sessionDataStore.when(SessionDataStore::getInstance).thenReturn(mockedSessionDataStore);
+            identityUtil.when(() -> IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"))
+                    .thenReturn("true");
+
+            AuthenticationResultCache authenticationCacheSpy = spy(AuthenticationResultCache.getInstance());
+
+            AuthenticationResultCacheKey key = new AuthenticationResultCacheKey(DUMMY_CACHE_KEY);
+
+            when(authenticationCacheSpy.getValueFromCache(eq(key), anyString())).thenReturn(null);
+
+            when(mockedSessionDataStore.getSessionData(anyString(), anyString()))
+                    .thenReturn(mockedAuthenticationResultCacheEntry);
+            when(mockedAuthenticationResultCacheEntry.getResult()).thenReturn(mockedAuthenticationResult);
+            when(mockedAuthenticationResult.getProperty(anyString())).thenReturn(null);
+
+            AuthenticationResultCacheEntry result = authenticationCacheSpy.getValueFromCache(key);
+            assertNotNull(result);
+        }
+    }
+
+    @Test
     public void testRemoveAuthenticationResultFromCache() {
 
         try (MockedStatic<AuthenticationResultCache> authenticationResultCache =

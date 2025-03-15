@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.user.registration.engine;
 
-import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
-import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
@@ -27,6 +25,10 @@ import org.wso2.carbon.identity.user.registration.engine.model.RegistrationConte
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
+
+import java.util.Map;
+
+import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
 
 /**
  * Service class to handle the user registration flow.
@@ -54,10 +56,15 @@ public class UserRegistrationFlowService {
      */
     public RegistrationStep initiateDefaultRegistrationFlow(String tenantDomain) throws RegistrationEngineException {
 
-        RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
-        RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
-        RegistrationFlowEngineUtils.addRegContextToCache(context);
-        return step;
+        try {
+            RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
+            RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
+            RegistrationFlowEngineUtils.addRegContextToCache(context);
+            return step;
+        } catch (RegistrationEngineException e) {
+            RegistrationFlowEngineUtils.removeRegContextFromCache(tenantDomain);
+            throw e;
+        }
     }
 
     /**
@@ -71,15 +78,20 @@ public class UserRegistrationFlowService {
     public RegistrationStep continueFlow(String flowId, String actionId, Map<String, String> inputs)
             throws RegistrationEngineException {
 
-        RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
-        context.getUserInputData().putAll(inputs);
-        context.setCurrentActionId(actionId);
-        RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
-        if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
+        try {
+            RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
+            context.getUserInputData().putAll(inputs);
+            context.setCurrentActionId(actionId);
+            RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
+            if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
+                RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
+            } else {
+                RegistrationFlowEngineUtils.addRegContextToCache(context);
+            }
+            return step;
+        } catch (RegistrationEngineException e) {
             RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
-        } else {
-            RegistrationFlowEngineUtils.addRegContextToCache(context);
+            throw e;
         }
-        return step;
     }
 }

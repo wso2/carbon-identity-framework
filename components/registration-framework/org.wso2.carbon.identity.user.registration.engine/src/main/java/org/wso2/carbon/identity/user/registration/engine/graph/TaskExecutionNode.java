@@ -20,11 +20,14 @@ package org.wso2.carbon.identity.user.registration.engine.graph;
 
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_IDP_CONFIG_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REGISTRATION_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REQUEST_PROCESSING_FAILURE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_ERROR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_ERROR;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_EXTERNAL_REDIRECTION;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_RETRY;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_CREATED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ExecutorStatus.STATUS_USER_INPUT_REQUIRED;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
@@ -37,12 +40,13 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.user.registration.engine.Constants;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
@@ -76,8 +80,7 @@ public class TaskExecutionNode implements Node {
             throw handleServerException(ERROR_CODE_EXECUTOR_NOT_FOUND, context.getRegGraph().getId(),
                                         context.getTenantDomain());
         }
-        context.setAuthenticatorProperties(
-                getAuthenticatorProperties(context.getTenantDomain(), configs.getExecutorConfig()));
+        addIdpConfigsToContext(context, configs.getExecutorConfig());
         return triggerExecutor(context, configs);
     }
 
@@ -119,11 +122,19 @@ public class TaskExecutionNode implements Node {
             context.addProperties(response.getContextProperties());
         }
         switch (response.getResult()) {
+            case STATUS_RETRY:
+                return new Response.Builder()
+                        .status(STATUS_INCOMPLETE)
+                        .type(VIEW)
+                        .requiredData(response.getRequiredData())
+                        .error(response.getErrorMessage())
+                        .build();
             case STATUS_USER_INPUT_REQUIRED:
                 return new Response.Builder()
                         .status(STATUS_INCOMPLETE)
                         .type(VIEW)
                         .requiredData(response.getRequiredData())
+                        .additionalInfo(response.getAdditionalInfo())
                         .build();
             case STATUS_EXTERNAL_REDIRECTION:
                 return new Response.Builder()
@@ -132,9 +143,10 @@ public class TaskExecutionNode implements Node {
                         .requiredData(response.getRequiredData())
                         .additionalInfo(response.getAdditionalInfo())
                         .build();
+            case STATUS_USER_ERROR:
+                throw handleClientException(ERROR_CODE_REGISTRATION_FAILURE, response.getErrorMessage());
             case STATUS_ERROR:
-                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, context.getContextIdentifier(),
-                                            response.getErrorMessage());
+                throw handleClientException(ERROR_CODE_REQUEST_PROCESSING_FAILURE, response.getErrorMessage());
             default:
                 throw handleServerException(ERROR_CODE_UNSUPPORTED_EXECUTOR_STATUS, response.getResult());
         }
@@ -164,24 +176,26 @@ public class TaskExecutionNode implements Node {
         return new Response.Builder().status(STATUS_COMPLETE).build();
     }
 
-    private Map<String, String> getAuthenticatorProperties(String tenantDomain, ExecutorDTO executorDTO)
+    private void addIdpConfigsToContext(RegistrationContext context, ExecutorDTO executorDTO)
             throws RegistrationEngineServerException {
 
+        String tenantDomain = context.getTenantDomain();
         Map<String, String> propertyMap = new HashMap<>();
-        if (executorDTO.getIdpName() == null){
-            return propertyMap;
+        if (StringUtils.isBlank(executorDTO.getIdpName())){
+            return;
         }
         try {
             IdentityProvider idp =
                     IdentityProviderManager.getInstance().getIdPByName(executorDTO.getIdpName(), tenantDomain);
-            if (idp != null && idp.getDefaultAuthenticatorConfig() != null) {
-                FederatedAuthenticatorConfig authenticatorConfig = idp.getDefaultAuthenticatorConfig();
-                for (Property property : authenticatorConfig.getProperties()) {
-                    propertyMap.put(property.getName(), property.getValue());
-                }
-                return propertyMap;
+            if (idp == null || idp.getId() == null || idp.getDefaultAuthenticatorConfig() == null) {
+                throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain);
             }
-            throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain);
+            FederatedAuthenticatorConfig authenticatorConfig = idp.getDefaultAuthenticatorConfig();
+            for (Property property : authenticatorConfig.getProperties()) {
+                propertyMap.put(property.getName(), property.getValue());
+            }
+            context.setAuthenticatorProperties(propertyMap);
+            context.setExternalIdPConfig(new ExternalIdPConfig(idp));
         } catch (IdentityProviderManagementException e) {
             throw handleServerException(ERROR_CODE_GET_IDP_CONFIG_FAILURE, executorDTO.getIdpName(), tenantDomain, e);
         }

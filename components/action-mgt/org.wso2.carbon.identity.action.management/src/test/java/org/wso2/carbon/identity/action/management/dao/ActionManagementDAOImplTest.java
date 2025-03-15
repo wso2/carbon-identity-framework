@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
@@ -75,8 +76,10 @@ public class ActionManagementDAOImplTest {
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
                                 TestUtil.TEST_PASSWORD_SECRET_REFERENCE))
                         .build())
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1, TestUtil.TEST_ACTION_PROPERTY_VALUE_1)
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2, TestUtil.TEST_ACTION_PROPERTY_VALUE_2)
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_1))
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_2))
                 .build();
 
         try {
@@ -104,10 +107,12 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_PASSWORD_SECRET_REFERENCE);
 
         Assert.assertEquals(createdActionDTO.getProperties().size(), creatingActionDTO.getProperties().size());
-        Assert.assertEquals(createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                creatingActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                creatingActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(), ((ActionPropertyForDAO) creatingActionDTO
+                .getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(), ((ActionPropertyForDAO) creatingActionDTO
+                .getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
     }
 
     @Test(priority = 2, expectedExceptions = ActionMgtException.class,
@@ -154,10 +159,14 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_PASSWORD_SECRET_REFERENCE);
 
         Assert.assertEquals(result.getProperties().size(), createdActionDTO.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue());
     }
 
     @Test(priority = 4)
@@ -185,8 +194,10 @@ public class ActionManagementDAOImplTest {
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
                                 TestUtil.TEST_PASSWORD_SECRET_REFERENCE))
                         .build())
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1, TestUtil.TEST_ACTION_PROPERTY_VALUE_1)
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2, TestUtil.TEST_ACTION_PROPERTY_VALUE_2)
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_1))
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_2))
                 .build();
         try {
             daoImpl.addAction(creatingActionDTO, TENANT_ID);
@@ -213,10 +224,14 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_PASSWORD_SECRET_REFERENCE);
 
         Assert.assertEquals(createdActionDTO.getProperties().size(), creatingActionDTO.getProperties().size());
-        Assert.assertEquals(createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                creatingActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                creatingActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) createdActionDTO
+                        .getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue(),
+                ((ActionPropertyForDAO) creatingActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) createdActionDTO
+                        .getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue(),
+                ((ActionPropertyForDAO) creatingActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue());
     }
 
     @Test(priority = 7, dependsOnMethods = "testAddActionWithoutDescription")
@@ -232,8 +247,10 @@ public class ActionManagementDAOImplTest {
                         .authentication(TestUtil.buildMockBearerAuthentication(
                                 TestUtil.TEST_ACCESS_TOKEN_SECRET_REFERENCE))
                         .build())
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1, TestUtil.TEST_ACTION_PROPERTY_VALUE_1_UPDATED)
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2, TestUtil.TEST_ACTION_PROPERTY_VALUE_2_UPDATED)
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_1_UPDATED))
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_2_UPDATED))
                 .build();
         try {
             daoImpl.updateAction(updatingAction, createdActionDTO, TENANT_ID);
@@ -257,10 +274,12 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_ACCESS_TOKEN_SECRET_REFERENCE);
 
         Assert.assertEquals(result.getProperties().size(), updatingAction.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
         createdActionDTO = result;
     }
 
@@ -296,10 +315,12 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_ACCESS_TOKEN_SECRET_REFERENCE);
 
         Assert.assertEquals(result.getProperties().size(), createdActionDTO.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
         createdActionDTO = result;
     }
 
@@ -340,10 +361,12 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_API_KEY_VALUE_SECRET_REFERENCE);
 
         Assert.assertEquals(result.getProperties().size(), createdActionDTO.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
         createdActionDTO = result;
     }
 
@@ -382,10 +405,12 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_API_KEY_VALUE_SECRET_REFERENCE);
 
         Assert.assertEquals(result.getProperties().size(), createdActionDTO.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
         createdActionDTO = result;
     }
 
@@ -425,10 +450,13 @@ public class ActionManagementDAOImplTest {
                 TestUtil.TEST_API_KEY_VALUE_SECRET_REFERENCE);
 
         Assert.assertEquals(result.getProperties().size(), createdActionDTO.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
+
         createdActionDTO = result;
     }
 
@@ -463,10 +491,12 @@ public class ActionManagementDAOImplTest {
                 updatingAction.getEndpoint().getAuthentication().getProperties().size());
 
         Assert.assertEquals(result.getProperties().size(), createdActionDTO.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) createdActionDTO.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
         createdActionDTO = result;
     }
 
@@ -476,8 +506,10 @@ public class ActionManagementDAOImplTest {
         ActionDTO updatingAction = new ActionDTOBuilder()
                 .id(createdActionDTO.getId())
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1, TestUtil.TEST_ACTION_PROPERTY_VALUE_1)
-                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2, TestUtil.TEST_ACTION_PROPERTY_VALUE_2)
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_1))
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_2,
+                        new ActionPropertyForDAO(TestUtil.TEST_ACTION_PROPERTY_VALUE_2))
                 .build();
 
         try {
@@ -500,10 +532,12 @@ public class ActionManagementDAOImplTest {
                 createdActionDTO.getEndpoint().getAuthentication().getProperties().size());
 
         Assert.assertEquals(result.getProperties().size(), updatingAction.getProperties().size());
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1),
-                updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1));
-        Assert.assertEquals(result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2),
-                updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2));
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1))
+                        .getValue(),
+                ((ActionPropertyForDAO) updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_1)).getValue());
+        Assert.assertEquals(((ActionPropertyForDAO) result.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2))
+                        .getValue(),
+                ((ActionPropertyForDAO) updatingAction.getProperty(TestUtil.TEST_ACTION_PROPERTY_NAME_2)).getValue());
         createdActionDTO = result;
     }
 
