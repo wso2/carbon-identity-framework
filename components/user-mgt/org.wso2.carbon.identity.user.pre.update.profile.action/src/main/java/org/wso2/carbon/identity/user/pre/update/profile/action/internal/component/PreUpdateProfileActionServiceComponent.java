@@ -89,7 +89,7 @@ public class PreUpdateProfileActionServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetActionExecutorService"
     )
-    protected void setActionExecutionService(ActionExecutorService actionExecutorService) {
+    protected void setActionExecutorService(ActionExecutorService actionExecutorService) {
 
         PreUpdateProfileActionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
         LOG.debug("ActionExecutorService set in PreUpdateProfileActionServiceComponentHolder bundle.");
