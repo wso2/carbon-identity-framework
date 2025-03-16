@@ -83,7 +83,7 @@ public class PreUpdateProfileActionServiceComponent {
     }
 
     @Reference(
-            name = "action.execution.service",
+            name = "action.executor.service",
             service = ActionExecutorService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
