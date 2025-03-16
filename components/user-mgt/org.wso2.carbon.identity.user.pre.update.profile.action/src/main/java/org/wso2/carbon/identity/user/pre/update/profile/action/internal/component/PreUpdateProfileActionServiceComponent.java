@@ -25,8 +25,12 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionConverter;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionDTOModelResolver;
 
@@ -57,6 +61,24 @@ public class PreUpdateProfileActionServiceComponent {
         } catch (Throwable e) {
             LOG.error("Error while initializing Pre Update Profile Action service component.", e);
         }
+    }
+
+    @Reference(
+            name = "claim.metadata.management.service",
+            service = org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        PreUpdateProfileActionServiceComponentHolder.getInstance().setClaimManagementService(claimManagementService);
+        LOG.debug("ClaimMetadataManagementService set in PreUpdateProfileActionServiceComponentHolder bundle.");
+    }
+
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        PreUpdateProfileActionServiceComponentHolder.getInstance().setClaimManagementService(null);
+        LOG.debug("ClaimMetadataManagementService unset in PreUpdateProfileActionServiceComponentHolder bundle.");
     }
 
     @Deactivate

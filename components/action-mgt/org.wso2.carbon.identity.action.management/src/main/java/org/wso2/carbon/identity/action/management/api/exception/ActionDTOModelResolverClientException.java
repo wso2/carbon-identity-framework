@@ -29,4 +29,9 @@ public class ActionDTOModelResolverClientException extends ActionDTOModelResolve
 
         super(message, description);
     }
+
+    public ActionDTOModelResolverClientException(String message, Throwable cause) {
+
+        super(message, cause);
+    }
 }
