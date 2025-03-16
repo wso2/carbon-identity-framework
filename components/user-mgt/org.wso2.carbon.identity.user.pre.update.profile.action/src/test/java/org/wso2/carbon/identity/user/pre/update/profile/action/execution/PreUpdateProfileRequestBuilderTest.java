@@ -250,12 +250,8 @@ public class PreUpdateProfileRequestBuilderTest {
                 Base64.getEncoder().encodeToString(USER_STORE_DOMAIN.getBytes(StandardCharsets.UTF_8)));
         assertEquals(event.getUserStore().getName(), USER_STORE_DOMAIN);
 
-        assertTrue(event.getRequest() instanceof PreUpdateProfileRequest);
-        // Validate 'request' in 'event'
-        PreUpdateProfileRequest profileUpdateRequest = (PreUpdateProfileRequest) event.getRequest();
-        assertEquals(profileUpdateRequest.getAdditionalHeaders().size(), 0);
-        assertEquals(profileUpdateRequest.getAdditionalParams().size(), 0);
-        assertEquals(profileUpdateRequest.getClaims().size(), 0);
+        // Validate 'request' in 'event' is empty as there are no claims to update.
+        assertNull(event.getRequest());
         // Validate 'user' in 'event'
         assertNotNull(event.getUser());
         assertEquals(event.getUser().getId(), USER_ID);

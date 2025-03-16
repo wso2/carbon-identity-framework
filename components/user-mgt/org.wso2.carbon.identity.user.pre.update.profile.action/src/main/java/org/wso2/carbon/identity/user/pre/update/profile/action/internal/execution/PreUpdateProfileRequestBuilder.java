@@ -124,11 +124,12 @@ public class PreUpdateProfileRequestBuilder implements ActionExecutionRequestBui
             throws ActionExecutionRequestBuilderException {
 
         UserActionRequestDTO userActionRequestDTO = userActionContext.getUserActionRequestDTO();
-        PreUpdateProfileRequest.Builder preUpdateProfileRequestBuilder = new PreUpdateProfileRequest.Builder();
 
         if (userActionRequestDTO.getClaims() == null || userActionRequestDTO.getClaims().isEmpty()) {
-            return preUpdateProfileRequestBuilder.build();
+            return null;
         }
+
+        PreUpdateProfileRequest.Builder preUpdateProfileRequestBuilder = new PreUpdateProfileRequest.Builder();
 
         for (Map.Entry<String, Object> claimEntry : userActionRequestDTO.getClaims().entrySet()) {
             if (isRoleOrGroupClaim(claimEntry.getKey())) {
