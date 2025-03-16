@@ -83,13 +83,13 @@ public class PreUpdateProfileActionServiceComponent {
     }
 
     @Reference(
-            name = "action.execution.service",
+            name = "action.executor.service",
             service = ActionExecutorService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetActionExecutorService"
     )
-    protected void setActionExecutionService(ActionExecutorService actionExecutorService) {
+    protected void setActionExecutorService(ActionExecutorService actionExecutorService) {
 
         PreUpdateProfileActionServiceComponentHolder.getInstance().setActionExecutorService(actionExecutorService);
         LOG.debug("ActionExecutorService set in PreUpdateProfileActionServiceComponentHolder bundle.");

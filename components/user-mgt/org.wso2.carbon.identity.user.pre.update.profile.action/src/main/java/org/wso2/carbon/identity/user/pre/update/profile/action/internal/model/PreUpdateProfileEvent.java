@@ -45,7 +45,7 @@ public class PreUpdateProfileEvent extends Event {
      * Defines the mode of updating the profile.
      */
     public enum Action {
-        UPDATE,
+        UPDATE
     }
 
     private final FlowInitiatorType initiatorType;
