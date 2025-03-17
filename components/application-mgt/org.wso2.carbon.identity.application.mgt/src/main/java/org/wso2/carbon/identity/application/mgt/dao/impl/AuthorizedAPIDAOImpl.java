@@ -30,7 +30,12 @@ import org.wso2.carbon.identity.application.common.model.AuthorizedScopes;
 import org.wso2.carbon.identity.application.common.model.Scope;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.AuthorizedAPIDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -230,11 +235,12 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                                    List<String> authorizationDetailsTypesToRemove, int tenantId)
             throws IdentityApplicationManagementException {
 
+        int tenantIdToSearchScopes = isOrganization(tenantId) ? getPrimaryOrgTenantID(tenantId) : tenantId;
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
-                this.addScopes(dbConnection, appId, apiId, scopesToAdd, tenantId);
+                this.addScopes(dbConnection, appId, apiId, scopesToAdd, tenantIdToSearchScopes);
 
-                this.deleteScopes(dbConnection, appId, apiId, scopesToRemove, tenantId);
+                this.deleteScopes(dbConnection, appId, apiId, scopesToRemove, tenantIdToSearchScopes);
 
                 this.addAuthorizedAuthorizationDetailsTypes(dbConnection, appId, apiId,
                         authorizationDetailsTypesToAdd, tenantId);
@@ -287,6 +293,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                                   List<AuthorizationDetailsType> authorizationDetailsTypes, int tenantId)
             throws IdentityApplicationManagementException {
 
+        int tenantIdToSearchScopes = isOrganization(tenantId) ? getPrimaryOrgTenantID(tenantId) : tenantId;
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
                 PreparedStatement prepStmt = dbConnection.prepareStatement(ApplicationMgtDBQueries.ADD_AUTHORIZED_API);
@@ -302,7 +309,7 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
                         prepStmt.setString(1, applicationId);
                         prepStmt.setString(2, apiId);
                         prepStmt.setString(3, scope.getName());
-                        prepStmt.setObject(4, isSystemAPI ? null : tenantId);
+                        prepStmt.setObject(4, isSystemAPI ? null : tenantIdToSearchScopes);
                         prepStmt.addBatch();
                         prepStmt.clearParameters();
                     }
@@ -519,5 +526,50 @@ public class AuthorizedAPIDAOImpl implements AuthorizedAPIDAO {
         return AuthorizationDetailsTypesUtil.isRichAuthorizationRequestsDisabled()
                 ? ApplicationMgtDBQueries.GET_AUTHORIZED_APIS
                 : ApplicationMgtDBQueries.GET_AUTHORIZED_APIS_WITH_AUTHORIZATION_DETAILS;
+    }
+
+    /**
+     * Check whether the tenant id is an organization.
+     *
+     * @param tenantId Tenant Id.
+     * @return True if the tenant id is an organization.
+     * @throws IdentityApplicationManagementException If an error occurred while checking whether the tenant id
+     * is an organization.
+     */
+    private boolean isOrganization(int tenantId) throws IdentityApplicationManagementException {
+
+        try {
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+            return OrganizationManagementUtil.isOrganization(tenantDomain);
+        } catch (OrganizationManagementException e) {
+            throw new IdentityApplicationManagementException("Error while checking whether the tenant id is an " +
+                    "organization.", e);
+        }
+    }
+
+    /**
+     * Get the primary org tenant id of the org with given tenant id.
+     *
+     * @param tenantId Tenant Id.
+     * @return Primary org tenant id.
+     * @throws IdentityApplicationManagementException If an error occurred while getting primary org tenant id.
+     */
+    private int getPrimaryOrgTenantID(int tenantId) throws IdentityApplicationManagementException {
+
+        int primaryOrgTenantId;
+        try {
+            OrganizationManager organizationManager =
+                    ApplicationManagementServiceComponentHolder.getInstance().getOrganizationManager();
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+            String orgId = organizationManager.resolveOrganizationId(tenantDomain);
+            String primaryOrgId = organizationManager.getPrimaryOrganizationId(orgId);
+            String primaryOrgTenantDomain = organizationManager.resolveTenantDomain(primaryOrgId);
+            primaryOrgTenantId = IdentityTenantUtil.getTenantId(primaryOrgTenantDomain);
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the primary organization tenant domain for the tenant " +
+                    "id: " + tenantId;
+            throw new IdentityApplicationManagementException(errorMessage, e);
+        }
+        return primaryOrgTenantId;
     }
 }

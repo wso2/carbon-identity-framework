@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.role.v2.mgt.core.FilterQueryBuilder;
@@ -1926,12 +1927,14 @@ public class RoleDAOImpl implements RoleDAO {
             return;
         }
         checkPermissionsAlreadyAdded(roleId, permissions, tenantDomain, connection);
+        // Resolve the tenant ID to search the scope details.
+        int tenantIdToSearchScopes = IdentityTenantUtil.getTenantId(
+                isOrganization(tenantDomain) ? getPrimaryOrgTenantDomain(tenantDomain) : tenantDomain);
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SCOPE_SQL)) {
             for (Permission permission : permissions) {
                 statement.setString(RoleConstants.RoleTableColumns.ROLE_ID, roleId);
                 statement.setString(RoleConstants.RoleTableColumns.SCOPE_NAME, permission.getName());
-                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID,
-                        IdentityTenantUtil.getTenantId(tenantDomain));
+                statement.setInt(RoleConstants.RoleTableColumns.TENANT_ID, tenantIdToSearchScopes);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -2440,6 +2443,30 @@ public class RoleDAOImpl implements RoleDAO {
             String errorMessage = "Error while retrieving the organization id for the tenant domain: " + tenantDomain;
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
         }
+    }
+
+    /**
+     * Get the primary org tenant domain of the org with given tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return Primary org tenant domain.
+     * @throws IdentityRoleManagementServerException If an error occurred while getting primary org tenant domain.
+     */
+    private String getPrimaryOrgTenantDomain(String tenantDomain) throws IdentityRoleManagementServerException {
+
+        String primaryOrgTenantDomain;
+        try {
+            OrganizationManager organizationManager =
+                    RoleManagementServiceComponentHolder.getInstance().getOrganizationManager();
+            String orgId = getOrganizationId(tenantDomain);
+            String primaryOrgId = organizationManager.getPrimaryOrganizationId(orgId);
+            primaryOrgTenantDomain = organizationManager.resolveTenantDomain(primaryOrgId);
+        } catch (OrganizationManagementException e) {
+            String errorMessage = "Error while retrieving the primary organization tenant domain for the tenant " +
+                    "domain: " + tenantDomain;
+            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), errorMessage, e);
+        }
+        return primaryOrgTenantDomain;
     }
 
     /**

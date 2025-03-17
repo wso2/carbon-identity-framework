@@ -23,22 +23,23 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.rule.evaluation.core.RuleEvaluationDataManager;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationException;
-import org.wso2.carbon.identity.rule.evaluation.internal.RuleEvaluationComponentServiceHolder;
-import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationResult;
-import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
-import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvider;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
-import org.wso2.carbon.identity.rule.management.internal.RuleManagementComponentServiceHolder;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.management.model.Value;
-import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
-import org.wso2.carbon.identity.rule.management.util.RuleBuilder;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationResult;
+import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
+import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
+import org.wso2.carbon.identity.rule.evaluation.internal.component.RuleEvaluationComponentServiceHolder;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.RuleEvaluationDataManager;
+import org.wso2.carbon.identity.rule.evaluation.internal.service.impl.RuleEvaluationServiceImpl;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.management.api.util.RuleBuilder;
+import org.wso2.carbon.identity.rule.management.internal.component.RuleManagementComponentServiceHolder;
 import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataException;
 import org.wso2.carbon.identity.rule.metadata.api.model.Field;
 import org.wso2.carbon.identity.rule.metadata.api.model.FieldDefinition;
@@ -229,7 +230,7 @@ public class RuleEvaluationServiceImplTest {
     private Rule createRule(String tenantDomain) throws Exception {
 
         RuleBuilder ruleBuilder =
-                RuleBuilder.create(org.wso2.carbon.identity.rule.management.model.FlowType.PRE_ISSUE_ACCESS_TOKEN,
+                RuleBuilder.create(org.wso2.carbon.identity.rule.management.api.model.FlowType.PRE_ISSUE_ACCESS_TOKEN,
                         tenantDomain);
 
         Expression expression1 = new Expression.Builder().field("application").operator("equals")

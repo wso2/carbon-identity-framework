@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
+import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -63,6 +65,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.common.Group;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
@@ -74,6 +78,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -89,6 +94,9 @@ import javax.xml.transform.sax.SAXSource;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_ORIGIN;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.CONSOLE_ACCESS_URL_FROM_SERVER_CONFIGS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ENABLE_APPLICATION_ROLE_VALIDATION_PROPERTY;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USERSTORE_MANAGER;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_RETRIEVING_USER_GROUPS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.UNSUPPORTED_USER_STORE_MANAGER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.APP_OWNER;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.DISABLE_LEGACY_AUDIT_LOGS_IN_APP_MGT_CONFIG;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LogConstants.ENABLE_V2_AUDIT_LOGS;
@@ -1307,5 +1315,116 @@ public class ApplicationMgtUtil {
                     .getInboundAuthenticationRequestConfigs()[0].getInboundAuthType();
         }
         return inboundConfigType;
+    }
+
+    /**
+     * Get the AbstractUserStoreManager for the given tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return UserStoreManager.
+     * @throws IdentityApplicationManagementException If an error occurred while getting the AbstractUserStoreManager
+     *                                               instance of the tenant.
+     */
+    public static AbstractUserStoreManager getUserStoreManager(String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        RealmService realmService = ApplicationManagementServiceComponentHolder.getInstance().getRealmService();
+        UserStoreManager userStoreManager;
+        try {
+            userStoreManager =
+                    realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain))
+                            .getUserStoreManager();
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription(), e);
+        }
+        if (userStoreManager == null) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USERSTORE_MANAGER.getCode(),
+                    ERROR_RETRIEVING_USERSTORE_MANAGER.getDescription());
+        }
+        if (!(userStoreManager instanceof AbstractUserStoreManager)) {
+            throw new IdentityApplicationManagementServerException(UNSUPPORTED_USER_STORE_MANAGER.getCode(),
+                    String.format(UNSUPPORTED_USER_STORE_MANAGER.getDescription(), tenantDomain));
+        }
+        return (AbstractUserStoreManager) userStoreManager;
+    }
+
+    /**
+     * Get the group IDs of the logged-in user.
+     *
+     * @return Array of group IDs of the logged-in user.
+     * @throws IdentityApplicationManagementException If an error occurred while retrieving the group IDs of the
+     *                                                logged-in user.
+     */
+    public static String[] getLoggedInUserGroupIDList() throws IdentityApplicationManagementException {
+
+        String loggedInUserId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserId();
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        AbstractUserStoreManager userStoreManager = getUserStoreManager(tenantDomain);
+        try {
+            List<Group> groupList = userStoreManager.getGroupListOfUser(loggedInUserId, null, null);
+            if (groupList != null) {
+                return groupList.stream().map(Group::getGroupID)
+                        .filter(Objects::nonNull)
+                        .map(UserCoreUtil::removeDomainFromName)
+                        .toArray(String[]::new);
+            }
+            return new String[0];
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            throw new IdentityApplicationManagementServerException(ERROR_RETRIEVING_USER_GROUPS.getCode(),
+                    ERROR_RETRIEVING_USER_GROUPS.getDescription(), e);
+        }
+    }
+
+    /**
+     * This method is used to build the discoverable groups list from the database result.
+     * Note: Group association list should be sorted by domain and provide group IDs in order.
+     * Where `discoverableGroups` list keeps the complete list of discoverable groups and
+     *  currentDomainGroups  list keeps the list of groups in the current iterating domain.
+     * The method will add the `currentDomainGroups` list to the `discoverableGroups` list
+     * if the domain name is change from the previous iteration.
+     * If the domain name is same, the group will be added to the `currentDomainGroups` list.
+     *
+     * @param discoverableGroups  All list of discoverable groups.
+     * @param currentDomainGroups List of groups in the current iterating domain.
+     * @param tenantDomain        Tenant domain.
+     * @param domainName          Current iterating domain name.
+     * @param groupID             Group ID.
+     * @throws IdentityApplicationManagementException If an error occurred while adding the discoverable group.
+     */
+    public static void addDiscoverableGroup(List<DiscoverableGroup> discoverableGroups,
+                                            List<GroupBasicInfo> currentDomainGroups, String tenantDomain,
+                                            String domainName, String groupID)
+            throws IdentityApplicationManagementException {
+
+        if (domainName == null && groupID == null) {
+            discoverableGroups.get(discoverableGroups.size() - 1)
+                    .setGroups(currentDomainGroups.toArray(new GroupBasicInfo[0]));
+            return;
+        }
+
+        AbstractUserStoreManager userStoreManager = ApplicationMgtUtil.getUserStoreManager(tenantDomain);
+        GroupBasicInfo groupBasicInfo = new GroupBasicInfo();
+        groupBasicInfo.setId(groupID);
+        try {
+            String groupName = userStoreManager.getGroupNameByGroupId(groupID);
+            groupBasicInfo.setName(UserCoreUtil.removeDomainFromName(groupName));
+            if (!discoverableGroups.isEmpty() && StringUtils.equals(domainName,
+                    discoverableGroups.get(discoverableGroups.size() - 1).getUserStore())) {
+                currentDomainGroups.add(groupBasicInfo);
+            } else {
+                if (!discoverableGroups.isEmpty()) {
+                    discoverableGroups.get(discoverableGroups.size() - 1)
+                            .setGroups(currentDomainGroups.toArray(new GroupBasicInfo[0]));
+                }
+                currentDomainGroups.clear();
+                currentDomainGroups.add(groupBasicInfo);
+                DiscoverableGroup discoverableGroup = new DiscoverableGroup();
+                discoverableGroup.setUserStore(domainName);
+                discoverableGroups.add(discoverableGroup);
+            }
+        } catch (UserStoreException e) {
+            log.warn("Error while retrieving group name for group ID: " + groupID, e);
+        }
     }
 }

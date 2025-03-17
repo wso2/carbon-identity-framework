@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>7.7.264-SNAPSHOT</version>
+        <version>7.8.68-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -125,7 +125,7 @@
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.cache; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.action.management.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.management.api.*; version="${carbon.identity.package.import.version.range}",
 
                             com.fasterxml.jackson.annotation; version="${com.fasterxml.jackson.annotation.version.range}"
                         </Import-Package>

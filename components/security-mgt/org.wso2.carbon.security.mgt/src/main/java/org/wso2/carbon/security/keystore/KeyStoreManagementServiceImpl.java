@@ -20,13 +20,10 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
-import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.SecurityConstants;
 import org.wso2.carbon.security.keystore.service.CertData;
@@ -50,8 +47,8 @@ import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.Er
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_CANNOT_DELETE_TENANT_CERT;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_CERTIFICATE_EXISTS;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_DELETE_CERTIFICATE;
-import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_INITIALIZE_REGISTRY;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_EMPTY_ALIAS;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_INITIALIZE_REGISTRY;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_INVALID_CERTIFICATE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_RETRIEVE_CLIENT_TRUSTSTORE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_RETRIEVE_CLIENT_TRUSTSTORE_CERTIFICATE;
@@ -293,8 +290,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
 
     private KeyStoreAdmin getKeyStoreAdmin(String tenantDomain) {
 
-        return new KeyStoreAdmin(IdentityTenantUtil.getTenantId(tenantDomain),
-                (Registry) CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.SYSTEM_GOVERNANCE));
+        return new KeyStoreAdmin(IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
     private KeyStoreManager getKeyStoreManager(String tenantDomain) {

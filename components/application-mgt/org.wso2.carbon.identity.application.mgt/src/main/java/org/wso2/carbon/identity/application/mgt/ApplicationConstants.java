@@ -22,6 +22,10 @@ import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_FILTER;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_REQUEST;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.UNEXPECTED_SERVER_ERROR;
+
 /**
  * Definitions of few constants shared across with other components from this component.
  * You may not instantiate this class directly. However you can access the constants declared as static.
@@ -75,6 +79,7 @@ public class ApplicationConstants {
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
     public static final String IS_FRAGMENT_APP = "isFragmentApp";
+    public static final String NAME = "name";
     public static final String DEFAULT_BACKCHANNEL_LOGOUT_URL = "/identity/oidc/slo";
 
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
@@ -100,6 +105,10 @@ public class ApplicationConstants {
     public static final String ZERO_BASED_START_INDEX = "ZERO_BASED_START_INDEX";
     public static final String ONE_BASED_START_INDEX = "ONE_BASED_START_INDEX";
     public static final String END_INDEX = "END_INDEX";
+
+    // Filtering operations.
+    public static final String FILTER_CO = "co";
+    public static final int MAX_NUMBER_OF_GROUPS_FROM_META_ENDPOINT = 100;
 
     // System application config elements
     public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
@@ -226,6 +235,8 @@ public class ApplicationConstants {
         public static final String AUTHORIZATION_DETAILS_NAME = "AUTHORIZATION_DETAILS_NAME";
         public static final String AUTHORIZATION_DETAILS_SCHEMA = "AUTHORIZATION_DETAILS_SCHEMA";
 
+        public static final String GROUP_ID = "GROUP_ID";
+
         private ApplicationTableColumns() {
 
         }
@@ -268,10 +279,22 @@ public class ApplicationConstants {
                 "Error occurred while retrieving user by userid: %s."),
         NON_EXISTING_USER_ID("60504", "User not found",
                 "No user found for the given user-id: %s."),
+        UNSUPPORTED_USER_STORE_MANAGER(UNEXPECTED_SERVER_ERROR.getCode(), "Unsupported user store manager.",
+                "The underlying user store manager is not a unique ID user store manager for the tenant: %s."),
         ERROR_RETRIEVING_USERSTORE_MANAGER("65504", "Error retrieving userstore manager.",
                 "Error occurred while retrieving userstore manager."),
         UNEXPECTED_ERROR("65006", "Unexpected processing error.",
-                "Server encountered an unexpected error when creating the application.");
+                "Server encountered an unexpected error when creating the application."),
+        ERROR_CHECKING_GROUP_EXISTENCE(UNEXPECTED_SERVER_ERROR.getCode(), "Unexpected processing error.",
+                "Error occurred while checking the existence of the group: %s."),
+        INVALID_GROUP_FILTER(INVALID_FILTER.getCode(), "Invalid filter query.",
+                "Filtering is only supported with 'name' attribute and 'co' operation. Eg: name+co+group1"),
+        ERROR_RETRIEVING_GROUP_LIST(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving group list.",
+                "Error while retrieving group list for the user store: %s."),
+        INVALID_USER_STORE_DOMAIN(INVALID_REQUEST.getCode(), "Invalid user store domain.",
+                "User store domain: %s is not valid for the tenant: %s."),
+        ERROR_RETRIEVING_USER_GROUPS(UNEXPECTED_SERVER_ERROR.getCode(), "Error retrieving user groups.",
+                "Error occurred while retrieving groups of the user: %s.");
 
         private final String code;
 

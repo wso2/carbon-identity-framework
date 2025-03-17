@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.identity.user.pre.update.password.action.api.model;
 
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 
 /**
  * PreUpdatePasswordAction.

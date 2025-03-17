@@ -19,8 +19,7 @@
 package org.wso2.carbon.idp.mgt.internal;
 
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.action.management.service.ActionManagementService;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.ConnectorConfig;
@@ -28,7 +27,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
-import org.wso2.carbon.identity.secret.mgt.core.SecretsProcessor;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;

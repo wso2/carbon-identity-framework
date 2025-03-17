@@ -20,14 +20,14 @@ package org.wso2.carbon.identity.user.pre.update.password.action.internal.rule;
 
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationDataProviderException;
-import org.wso2.carbon.identity.rule.evaluation.model.Field;
-import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
-import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
-import org.wso2.carbon.identity.rule.evaluation.provider.RuleEvaluationDataProvider;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
+import org.wso2.carbon.identity.rule.evaluation.api.provider.RuleEvaluationDataProvider;
 
 import java.util.ArrayList;
 import java.util.List;

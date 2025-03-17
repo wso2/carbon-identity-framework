@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt-feature</artifactId>
-        <version>7.7.264-SNAPSHOT</version>
+        <version>7.8.68-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -41,6 +41,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.pre.update.password.action</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.pre.update.profile.action</artifactId>
         </dependency>
     </dependencies>
 
@@ -71,6 +75,9 @@
                                 </bundleDef>
                                 <bundleDef>
                                     org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.pre.update.password.action
+                                </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.pre.update.profile.action
                                 </bundleDef>
                             </bundles>
                         </configuration>

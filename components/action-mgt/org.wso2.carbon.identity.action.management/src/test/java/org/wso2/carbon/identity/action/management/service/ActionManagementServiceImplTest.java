@@ -23,20 +23,21 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.service.impl.ActionManagementServiceImpl;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
+import org.wso2.carbon.identity.action.management.internal.service.impl.ActionManagementServiceImpl;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
-import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.exception.SecretManagementException;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
@@ -115,7 +116,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNotNull(sampleAction.getId());
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
-        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
 
@@ -247,20 +248,13 @@ public class ActionManagementServiceImplTest {
     }
 
     @Test(priority = 8)
-    public void testDeactivateAction() throws ActionMgtException {
-
-        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
-        Action deactivatedAction = actionManagementService.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
-                sampleAction.getId(), TENANT_DOMAIN);
-        Assert.assertEquals(deactivatedAction.getStatus(), Action.Status.INACTIVE);
-    }
-
-    @Test(priority = 9)
     public void testActivateAction() throws ActionMgtException {
 
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
         Action activatedAction = actionManagementService.activateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
                 sampleAction.getId(), TENANT_DOMAIN);
         Assert.assertEquals(activatedAction.getStatus(), Action.Status.ACTIVE);
+        sampleAction = activatedAction;
     }
 
     @Test(priority = 10)
@@ -275,6 +269,15 @@ public class ActionManagementServiceImplTest {
             Assert.assertEquals(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType(), entry.getKey());
             Assert.assertEquals(entry.getValue().intValue(), 1);
         }
+    }
+
+    @Test(priority = 11)
+    public void testDeactivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Action deactivatedAction = actionManagementService.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_PATH,
+                sampleAction.getId(), TENANT_DOMAIN);
+        Assert.assertEquals(deactivatedAction.getStatus(), Action.Status.INACTIVE);
     }
 
     @Test(priority = 11)
@@ -346,7 +349,7 @@ public class ActionManagementServiceImplTest {
         Assert.assertNotNull(sampleAction.getId());
         Assert.assertEquals(sampleAction.getName(), creatingAction.getName());
         Assert.assertEquals(sampleAction.getDescription(), creatingAction.getDescription());
-        Assert.assertEquals(sampleAction.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(sampleAction.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(sampleAction.getType(), Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN);
         Assert.assertEquals(sampleAction.getEndpoint().getUri(), creatingAction.getEndpoint().getUri());
 

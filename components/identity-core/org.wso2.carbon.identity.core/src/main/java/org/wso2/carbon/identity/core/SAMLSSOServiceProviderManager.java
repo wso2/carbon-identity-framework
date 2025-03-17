@@ -135,10 +135,8 @@ public class SAMLSSOServiceProviderManager {
      */
     public SAMLSSOServiceProviderDO getServiceProvider(String issuer, int tenantId) throws IdentityException {
 
-        SAMLSSOServiceProviderDO serviceProviderDO = null;
-        if (isServiceProviderExists(issuer, tenantId)) {
-            serviceProviderDO = serviceProviderDAO.getServiceProvider(issuer, tenantId);
-        }
+        SAMLSSOServiceProviderDO serviceProviderDO = serviceProviderDAO.getServiceProvider(issuer, tenantId);
+
         if (serviceProviderDO != null) {
             try {
                 String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
