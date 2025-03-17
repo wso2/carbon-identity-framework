@@ -663,7 +663,6 @@ public class DefaultStepHandler implements StepHandler {
         boolean isNoneCanHandle = true;
         StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
 
-        handleAuthenticatorResolvingForBasicAuthMechanism(context, stepConfig);
         for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
