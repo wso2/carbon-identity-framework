@@ -21,14 +21,19 @@ public class AsyncStatusMgtServiceImpl implements AsyncStatusMgtService {
     private final AsyncOperationDataBuffer operationDataBuffer;
 
     public AsyncStatusMgtServiceImpl() {
-        this.asyncStatusMgtDAO = AsyncStatusMgtDataHolder.getInstance().getAsyncStatusMgtDAO();
-//        this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
+//        this.asyncStatusMgtDAO = AsyncStatusMgtDataHolder.getInstance().getAsyncStatusMgtDAO();
+        this.asyncStatusMgtDAO = new AsyncStatusMgtDAOImpl();
         this.operationDataBuffer = new AsyncOperationDataBuffer(asyncStatusMgtDAO, 100, 5);
     }
 
     @Override
     public ResponseOperationRecord getLatestAsyncOperationStatus(String operationType, String operationSubjectId) {
         return asyncStatusMgtDAO.getLatestAsyncOperationStatus(operationType, operationSubjectId);
+    }
+
+    @Override
+    public List<ResponseOperationRecord> getAsyncOperationStatus(String operationType, String operationSubjectId) {
+        return asyncStatusMgtDAO.getOperationStatusByOperationTypeAndOperationSubjectId(operationType, operationSubjectId);
     }
 
     @Override

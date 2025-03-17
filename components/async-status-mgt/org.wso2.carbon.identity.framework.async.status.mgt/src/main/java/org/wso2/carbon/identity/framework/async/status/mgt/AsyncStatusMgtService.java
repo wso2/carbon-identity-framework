@@ -60,6 +60,17 @@ public interface AsyncStatusMgtService {
     ResponseOperationRecord getLatestAsyncOperationStatus(String operationType, String operationSubjectId);
 
     /**
+     * Retrieves the latest asynchronous operation status for a specific resource type and operation subject.
+     * This method is useful for querying the most recent status of an operation related to a particular resource and subject,
+     * providing insight into the current state of asynchronous tasks.
+     *
+     * @param operationType The type of the asynchronous operation.
+     * @param operationSubjectId The identifier of the subject (e.g., user, application) related to the operation.
+     * @return A {@link ResponseOperationRecord} object containing the details of the latest operation status, or null if no matching operation is found.
+     */
+    List<ResponseOperationRecord> getAsyncOperationStatus(String operationType, String operationSubjectId);
+
+    /**
      * Retrieves the latest asynchronous operation status for a specific resource type, operation subject, and initiator.
      * This method extends the functionality of {@link #getLatestAsyncOperationStatus(String, String)} by allowing filtering based on the initiator of the operation,
      * providing more granular control over status retrieval.
