@@ -289,4 +289,14 @@ public class LocalAuthenticatorConfig implements Serializable {
 
         this.amrValue = amrValue;
     }
+
+    /**
+     * Get the enabled status of the Local authenticator config.
+     *
+     * @return enabled
+     */
+    public boolean getEnabled() {
+
+        return enabled;
+    }
 }

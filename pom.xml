@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.24-SNAPSHOT</version>
+    <version>7.8.64-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -77,6 +77,7 @@
         <module>components/certificate-mgt</module>
         <module>components/servlet-mgt</module>
         <module>components/system-config-mgt</module>
+        <module>components/registration-framework</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
         <module>features/security-mgt</module>
@@ -116,6 +117,7 @@
         <module>features/certificate-mgt</module>
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
+        <module>features/registration-framework</module>
     </modules>
 
 
@@ -753,6 +755,18 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.ai.service.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.registration.mgt.server.feature</artifactId>
+                <type>zip</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.registration.engine.server.feature</artifactId>
+                <type>zip</type>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1779,6 +1793,16 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.registration.mgt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.user.registration.engine</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.servlet.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1852,7 +1876,7 @@
                 <artifactId>jackson-dataformat-cbor</artifactId>
                 <version>${com.fasterxml.jackson.cbor.version}</version>
             </dependency>
-<!--            GraalVM related dependencies-->
+            <!--            GraalVM related dependencies-->
             <dependency>
                 <groupId>org.wso2.orbit.graalvm.sdk</groupId>
                 <artifactId>graal-sdk</artifactId>
@@ -1886,7 +1910,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.10.34</carbon.kernel.version>
+        <carbon.kernel.version>4.10.36</carbon.kernel.version>
         <carbon.kernel.feature.version>4.7.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1912,7 +1936,7 @@
         <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
 
         <org.bouncycastle.imp.pkg.version.range>[0.0.0,2.0.0)</org.bouncycastle.imp.pkg.version.range>
-        <org.wso2.carbon.identity.organization.management.core.version>1.0.90
+        <org.wso2.carbon.identity.organization.management.core.version>1.1.24
         </org.wso2.carbon.identity.organization.management.core.version>
         <org.wso2.carbon.identity.organization.management.core.version.range>[1.0.0, 2.0.0)
         </org.wso2.carbon.identity.organization.management.core.version.range>

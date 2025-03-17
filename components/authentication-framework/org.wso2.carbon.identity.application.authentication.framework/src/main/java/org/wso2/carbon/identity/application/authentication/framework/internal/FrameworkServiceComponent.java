@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -35,10 +33,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
-import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
@@ -102,12 +96,14 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationMgtDBQueries;
+import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants;
 import org.wso2.carbon.identity.base.AuthenticatorPropertyConstants.DefinedByType;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
@@ -488,8 +484,7 @@ public class FrameworkServiceComponent {
             unbind = "unsetAuthenticator"
     )
     protected void setAuthenticator(ApplicationAuthenticator authenticator)
-            throws IdentityProviderManagementServerException,
-            IdentityApplicationManagementException {
+            throws IdentityProviderManagementServerException {
 
         /* All custom authenticator names must start with the `custom-` prefix. If a system-defined authenticator is
          attempted to be registered at server startup with a name starting with this prefix, an error will be thrown. */
@@ -527,10 +522,6 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
             localAuthenticatorConfig.setAmrValue(fileBasedConfig.getAmrValue());
-
-//            ApplicationManagementService.getInstance()
-//                    .processLocalAuthenticator(localAuthenticatorConfig);
-//See where the addLocalAuthenticator goes change th eimplementtion
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
@@ -926,9 +917,8 @@ public class FrameworkServiceComponent {
      */
     private void loadCodeForRequire() {
 
-        try {
-            ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
-            InputStream resourceStream = loader.getResourceAsStream("js/require.js");
+        ClassLoader loader = FrameworkServiceComponent.class.getClassLoader();
+        try (InputStream resourceStream = loader.getResourceAsStream("js/require.js")) {
             requireCode = IOUtils.toString(resourceStream);
             FrameworkServiceDataHolder.getInstance().setCodeForRequireFunction(requireCode);
         } catch (IOException e) {
