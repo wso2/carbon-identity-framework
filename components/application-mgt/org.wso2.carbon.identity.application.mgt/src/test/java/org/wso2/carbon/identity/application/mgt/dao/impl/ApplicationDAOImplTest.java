@@ -27,15 +27,21 @@ import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.AssociatedRolesConfig;
 import org.wso2.carbon.identity.application.common.model.DiscoverableGroup;
 import org.wso2.carbon.identity.application.common.model.GroupBasicInfo;
+import org.wso2.carbon.identity.application.common.model.RoleV2;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.provider.ApplicationPermissionProvider;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleConstants;
+import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
+import org.wso2.carbon.identity.role.v2.mgt.core.exception.IdentityRoleManagementException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
@@ -59,6 +65,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_ID;
 
@@ -80,6 +87,7 @@ public class ApplicationDAOImplTest {
     RealmService mockRealmService;
     AbstractUserStoreManager mockAbstractUserStoreManager;
     ApplicationPermissionProvider mockApplicationPermissionProvider;
+    RoleManagementService mockRoleManagementService;
 
     /**
      * Setup the test environment for ApplicationDAOImpl.
@@ -96,6 +104,7 @@ public class ApplicationDAOImplTest {
         mockRealmService = mock(RealmService.class);
         mockAbstractUserStoreManager = mock(AbstractUserStoreManager.class);
         mockApplicationPermissionProvider = mock(ApplicationPermissionProvider.class);
+        mockRoleManagementService = mock(RoleManagementService.class);
         setupInitConfigurations();
     }
 
@@ -347,6 +356,69 @@ public class ApplicationDAOImplTest {
         assertEquals(applicationDAO.getCountOfDiscoverableApplications("scl*", SUPER_TENANT_DOMAIN_NAME), 1);
     }
 
+    @Test(description = "Test application update method with role association.",
+            dependsOnMethods = { "testGetDiscoverableAppCount" })
+    public void testUpdateApplication() throws IdentityApplicationManagementException,
+        IdentityRoleManagementException {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName("test-update-app");
+        serviceProvider1.setApplicationVersion("v1.0.0");
+        serviceProvider1.setApplicationID(applicationDAO.createApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME));
+        serviceProvider1.setAccessUrl("https://localhost:5000/test-app");
+
+        RoleV2 role = new RoleV2("1234", "test-role");
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+        associatedRolesConfig.setRoles(new RoleV2[] {role});
+        associatedRolesConfig.setAllowedAudience(RoleConstants.APPLICATION);
+        serviceProvider1.setAssociatedRolesConfig(associatedRolesConfig);
+
+        when(mockRoleManagementService.getRoleNameByRoleId("1234", SUPER_TENANT_DOMAIN_NAME)).thenReturn("test-role");
+
+        applicationDAO.updateApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME);
+
+        ServiceProvider serviceProvider2 = applicationDAO
+                .getApplication("test-update-app", SUPER_TENANT_DOMAIN_NAME);
+        assertEquals(serviceProvider2.getApplicationName(), "test-update-app");
+        assertEquals(serviceProvider2.getAssociatedRolesConfig().getRoles().length, 1);
+        assertEquals(serviceProvider2.getAssociatedRolesConfig().getRoles()[0].getId(), "1234");
+        assertEquals(serviceProvider2.getAssociatedRolesConfig().getRoles()[0].getName(), "test-role");
+    }
+
+    @Test(description = "Test application update method with role association for a fragment app.",
+            dependsOnMethods = { "testUpdateApplication" })
+    public void testUpdateApplicationForFragmentApp() throws IdentityApplicationManagementException,
+            IdentityRoleManagementException {
+
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        ServiceProvider serviceProvider1 = new ServiceProvider();
+        serviceProvider1.setApplicationName("test-update-fragment-app");
+        serviceProvider1.setApplicationVersion("v1.0.0");
+        serviceProvider1.setApplicationID(applicationDAO.createApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME));
+        serviceProvider1.setAccessUrl("https://localhost:5000/test-app");
+
+        RoleV2 role = new RoleV2("1234", "test-role");
+        AssociatedRolesConfig associatedRolesConfig = new AssociatedRolesConfig();
+        associatedRolesConfig.setRoles(new RoleV2[] {role});
+        associatedRolesConfig.setAllowedAudience(RoleConstants.APPLICATION);
+        serviceProvider1.setAssociatedRolesConfig(associatedRolesConfig);
+
+        ServiceProviderProperty spProperty = new ServiceProviderProperty();
+        spProperty.setName(IS_FRAGMENT_APP);
+        spProperty.setValue("true");
+        serviceProvider1.setSpProperties(new ServiceProviderProperty[] {spProperty});
+
+        when(mockRoleManagementService.getRoleNameByRoleId("1234", SUPER_TENANT_DOMAIN_NAME)).thenReturn("test-role");
+
+        applicationDAO.updateApplication(serviceProvider1, SUPER_TENANT_DOMAIN_NAME);
+
+        ServiceProvider serviceProvider2 = applicationDAO
+                .getApplication("test-update-fragment-app", SUPER_TENANT_DOMAIN_NAME);
+        assertEquals(serviceProvider2.getApplicationName(), "test-update-fragment-app");
+        assertEquals(serviceProvider2.getAssociatedRolesConfig().getRoles().length, 0);
+    }
+
     /**
      * Get a new DiscoverableGroup object.
      *
@@ -409,5 +481,6 @@ public class ApplicationDAOImplTest {
         when(mockUserRealm.getUserStoreManager()).thenReturn(mockAbstractUserStoreManager);
         when(mockComponentHolder.getApplicationPermissionProvider()).thenReturn(mockApplicationPermissionProvider);
         when(mockApplicationPermissionProvider.loadPermissions(anyString())).thenReturn(new ArrayList<>());
+        when(mockComponentHolder.getRoleManagementServiceV2()).thenReturn(mockRoleManagementService);
     }
 }
