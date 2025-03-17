@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The {@code AuthorizationResource} class is a generic model class for a resource object in an authorization request.
+ * The {@code AuthorizationResource} class is a model class for a resource object in an Authorization request.
  * The resource object is used to represent the resource that the user is trying to access.
  */
 public class AuthorizationResource {

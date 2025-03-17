@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 
 /**
  * The {@code AccessEvaluationException} class represents the exception that is thrown when an error occurs during
- * Fine-Grained Authorization related flows.
+ * Access Evaluation related flows.
  */
 public class AccessEvaluationException extends IdentityException {
 
