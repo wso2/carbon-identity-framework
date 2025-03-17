@@ -124,6 +124,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
             LocalAuthenticatorConfig existingAuthenticatorConfig, LocalAuthenticatorConfig updatedConfig, int tenantId)
             throws AuthenticatorMgtException {
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             return jdbcTemplate.withTransaction(template -> dao.updateSystemLocalAuthenticatorAmrValue(
@@ -161,6 +162,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     @Override
     public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException {
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             return jdbcTemplate.withTransaction(template -> dao.getSystemLocalAuthenticator(authenticatorConfigName,
@@ -252,7 +254,9 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     }
 
     @Override
-    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId) throws AuthenticatorMgtException {
+    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId)
+            throws AuthenticatorMgtException {
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             return jdbcTemplate.withTransaction(

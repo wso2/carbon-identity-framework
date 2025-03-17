@@ -47,7 +47,7 @@ public class AuthenticatorMgtSQLConstants {
         public static final String IS_SECRET = "IS_SECRET";
         public static final String IMAGE_URL = "IMAGE_URL";
         public static final String DESCRIPTION = "DESCRIPTION";
-    public static final String AMR_VALUE = "AMR_VALUE";
+        public static final String AMR_VALUE = "AMR_VALUE";
 
         private Column() {
 

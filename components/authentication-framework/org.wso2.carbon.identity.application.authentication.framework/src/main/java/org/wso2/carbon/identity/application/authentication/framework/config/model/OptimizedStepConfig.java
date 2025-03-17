@@ -41,7 +41,6 @@ public class OptimizedStepConfig implements Serializable {
     private final boolean subjectIdentifierStep;
     private final boolean subjectAttributeStep;
     private final String authenticatedIdP;
-//    private final String amrValue;
     private final String authenticatedAuthenticatorName;
     private final List<OptimizedAuthenticatorConfig> optimizedAuthenticatorList;
     private final List<String> authenticatorMappings;
@@ -63,7 +62,6 @@ public class OptimizedStepConfig implements Serializable {
         this.subjectIdentifierStep = stepConfig.isSubjectIdentifierStep();
         this.subjectAttributeStep = stepConfig.isSubjectAttributeStep();
         this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
-//        this.amrValue = stepConfig.getAmrValues(); //check
         this.authenticatedAuthenticatorName = stepConfig.getAuthenticatedAutenticator() != null ?
                 stepConfig.getAuthenticatedAutenticator().getName() : null;
         this.optimizedAuthenticatorList = getOptimizedAuthenticatorList(stepConfig.getAuthenticatorList());
@@ -101,7 +99,6 @@ public class OptimizedStepConfig implements Serializable {
         stepConfig.setSubjectIdentifierStep(this.subjectIdentifierStep);
         stepConfig.setSubjectAttributeStep(this.subjectAttributeStep);
         stepConfig.setAuthenticatedIdP(this.authenticatedIdP);
-//        stepConfig.setAmrValues(this.amrValue);
         List<AuthenticatorConfig> authenticatorList = new ArrayList<>();
         for (OptimizedAuthenticatorConfig optimizedAuthenticatorConfig : this.optimizedAuthenticatorList) {
             AuthenticatorConfig authConfig = optimizedAuthenticatorConfig.getAuthenticatorConfig();

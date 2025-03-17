@@ -177,11 +177,11 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     @Override
     public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException {
-        try{
+
+        try {
             return getSystemLocalAuthenticatorByName(authenticatorConfigName, tenantId);
         } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
-
         }
     }
 
@@ -263,7 +263,9 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     @Override
-    public LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtServerException {
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator
+            (LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtServerException {
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template ->
@@ -287,7 +289,9 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     @Override
-    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId) throws AuthenticatorMgtException {
+    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId)
+            throws AuthenticatorMgtException {
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             ResultSet results = jdbcTemplate.withTransaction(template ->
@@ -422,13 +426,13 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
     }
 
-    private static class LocalAuthenticatorConfigDaoModel{
+    private static class LocalAuthenticatorConfigDaoModel {
 
         private final int entryId;
         private final LocalAuthenticatorConfig config;
 
 
-        private LocalAuthenticatorConfigDaoModel(int entryId, LocalAuthenticatorConfig config){
+        private LocalAuthenticatorConfigDaoModel(int entryId, LocalAuthenticatorConfig config) {
             this.entryId = entryId;
             this.config = config;
         }

@@ -430,7 +430,8 @@ public class ApplicationAuthenticatorService {
     }
 
     private LocalAuthenticatorConfig resolveExistingSystemLocalAuthenticator(String authenticatorName,
-            String tenantDomain) throws AuthenticatorMgtException{
+            String tenantDomain) throws AuthenticatorMgtException {
+
         return dao.getSystemLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 

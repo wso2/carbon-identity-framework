@@ -170,26 +170,6 @@ public class ApplicationManagementServiceComponent {
             // Register the Authorized API Management Listener.
             bundleContext.registerService(AuthorizedAPIManagementListener.class, new ConsoleAuthorizedAPIListener(),
                     null);
-
-            List<LocalAuthenticatorConfig> authenticator =
-                    new ArrayList<>(ApplicationAuthenticatorService.getInstance().getAllSystemDefinedLocalAuthenticators());
-            ApplicationDAOImpl dao = new ApplicationDAOImpl();
-
-//            Connection conn = IdentityDatabaseUtil.getDBConnection(true);
-//            String isEnabled = fileBasedConfig.isEnabled() ? "1" : "0";
-//            String amrValue = dao.getAmrValue(conn, authenticator.);
-//
-//
-//            if(amrValue == null){
-//                dao.insertAuthenticator(conn, authenticator.getName(),
-//                        authenticator.getFriendlyName(),
-//                        isEnabled,
-//                        fileBasedConfig.getAmrValue());
-//            }
-//            else if(amrValue.isEmpty()){
-//                dao.updateAmrValue(conn, authenticator.getName(), fileBasedConfig.getAmrValue());
-//            }
-
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
