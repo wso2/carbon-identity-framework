@@ -28,6 +28,6 @@ public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
 
     @Override
     public void createB2BResourceSharingOperation(String operationId, String operationType, String residentResourceId, String resourceType, String sharingPolicy, String residentOrgId, String initiatorId, String operationStatus) {
-        NamedJdbcTemplate namedJdbcTemplate = getNew
+//        NamedJdbcTemplate namedJdbcTemplate = getNew
     }
 }
