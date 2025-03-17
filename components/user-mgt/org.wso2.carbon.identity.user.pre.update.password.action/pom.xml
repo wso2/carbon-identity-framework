@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>7.7.253</version>
+        <version>7.8.68-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -117,16 +117,16 @@
                             org.wso2.carbon.identity.core.context; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.context.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.action.execution.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.action.management.exception; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.action.management.model; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.action.management.service; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.execution.api.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.management.api.exception; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.management.api.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.action.management.api.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.service; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.exception; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.certificate.management.model; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.evaluation.model; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.evaluation.exception; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.evaluation.provider; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.api.model; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.api.exception; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.rule.evaluation.api.provider; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.user.action.api.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.user.action.api.service; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -63,6 +63,9 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -204,6 +207,76 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
             Assert.assertEquals(postAuthnHandlerFlowStatus, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED,
                     "Post JIT provisioning handler executed while having a authenticated user without federated "
                             + "authenticator");
+        }
+    }
+
+    @DataProvider(name = "UserAccountStatusDataProvider")
+    public Object[][] userAccountStatusDataProvider() {
+
+        return new Object[][] {
+                { FrameworkConstants.AccountStatus.PENDING_LR , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_EV , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_SR , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_AP , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { FrameworkConstants.AccountStatus.PENDING_LR , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { null , true, PostAuthnHandlerFlowStatus.INCOMPLETE },
+                { null, false, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED },
+        };
+    }
+
+    @Test(description = "This test case tests the Post JIT provisioning handling flow with an associated user",
+            dataProvider = "UserAccountStatusDataProvider")
+    public void testHandleWithAuthenticatedUserWithPendingVerification(String testAccountState, boolean isAccountLocked,
+            PostAuthnHandlerFlowStatus expectedResult) throws FrameworkException,
+            FederatedAssociationManagerException, UserStoreException, XMLStreamException,
+            IdentityProviderManagementException {
+
+        try (MockedStatic<FrameworkServiceDataHolder> frameworkServiceDataHolder =
+                     mockStatic(FrameworkServiceDataHolder.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtil = mockStatic(IdentityTenantUtil.class)) {
+            frameworkServiceDataHolder.when(
+                    FrameworkServiceDataHolder::getInstance).thenReturn(mockFrameworkServiceDataHolder);
+            AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
+            FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
+            frameworkUtils.when(FrameworkUtils::getFederatedAssociationManager).thenReturn(federatedAssociationManager);
+            frameworkUtils.when(
+                            FrameworkUtils::getStepBasedSequenceHandler)
+                    .thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
+            doReturn("TestUser").when(federatedAssociationManager).getUserForFederatedAssociation(any(),
+                    any(), any());
+
+            identityTenantUtil.when(() -> IdentityTenantUtil.getTenantId(anyString())).thenReturn(1);
+            RealmService mockRealmService = mock(RealmService.class);
+            UserRealm mockRealm = mock(UserRealm.class);
+            when(mockFrameworkServiceDataHolder.getRealmService()).thenReturn(mockRealmService);
+            when(mockRealmService.getTenantUserRealm(1)).thenReturn(mockRealm);
+
+            Map<String, String>  userClaimsMap = new HashMap<>();
+            if (isAccountLocked) {
+                userClaimsMap.put(FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI, "true");
+            }
+            if (testAccountState != null) {
+                userClaimsMap.put(FrameworkConstants.ACCOUNT_STATE_CLAIM_URI, testAccountState);
+            }
+            UserStoreManager  mockUserStoreManager = mock(UserStoreManager.class);
+            when(mockRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+            when(mockUserStoreManager.getUserClaimValues(eq("TestUser"), any(), anyString()))
+                    .thenReturn(userClaimsMap);
+            frameworkUtils.when(() -> FrameworkUtils.appendQueryParamsStringToUrl(anyString(), any()))
+                    .thenReturn("https://localhost:9443/test");
+
+            // Need to mock getIdPConfigByName with a null parameter.
+            ConfigurationFacade mockConfigurationFacade = mock(ConfigurationFacade.class);
+            configurationFacade.when(ConfigurationFacade::getInstance).thenReturn(mockConfigurationFacade);
+            IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
+            ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
+            doReturn(externalIdPConfig).when(mockConfigurationFacade).getIdPConfigByName(eq(null), anyString());
+
+            PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
+                    .handle(request, response, context);
+            Assert.assertEquals(postAuthnHandlerFlowStatus, expectedResult, "JIT provisioning handler executed with "
+                    + "an associated user with account status: " + testAccountState + " and account locked status: "
+                    + isAccountLocked);
         }
     }
 

@@ -80,7 +80,7 @@ public class LoggerUtils {
      * Defines the Targets of the logs.
      */
     public enum Target {
-        User, Role, Group, Application, Action
+        User, Role, Group, Application, Action, Flow
     }
 
     /**

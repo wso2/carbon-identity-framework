@@ -45,10 +45,10 @@ import static org.wso2.carbon.identity.framework.async.status.mgt.constant.SQLCo
 public class AsyncStatusMgtDAOImpl implements AsyncStatusMgtDAO {
     private static final Logger LOGGER =
             Logger.getLogger(AsyncStatusMgtDAOImpl.class.getName());
-    
+
     @Override
     public String registerAsyncOperationWithoutUpdate(OperationRecord record) {
-        
+
         LOGGER.info("Asynchronous operation without update started.");
         String generatedOperationId;
         String currentTimestamp = new Timestamp(new Date().getTime()).toString();

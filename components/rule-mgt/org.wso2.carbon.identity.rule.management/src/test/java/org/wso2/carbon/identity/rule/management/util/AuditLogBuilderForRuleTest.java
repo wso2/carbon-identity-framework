@@ -20,10 +20,11 @@ package org.wso2.carbon.identity.rule.management.util;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.rule.management.model.ANDCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Expression;
-import org.wso2.carbon.identity.rule.management.model.ORCombinedRule;
-import org.wso2.carbon.identity.rule.management.model.Value;
+import org.wso2.carbon.identity.rule.management.api.model.ANDCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Expression;
+import org.wso2.carbon.identity.rule.management.api.model.ORCombinedRule;
+import org.wso2.carbon.identity.rule.management.api.model.Value;
+import org.wso2.carbon.identity.rule.management.api.util.AuditLogBuilderForRule;
 
 public class AuditLogBuilderForRuleTest {
 

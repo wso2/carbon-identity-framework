@@ -23,25 +23,25 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.execution.exception.ActionExecutionRequestBuilderException;
-import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequest;
-import org.wso2.carbon.identity.action.execution.model.ActionExecutionRequestContext;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.FlowContext;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionRequestBuilderException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequest;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionRequestContext;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.FlowContext;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
-import org.wso2.carbon.identity.user.pre.update.password.action.api.model.Credential;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
-import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordUpdatingUser;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
-import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordEvent;
 import org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants;
-import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordActionRequestBuilder;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.execution.PreUpdatePasswordRequestBuilder;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.Credential;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PasswordUpdatingUser;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.model.PreUpdatePasswordEvent;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -68,7 +68,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     private PreUpdatePasswordAction preUpdatePasswordActionWithoutCert;
     private UserActionContext userActionContext;
     private final FlowContext flowContext = FlowContext.create();
-    private PreUpdatePasswordActionRequestBuilder preUpdatePasswordActionRequestBuilder;
+    private PreUpdatePasswordRequestBuilder preUpdatePasswordActionRequestBuilder;
 
     @BeforeClass
     public void init() {
@@ -114,7 +114,7 @@ public class PreUpdatePasswordActionRequestBuilderTest {
     @BeforeMethod
     public void setUp() {
 
-        preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordActionRequestBuilder();
+        preUpdatePasswordActionRequestBuilder = new PreUpdatePasswordRequestBuilder();
         flowContext.add(PreUpdatePasswordActionConstants.USER_ACTION_CONTEXT, userActionContext);
     }
 

@@ -19,9 +19,10 @@
 package org.wso2.carbon.identity.action.management.dao;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
+import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 
@@ -49,11 +50,12 @@ public class TestActionDTOModelResolver implements ActionDTOModelResolver {
     @Override
     public ActionDTO resolveForAddOperation(ActionDTO actionDTO, String tenantDomain) {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
-        properties.put(CERTIFICATE_PROPERTY_NAME, TestUtil.CERTIFICATE_ID);
+        Map<String, ActionPropertyForDAO> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME, new ActionPropertyForDAO(actionDTO
+                .getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME).toString()));
+        properties.put(CERTIFICATE_PROPERTY_NAME, new ActionPropertyForDAO(TestUtil.CERTIFICATE_ID));
 
-        return new ActionDTO.Builder(actionDTO).properties(properties).build();
+        return new ActionDTO.BuilderForData(actionDTO).properties(properties).build();
     }
 
     @Override
@@ -61,10 +63,10 @@ public class TestActionDTOModelResolver implements ActionDTOModelResolver {
 
         Map<String, Object> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
-                actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
+                ((ActionPropertyForDAO) actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME)).getValue());
         if (actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME) != null) {
             properties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
-                    .id((String) actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME))
+                    .id(((ActionPropertyForDAO) actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME)).getValue().toString())
                     .name(CERTIFICATE_NAME)
                     .certificateContent(TEST_CERTIFICATE)
                     .build());
@@ -80,9 +82,10 @@ public class TestActionDTOModelResolver implements ActionDTOModelResolver {
         for (ActionDTO actionDTO : actionDTOList) {
             Map<String, Object> properties = new HashMap<>();
             properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
-                    actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
+                    ((ActionPropertyForDAO) actionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME))
+                            .getValue().toString());
             properties.put(CERTIFICATE_PROPERTY_NAME, new Certificate.Builder()
-                    .id((String) actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME))
+                    .id(((ActionPropertyForDAO) actionDTO.getProperty(CERTIFICATE_PROPERTY_NAME)).getValue().toString())
                     .name(CERTIFICATE_NAME)
                     .certificateContent(TEST_CERTIFICATE)
                     .build());
@@ -97,16 +100,17 @@ public class TestActionDTOModelResolver implements ActionDTOModelResolver {
     public ActionDTO resolveForUpdateOperation(ActionDTO updatingActionDTO, ActionDTO existingActionDTO,
                                                String tenantDomain) {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionPropertyForDAO> properties = new HashMap<>();
         properties.put(PASSWORD_SHARING_TYPE_PROPERTY_NAME,
-                updatingActionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME));
+                new ActionPropertyForDAO(updatingActionDTO.getProperty(PASSWORD_SHARING_TYPE_PROPERTY_NAME)
+                        .toString()));
         if (updatingActionDTO.getProperty(CERTIFICATE_PROPERTY_NAME) != null &&
                 !StringUtils.EMPTY.equals(updatingActionDTO.getProperty(
                         CERTIFICATE_PROPERTY_NAME).toString())) {
-            properties.put(CERTIFICATE_PROPERTY_NAME, TestUtil.CERTIFICATE_ID);
+            properties.put(CERTIFICATE_PROPERTY_NAME, new ActionPropertyForDAO(TestUtil.CERTIFICATE_ID));
         }
 
-        return new ActionDTO.Builder(updatingActionDTO).properties(properties).build();
+        return new ActionDTO.BuilderForData(updatingActionDTO).properties(properties).build();
     }
 
     @Override

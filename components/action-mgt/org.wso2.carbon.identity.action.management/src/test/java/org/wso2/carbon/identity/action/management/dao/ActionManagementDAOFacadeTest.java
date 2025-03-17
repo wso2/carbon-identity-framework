@@ -27,32 +27,32 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.constant.error.ErrorMessage;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionDTOModelResolverFactory;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOFacade;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
-import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverClientException;
-import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverException;
-import org.wso2.carbon.identity.action.management.exception.ActionDTOModelResolverServerException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtClientException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtServerException;
-import org.wso2.carbon.identity.action.management.internal.ActionMgtServiceComponentHolder;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.model.ActionRule;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.action.management.service.ActionDTOModelResolver;
-import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
+import org.wso2.carbon.identity.action.management.api.constant.ErrorMessage;
+import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionRule;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
+import org.wso2.carbon.identity.action.management.internal.component.ActionMgtServiceComponentHolder;
+import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionDTOModelResolverFactory;
+import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOFacade;
+import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
+import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.rule.management.exception.RuleManagementException;
-import org.wso2.carbon.identity.rule.management.model.Rule;
-import org.wso2.carbon.identity.rule.management.service.RuleManagementService;
+import org.wso2.carbon.identity.rule.management.api.exception.RuleManagementException;
+import org.wso2.carbon.identity.rule.management.api.model.Rule;
+import org.wso2.carbon.identity.rule.management.api.service.RuleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretManagerImpl;
 import org.wso2.carbon.identity.secret.mgt.core.model.SecretType;
 
@@ -302,6 +302,16 @@ public class ActionManagementDAOFacadeTest {
     }
 
     @Test(priority = 8)
+    public void testActivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(actionDTORetrieved.getStatus(), Action.Status.INACTIVE);
+        ActionDTO activatedActionDTO = daoFacade.activateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
+                TENANT_ID);
+        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
+        actionDTORetrieved = activatedActionDTO;
+    }
+
+    @Test(priority = 9)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(actionDTORetrieved.getStatus(), Action.Status.ACTIVE);
@@ -309,14 +319,6 @@ public class ActionManagementDAOFacadeTest {
                 daoFacade.deactivateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
                         TENANT_ID);
         Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
-    }
-
-    @Test(priority = 9)
-    public void testActivateAction() throws ActionMgtException {
-
-        ActionDTO activatedActionDTO = daoFacade.activateAction(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
-                TENANT_ID);
-        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
     }
 
     @Test(priority = 10)
@@ -329,6 +331,9 @@ public class ActionManagementDAOFacadeTest {
 
     @Test(priority = 11)
     public void testDeleteAction() throws ActionMgtException {
+
+        actionDTORetrieved = daoFacade.getActionByActionId(PRE_UPDATE_PASSWORD_TYPE, actionDTORetrieved.getId(),
+                TENANT_ID);
 
         mockActionPropertyResolver(testActionPropertyResolver);
         try {
@@ -579,6 +584,7 @@ public class ActionManagementDAOFacadeTest {
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TEST_ACTION_NAME)
                 .description(TEST_ACTION_DESCRIPTION)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TEST_USERNAME, TEST_PASSWORD))
@@ -594,7 +600,7 @@ public class ActionManagementDAOFacadeTest {
         Assert.assertEquals(actualActionDTO.getType(), expectedActionDTO.getType());
         Assert.assertEquals(actualActionDTO.getName(), expectedActionDTO.getName());
         Assert.assertEquals(actualActionDTO.getDescription(), expectedActionDTO.getDescription());
-        Assert.assertEquals(actualActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(actualActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(actualActionDTO.getEndpoint().getUri(), expectedActionDTO.getEndpoint().getUri());
 
         Authentication createdAuthentication = actualActionDTO.getEndpoint().getAuthentication();

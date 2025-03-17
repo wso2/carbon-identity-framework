@@ -67,8 +67,10 @@ public class EndpointConfigManager {
                 File configFile = new File(configFilePath);
 
                 if (configFile.exists()) {
-                    log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " +
-                            Constants.TenantConstants.CONFIG_RELATIVE_PATH);
+                    if (log.isDebugEnabled()) {
+                        log.debug(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " +
+                                Constants.TenantConstants.CONFIG_RELATIVE_PATH);
+                    }
                     inputStream = new FileInputStream(configFile);
 
                     prop.load(inputStream);

@@ -1,0 +1,164 @@
+{
+  "steps": [
+    {
+      "id": "step_1",
+      "type": "VIEW",
+      "width": 120,
+      "height": 240,
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "data": {
+        "components": [
+          {
+            "id": "component_232d",
+            "category": "BLOCK",
+            "type": "FORM",
+            "components": [
+              {
+                "id": "element_gd43",
+                "category": "FIELD",
+                "type": "INPUT",
+                "variant": "TEXT",
+                "config": {
+                  "type": "text",
+                  "hint": "",
+                  "label": "Username",
+                  "required": true,
+                  "placeholder": "Enter your username"
+                }
+              },
+              {
+                "id": "element_23dx",
+                "category": "FIELD",
+                "type": "INPUT",
+                "variant": "PASSWORD",
+                "config": {
+                  "name": "password",
+                  "type": "password",
+                  "hint": "",
+                  "label": "Password",
+                  "required": true,
+                  "placeholder": "Enter your password"
+                }
+              },
+              {
+                "id": "element_56jd",
+                "category": "BUTTON",
+                "type": "BUTTON",
+                "variant": "PRIMARY",
+                "action": {
+                  "type": "EXECUTOR",
+                  "executor": {
+                    "name": "PasswordOnboardExecutor"
+                  },
+                  "nextId": "step_a5sf"
+                },
+                "config": {
+                  "text": "Continue"
+                }
+              }
+            ]
+          },
+          {
+            "id": "element_gd43",
+            "category": "BUTTON",
+            "type": "BUTTON",
+            "variant": "PRIMARY",
+            "action": {
+              "type": "NEXT",
+              "nextId": "step_dfr2"
+            },
+            "config": {
+              "text": "Continue with Google"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "step_a5sf",
+      "type": "VIEW",
+      "width": 120,
+      "height": 240,
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "data": {
+        "components": [
+          {
+            "id": "component_232d",
+            "category": "BLOCK",
+            "type": "FORM",
+            "components": [
+              {
+                "id": "element_gd43",
+                "category": "FIELD",
+                "type": "INPUT",
+                "variant": "TEXT",
+                "config": {
+                  "type": "text",
+                  "hint": "",
+                  "label": "Email",
+                  "required": true,
+                  "placeholder": "Enter your email"
+                }
+              },
+              {
+                "id": "element_23dx",
+                "category": "FIELD",
+                "type": "INPUT",
+                "variant": "TEXT",
+                "config": {
+                  "type": "text",
+                  "hint": "",
+                  "label": "Phone",
+                  "required": true,
+                  "placeholder": "Enter your phone"
+                }
+              },
+              {
+                "id": "element_56jd",
+                "category": "BUTTON",
+                "type": "BUTTON",
+                "variant": "PRIMARY",
+                "action": {
+                  "type": "NEXT",
+                  "nextId": "step_fwe3"
+                },
+                "config": {
+                  "text": "Complete Registration"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "step_dfr2",
+      "type": "REDIRECTION",
+      "width": 120,
+      "height": 240,
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "data": {
+        "action": {
+          "type": "EXECUTOR",
+          "executor": {
+            "name": "GoogleOIDCAuthenticator",
+            "idp_name": "Google"
+          },
+          "nextId": "step_fwe3"
+        }
+      }
+    },
+    {
+      "id": "step_fwe3",
+      "type": "USER_ONBOARD",
+      "width": 120,
+      "height": 240,
+      "coordinateX": 0,
+      "coordinateY": 0,
+      "data": {}
+    }
+  ]
+}

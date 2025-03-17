@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.application.common.internal;
 
-import org.wso2.carbon.identity.action.management.service.ActionManagementService;
+import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 
 /**

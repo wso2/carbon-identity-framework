@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.user.action.internal.listener;
 
-import org.wso2.carbon.identity.action.execution.exception.ActionExecutionException;
-import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
-import org.wso2.carbon.identity.action.execution.model.ActionType;
-import org.wso2.carbon.identity.action.execution.model.Error;
-import org.wso2.carbon.identity.action.execution.model.Failure;
+import org.wso2.carbon.identity.action.execution.api.exception.ActionExecutionException;
+import org.wso2.carbon.identity.action.execution.api.model.ActionExecutionStatus;
+import org.wso2.carbon.identity.action.execution.api.model.ActionType;
+import org.wso2.carbon.identity.action.execution.api.model.Error;
+import org.wso2.carbon.identity.action.execution.api.model.Failure;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;

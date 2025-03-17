@@ -107,6 +107,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REDIRECT_URL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.FORCE_AUTHENTICATE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
@@ -938,7 +939,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         // if a value for the sessionContextKey exists user has previously authenticated
-        if (sessionContextKey != null) {
+        if (sessionContextKey != null && !isForceAuthEnabled(request)) {
 
             SessionContext sessionContext = null;
             // get the authentication details from the cache
@@ -985,8 +986,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         context.setSubject(authenticatedUser);
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Already authenticated by username: " +
-                                    authenticatedUser.getAuthenticatedSubjectIdentifier());
+                            try {
+                                String userId = authenticatedUser.getUserId();
+                                log.debug("Already authenticated by userId: " + userId);
+                            } catch (UserIdNotFoundException e) {
+                                log.error("Error while getting the user ID from the authenticated user.");
+                            }
                         }
 
                         if (authenticatedUserTenantDomain != null) {
@@ -1351,5 +1356,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             // for branding purposes.
             log.debug("Error while adding spId to redirect URL.");
         }
+    }
+
+    private boolean isForceAuthEnabled(HttpServletRequest request) {
+
+        return Boolean.parseBoolean(request.getParameter(FORCE_AUTHENTICATE));
     }
 }

@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.user.pre.update.password.action.internal.management;
 
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.service.ActionConverter;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
 import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;

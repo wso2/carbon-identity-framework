@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2023-2025, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -84,9 +84,25 @@ public class APIResourceManagerImpl implements APIResourceManager {
     }
 
     @Override
-    public APIResource getAPIResourceById(String apiResourceId, String tenantDomain)
-            throws APIResourceMgtException {
+    public APIResource getAPIResourceById(String apiResourceId, String tenantDomain) throws APIResourceMgtException {
 
+        try {
+            if (OrganizationManagementUtil.isOrganization(tenantDomain)) {
+                String rootOrgTenantDomain = OrganizationManagementUtil
+                        .getRootOrgTenantDomainBySubOrgTenantDomain(tenantDomain);
+                APIResource apiResource = CACHE_BACKED_DAO.getAPIResourceById(apiResourceId,
+                        IdentityTenantUtil.getTenantId(rootOrgTenantDomain));
+
+                // Return the API resource only if its type is inheritable.
+                return (apiResource != null
+                        && APIResourceManagementUtil.isAllowedAPIResourceTypeForOrganizations(apiResource.getType()))
+                        ? apiResource
+                        : null;
+            }
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages.
+                    ERROR_CODE_ERROR_WHILE_RETRIEVING_ROOT_ORGANIZATION_TENANT_DOMAIN, e, tenantDomain);
+        }
         return CACHE_BACKED_DAO.getAPIResourceById(apiResourceId, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
