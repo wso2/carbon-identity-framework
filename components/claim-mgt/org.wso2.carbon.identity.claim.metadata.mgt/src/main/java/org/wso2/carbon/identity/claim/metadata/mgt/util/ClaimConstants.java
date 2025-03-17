@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ public class ClaimConstants {
     public static final String SHARED_PROFILE_VALUE_RESOLVING_METHOD = "SharedProfileValueResolvingMethod";
     public static final String EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT =
             "ExternalClaimAdditionNotAllowedForDialect";
+    public static final String MULTI_VALUED_PROPERTY = "multiValued";
 
     /**
      * Enum for error messages.
