@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>7.7.251-SNAPSHOT</version>
+        <version>7.7.253</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -94,13 +94,13 @@
             </dependency>
             <dependency>
                 <groupId>org.eclipse.osgi</groupId>
-                <artifactId>org.eclipse.osgi.services</artifactId>
-                <version>${equinox.osgi.services.version}</version>
+                <artifactId>org.eclipse.osgi</artifactId>
+                <version>${version.equinox.osgi}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.osgi</groupId>
-                <artifactId>org.eclipse.osgi</artifactId>
-                <version>${eclipse.osgi.version}</version>
+                <artifactId>org.eclipse.osgi.services</artifactId>
+                <version>${version.equinox.osgi.services}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
@@ -113,14 +113,15 @@
     <properties>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
-        <equinox.osgi.services.version>3.3.100.v20130513-1956</equinox.osgi.services.version>
         <apache.felix.scr.ds.annotations.version>1.2.8</apache.felix.scr.ds.annotations.version>
-        <eclipse.osgi.version>3.9.1.v20130814-1242</eclipse.osgi.version>
         <maven.scr.plugin.version>1.24.0</maven.scr.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.equinox.osgi.services>3.3.100.v20130513-1956</version.equinox.osgi.services>
+        <carbon.identity.package.import.version.range>[5.14.0, 8.0.0)</carbon.identity.package.import.version.range>
+        <version.equinox.osgi>3.9.1.v20130814-1242</version.equinox.osgi>
     </properties>
 
 </project>
