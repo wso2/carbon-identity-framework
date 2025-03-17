@@ -37,6 +37,18 @@ import org.wso2.carbon.identity.authorization.framework.model.BulkAccessEvaluati
 public interface AccessEvaluationService {
 
     /**
+     * Returns a unique id of an Authorization Engine used for evaluating authorization.
+     * <p>
+     *     This method should return the unique id of the Authorization Engine which is used to evaluate authorization,
+     *     which will be used to identify the engine in a service-oriented architecture. The name should be unique to
+     *     the engine.
+     * </p>
+     * @implNote Please ensure that the id returned is unique to the engine.
+     * @return The unique id of the Authorization Engine.
+     */
+    String getEngine();
+
+    /**
      * Evaluates authorization when a new single Access Evaluation request is received.
      * <p>
      *   This method should be used when a single Access Evaluation request is received. The method should check

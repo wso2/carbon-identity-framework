@@ -34,6 +34,7 @@ public class AccessEvaluationException extends IdentityException {
     }
 
     public AccessEvaluationException(String errorCode, String message) {
+
         super(message);
         this.errorCode = errorCode;
     }
@@ -43,6 +44,7 @@ public class AccessEvaluationException extends IdentityException {
     }
 
     public AccessEvaluationException(String errorCode, String message, Throwable cause) {
+
         super(message, cause);
         this.errorCode = errorCode;
     }
