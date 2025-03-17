@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The {@code AccessEvaluationRequest} class is a generic model for an access evaluation request body which contains the
- * information required to evaluate authorization from an authorization engine.
- * This follows the AuthZen evaluation request format.
+ * The {@code AccessEvaluationRequest} class is a model for an Access Evaluation request body which contains the
+ * information required to evaluate authorization from an Authorization Engine.
+ * This follows the AuthZEN Evaluation request format.
  */
 public class AccessEvaluationRequest {
 

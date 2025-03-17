@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.authorization.framework.model;
 import java.util.Map;
 
 /**
- * The {@code AccessEvaluationResponse} class is a generic model class for the access evaluation response returned in an
- * access evaluation request from an authorization engine. This follows the AuthZen evaluation response format.
+ * The {@code AccessEvaluationResponse} class is a model class for the Access Evaluation response returned in an
+ * Access Evaluation request from an Authorization Engine. This follows the AuthZEN Evaluation response format.
  */
 public class AccessEvaluationResponse {
 

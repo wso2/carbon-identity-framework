@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The {@code AuthorizationSubject} class represents a subject object in an evaluation request. The subject is the
- * entity that requires access to a resource in an access evaluation request.
+ * The {@code AuthorizationSubject} class represents a subject object in an Evaluation request. The subject here refers
+ * to the entity that requires access to a resource in an Access Evaluation request.
  */
 public class AuthorizationSubject {
 

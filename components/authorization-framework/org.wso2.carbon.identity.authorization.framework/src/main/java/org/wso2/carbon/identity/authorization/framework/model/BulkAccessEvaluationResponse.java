@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.authorization.framework.model;
 import java.util.List;
 
 /**
- * The {@code BulkAccessEvaluationResponse} class is a generic model class for a bulk access evaluation response
- * returned in a bulk access evaluation request from an authorization engine. This follows the AuthZen evaluations
- * response format.
+ * The {@code BulkAccessEvaluationResponse} class is a model class for a Bulk Access Evaluation response returned from a
+ * Bulk Access Evaluation request sent to an Authorization Engine. This response should consist of evaluation decisions
+ * for each request in the Bulk Access Evaluation request. This follows the AuthZEN Evaluations response format.
  */
 public class BulkAccessEvaluationResponse {
 
@@ -32,7 +32,7 @@ public class BulkAccessEvaluationResponse {
     /**
      * Constructs a {@code BulkAccessEvaluationResponse} object with the results.
      *
-     * @param results      The list of results of the bulk access evaluation.
+     * @param results      The list of results of the Bulk Access Evaluation.
      */
     public BulkAccessEvaluationResponse(List<AccessEvaluationResponse> results) {
 
@@ -40,9 +40,9 @@ public class BulkAccessEvaluationResponse {
     }
 
     /**
-     * Returns the results of the bulk access evaluation.
+     * Returns the results of the Bulk Access Evaluation.
      *
-     * @return The results of the bulk access evaluation.
+     * @return The results of the Bulk Access Evaluation.
      */
     public List<AccessEvaluationResponse> getResults() {
 

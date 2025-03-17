@@ -25,27 +25,27 @@ import org.wso2.carbon.identity.authorization.framework.model.BulkAccessEvaluati
 import org.wso2.carbon.identity.authorization.framework.model.BulkAccessEvaluationResponse;
 
 /**
- * The {@code AccessEvaluationService} interface provides method definitions for access evaluation.
+ * The {@code AccessEvaluationService} interface provides method definitions for Access Evaluation.
  * <p>
  *     Implementations of this interface should provide the functionalities to evaluate access based on the request
  *     type, whether it is an evaluation request or a search request. Implementations can be specific to a particular
- *     authorization engine and use the engine's API to perform the functionalities. Note that the request models
+ *     Authorization Engine and use the engine's API to perform the functionalities. Note that the request models
  *     and response models given and returned are generic so if implementing, you may need to convert them to the
- *     specific models of the authorization engine you are using.
+ *     specific models of the Authorization Engine you are using.
  * </p>
  */
 public interface AccessEvaluationService {
 
     /**
-     * Evaluates authorization when a new single access evaluation request is received.
+     * Evaluates authorization when a new single Access Evaluation request is received.
      * <p>
-     *   This method should be used when a single access evaluation request is received. The method should check
-     *   the authorization from the authorization engine and return the decision given by the engine. Exceptions should
+     *   This method should be used when a single Access Evaluation request is received. The method should check
+     *   the authorization from the Authorization Engine and return the decision given by the engine. Exceptions should
      *   be thrown if an error occurs while checking authorization, whether it is a configuration error or an error from
-     *   the authorization engine.
+     *   the Authorization Engine.
      * </p>
      * @param accessEvaluationRequest The request which contains the necessary information to evaluate authorization.
-     * @return The evaluation decision from the authorization engine.
+     * @return The evaluation decision from the Authorization Engine.
      * @throws AccessEvaluationException If an error occurs while evaluating authorization.
      * @see AccessEvaluationRequest
      * @see AccessEvaluationResponse
@@ -53,13 +53,13 @@ public interface AccessEvaluationService {
     AccessEvaluationResponse evaluate(AccessEvaluationRequest accessEvaluationRequest) throws AccessEvaluationException;
 
     /**
-     * Evaluates authorization when a new bulk access evaluation request is received with multiple requests.
+     * Evaluates authorization when a new Bulk Access Evaluation request is received with multiple requests.
      * <p>
-     *     This method should be used when a bulk access evaluation request is received. The method should evaluate
-     *     authorization for each request in the bulk request and return the decisions given by the authorization engine
+     *     This method should be used when a bulk Access Evaluation request is received. The method should evaluate
+     *     authorization for each request in the bulk request and return the decisions given by the Authorization Engine
      *     for each request. Exceptions should be thrown if an error occurs while evaluating, whether it is a
-     *     configuration error or an error from the authorization engine. Errors occurring for requests inside the bulk
-     *     request should be returned in the response.
+     *     configuration error or an error from the Authorization Engine. Errors occurring for requests inside the bulk
+     *     request should be returned in the response itself.
      * </p>
      * @param bulkAccessEvaluationRequest The list of requests which contains the necessary information to evaluate
      *                                    authorization.

@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The {@code AuthorizationAction} class represents an action object in an evaluation request. This action refers to a
- * specific action that needs to be evaluated by the authorization engine.
+ * The {@code AuthorizationAction} class represents an Action object in an Evaluation request. This action refers to a
+ * specific action that needs to be evaluated by the Authorization Engine.
  */
 public class AuthorizationAction {
 
