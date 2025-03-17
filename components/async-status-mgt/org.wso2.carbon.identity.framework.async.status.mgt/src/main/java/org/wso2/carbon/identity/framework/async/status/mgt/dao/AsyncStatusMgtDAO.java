@@ -78,6 +78,15 @@ public interface AsyncStatusMgtDAO {
     ResponseOperationRecord getLatestAsyncOperationStatus(String operationType, String operationSubjectId);
 
     /**
+     * Retrieves the latest asynchronous operation status for a given resource type and operation subject.
+     *
+     * @param operationType The type of the operation.
+     * @param operationSubjectId The identifier of the subject related to the operation.
+     * @return A {@link ResponseOperationRecord} object containing the latest operation status, or null if not found.
+     */
+    List<ResponseOperationRecord> getOperationStatusByOperationTypeAndOperationSubjectId(String operationType, String operationSubjectId);
+
+    /**
      * Retrieves the latest asynchronous operation status for a given resource type, operation subject, and initiator.
      *
      * @param operationType The type of the operation.
