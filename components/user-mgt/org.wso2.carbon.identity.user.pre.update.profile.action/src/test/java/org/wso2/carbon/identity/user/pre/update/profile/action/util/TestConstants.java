@@ -41,6 +41,7 @@ public class TestConstants {
     public static final String TEST_USER_STORE_DOMAIN_ID = Base64.getEncoder()
             .encodeToString(TEST_USER_STORE_DOMAIN_NAME.getBytes(StandardCharsets.UTF_8));
     public static final String ATTRIBUTES = "attributes";
+    public static final List<String> TEST_EMPTY_ATTRIBUTES = Collections.emptyList();
     public static final List<String> TEST_ATTRIBUTES = Arrays.asList("http://wso2.org/attribute1",
             "http://wso2.org/attribute2");
     public static final List<String> UPDATED_TEST_ATTRIBUTES = Collections.singletonList("http://wso2.org/attribute3");
