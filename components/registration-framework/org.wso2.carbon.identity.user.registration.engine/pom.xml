@@ -91,7 +91,6 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
                             org.wso2.carbon.identity.user.registration.engine.internal,
-                            org.wso2.carbon.identity.user.registration.engine.cache,
                             org.wso2.carbon.identity.user.registration.engine.util,
                         </Private-Package>
                         <Import-Package>
@@ -132,9 +131,9 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.registration.engine.internal,
-                            !org.wso2.carbon.identity.user.registration.engine.cache,
                             !org.wso2.carbon.identity.user.registration.engine.util,
                             org.wso2.carbon.identity.user.registration.engine,
+                            org.wso2.carbon.identity.user.registration.engine.cache,
                             org.wso2.carbon.identity.user.registration.engine.model,
                             org.wso2.carbon.identity.user.registration.engine.exception,
                             org.wso2.carbon.identity.user.registration.engine.graph;
