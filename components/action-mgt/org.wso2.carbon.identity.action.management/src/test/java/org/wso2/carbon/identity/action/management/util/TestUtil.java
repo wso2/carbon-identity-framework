@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.rule.management.api.model.Rule;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
@@ -39,11 +41,13 @@ public class TestUtil {
 
     public static final String PRE_ISSUE_ACCESS_TOKEN_TYPE = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getActionType();
     public static final String PRE_UPDATE_PASSWORD_TYPE = Action.ActionTypes.PRE_UPDATE_PASSWORD.getActionType();
+    public static final String PRE_UPDATE_PROFILE_TYPE = Action.ActionTypes.PRE_UPDATE_PROFILE.getActionType();
 
     public static final String PRE_ISSUE_ACCESS_TOKEN_PATH = Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN.getPathParam();
 
     public static final String PRE_ISSUE_ACCESS_TOKEN_ACTION_ID = String.valueOf(UUID.randomUUID());
     public static final String PRE_UPDATE_PASSWORD_ACTION_ID = String.valueOf(UUID.randomUUID());
+    public static final String PRE_UPDATE_PROFILE_ACTION_ID = String.valueOf(UUID.randomUUID());
 
     public static final String TEST_SECRET_TYPE_ID = "fcaf81a9-0d58-4cf4-98c8-fde2f3ba8df2";
 
@@ -75,6 +79,8 @@ public class TestUtil {
 
     public static final String TEST_ACTION_PROPERTY_NAME_1 = "samplePropertyName";
     public static final String TEST_ACTION_PROPERTY_VALUE_1 = "samplePropertyValue";
+    public static final List<String>  TEST_ACTION_OBJECT_PROPERTY_VALUE =
+            Collections.singletonList("http://wso2.org/attribute3");
     public static final String TEST_ACTION_PROPERTY_VALUE_1_UPDATED = "UpdatedSamplePropertyValue";
     public static final String TEST_ACTION_PROPERTY_NAME_2 = "samplePropertyName2";
     public static final String TEST_ACTION_PROPERTY_VALUE_2 = "samplePropertyValue2";

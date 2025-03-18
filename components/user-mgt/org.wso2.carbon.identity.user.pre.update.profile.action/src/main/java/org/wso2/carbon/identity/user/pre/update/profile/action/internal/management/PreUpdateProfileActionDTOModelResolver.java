@@ -34,12 +34,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.component.PreUpdateProfileActionServiceComponentHolder;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,9 +68,9 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         Object attributes = actionDTO.getProperty(ATTRIBUTES);
         // Attributes is an optional field.
         if (attributes != null) {
-            List<String> validatedAttributes = validateAttributes(attributes, tenantDomain);
-            BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream(validatedAttributes));
-            properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
+            List<String> validatedAttributes = validateAttributes(attributes);
+            ActionPropertyForDAO attributesObject = createActionProperty(validatedAttributes);
+            properties.put(ATTRIBUTES, attributesObject);
         }
 
         return new ActionDTO.BuilderForData(actionDTO)
@@ -95,7 +90,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                         "Invalid action property provided to retrieve attributes.");
             }
             properties.put(ATTRIBUTES, getAttributes(((BinaryObject) ((ActionPropertyForDAO) actionDTO
-                    .getProperty(ATTRIBUTES)).getValue()).getInputStream()));
+                    .getProperty(ATTRIBUTES)).getValue()).getJSONString()));
         }
 
         return new ActionDTO.Builder(actionDTO)
@@ -166,39 +161,25 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
     private ActionPropertyForDAO createActionProperty(List<String> attributes) throws ActionDTOModelResolverException {
 
-        BinaryObject attributesBinaryObject = new BinaryObject(convertAttributesToInputStream(attributes));
-        return new ActionPropertyForDAO(attributesBinaryObject);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            // Convert the attributes to a JSON string.
+            BinaryObject attributesBinaryObject = BinaryObject.fromJsonString(objectMapper
+                    .writeValueAsString(attributes));
+            return new ActionPropertyForDAO(attributesBinaryObject);
+        } catch (JsonProcessingException e) {
+            throw new ActionDTOModelResolverException("Failed to convert object values to JSON string.", e);
+        }
     }
 
-    private InputStream convertAttributesToInputStream(List<String> attributes) throws ActionDTOModelResolverException {
+    private List<String> getAttributes(String value) throws ActionDTOModelResolverException {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            // Convert the attributes to a JSON array and generate the input stream.
-            return new ByteArrayInputStream(objectMapper.writeValueAsString(attributes)
-                    .getBytes(StandardCharsets.UTF_8));
-        } catch (JsonProcessingException e) {
-            throw new ActionDTOModelResolverException("Failed to convert attributes to JSON.", e);
-        }
-    }
-
-    private List<String> getAttributes(InputStream stream) throws ActionDTOModelResolverException {
-
-        StringBuilder sb = new StringBuilder();
-        List<String> attributes;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            attributes = objectMapper.readValue(sb.toString(), new TypeReference<List<String>>() { });
+            return objectMapper.readValue(value, new TypeReference<List<String>>() { });
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error while reading the attribute values from storage.", e);
         }
-
-        return attributes;
     }
 
     private List<String> validateAttributes(Object attributes, String tenantDomain)

@@ -609,11 +609,11 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                 statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
                                         null, 0);
                             } else {
+                                BinaryObject binaryObject = (BinaryObject) property.getValue().getValue();
                                 statement.setNull(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
                                         java.sql.Types.VARCHAR);
                                 statement.setBinaryStream(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE,
-                                        ((BinaryObject) property.getValue().getValue()).getInputStream(),
-                                        ((BinaryObject) property.getValue().getValue()).getLength());
+                                        binaryObject.getInputStream(), binaryObject.getLength());
                             }
                             statement.addBatch();
                         }
@@ -648,7 +648,7 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                         } else {
                             actionEndpointProperties.put(
                                     resultSet.getString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME),
-                                    new ActionPropertyForDAO(new BinaryObject(resultSet.getBinaryStream(
+                                    new ActionPropertyForDAO(BinaryObject.fromInputStream(resultSet.getBinaryStream(
                                             ActionMgtSQLConstants.Column.ACTION_PROPERTIES_OBJECT_VALUE))));
                         }
                         return null;
@@ -689,10 +689,10 @@ public class ActionManagementDAOImpl implements ActionManagementDAO {
                                 } else {
                                     statement.setNull(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PRIMITIVE_VALUE,
                                             java.sql.Types.VARCHAR);
+                                    BinaryObject binaryObject = (BinaryObject) property.getValue().getValue();
                                     statement.setBinaryStream(ActionMgtSQLConstants.Column
-                                                    .ACTION_PROPERTIES_OBJECT_VALUE,
-                                            ((BinaryObject) property.getValue().getValue()).getInputStream(),
-                                            ((BinaryObject) property.getValue().getValue()).getLength());
+                                                    .ACTION_PROPERTIES_OBJECT_VALUE, binaryObject.getInputStream(),
+                                            binaryObject.getLength());
                                 }
                                 statement.setString(ActionMgtSQLConstants.Column.ACTION_PROPERTIES_PROPERTY_NAME,
                                         property.getKey());

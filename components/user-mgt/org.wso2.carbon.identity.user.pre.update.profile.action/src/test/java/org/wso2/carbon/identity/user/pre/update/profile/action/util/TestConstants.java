@@ -41,6 +41,7 @@ public class TestConstants {
     public static final String TEST_USER_STORE_DOMAIN_ID = Base64.getEncoder()
             .encodeToString(TEST_USER_STORE_DOMAIN_NAME.getBytes(StandardCharsets.UTF_8));
     public static final String ATTRIBUTES = "attributes";
+
     public static final List<String> ROLES_CLAIM_ATTRIBUTE =
             Collections.singletonList("http://wso2.org/claims/roles");
     public static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
@@ -54,6 +55,8 @@ public class TestConstants {
             "http://wso2.org/claims/identity/accountState");
     public static final String INVALID_TEST_ATTRIBUTES_TYPE = "attribute1";
     public static final List<String> INVALID_TEST_ATTRIBUTES = Arrays.asList("attribute1", "attribute2");
+    public static final List<String> TEST_EMPTY_ATTRIBUTES = Collections.emptyList();
+    public static final List<String> UPDATED_TEST_ATTRIBUTES = Collections.singletonList("http://wso2.org/active");
     public static final List<Integer> INVALID_TEST_ATTRIBUTES_VALUES = Arrays.asList(1, 1);
     public static final List<String> INVALID_TEST_ATTRIBUTES_COUNT = Collections.nCopies(11,
             SAMPLE_LOCAL_CLAIM_URI_1);

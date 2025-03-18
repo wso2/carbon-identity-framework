@@ -1218,7 +1218,7 @@
   "console.actions.enabled": true,
   "console.actions.disabled_features": [
     "actions.types.list.preRegistration",
-    "actions.types.list.preUpdateProfile"
+    "actions.types.preUpdateProfile.edit.rule"
   ],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
@@ -1757,6 +1757,7 @@
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.authentication.enable": true,
   "actions.types.authentication.default_userstore": "PRIMARY",
+  "actions.types.pre_update_profile.enable": true,
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
