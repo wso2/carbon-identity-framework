@@ -18,11 +18,13 @@
 
 package org.wso2.carbon.identity.user.pre.update.profile.action.internal.management;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtRuntimeException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
@@ -58,8 +60,8 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         // Attributes is an optional field.
         if (attributes != null) {
             List<String> validatedAttributes = validateAttributes(attributes);
-            BinaryObject attributesBinaryObject = BinaryObject.convertObjectToInputStream(validatedAttributes);
-            properties.put(ATTRIBUTES, new ActionPropertyForDAO(attributesBinaryObject));
+            ActionPropertyForDAO attributesObject = createActionProperty(validatedAttributes);
+            properties.put(ATTRIBUTES, attributesObject);
         }
 
         return new ActionDTO.BuilderForData(actionDTO)
@@ -79,7 +81,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                         "Invalid action property provided to retrieve attributes.");
             }
             properties.put(ATTRIBUTES, getAttributes(((BinaryObject) ((ActionPropertyForDAO) actionDTO
-                    .getProperty(ATTRIBUTES)).getValue()).getStringValue()));
+                    .getProperty(ATTRIBUTES)).getValue()).getJSONString()));
         }
 
         return new ActionDTO.Builder(actionDTO)
@@ -147,10 +149,17 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         return emptyList();
     }
 
-    private ActionPropertyForDAO createActionProperty(List<String> attributes) throws ActionDTOModelResolverException {
+    private ActionPropertyForDAO createActionProperty(List<String> attributes) {
 
-        BinaryObject attributesBinaryObject = BinaryObject.convertObjectToInputStream(attributes);
-        return new ActionPropertyForDAO(attributesBinaryObject);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            // Convert the attributes to a JSON string.
+            BinaryObject attributesBinaryObject = BinaryObject.fromJsonString(objectMapper
+                    .writeValueAsString(attributes));
+            return new ActionPropertyForDAO(attributesBinaryObject);
+        } catch (JsonProcessingException e) {
+            throw new ActionMgtRuntimeException("Failed to convert object values to JSON string.", e);
+        }
     }
 
     private List<String> getAttributes(String value) throws ActionDTOModelResolverException {

@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.action.management.api.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtRuntimeException;
 
 import java.io.BufferedReader;
@@ -34,20 +32,15 @@ import java.nio.charset.StandardCharsets;
  */
 public class BinaryObject {
 
-    private String stringValue;
-    private InputStream streamValue;
+    private final String value;
 
     private BinaryObject(String value) {
 
-        this.stringValue = value;
+        this.value = value;
     }
 
-    private BinaryObject(InputStream value) {
-
-        this.streamValue = value;
-    }
-
-    public static BinaryObject convertInputStreamToString(InputStream inputStream) {
+    // Factory method to create a BinaryObject instance from an input stream
+    public static BinaryObject fromInputStream(InputStream inputStream) {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -61,34 +54,25 @@ public class BinaryObject {
         }
     }
 
-    public static BinaryObject convertObjectToInputStream(Object value) {
+    // Factory method to create a BinaryObject instance from a json string
+    public static BinaryObject fromJsonString(String value) {
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            InputStream stream = new ByteArrayInputStream(objectMapper.writeValueAsString(value)
-                    .getBytes(StandardCharsets.UTF_8));
-            return new BinaryObject(stream);
-        } catch (JsonProcessingException e) {
-            throw new ActionMgtRuntimeException("Failed to convert object values to JSON.", e);
-        }
+        return new BinaryObject(value);
     }
 
-    public String getStringValue() {
+    public InputStream getInputStream() {
 
-        return stringValue;
-    }
-
-    public InputStream getStreamValue() {
-
-        return streamValue;
+        return new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
     }
 
     public int getLength() {
 
-        try {
-            return streamValue.available();
-        } catch (IOException e) {
-            throw new ActionMgtRuntimeException("Error occurred while reading the input stream", e);
-        }
+        // Get the length of the byte array
+        return value.getBytes(StandardCharsets.UTF_8).length;
+    }
+
+    public String getJSONString() {
+
+        return value;
     }
 }

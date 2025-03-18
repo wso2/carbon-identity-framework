@@ -33,11 +33,9 @@ import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.user.pre.update.profile.action.internal.management.PreUpdateProfileActionDTOModelResolver;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -113,9 +111,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue());
+                .getJSONString());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue()), TEST_ATTRIBUTES);
+                .getJSONString()), TEST_ATTRIBUTES);
     }
 
     @Test
@@ -222,9 +220,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue());
+                .getJSONString());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue()), UPDATED_TEST_ATTRIBUTES);
+                .getJSONString()), UPDATED_TEST_ATTRIBUTES);
     }
 
     @Test
@@ -243,9 +241,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue());
+                .getJSONString());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue()), existingActionDTO.getProperty(ATTRIBUTES));
+                .getJSONString()), existingActionDTO.getProperty(ATTRIBUTES));
     }
 
     @Test
@@ -265,9 +263,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue());
+                .getJSONString());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getStreamValue()), TEST_ATTRIBUTES);
+                .getJSONString()), TEST_ATTRIBUTES);
     }
 
     @Test
@@ -301,7 +299,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
     private BinaryObject getBinaryObject(List<String> attributes) throws Exception {
 
-        return BinaryObject.convertInputStreamToString(getInputStream(attributes));
+        return BinaryObject.fromInputStream(getInputStream(attributes));
     }
 
     private InputStream getInputStream(List<String> attributes) throws Exception {
@@ -316,22 +314,13 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         }
     }
 
-    private List<String> getAttributes(InputStream stream) throws Exception {
+    private List<String> getAttributes(String value) throws Exception {
 
-        StringBuilder sb = new StringBuilder();
-        List<String> attributes;
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
+        try {
             ObjectMapper objectMapper = new ObjectMapper();
-            attributes = objectMapper.readValue(sb.toString(), new TypeReference<List<String>>() { });
+            return objectMapper.readValue(value, new TypeReference<List<String>>() { });
         } catch (IOException e) {
-            throw new Exception("Error while converting InputStream to List<String>.", e);
+            throw new Exception("Error while reading the attribute values from json string.", e);
         }
-
-        return attributes;
     }
 }
