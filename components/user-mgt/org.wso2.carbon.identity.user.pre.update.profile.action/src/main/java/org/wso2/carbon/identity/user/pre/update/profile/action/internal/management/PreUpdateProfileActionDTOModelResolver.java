@@ -128,7 +128,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         Map<String, ActionPropertyForDAO> properties = new HashMap<>();
         // Action Properties updating operation is treated as a PUT in DAO layer. Therefore if no properties are updated
         // the existing properties should be sent to the DAO layer.
-        List<String> attributes = getResolvedUpdatingOrExistingAttributes(updatingActionDTO, existingActionDTO,
+        List<String> attributes = getResolvedUpdatingAttributes(updatingActionDTO, existingActionDTO,
                 tenantDomain);
         if (!attributes.isEmpty()) {
             properties.put(ATTRIBUTES, createActionProperty(attributes));
@@ -144,9 +144,9 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
     }
 
-    private List<String> getResolvedUpdatingOrExistingAttributes(ActionDTO updatingActionDTO,
-                                                                 ActionDTO existingActionDTO, String tenantDomain)
-            throws ActionDTOModelResolverClientException {
+    private List<String> getResolvedUpdatingAttributes(ActionDTO updatingActionDTO,
+                                                       ActionDTO existingActionDTO, String tenantDomain)
+            throws ActionDTOModelResolverClientException, ActionDTOModelResolverServerException {
 
         if (updatingActionDTO.getProperty(ATTRIBUTES) != null) {
             // return updating attributes after validation
@@ -183,15 +183,15 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
     }
 
     private List<String> validateAttributes(Object attributes, String tenantDomain)
-            throws ActionDTOModelResolverClientException {
+            throws ActionDTOModelResolverClientException, ActionDTOModelResolverServerException {
 
-        List<String> validatedAttributes = validateAttributesType(attributes);
+        List<String> validatedAttributes = getAttributesList(attributes);
         validateAttributesCount(validatedAttributes);
-        validatedAttributes = validateIfAttributeIsKnownBySystem(validatedAttributes, tenantDomain);
+        validatedAttributes = filterValidSystemAttributes(validatedAttributes, tenantDomain);
         return validatedAttributes;
     }
 
-    private List<String> validateAttributesType(Object attributes) throws ActionDTOModelResolverClientException {
+    private List<String> getAttributesList(Object attributes) throws ActionDTOModelResolverClientException {
 
         if (!(attributes instanceof List<?>)) {
             throw new ActionDTOModelResolverClientException("Invalid attributes format.",
@@ -213,12 +213,13 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
         if (attributes.size() > MAX_ATTRIBUTES) {
             throw new ActionDTOModelResolverClientException("Maximum number of allowed attributes to configure " +
-                    "exceeded.", String.format("Maximum allowed: %d Provider: %d", MAX_ATTRIBUTES, attributes.size()));
+                    "exceeded.", String.format("The number of configured attributes: %d exceeds the maximum allowed " +
+                    "limit: %d", attributes.size(), MAX_ATTRIBUTES));
         }
     }
 
-    private List<String> validateIfAttributeIsKnownBySystem(List<String> attributes, String tenantDomain)
-            throws ActionDTOModelResolverClientException {
+    private List<String> filterValidSystemAttributes(List<String> attributes, String tenantDomain)
+            throws ActionDTOModelResolverClientException, ActionDTOModelResolverServerException {
 
         try {
             ClaimMetadataManagementService claimMetadataManagementService =
@@ -230,21 +231,23 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
             Set<String> uniqueAttributes = new HashSet<>();
             for (String attribute : attributes) {
                 if (!localClaimURIs.contains(attribute)) {
+                    String invalidAttributeDescription = String.format("The provided %s attribute is not available " +
+                            "in the system.", attribute);
                     throw new ActionDTOModelResolverClientException("Invalid attribute provided.",
-                            "The provided attribute is not available in the system."
-                    );
+                            invalidAttributeDescription);
                 }
                 if (attribute.equals(ROLE_CLAIM_URI)) {
                     throw new ActionDTOModelResolverClientException("Not supported.",
-                            "'roles' attribute is not supported to be shared with extension."
+                            "\"http:// wso2.org/ claims/ roles\" attribute is not supported to be shared with " +
+                                    "extension."
                     );
                 }
                 uniqueAttributes.add(attribute);
             }
             return Collections.unmodifiableList(new ArrayList<>(uniqueAttributes));
         } catch (ClaimMetadataException e) {
-            throw new ActionDTOModelResolverClientException("Error while retrieving local claims from claim meta " +
-                    "data service.", e);
+            throw new ActionDTOModelResolverServerException("Error while retrieving local claims from claim meta " +
+                    "data service.", e.getMessage());
         }
     }
 }
