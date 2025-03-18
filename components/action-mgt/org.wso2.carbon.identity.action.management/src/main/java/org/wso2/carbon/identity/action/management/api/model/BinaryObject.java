@@ -39,8 +39,11 @@ public class BinaryObject {
         this.value = value;
     }
 
-    // Factory method to create a BinaryObject instance from an input stream
     public static BinaryObject fromInputStream(InputStream inputStream) {
+
+        if (inputStream == null) {
+            throw new IllegalArgumentException("Input stream cannot be null");
+        }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -54,8 +57,11 @@ public class BinaryObject {
         }
     }
 
-    // Factory method to create a BinaryObject instance from a json string
     public static BinaryObject fromJsonString(String value) {
+
+        if (value == null) {
+            throw new IllegalArgumentException("JSON string value cannot be null");
+        }
 
         return new BinaryObject(value);
     }
@@ -67,7 +73,6 @@ public class BinaryObject {
 
     public int getLength() {
 
-        // Get the length of the byte array
         return value.getBytes(StandardCharsets.UTF_8).length;
     }
 

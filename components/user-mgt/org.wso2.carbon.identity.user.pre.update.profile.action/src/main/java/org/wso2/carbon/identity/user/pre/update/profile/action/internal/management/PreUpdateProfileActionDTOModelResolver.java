@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
-import org.wso2.carbon.identity.action.management.api.exception.ActionMgtRuntimeException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
@@ -149,7 +148,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         return emptyList();
     }
 
-    private ActionPropertyForDAO createActionProperty(List<String> attributes) {
+    private ActionPropertyForDAO createActionProperty(List<String> attributes) throws ActionDTOModelResolverException {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -158,7 +157,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                     .writeValueAsString(attributes));
             return new ActionPropertyForDAO(attributesBinaryObject);
         } catch (JsonProcessingException e) {
-            throw new ActionMgtRuntimeException("Failed to convert object values to JSON string.", e);
+            throw new ActionDTOModelResolverException("Failed to convert object values to JSON string.", e);
         }
     }
 

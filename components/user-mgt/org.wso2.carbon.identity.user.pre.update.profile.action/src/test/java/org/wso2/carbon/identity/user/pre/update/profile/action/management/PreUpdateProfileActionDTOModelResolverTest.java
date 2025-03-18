@@ -354,13 +354,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         }
     }
 
-    private List<String> getAttributes(String value) throws Exception {
+    private List<String> getAttributes(String value) throws IOException {
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(value, new TypeReference<List<String>>() { });
-        } catch (IOException e) {
-            throw new Exception("Error while reading the attribute values from json string.", e);
-        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(value, new TypeReference<List<String>>() { });
     }
 }
