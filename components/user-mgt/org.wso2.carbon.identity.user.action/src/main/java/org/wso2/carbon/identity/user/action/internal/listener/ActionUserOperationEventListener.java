@@ -59,14 +59,14 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
      * This method is responsible for handling the pre update password action execution.
      * Since the listener is as a secret handleable listener, the receiving credential will be in Secret object type.
      *
-     * @param userName          Username of the user.
-     * @param credential        Updating credential.
-     * @param userStoreManager  User store manager.
+     * @param userID           User id of the user.
+     * @param credential       Updating credential.
+     * @param userStoreManager User store manager.
      * @return True if the operation is successful.
      * @throws UserStoreException If an error occurs while executing the action.
      */
     @Override
-    public boolean doPreUpdateCredentialByAdminWithID(String userName, Object credential,
+    public boolean doPreUpdateCredentialByAdminWithID(String userID, Object credential,
                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
@@ -79,7 +79,7 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
 
         try {
             UserActionContext userActionContext = new UserActionContext.Builder()
-                    .userId(userName)
+                    .userId(userID)
                     .password(getSecret(credential))
                     .userStoreDomain(UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration()))
                     .build();
