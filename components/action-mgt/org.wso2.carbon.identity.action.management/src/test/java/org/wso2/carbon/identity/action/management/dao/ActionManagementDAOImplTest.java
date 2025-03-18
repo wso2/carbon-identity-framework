@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.action.management.dao;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -26,6 +27,7 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
 import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
@@ -41,6 +43,8 @@ import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_ISSUE_ACCESS_TOKEN_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PASSWORD_ACTION_ID;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PASSWORD_TYPE;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PROFILE_ACTION_ID;
+import static org.wso2.carbon.identity.action.management.util.TestUtil.PRE_UPDATE_PROFILE_TYPE;
 import static org.wso2.carbon.identity.action.management.util.TestUtil.TENANT_ID;
 
 /**
@@ -586,5 +590,42 @@ public class ActionManagementDAOImplTest {
 
         daoImpl.deleteAction(createdPreUpdatePasswordActionDTO, TENANT_ID);
         daoImpl.deleteAction(createdActionDTO, TENANT_ID);
+    }
+
+    @Test(priority = 17)
+    public void testAddPreUpdateProfileAction() throws Exception {
+
+        ActionDTO creatingPreUpdateProfileActionDTO = new ActionDTOBuilder()
+                .id(PRE_UPDATE_PROFILE_ACTION_ID)
+                .type(Action.ActionTypes.PRE_UPDATE_PROFILE)
+                .name(TestUtil.TEST_ACTION_NAME)
+                .status(Action.Status.INACTIVE)
+                .endpoint(new EndpointConfig.EndpointConfigBuilder()
+                        .uri(TestUtil.TEST_ACTION_URI)
+                        .authentication(new Authentication.NoneAuthBuilder().build())
+                        .build())
+                .property(TestUtil.TEST_ACTION_PROPERTY_NAME_1,
+                        new ActionPropertyForDAO(BinaryObject.fromJsonString(buildJsonString(
+                                TestUtil.TEST_ACTION_OBJECT_PROPERTY_VALUE))))
+                .build();
+
+        daoImpl.addAction(creatingPreUpdateProfileActionDTO, TENANT_ID);
+        ActionDTO createdPreUpdateProfileActionDTO = daoImpl.getActionByActionId(PRE_UPDATE_PROFILE_TYPE,
+                PRE_UPDATE_PROFILE_ACTION_ID, TENANT_ID);
+
+        Map<String, Integer> actionMap = daoImpl.getActionsCountPerType(TENANT_ID);
+        Assert.assertTrue(actionMap.containsKey(PRE_UPDATE_PROFILE_TYPE));
+        Assert.assertEquals(actionMap.get(PRE_UPDATE_PROFILE_TYPE).intValue(), 1);
+        Assert.assertTrue(actionMap.containsKey(PRE_UPDATE_PROFILE_TYPE));
+        Assert.assertEquals(actionMap.get(PRE_UPDATE_PROFILE_TYPE).intValue(), 1);
+
+        daoImpl.deleteAction(createdPreUpdateProfileActionDTO, TENANT_ID);
+        daoImpl.deleteAction(createdActionDTO, TENANT_ID);
+    }
+
+    private String buildJsonString(List<String> value) throws Exception {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(value);
     }
 }

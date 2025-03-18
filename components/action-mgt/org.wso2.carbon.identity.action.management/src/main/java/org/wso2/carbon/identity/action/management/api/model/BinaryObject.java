@@ -20,32 +20,64 @@ package org.wso2.carbon.identity.action.management.api.model;
 
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtRuntimeException;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * This class models the object typed action property values
  */
 public class BinaryObject {
 
-    private final InputStream value;
+    private final String value;
 
-    public BinaryObject(InputStream value) {
+    private BinaryObject(String value) {
 
         this.value = value;
     }
 
+    public static BinaryObject fromInputStream(InputStream inputStream) {
+
+        if (inputStream == null) {
+            throw new IllegalArgumentException("Input stream cannot be null");
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            return new BinaryObject(stringBuilder.toString());
+        } catch (IOException e) {
+            throw new ActionMgtRuntimeException("Error occurred while reading the input stream", e);
+        }
+    }
+
+    public static BinaryObject fromJsonString(String value) {
+
+        if (value == null) {
+            throw new IllegalArgumentException("JSON string value cannot be null");
+        }
+
+        return new BinaryObject(value);
+    }
+
     public InputStream getInputStream() {
 
-        return value;
+        return new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
     }
 
     public int getLength() {
 
-        try {
-            return value.available();
-        } catch (IOException e) {
-            throw new ActionMgtRuntimeException("Error occurred while reading the input stream", e);
-        }
+        return value.getBytes(StandardCharsets.UTF_8).length;
+    }
+
+    public String getJSONString() {
+
+        return value;
     }
 }
