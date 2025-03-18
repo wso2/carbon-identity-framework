@@ -113,9 +113,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
+                .getStreamValue());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), TEST_ATTRIBUTES);
+                .getStreamValue()), TEST_ATTRIBUTES);
     }
 
     @Test
@@ -222,9 +222,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
+                .getStreamValue());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), UPDATED_TEST_ATTRIBUTES);
+                .getStreamValue()), UPDATED_TEST_ATTRIBUTES);
     }
 
     @Test
@@ -243,9 +243,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
+                .getStreamValue());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), existingActionDTO.getProperty(ATTRIBUTES));
+                .getStreamValue()), existingActionDTO.getProperty(ATTRIBUTES));
     }
 
     @Test
@@ -265,9 +265,9 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertTrue(result.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO);
         assertTrue(((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue() instanceof BinaryObject);
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream());
+                .getStreamValue());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), TEST_ATTRIBUTES);
+                .getStreamValue()), TEST_ATTRIBUTES);
     }
 
     @Test
@@ -301,7 +301,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
 
     private BinaryObject getBinaryObject(List<String> attributes) throws Exception {
 
-        return new BinaryObject(getInputStream(attributes));
+        return BinaryObject.convertInputStreamToString(getInputStream(attributes));
     }
 
     private InputStream getInputStream(List<String> attributes) throws Exception {
