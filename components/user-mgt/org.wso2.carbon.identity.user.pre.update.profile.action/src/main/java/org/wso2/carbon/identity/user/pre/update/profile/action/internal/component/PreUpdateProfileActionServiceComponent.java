@@ -76,24 +76,6 @@ public class PreUpdateProfileActionServiceComponent {
         }
     }
 
-    @Reference(
-            name = "claim.metadata.management.service",
-            service = org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetClaimMetadataManagementService")
-    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
-
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setClaimManagementService(claimManagementService);
-        LOG.debug("ClaimMetadataManagementService set in PreUpdateProfileActionServiceComponentHolder bundle.");
-    }
-
-    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
-
-        PreUpdateProfileActionServiceComponentHolder.getInstance().setClaimManagementService(null);
-        LOG.debug("ClaimMetadataManagementService unset in PreUpdateProfileActionServiceComponentHolder bundle.");
-    }
-
     @Deactivate
     protected void deactivate(ComponentContext context) {
 

@@ -51,7 +51,8 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.ATTRIBUTES;
-import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.ROLE_ATTRIBUTE_CLAIM_URI;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.MAX_ATTRIBUTES;
+import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.constant.PreUpdateProfileActionConstants.ROLE_CLAIM_URI;
 
 /**
  * This class implements the methods required to resolve ActionDTO objects in Pre Update Profile extension.
@@ -205,7 +206,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
         List<String> validatedAttributes = validateAttributesType(attributes);
         validateAttributesCount(validatedAttributes);
-        validatedAttributes = validateAgainstSystemAttributes(validatedAttributes, tenantDomain);
+        validatedAttributes = validateIfAttributeIsKnownBySystem(validatedAttributes, tenantDomain);
         return validatedAttributes;
     }
 
@@ -229,13 +230,13 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
     private void validateAttributesCount(List<String> attributes) throws ActionDTOModelResolverClientException {
 
-        if (attributes.size() > 10) {
-            throw new ActionDTOModelResolverClientException("Invalid number of attributes.",
-                    "Maximum number of attributes allowed is 10.");
+        if (attributes.size() > MAX_ATTRIBUTES) {
+            throw new ActionDTOModelResolverClientException("Maximum number of allowed attributes to configure " +
+                    "exceeded.", String.format("Maximum allowed: %d Provider: %d", MAX_ATTRIBUTES, attributes.size()));
         }
     }
 
-    private List<String> validateAgainstSystemAttributes(List<String> attributes, String tenantDomain)
+    private List<String> validateIfAttributeIsKnownBySystem(List<String> attributes, String tenantDomain)
             throws ActionDTOModelResolverClientException {
 
         try {
@@ -248,13 +249,13 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
             Set<String> uniqueAttributes = new HashSet<>();
             for (String attribute : attributes) {
                 if (!localClaimURIs.contains(attribute)) {
-                    throw new ActionDTOModelResolverClientException("Invalid System attributes.",
-                            "Attributes should be system defined local claims."
+                    throw new ActionDTOModelResolverClientException("Invalid attribute provided.",
+                            "The provided attribute is not available in the system."
                     );
                 }
-                if (attribute.equals(ROLE_ATTRIBUTE_CLAIM_URI)) {
-                    throw new ActionDTOModelResolverClientException("Not supported system attribute.",
-                            "Roles attribute is not supported to configure as an attribute."
+                if (attribute.equals(ROLE_CLAIM_URI)) {
+                    throw new ActionDTOModelResolverClientException("Not supported.",
+                            "'roles' attribute is not supported to be shared with extension."
                     );
                 }
                 uniqueAttributes.add(attribute);

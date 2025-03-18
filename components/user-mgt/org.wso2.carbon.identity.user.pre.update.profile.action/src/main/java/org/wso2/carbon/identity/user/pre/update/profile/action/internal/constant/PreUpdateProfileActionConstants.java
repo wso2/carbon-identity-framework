@@ -24,7 +24,8 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.internal.constan
 public class PreUpdateProfileActionConstants {
 
     public static final String ATTRIBUTES = "attributes";
-    public static final String ROLE_ATTRIBUTE_CLAIM_URI = "http://wso2.org/claims/roles";
+    public static final String ROLE_CLAIM_URI = "http://wso2.org/claims/roles";
+    public static final int MAX_ATTRIBUTES = 10;
 
     private PreUpdateProfileActionConstants() {
 

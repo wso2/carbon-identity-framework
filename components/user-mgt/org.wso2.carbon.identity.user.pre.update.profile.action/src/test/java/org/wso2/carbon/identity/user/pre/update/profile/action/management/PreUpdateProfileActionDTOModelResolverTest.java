@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -87,6 +88,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     private Action action;
     private ActionDTO existingActionDTO;
     private ActionDTO existingActionDTOWithoutProperties;
+    private AutoCloseable closeable;
     @Mock
     private ClaimMetadataManagementService claimMetadataManagementService;
     @Mock
@@ -123,7 +125,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     @BeforeMethod
     public void setUp() throws Exception {
 
-        MockitoAnnotations.openMocks(this);
+        closeable = MockitoAnnotations.openMocks(this);
         PreUpdateProfileActionServiceComponentHolder.getInstance()
                 .setClaimManagementService(claimMetadataManagementService);
         List<LocalClaim> mockLocalClaims = Arrays.asList(localClaim1, localClaim2, localClaim3, localClaim4,
@@ -134,6 +136,12 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         doReturn(SAMPLE_LOCAL_CLAIM_URI_4).when(localClaim4).getClaimURI();
         doReturn(ROLE_CLAIM_URI).when(rolesClaim).getClaimURI();
         doReturn(mockLocalClaims).when(claimMetadataManagementService).getLocalClaims(anyString());
+    }
+
+    @AfterMethod
+    public void teardown() throws Exception {
+
+        closeable.close();
     }
 
     @Test
@@ -204,7 +212,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid number of attributes.")
+            expectedExceptionsMessageRegExp = "Maximum number of allowed attributes to configure exceeded.")
     public void testResolveForAddOperationWithExceededAttributesCount() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -236,7 +244,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid System attributes.")
+            expectedExceptionsMessageRegExp = "Invalid attribute provided.")
     public void testResolveForAddOperationWithInvalidAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -248,7 +256,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Not supported system attribute.")
+            expectedExceptionsMessageRegExp = "Not supported.")
     public void testResolveForAddOperationWithRoleAttribute() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -330,7 +338,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid number of attributes.")
+            expectedExceptionsMessageRegExp = "Maximum number of allowed attributes to configure exceeded.")
     public void testResolveForUpdateOperationWithExceededAttributesCountWithExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -362,7 +370,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid System attributes.")
+            expectedExceptionsMessageRegExp = "Invalid attribute provided.")
     public void testResolveForUpdateOperationWithInvalidAttributesWithExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -374,7 +382,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Not supported system attribute.")
+            expectedExceptionsMessageRegExp = "Not supported.")
     public void testResolveForUpdateOperationWithRoleAttributeWithExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
