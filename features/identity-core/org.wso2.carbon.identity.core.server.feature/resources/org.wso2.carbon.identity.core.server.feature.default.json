@@ -1218,7 +1218,7 @@
   "console.actions.enabled": true,
   "console.actions.disabled_features": [
     "actions.types.list.preRegistration",
-    "actions.types.list.preUpdateProfile"
+    "actions.types.preUpdateProfile.edit.rule"
   ],
   "console.actions.scopes.feature": ["console:actions"],
   "console.actions.scopes.create": ["internal_action_mgt_create"],
