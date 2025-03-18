@@ -1757,6 +1757,7 @@
   "actions.types.pre_issue_access_token.enable": true,
   "actions.types.authentication.enable": true,
   "actions.types.authentication.default_userstore": "PRIMARY",
+  "actions.types.pre_update_profile.enable": true,
 
   "oauth.authorize_all_scopes": false,
   "oauth.enable_rich_authorization_requests" : true,
