@@ -52,9 +52,9 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
-import static org.junit.Assert.assertNull;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.DUPLICATED_TEST_ATTRIBUTES;
@@ -240,7 +240,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
                 .getInputStream());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
+                .getJSONString()), Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
@@ -404,7 +404,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
         assertNotNull(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
                 .getInputStream());
         assertEquals(getAttributes(((BinaryObject) ((ActionPropertyForDAO) result.getProperty(ATTRIBUTES)).getValue())
-                .getInputStream()), Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
+                .getJSONString()), Collections.singletonList(DUPLICATED_TEST_ATTRIBUTES.get(0)));
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,

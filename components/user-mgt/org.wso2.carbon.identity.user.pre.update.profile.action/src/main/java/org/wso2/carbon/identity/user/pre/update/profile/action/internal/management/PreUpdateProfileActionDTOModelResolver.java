@@ -68,7 +68,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         Object attributes = actionDTO.getProperty(ATTRIBUTES);
         // Attributes is an optional field.
         if (attributes != null) {
-            List<String> validatedAttributes = validateAttributes(attributes);
+            List<String> validatedAttributes = validateAttributes(attributes, tenantDomain);
             ActionPropertyForDAO attributesObject = createActionProperty(validatedAttributes);
             properties.put(ATTRIBUTES, attributesObject);
         }

@@ -56,7 +56,6 @@ public class TestConstants {
     public static final String INVALID_TEST_ATTRIBUTES_TYPE = "attribute1";
     public static final List<String> INVALID_TEST_ATTRIBUTES = Arrays.asList("attribute1", "attribute2");
     public static final List<String> TEST_EMPTY_ATTRIBUTES = Collections.emptyList();
-    public static final List<String> UPDATED_TEST_ATTRIBUTES = Collections.singletonList("http://wso2.org/active");
     public static final List<Integer> INVALID_TEST_ATTRIBUTES_VALUES = Arrays.asList(1, 1);
     public static final List<String> INVALID_TEST_ATTRIBUTES_COUNT = Collections.nCopies(11,
             SAMPLE_LOCAL_CLAIM_URI_1);
