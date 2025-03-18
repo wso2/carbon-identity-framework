@@ -146,7 +146,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
     private List<String> getResolvedUpdatingAttributes(ActionDTO updatingActionDTO,
                                                        ActionDTO existingActionDTO, String tenantDomain)
-            throws ActionDTOModelResolverClientException, ActionDTOModelResolverServerException {
+            throws ActionDTOModelResolverException {
 
         if (updatingActionDTO.getProperty(ATTRIBUTES) != null) {
             // return updating attributes after validation
@@ -183,7 +183,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
     }
 
     private List<String> validateAttributes(Object attributes, String tenantDomain)
-            throws ActionDTOModelResolverClientException, ActionDTOModelResolverServerException {
+            throws ActionDTOModelResolverException {
 
         List<String> validatedAttributes = getAttributesList(attributes);
         validateAttributesCount(validatedAttributes);
@@ -213,8 +213,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
 
         if (attributes.size() > MAX_ATTRIBUTES) {
             throw new ActionDTOModelResolverClientException("Maximum number of allowed attributes to configure " +
-                    "exceeded.", String.format("The number of configured attributes: %d exceeds the maximum allowed " +
-                    "limit: %d", attributes.size(), MAX_ATTRIBUTES));
+                    "exceeded.", String.format("Max allowed : %d Provided: %d", MAX_ATTRIBUTES, attributes.size()));
         }
     }
 
@@ -237,9 +236,8 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                             invalidAttributeDescription);
                 }
                 if (attribute.equals(ROLE_CLAIM_URI)) {
-                    throw new ActionDTOModelResolverClientException("Not supported.",
-                            "\"http:// wso2.org/ claims/ roles\" attribute is not supported to be shared with " +
-                                    "extension."
+                    throw new ActionDTOModelResolverClientException("Not supported.", String.format("%s attribute is " +
+                            "not supported to be shared with extension.", ROLE_CLAIM_URI)
                     );
                 }
                 uniqueAttributes.add(attribute);
