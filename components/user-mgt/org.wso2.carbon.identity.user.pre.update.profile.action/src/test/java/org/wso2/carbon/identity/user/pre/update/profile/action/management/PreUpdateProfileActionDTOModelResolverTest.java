@@ -212,7 +212,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Maximum number of allowed attributes to configure exceeded.")
+            expectedExceptionsMessageRegExp = "Maximum attributes limit exceeded.")
     public void testResolveForAddOperationWithExceededAttributesCount() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
@@ -376,7 +376,7 @@ public class PreUpdateProfileActionDTOModelResolverTest {
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverClientException.class,
-            expectedExceptionsMessageRegExp = "Maximum number of allowed attributes to configure exceeded.")
+            expectedExceptionsMessageRegExp = "Maximum attributes limit exceeded.")
     public void testResolveForUpdateOperationWithExceededAttributesCountWithExistingAttributes() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
