@@ -195,7 +195,6 @@ public class RegistrationFlowEngine {
             throws RegistrationEngineServerException {
 
         DataDTO dataDTO = graph.getNodePageMappings().get(currentNode.getId()).getData();
-        handleValidationDTO(dataDTO, context.getTenantDomain());
         handleFieldLengths(dataDTO, response);
         handleError(dataDTO, response);
         return new RegistrationStep.Builder()
@@ -229,7 +228,7 @@ public class RegistrationFlowEngine {
         }
     }
 
-    private void handleValidationDTO(DataDTO dataDTO, String tenantDomain)
+    public void handleValidationDTO(DataDTO dataDTO, String tenantDomain)
             throws RegistrationEngineServerException {
 
         List<String> expectedInputs = getInputsFromDataDTO(dataDTO);
