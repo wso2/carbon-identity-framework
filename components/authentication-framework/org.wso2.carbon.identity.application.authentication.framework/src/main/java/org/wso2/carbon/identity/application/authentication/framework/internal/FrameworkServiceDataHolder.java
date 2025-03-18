@@ -78,8 +78,8 @@ public class FrameworkServiceDataHolder {
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private List<ApplicationRolesResolver> applicationRolesResolvers = new ArrayList<>();
-    private long nanoTimeReference = 0;
-    private long unixTimeReference = 0;
+    private volatile long nanoTimeReference = 0;
+    private volatile long unixTimeReference = 0;
     private List<IdentityProcessor> identityProcessors = new ArrayList<>();
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
@@ -221,7 +221,7 @@ public class FrameworkServiceDataHolder {
         return nanoTimeReference;
     }
 
-    private void setNanoTimeReference(long nanoTimeReference) {
+    public void setNanoTimeReference(long nanoTimeReference) {
 
         this.nanoTimeReference = nanoTimeReference;
     }
@@ -231,7 +231,7 @@ public class FrameworkServiceDataHolder {
         return unixTimeReference;
     }
 
-    private void setUnixTimeReference(long unixTimeReference) {
+    public void setUnixTimeReference(long unixTimeReference) {
 
         this.unixTimeReference = unixTimeReference;
     }

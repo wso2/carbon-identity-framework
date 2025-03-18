@@ -261,6 +261,7 @@ public class FrameworkUtils {
     private static final String OPENJDK_SCRIPTER_CLASS_NAME = "org.openjdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String JDK_SCRIPTER_CLASS_NAME = "jdk.nashorn.api.scripting.ScriptObjectMirror";
     private static final String GRAALJS_SCRIPTER_CLASS_NAME = "org.graalvm.polyglot.Context";
+    private static final Object lock = new Object();
 
     private FrameworkUtils() {
     }
@@ -2178,12 +2179,23 @@ public class FrameworkUtils {
      */
     public static long getCurrentStandardNano() {
 
-        long epochTimeReference = TimeUnit.MILLISECONDS.toNanos(
-                FrameworkServiceDataHolder.getInstance().getUnixTimeReference());
+        long currentTimeInNanos = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
         long currentSystemNano = System.nanoTime();
-        long currentStandardNano = epochTimeReference + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
-                .getNanoTimeReference());
-        return currentStandardNano;
+
+        synchronized (lock) {
+            long baseTimeInNanos = TimeUnit.MILLISECONDS.toNanos(
+                    FrameworkServiceDataHolder.getInstance().getUnixTimeReference());
+            long baseSystemNano = FrameworkServiceDataHolder.getInstance().getNanoTimeReference();
+            long estimatedCurrentTimeInNanos = baseTimeInNanos + (currentSystemNano - baseSystemNano);
+            long drift = currentTimeInNanos - estimatedCurrentTimeInNanos;
+            if (Math.abs(drift) > TimeUnit.SECONDS.toNanos(1)) {
+                log.info("System time has drifted by " + drift + " nanoseconds. Resetting the base times.");
+                FrameworkServiceDataHolder.getInstance().setNanoTimeReference(System.nanoTime());
+                FrameworkServiceDataHolder.getInstance().setUnixTimeReference(System.currentTimeMillis());
+            }
+            return TimeUnit.MILLISECONDS.toNanos(FrameworkServiceDataHolder.getInstance().getUnixTimeReference())
+                    + (currentSystemNano - FrameworkServiceDataHolder.getInstance().getNanoTimeReference());
+        }
     }
 
     /**
