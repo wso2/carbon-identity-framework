@@ -18,13 +18,17 @@
 
 package org.wso2.carbon.identity.user.pre.update.profile.action.internal.component;
 
+import org.wso2.carbon.identity.action.execution.api.service.ActionExecutorService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGI Service component Holder for the Pre Update Profile Action Service.
  */
 public class PreUpdateProfileActionServiceComponentHolder {
 
+    private ActionExecutorService actionExecutorService;
+    private RealmService realmService;
     private ClaimMetadataManagementService claimManagementService;
 
     public static final PreUpdateProfileActionServiceComponentHolder INSTANCE =
@@ -42,6 +46,46 @@ public class PreUpdateProfileActionServiceComponentHolder {
     public static PreUpdateProfileActionServiceComponentHolder getInstance() {
 
         return INSTANCE;
+    }
+
+    /**
+     * Get the ActionExecutorService.
+     *
+     * @return ActionExecutorService instance.
+     */
+    public ActionExecutorService getActionExecutorService() {
+
+        return actionExecutorService;
+    }
+
+    /**
+     * Set the ActionExecutorService.
+     *
+     * @param actionExecutorService ActionExecutorService instance.
+     */
+    public void setActionExecutorService(ActionExecutorService actionExecutorService) {
+
+        this.actionExecutorService = actionExecutorService;
+    }
+
+    /**
+     * Get the RealmService.
+     *
+     * @return RealmService instance.
+     */
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    /**
+     * Set the RealmService.
+     *
+     * @param realmService RealmService instance.
+     */
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
     }
 
     /**
