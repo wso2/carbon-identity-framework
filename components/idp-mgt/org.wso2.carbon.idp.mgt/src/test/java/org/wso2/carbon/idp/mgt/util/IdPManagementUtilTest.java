@@ -305,10 +305,9 @@ public class IdPManagementUtilTest {
             }
         } catch (IdentityProviderManagementClientException e) {
             if (isValid) {
-                Assert.fail("Did not expect IdentityProviderManagementClientException but one was thrown.", e);
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
             }
         }
-
     }
 
     @DataProvider(name = "passwordRecoveryConfigs")
@@ -328,7 +327,6 @@ public class IdPManagementUtilTest {
                 {getPasswordRecoveryConfigs(false, true, null, null), false},
                 {getPasswordRecoveryConfigs(false, false, true, false), false},
                 {getPasswordRecoveryConfigs(false, false, false, true), false}
-
         };
     }
 
@@ -429,5 +427,4 @@ public class IdPManagementUtilTest {
                 {configDetails11}
         };
     }
-
 }
