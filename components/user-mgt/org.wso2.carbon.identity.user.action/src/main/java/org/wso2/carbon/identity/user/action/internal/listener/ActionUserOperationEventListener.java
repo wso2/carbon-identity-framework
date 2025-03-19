@@ -28,9 +28,9 @@ import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
+import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionClientException;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
-import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.SecretHandleableListener;
@@ -93,9 +93,9 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
                 return true;
             } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.FAILED) {
                 Failure failure = (Failure) executionStatus.getResponse();
-                String errorMsg = buildErrorMessage(failure.getFailureReason(), failure.getFailureDescription());
-                throw new UserStoreClientException(errorMsg,
-                        UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED);
+                throw new UserActionExecutionClientException(
+                        UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_FAILED,
+                        failure.getFailureReason(), failure.getFailureDescription());
             } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.ERROR) {
                 Error error = (Error) executionStatus.getResponse();
                 String errorMsg = buildErrorMessage(error.getErrorMessage(), error.getErrorDescription());
