@@ -214,7 +214,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         if (attributes.size() > MAX_ATTRIBUTES) {
             throw new ActionDTOModelResolverClientException("Maximum attributes limit exceeded.",
                     String.format("The number of configured attributes: %d exceeds the maximum allowed limit: %d",
-                            MAX_ATTRIBUTES, attributes.size()));
+                            attributes.size(), MAX_ATTRIBUTES));
         }
     }
 
