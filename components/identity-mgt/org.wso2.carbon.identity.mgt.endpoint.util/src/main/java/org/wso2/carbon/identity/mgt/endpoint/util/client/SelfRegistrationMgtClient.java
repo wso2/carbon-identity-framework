@@ -28,22 +28,19 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-//import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.http.client.HttpClientImpl;
+import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
-import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -162,7 +159,7 @@ public class SelfRegistrationMgtClient {
 
         boolean isDebugEnabled = log.isDebugEnabled();
         // Add import once other methods in the class are replaced with Apache Http Client 5.
-        try (org.apache.hc.client5.http.impl.classic.CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
             HttpGet httpGet = new HttpGet(url);
             AtomicInteger statusCode = new AtomicInteger();
             setAuthorizationHeader(httpGet);
@@ -174,7 +171,7 @@ public class SelfRegistrationMgtClient {
                 }
                 statusCode.set(response.getCode());
 
-                if (statusCode.intValue() == HttpStatus.SC_OK) {
+                if (response.getCode() == HttpStatus.SC_OK) {
                     return response.getEntity().getContent();
                 }
                 else {
@@ -196,6 +193,8 @@ public class SelfRegistrationMgtClient {
                 throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". " +
                             "Found http status " + statusCode);
             }
+        } catch (HttpClientException e) {
+            throw new SelfRegistrationMgtClientException(e.getMessage(), e);
         }
     }
 
@@ -267,7 +266,7 @@ public class SelfRegistrationMgtClient {
                     + ". SkipSignUpCheck flag is set to " + skipSignUpCheck);
         }
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
             JSONObject userObject = new JSONObject();
             userObject.put(USERNAME, user.getUsername());
 
@@ -300,17 +299,16 @@ public class SelfRegistrationMgtClient {
             setAuthorizationHeader(post);
 
             post.setEntity(new StringEntity(userObject.toString(), ContentType.create(HTTPConstants
-                    .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
+                    .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-            try (CloseableHttpResponse response = httpclient.execute(post)) {
-
+            JSONObject jsonResponseFromExecute =  httpclient.execute(post, response -> {
                 if (log.isDebugEnabled()) {
-                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() + " when validating username: "
+                    log.debug("HTTP status " + response.getCode() + " when validating username: "
                             + user.getUsername());
                 }
 
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ||
-                        response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
+                if (response.getCode() == HttpStatus.SC_OK ||
+                        response.getCode() == HttpStatus.SC_BAD_REQUEST) {
                     JSONObject jsonResponse = new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     if (log.isDebugEnabled()) {
@@ -318,7 +316,7 @@ public class SelfRegistrationMgtClient {
                                 .getUsername());
                     }
                     // Adding "code" attribute since in 200 OK instances, we're getting only statusCode
-                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK && jsonResponse.has(STATUS_CODE)) {
+                    if (response.getCode() == HttpStatus.SC_OK && jsonResponse.has(STATUS_CODE)) {
                         if (jsonResponse.has(CODE)) {
                             if (log.isDebugEnabled()) {
                                 log.debug("Trying to add code attribute in a success instance but the attribute " +
@@ -331,7 +329,7 @@ public class SelfRegistrationMgtClient {
                     return jsonResponse;
                 } else {
                     // Handle invalid tenant domain error thrown by the TenantContextRewriteValve.
-                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
                         JSONObject jsonResponse = new JSONObject(
                                 new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                         String content = null;
@@ -347,40 +345,28 @@ public class SelfRegistrationMgtClient {
                     }
                     // Logging and throwing since this is a client
                     if (log.isDebugEnabled()) {
-                        log.debug("Unexpected response code found: " + response.getStatusLine().getStatusCode()
+                        log.debug("Unexpected response code found: " + response.getCode()
                                 + " when validating username: " + user.getUsername());
                     }
-                    throw new SelfRegistrationMgtClientException("Error while checking username validity for user : "
-                            + user.getUsername());
+
+                    return null;
                 }
+            });
 
-            } finally {
-                post.releaseConnection();
+            if (jsonResponseFromExecute == null) {
+                throw new SelfRegistrationMgtClientException("Error while checking username validity for user : "
+                        + user.getUsername());
             }
-        } catch (IOException e) {
-            // Logging and throwing since this is a client.
-            String msg = "Error while check username validity for user : " + user.getUsername();
-            if (log.isDebugEnabled()) {
-                log.debug(msg, e);
-            }
-            throw new SelfRegistrationMgtClientException(msg, e);
+
+            return jsonResponseFromExecute;
+        } catch (HttpClientException | IOException e) {
+                // Logging and throwing since this is a client.
+                String msg = "Error while check username validity for user :" + user.getUsername();
+                if (log.isDebugEnabled()) {
+                    log.debug(msg, e);
+                }
+                throw new SelfRegistrationMgtClientException(msg, e);
         }
-    }
-
-    /**
-     * adding OAuth authorization headers to a httpMethod
-     *
-     * @param httpMethod method which wants to add Authorization header
-     */
-    private void setAuthorizationHeader(HttpRequestBase httpMethod) {
-
-        String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
-                + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
-        byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
-        String authHeader = new String(encoding, Charset.defaultCharset());
-        httpMethod.addHeader(HTTPConstants.HEADER_AUTHORIZATION,
-                CLIENT + authHeader);
-
     }
 
     /**
