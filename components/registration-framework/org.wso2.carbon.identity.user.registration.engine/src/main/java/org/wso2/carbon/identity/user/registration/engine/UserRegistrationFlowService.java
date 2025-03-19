@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEn
 import java.util.Map;
 
 import static org.wso2.carbon.identity.user.registration.engine.Constants.STATUS_COMPLETE;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.StepTypes.VIEW;
 
 /**
  * Service class to handle the user registration flow.
@@ -60,6 +61,9 @@ public class UserRegistrationFlowService {
             RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
             RegistrationFlowEngineUtils.addRegContextToCache(context);
+            if (VIEW.equals(step.getStepType())) {
+                RegistrationFlowEngine.getInstance().handleValidationDTO(step.getData(), context.getTenantDomain());
+            }
             return step;
         } catch (RegistrationEngineException e) {
             RegistrationFlowEngineUtils.removeRegContextFromCache(tenantDomain);
@@ -87,6 +91,9 @@ public class UserRegistrationFlowService {
                 RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
             } else {
                 RegistrationFlowEngineUtils.addRegContextToCache(context);
+            }
+            if (VIEW.equals(step.getStepType())) {
+                RegistrationFlowEngine.getInstance().handleValidationDTO(step.getData(), context.getTenantDomain());
             }
             return step;
         } catch (RegistrationEngineException e) {
