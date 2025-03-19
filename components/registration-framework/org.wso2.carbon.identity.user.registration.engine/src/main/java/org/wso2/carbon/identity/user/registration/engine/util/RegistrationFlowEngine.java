@@ -41,7 +41,6 @@ import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphCon
 import org.wso2.carbon.identity.user.registration.mgt.model.ValidationDTO;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
