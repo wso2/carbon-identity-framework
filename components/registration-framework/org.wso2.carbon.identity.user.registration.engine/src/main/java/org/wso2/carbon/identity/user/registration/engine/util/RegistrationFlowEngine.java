@@ -41,8 +41,6 @@ import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphCon
 import org.wso2.carbon.identity.user.registration.mgt.model.ValidationDTO;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -236,7 +234,7 @@ public class RegistrationFlowEngine {
         if (expectedInputs == null || expectedInputs.isEmpty()) {
             return;
         }
-        Map<String, Collection<ValidationDTO>> validationMap = new HashMap<>();
+        Map<String, ArrayList<ValidationDTO>> validationMap = new HashMap<>();
 
         // Fetch validations for expected inputs upfront to avoid repeated calls.
         for (String input : expectedInputs) {
@@ -280,7 +278,7 @@ public class RegistrationFlowEngine {
     }
 
     private void processComponentValidations(List<ComponentDTO> components,
-                                             Map<String, Collection<ValidationDTO>> validationMap) {
+                                             Map<String, ArrayList<ValidationDTO>> validationMap) {
 
         if (components == null || components.isEmpty()) {
             return;
@@ -298,18 +296,18 @@ public class RegistrationFlowEngine {
     }
 
     private void applyValidationIfNeeded(ComponentDTO component, String identifier,
-                                         Map<String, Collection<ValidationDTO>> validationMap) {
+                                         Map<String, ArrayList<ValidationDTO>> validationMap) {
 
         if (identifier != null && validationMap.containsKey(identifier)) {
-            component.getConfigs().put(VALIDATIONS, Collections.singletonList(validationMap.get(identifier)));
+            component.getConfigs().put(VALIDATIONS, validationMap.get(identifier));
         }
     }
 
-    private Collection<ValidationDTO> getValidationDTOs(String tenantDomain, String key)
+    private ArrayList<ValidationDTO> getValidationDTOs(String tenantDomain, String key)
             throws RegistrationEngineServerException {
 
         if (!USERNAME_CLAIM_URI.equals(key) && !PASSWORD_KEY.equals(key)) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         if (USERNAME_CLAIM_URI.equals(key)) {
@@ -338,7 +336,7 @@ public class RegistrationFlowEngine {
         } catch (InputValidationMgtException e) {
             throw handleServerException(ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE, tenantDomain);
         }
-        return validationDTOs.isEmpty() ? Collections.emptyList() : validationDTOs.values();
+        return validationDTOs.isEmpty() ? new ArrayList<>() : new ArrayList<>(validationDTOs.values());
     }
 
     private void processRuleValidations(ValidationConfiguration config, Map<String, ValidationDTO> validationDTOs) {
@@ -376,21 +374,21 @@ public class RegistrationFlowEngine {
     private List<ValidationDTO.Condition> createConditionsFromProperties(Map<String, String> properties) {
 
         if (properties == null || properties.isEmpty()) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
         return properties.entrySet().stream()
                 .map(entry -> new ValidationDTO.Condition(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private List<String> getInputsFromDataDTO(DataDTO dataDTO) {
 
         if (dataDTO == null || dataDTO.getComponents() == null) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
         return dataDTO.getComponents().stream()
                 .flatMap(this::extractInputs)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private Stream<String> extractInputs(ComponentDTO componentDTO) {
