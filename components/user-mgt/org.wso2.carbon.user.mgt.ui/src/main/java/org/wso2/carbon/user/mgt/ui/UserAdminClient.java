@@ -24,6 +24,7 @@ import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.mgt.stub.UserAdminStub;
 import org.wso2.carbon.user.mgt.stub.UserAdminUserAdminException;
 import org.wso2.carbon.user.mgt.stub.types.carbon.ClaimValue;
@@ -39,6 +40,7 @@ public class UserAdminClient  {
 
     protected UserAdminStub stub = null;
 
+    private static final String CHANGE_PASSWORD_BY_ADMIN = "changePasswordByAdmin";
     protected static final Log log = LogFactory.getLog(UserAdminClient.class);
 
     public UserAdminClient(String cookie, String url, String serviceName,
@@ -99,9 +101,12 @@ public class UserAdminClient  {
 
     public void changePassword(String userName, String newPassword) throws AxisFault {
         try {
+            IdentityUtil.threadLocalProperties.get().put(CHANGE_PASSWORD_BY_ADMIN, true);
             stub.changePassword(userName, newPassword);
         } catch (Exception e) {
             handleException(e);
+        } finally {
+            IdentityUtil.threadLocalProperties.get().remove(CHANGE_PASSWORD_BY_ADMIN);
         }
 
     }

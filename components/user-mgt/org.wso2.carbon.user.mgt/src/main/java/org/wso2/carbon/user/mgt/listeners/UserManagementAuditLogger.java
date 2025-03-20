@@ -59,6 +59,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
     private final String USER_NAME_KEY = "UserName";
     private final String USER_NAME_QUERY_KEY = "userName";
+    private final String CHANGE_PASSWORD_BY_ADMIN = "changePasswordByAdmin";
 
     @Override
     public boolean isEnable() {
@@ -223,7 +224,11 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            audit.info(createAuditMessage(ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION, getTargetForAuditLog
+            String auditMessageAction = ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION;
+            if (IdentityUtil.threadLocalProperties.get().get(CHANGE_PASSWORD_BY_ADMIN) != null) {
+                auditMessageAction = ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION;
+            }
+            audit.info(createAuditMessage(auditMessageAction, getTargetForAuditLog
                     (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
         }
