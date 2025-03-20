@@ -23,24 +23,25 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.net.URIBuilder;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.http.client.HttpClientImpl;
+import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Client to interact with the Tenant branding preferences API.
@@ -71,7 +72,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getPreference(String tenant, String type, String name, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
 
             String uri = getBrandingPreferenceEndpoint(tenant);
 
@@ -107,20 +108,17 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            JSONObject jsonResponse = new JSONObject();
+            AtomicReference<JSONObject> jsonResponse = new AtomicReference<>(new JSONObject());
 
-            try (CloseableHttpResponse response = httpclient.execute(request)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+            return httpclient.execute(request, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    jsonResponse.set(new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent()))));
                 }
 
-                return jsonResponse;
-            } finally {
-                request.releaseConnection();
-            }
-        } catch (IOException e) {
+                return jsonResponse.get();
+            });
+        } catch (HttpClientException | IOException e) {
             String msg = "Error while getting branding preference for tenant : " + tenant;
 
             if (log.isDebugEnabled()) {
@@ -145,7 +143,7 @@ public class BrandingPreferenceRetrievalClient {
     public JSONObject getCustomTextPreference(String tenant, String type, String name, String screen, String locale)
             throws BrandingPreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
 
             String uri = getCustomTextPreferenceEndpoint(tenant);
 
@@ -182,20 +180,17 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            JSONObject jsonResponse = new JSONObject();
+            AtomicReference<JSONObject> jsonResponse = new AtomicReference<>(new JSONObject());
 
-            try (CloseableHttpResponse response = httpclient.execute(request)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+            return httpclient.execute(request, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    jsonResponse.set(new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent()))));
                 }
 
-                return jsonResponse;
-            } finally {
-                request.releaseConnection();
-            }
-        } catch (IOException e) {
+                return jsonResponse.get();
+            });
+        } catch (HttpClientException | IOException e) {
             String msg = "Error while getting custom text preference for tenant : " + tenant;
 
             if (log.isDebugEnabled()) {
@@ -263,7 +258,7 @@ public class BrandingPreferenceRetrievalClient {
      *
      * @param httpMethod HTTP request method.
      */
-    private void setAuthorizationHeader(HttpRequestBase httpMethod) {
+    private void setAuthorizationHeader(HttpUriRequestBase httpMethod) {
 
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
