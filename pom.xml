@@ -22,7 +22,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>7.8.68-SNAPSHOT</version>
+    <version>7.8.144-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -80,6 +80,7 @@
         <module>components/registration-framework</module>
         <module>features/extension-mgt</module>
         <module>components/consent-server-configs-mgt</module>
+        <module>components/async-operation-status-mgt</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
@@ -118,7 +119,7 @@
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
         <module>features/registration-framework</module>
-        <module>components/async-status-mgt</module>
+        <module>features/async-operation-status-mgt</module>
     </modules>
 
 
@@ -1893,6 +1894,11 @@
                 <groupId>org.wso2.carbon</groupId>
                 <artifactId>org.wso2.carbon.admin.advisory.mgt</artifactId>
                 <version>${carbon.kernel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.framework.async.operation.status.mgt</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
 
