@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.system.config.mgt.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretManager;
+import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 
 /**
  * Service component Holder for the System Config management.
@@ -30,6 +32,8 @@ public class SystemConfigMgtServiceHolder {
     private static final Log log = LogFactory.getLog(SystemConfigMgtServiceHolder.class);
 
     private ConfigurationManager configurationManager;
+    private SecretManager secretManager;
+    private SecretResolveManager secretResolveManager;
 
     private SystemConfigMgtServiceHolder() {
 
@@ -56,5 +60,45 @@ public class SystemConfigMgtServiceHolder {
     private static class SingletonHelper {
 
         private static final SystemConfigMgtServiceHolder INSTANCE = new SystemConfigMgtServiceHolder();
+    }
+
+    /**
+     * Get the SecretManager.
+     *
+     * @return SecretManager instance.
+     */
+    public SecretManager getSecretManager() {
+
+        return secretManager;
+    }
+
+    /**
+     * Set the SecretManager.
+     *
+     * @param secretManager SecretManager instance.
+     */
+    public void setSecretManager(SecretManager secretManager) {
+
+        this.secretManager = secretManager;
+    }
+
+    /**
+     * Get the SecretResolveManager.
+     *
+     * @return SecretResolveManager instance.
+     */
+    public SecretResolveManager getSecretResolveManager() {
+
+        return secretResolveManager;
+    }
+
+    /**
+     * Set the SecretResolveManager.
+     *
+     * @param secretResolveManager SecretResolveManager instance.
+     */
+    public void setSecretResolveManager(SecretResolveManager secretResolveManager) {
+
+        this.secretResolveManager = secretResolveManager;
     }
 }

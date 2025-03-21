@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>rule-mgt</artifactId>
-        <version>7.7.228</version>
+        <version>7.8.23</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -84,16 +84,12 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.rule.evaluation.internal,
-                            org.wso2.carbon.identity.rule.evaluation.core,
-                            org.wso2.carbon.identity.rule.evaluation.service.impl,
+                            org.wso2.carbon.identity.rule.evaluation.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.rule.evaluation.internal,
-                            !org.wso2.carbon.identity.rule.evaluation.core,
-                            !org.wso2.carbon.identity.rule.evaluation.service.impl,
-                            org.wso2.carbon.identity.rule.evaluation.*;
-                            version="${carbon.identity.package.export.version}",
+                            !org.wso2.carbon.identity.rule.evaluation.internal.*,
+                            org.wso2.carbon.identity.rule.evaluation.api.*;
+                            version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
@@ -101,9 +97,9 @@
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.rule.metadata.*;
+                            org.wso2.carbon.identity.rule.metadata.api.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.management.*;
+                            org.wso2.carbon.identity.rule.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                     </instructions>

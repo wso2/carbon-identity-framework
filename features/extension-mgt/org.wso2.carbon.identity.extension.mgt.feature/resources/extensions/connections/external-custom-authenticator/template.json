@@ -1,0 +1,58 @@
+{
+  "id": "external-custom-authenticator",
+  "name": "External Custom Authentication",
+  "description": "Register externally implemented authentication service.",
+  "docLink": "",
+  "image": "assets/images/logos/custom-authenticator.svg",
+  "category": "DEFAULT",
+  "disabled": false,
+  "templateId": "external-custom-authenticator",
+  "templateGroup": "custom-authenticator",
+  "displayOrder": -1,
+  "services": [],
+  "tags": [ "Custom" ],
+  "idp": {
+    "name": "",
+    "description": "Authenticate and provision federated users.",
+    "image": "assets/images/logos/custom-authenticator.svg",
+    "isPrimary": false,
+    "isFederationHub": false,
+    "homeRealmIdentifier": "",
+    "certificate": {
+      "certificates": []
+    },
+    "alias": "",
+    "idpIssuerName": "",
+    "claims": {
+      "userIdClaim": {
+        "uri": ""
+      },
+      "roleClaim": {
+        "uri": ""
+      },
+      "provisioningClaims": []
+    },
+    "roles": {
+      "mappings": [],
+      "outboundProvisioningRoles": []
+    },
+    "federatedAuthenticators": {
+      "defaultAuthenticatorId": "",
+      "authenticators": [
+        {
+          "authenticatorId": "",
+          "isEnabled": true,
+          "isDefault": false,
+          "definedBy": "USER",
+          "endpoint": {
+            "uri": "",
+            "authentication": {
+              "type": "",
+              "properties": {}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

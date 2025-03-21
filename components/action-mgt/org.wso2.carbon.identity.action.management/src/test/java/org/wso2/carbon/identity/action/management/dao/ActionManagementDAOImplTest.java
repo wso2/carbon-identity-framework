@@ -21,13 +21,13 @@ package org.wso2.carbon.identity.action.management.dao;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.dao.impl.ActionManagementDAOImpl;
-import org.wso2.carbon.identity.action.management.exception.ActionMgtException;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.ActionDTO;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
-import org.wso2.carbon.identity.action.management.util.ActionDTOBuilder;
+import org.wso2.carbon.identity.action.management.api.exception.ActionMgtException;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.internal.dao.impl.ActionManagementDAOImpl;
+import org.wso2.carbon.identity.action.management.internal.util.ActionDTOBuilder;
 import org.wso2.carbon.identity.action.management.util.TestUtil;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
@@ -69,6 +69,7 @@ public class ActionManagementDAOImplTest {
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
                 .description(TestUtil.TEST_ACTION_DESCRIPTION)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
@@ -89,7 +90,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getType(), creatingActionDTO.getType());
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertEquals(createdActionDTO.getDescription(), creatingActionDTO.getDescription());
-        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
 
         Authentication createdAuthentication = createdActionDTO.getEndpoint().getAuthentication();
@@ -178,6 +179,7 @@ public class ActionManagementDAOImplTest {
                 .id(PRE_ISSUE_ACCESS_TOKEN_ACTION_ID)
                 .type(Action.ActionTypes.PRE_ISSUE_ACCESS_TOKEN)
                 .name(TestUtil.TEST_ACTION_NAME)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(TestUtil.buildMockBasicAuthentication(TestUtil.TEST_USERNAME_SECRET_REFERENCE,
@@ -197,7 +199,7 @@ public class ActionManagementDAOImplTest {
         Assert.assertEquals(createdActionDTO.getType(), creatingActionDTO.getType());
         Assert.assertEquals(createdActionDTO.getName(), creatingActionDTO.getName());
         Assert.assertNull(createdActionDTO.getDescription());
-        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
         Assert.assertEquals(createdActionDTO.getEndpoint().getUri(), creatingActionDTO.getEndpoint().getUri());
 
         Authentication createdAuthentication = createdActionDTO.getEndpoint().getAuthentication();
@@ -505,22 +507,23 @@ public class ActionManagementDAOImplTest {
         createdActionDTO = result;
     }
 
-
     @Test(priority = 14)
+    public void testActivateAction() throws ActionMgtException {
+
+        Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.INACTIVE);
+        ActionDTO activatedActionDTO = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
+                TENANT_ID);
+        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
+        createdActionDTO = activatedActionDTO;
+    }
+
+    @Test(priority = 15)
     public void testDeactivateAction() throws ActionMgtException {
 
         Assert.assertEquals(createdActionDTO.getStatus(), Action.Status.ACTIVE);
         ActionDTO deactivatedActionDTO = daoImpl.deactivateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
                 TENANT_ID);
         Assert.assertEquals(deactivatedActionDTO.getStatus(), Action.Status.INACTIVE);
-    }
-
-    @Test(priority = 15)
-    public void testActivateAction() throws ActionMgtException {
-
-        ActionDTO activatedActionDTO = daoImpl.activateAction(PRE_ISSUE_ACCESS_TOKEN_TYPE, createdActionDTO.getId(),
-                TENANT_ID);
-        Assert.assertEquals(activatedActionDTO.getStatus(), Action.Status.ACTIVE);
     }
 
     @Test(priority = 16)
@@ -530,6 +533,7 @@ public class ActionManagementDAOImplTest {
                 .id(PRE_UPDATE_PASSWORD_ACTION_ID)
                 .type(Action.ActionTypes.PRE_UPDATE_PASSWORD)
                 .name(TestUtil.TEST_ACTION_NAME)
+                .status(Action.Status.INACTIVE)
                 .endpoint(new EndpointConfig.EndpointConfigBuilder()
                         .uri(TestUtil.TEST_ACTION_URI)
                         .authentication(new Authentication.NoneAuthBuilder().build())

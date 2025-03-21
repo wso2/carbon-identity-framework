@@ -204,6 +204,7 @@
     "POST_DELETE_LOCAL_CLAIM",
     "POST_UPDATE_EXTERNAL_CLAIM",
     "POST_DELETE_EXTERNAL_CLAIM",
+    "PRE_ADD_EXTERNAL_CLAIM",
     "POST_ADD_EXTERNAL_CLAIM",
     "POST_UPDATE_CLAIM_DIALECT",
     "POST_DELETE_CLAIM_DIALECT"
@@ -257,7 +258,8 @@
     "POST_ADD_EXTERNAL_CLAIM",
     "POST_ADD_CLAIM_DIALECT",
     "POST_RENAME_CLAIM_DIALECT",
-    "POST_DELETE_CLAIM_DIALECT"
+    "POST_DELETE_CLAIM_DIALECT",
+    "POST_ADD_ORGANIZATION"
   ],
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.module_index": "39",
   "identity_mgt.events.schemes.SharingOrganizationCreatorUserEventHandler.subscriptions": [
@@ -267,7 +269,8 @@
   "identity_mgt.events.schemes.SharedRoleMgtHandler.module_index": "40",
   "identity_mgt.events.schemes.SharedRoleMgtHandler.subscriptions": [
     "POST_ADD_ROLE_V2_EVENT",
-    "POST_SHARE_APPLICATION"
+    "POST_SHARE_APPLICATION",
+    "PRE_SHARE_APPLICATION"
   ],
   "identity_mgt.events.schemes.UserInvitationEventHandler.module_index": "41",
   "identity_mgt.events.schemes.UserInvitationEventHandler.subscriptions": [
@@ -294,5 +297,9 @@
   "identity_mgt.events.schemes.OrganizationSessionHandler.module_index": "46",
   "identity_mgt.events.schemes.OrganizationSessionHandler.subscriptions": [
     "SESSION_TERMINATE"
+  ],
+  "identity_mgt.events.schemes.FragmentApplicationMgtHandler.module_index": "47",
+  "identity_mgt.events.schemes.FragmentApplicationMgtHandler.subscriptions": [
+    "PRE_SHARE_APPLICATION"
   ]
 }

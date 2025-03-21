@@ -44,6 +44,7 @@ public class DialectConfigParser {
 
     private static final String SCHEMA_FILE_NAME = "schemas.xml";
     private static final String SCHEMAS_NAMESPACE = "http://wso2.org/projects/carbon/carbon.xml";
+    private static final String DEFAULT_SCHEMA_CONFIG = "DefaultSchema";
     private static final String ADD_SCHEMA_CONFIG = "AddSchema";
     private static final String REMOVE_SCHEMA_CONFIG = "RemoveSchema";
     private static final String SCHEMAS_CONFIG = "Schemas";
@@ -54,6 +55,7 @@ public class DialectConfigParser {
     private static final Log log = LogFactory.getLog(DialectConfigParser.class);
 
     private final String schemasFilePath;
+    private Map<String, String> claimsMap = Collections.emptyMap();
     private Map<String, String> additionsToDefaultDialects = Collections.emptyMap();
     private Map<String, String> removalsFromDefaultDialects = Collections.emptyMap();
 
@@ -86,9 +88,20 @@ public class DialectConfigParser {
         try (InputStream inputStream = Files.newInputStream(schemaPath)) {
             StAXOMBuilder builder = new StAXOMBuilder(inputStream);
             OMElement rootElement = builder.getDocumentElement();
+            claimsMap = buildSchemasConfiguration(rootElement, DEFAULT_SCHEMA_CONFIG);
             additionsToDefaultDialects = buildSchemasConfiguration(rootElement, ADD_SCHEMA_CONFIG);
             removalsFromDefaultDialects = buildSchemasConfiguration(rootElement, REMOVE_SCHEMA_CONFIG);
 
+            if (additionsToDefaultDialects != null) {
+                additionsToDefaultDialects.forEach((key, value) -> {
+                    if (!claimsMap.containsKey(key)) {
+                        claimsMap.put(key, value);
+                    }
+                });
+            }
+            if (removalsFromDefaultDialects != null) {
+                removalsFromDefaultDialects.forEach((key, value) -> claimsMap.remove(key));
+            }
         } catch (IOException | XMLStreamException e) {
             throw IdentityRuntimeException.error("Error occurred while reading schema configuration in path: " +
                     schemasFilePath, e);
@@ -127,6 +140,16 @@ public class DialectConfigParser {
             }
         }
         return dataMap;
+    }
+
+    /**
+     * Return claims supported by the server.
+     *
+     * @return Claim Map.
+     */
+    public Map<String, String> getClaimsMap() {
+
+        return claimsMap;
     }
 
     /**

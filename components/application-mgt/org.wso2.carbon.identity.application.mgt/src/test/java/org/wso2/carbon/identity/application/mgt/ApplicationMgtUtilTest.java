@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
@@ -51,8 +52,19 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import java.io.ByteArrayInputStream;
+import java.io.StringReader;
 import java.nio.file.Paths;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -66,6 +78,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertThrows;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.base.MultitenantConstants.TENANT_DOMAIN;
@@ -95,6 +108,8 @@ public class ApplicationMgtUtilTest {
     private ApplicationPermission[] applicationPermissions;
     private Collection mockAppCollection;
     private Collection childCollection;
+    private JAXBContext mockJAXBContext;
+    private Unmarshaller mockUnmarshaller;
 
     private RegistryBasedApplicationPermissionProvider registryBasedApplicationPermissionProvider;
 
@@ -640,6 +655,118 @@ public class ApplicationMgtUtilTest {
 
         assertEquals(updatedVersion, expectedUpdatedVersion);
 
+    }
+
+    @Test
+    void testGetSecureSaxParserFactory_ShouldUnmarshalValidXML() throws Exception {
+
+        mockJAXBContext = mock(JAXBContext.class);
+        mockUnmarshaller = mock(Unmarshaller.class);
+
+        String validXml = "<ServiceProvider><name>TestSP</name></ServiceProvider>";
+        InputSource inputSource = new InputSource(new StringReader(validXml));
+        ServiceProvider expectedServiceProvider = new ServiceProvider();
+        expectedServiceProvider.setApplicationName("TestSP");
+
+        when(mockJAXBContext.createUnmarshaller()).thenReturn(mockUnmarshaller);
+        when(mockUnmarshaller.unmarshal(any(Source.class))).thenReturn(expectedServiceProvider);
+
+        // Mock JAXBContext.newInstance
+        try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+            mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                    .thenReturn(mockJAXBContext);
+
+            ServiceProvider result = ApplicationMgtUtil.getSecureSaxParserFactory(inputSource);
+            assertNotNull(result);
+            assertEquals(result.getApplicationName(), "TestSP");
+        }
+    }
+
+    @DataProvider(name = "exceptionProvider")
+    public Object[][] exceptionProvider() {
+        return new Object[][]{
+                {"JAXBException", new JAXBException("JAXB Exception is thrown"), JAXBException.class},
+                {"SAXException", new SAXException("SAX Exception is thrown"), SAXException.class},
+                {"ParserConfigurationException", new ParserConfigurationException(
+                        "ParserConfigurationException Exception is thrown"), ParserConfigurationException.class}
+        };
+    }
+
+    @Test(dataProvider = "exceptionProvider")
+    public void testGetSecureSaxParserFactoryWithException(
+            String exceptionType, Exception exception, Class<? extends Exception> expectedException) throws Exception {
+
+        InputSource inputSource = new InputSource(new StringReader("<ServiceProvider></ServiceProvider>"));
+
+        if (exceptionType.equals("JAXBException")) {
+            mockJAXBContext = mock(JAXBContext.class);
+            when(mockJAXBContext.createUnmarshaller()).thenThrow(exception);
+
+            try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+                mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                        .thenReturn(mockJAXBContext);
+
+                assertThrows(expectedException, () -> ApplicationMgtUtil.getSecureSaxParserFactory(inputSource));
+            }
+        } else if (exceptionType.equals("SAXException") || exceptionType.equals("ParserConfigurationException")) {
+            SAXParserFactory mockSAXParserFactory = mock(SAXParserFactory.class);
+            when(mockSAXParserFactory.newSAXParser()).thenThrow(exception);
+
+            try (MockedStatic<SAXParserFactory> mockedStatic = mockStatic(SAXParserFactory.class)) {
+                mockedStatic.when(SAXParserFactory::newInstance).thenReturn(mockSAXParserFactory);
+
+                assertThrows(expectedException, () -> ApplicationMgtUtil.getSecureSaxParserFactory(inputSource));
+            }
+        }
+    }
+
+    @Test
+    void testGetApplicationFromSpFileStream() throws Exception {
+
+        mockJAXBContext = mock(JAXBContext.class);
+        mockUnmarshaller = mock(Unmarshaller.class);
+
+        String validXml = "<ServiceProvider><name>TestSP</name></ServiceProvider>";
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(validXml.getBytes());
+        SpFileStream spFileStream = new SpFileStream(inputStream, "test.xml");
+        ServiceProvider expectedServiceProvider = new ServiceProvider();
+        expectedServiceProvider.setApplicationName("TestSP");
+
+        when(mockJAXBContext.createUnmarshaller()).thenReturn(mockUnmarshaller);
+        when(mockUnmarshaller.unmarshal(any(Source.class))).thenReturn(expectedServiceProvider);
+
+        // Mock JAXBContext.newInstance
+        try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+            mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                    .thenReturn(mockJAXBContext);
+
+            ServiceProvider result = ApplicationMgtUtil.getApplicationFromSpFileStream(spFileStream,
+                    "carbon.super");
+            assertNotNull(result);
+            assertEquals(result.getApplicationName(), "TestSP");
+        }
+    }
+
+
+    @Test(expectedExceptions = IdentityApplicationManagementException.class)
+    public void testGetApplicationFromSpFileStream_ShouldThrowJAXBException() throws Exception {
+
+        mockJAXBContext = mock(JAXBContext.class);
+        mockUnmarshaller = mock(Unmarshaller.class);
+
+        String invalidXml = "<ServiceProvider><name>TestSP</name></ServiceProvider>";
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(invalidXml.getBytes());
+        SpFileStream spFileStream = new SpFileStream(inputStream, "test.xml");
+
+        when(mockUnmarshaller.unmarshal(any(Source.class))).thenThrow(new JAXBException("JAXB Exception"));
+
+        // Mock JAXBContext.newInstance
+        try (MockedStatic<JAXBContext> mockedJAXBContext = mockStatic(JAXBContext.class)) {
+            mockedJAXBContext.when(() -> JAXBContext.newInstance(ServiceProvider.class))
+                    .thenReturn(mockJAXBContext);
+
+            ApplicationMgtUtil.getApplicationFromSpFileStream(spFileStream, "carbon.super");
+        }
     }
 
     private void mockTenantRegistry(MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext,

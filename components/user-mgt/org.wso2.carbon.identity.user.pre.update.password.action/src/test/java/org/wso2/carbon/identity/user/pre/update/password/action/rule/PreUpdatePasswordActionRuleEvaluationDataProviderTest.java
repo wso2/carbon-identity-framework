@@ -27,14 +27,14 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
-import org.wso2.carbon.identity.rule.evaluation.exception.RuleEvaluationDataProviderException;
-import org.wso2.carbon.identity.rule.evaluation.model.Field;
-import org.wso2.carbon.identity.rule.evaluation.model.FieldValue;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowContext;
-import org.wso2.carbon.identity.rule.evaluation.model.FlowType;
-import org.wso2.carbon.identity.rule.evaluation.model.RuleEvaluationContext;
-import org.wso2.carbon.identity.rule.evaluation.model.ValueType;
-import org.wso2.carbon.identity.user.pre.update.password.action.core.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
+import org.wso2.carbon.identity.rule.evaluation.api.exception.RuleEvaluationDataProviderException;
+import org.wso2.carbon.identity.rule.evaluation.api.model.Field;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FieldValue;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.FlowType;
+import org.wso2.carbon.identity.rule.evaluation.api.model.RuleEvaluationContext;
+import org.wso2.carbon.identity.rule.evaluation.api.model.ValueType;
+import org.wso2.carbon.identity.user.pre.update.password.action.internal.rule.PreUpdatePasswordActionRuleEvaluationDataProvider;
 
 import java.util.Collections;
 import java.util.List;
@@ -82,9 +82,9 @@ public class PreUpdatePasswordActionRuleEvaluationDataProviderTest {
     public Object[][] flowData() {
 
         return new Object[][]{
-                {Flow.Name.PASSWORD_UPDATE, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordUpdate"},
-                {Flow.Name.PASSWORD_UPDATE, Flow.InitiatingPersona.USER, "userInitiatedPasswordUpdate"},
-                {Flow.Name.PASSWORD_UPDATE, Flow.InitiatingPersona.APPLICATION, "applicationInitiatedPasswordUpdate"},
+                {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordUpdate"},
+                {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.USER, "userInitiatedPasswordUpdate"},
+                {Flow.Name.PROFILE_UPDATE, Flow.InitiatingPersona.APPLICATION, "applicationInitiatedPasswordUpdate"},
                 {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.ADMIN, "adminInitiatedPasswordReset"},
                 {Flow.Name.PASSWORD_RESET, Flow.InitiatingPersona.USER, "userInitiatedPasswordReset"},
                 {Flow.Name.USER_REGISTRATION_INVITE_WITH_PASSWORD, Flow.InitiatingPersona.ADMIN,

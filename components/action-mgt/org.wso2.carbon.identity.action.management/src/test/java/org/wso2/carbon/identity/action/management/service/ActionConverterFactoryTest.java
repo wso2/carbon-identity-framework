@@ -23,8 +23,9 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.service.impl.ActionConverterFactory;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.service.ActionConverter;
+import org.wso2.carbon.identity.action.management.internal.service.impl.ActionConverterFactory;
 
 import static org.mockito.Mockito.doReturn;
 

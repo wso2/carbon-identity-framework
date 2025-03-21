@@ -21,9 +21,8 @@ package org.wso2.carbon.identity.core.dao;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * HybridSAMLSSOServiceProviderDAOImpl is a hybrid implementation of SAMLSSOServiceProviderDAO.
@@ -99,20 +98,25 @@ public class HybridSAMLSSOServiceProviderDAOImpl implements SAMLSSOServiceProvid
     /**
      * Merges two arrays of SAMLSSOServiceProviderDO and removes duplicates.
      *
-     * @param array1 The first array.
-     * @param array2 The second array.
+     * @param jdbcSAMLSSOServiceProviders     The JDBC SAML SSO ServiceProviders array.
+     * @param registrySAMLSSOServiceProviders The Registry SAML SSO ServiceProviders array.
      * @return Merged array without duplicates.
      */
-    public static SAMLSSOServiceProviderDO[] mergeAndRemoveDuplicates(SAMLSSOServiceProviderDO[] array1,
-                                                                      SAMLSSOServiceProviderDO[] array2) {
+    public static SAMLSSOServiceProviderDO[] mergeAndRemoveDuplicates(
+            SAMLSSOServiceProviderDO[] jdbcSAMLSSOServiceProviders,
+            SAMLSSOServiceProviderDO[] registrySAMLSSOServiceProviders) {
 
-        if (array1 == null) array1 = new SAMLSSOServiceProviderDO[0];
-        if (array2 == null) array2 = new SAMLSSOServiceProviderDO[0];
+        if (jdbcSAMLSSOServiceProviders == null) jdbcSAMLSSOServiceProviders = new SAMLSSOServiceProviderDO[0];
+        if (registrySAMLSSOServiceProviders == null) registrySAMLSSOServiceProviders = new SAMLSSOServiceProviderDO[0];
 
-        Set<SAMLSSOServiceProviderDO> uniqueElements = new HashSet<>();
-        uniqueElements.addAll(Arrays.asList(array1));
-        uniqueElements.addAll(Arrays.asList(array2));
+        Map<String, SAMLSSOServiceProviderDO> uniqueMap = new HashMap<>();
+        for (SAMLSSOServiceProviderDO serviceProviderDO : registrySAMLSSOServiceProviders) {
+            uniqueMap.put(serviceProviderDO.getIssuer(), serviceProviderDO);
+        }
+        for (SAMLSSOServiceProviderDO serviceProviderDO : jdbcSAMLSSOServiceProviders) {
+            uniqueMap.put(serviceProviderDO.getIssuer(), serviceProviderDO);
+        }
 
-        return uniqueElements.toArray(new SAMLSSOServiceProviderDO[0]);
+        return uniqueMap.values().toArray(new SAMLSSOServiceProviderDO[0]);
     }
 }

@@ -23,8 +23,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.model.AuthProperty;
-import org.wso2.carbon.identity.action.management.model.Authentication;
+import org.wso2.carbon.identity.action.execution.internal.util.AuthMethods;
+import org.wso2.carbon.identity.action.management.api.model.AuthProperty;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
 
 import java.util.Arrays;
 import java.util.Base64;

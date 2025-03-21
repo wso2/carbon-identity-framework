@@ -26,13 +26,11 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.storage.SessionDataStorageOptimizationServerException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.internal.core.ApplicationAuthenticatorManager;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -111,11 +109,10 @@ public class OptimizedAuthenticatorConfig implements Serializable {
                     String.format("Null parameters passed while getting IDPs by the resource ID: %s " +
                     "tenant domain: %s", resourceId, tenantDomain));
         }
-        IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
-            idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
+            idp = ApplicationAuthenticatorManager.getInstance().getSerializableIdPByResourceId(
+                    resourceId, tenantDomain);
             if (idp == null) {
                 throw new SessionDataStorageOptimizationClientException(
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
@@ -129,7 +126,7 @@ public class OptimizedAuthenticatorConfig implements Serializable {
             throw new SessionDataStorageOptimizationServerException(
                     String.format("IDP management server error occurred. Failed to get the Identity Provider by " +
                                     "resource id: %s tenant domain: %s", resourceId, tenantDomain), e);
-        } catch (IdentityProviderManagementException e) {
+        } catch (IdentityProviderManagementException | FrameworkException e) {
             throw new SessionDataStorageOptimizationException(
                     String.format("IDP management error occurred. Failed to get the Identity Provider by " +
                                     "resource id: %s tenant domain: %s", resourceId, tenantDomain), e);

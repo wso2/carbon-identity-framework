@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>rule-mgt</artifactId>
-        <version>7.7.228</version>
+        <version>7.8.23</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -77,21 +77,11 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.rule.metadata.internal,
-                            org.wso2.carbon.identity.rule.metadata.config,
-                            org.wso2.carbon.identity.rule.metadata.deserializer,
-                            org.wso2.carbon.identity.rule.metadata.provider.impl,
-                            org.wso2.carbon.identity.rule.metadata.service.impl,
-                            org.wso2.carbon.identity.rule.metadata.util,
+                            org.wso2.carbon.identity.rule.metadata.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.rule.metadata.internal,
-                            !org.wso2.carbon.identity.rule.metadata.config,
-                            !org.wso2.carbon.identity.rule.metadata.deserializer,
-                            !org.wso2.carbon.identity.rule.metadata.provider.impl,
-                            !org.wso2.carbon.identity.rule.metadata.service.impl,
-                            !org.wso2.carbon.identity.rule.metadata.util,
-                            org.wso2.carbon.identity.rule.metadata.*;
+                            !org.wso2.carbon.identity.rule.metadata.internal.*,
+                            org.wso2.carbon.identity.rule.metadata.api.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>

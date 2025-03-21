@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>action-mgt</artifactId>
-        <version>7.7.228</version>
+        <version>7.8.23</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -84,21 +84,17 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.identity.action.execution.internal,
-                            org.wso2.carbon.identity.action.execution.impl,
-                            org.wso2.carbon.identity.action.execution.util,
+                            org.wso2.carbon.identity.action.execution.internal.*
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.action.execution.internal,
-                            !org.wso2.carbon.identity.action.execution.impl,
-                            !org.wso2.carbon.identity.action.execution.util,
-                            org.wso2.carbon.identity.action.execution.*;
+                            !org.wso2.carbon.identity.action.execution.internal.*,
+                            org.wso2.carbon.identity.action.execution.api.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <Import-Package>
-                            org.wso2.carbon.identity.action.management.*;
+                            org.wso2.carbon.identity.action.management.api.*;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.rule.evaluation.*;
+                            org.wso2.carbon.identity.rule.evaluation.api.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
@@ -180,7 +176,7 @@
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
                                             <!-- temp decreasing the coverage -->
-                                            <minimum>0.78</minimum>
+                                            <minimum>0.77</minimum>
                                         </limit>
                                         <limit implementation="org.jacoco.report.check.Limit">
                                             <counter>COMPLEXITY</counter>

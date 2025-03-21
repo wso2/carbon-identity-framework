@@ -288,9 +288,9 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                                                                     withKeyStore.tenantDomain());
             ServerConfiguration serverConfigurationService = ServerConfiguration.getInstance();
             serverConfigurationService.init(realClass.getResourceAsStream("/repository/conf/carbon.xml"));
-            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(withKeyStore.tenantId(),
-                                                                          serverConfigurationService,
-                                                                          registryService);
+            CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
+            CarbonCoreDataHolder.getInstance().setServerConfigurationService(serverConfigurationService);
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(withKeyStore.tenantId());
             if (!Proxy.isProxyClass(keyStoreManager.getClass()) &&
                     !keyStoreManager.getClass().getName().contains("EnhancerByMockitoWithCGLIB")  ) {
                 KeyStore keyStore = ReadCertStoreSampleUtil.createKeyStore(getClass());
@@ -299,8 +299,6 @@ public class CarbonBasedTestListener implements ITestListener, IClassListener {
                 org.wso2.carbon.identity.testutil.Whitebox.setInternalState(keyStoreManager, "registryKeyStore",
                                                                             keyStore);
             }
-            CarbonCoreDataHolder.getInstance().setRegistryService(registryService);
-            CarbonCoreDataHolder.getInstance().setServerConfigurationService(serverConfigurationService);
         } catch (Exception e) {
             throw new TestCreationException(
                     "Unhandled error while reading cert for test class:  " + realClass.getName(), e);

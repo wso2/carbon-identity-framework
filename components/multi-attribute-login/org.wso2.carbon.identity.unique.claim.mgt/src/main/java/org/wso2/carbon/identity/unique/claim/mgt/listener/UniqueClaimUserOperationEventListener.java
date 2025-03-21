@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
+
 /**
  * A userstore operation event listener to keep the uniqueness of a given set of claims.
  */
@@ -176,7 +178,8 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
             String claimList = String.join(", ", duplicateClaim);
             errorMessage = "The values defined for " + claimList + " are already in use by a different users!";
         }
-        throw new UserStoreClientException(errorMessage, new PolicyViolationException(errorMessage));
+        throw new UserStoreClientException(errorMessage,
+                new PolicyViolationException(ERROR_CODE_DUPLICATE_CLAIM_VALUE, errorMessage));
     }
 
     private boolean isClaimDuplicated(String username, String claimUri, String claimValue, String profile,

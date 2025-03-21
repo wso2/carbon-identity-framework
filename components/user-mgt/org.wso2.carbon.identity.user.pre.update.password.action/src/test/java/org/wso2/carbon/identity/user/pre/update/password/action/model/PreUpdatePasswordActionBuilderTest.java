@@ -19,12 +19,12 @@
 package org.wso2.carbon.identity.user.pre.update.password.action.model;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.action.management.model.Action;
-import org.wso2.carbon.identity.action.management.model.Authentication;
-import org.wso2.carbon.identity.action.management.model.EndpointConfig;
+import org.wso2.carbon.identity.action.management.api.model.Action;
+import org.wso2.carbon.identity.action.management.api.model.Authentication;
+import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.certificate.management.model.Certificate;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PasswordSharing;
-import org.wso2.carbon.identity.user.pre.update.password.action.service.model.PreUpdatePasswordAction;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PasswordSharing;
+import org.wso2.carbon.identity.user.pre.update.password.action.api.model.PreUpdatePasswordAction;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;

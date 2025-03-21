@@ -20,7 +20,8 @@ package org.wso2.carbon.identity.rule.metadata.config;
 
 import org.mockito.MockedStatic;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataConfigException;
+import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataConfigException;
+import org.wso2.carbon.identity.rule.metadata.internal.config.RuleMetadataConfigFactory;
 import org.wso2.carbon.utils.CarbonUtils;
 
 import static org.mockito.Mockito.mockStatic;

@@ -32,12 +32,12 @@ public class Flow {
     private static final Map<Name, EnumSet<InitiatingPersona>> FLOW_DEFINITIONS = new EnumMap<>(Name.class);
 
     static {
-        FLOW_DEFINITIONS.put(Name.PASSWORD_UPDATE,
-                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.PASSWORD_RESET,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
         FLOW_DEFINITIONS.put(Name.USER_REGISTRATION_INVITE_WITH_PASSWORD,
                 EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION));
+        FLOW_DEFINITIONS.put(Name.PROFILE_UPDATE,
+                EnumSet.of(InitiatingPersona.ADMIN, InitiatingPersona.APPLICATION, InitiatingPersona.USER));
     }
 
     /**
@@ -46,9 +46,9 @@ public class Flow {
      */
     public enum Name {
 
-        PASSWORD_UPDATE,
         PASSWORD_RESET,
-        USER_REGISTRATION_INVITE_WITH_PASSWORD
+        USER_REGISTRATION_INVITE_WITH_PASSWORD,
+        PROFILE_UPDATE
     }
 
     /**

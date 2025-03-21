@@ -314,11 +314,11 @@ public class AuthenticationContextLoader {
     private IdentityProvider getIdPByResourceID(String resourceId, String tenantDomain)
             throws SessionDataStorageOptimizationException {
 
-        IdentityProviderManager manager =
-                (IdentityProviderManager) FrameworkServiceDataHolder.getInstance().getIdentityProviderManager();
         IdentityProvider idp;
         try {
-            idp = manager.getIdPByResourceId(resourceId, tenantDomain, false);
+            idp = ApplicationAuthenticatorManager.getInstance().getSerializableIdPByResourceId(
+                    resourceId, tenantDomain);
+
             if (idp == null) {
                 throw new SessionDataStorageOptimizationClientException(
                         String.format("Cannot find the Identity Provider by the resource ID: %s " +
@@ -332,7 +332,7 @@ public class AuthenticationContextLoader {
             throw new SessionDataStorageOptimizationServerException(
                     String.format("IDP management server error. Failed to get the Identity Provider by " +
                                     "resource id: %s tenant domain: %s", resourceId, tenantDomain), e);
-        } catch (IdentityProviderManagementException e) {
+        } catch (IdentityProviderManagementException | FrameworkException e) {
             throw new SessionDataStorageOptimizationServerException(
                     String.format("Failed to get the Identity Provider by resource id: %s tenant domain: %s",
                             resourceId, tenantDomain), e);

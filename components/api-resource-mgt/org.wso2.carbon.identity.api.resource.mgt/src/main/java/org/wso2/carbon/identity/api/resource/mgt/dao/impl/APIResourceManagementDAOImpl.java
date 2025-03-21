@@ -208,12 +208,21 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     @Override
     public List<Scope> getScopesByAPI(String apiId, Integer tenantId) throws APIResourceMgtServerException {
 
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
         List<Scope> scopes = new ArrayList<>();
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement = dbConnection.prepareStatement(SQLConstants.GET_SCOPES_BY_API_ID)) {
 
             preparedStatement.setString(1, apiId);
-            preparedStatement.setInt(2, tenantId);
+            preparedStatement.setInt(2, tenantIdToSearchScopes);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 Scope scope = new Scope(
@@ -452,9 +461,18 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     private boolean isScopeExists(Connection connection, String name, Integer tenantId)
             throws APIResourceMgtServerException {
 
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
         try (PreparedStatement preparedStatement = connection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME)) {
             preparedStatement.setString(1, name);
-            preparedStatement.setInt(2, tenantId);
+            preparedStatement.setInt(2, tenantIdToSearchScopes);
             ResultSet resultSet = preparedStatement.executeQuery();
             return resultSet.next();
         } catch (SQLException e) {
@@ -484,10 +502,19 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     @Override
     public Scope getScopeByNameAndTenantId(String name, Integer tenantId) throws APIResourceMgtException {
 
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                    .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement = dbConnection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME)) {
             preparedStatement.setString(1, name);
-            preparedStatement.setInt(2, tenantId);
+            preparedStatement.setInt(2, tenantIdToSearchScopes);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 return new Scope(
@@ -508,12 +535,21 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     public Scope getScopeByNameTenantIdAPIId(String name, Integer tenantId, String apiId)
             throws APIResourceMgtException {
 
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement =
                      dbConnection.prepareStatement(SQLConstants.GET_SCOPE_BY_NAME_API_ID)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, apiId);
-            preparedStatement.setInt(3, tenantId);
+            preparedStatement.setInt(3, tenantIdToSearchScopes);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 return new Scope(
@@ -685,6 +721,15 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
     public List<APIResource> getScopeMetadata(List<String> scopeNames, Integer tenantId)
             throws APIResourceMgtException {
 
+        int tenantIdToSearchScopes;
+        try {
+            tenantIdToSearchScopes = OrganizationManagementUtil.isOrganization(tenantId) ?
+                    getRootOrganizationTenantId(tenantId) : tenantId;
+        } catch (OrganizationManagementException e) {
+            throw APIResourceManagementUtil.handleServerException(APIResourceManagementConstants.ErrorMessages
+                            .ERROR_CODE_ERROR_WHILE_RESOLVING_ORGANIZATION_FOR_TENANT, e,
+                    IdentityTenantUtil.getTenantDomain(tenantId));
+        }
         if (CollectionUtils.isEmpty(scopeNames)) {
             return new ArrayList<>();
         }
@@ -693,7 +738,7 @@ public class APIResourceManagementDAOImpl implements APIResourceManagementDAO {
         query = query.replace(SQLConstants.SCOPE_LIST_PLACEHOLDER, placeholders);
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt = dbConnection.prepareStatement(query)) {
-            prepStmt.setInt(1, tenantId);
+            prepStmt.setInt(1, tenantIdToSearchScopes);
             int scopeIndex = 2;
             for (String scopeName : scopeNames) {
                 prepStmt.setString(scopeIndex, scopeName);

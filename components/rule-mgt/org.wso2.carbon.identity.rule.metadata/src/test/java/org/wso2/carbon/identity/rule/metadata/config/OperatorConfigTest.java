@@ -20,8 +20,9 @@ package org.wso2.carbon.identity.rule.metadata.config;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.rule.metadata.exception.RuleMetadataConfigException;
-import org.wso2.carbon.identity.rule.metadata.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.api.exception.RuleMetadataConfigException;
+import org.wso2.carbon.identity.rule.metadata.api.model.Operator;
+import org.wso2.carbon.identity.rule.metadata.internal.config.OperatorConfig;
 
 import java.io.File;
 import java.util.Map;

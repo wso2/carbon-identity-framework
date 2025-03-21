@@ -32,14 +32,21 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.Application;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
+import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
 import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -53,6 +60,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +75,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_AUTHORIZE_USER;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSIONS;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IS_FRAGMENT_APP;
 
 /**
  * This a service class used to manage user sessions.
@@ -583,17 +592,12 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId,
                         FrameworkUtils.getLoginTenantDomainFromContext());
                 if (sessionContext != null) {
-                    if (sessionContext.getProperties() != null &&
-                            sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN) instanceof String) {
-                        String tenantDomain = (String) sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN);
-                        // User's sessions belongs to the requested tenant is returned.
-                        if (!StringUtils.equals(FrameworkUtils.getLoginTenantDomainFromContext(), tenantDomain)) {
-                            continue;
-                        }
-                    }
                     UserSessionDAO userSessionDAO = new UserSessionDAOImpl();
                     UserSession userSession = userSessionDAO.getSession(sessionId);
                     if (userSession != null) {
+                        if (!isEffectiveSession(sessionContext, userSession)) {
+                            continue;
+                        }
                         if (StringUtils.isNotBlank(idpId)) {
                             userSession.setIdpId(idpId);
                         }
@@ -605,8 +609,109 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 }
             }
         }
-
         return sessionsList;
+    }
+
+    private boolean isEffectiveSession(SessionContext sessionContext, UserSession userSession) {
+
+        try {
+            String sessionTenantDomain = null;
+            if (sessionContext.getProperties() != null &&
+                    sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN) instanceof String) {
+                sessionTenantDomain = (String) sessionContext.getProperties().get(FrameworkUtils.TENANT_DOMAIN);
+            }
+            if (StringUtils.isEmpty(sessionTenantDomain)) {
+                return true;
+            }
+            String loginTenantDomain = FrameworkUtils.getLoginTenantDomainFromContext();
+            boolean isOrganization = OrganizationManagementUtil.isOrganization(loginTenantDomain);
+            if (StringUtils.equals(sessionTenantDomain, loginTenantDomain)) {
+                // This block handles the scenario where session tenant domain and login tenant domain are equal.
+                if (isOrganization & areAllFragmentAppsInUserSession(userSession)) {
+                   /*
+                   When a sub org user authenticates using a shared application, sessions are created for shared app in
+                   sub organization and parent app in primary organization. In this case, the session created in primary
+                   organization is the effective session. Hence, this session is ignored for the session list.
+                    */
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                // This block handles the scenario where session tenant domain and login tenant domain are different.
+                if (isOrganization &&
+                        isSessionTenantPrimaryOrgForLoginTenant(sessionTenantDomain, loginTenantDomain)) {
+                    /*
+                    When a sub org user authenticates using a shared application, sessions are created for shared app in
+                    sub organization and parent app in primary organization. In this case, the session created in
+                    primary organization is the effective session. Hence, this scenario is considered as an
+                    effective session.
+                     */
+                    return true;
+                }
+                if (isSaaSAppAvailableInUserSession(userSession)) {
+                    /*
+                    When a user authenticates using a SaaS application in a different tenant domain. Session is also
+                    created for that tenant domain. In this case, user should be able to see this session from the
+                    user resident tenant domain. Hence, this scenario is considered as an effective session.
+                     */
+                    return true;
+                }
+                return false;
+            }
+        } catch (OrganizationManagementException | IdentityApplicationManagementException e) {
+            log.error("Error occurred while validating the effective sessions.", e);
+            return true;
+        }
+    }
+
+    private boolean areAllFragmentAppsInUserSession(UserSession userSession)
+            throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManager =
+                FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
+        for (Application app: userSession.getApplications()) {
+            ServiceProvider serviceProvider = applicationManager
+                    .getServiceProvider(Integer.parseInt(app.getAppId()));
+            if (serviceProvider == null) {
+                return false;
+            }
+            boolean isFragmentApp = Arrays.stream(serviceProvider.getSpProperties())
+                    .anyMatch(property -> IS_FRAGMENT_APP.equals(property.getName()) &&
+                    Boolean.parseBoolean(property.getValue()));
+            if (!isFragmentApp) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isSessionTenantPrimaryOrgForLoginTenant(String sessionTenantDomain, String loginTenantDomain)
+            throws OrganizationManagementException {
+
+        OrganizationManager organizationManager = FrameworkServiceDataHolder.getInstance().getOrganizationManager();
+        String loginTenantDomainOrgId = organizationManager.resolveOrganizationId(loginTenantDomain);
+        String sessionTenantDomainOrgId = organizationManager.resolveOrganizationId(sessionTenantDomain);
+        String primaryOrgId = organizationManager.getPrimaryOrganizationId(loginTenantDomainOrgId);
+        return StringUtils.equals(primaryOrgId, sessionTenantDomainOrgId);
+    }
+
+    private boolean isSaaSAppAvailableInUserSession(UserSession userSession)
+            throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationManager =
+                FrameworkServiceDataHolder.getInstance().getApplicationManagementService();
+        for (Application app: userSession.getApplications()) {
+            ServiceProvider serviceProvider = applicationManager
+                    .getServiceProvider(Integer.parseInt(app.getAppId()));
+            if (serviceProvider == null) {
+                continue;
+            }
+            if (serviceProvider.isSaasApp()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -115,6 +115,7 @@ import org.wso2.carbon.identity.organization.management.service.OrganizationMana
 import org.wso2.carbon.identity.role.v2.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.secret.mgt.core.SecretResolveManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -129,6 +130,7 @@ import java.util.List;
 
 import javax.servlet.Servlet;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CUSTOM_AUTHENTICATOR_PREFIX;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 import static org.wso2.carbon.identity.base.IdentityConstants.TRUE;
 
@@ -477,8 +479,16 @@ public class FrameworkServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetAuthenticator"
     )
-    protected void setAuthenticator(ApplicationAuthenticator authenticator) {
+    protected void setAuthenticator(ApplicationAuthenticator authenticator)
+            throws IdentityProviderManagementServerException {
 
+        /* All custom authenticator names must start with the `custom-` prefix. If a system-defined authenticator is
+         attempted to be registered at server startup with a name starting with this prefix, an error will be thrown. */
+        if (authenticator.getName().startsWith(CUSTOM_AUTHENTICATOR_PREFIX)) {
+            throw new IdentityProviderManagementServerException(String.format("System-defined authenticator names " +
+                    "are not allowed to have the %s prefix. Therefore, %s cannot be registered.",
+                    CUSTOM_AUTHENTICATOR_PREFIX, authenticator.getName()));
+        }
         ApplicationAuthenticatorManager.getInstance().addSystemDefinedAuthenticator(authenticator);
 
         Property[] configProperties = null;

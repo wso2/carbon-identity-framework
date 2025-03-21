@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>system-config-mgt</artifactId>
-        <version>7.7.228</version>
+        <version>7.8.23</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -70,6 +70,10 @@
             <artifactId>org.wso2.carbon.logging.service</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.secret.mgt.core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -99,6 +103,8 @@
 
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.cache;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.secret.mgt.core.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.configuration.mgt.core.*;
                             version="${carbon.identity.package.import.version.range}",

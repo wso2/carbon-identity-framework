@@ -2050,6 +2050,9 @@
         {% endif %}
         <AllowAssociatingToExistingUser>{{authentication.jit_provisioning.associating_to_existing_user}}</AllowAssociatingToExistingUser>
         <EnableConfiguredIdpSubForFederatedUserAssociation>{{authentication.jit_provisioning.enable_configured_idp_sub_for_federated_user_association}}</EnableConfiguredIdpSubForFederatedUserAssociation>
+        {% if authentication.jit_provisioning.show_failure_reason is defined %}
+        <ShowFailureReason>{{authentication.jit_provisioning.show_failure_reason}}</ShowFailureReason>
+        {% endif %}
     </JITProvisioning>
 
     <!--Application management service configurations-->
@@ -2128,22 +2131,21 @@
                             <Parameter>{{param}}</Parameter>
                         {% endfor %}
                     </ExcludedParameters>
+                    <AllowedHeaders>
+                        {% for header in actions.types.pre_issue_access_token.action_request.allowed_headers %}
+                            <Header>{{header}}</Header>
+                        {% endfor %}
+                    </AllowedHeaders>
+                    <AllowedParameters>
+                        {% for param in actions.types.pre_issue_access_token.action_request.allowed_parameters %}
+                            <Parameter>{{param}}</Parameter>
+                        {% endfor %}
+                    </AllowedParameters>
                 </ActionRequest>
             </PreIssueAccessToken>
             <Authentication>
                 <Enable>{{actions.types.authentication.enable}}</Enable>
-                <ActionRequest>
-                    <ExcludedHeaders>
-                         {% for header in actions.types.authentication.action_request.excluded_headers %}
-                            <Header>{{header}}</Header>
-                         {% endfor %}
-                    </ExcludedHeaders>
-                    <ExcludedParameters>
-                        {% for param in actions.types.authentication.action_request.excluded_parameters %}
-                            <Parameter>{{param}}</Parameter>
-                        {% endfor %}
-                    </ExcludedParameters>
-                </ActionRequest>
+                <DefaultUserStore>{{actions.types.authentication.default_userstore}}</DefaultUserStore>
             </Authentication>
         </Types>
     </Actions>
@@ -2183,7 +2185,7 @@
                        enable="{{event.default_listener.scim2_tenant_mgt.enable}}"/>
         <EventListener id="pre_update_password_action"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
-                       name="org.wso2.carbon.identity.user.action.core.listener.ActionUserOperationEventListener"
+                       name="org.wso2.carbon.identity.user.action.internal.listener.ActionUserOperationEventListener"
                        orderId="{{event.default_listener.pre_update_password_action.priority}}"
                        enable="{{event.default_listener.pre_update_password_action.enable}}"/>
         <EventListener id="governance_identity_mgt"
@@ -2628,6 +2630,11 @@
                    enable="{{cache.push_auth_status_cache.enable}}"
                    timeout="{{cache.push_auth_status_cache_cache.timeout}}"
                    capacity="{{cache.push_auth_status_cache_cache.capacity}}"
+                   isDistributed="false"/>
+            <Cache id="push_device_registration_request_cache" name="PushDeviceRegistrationRequestCache"
+                   enable="{{cache.push_device_registration_request_cache.enable}}"
+                   timeout="{{cache.push_device_registration_request_cache.timeout}}"
+                   capacity="{{cache.push_device_registration_request_cache.capacity}}"
                    isDistributed="false"/>
             {% for cache in cache.manager %}
              <Cache name="{{cache.name}}"
@@ -3857,6 +3864,7 @@
                     <Path>/oauth2/token</Path>
                     <Path>/oauth2/introspect</Path>
                     <Path>/oauth2/revoke</Path>
+                    <Path>/oauth2/userinfo</Path>
                 </SubPaths>
             </Context>
         </WebApp>

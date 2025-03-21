@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-provider-management</artifactId>
-        <version>7.7.228</version>
+        <version>7.8.23</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -168,7 +168,7 @@
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.json;version="${json.wso2.version.range}",
                             org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.identity.action.management.*;version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.action.management.api.*; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,

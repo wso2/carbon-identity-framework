@@ -32,7 +32,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.system.config.mgt.cache.AdminAdvisoryBannerCache;
-import org.wso2.carbon.identity.system.config.mgt.internal.SystemConfigMgtServiceHolder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,6 +56,12 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
     public static final String RESOURCE_NOT_EXISTS_ERROR_CODE = "CONFIGM_00017";
     public static final String CACHE_KEY = "DBBasedAdminBannerCacheKey";
 
+    private ConfigurationManager configurationManager;
+
+    public DBBasedAdminBannerDAO(ConfigurationManager configurationManager) {
+
+        this.configurationManager = configurationManager;
+    }
 
     @Override
     public void saveAdminAdvisoryConfig(AdminAdvisoryBannerDTO adminAdvisoryBannerDTO, String tenantDomain)
@@ -65,9 +70,9 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
         Resource resource = buildResourceFromAdvisoryBannerDTO(adminAdvisoryBannerDTO);
         try {
             if (isAdminAdvisoryResourceExists(ADVISORY_BANNER_RESOURCE_TYPE, ADVISORY_BANNER_RESOURCE_NAME)) {
-                getConfigurationManager().replaceResource(ADVISORY_BANNER_RESOURCE_TYPE, resource);
+                this.configurationManager.replaceResource(ADVISORY_BANNER_RESOURCE_TYPE, resource);
             } else {
-                getConfigurationManager().addResource(ADVISORY_BANNER_RESOURCE_TYPE, resource);
+                this.configurationManager.addResource(ADVISORY_BANNER_RESOURCE_TYPE, resource);
             }
 
             Pair<Boolean, String> valueToCache =
@@ -95,13 +100,13 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
         }
 
         try {
-            Resource resource = getConfigurationManager().getResource(ADVISORY_BANNER_RESOURCE_TYPE,
+            Resource resource = this.configurationManager.getResource(ADVISORY_BANNER_RESOURCE_TYPE,
                     ADVISORY_BANNER_RESOURCE_NAME);
             if (resource == null) {
                 return Optional.empty();
             }
 
-            List<ResourceFile> resourceFiles = getConfigurationManager().getFiles(ADVISORY_BANNER_RESOURCE_TYPE,
+            List<ResourceFile> resourceFiles = this.configurationManager.getFiles(ADVISORY_BANNER_RESOURCE_TYPE,
                     ADVISORY_BANNER_RESOURCE_NAME);
 
             if (resourceFiles.isEmpty() || StringUtils.isBlank(resourceFiles.get(0).getId())) {
@@ -112,7 +117,7 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
                 return Optional.empty();
             }
 
-            InputStream inputStream = getConfigurationManager().getFileById
+            InputStream inputStream = this.configurationManager.getFileById
                     (ADVISORY_BANNER_RESOURCE_TYPE, ADVISORY_BANNER_RESOURCE_NAME, resourceFile.getId());
             AdminAdvisoryBannerDTO adminAdvisoryBannerDTO = buildAdvisoryBannerDTOFromResource(resource, inputStream);
 
@@ -149,7 +154,7 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
 
         Resource resource;
         try {
-            resource = getConfigurationManager().getResource(resourceType, resourceName);
+            resource = this.configurationManager.getResource(resourceType, resourceName);
         } catch (ConfigurationManagementException e) {
             if (RESOURCE_NOT_EXISTS_ERROR_CODE.equals(e.getErrorCode())) {
                 return false;
@@ -196,10 +201,5 @@ public class DBBasedAdminBannerDAO implements AdminAdvisoryBannerDAO {
         resourceFiles.add(file);
         resource.setFiles(resourceFiles);
         return resource;
-    }
-
-    private ConfigurationManager getConfigurationManager() {
-
-        return SystemConfigMgtServiceHolder.getInstance().getConfigurationManager();
     }
 }

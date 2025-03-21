@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_LENGTH_LIMIT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_CLAIM_PROPERTY_CHAR_LIMIT_EXCEED;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
@@ -522,7 +523,19 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                             externalClaim.getMappedLocalClaim(), externalClaim.getClaimDialectURI()));
         }
 
-        // Add listener
+        try {
+            ClaimMetadataEventPublisherProxy.getInstance().publishPreAddExternalClaim(tenantId, externalClaim);
+            if (MapUtils.isNotEmpty(IdentityUtil.threadLocalProperties.get()) &&
+                    Boolean.TRUE.equals(IdentityUtil.threadLocalProperties.get()
+                            .get(ClaimConstants.EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT))) {
+                throw new ClaimMetadataClientException(ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT.getCode(),
+                        String.format(ERROR_CODE_CANNOT_ADD_TO_EXTERNAL_DIALECT.getMessage(),
+                                externalClaim.getClaimDialectURI()));
+            }
+        } finally {
+            IdentityUtil.threadLocalProperties.get()
+                    .remove(ClaimConstants.EXTERNAL_CLAIM_ADDITION_NOT_ALLOWED_FOR_DIALECT);
+        }
 
         this.unifiedClaimMetadataManager.addExternalClaim(externalClaim, tenantId);
 

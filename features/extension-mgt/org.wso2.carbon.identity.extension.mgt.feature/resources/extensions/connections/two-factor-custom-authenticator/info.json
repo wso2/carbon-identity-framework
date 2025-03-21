@@ -1,0 +1,10 @@
+{
+  "id": "two-factor-custom-authenticator",
+  "name": "2FA Authentication",
+  "description": "Only verify users in a second or later step of the login flow.",
+  "image": "",
+  "category": "DEFAULT",
+  "displayOrder": -1,
+  "tags": [ "Custom", "2FA" ],
+  "type": "custom-authenticator"
+}
