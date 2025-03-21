@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.user.pre.update.profile.action.internal.managem
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelResolverServerException;
@@ -53,6 +55,8 @@ import static org.wso2.carbon.identity.user.pre.update.profile.action.internal.c
  * This class implements the methods required to resolve ActionDTO objects in Pre Update Profile extension.
  */
 public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelResolver {
+
+    private static final Log LOG = LogFactory.getLog(PreUpdateProfileActionDTOModelResolver.class);
 
     @Override
     public Action.ActionTypes getSupportedActionType() {
@@ -229,6 +233,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                     .map(LocalClaim::getClaimURI)
                     .collect(Collectors.toSet());
             Set<String> uniqueAttributes = new HashSet<>();
+            Set<String> duplicatedAttributes = new HashSet<>();
             for (String attribute : attributes) {
                 if (!localClaimURIs.contains(attribute)) {
                     String invalidAttributeDescription = String.format("The provided %s attribute is not available " +
@@ -241,7 +246,14 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                             "not supported to be shared with extension.", ROLE_CLAIM_URI)
                     );
                 }
+                if (!uniqueAttributes.add(attribute)) {
+                    duplicatedAttributes.add(attribute);
+                }
                 uniqueAttributes.add(attribute);
+            }
+            if (LOG.isDebugEnabled() && !duplicatedAttributes.isEmpty()) {
+                LOG.debug("Ignored duplicated attributes found for pre profile action configuration : " +
+                        String.join(", ", duplicatedAttributes));
             }
             return Collections.unmodifiableList(new ArrayList<>(uniqueAttributes));
         } catch (ClaimMetadataException e) {
