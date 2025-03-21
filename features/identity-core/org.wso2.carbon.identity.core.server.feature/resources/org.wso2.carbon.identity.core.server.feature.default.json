@@ -1671,7 +1671,8 @@
     "profile",
     "openid"
   ],
-
+  "ui.is_cookie_consent_banner_enabled": true,
+  
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
