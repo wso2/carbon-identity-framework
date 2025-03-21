@@ -20,15 +20,14 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.wso2.carbon.http.client.HttpClientImpl;
+import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
-import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -54,13 +53,13 @@ public class AdminAdvisoryDataRetrievalClient {
      */
     public JSONObject getAdminAdvisoryBannerData(String tenant) throws AdminAdvisoryDataRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
 
             String uri = getAdminAdvisoryBannerEndpoint(tenant);
             HttpGet request = new HttpGet(uri);
 
-            try (CloseableHttpResponse response = httpclient.execute(request)) {
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            return httpclient.execute(request, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
                     return new JSONObject(new JSONTokener(new InputStreamReader(response
                             .getEntity().getContent())));
                 }
@@ -68,10 +67,8 @@ public class AdminAdvisoryDataRetrievalClient {
                 defaultBanner.put(ENABLE_BANNER, false);
                 defaultBanner.put(BANNER_CONTENT, DEFAULT_BANNER_CONTENT);
                 return defaultBanner;
-            } finally {
-                request.releaseConnection();
-            }
-        } catch (IOException e) {
+            });
+        } catch (HttpClientException | IOException e) {
             String msg = "Error while getting admin advisory banner preference for tenant : " + tenant;
             LOG.debug(msg, e);
             throw new AdminAdvisoryDataRetrievalClientException(msg, e);

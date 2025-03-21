@@ -23,21 +23,21 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.wso2.carbon.http.client.HttpClientImpl;
+import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
-import org.wso2.carbon.utils.HTTPClientUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Client which retrieves preferences.
@@ -376,15 +377,14 @@ public class PreferenceRetrievalClient {
                                              String propertyName)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
             String endpoint = getUserGovernanceEndpoint(tenant);
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
-            String governanceId = null;
-            try (CloseableHttpResponse response = httpclient.execute(get)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            AtomicReference<String> governanceId = new AtomicReference<>();
+            httpclient.execute(get, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
                     JSONArray jsonResponse = new JSONArray(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     for (int itemIndex = 0, totalObject = jsonResponse.length();
@@ -392,22 +392,21 @@ public class PreferenceRetrievalClient {
                         JSONObject config = jsonResponse.getJSONObject(itemIndex);
                         if (StringUtils.equalsIgnoreCase(
                                 jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
-                            governanceId = config.getString(PROPERTY_ID);
+                            governanceId.set(config.getString(PROPERTY_ID));
                             break;
                         }
                     }
                 }
-            } finally {
-                get.releaseConnection();
-            }
+                return null;
+            });
 
-            endpoint = endpoint + "/" + governanceId;
+
+            endpoint = endpoint + "/" + governanceId.get();
             HttpGet getConnectorConfig = new HttpGet(endpoint);
             setAuthorizationHeader(getConnectorConfig);
 
-            try (CloseableHttpResponse response = httpclient.execute(getConnectorConfig)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            return httpclient.execute(getConnectorConfig, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
                     JSONObject jsonResponse = new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     JSONArray connectorArray = jsonResponse.getJSONArray(CONNECTORS);
@@ -426,18 +425,16 @@ public class PreferenceRetrievalClient {
                         }
                     }
                 }
-            } finally {
-                get.releaseConnection();
-            }
+                return Optional.empty();
+            });
 
-        } catch (IOException e) {
+        } catch (HttpClientException | IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while obtaining config values for connector : " + connectorName + " in tenant : "
                     + tenant;
             log.debug(msg, e);
             throw new PreferenceRetrievalClientException(msg, e);
         }
-        return Optional.empty();
     }
 
     /**
@@ -453,7 +450,7 @@ public class PreferenceRetrievalClient {
     public boolean checkPreference(String tenant, String connectorName, String propertyName, boolean defaultValue)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
             JSONArray main = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -464,11 +461,10 @@ public class PreferenceRetrievalClient {
             HttpPost post = new HttpPost(getUserGovernancePreferenceEndpoint(tenant));
             setAuthorizationHeader(post);
             post.setEntity(new StringEntity(main.toString(), ContentType.create(HTTPConstants
-                    .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
+                    .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-            try (CloseableHttpResponse response = httpclient.execute(post)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            return httpclient.execute(post, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
                     JSONArray jsonResponse = new JSONArray(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     JSONObject connector = (JSONObject) jsonResponse.get(0);
@@ -483,10 +479,8 @@ public class PreferenceRetrievalClient {
                     }
                 }
                 return defaultValue;
-            } finally {
-                post.releaseConnection();
-            }
-        } catch (IOException e) {
+            });
+        } catch (HttpClientException | IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while checking preference for connector : " + connectorName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
@@ -508,7 +502,7 @@ public class PreferenceRetrievalClient {
     public boolean checkMultiplePreference(String tenant, String connectorName, List<String> propertyNames)
             throws PreferenceRetrievalClientException {
 
-        try (CloseableHttpClient httpclient = HTTPClientUtils.createClientWithCustomVerifier().build()) {
+        try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
             JSONArray requestBody = new JSONArray();
             JSONObject preference = new JSONObject();
             preference.put(CONNECTOR_NAME, connectorName);
@@ -523,9 +517,8 @@ public class PreferenceRetrievalClient {
             post.setEntity(new StringEntity(requestBody.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
-            try (CloseableHttpResponse response = httpclient.execute(post)) {
-
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            return httpclient.execute(post, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
                     JSONArray jsonResponse = new JSONArray(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     JSONObject connector = (JSONObject) jsonResponse.get(0);
@@ -539,10 +532,8 @@ public class PreferenceRetrievalClient {
                     return false;
                 }
                 return false;
-            } finally {
-                post.releaseConnection();
-            }
-        } catch (IOException e) {
+            });
+        } catch (HttpClientException | IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while check preference for connector : " + connectorName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
@@ -571,7 +562,7 @@ public class PreferenceRetrievalClient {
         }
     }
 
-    private void setAuthorizationHeader(HttpRequestBase httpMethod) {
+    private void setAuthorizationHeader(HttpUriRequestBase httpMethod) {
 
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());

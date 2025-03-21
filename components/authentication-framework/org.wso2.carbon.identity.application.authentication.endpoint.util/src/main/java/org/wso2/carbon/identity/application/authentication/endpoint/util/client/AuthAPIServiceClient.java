@@ -21,12 +21,11 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util.client
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.json.JSONObject;
+import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.exception.ServiceClientException;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationErrorResponse;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationResponse;
@@ -34,11 +33,13 @@ import org.wso2.carbon.identity.application.authentication.endpoint.util.client.
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Service client class to invoke /api/identity/auth/v1.0 API.
@@ -63,7 +64,7 @@ public class AuthAPIServiceClient {
      */
     public AuthAPIServiceClient(String apiBasePath) {
 
-        httpClient = HttpClients.createDefault();
+        httpClient = HttpClientImpl.createDefaultClient();
         basePath = apiBasePath;
     }
 
@@ -84,37 +85,45 @@ public class AuthAPIServiceClient {
         HttpPost httpPostRequest = new HttpPost(endpointURL);
         httpPostRequest.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader(username, password));
         httpPostRequest.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-        try (CloseableHttpResponse response = httpClient.execute(httpPostRequest)) {
 
-            int statusCode = response.getStatusLine().getStatusCode();
-            String responseString = extractResponse(response);
-            if (log.isDebugEnabled()) {
-                log.debug("Response: { status: " + response.getStatusLine().getStatusCode() + "\n data: " +
-                        responseString + " }");
-            }
+        AtomicInteger statusCode = new AtomicInteger();
 
-            JSONObject responseObj = new JSONObject(responseString);
-            if (responseObj.has(RESPONSE_PARAM_TOKEN)) {
-                authenticationResponse = populateAuthenticationSuccessResponse(responseObj);
-            } else {
-                authenticationResponse = populateAuthenticationErrorResponse(responseObj);
-            }
-            authenticationResponse.setStatusCode(statusCode);
+        InputStream responseContent = null;
 
+        try {
+            responseContent = httpClient.execute(httpPostRequest, response -> {
+                statusCode.set(response.getCode());
+
+                return response.getEntity().getContent();
+            });
         } catch (IOException e) {
             String msg = "Error while invoking " + endpointURL;
             log.error(msg, e);
             throw new ServiceClientException(msg, e);
         }
 
+        String responseString = extractResponse(responseContent);
+        if (log.isDebugEnabled()) {
+            log.debug("Response: { status: " + statusCode.intValue() + "\n data: " +
+                    responseString + " }");
+        }
+
+        JSONObject responseObj = new JSONObject(responseString);
+        if (responseObj.has(RESPONSE_PARAM_TOKEN)) {
+            authenticationResponse = populateAuthenticationSuccessResponse(responseObj);
+        } else {
+            authenticationResponse = populateAuthenticationErrorResponse(responseObj);
+        }
+        authenticationResponse.setStatusCode(statusCode.get());
+
         return authenticationResponse;
     }
 
-    private String extractResponse(CloseableHttpResponse httpResponse) throws ServiceClientException {
+    private String extractResponse(InputStream httpResponse) throws ServiceClientException {
 
         StringBuilder response = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8))) {
+                new InputStreamReader(httpResponse, StandardCharsets.UTF_8))) {
             String inputLine;
             while ((inputLine = reader.readLine()) != null) {
                 response.append(inputLine);
