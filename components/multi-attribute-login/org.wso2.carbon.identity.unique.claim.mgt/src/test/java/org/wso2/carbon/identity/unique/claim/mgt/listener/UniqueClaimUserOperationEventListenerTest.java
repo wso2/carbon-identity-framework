@@ -63,6 +63,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
 
 public class UniqueClaimUserOperationEventListenerTest {
@@ -126,6 +127,7 @@ public class UniqueClaimUserOperationEventListenerTest {
         Map<String, String> claimsOne = new HashMap<>();
         claimsOne.put("http://wso2.org/claims/mobile", "0711234567");
         claimsOne.put("http://wso2.org/claims/emailAddress", "sample@wso2.com");
+        claimsOne.put("http://wso2.org/claims/emailAddresses", "sample@wso2.com,sample1@wso2.com");
         return new Object[][]{
                 {"testUser", claimsOne, "default"}
         };
@@ -169,6 +171,8 @@ public class UniqueClaimUserOperationEventListenerTest {
         List<LocalClaim> localClaims = new ArrayList<>();
         LocalClaim localClaimMobile = new LocalClaim("http://wso2.org/claims/mobile");
         LocalClaim localClaimEmail = new LocalClaim("http://wso2.org/claims/emailAddress");
+        LocalClaim localClaimEmails = new LocalClaim("http://wso2.org/claims/emailAddresses");
+
         localClaimEmail.setClaimProperties(new HashMap<String, String>() {{
             put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
                     ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
@@ -177,8 +181,13 @@ public class UniqueClaimUserOperationEventListenerTest {
             put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
                     ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
         }});
+        localClaimEmails.setClaimProperties(new HashMap<String, String>() {{
+            put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
+                    ClaimConstants.ClaimUniquenessScope.ACROSS_USERSTORES.toString());
+        }});
         localClaims.add(localClaimMobile);
         localClaims.add(localClaimEmail);
+        localClaims.add(localClaimEmails);
         when(claimMetadataManagementService.getLocalClaims(anyString())).thenReturn(localClaims);
 
         Claim claimMobile = new Claim();
@@ -187,8 +196,17 @@ public class UniqueClaimUserOperationEventListenerTest {
         Claim claimEmail = new Claim();
         claimEmail.setClaimUri("http://wso2.org/claims/emailAddress");
         claimEmail.setDisplayTag("Email");
+        Claim claimEmails = new Claim();
+        claimEmails.setClaimUri("http://wso2.org/claims/emailAddresses");
+        claimEmails.setDisplayTag("Email Addresses");
+        claimEmails.setMultiValued(true);
         when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/mobile")).thenReturn(claimMobile);
         when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/emailAddress")).thenReturn(claimEmail);
+        when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/emailAddresses"))
+                .thenReturn(claimEmails);
+        when(userStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(userStoreManager);
+        when(realmConfiguration.getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR)).thenReturn(",");
+
         doReturn(true).when(uniqueClaimUserOperationEventListener).isEnable();
 
         try {
@@ -198,6 +216,9 @@ public class UniqueClaimUserOperationEventListenerTest {
             Assert.assertNotNull(e.getCause());
             PolicyViolationException policyViolationException = (PolicyViolationException) e.getCause();
             Assert.assertEquals(policyViolationException.getErrorCode(), ERROR_CODE_DUPLICATE_CLAIM_VALUE);
+            Assert.assertTrue(e.getMessage().contains(claimEmail.getDisplayTag()), e.getMessage());
+            Assert.assertTrue(e.getMessage().contains(claimMobile.getDisplayTag()), e.getMessage());
+            Assert.assertTrue(e.getMessage().contains(claimEmails.getDisplayTag()), e.getMessage());
             throw e;
         }
     }
