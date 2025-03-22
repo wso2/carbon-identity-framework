@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021-2025, WSO2 LLC. (http://www.wso2.com).
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
 
 /**
@@ -281,6 +282,11 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
 
         String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(
                 UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        Claim claim = getClaimObject(userStoreManager, claimUri);
+        if (claim != null && claim.isMultiValued()) {
+            return isMultiValuedClaimDuplicated(username, claimUri, claimValue, profile, userStoreManager, domainName,
+                    uniquenessScope);
+        }
         String[] userList;
         // Get UserStoreManager from realm since the received one might be for a secondary user store
         UserStoreManager userStoreMgrFromRealm = getUserstoreManager(userStoreManager.getTenantId());
@@ -434,5 +440,31 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         }
         validatePasswordNotEqualToClaims(claimMap, userStoreManager, newCredential);
         return true;
+    }
+
+    private boolean isMultiValuedClaimDuplicated(String username, String claimUri, String claimValue, String profile,
+                                                 UserStoreManager userStoreManager, String domainName,
+                                                 ClaimConstants.ClaimUniquenessScope uniquenessScope)
+            throws UserStoreException {
+
+        String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
+                .getRealmConfiguration().getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
+
+        String[] userList;
+        for (String claimValuePart : claimValue.split(multiAttributeSeparator)) {
+            if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
+                String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValuePart;
+                userList = userStoreManager.getUserList(claimUri, claimValueWithDomain, profile);
+            } else {
+                userList = userStoreManager.getUserList(claimUri, claimValue, profile);
+            }
+            if (userList.length == 1) {
+                String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
+                return !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]);
+            } else {
+                return userList.length != 0;
+            }
+        }
+        return false;
     }
 }
