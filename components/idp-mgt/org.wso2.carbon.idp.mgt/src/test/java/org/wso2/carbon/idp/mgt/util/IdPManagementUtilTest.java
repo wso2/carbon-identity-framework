@@ -21,6 +21,7 @@ package org.wso2.carbon.idp.mgt.util;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.testng.MockitoTestNGListener;
+import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -293,6 +294,72 @@ public class IdPManagementUtilTest {
 
     }
 
+    @Test(dataProvider = "passwordRecoveryConfigs")
+    public void testValidatePasswordRecoveryPropertyValues(HashMap<String, String> configs, boolean isValid) {
+
+        try {
+            IdPManagementUtil.validatePasswordRecoveryPropertyValues(configs);
+
+            if (!isValid) {
+                Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
+            }
+        } catch (IdentityProviderManagementClientException e) {
+            if (isValid) {
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
+            }
+        }
+    }
+
+    @DataProvider(name = "passwordRecoveryConfigs")
+    public Object[][] setPasswordRecoveryConfigs() {
+
+        return new Object[][]{
+                {getPasswordRecoveryConfigs(true, true, null, null), true},
+                {getPasswordRecoveryConfigs(null, true, null, null), true},
+                {getPasswordRecoveryConfigs(null, null, true, null), true},
+                {getPasswordRecoveryConfigs(null, null, null, true), true},
+                {getPasswordRecoveryConfigs(true, null, null, null), true},
+                {getPasswordRecoveryConfigs(true, false, true, null), true},
+                {getPasswordRecoveryConfigs(true, false, null, null), true},
+                {getPasswordRecoveryConfigs(true, false, false, null), true},
+                {getPasswordRecoveryConfigs(true, false, false, true), true},
+                {getPasswordRecoveryConfigs(true, false, false, false), false},
+                {getPasswordRecoveryConfigs(false, true, null, null), false},
+                {getPasswordRecoveryConfigs(false, false, true, false), false},
+                {getPasswordRecoveryConfigs(false, false, false, true), false}
+        };
+    }
+
+    private HashMap<String, String> getPasswordRecoveryConfigs(Boolean passwordRecoveryEnable,
+                                                               Boolean passwordRecoveryEmailLinkEnable,
+                                                               Boolean passwordRecoveryEmailOtpEnable,
+                                                               Boolean passwordRecoverySmsOtpEnable) {
+
+        HashMap<String, String> configs = new HashMap<>();
+
+        if (passwordRecoveryEnable != null) {
+            configs.put(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY, passwordRecoveryEnable ?
+                    TRUE_STRING : FALSE_STRING);
+        }
+
+        if (passwordRecoveryEmailLinkEnable != null) {
+            configs.put(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY,
+                    passwordRecoveryEmailLinkEnable ? TRUE_STRING : FALSE_STRING);
+        }
+
+        if (passwordRecoveryEmailOtpEnable != null) {
+            configs.put(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY, passwordRecoveryEmailOtpEnable ?
+                    TRUE_STRING : FALSE_STRING);
+        }
+
+        if (passwordRecoverySmsOtpEnable != null) {
+            configs.put(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY, passwordRecoverySmsOtpEnable ?
+                    TRUE_STRING : FALSE_STRING);
+        }
+
+        return configs;
+    }
+
     @Test(dataProvider = "setSuccessConfigDetails")
     public void testSuccessVerificationsInValidateUsernameRecoveryPropertyValues(Map<String, String> configDetails)
             throws IdentityProviderManagementClientException {
@@ -360,5 +427,4 @@ public class IdPManagementUtilTest {
                 {configDetails11}
         };
     }
-
 }
