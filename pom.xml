@@ -118,6 +118,7 @@
         <module>features/servlet-mgt</module>
         <module>features/system-config-mgt</module>
         <module>features/registration-framework</module>
+        <module>components/async-status-mgt</module>
     </modules>
 
 
