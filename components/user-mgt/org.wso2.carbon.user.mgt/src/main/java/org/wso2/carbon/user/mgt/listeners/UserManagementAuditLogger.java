@@ -28,6 +28,7 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
@@ -52,8 +53,6 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     private static final String SUCCESS = "Success";
     private static final String IN_PROGRESS = "In-Progress";
     private static final String USER_IDENTITY_CLAIMS_MAP = "UserIdentityClaimsMap";
-    private static final String USER = "USER";
-    private static final String ADMIN = "ADMIN";
     public static final String USER_AGENT_QUERY_KEY = "User-Agent";
     public static final String USER_AGENT_KEY = "User Agent";
     public static final String REMOTE_ADDRESS_QUERY_KEY = "remoteAddress";
@@ -226,14 +225,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             UserStoreManager userStoreManager) {
 
         if (isEnable()) {
-            IdentityContext identityContext = IdentityContext.getThreadLocalIdentityContext();
-            String initiatingPersona = String.valueOf(identityContext.getFlow().getInitiatingPersona());
-            String auditMessageAction = ListenerUtils.CHANGE_PASSWORD_ACTION;
-            if (initiatingPersona.equals(USER)) {
-                auditMessageAction = ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION;
-            } else if (initiatingPersona.equals(ADMIN)) {
-                auditMessageAction = ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION;
-            }
+            String auditMessageAction = getPasswordUpdateAuditMessageAction();
             audit.info(createAuditMessage(auditMessageAction, getTargetForAuditLog
                     (LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(userName) : userName,
                     userStoreManager), null, SUCCESS));
@@ -531,6 +523,29 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(maskedClaims));
         } else {
             data.put(ListenerUtils.CLAIMS_FIELD, new JSONObject(claims));
+        }
+    }
+
+    /**
+     * Determines the appropriate audit message action based on the initiating persona in the current flow.
+     *
+     * @return The audit message action. If the flow is not available or the persona is unrecognized,
+     *         returns {@code ListenerUtils.CHANGE_PASSWORD_ACTION} by default.
+     */
+    private String getPasswordUpdateAuditMessageAction() {
+
+        Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
+        if (flow == null) {
+            return ListenerUtils.CHANGE_PASSWORD_ACTION;
+        }
+        switch (flow.getInitiatingPersona()) {
+            case USER:
+                return ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION;
+            case ADMIN:
+            case APPLICATION:
+                return ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION;
+            default:
+                return ListenerUtils.CHANGE_PASSWORD_ACTION;
         }
     }
 }
