@@ -32,7 +32,6 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
@@ -41,7 +40,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Client to interact with the Tenant branding preferences API.
@@ -108,15 +106,14 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            AtomicReference<JSONObject> jsonResponse = new AtomicReference<>(new JSONObject());
-
             return httpclient.execute(request, response -> {
+                JSONObject jsonResponse = new JSONObject();
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    jsonResponse.set(new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent()))));
+                    jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                 }
 
-                return jsonResponse.get();
+                return jsonResponse;
             });
         } catch (IOException e) {
             String msg = "Error while getting branding preference for tenant : " + tenant;
@@ -180,15 +177,14 @@ public class BrandingPreferenceRetrievalClient {
             HttpGet request = new HttpGet(uri);
             setAuthorizationHeader(request);
 
-            AtomicReference<JSONObject> jsonResponse = new AtomicReference<>(new JSONObject());
-
             return httpclient.execute(request, response -> {
+                JSONObject jsonResponse = new JSONObject();
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    jsonResponse.set(new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent()))));
+                    jsonResponse = new JSONObject(
+                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                 }
 
-                return jsonResponse.get();
+                return jsonResponse;
             });
         } catch (IOException e) {
             String msg = "Error while getting custom text preference for tenant : " + tenant;

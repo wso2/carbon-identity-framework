@@ -381,8 +381,7 @@ public class PreferenceRetrievalClient {
             HttpGet get = new HttpGet(endpoint);
             setAuthorizationHeader(get);
 
-            AtomicReference<String> governanceId = new AtomicReference<>();
-            httpclient.execute(get, response -> {
+            String governanceId = httpclient.execute(get, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
                     JSONArray jsonResponse = new JSONArray(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
@@ -391,16 +390,15 @@ public class PreferenceRetrievalClient {
                         JSONObject config = jsonResponse.getJSONObject(itemIndex);
                         if (StringUtils.equalsIgnoreCase(
                                 jsonResponse.getJSONObject(itemIndex).getString(PROPERTY_NAME), governanceDomain)) {
-                            governanceId.set(config.getString(PROPERTY_ID));
-                            break;
+                            return config.getString(PROPERTY_ID);
                         }
                     }
                 }
-                return null;
+                return StringUtils.EMPTY;
             });
 
 
-            endpoint = endpoint + "/" + governanceId.get();
+            endpoint = endpoint + "/" + governanceId;
             HttpGet getConnectorConfig = new HttpGet(endpoint);
             setAuthorizationHeader(getConnectorConfig);
 
