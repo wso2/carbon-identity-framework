@@ -25,6 +25,7 @@ import static org.wso2.carbon.identity.user.registration.mgt.Constants.Component
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_ACTION_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_COMPONENT_DATA_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_EXECUTOR_INFO_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_FIRST_NODE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_FOR_BUTTON;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_INVALID_ACTION_TYPE;
 import static org.wso2.carbon.identity.user.registration.mgt.Constants.ErrorMessages.ERROR_CODE_MULTIPLE_STEP_EXECUTORS;
@@ -136,6 +137,9 @@ public class GraphBuilder {
         }
         if (!EXECUTOR.equals(action.getType())) {
             throw handleClientException(ERROR_CODE_INVALID_ACTION_TYPE, action.getType(), step.getId());
+        }
+        if (action.getExecutor() == null) {
+            throw handleClientException(ERROR_CODE_EXECUTOR_INFO_NOT_FOUND, step.getId());
         }
 
         NodeConfig redirectionNode = createTaskExecutionNode(step.getId(), action.getExecutor());
@@ -275,13 +279,17 @@ public class GraphBuilder {
         }
 
         // Identify the first node: The one NOT in `referencedNodes`.
+        List<String> firstNodeIds = new ArrayList<>();
         for (Map.Entry<String, NodeConfig> entry : nodeMap.entrySet()) {
             if (!referencedNodes.contains(entry.getKey())) {
-                registrationGraph.setFirstNodeId(entry.getKey());
-                nodeMap.get(entry.getKey()).setFirstNode(true);
-                break;
+                firstNodeIds.add(entry.getKey());
             }
         }
+        if (firstNodeIds.size() != 1) {
+            throw handleServerException(ERROR_CODE_INVALID_FIRST_NODE);
+        }
+        registrationGraph.setFirstNodeId(firstNodeIds.get(0));
+        nodeMap.get(firstNodeIds.get(0)).setFirstNode(true);
     }
 
     private NodeConfig createTaskExecutionNode(String id, ExecutorDTO executorDTO) {
