@@ -105,7 +105,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
 
         if (entry != null) {
             LOG.debug("Cache entry found for authenticator " + authenticatorConfigName);
-            return entry.getAuthenticatorConfig();
+            return (UserDefinedLocalAuthenticatorConfig) entry.getAuthenticatorConfig();
         }
 
         LOG.debug("Cache entry not found for authenticator " + authenticatorConfigName + ". Fetching from DB.");
