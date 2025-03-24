@@ -56,7 +56,13 @@ public class AuthenticatorConfig implements Serializable {
         this.enabled = enabled;
         this.amrValue = amrValue;
         this.parameterMap = parameterMap;
-    }//Add a new constructor
+    }
+
+    public AuthenticatorConfig(String name, boolean enabled, Map<String, String> parameterMap){
+        this.name = name;
+        this.enabled = enabled;
+        this.parameterMap = parameterMap;
+    }
 
     /**
      * Deep clone of AuthenticatorConfig.

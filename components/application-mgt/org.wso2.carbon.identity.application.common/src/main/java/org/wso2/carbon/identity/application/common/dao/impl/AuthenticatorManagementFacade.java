@@ -124,6 +124,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
             LocalAuthenticatorConfig existingAuthenticatorConfig, LocalAuthenticatorConfig updatedConfig, int tenantId)
             throws AuthenticatorMgtException {
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             return jdbcTemplate.withTransaction(template -> dao.updateSystemLocalAuthenticatorAmrValue(
@@ -161,6 +162,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
     @Override
     public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException {
+
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             return jdbcTemplate.withTransaction(template -> dao.getSystemLocalAuthenticator(authenticatorConfigName,
@@ -234,6 +236,31 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
         try {
             return jdbcTemplate.withTransaction(
                     template -> dao.isExistingAuthenticatorName(authenticatorName, tenantId));
+        } catch (TransactionException e) {
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError
+                            .ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e, authenticatorName);
+        }
+    }
+
+    @Override
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(template -> dao.addSystemLocalAuthenticator(authenticatorConfig, tenantId));
+        } catch (TransactionException e) {
+            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e,
+                    authenticatorConfig.getName());
+        }
+    }
+
+    @Override
+    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId)
+            throws AuthenticatorMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            return jdbcTemplate.withTransaction(
+                    template -> dao.isExistingAuthenticatorNameDB(authenticatorName, tenantId));
         } catch (TransactionException e) {
             throw handleAuthenticatorMgtException(AuthenticatorMgtError
                             .ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e, authenticatorName);

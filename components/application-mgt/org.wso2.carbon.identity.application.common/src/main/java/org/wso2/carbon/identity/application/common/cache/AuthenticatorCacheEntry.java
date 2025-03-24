@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.common.cache;
 
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
@@ -28,19 +29,19 @@ public class AuthenticatorCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = -6234723984328871924L;
 
-    private UserDefinedLocalAuthenticatorConfig authenticatorConfig;
+    private LocalAuthenticatorConfig authenticatorConfig;
 
-    public AuthenticatorCacheEntry(UserDefinedLocalAuthenticatorConfig authenticatorConfig) {
+    public AuthenticatorCacheEntry(LocalAuthenticatorConfig authenticatorConfig) {
 
         this.authenticatorConfig = authenticatorConfig;
     }
 
-    public UserDefinedLocalAuthenticatorConfig getAuthenticatorConfig() {
+    public LocalAuthenticatorConfig getAuthenticatorConfig() {
 
         return authenticatorConfig;
     }
 
-    public void setAuthenticatorConfig(UserDefinedLocalAuthenticatorConfig authenticatorConfig) {
+    public void setAuthenticatorConfig(LocalAuthenticatorConfig authenticatorConfig) {
 
         this.authenticatorConfig = authenticatorConfig;
     }

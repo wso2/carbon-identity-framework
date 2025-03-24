@@ -54,7 +54,6 @@ public class OptimizedAuthenticatorConfig implements Serializable {
     private final String tenantDomain;
     private final String amrValue;
 
-
     private static final Log LOG = LogFactory.getLog(OptimizedAuthenticatorConfig.class);
 
     public OptimizedAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {

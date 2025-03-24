@@ -131,7 +131,7 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         }
         LocalAuthenticatorConfig authenticatorConfig = authenticatorMgtFacade.getSystemLocalAuthenticator(
                 authenticatorConfigName, tenantId);
-        authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry((UserDefinedLocalAuthenticatorConfig) authenticatorConfig), tenantId);
+        authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(authenticatorConfig), tenantId);
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Entry fetched from DB for authenticator %s. Adding cache entry.", authenticatorConfigName));
@@ -184,5 +184,20 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
             throws AuthenticatorMgtException {
 
         return authenticatorMgtFacade.isExistingAuthenticatorName(authenticatorConfigName, tenantId);
+    }
+
+    @Override
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
+        LocalAuthenticatorConfig createdConfig = authenticatorMgtFacade.addSystemLocalAuthenticator(authenticatorConfig,
+                tenantId);
+        AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(authenticatorConfig.getName());
+        authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(createdConfig), tenantId);
+        LOG.debug("Added cache entry for newly created authenticator " + authenticatorConfig.getName());
+        return createdConfig;
+    }
+
+    @Override
+    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId) throws AuthenticatorMgtException {
+        return authenticatorMgtFacade.isExistingAuthenticatorNameDB(authenticatorName, tenantId);
     }
 }

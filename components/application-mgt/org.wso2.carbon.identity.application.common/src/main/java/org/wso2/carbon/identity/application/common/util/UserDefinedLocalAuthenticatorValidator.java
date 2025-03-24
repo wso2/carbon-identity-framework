@@ -39,6 +39,9 @@ public class UserDefinedLocalAuthenticatorValidator {
     private static final String URL_REGEX = "^https?://.+";
     private final Pattern urlRegexPattern = Pattern.compile(URL_REGEX);
 
+    private static final String AMR_VALUE_REGEX = "^[a-zA-Z0-9_]{2,}$";
+    private final Pattern amrRegexPattern = Pattern.compile(AMR_VALUE_REGEX);
+
     /**
      * Validate the user defined local authenticator display name.
      *
@@ -81,6 +84,21 @@ public class UserDefinedLocalAuthenticatorValidator {
         if (!isValidName) {
             throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_URL,
                     url, URL_REGEX);
+        }
+    }
+
+    /**
+     * Validate the user defined local authenticator AMR value.
+     *
+     * @param amrValue  The AMR value.
+     * @throws AuthenticatorMgtClientException   if the AMR value is not valid.
+     */
+    public void validateAmrValue(String amrValue) throws AuthenticatorMgtClientException {
+
+        boolean isValidName = amrRegexPattern.matcher(amrValue).matches();
+        if (!isValidName) {
+            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AMR_VALUE,
+                    amrValue, AMR_VALUE_REGEX);
         }
     }
 }

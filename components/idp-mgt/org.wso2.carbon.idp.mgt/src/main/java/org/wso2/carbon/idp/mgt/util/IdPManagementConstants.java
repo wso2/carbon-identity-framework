@@ -614,7 +614,7 @@ public class IdPManagementConstants {
                 "IDP_GROUP.TENANT_ID = ? AND IDP_GROUP.UUID IN (" + IDP_GROUP_LIST_PLACEHOLDER + ")";
         public static final String GET_ALL_USER_DEFINED_FEDERATED_AUTHENTICATORS =
                 "SELECT * FROM IDP_AUTHENTICATOR WHERE TENANT_ID = ? AND DEFINED_BY = 'USER' AND IDP_ID IN " +
-                "(SELECT ID FROM IDP WHERE IDP.NAME != ? AND IDP.TENANT_ID = ?)";
+                        "(SELECT ID FROM IDP WHERE IDP.NAME != ? AND IDP.TENANT_ID = ?)";
     }
 
     public static class WarningMessage {

@@ -137,7 +137,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             throws TransactionException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        LocalAuthenticatorConfig config = jdbcTemplate.withTransaction(template ->
+        LocalAuthenticatorConfigDaoModel configDaoModel = jdbcTemplate.withTransaction(template ->
             template.fetchSingleRecord(Query.GET_USER_DEFINED_LOCAL_AUTHENTICATOR_SQL,
                 (resultSet, rowNumber) -> {
                     LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
@@ -145,17 +145,21 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     localAuthenticatorConfig.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                     localAuthenticatorConfig.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                     localAuthenticatorConfig.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
-                    return localAuthenticatorConfig;
+                    return new LocalAuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), localAuthenticatorConfig);
                 },
                 statement -> {
                     statement.setString(Column.NAME, authenticatorConfigName);
                     statement.setInt(Column.TENANT_ID, tenantId);
                     statement.setString(Column.DEFINED_BY, DefinedByType.SYSTEM.toString());
+                    statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
                 }));
 
-        if (config == null) {
+        if (configDaoModel == null) {
             return null;
         }
+
+        LocalAuthenticatorConfig config = configDaoModel.getConfig();
+        config.setProperties(getAuthenticatorProperties(configDaoModel.getEntryId(), tenantId));
         return config;
     }
 
@@ -173,11 +177,11 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     @Override
     public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException {
-        try{
+
+        try {
             return getSystemLocalAuthenticatorByName(authenticatorConfigName, tenantId);
         } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
-
         }
     }
 
@@ -240,6 +244,52 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     public boolean isExistingAuthenticatorName(String authenticatorName, int tenantId)
+            throws AuthenticatorMgtException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            ResultSet results = jdbcTemplate.withTransaction(template ->
+                template.fetchSingleRecord(Query.IS_AUTHENTICATOR_EXISTS_BY_NAME_SQL,
+                        (resultSet, rowNumber) -> resultSet,
+                        statement -> {
+                            statement.setString(Column.NAME, authenticatorName);
+                            statement.setInt(Column.TENANT_ID, tenantId);
+                        }));
+            return results != null;
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e,
+                    authenticatorName);
+        }
+    }
+
+    @Override
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator
+            (LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtServerException {
+
+        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
+        try {
+            jdbcTemplate.withTransaction(template ->
+                template.executeInsert(Query.ADD_SYSTEM_LOCAL_AUTHENTICATOR_SQL,
+                    statement -> {
+                        statement.setString(Column.NAME, authenticatorConfig.getName());
+                        statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
+                        statement.setString(Column.DEFINED_BY, DefinedByType.SYSTEM.toString());
+                        statement.setString(Column.AMR_VALUE, authenticatorConfig.getAmrValue());
+                        statement.setString(Column.IS_ENABLED,
+                                authenticatorConfig.isEnabled() ? IS_TRUE_VALUE : IS_FALSE_VALUE);
+                        statement.setString(Column.AUTHENTICATION_TYPE, "IDENTIFICATION");
+                        statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
+                        statement.setInt(Column.TENANT_ID, tenantId);
+                    }, null, true));
+
+            return getSystemLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);
+        } catch (TransactionException e) {
+            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e);
+        }
+    }
+
+    @Override
+    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId)
             throws AuthenticatorMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
@@ -372,6 +422,26 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
 
         public UserDefinedLocalAuthenticatorConfig getConfig() {
+            return config;
+        }
+    }
+
+    private static class LocalAuthenticatorConfigDaoModel {
+
+        private final int entryId;
+        private final LocalAuthenticatorConfig config;
+
+
+        private LocalAuthenticatorConfigDaoModel(int entryId, LocalAuthenticatorConfig config) {
+            this.entryId = entryId;
+            this.config = config;
+        }
+
+        public int getEntryId() {
+            return entryId;
+        }
+
+        public LocalAuthenticatorConfig getConfig() {
             return config;
         }
     }
