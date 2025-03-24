@@ -33,7 +33,6 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -74,35 +73,38 @@ public class ApplicationDataRetrievalClient {
                             Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
-            JSONArray applications = httpclient.execute(request, response -> {
+            return httpclient.execute(request, response -> {
                 if (response.getCode() == HttpStatus.SC_OK) {
                     JSONObject jsonResponse = new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
 
-                    return jsonResponse.getJSONArray(APPLICATIONS_KEY);
-                }
+                    JSONArray applications = jsonResponse.getJSONArray(APPLICATIONS_KEY);
+                    if (applications.length() != 1) {
+                        return StringUtils.EMPTY;
+                    }
 
-                return null;
-            });
+                    JSONObject application = (JSONObject) applications.get(0);
+                    if (application.has(ACCESS_URL_KEY)) {
+                        return application.getString(ACCESS_URL_KEY);
+                    }
 
-            if (applications.length() != 1) {
-                return StringUtils.EMPTY;
-            }
-
-            JSONObject application = (JSONObject) applications.get(0);
-
-            if (application.has(ACCESS_URL_KEY)) {
-                return application.getString(ACCESS_URL_KEY);
-            }
                     /*
                     If access URL is not stored in the DB but resolved from a listener, need to get the access url by
                     invoking application get by id.
                      */
-            if (application.has(APP_ID)) {
-                return getApplicationAccessURLByAppId(tenant, application.getString(APP_ID));
-            }
+                    if (application.has(APP_ID)) {
+                        try {
+                            return getApplicationAccessURLByAppId(tenant, application.getString(APP_ID));
+                        } catch (ApplicationDataRetrievalClientException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
 
-        } catch (HttpClientException | IOException | JSONException e) {
+                return StringUtils.EMPTY;
+            });
+
+        } catch (RuntimeException | IOException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting access URL of " + applicationName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
@@ -110,7 +112,6 @@ public class ApplicationDataRetrievalClient {
             }
             throw new ApplicationDataRetrievalClientException(msg, e);
         }
-        return StringUtils.EMPTY;
     }
 
     /**
@@ -147,7 +148,7 @@ public class ApplicationDataRetrievalClient {
                 return false;
             });
 
-        } catch (HttpClientException | IOException | JSONException e) {
+        } catch (IOException | JSONException e) {
             String msg = "Error while getting enabled status of " + applicationName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
@@ -179,7 +180,7 @@ public class ApplicationDataRetrievalClient {
                 }
                 return StringUtils.EMPTY;
             });
-        } catch (HttpClientException | IOException | JSONException e) {
+        } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting access URL of " + applicationId + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
@@ -213,7 +214,7 @@ public class ApplicationDataRetrievalClient {
                 }
                 return StringUtils.EMPTY;
             });
-        } catch (HttpClientException | IOException | JSONException e) {
+        } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting application name for " + applicationId + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
@@ -254,7 +255,7 @@ public class ApplicationDataRetrievalClient {
                 }
                 return StringUtils.EMPTY;
             });
-        } catch (HttpClientException | IOException | JSONException e) {
+        } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting application ID for " + applicationName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {

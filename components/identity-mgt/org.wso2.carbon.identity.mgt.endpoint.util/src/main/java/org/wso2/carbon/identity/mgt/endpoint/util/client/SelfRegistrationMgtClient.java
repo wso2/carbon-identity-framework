@@ -25,18 +25,17 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
@@ -74,7 +73,7 @@ public class SelfRegistrationMgtClient {
     private static final String PROPERTIES = "properties";
 
     /**
-     * Returns a JSON which contains a set of purposes with piiCategories
+     * Returns a JSON which contains a set of purposes with piiCategories.
      *
      * @param tenantDomain Tenant Domain.
      * @return A JSON string which contains purposes.
@@ -158,7 +157,6 @@ public class SelfRegistrationMgtClient {
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
 
         boolean isDebugEnabled = log.isDebugEnabled();
-        // Add import once other methods in the class are replaced with Apache Http Client 5.
         try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
             HttpGet httpGet = new HttpGet(url);
             AtomicInteger statusCode = new AtomicInteger();
@@ -173,8 +171,7 @@ public class SelfRegistrationMgtClient {
 
                 if (response.getCode() == HttpStatus.SC_OK) {
                     return response.getEntity().getContent();
-                }
-                else {
+                } else {
                     return null;
                 }
 
@@ -193,8 +190,6 @@ public class SelfRegistrationMgtClient {
                 throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". " +
                             "Found http status " + statusCode);
             }
-        } catch (HttpClientException e) {
-            throw new SelfRegistrationMgtClientException(e.getMessage(), e);
         }
     }
 
@@ -359,7 +354,7 @@ public class SelfRegistrationMgtClient {
             }
 
             return jsonResponseFromExecute;
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
                 // Logging and throwing since this is a client.
                 String msg = "Error while check username validity for user :" + user.getUsername();
                 if (log.isDebugEnabled()) {
@@ -370,7 +365,7 @@ public class SelfRegistrationMgtClient {
     }
 
     /**
-     * adding OAuth authorization headers to a httpMethod
+     * Adding OAuth authorization headers to a httpMethod.
      *
      * @param httpMethod method which wants to add Authorization header
      */

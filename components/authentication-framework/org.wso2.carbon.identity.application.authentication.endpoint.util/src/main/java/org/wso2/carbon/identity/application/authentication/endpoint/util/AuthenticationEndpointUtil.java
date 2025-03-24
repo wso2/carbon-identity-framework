@@ -29,13 +29,12 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
@@ -381,17 +380,19 @@ public class AuthenticationEndpointUtil {
             HttpGet httpGet = new HttpGet(backendURL);
             setAuthorizationHeader(httpGet);
 
-            return httpclient.execute(httpGet, response -> {
+            StringBuilder responseString = httpclient.execute(httpGet, response -> {
                 if (log.isDebugEnabled()) {
                     log.debug("HTTP status " + response.getCode() +
                             " when invoking " + HTTP_METHOD_GET + " for URL: " + backendURL);
                 }
-                return handleHttpResponse(response, backendURL).toString();
+                return handleHttpResponse(response, backendURL);
             });
-        } catch (HttpClientException | IOException e) {
+
+            return responseString.toString();
+        } catch (IOException e) {
             log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + backendURL + ", failed.", e);
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 
     /**
@@ -402,7 +403,8 @@ public class AuthenticationEndpointUtil {
      * @return Extracted http response content.
      * @throws IOException if there is an error while extracting the response content.
      */
-    private static StringBuilder handleHttpResponse(ClassicHttpResponse response, String backendURL) throws IOException {
+    private static StringBuilder handleHttpResponse(ClassicHttpResponse response, String backendURL)
+            throws IOException {
 
         StringBuilder responseString = new StringBuilder();
 
@@ -420,7 +422,7 @@ public class AuthenticationEndpointUtil {
                         response.getCode() + ".");
             }
         } else {
-            log.error("Response received from the backendURL " + backendURL +" failed with status " +
+            log.error("Response received from the backendURL " + backendURL + " failed with status " +
                     response.getCode() + ".");
         }
 

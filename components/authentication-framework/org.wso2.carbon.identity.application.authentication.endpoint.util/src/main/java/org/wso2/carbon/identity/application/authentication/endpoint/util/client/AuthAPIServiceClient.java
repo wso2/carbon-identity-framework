@@ -55,7 +55,6 @@ public class AuthAPIServiceClient {
     private static final String RESPONSE_PARAM_PROPERTIES = "properties";
 
     private String basePath;
-    private CloseableHttpClient httpClient;
 
     /**
      * Constructor to initialize service client.
@@ -64,7 +63,6 @@ public class AuthAPIServiceClient {
      */
     public AuthAPIServiceClient(String apiBasePath) {
 
-        httpClient = HttpClientImpl.createDefaultClient();
         basePath = apiBasePath;
     }
 
@@ -81,49 +79,49 @@ public class AuthAPIServiceClient {
 
         String endpointURL = basePath + "authenticate";
 
-        AuthenticationResponse authenticationResponse;
         HttpPost httpPostRequest = new HttpPost(endpointURL);
         httpPostRequest.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader(username, password));
         httpPostRequest.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
-        AtomicInteger statusCode = new AtomicInteger();
+        try (CloseableHttpClient httpClient = HttpClientImpl.createDefaultClient()) {
+            return httpClient.execute(httpPostRequest, response -> {
 
-        InputStream responseContent = null;
+            InputStream responseContent = response.getEntity().getContent();
 
-        try {
-            responseContent = httpClient.execute(httpPostRequest, response -> {
-                statusCode.set(response.getCode());
+                String responseString = null;
+                try {
+                    responseString = extractResponse(responseContent);
+                } catch (ServiceClientException e) {
+                    throw new RuntimeException(e);
+                }
+                if (log.isDebugEnabled()) {
+                log.debug("Response: { status: " + response.getCode() + "\n data: " +
+                        responseString + " }");
+            }
 
-                return response.getEntity().getContent();
+            AuthenticationResponse authenticationResponse;
+            JSONObject responseObj = new JSONObject(responseString);
+            if (responseObj.has(RESPONSE_PARAM_TOKEN)) {
+                authenticationResponse = populateAuthenticationSuccessResponse(responseObj);
+            } else {
+                authenticationResponse = populateAuthenticationErrorResponse(responseObj);
+            }
+            authenticationResponse.setStatusCode(response.getCode());
+
+            return authenticationResponse;
             });
-        } catch (IOException e) {
+        } catch (RuntimeException | IOException e) {
             String msg = "Error while invoking " + endpointURL;
             log.error(msg, e);
             throw new ServiceClientException(msg, e);
         }
-
-        String responseString = extractResponse(responseContent);
-        if (log.isDebugEnabled()) {
-            log.debug("Response: { status: " + statusCode.intValue() + "\n data: " +
-                    responseString + " }");
-        }
-
-        JSONObject responseObj = new JSONObject(responseString);
-        if (responseObj.has(RESPONSE_PARAM_TOKEN)) {
-            authenticationResponse = populateAuthenticationSuccessResponse(responseObj);
-        } else {
-            authenticationResponse = populateAuthenticationErrorResponse(responseObj);
-        }
-        authenticationResponse.setStatusCode(statusCode.get());
-
-        return authenticationResponse;
     }
 
-    private String extractResponse(InputStream httpResponse) throws ServiceClientException {
+    private String extractResponse(InputStream inputStream) throws ServiceClientException {
 
         StringBuilder response = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(httpResponse, StandardCharsets.UTF_8))) {
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String inputLine;
             while ((inputLine = reader.readLine()) != null) {
                 response.append(inputLine);

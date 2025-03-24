@@ -31,7 +31,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -89,7 +88,7 @@ public class ValidationConfigurationRetrievalClient {
                 }
                 return null;
             });
-        } catch (HttpClientException | IOException | JSONException e) {
+        } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting validation configurations for tenant: " + tenantDomain;
             if (log.isDebugEnabled()) {
