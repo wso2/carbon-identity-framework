@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.cl
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -51,7 +53,9 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.ClaimManager;
@@ -821,6 +825,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
                                             allSPMappedClaims, spRequestedClaims);
+        handleComplexClaims(requestedClaimMappings, spRequestedClaims, tenantDomain);
         if (stepConfig == null || stepConfig.isSubjectAttributeStep()) {
             context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
             context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, allSPMappedClaims);
@@ -854,6 +859,43 @@ public class DefaultClaimHandler implements ClaimHandler {
         addMultiAttributeSeparatorToRequestedClaims(authenticatedUser, userStore, spRequestedClaims, realm);
 
         return spRequestedClaims;
+    }
+
+    private void handleComplexClaims(Map<String, String> requestedClaimMappings, Map<String, String> spRequestedClaims,
+                                     String tenantDomain) {
+
+        ClaimMetadataManagementService claimMetadataManagementService = FrameworkServiceDataHolder.getInstance()
+                .getClaimMetadataManagementService();
+
+        // Iterate requestedClaimMappings and check for complex claims.
+        for (Map.Entry<String, String> entry : requestedClaimMappings.entrySet()) {
+            try {
+                Optional<LocalClaim> localClaim =claimMetadataManagementService
+                        .getLocalClaim(entry.getValue(), tenantDomain);
+                if (!localClaim.isPresent()) {
+                    continue;
+                }
+                String subAttributes = localClaim.get().getClaimProperty("subattributes");
+                if (StringUtils.isEmpty(subAttributes)) {
+                    continue;
+                }
+                String[] subAttributeArray = subAttributes.split(" ");
+                Map<String, String> subAttributeMappings = new HashMap<>();
+
+                for (Map.Entry<String, String> entry1 :requestedClaimMappings.entrySet()) {
+                    if (ArrayUtils.contains(subAttributeArray, entry1.getValue())) {
+                        if (spRequestedClaims.containsKey(entry1.getKey())) {
+                            subAttributeMappings.put(entry1.getKey(), spRequestedClaims.get(entry1.getKey()));
+                        }
+                    }
+                }
+                JSONObject jsonObject = new JSONObject(subAttributeMappings);
+                String jsonString = jsonObject.toString();
+                spRequestedClaims.put(entry.getKey(), jsonString);
+            } catch (ClaimMetadataException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private Map<String, String> mapRequestClaimsInStandardDialect(Map<String, String> requestedClaimMappings,
