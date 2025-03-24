@@ -26,7 +26,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ValidationConfigurationRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ValidationConfigurationRetrievalClientException;
-import org.wso2.carbon.utils.HTTPClientUtils;
+import org.wso2.carbon.http.client.HttpClientImpl;
 
 import java.io.IOException;
 
@@ -48,10 +48,10 @@ public class ValidationConfigurationRetrievalClientTest extends RetrievalClientB
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
+            MockedStatic<HttpClientImpl> httpclientUtil = mockStatic(HttpClientImpl.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
+            httpclientUtil.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
             JSONArray jsonArray = validationConfigurationRetrievalClient.getConfigurations(SUPER_TENANT_DOMAIN);
             JSONObject jsonObject = (JSONObject) jsonArray.get(0);
             jsonArray = (JSONArray) jsonObject.get("rules");

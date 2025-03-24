@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.mockito.Mock;
 import org.mockito.testng.MockitoTestNGListener;
 import org.testng.annotations.BeforeMethod;
@@ -47,15 +47,11 @@ public class RetrievalClientBaseTest {
     @Mock
     IdentityManagementServiceUtil identityManagementServiceUtil;
     @Mock
-    HttpClientBuilder httpClientBuilder;
-    @Mock
     CloseableHttpClient httpClient;
-    @Mock
-    StatusLine statusLine;
     @Mock
     HttpEntity httpEntity;
     @Mock
-    CloseableHttpResponse httpResponse;
+    ClassicHttpResponse httpResponse;
 
     private String mockJsonResponse = "{}";
     public static final String SUPER_TENANT_DOMAIN = "carbon.super";
@@ -75,13 +71,17 @@ public class RetrievalClientBaseTest {
 
     @BeforeMethod
     public void setup() throws IOException {
-
         setupConfiguration();
-        when(httpClientBuilder.build()).thenReturn(httpClient);
-        when(httpClient.execute(any())).thenReturn(httpResponse);
-        when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        when(statusLine.getStatusCode()).thenReturn(200);
+
+        when(httpClient.execute(any(ClassicHttpRequest.class), any(HttpClientResponseHandler.class)))
+                .thenAnswer(invocation -> {
+                    HttpClientResponseHandler<?> handler = invocation.getArgument(1);
+                    return handler.handleResponse(httpResponse);
+                });
+
+        when(httpResponse.getCode()).thenReturn(200);
         when(httpResponse.getEntity()).thenReturn(httpEntity);
+
         InputStream inputStream = new ByteArrayInputStream(mockJsonResponse.getBytes());
         when(httpEntity.getContent()).thenReturn(inputStream);
 
