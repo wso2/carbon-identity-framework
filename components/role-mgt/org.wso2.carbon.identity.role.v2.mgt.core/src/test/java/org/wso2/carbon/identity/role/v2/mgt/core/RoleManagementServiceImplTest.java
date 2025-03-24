@@ -67,6 +67,8 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
 
     private static final String USERNAME = "user";
+    private static final String invalidRoleName = "RN";
+    private static final String tenantDomain = "tenantDomain";
     private static final String audienceId = "testId";
     private static final String roleId = "testRoleId";
 
@@ -156,13 +158,22 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
                     "Role names must be between 3 and 255 characters long\\.")
     public void testAddRoleInvalidRoleName() throws Exception {
 
-        String roleName = "RN";
         String audience = "APPLICATION";
         String audienceId = "application_id_01";
-        String tenantDomain = "tenantDomain";
-
-        roleManagementService.addRole(roleName, new ArrayList<>(), new ArrayList<>(),
+        roleManagementService.addRole(invalidRoleName, new ArrayList<>(), new ArrayList<>(),
                 new ArrayList<>(), audience, audienceId, tenantDomain);
+    }
+
+    @Test(expectedExceptions = IdentityRoleManagementClientException.class,
+            expectedExceptionsMessageRegExp = "Invalid role name: RN\\. " +
+                    "Role names must be between 3 and 255 characters long\\.")
+    public void testUpdateRoleInvalidRoleName() throws Exception {
+
+        RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy = mock(
+                RoleManagementEventPublisherProxy.class);
+        roleManagementEventPublisherProxy.when(RoleManagementEventPublisherProxy::getInstance)
+                .thenReturn(mockRoleMgtEventPublisherProxy);
+        roleManagementService.updateRoleName(roleId, invalidRoleName, tenantDomain);
     }
 
     @Test
