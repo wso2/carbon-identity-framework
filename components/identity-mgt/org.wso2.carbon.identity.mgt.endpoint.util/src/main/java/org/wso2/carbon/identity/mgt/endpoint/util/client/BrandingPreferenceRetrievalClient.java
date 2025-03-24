@@ -118,7 +118,7 @@ public class BrandingPreferenceRetrievalClient {
 
                 return jsonResponse.get();
             });
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
             String msg = "Error while getting branding preference for tenant : " + tenant;
 
             if (log.isDebugEnabled()) {
@@ -190,7 +190,7 @@ public class BrandingPreferenceRetrievalClient {
 
                 return jsonResponse.get();
             });
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
             String msg = "Error while getting custom text preference for tenant : " + tenant;
 
             if (log.isDebugEnabled()) {

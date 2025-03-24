@@ -30,7 +30,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -81,7 +80,7 @@ public class CommonDataRetrievalClient {
                 }
                 return defaultValue;
             });
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while checking property in tenant " + tenantDomain + "for api " + apiContextPath;
             if (log.isDebugEnabled()) {

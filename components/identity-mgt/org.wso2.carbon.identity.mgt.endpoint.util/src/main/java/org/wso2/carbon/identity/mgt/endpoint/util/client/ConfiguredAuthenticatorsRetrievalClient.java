@@ -31,7 +31,6 @@ import org.json.JSONException;
 import org.json.JSONTokener;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
@@ -75,7 +74,7 @@ public class ConfiguredAuthenticatorsRetrievalClient {
                 }
                 return null;
             });
-        } catch (HttpClientException | IOException | JSONException e) {
+        } catch (IOException | JSONException e) {
             //JSONException may occur if the application don't have an access URL configured
             String msg = "Error while getting authenticators configured for application Id: " + applicationId;
             if (log.isDebugEnabled()) {

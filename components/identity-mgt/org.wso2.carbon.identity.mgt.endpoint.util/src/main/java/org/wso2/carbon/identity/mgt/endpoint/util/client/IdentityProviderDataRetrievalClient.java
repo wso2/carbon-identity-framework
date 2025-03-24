@@ -97,7 +97,7 @@ public class IdentityProviderDataRetrievalClient {
                 }
                 return StringUtils.EMPTY;
             });
-        } catch (HttpClientException | IOException | JSONException e) {
+        } catch (IOException | JSONException e) {
             String msg = "Error while getting image of " + idpName + " in tenant : " + tenant;
 
             if (log.isDebugEnabled()) {
@@ -222,7 +222,7 @@ public class IdentityProviderDataRetrievalClient {
                 }
                 return null;
             });
-        } catch (HttpClientException | IdentityProviderDataRetrievalClientException | IOException e) {
+        } catch (IdentityProviderDataRetrievalClientException | IOException e) {
             throw new IdentityProviderDataRetrievalClientException(
                     "Error while executing the path " + path + " in tenant : " + tenant, e);
         }

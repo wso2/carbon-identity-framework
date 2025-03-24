@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.json.JSONObject;
 import org.wso2.carbon.http.client.HttpClientImpl;
@@ -33,13 +34,11 @@ import org.wso2.carbon.identity.application.authentication.endpoint.util.client.
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Service client class to invoke /api/identity/auth/v1.0 API.
@@ -86,11 +85,9 @@ public class AuthAPIServiceClient {
         try (CloseableHttpClient httpClient = HttpClientImpl.createDefaultClient()) {
             return httpClient.execute(httpPostRequest, response -> {
 
-            InputStream responseContent = response.getEntity().getContent();
-
                 String responseString = null;
                 try {
-                    responseString = extractResponse(responseContent);
+                    responseString = extractResponse(response);
                 } catch (ServiceClientException e) {
                     throw new RuntimeException(e);
                 }
@@ -117,11 +114,11 @@ public class AuthAPIServiceClient {
         }
     }
 
-    private String extractResponse(InputStream inputStream) throws ServiceClientException {
+    private String extractResponse(ClassicHttpResponse httpResponse) throws ServiceClientException {
 
         StringBuilder response = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                new InputStreamReader(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8))) {
             String inputLine;
             while ((inputLine = reader.readLine()) != null) {
                 response.append(inputLine);

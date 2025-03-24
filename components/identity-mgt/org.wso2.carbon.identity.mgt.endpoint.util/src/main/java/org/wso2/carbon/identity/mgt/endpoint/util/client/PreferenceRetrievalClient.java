@@ -27,14 +27,13 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
@@ -428,7 +427,7 @@ public class PreferenceRetrievalClient {
                 return Optional.empty();
             });
 
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while obtaining config values for connector : " + connectorName + " in tenant : "
                     + tenant;
@@ -480,7 +479,7 @@ public class PreferenceRetrievalClient {
                 }
                 return defaultValue;
             });
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while checking preference for connector : " + connectorName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {
@@ -533,7 +532,7 @@ public class PreferenceRetrievalClient {
                 }
                 return false;
             });
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
             // Logging and throwing since this is a client.
             String msg = "Error while check preference for connector : " + connectorName + " in tenant : " + tenant;
             if (log.isDebugEnabled()) {

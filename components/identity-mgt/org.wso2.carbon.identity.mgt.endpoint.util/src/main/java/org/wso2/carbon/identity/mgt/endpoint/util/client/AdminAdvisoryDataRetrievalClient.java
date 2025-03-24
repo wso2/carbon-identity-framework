@@ -26,7 +26,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.http.client.HttpClientImpl;
-import org.wso2.carbon.http.client.exception.HttpClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 
 import java.io.IOException;
@@ -68,7 +67,7 @@ public class AdminAdvisoryDataRetrievalClient {
                 defaultBanner.put(BANNER_CONTENT, DEFAULT_BANNER_CONTENT);
                 return defaultBanner;
             });
-        } catch (HttpClientException | IOException e) {
+        } catch (IOException e) {
             String msg = "Error while getting admin advisory banner preference for tenant : " + tenant;
             LOG.debug(msg, e);
             throw new AdminAdvisoryDataRetrievalClientException(msg, e);
