@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -128,6 +129,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
     private static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
+    private static final String PROMPT_ID = "promptId";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -358,7 +360,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 */
                 if (isBackToFirstStepRequest(request) || (isIdentifierFirstRequest(request)
                         && (!isFlowHandlerInCurrentStepCanHandleRequest(context, request)
-                        && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)))) {
+                        && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)))
+                ) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -387,6 +390,18 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             log.debug(msg);
                         }
                         throw new MisconfigurationException(msg);
+                    }
+                }
+
+                if (isPromptRequest(request, context)) {
+                    AuthGraphNode currentNode =
+                            (AuthGraphNode) context.getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
+                    // If the request is a prompt request returning from browser's back button, we need to handle it
+                    // by changing context to previous step.
+                    if (!(currentNode instanceof ShowPromptNode)) {
+                        currentNode = moveToShowPromptNode(currentNode);
+                        context.setCurrentStep(context.getCurrentStep() - 1);
+                        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
                     }
                 }
 
@@ -543,6 +558,19 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } else if (responseWrapper.isWrappedByFramework()) {
             responseWrapper.write();
         }
+    }
+
+    private boolean isPromptRequest(HttpServletRequest request, AuthenticationContext context) {
+
+        return StringUtils.isNotBlank(request.getParameter(PROMPT_ID));
+    }
+
+    private AuthGraphNode moveToShowPromptNode(AuthGraphNode currentNode) {
+
+        if (currentNode == null || currentNode instanceof ShowPromptNode) {
+            return currentNode;
+        }
+        return moveToShowPromptNode(currentNode.getParent());
     }
 
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
