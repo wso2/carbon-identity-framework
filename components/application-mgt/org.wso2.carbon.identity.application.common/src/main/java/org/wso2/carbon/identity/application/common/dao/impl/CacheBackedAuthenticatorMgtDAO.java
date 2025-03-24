@@ -187,17 +187,14 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
     }
 
     @Override
-    public LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator(
+            LocalAuthenticatorConfig authenticatorConfig, int tenantId)
+            throws AuthenticatorMgtException {
         LocalAuthenticatorConfig createdConfig = authenticatorMgtFacade.addSystemLocalAuthenticator(authenticatorConfig,
                 tenantId);
         AuthenticatorCacheKey cacheKey = new AuthenticatorCacheKey(authenticatorConfig.getName());
         authenticatorCache.addToCache(cacheKey, new AuthenticatorCacheEntry(createdConfig), tenantId);
         LOG.debug("Added cache entry for newly created authenticator " + authenticatorConfig.getName());
         return createdConfig;
-    }
-
-    @Override
-    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId) throws AuthenticatorMgtException {
-        return authenticatorMgtFacade.isExistingAuthenticatorNameDB(authenticatorName, tenantId);
     }
 }

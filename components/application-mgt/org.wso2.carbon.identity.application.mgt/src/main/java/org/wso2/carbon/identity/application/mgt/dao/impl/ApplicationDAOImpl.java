@@ -1592,7 +1592,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                         ApplicationConstants.LOCAL_IDP_NAME,
                                         lclAuthenticator.getName(),
                                         lclAuthenticator.getDisplayName(),
-                                        DefinedByType.SYSTEM.toString(), lclAuthenticator.getAmrValue());
+                                        DefinedByType.SYSTEM.toString(),
+                                        lclAuthenticator.getAmrValue());
                             }
                             if (authenticatorId > 0) {
                                 // ID, TENANT_ID, AUTHENTICATOR_ID
@@ -5135,65 +5136,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeStatement(prepStmt);
         }
         return authenticatorId;
-    }
-
-    public String getAmrValue(Connection conn, String authenticatorName) throws SQLException {
-        String sqlStmt = ApplicationMgtDBQueries.AMR_VALUE_EXISTS;
-        PreparedStatement prepStmt = null;
-        ResultSet rs = null;
-        String amrValue = null;
-
-        try {
-            prepStmt = conn.prepareStatement(sqlStmt);
-            prepStmt.setString(1, authenticatorName);
-            rs = prepStmt.executeQuery();
-
-            if (rs.next()) {
-                amrValue = rs.getString(1);
-            }
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(prepStmt);
-            IdentityApplicationManagementUtil.closeResultSet(rs);
-        }
-        return amrValue;
-    }
-
-    public boolean getLocalAuthenticatorName(Connection conn, String authenticatorName){
-        String sqlStmt = ApplicationMgtDBQueries.LOCAL_AUTHENTICATOR_EXISTS;
-        PreparedStatement prepStmt = null;
-        ResultSet rs = null;
-
-        try{
-            prepStmt = conn.prepareStatement(sqlStmt);
-            prepStmt.setString(1, authenticatorName);
-            rs = prepStmt.executeQuery();
-
-            if(rs.next()){
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(prepStmt);
-            IdentityApplicationManagementUtil.closeResultSet(rs);
-        }
-        return false;
-    }
-
-
-    public void updateAmrValue(Connection conn, String authenticatorName, String amrValue) throws SQLException {
-        String sqlStmt = ApplicationMgtDBQueries.UPDATE_AMR_VALUE;
-        PreparedStatement prepStmt = null;
-
-        try {
-            prepStmt = conn.prepareStatement(sqlStmt);
-            prepStmt.setString(1, amrValue);
-            prepStmt.setString(2, authenticatorName);
-
-            prepStmt.executeUpdate();
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(prepStmt);
-        }
     }
 
     /**

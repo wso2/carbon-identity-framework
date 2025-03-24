@@ -125,13 +125,4 @@ public interface AuthenticatorManagementDAO {
      * @return Created LocalAuthenticatorConfig.
      */
     LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException;
-
-    /**
-     * Update a system local authenticator configuration.
-     *
-     * @param authenticatorName   Name of the authenticator
-     * @param tenantId                      Tenant Id.
-     * @return Updated LocalAuthenticatorConfig.
-     */
-    boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId) throws AuthenticatorMgtException;
 }

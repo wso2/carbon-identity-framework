@@ -115,21 +115,21 @@
         AuthenticatorConfigs allow specifying various configurations needed
         by the authenticators by using any number of \'Parameter\' elements
         E.g.
-        <AuthenticatorConfig name="CustomAuthenticator" enabled="true" />
+        <AuthenticatorConfig name="CustomAuthenticator" enabled="true" amrValue="Custom_AMR_Value"/>
             <Parameter name="paramName1">paramValue</Parameter>
             <Parameter name="paramName2">paramValue</Parameter>
         </AuthenticatorConfig>
     -->
     <AuthenticatorConfigs>
         {% for name,authenticator in authentication.authenticator.items() %}
-        <AuthenticatorConfig name="{{authenticator.name}}" enabled="{{authenticator.enable}}">
+        <AuthenticatorConfig name="{{authenticator.name}}" enabled="{{authenticator.enable}}" amrValue="{{authenticator.amrValue}}">
             {% for parameter,value in authenticator.parameters.items() %}
             <Parameter name="{{parameter}}">{{value}}</Parameter>
             {% endfor %}
         </AuthenticatorConfig>
         {% endfor %}
         {% for authenticator in authentication.custom_authenticator %}
-        <AuthenticatorConfig name="{{authenticator.name}}" enabled="true">
+        <AuthenticatorConfig name="{{authenticator.name}}" enabled="true" amrValue="{{authenticator.amrValue}}">
             {% for parameter,value in authenticator.parameters.items() %}
             <Parameter name="{{parameter}}">{{value}}</Parameter>
             {% endfor %}

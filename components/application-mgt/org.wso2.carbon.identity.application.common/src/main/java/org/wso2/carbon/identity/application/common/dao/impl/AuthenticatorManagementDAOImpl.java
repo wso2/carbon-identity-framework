@@ -288,25 +288,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
     }
 
-    @Override
-    public boolean isExistingAuthenticatorNameDB(String authenticatorName, int tenantId)
-            throws AuthenticatorMgtException {
-
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            ResultSet results = jdbcTemplate.withTransaction(template ->
-                template.fetchSingleRecord(Query.IS_AUTHENTICATOR_EXISTS_BY_NAME_SQL,
-                        (resultSet, rowNumber) -> resultSet,
-                        statement -> {
-                            statement.setString(Column.NAME, authenticatorName);
-                            statement.setInt(Column.TENANT_ID, tenantId);
-                        }));
-            return results != null;
-        } catch (TransactionException e) {
-            throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_CHECKING_FOR_EXISTING_AUTHENTICATOR_BY_NAME, e,
-                    authenticatorName);
-        }
-    }
 
     private UserDefinedLocalAuthenticatorConfig getUserDefinedLocalAuthenticatorByName(String authenticatorConfigName,
             int tenantId) throws TransactionException {

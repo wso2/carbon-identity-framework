@@ -307,15 +307,16 @@ public class ApplicationAuthenticatorService {
      * @param tenantDomain        Tenant domain.
      * @throws AuthenticatorMgtException If an error occurs while adding the authenticator configuration.
      */
-    public LocalAuthenticatorConfig addSystemDefinedLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
+    public LocalAuthenticatorConfig addSystemDefinedLocalAuthenticator(
+            LocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
-            if (isExistingAuthenticatorNameDB(authenticatorConfig.getName(), tenantDomain)) {
+            if (isAuthenticatorExistingInDB(authenticatorConfig.getName(), tenantDomain)) {
                 throw buildClientException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST,
                         authenticatorConfig.getName());
             }
-            for (LocalAuthenticatorConfig localAuthenticator: localAuthenticators){
-                if(localAuthenticator.getName().equals(authenticatorConfig.getName())){
+            for (LocalAuthenticatorConfig localAuthenticator: localAuthenticators) {
+                if (localAuthenticator.getName().equals(authenticatorConfig.getName())) {
                     authenticatorConfig.setEnabled(localAuthenticator.getEnabled());
                     authenticatorConfig.setDisplayName(localAuthenticator.getDisplayName());
                     break;
@@ -328,27 +329,24 @@ public class ApplicationAuthenticatorService {
     /**
      * Update a Local Application Authenticator configuration.
      *
-     * @param authenticatorConfig   Local Application Authenticator configuration.
+     * @param authenticatorConfig Local Application Authenticator configuration.
      */
-    public LocalAuthenticatorConfig updateAuthenticatorAmrValue(LocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
+    public LocalAuthenticatorConfig updateAuthenticatorAmrValue(
+            LocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
+        authenticatorValidator.validateAmrValue(authenticatorConfig.getAmrValue());
         LocalAuthenticatorConfig existingConfig = resolveExistingSystemLocalAuthenticator(authenticatorConfig.getName(),
                 tenantDomain);
-        authenticatorValidator.validateAmrValue(authenticatorConfig.getAmrValue());
         if (existingConfig == null) {
             for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
                 if (localAuthenticator.getName().equals(authenticatorConfig.getName())) {
                     existingConfig = addSystemDefinedLocalAuthenticator(authenticatorConfig, tenantDomain);
-                    break;
+                    return existingConfig;
                 }
             }
-            //calling the add method if the authenticator is not found. If it is not even in the file throw this error
-            if(existingConfig == null){
-                throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR,
-                        authenticatorConfig.getName());
-            }
-
+            throw buildClientException(AuthenticatorMgtError.ERROR_NOT_FOUND_AUTHENTICATOR,
+                    authenticatorConfig.getName());
         }
         return dao.updateSystemLocalAuthenticatorAmrValue(
                 existingConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -357,8 +355,8 @@ public class ApplicationAuthenticatorService {
     /**
      * Update a Local Application Authenticator configuration.
      *
-     * @param authenticatorName   Name of Local Application Authenticator configuration to be deleted.
-     * @param tenantDomain        Tenant domain.
+     * @param authenticatorName Name of Local Application Authenticator configuration to be deleted.
+     * @param tenantDomain Tenant domain.
      * @throws AuthenticatorMgtException If an error occurs while deleting the authenticator configuration.
      */
     public void deleteUserDefinedLocalAuthenticator(String authenticatorName, String tenantDomain)
@@ -393,7 +391,7 @@ public class ApplicationAuthenticatorService {
      * Check whether any local or federated authenticator configuration exists with the given name.
      *
      * @param authenticatorName Name of the authenticator.
-     * @param tenantDomain      Tenant domain.
+     * @param tenantDomain Tenant domain.
      * @return True if an authenticator with the given name exists.
      * @throws AuthenticatorMgtException If an error occurs while checking the existence of the authenticator.
      */
@@ -435,9 +433,9 @@ public class ApplicationAuthenticatorService {
         return dao.getSystemLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
-    private boolean isExistingAuthenticatorNameDB(String authenticatorName, String tenantDomain)
+    private boolean isAuthenticatorExistingInDB(String authenticatorName, String tenantDomain)
             throws AuthenticatorMgtException {
 
-        return dao.isExistingAuthenticatorNameDB(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
+        return dao.isExistingAuthenticatorName(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 }
