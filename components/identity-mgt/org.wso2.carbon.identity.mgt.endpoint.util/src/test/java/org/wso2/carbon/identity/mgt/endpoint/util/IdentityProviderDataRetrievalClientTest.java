@@ -72,7 +72,6 @@ public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBase
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
             httpclientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
-//            when(httpClient.execute(any(HttpGet.class), (HttpClientResponseHandler<?>) any())).thenReturn(httpResponse);
 
             identityProviderDataRetrievalClient.getFederatedIdpConfigs(SUPER_TENANT_DOMAIN, "idp-code", idpName,
                     Stream.of("key").collect(Collectors.toList()));
