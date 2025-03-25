@@ -159,36 +159,30 @@ public class SelfRegistrationMgtClient {
         boolean isDebugEnabled = log.isDebugEnabled();
         try (CloseableHttpClient httpclient = HttpClientImpl.createClientWithCustomVerifier()) {
             HttpGet httpGet = new HttpGet(url);
-            AtomicInteger statusCode = new AtomicInteger();
             setAuthorizationHeader(httpGet);
 
-            InputStream httpResponse = httpclient.execute(httpGet, response -> {
+            try {
+                return httpclient.execute(httpGet, response -> {
                 if (isDebugEnabled) {
                     log.debug("HTTP status " + response.getCode() + " when invoking GET for URL: "
                             + url);
                 }
-                statusCode.set(response.getCode());
-
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    return response.getEntity().getContent();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                    String inputLine;
+                    StringBuilder responseString = new StringBuilder();
+
+                    while ((inputLine = reader.readLine()) != null) {
+                        responseString.append(inputLine);
+                    }
+                    return responseString.toString();
                 } else {
-                    return null;
+                    throw new RuntimeException(String.valueOf(response.getCode()));
                 }
-
-            });
-
-            if (httpResponse != null) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse));
-                String inputLine;
-                StringBuilder responseString = new StringBuilder();
-
-                while ((inputLine = reader.readLine()) != null) {
-                    responseString.append(inputLine);
-                }
-                return responseString.toString();
-            } else {
+                });
+            } catch (RuntimeException e) {
                 throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". " +
-                            "Found http status " + statusCode);
+                        "Found http status " + e.getMessage());
             }
         }
     }
