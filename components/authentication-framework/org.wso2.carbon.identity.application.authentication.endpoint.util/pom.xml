@@ -129,14 +129,6 @@
             <artifactId>jaxb-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.wso2</groupId>
-            <artifactId>httpcore</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>
@@ -191,11 +183,8 @@
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging.*; version="${import.package.version.commons.logging}",
-                            org.apache.hc.client5.http; version="${httpclient5.osgi.version.range}",
-                            org.apache.hc.core5.http; version="${httpcore5.osgi.version.range}",
-                            org.apache.http; version="${httpcore.version.osgi.import.range}",
-                            org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
-                            org.apache.http.impl.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
+                            org.apache.hc.client5.http; version="${orbit.version.httpclient5}",
+                            org.apache.hc.core5.http; version="${orbit.version.httpcore5}",
                             org.json; version="${json.wso2.version.range}",
                             org.wso2.carbon.identity.user.registration.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.apache.axis2.*;version="${axis2.osgi.version.range}",
