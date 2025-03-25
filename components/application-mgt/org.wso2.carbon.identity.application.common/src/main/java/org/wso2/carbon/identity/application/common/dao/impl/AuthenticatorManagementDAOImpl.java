@@ -55,7 +55,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             int authenticatorConfigID = jdbcTemplate.withTransaction(template ->
-                template.executeInsert(Query.ADD_AUTHENTICATOR_SQL,
+                template.executeInsert(Query.ADD_AUTHENTICATOR_SQL_2,
                     statement -> {
                         statement.setString(Column.NAME, authenticatorConfig.getName());
                         statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
@@ -91,7 +91,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL,
+                template.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL_2,
                     statement -> {
                         statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
                         statement.setString(Column.IMAGE_URL, updatedAuthenticatorConfig.getImageUrl());
@@ -112,8 +112,10 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     @Override
-    public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(LocalAuthenticatorConfig existingAuthenticatorConfig,
-                                                                           LocalAuthenticatorConfig updatedAuthenticatorConfig, int tenantId) throws AuthenticatorMgtException {
+    public LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
+            LocalAuthenticatorConfig existingAuthenticatorConfig,
+            LocalAuthenticatorConfig updatedAuthenticatorConfig, int tenantId)
+            throws AuthenticatorMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
@@ -193,7 +195,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
             List<UserDefinedLocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
             List<AuthenticatorConfigDaoModel> configDaoModels = jdbcTemplate.withTransaction(
-                template -> template.executeQuery(Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL,
+                template -> template.executeQuery(Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL_2,
                     (resultSet, rowNumber) -> {
                         UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
                                 resultSet.getString(Column.AUTHENTICATION_TYPE));
@@ -411,7 +413,6 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
 
         private final int entryId;
         private final LocalAuthenticatorConfig config;
-
 
         private LocalAuthenticatorConfigDaoModel(int entryId, LocalAuthenticatorConfig config) {
             this.entryId = entryId;
