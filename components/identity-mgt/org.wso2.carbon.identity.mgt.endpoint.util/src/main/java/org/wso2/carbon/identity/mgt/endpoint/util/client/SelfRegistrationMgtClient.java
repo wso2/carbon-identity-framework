@@ -290,71 +290,69 @@ public class SelfRegistrationMgtClient {
             post.setEntity(new StringEntity(userObject.toString(), ContentType.create(HTTPConstants
                     .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
 
-            JSONObject jsonResponseFromExecute =  httpclient.execute(post, response -> {
-                if (log.isDebugEnabled()) {
-                    log.debug("HTTP status " + response.getCode() + " when validating username: "
-                            + user.getUsername());
-                }
-
-                if (response.getCode() == HttpStatus.SC_OK ||
-                        response.getCode() == HttpStatus.SC_BAD_REQUEST) {
-                    JSONObject jsonResponse = new JSONObject(
-                            new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+            try {
+                return httpclient.execute(post, response -> {
                     if (log.isDebugEnabled()) {
-                        log.debug("Username validation response: " + jsonResponse.toString(2) + " for username: " + user
-                                .getUsername());
+                        log.debug("HTTP status " + response.getCode() + " when validating username: "
+                                + user.getUsername());
                     }
-                    // Adding "code" attribute since in 200 OK instances, we're getting only statusCode
-                    if (response.getCode() == HttpStatus.SC_OK && jsonResponse.has(STATUS_CODE)) {
-                        if (jsonResponse.has(CODE)) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("Trying to add code attribute in a success instance but the attribute " +
-                                        "already exists with the value: " + jsonResponse.get(CODE));
-                            }
-                        } else {
-                            jsonResponse.put(CODE, jsonResponse.get(STATUS_CODE));
-                        }
-                    }
-                    return jsonResponse;
-                } else {
-                    // Handle invalid tenant domain error thrown by the TenantContextRewriteValve.
-                    if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
+
+                    if (response.getCode() == HttpStatus.SC_OK ||
+                            response.getCode() == HttpStatus.SC_BAD_REQUEST) {
                         JSONObject jsonResponse = new JSONObject(
                                 new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                        String content = null;
-                        if (jsonResponse.get("message") != null) {
-                            content = (String) jsonResponse.get("message");
-                        } else if (jsonResponse.get("description") != null) {
-                            content = (String) jsonResponse.get("description");
+                        if (log.isDebugEnabled()) {
+                            log.debug("Username validation response: " + jsonResponse.toString(2) + " for username: " + user
+                                    .getUsername());
                         }
-                        if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
-                            jsonResponse.put(CODE, IdentityManagementEndpointConstants.ERROR_CODE_INVALID_TENANT);
-                            return jsonResponse;
+                        // Adding "code" attribute since in 200 OK instances, we're getting only statusCode
+                        if (response.getCode() == HttpStatus.SC_OK && jsonResponse.has(STATUS_CODE)) {
+                            if (jsonResponse.has(CODE)) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Trying to add code attribute in a success instance but the attribute " +
+                                            "already exists with the value: " + jsonResponse.get(CODE));
+                                }
+                            } else {
+                                jsonResponse.put(CODE, jsonResponse.get(STATUS_CODE));
+                            }
                         }
-                    }
-                    // Logging and throwing since this is a client
-                    if (log.isDebugEnabled()) {
-                        log.debug("Unexpected response code found: " + response.getCode()
-                                + " when validating username: " + user.getUsername());
-                    }
+                        return jsonResponse;
+                    } else {
+                        // Handle invalid tenant domain error thrown by the TenantContextRewriteValve.
+                        if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
+                            JSONObject jsonResponse = new JSONObject(
+                                    new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                            String content = null;
+                            if (jsonResponse.get("message") != null) {
+                                content = (String) jsonResponse.get("message");
+                            } else if (jsonResponse.get("description") != null) {
+                                content = (String) jsonResponse.get("description");
+                            }
+                            if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
+                                jsonResponse.put(CODE, IdentityManagementEndpointConstants.ERROR_CODE_INVALID_TENANT);
+                                return jsonResponse;
+                            }
+                        }
+                        // Logging and throwing since this is a client
+                        if (log.isDebugEnabled()) {
+                            log.debug("Unexpected response code found: " + response.getCode()
+                                    + " when validating username: " + user.getUsername());
+                        }
 
-                    return null;
-                }
-            });
-
-            if (jsonResponseFromExecute == null) {
+                        throw new RuntimeException();
+                    }
+                });
+            } catch (RuntimeException e) {
                 throw new SelfRegistrationMgtClientException("Error while checking username validity for user : "
                         + user.getUsername());
             }
-
-            return jsonResponseFromExecute;
         } catch (IOException e) {
-                // Logging and throwing since this is a client.
-                String msg = "Error while check username validity for user :" + user.getUsername();
-                if (log.isDebugEnabled()) {
-                    log.debug(msg, e);
-                }
-                throw new SelfRegistrationMgtClientException(msg, e);
+            // Logging and throwing since this is a client.
+            String msg = "Error while check username validity for user :" + user.getUsername();
+            if (log.isDebugEnabled()) {
+                log.debug(msg, e);
+            }
+            throw new SelfRegistrationMgtClientException(msg, e);
         }
     }
 
