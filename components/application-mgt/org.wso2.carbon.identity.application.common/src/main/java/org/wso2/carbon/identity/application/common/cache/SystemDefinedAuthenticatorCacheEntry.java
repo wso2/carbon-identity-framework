@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,29 +19,26 @@
 package org.wso2.carbon.identity.application.common.cache;
 
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
 /**
- * Cache Entry for the user defined local application authenticator configurations.
+ * Cache Entry for the system defined authenticator configurations.
  */
-public class AuthenticatorCacheEntry extends CacheEntry {
+public class SystemDefinedAuthenticatorCacheEntry extends CacheEntry {
 
-    private static final long serialVersionUID = -6234723984328871924L;
+    private LocalAuthenticatorConfig authenticatorConfig;
 
-    private UserDefinedLocalAuthenticatorConfig authenticatorConfig;
-
-    public AuthenticatorCacheEntry(UserDefinedLocalAuthenticatorConfig authenticatorConfig) {
+    public SystemDefinedAuthenticatorCacheEntry(LocalAuthenticatorConfig authenticatorConfig) {
 
         this.authenticatorConfig = authenticatorConfig;
     }
 
-    public UserDefinedLocalAuthenticatorConfig getAuthenticatorConfig() {
+    public LocalAuthenticatorConfig getAuthenticatorConfig() {
 
         return authenticatorConfig;
     }
 
-    public void setAuthenticatorConfig(UserDefinedLocalAuthenticatorConfig authenticatorConfig) {
+    public void setAuthenticatorConfig(LocalAuthenticatorConfig authenticatorConfig) {
 
         this.authenticatorConfig = authenticatorConfig;
     }
