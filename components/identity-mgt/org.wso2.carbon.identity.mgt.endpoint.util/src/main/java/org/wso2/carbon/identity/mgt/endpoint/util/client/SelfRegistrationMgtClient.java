@@ -43,11 +43,9 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Client which invokes consent mgt remote operations.
@@ -73,7 +71,7 @@ public class SelfRegistrationMgtClient {
     private static final String PROPERTIES = "properties";
 
     /**
-     * Returns a JSON which contains a set of purposes with piiCategories.
+     * Returns a JSON which contains a set of purposes with piiCategories
      *
      * @param tenantDomain Tenant Domain.
      * @return A JSON string which contains purposes.
@@ -168,7 +166,8 @@ public class SelfRegistrationMgtClient {
                             + url);
                 }
                 if (response.getCode() == HttpStatus.SC_OK) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(response.getEntity().getContent()));
                     String inputLine;
                     StringBuilder responseString = new StringBuilder();
 
@@ -262,7 +261,8 @@ public class SelfRegistrationMgtClient {
             JSONArray properties = new JSONArray();
             JSONObject property = new JSONObject();
             property.put(
-                    IdentityManagementEndpointConstants.KEY, IdentityManagementEndpointConstants.SKIP_SIGN_UP_ENABLE_CHECK);
+                    IdentityManagementEndpointConstants.KEY,
+                    IdentityManagementEndpointConstants.SKIP_SIGN_UP_ENABLE_CHECK);
             property.put(IdentityManagementEndpointConstants.VALUE, skipSignUpCheck);
             properties.put(property);
 
@@ -288,7 +288,7 @@ public class SelfRegistrationMgtClient {
             setAuthorizationHeader(post);
 
             post.setEntity(new StringEntity(userObject.toString(), ContentType.create(HTTPConstants
-                    .MEDIA_TYPE_APPLICATION_JSON, StandardCharsets.UTF_8)));
+                    .MEDIA_TYPE_APPLICATION_JSON, Charset.forName(StandardCharsets.UTF_8.name()))));
 
             try {
                 return httpclient.execute(post, response -> {
@@ -302,15 +302,15 @@ public class SelfRegistrationMgtClient {
                         JSONObject jsonResponse = new JSONObject(
                                 new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                         if (log.isDebugEnabled()) {
-                            log.debug("Username validation response: " + jsonResponse.toString(2) + " for username: " + user
-                                    .getUsername());
+                            log.debug("Username validation response: " + jsonResponse.toString(2) +
+                                    " for username: " + user.getUsername());
                         }
                         // Adding "code" attribute since in 200 OK instances, we're getting only statusCode
                         if (response.getCode() == HttpStatus.SC_OK && jsonResponse.has(STATUS_CODE)) {
                             if (jsonResponse.has(CODE)) {
                                 if (log.isDebugEnabled()) {
-                                    log.debug("Trying to add code attribute in a success instance but the attribute " +
-                                            "already exists with the value: " + jsonResponse.get(CODE));
+                                    log.debug("Trying to add code attribute in a success instance but the " +
+                                            "attribute already exists with the value: " + jsonResponse.get(CODE));
                                 }
                             } else {
                                 jsonResponse.put(CODE, jsonResponse.get(STATUS_CODE));
@@ -338,7 +338,6 @@ public class SelfRegistrationMgtClient {
                             log.debug("Unexpected response code found: " + response.getCode()
                                     + " when validating username: " + user.getUsername());
                         }
-
                         throw new RuntimeException();
                     }
                 });
@@ -348,7 +347,7 @@ public class SelfRegistrationMgtClient {
             }
         } catch (IOException e) {
             // Logging and throwing since this is a client.
-            String msg = "Error while check username validity for user :" + user.getUsername();
+            String msg = "Error while check username validity for user : " + user.getUsername();
             if (log.isDebugEnabled()) {
                 log.debug(msg, e);
             }
@@ -357,7 +356,7 @@ public class SelfRegistrationMgtClient {
     }
 
     /**
-     * Adding OAuth authorization headers to a httpMethod.
+     * adding OAuth authorization headers to a httpMethod
      *
      * @param httpMethod method which wants to add Authorization header
      */
