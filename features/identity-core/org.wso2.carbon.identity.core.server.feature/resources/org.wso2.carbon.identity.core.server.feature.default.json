@@ -157,6 +157,7 @@
   "oauth.grant_type.password.enable": true,
   "oauth.grant_type.password.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.PasswordGrantHandler",
   "oauth.grant_type.password.allow_public_client": true,
+  "oauth.grant_type.password.show_auth_failure_reason": false,
   "oauth.grant_type.refresh_token.enable": true,
   "oauth.grant_type.refresh_token.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.RefreshGrantHandler",
   "oauth.grant_type.refresh_token.allow_public_client": true,
