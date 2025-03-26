@@ -278,7 +278,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
     /**
      * Get the amr value of the federated authenticator config.
      *
-     * @return amrValue
+     * @return amrValue.
      */
     public String getAmrValue() {
 

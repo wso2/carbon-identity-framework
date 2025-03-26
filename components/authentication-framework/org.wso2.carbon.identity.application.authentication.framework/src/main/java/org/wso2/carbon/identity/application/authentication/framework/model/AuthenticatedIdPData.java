@@ -62,10 +62,12 @@ public class AuthenticatedIdPData implements Serializable, Cloneable {
     }
 
     public String getAmrValue() {
+
         return amrValue;
     }
 
     public void setAmrValue(String amrValue) {
+
         this.amrValue = amrValue;
     }
 

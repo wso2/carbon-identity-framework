@@ -1424,11 +1424,6 @@
              <Scopes>internal_org_custom_authenticator_delete</Scopes>
          </Resource>
 
-         <!-- [Organization] System defined local authenticator API -->
-          <Resource context="(.*)/o/api/server/v1/authenticators/system(.*)" secured="true" http-method="PATCH">
-              <Scopes>internal_org_system_authenticator_patch</Scopes>
-          </Resource>
-
          <!-- User defined local authenticator API -->
          <Resource context="(.*)/api/server/v1/authenticators/custom" secured="true" http-method="POST">
              <Scopes>internal_custom_authenticator_create</Scopes>
@@ -1441,11 +1436,11 @@
          </Resource>
 
          <!-- [Organization] System defined local authenticator API -->
-          <Resource context="(.*)/o/api/server/v1/authenticators/system(.*)" secured="true" http-method="PATCH">
+          <Resource context="(.*)/o/api/server/v1/authenticators/system/(.*)" secured="true" http-method="PATCH">
               <Scopes>internal_org_system_authenticator_patch</Scopes>
           </Resource>
           <!-- System defined local authenticator API -->
-          <Resource context="(.*)/api/server/v1/authenticators/system(.*)" secured="true" http-method="PATCH">
+          <Resource context="(.*)/api/server/v1/authenticators/system/(.*)" secured="true" http-method="PATCH">
               <Scopes>internal_system_authenticator_patch</Scopes>
           </Resource>
 

@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.application.mgt.internal;
 
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.io.FileUtils;
@@ -42,8 +39,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.api.resource.mgt.APIResourceManager;
-import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -55,7 +50,6 @@ import org.wso2.carbon.identity.application.mgt.AuthorizedAPIManagementServiceIm
 import org.wso2.carbon.identity.application.mgt.DiscoverableApplicationManager;
 import org.wso2.carbon.identity.application.mgt.ai.LoginFlowAIManager;
 import org.wso2.carbon.identity.application.mgt.ai.LoginFlowAIManagerImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.inbound.protocol.ApplicationInboundAuthConfigHandler;
@@ -78,7 +72,6 @@ import org.wso2.carbon.identity.certificate.management.service.ApplicationCertif
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataMgtListener;
 import org.wso2.carbon.identity.core.SAMLSSOServiceProviderManager;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManagementInitialize;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -170,6 +163,7 @@ public class ApplicationManagementServiceComponent {
             // Register the Authorized API Management Listener.
             bundleContext.registerService(AuthorizedAPIManagementListener.class, new ConsoleAuthorizedAPIListener(),
                     null);
+
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }

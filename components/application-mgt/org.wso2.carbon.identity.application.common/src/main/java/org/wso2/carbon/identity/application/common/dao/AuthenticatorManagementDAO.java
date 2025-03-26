@@ -57,11 +57,11 @@ public interface AuthenticatorManagementDAO {
 
     /**
      *
-     * @param existingAuthenticatorConfig
-     * @param amrValue
-     * @param tenantId
-     * @return
-     * @throws AuthenticatorMgtException
+     * @param existingAuthenticatorConfig Existing Local application authenticator configuration.
+     * @param amrValue New local application authenticator configuration.
+     * @param tenantId Tenant Id.
+     * @return Updated LocalAuthenticatorConfig.
+     * @throws AuthenticatorMgtException If an error occurs while updating the authenticator configuration.
      */
     LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(LocalAuthenticatorConfig existingAuthenticatorConfig,
                                                                    LocalAuthenticatorConfig amrValue, int tenantId) throws AuthenticatorMgtException;
@@ -79,10 +79,10 @@ public interface AuthenticatorManagementDAO {
 
     /**
      *
-     * @param authenticatorConfigName
-     * @param tenantId
-     * @return
-     * @throws AuthenticatorMgtException
+     * @param authenticatorConfigName  Name of the local application authenticator configuration.
+     * @param tenantId Tenant Id.
+     * @return Retrieved LocalAuthenticatorConfig.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the authenticator configuration.
      */
     LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException;
@@ -124,5 +124,6 @@ public interface AuthenticatorManagementDAO {
      * @param tenantId              Tenant Id.
      * @return Created LocalAuthenticatorConfig.
      */
-    LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException;
+    LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId)
+            throws AuthenticatorMgtException;
 }

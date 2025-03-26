@@ -1155,7 +1155,7 @@ public class IdPManagementDAO {
             defaultAuthName = federatedIdp.getDefaultAuthenticatorConfig().getName();
         }
 
-        String sqlStmt = IdPManagementConstants.SQLQueries.GET_ALL_IDP_AUTH_SQL;
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_ALL_IDP_AUTH_SQL_WITH_AMR;
         Set<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new HashSet<FederatedAuthenticatorConfig>();
         try {
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
@@ -1440,7 +1440,7 @@ public class IdPManagementDAO {
 
         PreparedStatement prepStmt1 = null;
         PreparedStatement prepStmt2 = null;
-        String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_SQL;
+        String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_AUTH_SQL_WITH_AMR;
 
         try {
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);

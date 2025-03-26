@@ -265,9 +265,9 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
                 }
 
                 String actualAuthenticatorName = federatedAuthenticator.getName();
+                String amrValue = federatedAuthenticator.getAmrValue();
                 // assign it to the step
-                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName,
-                        federatedAuthenticator.getAmrValue(), tenantDomain);
+                loadStepAuthenticator(stepConfig, federatedIDP, actualAuthenticatorName, amrValue, tenantDomain);
             }
         }
     }

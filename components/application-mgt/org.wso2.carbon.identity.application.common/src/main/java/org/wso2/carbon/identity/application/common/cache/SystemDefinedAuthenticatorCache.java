@@ -30,7 +30,6 @@ public class SystemDefinedAuthenticatorCache extends
     private static final String SYSTEM_DEFINED_AUTHENTICATOR_CACHE_NAME = "SystemDefinedAuthenticatorCache";
     private static final SystemDefinedAuthenticatorCache INSTANCE = new SystemDefinedAuthenticatorCache();
 
-
     private SystemDefinedAuthenticatorCache() {
         super(SYSTEM_DEFINED_AUTHENTICATOR_CACHE_NAME);
     }

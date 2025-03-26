@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.dao.impl;
 
 import org.wso2.carbon.database.utils.jdbc.NamedJdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Column;
 import org.wso2.carbon.identity.application.common.constant.AuthenticatorMgtSQLConstants.Query;
@@ -55,7 +56,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             int authenticatorConfigID = jdbcTemplate.withTransaction(template ->
-                template.executeInsert(Query.ADD_AUTHENTICATOR_SQL_2,
+                template.executeInsert(Query.ADD_AUTHENTICATOR_SQL_WITH_AMR,
                     statement -> {
                         statement.setString(Column.NAME, authenticatorConfig.getName());
                         statement.setString(Column.DISPLAY_NAME, authenticatorConfig.getDisplayName());
@@ -91,7 +92,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL_2,
+                template.executeUpdate(Query.UPDATE_AUTHENTICATOR_SQL_WITH_AMR,
                     statement -> {
                         statement.setString(Column.DISPLAY_NAME, updatedAuthenticatorConfig.getDisplayName());
                         statement.setString(Column.IMAGE_URL, updatedAuthenticatorConfig.getImageUrl());
@@ -132,29 +133,31 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             return getSystemLocalAuthenticatorByName(updatedAuthenticatorConfig.getName(), tenantId);
         } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 
     private LocalAuthenticatorConfig getSystemLocalAuthenticatorByName(String authenticatorConfigName, int tenantId)
-            throws TransactionException {
+            throws TransactionException, DataAccessException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        LocalAuthenticatorConfigDaoModel configDaoModel = jdbcTemplate.withTransaction(template ->
-            template.fetchSingleRecord(Query.GET_USER_DEFINED_LOCAL_AUTHENTICATOR_SQL,
+        SystemDefinedLocalAuthenticatorConfigDaoModel configDaoModel = jdbcTemplate.
+            fetchSingleRecord(Query.GET_SYSTEM_DEFINED_LOCAL_AUTHENTICATOR_SQL,
                 (resultSet, rowNumber) -> {
                     LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
                     localAuthenticatorConfig.setName(resultSet.getString(Column.NAME));
                     localAuthenticatorConfig.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                     localAuthenticatorConfig.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                     localAuthenticatorConfig.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
-                    return new LocalAuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), localAuthenticatorConfig);
+                    return new SystemDefinedLocalAuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), localAuthenticatorConfig);
                 },
                 statement -> {
                     statement.setString(Column.NAME, authenticatorConfigName);
                     statement.setInt(Column.TENANT_ID, tenantId);
                     statement.setString(Column.DEFINED_BY, DefinedByType.SYSTEM.toString());
                     statement.setString(Column.IDP_NAME, LOCAL_IDP_NAME);
-                }));
+                });
 
         if (configDaoModel == null) {
             return null;
@@ -184,6 +187,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             return getSystemLocalAuthenticatorByName(authenticatorConfigName, tenantId);
         } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -195,7 +200,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
             List<UserDefinedLocalAuthenticatorConfig> allUserDefinedLocalConfigs = new ArrayList<>();
             List<AuthenticatorConfigDaoModel> configDaoModels = jdbcTemplate.withTransaction(
-                template -> template.executeQuery(Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL_2,
+                template -> template.executeQuery(
+                        Query.GET_ALL_USER_DEFINED_AUTHENTICATOR_SQL_WITH_AMR,
                     (resultSet, rowNumber) -> {
                         UserDefinedLocalAuthenticatorConfig config = getLocalAuthenticatorConfigBasedOnType(
                                 resultSet.getString(Column.AUTHENTICATION_TYPE));
@@ -287,6 +293,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             return getSystemLocalAuthenticatorByName(authenticatorConfig.getName(), tenantId);
         } catch (TransactionException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -409,12 +417,12 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
         }
     }
 
-    private static class LocalAuthenticatorConfigDaoModel {
+    private static class SystemDefinedLocalAuthenticatorConfigDaoModel {
 
         private final int entryId;
         private final LocalAuthenticatorConfig config;
 
-        private LocalAuthenticatorConfigDaoModel(int entryId, LocalAuthenticatorConfig config) {
+        private SystemDefinedLocalAuthenticatorConfigDaoModel(int entryId, LocalAuthenticatorConfig config) {
             this.entryId = entryId;
             this.config = config;
         }

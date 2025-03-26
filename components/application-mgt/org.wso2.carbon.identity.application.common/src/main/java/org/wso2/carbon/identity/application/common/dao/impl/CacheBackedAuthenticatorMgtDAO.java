@@ -95,10 +95,8 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
         SystemDefinedAuthenticatorCacheKey cacheKey = new SystemDefinedAuthenticatorCacheKey(
                 existingAuthenticatorConfig.getName());
         systemDefinedAuthenticatorCache.clearCacheEntry(cacheKey, tenantId);
-        if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Delete cache entry of updating authenticator %s.", existingAuthenticatorConfig.getName()));
-        }
         return authenticatorMgtFacade.updateSystemLocalAuthenticatorAmrValue(existingAuthenticatorConfig, updatedConfig,
                 tenantId);
     }
@@ -127,24 +125,21 @@ public class CacheBackedAuthenticatorMgtDAO implements AuthenticatorManagementDA
     @Override
     public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException {
+
         SystemDefinedAuthenticatorCacheKey cacheKey = new SystemDefinedAuthenticatorCacheKey(authenticatorConfigName);
         SystemDefinedAuthenticatorCacheEntry entry = systemDefinedAuthenticatorCache.
                 getValueFromCache(cacheKey, tenantId);
 
         if (entry != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Cache entry found for authenticator %s.", authenticatorConfigName));
-            }
+            LOG.debug(String.format("Cache entry found for authenticator %s.", authenticatorConfigName));
             return entry.getAuthenticatorConfig();
         }
         LocalAuthenticatorConfig authenticatorConfig = authenticatorMgtFacade.getSystemLocalAuthenticator(
                 authenticatorConfigName, tenantId);
         systemDefinedAuthenticatorCache.addToCache(cacheKey, new SystemDefinedAuthenticatorCacheEntry(
                 authenticatorConfig), tenantId);
-        if (LOG.isDebugEnabled()) {
             LOG.debug(String.format(
                     "Entry fetched from DB for authenticator %s. Adding cache entry.", authenticatorConfigName));
-        }
         return authenticatorConfig;
     }
 

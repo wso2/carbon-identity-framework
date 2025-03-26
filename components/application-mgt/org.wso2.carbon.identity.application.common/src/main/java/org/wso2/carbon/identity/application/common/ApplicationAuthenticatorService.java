@@ -311,7 +311,7 @@ public class ApplicationAuthenticatorService {
             LocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
-            if (isAuthenticatorExistingInDB(authenticatorConfig.getName(), tenantDomain)) {
+            if (isAuthenticatorExistsInDB(authenticatorConfig.getName(), tenantDomain)) {
                 throw buildClientException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST,
                         authenticatorConfig.getName());
             }
@@ -433,7 +433,7 @@ public class ApplicationAuthenticatorService {
         return dao.getSystemLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
-    private boolean isAuthenticatorExistingInDB(String authenticatorName, String tenantDomain)
+    private boolean isAuthenticatorExistsInDB(String authenticatorName, String tenantDomain)
             throws AuthenticatorMgtException {
 
         return dao.isExistingAuthenticatorName(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));

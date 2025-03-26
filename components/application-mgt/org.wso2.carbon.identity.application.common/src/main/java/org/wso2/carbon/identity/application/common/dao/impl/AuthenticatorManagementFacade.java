@@ -125,14 +125,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
             LocalAuthenticatorConfig existingAuthenticatorConfig, LocalAuthenticatorConfig updatedConfig, int tenantId)
             throws AuthenticatorMgtException {
 
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            return jdbcTemplate.withTransaction(template -> dao.updateSystemLocalAuthenticatorAmrValue(
-                    existingAuthenticatorConfig, updatedConfig, tenantId));
-        } catch (TransactionException e) {
-            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e,
-                    updatedConfig.getName());
-        }
+        return dao.updateSystemLocalAuthenticatorAmrValue(existingAuthenticatorConfig, updatedConfig, tenantId);
     }
 
     /**
@@ -159,18 +152,19 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
         }
     }
 
+    /**
+     * Get system local authenticator by name.
+     *
+     * @param authenticatorConfigName Name of the system local authenticator.
+     * @param tenantId                Tenant ID.
+     * @return System local authenticator.
+     * @throws AuthenticatorMgtException If an error occurs while retrieving the system local authenticator.
+     */
     @Override
     public LocalAuthenticatorConfig getSystemLocalAuthenticator(String authenticatorConfigName, int tenantId)
             throws AuthenticatorMgtException {
 
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            return jdbcTemplate.withTransaction(template -> dao.getSystemLocalAuthenticator(authenticatorConfigName,
-                    tenantId));
-        } catch (TransactionException e) {
-            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_RETRIEVING_AUTHENTICATOR_BY_NAME, e,
-                    authenticatorConfigName);
-        }
+        return dao.getSystemLocalAuthenticator(authenticatorConfigName, tenantId);
     }
 
     /**
@@ -242,15 +236,19 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
         }
     }
 
+    /**
+     * Add a system local authenticator.
+     *
+     * @param authenticatorConfig System local authenticator configuration.
+     * @param tenantId            Tenant ID.
+     * @return System local authenticator configuration.
+     * @throws AuthenticatorMgtException If an error occurs while adding the system local authenticator.
+     */
     @Override
-    public LocalAuthenticatorConfig addSystemLocalAuthenticator(LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
-        NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());
-        try {
-            return jdbcTemplate.withTransaction(template -> dao.addSystemLocalAuthenticator(authenticatorConfig, tenantId));
-        } catch (TransactionException e) {
-            throw handleAuthenticatorMgtException(AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR, e,
-                    authenticatorConfig.getName());
-        }
+    public LocalAuthenticatorConfig addSystemLocalAuthenticator(
+            LocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
+
+        return dao.addSystemLocalAuthenticator(authenticatorConfig, tenantId);
     }
 
     /**

@@ -95,8 +95,8 @@ public class UserDefinedLocalAuthenticatorValidator {
      */
     public void validateAmrValue(String amrValue) throws AuthenticatorMgtClientException {
 
-        boolean isValidName = amrRegexPattern.matcher(amrValue).matches();
-        if (!isValidName) {
+        boolean isValid = amrRegexPattern.matcher(amrValue).matches();
+        if (!isValid) {
             throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AMR_VALUE,
                     amrValue, AMR_VALUE_REGEX);
         }

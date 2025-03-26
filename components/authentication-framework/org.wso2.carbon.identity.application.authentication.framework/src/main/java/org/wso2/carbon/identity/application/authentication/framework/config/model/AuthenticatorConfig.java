@@ -47,18 +47,18 @@ public class AuthenticatorConfig implements Serializable {
     private String amrValue;
 
     public AuthenticatorConfig() {
-
     }
 
-    public AuthenticatorConfig(String name, boolean enabled, String amrValue,
-                               Map<String, String> parameterMap) {
+    public AuthenticatorConfig(String name, boolean enabled, String amrValue, Map<String, String> parameterMap) {
+
         this.name = name;
         this.enabled = enabled;
         this.amrValue = amrValue;
         this.parameterMap = parameterMap;
     }
 
-    public AuthenticatorConfig(String name, boolean enabled, Map<String, String> parameterMap){
+    public AuthenticatorConfig(String name, boolean enabled, Map<String, String> parameterMap) {
+
         this.name = name;
         this.enabled = enabled;
         this.parameterMap = parameterMap;
@@ -167,10 +167,12 @@ public class AuthenticatorConfig implements Serializable {
     }
 
     public String getAmrValue() {
+
         return amrValue;
     }
 
     public void setAmrValue(String amrValue) {
+
         this.amrValue = amrValue;
     }
 }

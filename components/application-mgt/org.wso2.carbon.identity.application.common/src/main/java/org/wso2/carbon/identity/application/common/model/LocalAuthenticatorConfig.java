@@ -125,7 +125,7 @@ public class LocalAuthenticatorConfig implements Serializable {
                 }
             } else if ("DefinedBy".equals(member.getLocalName())) {
                 localAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(member.getText()));
-            } else if("AmrValue".equals(member.getLocalName())) {
+            } else if ("AmrValue".equals(member.getLocalName())) {
                 localAuthenticatorConfig.setAmrValue(member.getText());
             }
         }
@@ -273,7 +273,7 @@ public class LocalAuthenticatorConfig implements Serializable {
     /**
      * Get the amr value of the Local authenticator config.
      *
-     * @return amrValue
+     * @return amrValue.
      */
     public String getAmrValue() {
 

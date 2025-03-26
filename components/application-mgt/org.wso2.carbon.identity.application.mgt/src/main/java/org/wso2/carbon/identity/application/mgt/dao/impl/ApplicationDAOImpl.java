@@ -5106,7 +5106,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @return
      * @throws SQLException
      */
-    public int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
+    private int addAuthenticator(Connection conn, int tenantId, String idpName, String authenticatorName,
                                  String authenticatorDispalyName, String definedByType, String amrValue) throws SQLException {
 
         int authenticatorId = -1;
