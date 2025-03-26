@@ -82,7 +82,7 @@ public class AuthAPIServiceClient {
         httpPostRequest.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader(username, password));
         httpPostRequest.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
-        try (CloseableHttpClient httpClient = HttpClientImpl.createDefaultClient()) {
+        try (CloseableHttpClient httpClient = HttpClientImpl.createClientWithSystemProperties()) {
             return httpClient.execute(httpPostRequest, response -> {
 
                 String responseString = null;
