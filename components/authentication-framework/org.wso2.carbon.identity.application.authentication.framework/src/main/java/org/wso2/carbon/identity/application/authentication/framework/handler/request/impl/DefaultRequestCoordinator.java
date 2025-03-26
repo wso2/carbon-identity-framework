@@ -399,7 +399,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     // If the request is a prompt request returning from browser's back button, we need to handle it
                     // by changing context to previous step.
                     if (!(currentNode instanceof ShowPromptNode)) {
-                        currentNode = moveToPreviousNode(currentNode);
+                        currentNode = moveToPreviousShowPromptNode(currentNode);
                         context.setCurrentStep(Math.max(0, context.getCurrentStep() - 1));
                         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
                     }
@@ -567,17 +567,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     /**
-     * Move to the previous node in the authentication graph.
+     * Move to the previous node in the authentication graph until show prompt node is reached.
      *
      * @param currentNode The current node in the authentication graph.
      * @return The previous node in the authentication graph.
      */
-    private AuthGraphNode moveToPreviousNode(AuthGraphNode currentNode) {
+    private AuthGraphNode moveToPreviousShowPromptNode(AuthGraphNode currentNode) {
 
         if (currentNode == null || currentNode instanceof ShowPromptNode) {
             return currentNode;
         }
-        return moveToPreviousNode(currentNode.getParent());
+        return moveToPreviousShowPromptNode(currentNode.getParent());
     }
 
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
