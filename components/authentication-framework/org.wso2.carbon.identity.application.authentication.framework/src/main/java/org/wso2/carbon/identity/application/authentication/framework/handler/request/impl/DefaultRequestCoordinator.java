@@ -574,10 +574,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      */
     private AuthGraphNode moveToPreviousShowPromptNode(AuthGraphNode currentNode) {
 
-        if (currentNode == null || currentNode instanceof ShowPromptNode) {
-            return currentNode;
+        while (currentNode != null && !(currentNode instanceof ShowPromptNode)) {
+            currentNode = currentNode.getParent();
         }
-        return moveToPreviousShowPromptNode(currentNode.getParent());
+        return currentNode;
     }
 
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
