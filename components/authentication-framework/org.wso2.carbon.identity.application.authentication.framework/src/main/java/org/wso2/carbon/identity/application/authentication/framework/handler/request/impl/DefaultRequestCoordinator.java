@@ -394,7 +394,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                 }
 
-                if (isPromptRequest(request, context)) {
+                if (isPromptRequest(request)) {
                     AuthGraphNode currentNode =
                             (AuthGraphNode) context.getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
                     // If the request is a prompt request returning from browser's back button, we need to handle it
@@ -561,7 +561,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean isPromptRequest(HttpServletRequest request, AuthenticationContext context) {
+    private boolean isPromptRequest(HttpServletRequest request) {
 
         return StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))
                 && TRUE.equals(request.getParameter(PROMPT_RESP_PARAM));
