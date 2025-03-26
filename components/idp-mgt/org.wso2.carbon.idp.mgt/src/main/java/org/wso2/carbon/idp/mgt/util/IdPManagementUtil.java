@@ -348,13 +348,13 @@ public class IdPManagementUtil {
                     isEmailLinkPasswordRecoveryEnabled) && isEmailOtpPasswordRecoveryEnabled) {
                 throw IdPManagementUtil.handleClientException(
                         IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
-                        "Enabling email otp and when email link is enabled is not allowed.");
+                        "Enabling email OTP and when email link is enabled is not allowed.");
             }
             if (((isEmailOtpCurrentlyEnabled && StringUtils.isBlank(emailOtpForPasswordRecoveryProp)) ||
                     isEmailOtpPasswordRecoveryEnabled) && isEmailLinkPasswordRecoveryEnabled) {
                 throw IdPManagementUtil.handleClientException(
                         IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
-                        "Enabling email link and when email otp is enabled is not allowed.");
+                        "Enabling email link and when email OTP is enabled is not allowed.");
             }
         }
     }
