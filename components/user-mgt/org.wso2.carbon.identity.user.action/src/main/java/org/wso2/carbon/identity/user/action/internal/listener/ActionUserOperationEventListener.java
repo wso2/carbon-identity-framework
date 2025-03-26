@@ -134,13 +134,4 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
                     "Credential is not in the expected format.");
         }
     }
-
-    private String buildErrorMessage(String message, String description) {
-
-        if (description == null) {
-            return message;
-        }
-
-        return message + ". " + description;
-    }
 }
