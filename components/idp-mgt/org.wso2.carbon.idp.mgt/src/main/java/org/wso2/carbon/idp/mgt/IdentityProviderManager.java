@@ -330,7 +330,7 @@ public class IdentityProviderManager implements IdpManager {
         IdentityProviderProperty[] identityMgtProperties = residentIdp.getIdpProperties();
         List<IdentityProviderProperty> newProperties = new ArrayList<>();
 
-        IdPManagementUtil.validatePasswordRecoveryPropertyValues(configurationDetails);
+        IdPManagementUtil.validatePasswordRecoveryPropertyValues(configurationDetails, identityMgtProperties);
         IdPManagementUtil.validateUsernameRecoveryPropertyValues(configurationDetails);
 
         for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
