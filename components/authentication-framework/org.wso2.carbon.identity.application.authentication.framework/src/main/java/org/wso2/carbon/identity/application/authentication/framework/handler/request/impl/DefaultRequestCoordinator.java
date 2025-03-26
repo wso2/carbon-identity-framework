@@ -361,8 +361,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 */
                 if (isBackToFirstStepRequest(request) || (isIdentifierFirstRequest(request)
                         && (!isFlowHandlerInCurrentStepCanHandleRequest(context, request)
-                        && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)))
-                ) {
+                        && !FrameworkUtils.isIdfInitiatedFromAuthenticator(context)))) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -400,8 +399,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     // If the request is a prompt request returning from browser's back button, we need to handle it
                     // by changing context to previous step.
                     if (!(currentNode instanceof ShowPromptNode)) {
-                        currentNode = moveToShowPromptNode(currentNode);
-                        context.setCurrentStep(context.getCurrentStep() - 1);
+                        currentNode = moveToPreviousNode(currentNode);
+                        context.setCurrentStep(Math.max(0, context.getCurrentStep() - 1));
                         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
                     }
                 }
@@ -564,15 +563,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private boolean isPromptRequest(HttpServletRequest request) {
 
         return StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))
-                && TRUE.equals(request.getParameter(PROMPT_RESP_PARAM));
+                && Boolean.parseBoolean(request.getParameter(PROMPT_RESP_PARAM));
     }
 
-    private AuthGraphNode moveToShowPromptNode(AuthGraphNode currentNode) {
+    /**
+     * Move to the previous node in the authentication graph.
+     *
+     * @param currentNode The current node in the authentication graph.
+     * @return The previous node in the authentication graph.
+     */
+    private AuthGraphNode moveToPreviousNode(AuthGraphNode currentNode) {
 
         if (currentNode == null || currentNode instanceof ShowPromptNode) {
             return currentNode;
         }
-        return moveToShowPromptNode(currentNode.getParent());
+        return moveToPreviousNode(currentNode.getParent());
     }
 
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
