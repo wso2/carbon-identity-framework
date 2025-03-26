@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.user.action.api.constant.UserActionError;
 import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionClientException;
+import org.wso2.carbon.identity.user.action.api.exception.UserActionExecutionServerException;
 import org.wso2.carbon.identity.user.action.api.model.UserActionContext;
 import org.wso2.carbon.identity.user.action.internal.factory.UserActionExecutorFactory;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -98,14 +99,15 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
                         failure.getFailureReason(), failure.getFailureDescription());
             } else if (executionStatus.getStatus() == ActionExecutionStatus.Status.ERROR) {
                 Error error = (Error) executionStatus.getResponse();
-                String errorMsg = buildErrorMessage(error.getErrorMessage(), error.getErrorDescription());
-                throw new UserStoreException(errorMsg, UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR);
+                throw new UserActionExecutionServerException(
+                        UserActionError.PRE_UPDATE_PASSWORD_ACTION_EXECUTION_ERROR,
+                        error.getErrorMessage(), error.getErrorDescription());
             } else {
                 return false;
             }
         } catch (ActionExecutionException e) {
-            throw new UserStoreException("Error while executing pre update password action.",
-                    UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR, e);
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_SERVER_ERROR,
+                    "Error while executing pre update password action.");
         }
     }
 
@@ -121,15 +123,15 @@ public class ActionUserOperationEventListener extends AbstractIdentityUserOperat
                 flow.getName() == Flow.Name.PROFILE_UPDATE;
     }
 
-    private char[] getSecret(Object credential) throws UserStoreException {
+    private char[] getSecret(Object credential) throws UserActionExecutionServerException {
 
         if (credential instanceof Secret) {
             return ((Secret) credential).getChars();
         } else if (credential instanceof StringBuffer) {
             return ((StringBuffer) credential).toString().toCharArray();
         } else {
-            throw new UserStoreException("Credential is not in the expected format.",
-                    UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET);
+            throw new UserActionExecutionServerException(UserActionError.PRE_UPDATE_PASSWORD_ACTION_UNSUPPORTED_SECRET,
+                    "Credential is not in the expected format.");
         }
     }
 
