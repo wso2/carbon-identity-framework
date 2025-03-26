@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.mgt.endpoint.util;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.http.client.HttpClientImpl;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ConfiguredAuthenticatorsRetrievalClient;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ConfiguredAuthenticatorsRetrievalClientException;
-import org.wso2.carbon.utils.HTTPClientUtils;
 
 import static org.mockito.Mockito.mockStatic;
 
@@ -43,10 +43,10 @@ public class ConfiguredAuthenticatorsRetrievalClientTest extends RetrievalClient
 
         try (MockedStatic<IdentityManagementServiceUtil> identityMgtServiceUtil = mockStatic(
                 IdentityManagementServiceUtil.class);
-             MockedStatic<HTTPClientUtils> httpclientUtil = mockStatic(HTTPClientUtils.class)) {
+             MockedStatic<HttpClientImpl> httpclientImpl = mockStatic(HttpClientImpl.class)) {
             identityMgtServiceUtil.when(IdentityManagementServiceUtil::getInstance)
                     .thenReturn(identityManagementServiceUtil);
-            httpclientUtil.when(HTTPClientUtils::createClientWithCustomVerifier).thenReturn(httpClientBuilder);
+            httpclientImpl.when(HttpClientImpl::createClientWithCustomVerifier).thenReturn(httpClient);
             configuredAuthenticatorsRetrievalClient.getConfiguredAuthenticators("", SUPER_TENANT_DOMAIN);
         }
     }
