@@ -129,7 +129,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
     private static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
-    private static final String PROMPT_ID = "promptId";
+    private static final String PROMPT_ID_PARAM = "promptId";
+    private static final String PROMPT_RESP_PARAM = "promptResp";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -562,7 +563,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private boolean isPromptRequest(HttpServletRequest request, AuthenticationContext context) {
 
-        return StringUtils.isNotBlank(request.getParameter(PROMPT_ID));
+        return StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))
+                && TRUE.equals(request.getParameter(PROMPT_RESP_PARAM));
     }
 
     private AuthGraphNode moveToShowPromptNode(AuthGraphNode currentNode) {
