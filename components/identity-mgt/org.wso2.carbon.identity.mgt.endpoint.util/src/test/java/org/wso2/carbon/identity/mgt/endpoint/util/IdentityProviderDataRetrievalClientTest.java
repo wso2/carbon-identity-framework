@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util;
 
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.locationtech.jts.util.Assert;
 import org.mockito.MockedStatic;
 import org.testng.annotations.BeforeTest;
@@ -32,9 +30,7 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 
 public class IdentityProviderDataRetrievalClientTest extends RetrievalClientBaseTest {
 
