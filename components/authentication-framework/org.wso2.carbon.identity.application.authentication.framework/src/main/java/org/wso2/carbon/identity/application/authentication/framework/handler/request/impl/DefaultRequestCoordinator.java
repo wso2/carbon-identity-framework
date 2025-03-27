@@ -131,6 +131,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
     private static final String PROMPT_ID_PARAM = "promptId";
     private static final String PROMPT_RESP_PARAM = "promptResp";
+    private static final String SESSION_LIMIT_HANDLER_PARAM = "terminateActiveSessionsAction";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -400,8 +401,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     // by changing context to previous step.
                     if (!(currentNode instanceof ShowPromptNode)) {
                         currentNode = moveToPreviousShowPromptNode(currentNode);
-                        context.setCurrentStep(Math.max(0, context.getCurrentStep() - 1));
-                        context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
+                        // If ShowPromptNode is not found, current node will be null.
+                        if (currentNode != null) {
+                            context.setCurrentStep(Math.max(0, context.getCurrentStep() - 1));
+                            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
+                        }
                     }
                 }
 
@@ -563,7 +567,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private boolean isPromptRequest(HttpServletRequest request) {
 
         return StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))
-                && Boolean.parseBoolean(request.getParameter(PROMPT_RESP_PARAM));
+                && Boolean.parseBoolean(request.getParameter(PROMPT_RESP_PARAM))
+                && StringUtils.isBlank(request.getParameter(SESSION_LIMIT_HANDLER_PARAM));
     }
 
     /**
