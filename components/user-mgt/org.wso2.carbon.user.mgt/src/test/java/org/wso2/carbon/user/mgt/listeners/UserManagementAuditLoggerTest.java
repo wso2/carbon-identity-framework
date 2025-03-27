@@ -25,13 +25,13 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.context.IdentityContext;
 import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
+import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
+
 import static org.testng.Assert.assertEquals;
 
 public class UserManagementAuditLoggerTest {
 
     private UserManagementAuditLogger auditLogger;
-    public static final String CHANGE_PASSWORD_BY_USER_ACTION = "Change-Password-by-User";
-    public static final String CHANGE_PASSWORD_BY_ADMIN_ACTION = "Change-Password-by-Administrator";
 
     @BeforeMethod
     public void setUp() {
@@ -48,8 +48,9 @@ public class UserManagementAuditLoggerTest {
     @DataProvider(name = "passwordUpdateFlowData")
     public Object[][] passwordUpdateFlowData() {
         return new Object[][]{
-                {Flow.InitiatingPersona.USER, CHANGE_PASSWORD_BY_USER_ACTION},
-                {Flow.InitiatingPersona.ADMIN, CHANGE_PASSWORD_BY_ADMIN_ACTION}
+                {Flow.InitiatingPersona.USER, ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION},
+                {Flow.InitiatingPersona.ADMIN, ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION},
+                {Flow.InitiatingPersona.APPLICATION, ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION}
         };
     }
 

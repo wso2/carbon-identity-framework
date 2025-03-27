@@ -530,9 +530,13 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
 
     /**
      * Determines the appropriate audit message action based on the initiating persona in the current flow.
+     * The action returned depends on the persona initiating the password update.
      *
-     * @return The audit message action. If the flow is not available or the persona is unrecognized,
-     *         returns {@code ListenerUtils.CHANGE_PASSWORD_ACTION} by default.
+     * @return The audit message action. If the flow is unavailable or the persona is unrecognized,
+     *         returns {@code null}. In case the flow is not available, {@code null} is returned as the default value.
+     *         If the initiating persona is a user, returns {@code ListenerUtils.CHANGE_PASSWORD_BY_USER_ACTION}.
+     *         If the initiating persona is an admin or application, returns {@code ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION}.
+     *         If an unhandled persona is encountered, logs a debug message and returns {@code null}.
      */
     String getPasswordUpdateAuditMessageAction() {
 
@@ -549,10 +553,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
                 return ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION;
             default:
                 // Fallback in case a new enum value is added in the future
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Unhandled initiating persona for the password update action: "
-                            + flow.getInitiatingPersona());
-                }
+                LOG.debug("Unhandled initiating persona for the password update action: "
+                        + flow.getInitiatingPersona());
                 return null;
         }
     }
