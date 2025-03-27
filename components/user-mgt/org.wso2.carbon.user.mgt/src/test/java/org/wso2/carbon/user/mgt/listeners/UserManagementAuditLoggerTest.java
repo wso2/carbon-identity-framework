@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class UserManagementAuditLoggerTest {
 
@@ -57,15 +58,28 @@ public class UserManagementAuditLoggerTest {
     @Test(dataProvider = "passwordUpdateFlowData")
     public void testGetPasswordUpdateAuditMessageAction(Flow.InitiatingPersona persona, String expectedAction) {
 
-        String carbonHome = IdentityEventConfigBuilder.class.getResource("/").getFile();
-        System.setProperty("carbon.home", carbonHome);
-
+        configureCarbonHome();
         IdentityContext.getThreadLocalIdentityContext().setFlow(new Flow.Builder()
                 .name(Flow.Name.PASSWORD_RESET)
                 .initiatingPersona(persona)
                 .build());
-
         String action = auditLogger.getPasswordUpdateAuditMessageAction();
         assertEquals(action, expectedAction);
+    }
+
+    @Test()
+    public void testGetPasswordUpdateAuditMessageActionNull() {
+
+        configureCarbonHome();
+        String action = auditLogger.getPasswordUpdateAuditMessageAction();
+        assertNull(action);
+    }
+
+    /**
+     * Configures the carbon home system property for the test environment.
+     */
+    private void configureCarbonHome() {
+        String carbonHome = IdentityEventConfigBuilder.class.getResource("/").getFile();
+        System.setProperty("carbon.home", carbonHome);
     }
 }
