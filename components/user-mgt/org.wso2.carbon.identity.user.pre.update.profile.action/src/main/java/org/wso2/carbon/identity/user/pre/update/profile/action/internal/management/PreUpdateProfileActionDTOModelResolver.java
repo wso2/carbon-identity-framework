@@ -249,10 +249,9 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                 if (!uniqueAttributes.add(attribute)) {
                     duplicatedAttributes.add(attribute);
                 }
-                uniqueAttributes.add(attribute);
             }
             if (LOG.isDebugEnabled() && !duplicatedAttributes.isEmpty()) {
-                LOG.debug("Ignored duplicated attributes found for pre profile action configuration : " +
+                LOG.debug("Ignored duplicated attributes in pre profile action configuration : " +
                         String.join(", ", duplicatedAttributes));
             }
             return Collections.unmodifiableList(new ArrayList<>(uniqueAttributes));

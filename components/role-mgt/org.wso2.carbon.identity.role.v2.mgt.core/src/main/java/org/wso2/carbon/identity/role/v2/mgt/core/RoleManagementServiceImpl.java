@@ -96,6 +96,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
                 throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
                         + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + roleName + ".");
             }
+            if (roleName.length() < 3 || roleName.length() > 255) {
+                String errorMessage = String.format("Invalid role name: %s. " +
+                        "Role names must be between 3 and 255 characters long.", roleName);
+                throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
+            }
             List<RoleManagementListener> roleManagementListenerList = RoleManagementServiceComponentHolder.
                     getInstance().getRoleManagementListenerList();
             for (RoleManagementListener roleManagementListener : roleManagementListenerList) {
@@ -350,6 +355,11 @@ public class RoleManagementServiceImpl implements RoleManagementService {
             // SCIM2 API only adds roles to the internal domain.
             throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), "Invalid character: "
                     + UserCoreConstants.DOMAIN_SEPARATOR + " contains in the role name: " + newRoleName + ".");
+        }
+        if (newRoleName.length() < 3 || newRoleName.length() > 255) {
+            String errorMessage = String.format("Invalid role name: %s. " +
+                    "Role names must be between 3 and 255 characters long.", newRoleName);
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
         }
         roleDAO.updateRoleName(roleId, newRoleName, tenantDomain);
         roleManagementEventPublisherProxy.publishPostUpdateRoleName(roleId, newRoleName, tenantDomain);

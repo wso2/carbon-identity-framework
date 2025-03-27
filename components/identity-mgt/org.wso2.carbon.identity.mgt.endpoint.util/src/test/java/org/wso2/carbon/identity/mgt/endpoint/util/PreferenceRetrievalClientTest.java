@@ -53,6 +53,8 @@ public class PreferenceRetrievalClientTest {
     public static final String NOTIFICATION_PASSWORD_ENABLE_PROPERTY = "Recovery.Notification.Password.Enable";
     public static final String EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY =
             "Recovery.Notification.Password.emailLink.Enable";
+    public static final String EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY =
+            "Recovery.Notification.Password.OTP.SendOTPInEmail";
     public static final String SMS_OTP_PASSWORD_RECOVERY_PROPERTY = "Recovery.Notification.Password.smsOtp.Enable";
     private static final String AUTO_LOGIN_AFTER_PASSWORD_RECOVERY = "Recovery.AutoLogin.Enable";
     private static final String RECOVERY_CALLBACK_REGEX_PROP = "Recovery.CallbackRegex";
@@ -186,6 +188,17 @@ public class PreferenceRetrievalClientTest {
         assertTrue(result);
         verify(preferenceRetrievalClient, times(1)).checkPreference(tenantDomain, RECOVERY_CONNECTOR,
                 EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+    }
+
+    @Test
+    public void testCheckEmailOTPBasedPasswordRecovery() throws PreferenceRetrievalClientException {
+
+        doReturn(true).when(preferenceRetrievalClient).checkPreference(tenantDomain, RECOVERY_CONNECTOR,
+                EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+        boolean result = preferenceRetrievalClient.checkEmailOTPBasedPasswordRecovery(tenantDomain);
+        assertTrue(result);
+        verify(preferenceRetrievalClient, times(1)).checkPreference(tenantDomain, RECOVERY_CONNECTOR,
+                EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
     }
 
     @Test

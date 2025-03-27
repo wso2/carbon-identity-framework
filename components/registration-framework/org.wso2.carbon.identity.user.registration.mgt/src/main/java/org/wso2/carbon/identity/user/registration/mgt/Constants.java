@@ -78,6 +78,9 @@ public class Constants {
                                          "The step, %s of type redirection must have action defined"),
         ERROR_CODE_INVALID_ACTION_TYPE("60011", "Invalid action type.",
                                        "The action type, %s is not supported for step, %s of type redirection."),
+        ERROR_CODE_INVALID_FIRST_NODE("60012", "Invalid first node.",
+                                      "Invalid first node configuration: either no first node is defined or multiple " +
+                                              "first nodes are present.")
         ;
 
         private static final String ERROR_PREFIX = "RFM";

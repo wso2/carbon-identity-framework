@@ -286,18 +286,27 @@ public class IdPManagementUtil {
 
         if (configurationDetails.containsKey(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
                 configurationDetails.containsKey(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY) ||
                 configurationDetails.containsKey(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY)) {
             // Perform process only if notification based password recovery connector or options are updated.
-            String recNotPwProp = configurationDetails.get(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
-            String emailLinkPwRecProp = configurationDetails.get(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
-            String smsOtpPwRecProp = configurationDetails.get(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
-            boolean recoveryNotificationPasswordProperty = Boolean.parseBoolean(recNotPwProp);
-            boolean smsOtpPasswordRecoveryProperty = Boolean.parseBoolean(emailLinkPwRecProp);
-            boolean emailLinkPasswordRecoveryProperty = Boolean.parseBoolean(smsOtpPwRecProp);
+            String recoveryNotificationPasswordProp =
+                    configurationDetails.get(IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY);
+            String emailLinkForPasswordRecoveryProp =
+                    configurationDetails.get(IdPManagementConstants.EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String emailOtpForPasswordRecoveryProp =
+                    configurationDetails.get(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+            String smsOtpForPasswordRecoveryProp =
+                    configurationDetails.get(IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY);
 
-            if (recoveryNotificationPasswordProperty &&
-                    StringUtils.isNotBlank(emailLinkPwRecProp) && !emailLinkPasswordRecoveryProperty &&
-                    StringUtils.isNotBlank(smsOtpPwRecProp) && !smsOtpPasswordRecoveryProperty) {
+            boolean isRecoveryNotificationPasswordEnabled = Boolean.parseBoolean(recoveryNotificationPasswordProp);
+            boolean isEmailLinkPasswordRecoveryEnabled = Boolean.parseBoolean(emailLinkForPasswordRecoveryProp);
+            boolean isEmailOtpPasswordRecoveryEnabled = Boolean.parseBoolean(emailOtpForPasswordRecoveryProp);
+            boolean isSmsOtpPasswordRecoveryEnabled = Boolean.parseBoolean(smsOtpForPasswordRecoveryProp);
+
+            if (isRecoveryNotificationPasswordEnabled &&
+                    StringUtils.isNotBlank(emailLinkForPasswordRecoveryProp) && !isEmailLinkPasswordRecoveryEnabled &&
+                    StringUtils.isNotBlank(emailOtpForPasswordRecoveryProp) && !isEmailOtpPasswordRecoveryEnabled &&
+                    StringUtils.isNotBlank(smsOtpForPasswordRecoveryProp) && !isSmsOtpPasswordRecoveryEnabled) {
                 // Disabling all recovery options when recovery connector is enabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
                 // this behaviour.
@@ -306,8 +315,9 @@ public class IdPManagementUtil {
                                 IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                                 "Disabling all recovery options when recovery connector is enabled, is not allowed.");
             }
-            if (StringUtils.isNotBlank(recNotPwProp) && !recoveryNotificationPasswordProperty &&
-                    (emailLinkPasswordRecoveryProperty || smsOtpPasswordRecoveryProperty)) {
+            if (StringUtils.isNotBlank(recoveryNotificationPasswordProp) && !isRecoveryNotificationPasswordEnabled &&
+                    (isEmailLinkPasswordRecoveryEnabled || isSmsOtpPasswordRecoveryEnabled ||
+                            isEmailOtpPasswordRecoveryEnabled)) {
                 // Enabling any recovery options when connector is disabled is not allowed.
                 // WARNING : Be mindful about compatibility of earlier recovery api versions when changing
                 // this behaviour.
