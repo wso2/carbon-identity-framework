@@ -41,7 +41,6 @@ public class ListenerUtils {
     public static final String SET_USER_CLAIM_VALUES_ACTION = "Set-User-Claim-Values";
     public static final String DELETE_USER_CLAIM_VALUES_ACTION = "Delete-User-Claim-Values";
     public static final String DELETE_USER_CLAIM_VALUE_ACTION = "Delete-User-Claim-Value";
-    public static final String CHANGE_PASSWORD_ACTION = "Change-Password";
     public static final String CHANGE_PASSWORD_BY_USER_ACTION = "Change-Password-by-User";
     public static final String CHANGE_PASSWORD_BY_ADMIN_ACTION = "Change-Password-by-Administrator";
     public static final String DELETE_ROLE_ACTION = "Delete-Role";

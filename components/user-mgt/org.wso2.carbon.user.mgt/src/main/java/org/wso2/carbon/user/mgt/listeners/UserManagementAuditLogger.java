@@ -21,6 +21,7 @@ package org.wso2.carbon.user.mgt.listeners;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.MDC;
@@ -49,6 +50,7 @@ import static org.wso2.carbon.utils.CarbonUtils.isLegacyAuditLogsDisabled;
  */
 public class UserManagementAuditLogger extends AbstractIdentityUserOperationEventListener {
 
+    private static final Log LOG = LogFactory.getLog(UserManagementAuditLogger.class);
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static final String SUCCESS = "Success";
     private static final String IN_PROGRESS = "In-Progress";
@@ -536,7 +538,8 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
         if (flow == null) {
-            return ListenerUtils.CHANGE_PASSWORD_ACTION;
+            LOG.debug("Unable to determine the initiating persona for the password update action.");
+            return null;
         }
         switch (flow.getInitiatingPersona()) {
             case USER:
@@ -545,7 +548,12 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
             case APPLICATION:
                 return ListenerUtils.CHANGE_PASSWORD_BY_ADMIN_ACTION;
             default:
-                return ListenerUtils.CHANGE_PASSWORD_ACTION;
+                // Fallback in case a new enum value is added in the future
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Unhandled initiating persona for the password update action: "
+                            + flow.getInitiatingPersona());
+                }
+                return null;
         }
     }
 }
