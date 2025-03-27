@@ -534,7 +534,7 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      * @return The audit message action. If the flow is not available or the persona is unrecognized,
      *         returns {@code ListenerUtils.CHANGE_PASSWORD_ACTION} by default.
      */
-    private String getPasswordUpdateAuditMessageAction() {
+    String getPasswordUpdateAuditMessageAction() {
 
         Flow flow = IdentityContext.getThreadLocalIdentityContext().getFlow();
         if (flow == null) {
