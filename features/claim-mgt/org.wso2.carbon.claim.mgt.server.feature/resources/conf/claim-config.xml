@@ -731,7 +731,7 @@
 				in your user store must be configured for this. -->
 				<AttributeID>lastPasswordUpdate</AttributeID>
 				<Description>Last Password Update Time</Description>
-				<SharedProfileValueResolvingMethod>FromOrigin</SharedProfileValueResolvingMethod>
+				<SharedProfileValueResolvingMethod>FromSharedProfile</SharedProfileValueResolvingMethod>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/displayName</ClaimURI>
