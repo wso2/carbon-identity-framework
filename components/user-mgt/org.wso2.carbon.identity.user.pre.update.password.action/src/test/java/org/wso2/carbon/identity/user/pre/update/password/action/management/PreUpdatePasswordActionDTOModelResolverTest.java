@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelRe
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
+import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.certificate.management.exception.CertificateMgtClientException;
@@ -57,6 +58,7 @@ import static org.mockito.Mockito.verify;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.CERTIFICATE;
 import static org.wso2.carbon.identity.user.pre.update.password.action.internal.constant.PreUpdatePasswordActionConstants.PASSWORD_SHARING_FORMAT;
 import static org.wso2.carbon.identity.user.pre.update.password.action.util.TestUtil.TENANT_DOMAIN;
@@ -92,11 +94,11 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
                         .build())
                 .build();
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED);
-        properties.put(CERTIFICATE, new Certificate.Builder().id(TEST_CERTIFICATE_ID).name(TEST_CERTIFICATE_NAME)
-                .certificateContent(TEST_CERTIFICATE).build());
-        existingActionDTO = new ActionDTO.Builder(action).properties(properties).build();
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.SHA256_HASHED));
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder().id(TEST_CERTIFICATE_ID)
+                .name(TEST_CERTIFICATE_NAME).certificateContent(TEST_CERTIFICATE).build()));
+        existingActionDTO = new ActionDTO.BuilderForService(action).properties(properties).build();
     }
 
     @BeforeMethod
@@ -118,10 +120,11 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     @Test
     public void testResolveForAddOperation() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED);
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build());
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.SHA256_HASHED));
+        properties.put(CERTIFICATE, new ActionPropertyForService(new
+                Certificate.Builder().certificateContent(TEST_CERTIFICATE).build()));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
         doReturn(TEST_CERTIFICATE_ID).when(certificateManagementService).addCertificate(any(), anyString());
@@ -139,9 +142,9 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     @Test
     public void testResolveForAddOperationWithoutCertificate() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED);
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.SHA256_HASHED));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
 
@@ -167,9 +170,9 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Invalid Password Sharing Format.")
     public void testResolveForAddOperationWithInvalidPasswordSharingFormat() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, "Plain text");
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService("Plain text"));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
         resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
@@ -179,10 +182,10 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Invalid Certificate.")
     public void testResolveForAddOperationWithInvalidCertificateObject() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.PLAIN_TEXT);
-        properties.put(CERTIFICATE, TEST_CERTIFICATE);
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.PLAIN_TEXT));
+        properties.put(CERTIFICATE, new ActionPropertyForService(TEST_CERTIFICATE));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
         resolver.resolveForAddOperation(actionDTO, TENANT_DOMAIN);
@@ -192,10 +195,11 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Error while adding the certificate.")
     public void testResolveForAddOperationWithInvalidCertificate() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.PLAIN_TEXT);
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build());
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.PLAIN_TEXT));
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder()
+                .certificateContent(TEST_CERTIFICATE).build()));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
 
@@ -209,9 +213,10 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Error while adding the certificate.")
     public void testResolveForAddOperationWithServerErrorFromCertificateMgtService() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build());
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder()
+                .certificateContent(TEST_CERTIFICATE).build()));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
 
@@ -242,11 +247,14 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
 
         assertNotNull(result);
 
-        Certificate resultCert = (Certificate) result.getProperty(CERTIFICATE);
+        assertTrue(result.getProperty(CERTIFICATE) instanceof ActionPropertyForService);
+        Certificate resultCert = (Certificate) ((ActionPropertyForService) result.getProperty(CERTIFICATE)).getValue();
         assertEquals(resultCert.getId(), TEST_CERTIFICATE_ID);
         assertEquals(resultCert.getName(), TEST_CERTIFICATE_NAME);
         assertEquals(resultCert.getCertificateContent(), TEST_CERTIFICATE);
-        assertEquals(result.getProperty(PASSWORD_SHARING_FORMAT), PasswordSharing.Format.SHA256_HASHED);
+        assertTrue(result.getProperty(PASSWORD_SHARING_FORMAT) instanceof ActionPropertyForService);
+        assertEquals(((ActionPropertyForService) result.getProperty(PASSWORD_SHARING_FORMAT)).getValue(),
+                PasswordSharing.Format.SHA256_HASHED);
         verify(certificateManagementService, times(1)).getCertificate(anyString(), anyString());
     }
 
@@ -263,7 +271,9 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
 
         assertNotNull(result);
         assertNull(result.getProperty(CERTIFICATE));
-        assertEquals(result.getProperty(PASSWORD_SHARING_FORMAT), PasswordSharing.Format.PLAIN_TEXT);
+        assertTrue(result.getProperty(PASSWORD_SHARING_FORMAT) instanceof ActionPropertyForService);
+        assertEquals(((ActionPropertyForService) result.getProperty(PASSWORD_SHARING_FORMAT)).getValue(),
+                PasswordSharing.Format.PLAIN_TEXT);
         verify(certificateManagementService, never()).getCertificate(anyString(), anyString());
     }
 
@@ -324,11 +334,14 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
         assertNotNull(result);
         for (ActionDTO dto : result) {
             verifyCommonFields(actionDTO, dto);
-            Certificate resultCert = (Certificate) dto.getProperty(CERTIFICATE);
+            assertTrue(dto.getProperty(CERTIFICATE) instanceof ActionPropertyForService);
+            Certificate resultCert = (Certificate) ((ActionPropertyForService) dto.getProperty(CERTIFICATE)).getValue();
             assertEquals(resultCert.getId(), TEST_CERTIFICATE_ID);
             assertEquals(resultCert.getName(), TEST_CERTIFICATE_NAME);
             assertEquals(resultCert.getCertificateContent(), TEST_CERTIFICATE);
-            assertEquals(dto.getProperty(PASSWORD_SHARING_FORMAT), PasswordSharing.Format.SHA256_HASHED);
+            assertTrue(dto.getProperty(PASSWORD_SHARING_FORMAT) instanceof ActionPropertyForService);
+            assertEquals(((ActionPropertyForService) dto.getProperty(PASSWORD_SHARING_FORMAT)).getValue(),
+                    PasswordSharing.Format.SHA256_HASHED);
         }
         verify(certificateManagementService, times(1)).getCertificate(anyString(), anyString());
     }
@@ -336,10 +349,11 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     @Test
     public void testResolveForUpdateOperation() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.PLAIN_TEXT);
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(TEST_UPDATED_CERTIFICATE).build());
-        ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.PLAIN_TEXT));
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder().certificateContent(
+                TEST_UPDATED_CERTIFICATE).build()));
+        ActionDTO updatingActionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
         doNothing().when(certificateManagementService).updateCertificateContent(anyString(), anyString(), anyString());
@@ -350,15 +364,16 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
         assertEquals(((ActionPropertyForDAO) result.getProperty(CERTIFICATE)).getValue(), TEST_CERTIFICATE_ID);
         assertEquals(((ActionPropertyForDAO) result.getProperty(PASSWORD_SHARING_FORMAT)).getValue(),
                 PasswordSharing.Format.PLAIN_TEXT.name());
-        verify(certificateManagementService, times(1)).updateCertificateContent(anyString(), anyString(), anyString());
+        verify(certificateManagementService, times(1))
+                .updateCertificateContent(anyString(), anyString(), anyString());
     }
 
     @Test
     public void testResolveForUpdateOperationWithPasswordSharingFormat() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.PLAIN_TEXT);
-        ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.PLAIN_TEXT));
+        ActionDTO updatingActionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
 
@@ -366,7 +381,8 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
         assertNotNull(result);
         verifyCommonFields(updatingActionDTO, result);
         assertEquals(((ActionPropertyForDAO) result.getProperty(CERTIFICATE)).getValue(),
-                ((Certificate) existingActionDTO.getProperty(CERTIFICATE)).getId());
+                ((Certificate) ((ActionPropertyForService) existingActionDTO.getProperty(CERTIFICATE)).getValue())
+                        .getId());
         assertEquals(((ActionPropertyForDAO) result.getProperty(PASSWORD_SHARING_FORMAT)).getValue(),
                 PasswordSharing.Format.PLAIN_TEXT.name());
     }
@@ -374,9 +390,10 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     @Test
     public void testResolveForUpdateOperationWithDeleteCertificate() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(StringUtils.EMPTY).build());
-        ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder()
+                .certificateContent(StringUtils.EMPTY).build()));
+        ActionDTO updatingActionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
 
@@ -387,23 +404,26 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
         verifyCommonFields(updatingActionDTO, result);
         assertNull(result.getProperty(CERTIFICATE));
         assertEquals(((ActionPropertyForDAO) result.getProperty(PASSWORD_SHARING_FORMAT)).getValue(),
-                ((PasswordSharing.Format) existingActionDTO.getProperty(PASSWORD_SHARING_FORMAT)).name());
-        verify(certificateManagementService, times(1)).deleteCertificate(anyString(), anyString());
+                ((PasswordSharing.Format) ((ActionPropertyForService) existingActionDTO
+                        .getProperty(PASSWORD_SHARING_FORMAT)).getValue()).name());
+        verify(certificateManagementService, times(1))
+                .deleteCertificate(anyString(), anyString());
     }
 
     @Test
     public void testResolveForUpdateOperationWithAddCertificate() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.SHA256_HASHED);
-        ActionDTO existingActionDTOWithoutCert = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.SHA256_HASHED));
+        ActionDTO existingActionDTOWithoutCert = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
 
         properties = new HashMap<>();
-        properties.put(PASSWORD_SHARING_FORMAT, PasswordSharing.Format.PLAIN_TEXT);
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(TEST_CERTIFICATE).build());
-        ActionDTO updatingActionDTO = new ActionDTO.Builder(action)
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.PLAIN_TEXT));
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder()
+                .certificateContent(TEST_CERTIFICATE).build()));
+        ActionDTO updatingActionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
         doReturn(TEST_CERTIFICATE_ID).when(certificateManagementService).addCertificate(any(), anyString());
@@ -423,9 +443,10 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Error while updating the certificate.")
     public void testResolveForUpdateOperationWithInvalidCertificate() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(TEST_UPDATED_CERTIFICATE).build());
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder()
+                .certificateContent(TEST_UPDATED_CERTIFICATE).build()));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
         CertificateMgtClientException error = mock(CertificateMgtClientException.class);
@@ -439,9 +460,10 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
             expectedExceptionsMessageRegExp = "Error while updating the certificate.")
     public void testResolveForUpdateOperationWithServerErrorFromCertificateMgtService() throws Exception {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(CERTIFICATE, new Certificate.Builder().certificateContent(TEST_UPDATED_CERTIFICATE).build());
-        ActionDTO actionDTO = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder()
+                .certificateContent(TEST_UPDATED_CERTIFICATE).build()));
+        ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
         CertificateMgtServerException error = mock(CertificateMgtServerException.class);
@@ -456,7 +478,8 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
 
         doNothing().when(certificateManagementService).deleteCertificate(anyString(), anyString());
         resolver.resolveForDeleteOperation(existingActionDTO, TENANT_DOMAIN);
-        verify(certificateManagementService, times(1)).deleteCertificate(anyString(), anyString());
+        verify(certificateManagementService, times(1))
+                .deleteCertificate(anyString(), anyString());
     }
 
     @Test(expectedExceptions = ActionDTOModelResolverServerException.class,

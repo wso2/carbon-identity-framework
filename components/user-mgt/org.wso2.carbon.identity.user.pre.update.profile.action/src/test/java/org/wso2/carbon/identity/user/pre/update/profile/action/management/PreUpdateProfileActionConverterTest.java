@@ -22,6 +22,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
+import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.model.Authentication;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.user.pre.update.profile.action.api.model.PreUpdateProfileAction;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.ATTRIBUTES;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ACTION;
 import static org.wso2.carbon.identity.user.pre.update.profile.action.util.TestConstants.TEST_ATTRIBUTES;
@@ -99,15 +101,16 @@ public class PreUpdateProfileActionConverterTest {
         // Verify properties map
         Map<String, Object> properties = dto.getProperties();
         assertNotNull(properties);
-        assertEquals(properties.get(ATTRIBUTES), action.getAttributes());
+        assertTrue(properties.get(ATTRIBUTES) instanceof ActionPropertyForService);
+        assertEquals(((ActionPropertyForService) properties.get(ATTRIBUTES)).getValue(), action.getAttributes());
     }
 
     @Test(description = "Test ActionConverter returns action dto with all the properties ")
     public void testBuildActionForGetOperationWithAllAttributes() {
 
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ATTRIBUTES, TEST_ATTRIBUTES);
-        ActionDTO dto = new ActionDTO.Builder(action)
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(ATTRIBUTES, new ActionPropertyForService(TEST_ATTRIBUTES));
+        ActionDTO dto = new ActionDTO.BuilderForService(action)
                 .properties(properties)
                 .build();
 
@@ -139,9 +142,9 @@ public class PreUpdateProfileActionConverterTest {
 
         Action dummyAction = new Action.ActionRequestBuilder().name(TEST_ACTION).build();
 
-        ActionDTO dto = new ActionDTO.Builder(dummyAction)
-                .properties(new HashMap<String, Object>() {{
-                    put(ATTRIBUTES, TEST_ATTRIBUTES);
+        ActionDTO dto = new ActionDTO.BuilderForService(dummyAction)
+                .properties(new HashMap<String, ActionPropertyForService>() {{
+                    put(ATTRIBUTES, new ActionPropertyForService(TEST_ATTRIBUTES));
                 }}).build();
         PreUpdateProfileAction convertedAction = (PreUpdateProfileAction) converter.buildAction(dto);
         assertNotNull(convertedAction.getAttributes());
@@ -166,6 +169,7 @@ public class PreUpdateProfileActionConverterTest {
         dto = converter.buildActionDTO(profileAction);
         assertNotNull(dto.getProperties());
         assertEquals(dto.getProperties().size(), 1);
-        assertEquals(dto.getProperties().get(ATTRIBUTES), TEST_ATTRIBUTES);
+        assertTrue(dto.getProperties().get(ATTRIBUTES) instanceof ActionPropertyForService);
+        assertEquals(((ActionPropertyForService) dto.getProperties().get(ATTRIBUTES)).getValue(), TEST_ATTRIBUTES);
     }
 }

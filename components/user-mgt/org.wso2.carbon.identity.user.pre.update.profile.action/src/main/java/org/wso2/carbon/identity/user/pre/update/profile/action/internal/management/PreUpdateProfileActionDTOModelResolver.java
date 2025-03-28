@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.action.management.api.exception.ActionDTOModelRe
 import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.ActionDTO;
 import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForDAO;
+import org.wso2.carbon.identity.action.management.api.model.ActionPropertyForService;
 import org.wso2.carbon.identity.action.management.api.model.BinaryObject;
 import org.wso2.carbon.identity.action.management.api.service.ActionDTOModelResolver;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
@@ -69,7 +70,8 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
             throws ActionDTOModelResolverException {
 
         Map<String, ActionPropertyForDAO> properties = new HashMap<>();
-        Object attributes = actionDTO.getProperty(ATTRIBUTES);
+        Object attributes = actionDTO.getProperty(ATTRIBUTES) == null ? null :
+                ((ActionPropertyForService) actionDTO.getProperty(ATTRIBUTES)).getValue();
         // Attributes is an optional field.
         if (attributes != null) {
             List<String> validatedAttributes = validateAttributes(attributes, tenantDomain);
@@ -86,7 +88,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
     public ActionDTO resolveForGetOperation(ActionDTO actionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, ActionPropertyForService> properties = new HashMap<>();
         // Attributes is an optional field.
         if (actionDTO.getProperty(ATTRIBUTES) != null) {
             if (!(actionDTO.getProperty(ATTRIBUTES) instanceof ActionPropertyForDAO)) {
@@ -97,7 +99,7 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                     .getProperty(ATTRIBUTES)).getValue()).getJSONString()));
         }
 
-        return new ActionDTO.Builder(actionDTO)
+        return new ActionDTO.BuilderForService(actionDTO)
                 .properties(properties)
                 .build();
     }
@@ -152,12 +154,14 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
                                                        ActionDTO existingActionDTO, String tenantDomain)
             throws ActionDTOModelResolverException {
 
-        if (updatingActionDTO.getProperty(ATTRIBUTES) != null) {
+        if (updatingActionDTO.getProperty(ATTRIBUTES) != null && ((ActionPropertyForService)
+                updatingActionDTO.getProperty(ATTRIBUTES)).getValue() != null) {
             // return updating attributes after validation
-            return validateAttributes(updatingActionDTO.getProperty(ATTRIBUTES), tenantDomain);
+            return validateAttributes(((ActionPropertyForService) updatingActionDTO.getProperty(ATTRIBUTES)).getValue(),
+                    tenantDomain);
         } else if (existingActionDTO.getProperty(ATTRIBUTES) != null) {
             // return existing attributes
-            return (List<String>) existingActionDTO.getProperty(ATTRIBUTES);
+            return (List<String>) ((ActionPropertyForService) existingActionDTO.getProperty(ATTRIBUTES)).getValue();
         }
         // if attributes are not getting updated or not configured earlier, return empty list.
         return emptyList();
@@ -176,11 +180,11 @@ public class PreUpdateProfileActionDTOModelResolver implements ActionDTOModelRes
         }
     }
 
-    private List<String> getAttributes(String value) throws ActionDTOModelResolverException {
+    private ActionPropertyForService getAttributes(String value) throws ActionDTOModelResolverException {
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(value, new TypeReference<List<String>>() { });
+            return new ActionPropertyForService(objectMapper.readValue(value, new TypeReference<List<String>>() { }));
         } catch (IOException e) {
             throw new ActionDTOModelResolverException("Error while reading the attribute values from storage.", e);
         }
