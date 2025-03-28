@@ -28,8 +28,10 @@ import org.wso2.carbon.identity.rule.metadata.api.model.OptionsReferenceValue;
 import org.wso2.carbon.identity.rule.metadata.api.model.Value;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +49,8 @@ public class FieldExtractor {
     }
 
     /**
-     * This method extracts fields used within expressions in the rule.
+     * This method extracts the unique fields used within expressions in the rule.
+     * A given flow can contain only unique fields.
      *
      * @param rule Rule to extract fields from.
      * @return List of fields used in the rule.
@@ -56,16 +59,20 @@ public class FieldExtractor {
     public List<Field> extractFields(Rule rule) throws RuleEvaluationException {
 
         List<Field> fieldList = new ArrayList<>();
+        Set<String> extractedFieldName = new HashSet<>();
 
         for (Expression expression : rule.getExpressions()) {
-            FieldDefinition fieldDefinition = expressionMetadataFieldsMap.get(expression.getField());
-            if (fieldDefinition == null) {
-                throw new RuleEvaluationException(
-                        "Field definition not found for the field: " + expression.getField());
-            }
+            String fieldName = expression.getField();
+            if (extractedFieldName.add(fieldName)) {
+                FieldDefinition fieldDefinition = expressionMetadataFieldsMap.get(expression.getField());
+                if (fieldDefinition == null) {
+                    throw new RuleEvaluationException(
+                            "Field definition not found for the field: " + expression.getField());
+                }
 
-            Field field = new Field(expression.getField(), resolveValueType(fieldDefinition.getValue()));
-            fieldList.add(field);
+                Field field = new Field(expression.getField(), resolveValueType(fieldDefinition.getValue()));
+                fieldList.add(field);
+            }
         }
 
         return fieldList;
