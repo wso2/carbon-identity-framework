@@ -252,8 +252,11 @@ public class IdPManagementConstants {
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
 
-        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY FROM " +
-                "IDP_AUTHENTICATOR WHERE IDP_ID = ?";
+        public static final String GET_ALL_IDP_AUTH_SQL = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY " +
+                "FROM IDP_AUTHENTICATOR WHERE IDP_ID = ?";
+
+        public static final String GET_ALL_IDP_AUTH_SQL_WITH_AMR = "SELECT ID, NAME, IS_ENABLED, DISPLAY_NAME, DEFINED_BY, " +
+                "AMR_VALUE FROM IDP_AUTHENTICATOR WHERE IDP_ID = ?";
 
         public static final String GET_IDP_AUTH_SQL = "SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = ? AND NAME = ?";
 
@@ -376,6 +379,11 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE) VALUES " +
                 "(?,?,?,?,?,?,?)";
+
+        public static final String ADD_IDP_AUTH_SQL_WITH_AMR = "INSERT INTO IDP_AUTHENTICATOR " +
+                "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME, DEFINED_BY, AUTHENTICATION_TYPE, AMR_VALUE) " +
+                "VALUES " +
+                "(?,?,?,?,?,?,?,?)";
 
         public static final String DELETE_IDP_AUTH_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE IDP_ID=? AND NAME=?";
 
