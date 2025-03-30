@@ -566,6 +566,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private boolean isPromptRequest(HttpServletRequest request) {
 
+        // Checking for prompt request using promptId and promptResp parameters.
+        // Checking for session limit handler params since it shares same parameters with prompt request.
         return StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))
                 && Boolean.parseBoolean(request.getParameter(PROMPT_RESP_PARAM))
                 && StringUtils.isBlank(request.getParameter(SESSION_LIMIT_HANDLER_PARAM));
