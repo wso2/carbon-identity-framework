@@ -67,7 +67,6 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContext;
 
     private static final String USERNAME = "user";
-    private static final String invalidRoleName = "RN";
     private static final String tenantDomain = "tenantDomain";
     private static final String audienceId = "testId";
     private static final String roleId = "testRoleId";
@@ -153,27 +152,45 @@ public class RoleManagementServiceImplTest extends IdentityBaseTest {
         }
     }
 
-    @Test(expectedExceptions = IdentityRoleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid role name: RN\\. " +
-                    "Role names must be between 3 and 255 characters long\\.")
-    public void testAddRoleInvalidRoleName() throws Exception {
+    @DataProvider(name = "invalidRoleNames")
+    public Object[][] invalidRoleNames() {
+        return new Object[][] {
+                { null, "Role name cannot be empty." },
+                { "", "Role name cannot be empty." },
+                { StringUtils.repeat("K", 256),
+                        "Provided role name exceeds the maximum length of 255 characters." }
+        };
+    }
+
+    @Test(dataProvider = "invalidRoleNames", expectedExceptions = IdentityRoleManagementClientException.class)
+    public void testAddRoleInvalidRoleName(String roleName, String expectedMessage) throws Exception {
 
         String audience = "APPLICATION";
         String audienceId = "application_id_01";
-        roleManagementService.addRole(invalidRoleName, new ArrayList<>(), new ArrayList<>(),
-                new ArrayList<>(), audience, audienceId, tenantDomain);
+
+        try {
+            roleManagementService.addRole(roleName, new ArrayList<>(), new ArrayList<>(),
+                    new ArrayList<>(), audience, audienceId, tenantDomain);
+        } catch (IdentityRoleManagementClientException e) {
+            assertEquals(e.getMessage(), expectedMessage);
+            throw e;
+        }
     }
 
-    @Test(expectedExceptions = IdentityRoleManagementClientException.class,
-            expectedExceptionsMessageRegExp = "Invalid role name: RN\\. " +
-                    "Role names must be between 3 and 255 characters long\\.")
-    public void testUpdateRoleInvalidRoleName() throws Exception {
+    @Test(dataProvider = "invalidRoleNames", expectedExceptions = IdentityRoleManagementClientException.class)
+    public void testUpdateRoleInvalidRoleName(String roleName, String expectedMessage) throws Exception {
 
-        RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy = mock(
-                RoleManagementEventPublisherProxy.class);
+        RoleManagementEventPublisherProxy mockRoleMgtEventPublisherProxy =
+                mock(RoleManagementEventPublisherProxy.class);
         roleManagementEventPublisherProxy.when(RoleManagementEventPublisherProxy::getInstance)
                 .thenReturn(mockRoleMgtEventPublisherProxy);
-        roleManagementService.updateRoleName(roleId, invalidRoleName, tenantDomain);
+
+        try {
+            roleManagementService.updateRoleName(roleId, roleName, tenantDomain);
+        } catch (IdentityRoleManagementClientException e) {
+            assertEquals(e.getMessage(), expectedMessage);
+            throw e;
+        }
     }
 
     @Test
