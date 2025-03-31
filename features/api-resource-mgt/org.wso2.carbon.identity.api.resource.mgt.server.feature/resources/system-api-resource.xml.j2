@@ -104,6 +104,8 @@
         <Scopes>
             <Scope displayName="View Authenticators" name="internal_authenticator_view"
                    description="View the authenticators in the organization (root)"/>
+            <Scope displayName="Patch System Authenticator" name="internal_system_authenticator_patch"
+                   description="Update the AMR value of system-defined local authenticators"/>
         </Scopes>
     </APIResource>
     <APIResource name="Authenticators Management API"
@@ -113,6 +115,8 @@
         <Scopes>
             <Scope displayName="View Authenticators" name="internal_org_authenticator_view"
                    description="View authenticators of the organization"/>
+            <Scope displayName="Patch System Authenticator" name="internal_org_system_authenticator_patch"
+                   description="Update the AMR value of system-defined local authenticators"/>
         </Scopes>
     </APIResource>
     <APIResource name="Action Management API" identifier="/api/server/v1/actions"
@@ -1563,22 +1567,6 @@
                        description="Delete user defined local authenticator in the organization"/>
             </Scopes>
         </APIResource>
-    <APIResource name="System defined local authenticator API" identifier="/api/server/v1/authenticators/system"
-                          requiresAuthorization="true"
-                         description="API representation of the System Defined Local Authenticator Management API" type="TENANT">
-                    <Scopes>
-                            <Scope displayName="Patch Authenticator" name="internal_system_authenticator_patch"
-                                   description="Update the AMR value of the system defined local authenticators" />
-                    </Scopes>
-            </APIResource>
-            <APIResource name="System defined local authenticator API" identifier="/o/api/server/v1/authenticators/system"
-                          requiresAuthorization="true"
-                         description="API representation of the System Defined Local Authenticator Management API" type="ORGANIZATION">
-                    <Scopes>
-                            <Scope displayName="Patch Authenticator" name="internal_org_system_authenticator_patch"
-                                   description="Update the AMR value of the system defined local authenticators" />
-                    </Scopes>
-            </APIResource>
     <APIResource name="Registration Flow Management API" identifier="/api/server/v1/registration-flow"
                  requiresAuthorization="true"
                  description="API representation of the Registration Flow Management API" type="TENANT">

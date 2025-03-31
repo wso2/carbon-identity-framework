@@ -150,7 +150,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
                     localAuthenticatorConfig.setDisplayName(resultSet.getString(Column.DISPLAY_NAME));
                     localAuthenticatorConfig.setAmrValue(resultSet.getString(Column.AMR_VALUE));
                     localAuthenticatorConfig.setEnabled(resultSet.getString(Column.IS_ENABLED).equals(IS_TRUE_VALUE));
-                    return new SystemDefinedLocalAuthenticatorConfigDaoModel(resultSet.getInt(Column.ID), localAuthenticatorConfig);
+                    return new SystemDefinedLocalAuthenticatorConfigDaoModel(
+                            resultSet.getInt(Column.ID), localAuthenticatorConfig);
                 },
                 statement -> {
                     statement.setString(Column.NAME, authenticatorConfigName);

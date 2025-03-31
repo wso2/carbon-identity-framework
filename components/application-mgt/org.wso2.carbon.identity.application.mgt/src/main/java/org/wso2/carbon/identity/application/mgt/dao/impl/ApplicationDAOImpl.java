@@ -3145,11 +3145,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_NAME));
                     localAuthenticator.setDisplayName(authenticatorInfo
                             .get(ApplicationConstants.IDP_AUTHENTICATOR_DISPLAY_NAME));
+                    localAuthenticator.setAmrValue(authenticatorInfo
+                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                     localAuthenticator.setDefinedByType(DefinedByType.valueOf(
                             authenticatorInfo.get(ApplicationConstants.IDP_AUTHENTICATOR_DEFINED_BY_TYPE)));
                     stepLocalAuth.get(step).add(localAuthenticator);
-                    localAuthenticator.setAmrValue(authenticatorInfo
-                            .get(ApplicationConstants.IDP_AUTHENTICATOR_AMR));
                 } else {
                     Map<String, List<FederatedAuthenticatorConfig>> stepFedIdps = stepFedIdPAuthenticators
                             .get(step);

@@ -115,8 +115,8 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
      * Update the AMR value of the system local authenticator.
      *
      * @param existingAuthenticatorConfig Existing local authenticator configuration.
-     * @param updatedConfig                   New local authenticator configuration.
-     * @param tenantId                   Tenant ID.
+     * @param updatedConfig New local authenticator configuration.
+     * @param tenantId Tenant ID.
      * @return Updated local authenticator configuration.
      * @throws AuthenticatorMgtException If an error occurs while updating the local authenticator.
      */
@@ -156,7 +156,7 @@ public class AuthenticatorManagementFacade implements AuthenticatorManagementDAO
      * Get system local authenticator by name.
      *
      * @param authenticatorConfigName Name of the system local authenticator.
-     * @param tenantId                Tenant ID.
+     * @param tenantId Tenant ID.
      * @return System local authenticator.
      * @throws AuthenticatorMgtException If an error occurs while retrieving the system local authenticator.
      */
