@@ -50,8 +50,9 @@ import java.util.stream.Stream;
 
 import static org.wso2.carbon.identity.input.validation.mgt.utils.Constants.Configs.USERNAME;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ERROR;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NODE_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_FIRST_NODE_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_INPUT_VALIDATION_CONFIG_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REDIRECTION_URL_NOT_FOUND;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNSUPPORTED_NODE;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.IDENTIFIER;
 import static org.wso2.carbon.identity.user.registration.engine.Constants.PASSWORD_KEY;
@@ -102,7 +103,7 @@ public class RegistrationFlowEngine {
 
         String tenantDomain = context.getTenantDomain();
         if (graph.getFirstNodeId() == null) {
-            throw handleServerException(ERROR_CODE_FIRST_NODE_NODE_FOUND, graph.getId(), tenantDomain);
+            throw handleServerException(ERROR_CODE_FIRST_NODE_NOT_FOUND, graph.getId(), tenantDomain);
         }
 
         NodeConfig currentNode = context.getCurrentNode();
@@ -110,6 +111,7 @@ public class RegistrationFlowEngine {
             LOG.debug("Current node is not set. Setting the first node as the current node and starting the " +
                     "registration sequence.");
             currentNode = graph.getNodeConfigs().get(graph.getFirstNodeId());
+            context.setCurrentNode(currentNode);
         }
 
         while (currentNode != null) {
@@ -204,8 +206,13 @@ public class RegistrationFlowEngine {
                 .build();
     }
 
-    private RegistrationStep resolveStepDetailsForRedirection(RegistrationContext context, Response response) {
+    private RegistrationStep resolveStepDetailsForRedirection(RegistrationContext context, Response response)
+            throws RegistrationEngineServerException {
 
+        if (response.getAdditionalInfo() == null || response.getAdditionalInfo().isEmpty() ||
+                !response.getAdditionalInfo().containsKey(REDIRECT_URL)) {
+            throw handleServerException(ERROR_CODE_REDIRECTION_URL_NOT_FOUND);
+        }
         String redirectUrl = response.getAdditionalInfo().get(REDIRECT_URL);
         response.getAdditionalInfo().remove(REDIRECT_URL);
         return new RegistrationStep.Builder()
