@@ -214,6 +214,7 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     public void testResolveForAddOperationWithServerErrorFromCertificateMgtService() throws Exception {
 
         Map<String, ActionPropertyForService> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForService(PasswordSharing.Format.SHA256_HASHED));
         properties.put(CERTIFICATE, new ActionPropertyForService(new Certificate.Builder()
                 .certificateContent(TEST_CERTIFICATE).build()));
         ActionDTO actionDTO = new ActionDTO.BuilderForService(action)
@@ -282,6 +283,7 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     public void testResolveForGetOperationWithWrongTypeCertificateId() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForDAO(PasswordSharing.Format.SHA256_HASHED.name()));
         properties.put(CERTIFICATE, 10);
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
@@ -302,6 +304,7 @@ public class PreUpdatePasswordActionDTOModelResolverTest {
     public void testResolveForGetOperationWithErrorFromCertificateMgtService() throws Exception {
 
         Map<String, Object> properties = new HashMap<>();
+        properties.put(PASSWORD_SHARING_FORMAT, new ActionPropertyForDAO(PasswordSharing.Format.SHA256_HASHED.name()));
         properties.put(CERTIFICATE, new ActionPropertyForDAO(TEST_CERTIFICATE_ID));
         ActionDTO actionDTO = new ActionDTO.Builder(action)
                 .properties(properties)
