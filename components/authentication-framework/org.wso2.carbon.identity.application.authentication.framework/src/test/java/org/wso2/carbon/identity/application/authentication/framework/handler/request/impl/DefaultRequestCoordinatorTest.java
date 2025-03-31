@@ -28,6 +28,8 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -351,6 +353,75 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
             // Invoke handle method again
             defaultRequestCoordinator.handle(request, response);
 
+        } catch (NullPointerException e) {
+            Assert.fail("NullPointerException occurred: " + e.getMessage());
+        } catch (Exception e) {
+            Assert.fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testHandlePromptRequest() {
+
+        try (MockedStatic<FrameworkUtils> frameworkUtils = mockStatic(FrameworkUtils.class);
+             MockedStatic<ApplicationManagementService> applicationManagementService =
+                     mockStatic(ApplicationManagementService.class)) {
+
+            String relyingParty = "console";
+            String tenantDomain = "carbon.super";
+            String restartLoginFlow = "true";
+
+            AuthGraphNode showPromptNode = mock(ShowPromptNode.class);
+            AuthGraphNode authGraphNode = mock(AuthGraphNode.class);
+            when(authGraphNode.getParent()).thenReturn(showPromptNode);
+
+            HttpServletRequest requestMock = spy(HttpServletRequest.class);
+            HttpServletResponse responseMock = spy(HttpServletResponse.class);
+            CommonAuthRequestWrapper request = new CommonAuthRequestWrapper(requestMock);
+            CommonAuthResponseWrapper response = new CommonAuthResponseWrapper(responseMock);
+            DefaultAuthenticationRequestHandler authenticationRequestHandler =
+                    mock(DefaultAuthenticationRequestHandler.class);
+
+            DefaultRequestCoordinator defaultRequestCoordinator = new DefaultRequestCoordinator();
+
+            // Mocking request parameters
+            when(request.getParameter(FrameworkConstants.RequestParams.ISSUER)).thenReturn(relyingParty);
+            when(request.getParameter(TENANT_DOMAIN)).thenReturn(tenantDomain);
+            when(request.getAttribute(FrameworkConstants.RESTART_LOGIN_FLOW)).thenReturn(restartLoginFlow);
+            when(request.getParameter(AUTHENTICATOR)).thenReturn("BasicAuthenticator");
+            when(request.getParameter("promptResp")).thenReturn("true");
+            when(request.getParameter("promptId")).thenReturn("97d506f3-fd3c-4...");
+
+            // Creating a new AuthenticationContext
+            AuthenticationContext context = new AuthenticationContext();
+            context.setTenantDomain(tenantDomain);
+            context.setServiceProviderName("consoleApplication");
+            context.setRequestType("oidc");
+            context.setProperty(FrameworkConstants.INITIAL_CONTEXT, context.clone());
+            context.setCurrentStep(1);
+            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, authGraphNode);
+
+            frameworkUtils.when(() -> FrameworkUtils.sendToRetryPage(any(), any(), any()))
+                    .thenThrow(new NullPointerException("Error occurred"));
+
+            when(FrameworkUtils.getContextData(request)).thenAnswer(invocation -> context);
+            when(FrameworkUtils.getAuthenticationRequestHandler()).thenReturn(authenticationRequestHandler);
+            doNothing().when(authenticationRequestHandler).handle(request, response, context);
+
+            // Mocking ApplicationManagementService behavior
+            ApplicationManagementServiceImpl mockApplicationManagementService =
+                    mock(ApplicationManagementServiceImpl.class);
+            applicationManagementService.when(ApplicationManagementService::getInstance)
+                    .thenReturn(mockApplicationManagementService);
+
+            // Mocking ServiceProvider and its properties
+            ServiceProvider serviceProvider = mock(ServiceProvider.class);
+            when(serviceProvider.isApplicationEnabled()).thenReturn(true);
+            when(mockApplicationManagementService.getServiceProviderByClientId(anyString(), anyString(), anyString()))
+                    .thenReturn(serviceProvider);
+
+            // Invoke handle method
+            defaultRequestCoordinator.handle(request, response);
         } catch (NullPointerException e) {
             Assert.fail("NullPointerException occurred: " + e.getMessage());
         } catch (Exception e) {

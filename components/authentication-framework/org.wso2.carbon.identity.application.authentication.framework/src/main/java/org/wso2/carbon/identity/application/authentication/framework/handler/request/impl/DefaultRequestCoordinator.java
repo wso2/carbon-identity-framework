@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -129,6 +130,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
     private static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
+    private static final String PROMPT_ID_PARAM = "promptId";
+    private static final String PROMPT_RESP_PARAM = "promptResp";
+    private static final String SESSION_LIMIT_HANDLER_PARAM = "terminateActiveSessionsAction";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -391,6 +395,21 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                 }
 
+                if (isPromptRequest(request)) {
+                    AuthGraphNode currentNode =
+                            (AuthGraphNode) context.getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
+                    // If the request is a prompt request returning from browser's back button, we need to handle it
+                    // by changing context to previous step.
+                    if (!(currentNode instanceof ShowPromptNode)) {
+                        currentNode = moveToPreviousShowPromptNode(currentNode);
+                        // If ShowPromptNode is not found, current node will be null.
+                        if (currentNode != null) {
+                            context.setCurrentStep(Math.max(0, context.getCurrentStep() - 1));
+                            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
+                        }
+                    }
+                }
+
                 setSPAttributeToRequest(request, context);
                 context.setReturning(returning);
 
@@ -544,6 +563,29 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } else if (responseWrapper.isWrappedByFramework()) {
             responseWrapper.write();
         }
+    }
+
+    private boolean isPromptRequest(HttpServletRequest request) {
+
+        // Checking for prompt request using promptId and promptResp parameters.
+        // Checking for session limit handler params since it shares same parameters with prompt request.
+        return StringUtils.isNotBlank(request.getParameter(PROMPT_ID_PARAM))
+                && Boolean.parseBoolean(request.getParameter(PROMPT_RESP_PARAM))
+                && StringUtils.isBlank(request.getParameter(SESSION_LIMIT_HANDLER_PARAM));
+    }
+
+    /**
+     * Move to the previous node in the authentication graph until show prompt node is reached.
+     *
+     * @param currentNode The current node in the authentication graph.
+     * @return The previous node in the authentication graph.
+     */
+    private AuthGraphNode moveToPreviousShowPromptNode(AuthGraphNode currentNode) {
+
+        while (currentNode != null && !(currentNode instanceof ShowPromptNode)) {
+            currentNode = currentNode.getParent();
+        }
+        return currentNode;
     }
 
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
