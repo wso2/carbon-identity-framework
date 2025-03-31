@@ -74,10 +74,8 @@ public class PreUpdatePasswordActionConverter implements ActionConverter {
 
         Map<String, Object> properties = actionDTO.getProperties();
         PasswordSharing.Builder passwordSharingBuilder = new PasswordSharing.Builder();
-        if (properties.get(PASSWORD_SHARING_FORMAT) != null) {
-            passwordSharingBuilder.format((PasswordSharing.Format) ((ActionPropertyForService) actionDTO.getProperties()
-                    .get(PASSWORD_SHARING_FORMAT)).getValue());
-        }
+        passwordSharingBuilder.format((PasswordSharing.Format) ((ActionPropertyForService) actionDTO.getProperties()
+                .get(PASSWORD_SHARING_FORMAT)).getValue());
         if (properties.get(CERTIFICATE) != null) {
             passwordSharingBuilder.certificate((Certificate) ((ActionPropertyForService) actionDTO.getProperties()
                     .get(CERTIFICATE)).getValue());
