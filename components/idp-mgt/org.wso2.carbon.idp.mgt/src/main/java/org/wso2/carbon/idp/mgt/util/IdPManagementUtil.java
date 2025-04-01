@@ -285,8 +285,7 @@ public class IdPManagementUtil {
      *
      * @param configurationDetails Configuration updates for governance configuration.
      */
-    public static void validatePasswordRecoveryPropertyValues(Map<String, String> configurationDetails,
-                                                              IdentityProviderProperty[] identityMgtProperties)
+    public static void validatePasswordRecoveryPropertyValues(Map<String, String> configurationDetails)
             throws IdentityProviderManagementClientException {
 
         if (configurationDetails.containsKey(NOTIFICATION_PASSWORD_ENABLE_PROPERTY) ||
@@ -332,6 +331,27 @@ public class IdPManagementUtil {
                         IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_CONNECTOR_CONFIGURATION,
                         "Enabling both email link and email otp options are not allowed.");
             }
+        }
+    }
+
+    public static void validatePasswordRecoveryWithCurrentAndPreviousConfigs(Map<String, String> configurationDetails,
+                                                                   IdentityProviderProperty[] identityMgtProperties)
+            throws IdentityProviderManagementClientException {
+
+        // Validate updating configs.
+        validatePasswordRecoveryPropertyValues(configurationDetails);
+
+
+        // Check weather current configurations include email OTP or Link since enabling both at same time is not
+        // allowed.
+        if (configurationDetails.containsKey(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY) ||
+                configurationDetails.containsKey(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY)) {
+
+            String emailLinkForPasswordRecoveryProp = configurationDetails.get(EMAIL_LINK_PASSWORD_RECOVERY_PROPERTY);
+            String emailOtpForPasswordRecoveryProp = configurationDetails.get(EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+
+            boolean isEmailLinkPasswordRecoveryEnabled = Boolean.parseBoolean(emailLinkForPasswordRecoveryProp);
+            boolean isEmailOtpPasswordRecoveryEnabled = Boolean.parseBoolean(emailOtpForPasswordRecoveryProp);
 
             // Checks for already existing configurations.
             boolean isEmailLinkCurrentlyEnabled = false;
@@ -344,6 +364,7 @@ public class IdPManagementUtil {
                     isEmailOtpCurrentlyEnabled = Boolean.parseBoolean(identityMgtProperty.getValue());
                 }
             }
+
             if (((isEmailLinkCurrentlyEnabled && StringUtils.isBlank(emailLinkForPasswordRecoveryProp)) ||
                     isEmailLinkPasswordRecoveryEnabled) && isEmailOtpPasswordRecoveryEnabled) {
                 throw IdPManagementUtil.handleClientException(
@@ -358,6 +379,7 @@ public class IdPManagementUtil {
             }
         }
     }
+
 
     /**
      * This method is used to validate the username recovery property values.

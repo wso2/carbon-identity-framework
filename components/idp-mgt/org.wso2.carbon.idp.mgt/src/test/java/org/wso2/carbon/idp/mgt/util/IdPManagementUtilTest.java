@@ -302,12 +302,10 @@ public class IdPManagementUtilTest {
     }
 
     @Test(dataProvider = "passwordRecoveryConfigs")
-    public void testValidatePasswordRecoveryPropertyValues(HashMap<String, String> configs,
-                                                           IdentityProviderProperty[] identityMgtProperties,
-                                                           boolean isValid) {
+    public void testValidatePasswordRecoveryPropertyValues(HashMap<String, String> configs, boolean isValid) {
 
         try {
-            IdPManagementUtil.validatePasswordRecoveryPropertyValues(configs, identityMgtProperties);
+            IdPManagementUtil.validatePasswordRecoveryPropertyValues(configs);
 
             if (!isValid) {
                 Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
@@ -319,8 +317,28 @@ public class IdPManagementUtilTest {
         }
     }
 
-    @DataProvider(name = "passwordRecoveryConfigs")
-    public Object[][] setPasswordRecoveryConfigs() {
+    @Test(dataProvider = "passwordRecoveryConfigsWithIdpMgtProps")
+    public void testValidatePasswordRecoveryWithCurrentAndPreviousConfigs(HashMap<String, String> configs,
+                                                                          IdentityProviderProperty[] identityProviderProperties,
+                                                                          boolean isValid) {
+
+        try {
+            IdPManagementUtil.validatePasswordRecoveryWithCurrentAndPreviousConfigs(configs,
+                    identityProviderProperties);
+
+            if (!isValid) {
+                Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
+            }
+        } catch (IdentityProviderManagementClientException e) {
+            if (isValid) {
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
+            }
+        }
+
+    }
+
+    @DataProvider(name = "passwordRecoveryConfigsWithIdpMgtProps")
+    public Object[][] setPasswordRecoveryConfigsWithIpdMgtProps() {
 
         IdentityProviderProperty[] passwordIdentityPropsAllFalse = getPasswordRecoveryIdentityProviderProperties(false,
                 false, false, false);
@@ -330,6 +348,29 @@ public class IdPManagementUtilTest {
 
         IdentityProviderProperty[] passwordIdentityPropsEmailOtpEnabled =
                 getPasswordRecoveryIdentityProviderProperties(false, false, true, false);
+
+        HashMap<String, String> recoveryConfig1 = getPasswordRecoveryConfigs(null, true, null, null);
+
+        HashMap<String, String> recoveryConfig2 = getPasswordRecoveryConfigs(null, null, true, null);
+
+        HashMap<String, String> recoveryConfig3 = getPasswordRecoveryConfigs(true, null, null, null);
+
+        HashMap<String, String> recoveryConfig4 = getPasswordRecoveryConfigs(null, true, false, null);
+
+        HashMap<String, String> recoveryConfig5 = getPasswordRecoveryConfigs(null, false, true, null);
+        return new Object[][]{
+                {recoveryConfig1, passwordIdentityPropsEmailOtpEnabled, false},
+                {recoveryConfig1, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig2, passwordIdentityPropsEmailLinkEnabled, false},
+                {recoveryConfig2, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig3, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig4, passwordIdentityPropsEmailOtpEnabled, true},
+                {recoveryConfig5, passwordIdentityPropsEmailLinkEnabled, true}
+        };
+    }
+
+    @DataProvider(name = "passwordRecoveryConfigs")
+    public Object[][] setPasswordRecoveryConfigs() {
 
         HashMap<String, String> recoveryConfig1 = getPasswordRecoveryConfigs(true, true, null, null);
 
@@ -341,33 +382,33 @@ public class IdPManagementUtilTest {
 
         HashMap<String, String> recoveryConfig5 = getPasswordRecoveryConfigs(false, false, false, true);
 
-        HashMap<String, String> recoveryConfig6 = getPasswordRecoveryConfigs(null, true, true, false);
+        HashMap<String, String> recoveryConfig6 = getPasswordRecoveryConfigs(null, true, null, null);
 
-        HashMap<String, String> recoveryConfig7 = getPasswordRecoveryConfigs(null, null, true, null);
+        HashMap<String, String> recoveryConfig7 = getPasswordRecoveryConfigs(null, null, null, true);
 
-        HashMap<String, String> recoveryConfig8 = getPasswordRecoveryConfigs(null, true, null, null);
+        HashMap<String, String> recoveryConfig8 = getPasswordRecoveryConfigs(null, false, null, null);
 
-        HashMap<String, String> recoveryConfig9 = getPasswordRecoveryConfigs(null, null, null, true);
+        HashMap<String, String> recoveryConfig9 = getPasswordRecoveryConfigs(null, true, false, null);
 
-        HashMap<String, String> recoveryConfig10 = getPasswordRecoveryConfigs(null, false, null, null);
+        HashMap<String, String> recoveryConfig10 = getPasswordRecoveryConfigs(null, false, true, null);
 
-        HashMap<String, String> recoveryConfig11 = getPasswordRecoveryConfigs(null, true, false, null);
+        HashMap<String, String> recoveryConfig11 = getPasswordRecoveryConfigs(null, true, true, false);
 
-        HashMap<String, String> recoveryConfig12 = getPasswordRecoveryConfigs(null, false, true, null);
+        HashMap<String, String> recoveryConfig12 = getPasswordRecoveryConfigs(null, null, true, null);
 
         return new Object[][]{
-                {recoveryConfig1, passwordIdentityPropsAllFalse, true},
-                {recoveryConfig2, passwordIdentityPropsAllFalse, false},
-                {recoveryConfig3, passwordIdentityPropsAllFalse, false},
-                {recoveryConfig4, passwordIdentityPropsAllFalse, false},
-                {recoveryConfig5, passwordIdentityPropsAllFalse, false},
-                {recoveryConfig6, passwordIdentityPropsAllFalse, false},
-                {recoveryConfig7, passwordIdentityPropsEmailLinkEnabled, false},
-                {recoveryConfig8, passwordIdentityPropsEmailOtpEnabled, false},
-                {recoveryConfig9, passwordIdentityPropsAllFalse, true},
-                {recoveryConfig10, passwordIdentityPropsEmailLinkEnabled, true},
-                {recoveryConfig11, passwordIdentityPropsEmailOtpEnabled, true},
-                {recoveryConfig12, passwordIdentityPropsEmailLinkEnabled, true}
+                {recoveryConfig1, true},
+                {recoveryConfig2, false},
+                {recoveryConfig3, false},
+                {recoveryConfig4, false},
+                {recoveryConfig5, false},
+                {recoveryConfig6, true},
+                {recoveryConfig7, true},
+                {recoveryConfig8, true},
+                {recoveryConfig9, true},
+                {recoveryConfig10, true},
+                {recoveryConfig11, false},
+                {recoveryConfig12, true}
         };
     }
 
