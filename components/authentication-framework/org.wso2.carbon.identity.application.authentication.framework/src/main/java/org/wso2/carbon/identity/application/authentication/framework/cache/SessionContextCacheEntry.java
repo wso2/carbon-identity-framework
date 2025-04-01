@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.core.cache.CacheEntry;
 
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,6 +38,17 @@ public class SessionContextCacheEntry extends CacheEntry {
     private OptimizedSessionContext optimizedSessionContext;
     String loggedInUser;
     private long accessedTime;
+    private final Properties properties = new Properties();
+
+    public void addProperty(Object propName, Object propValue) {
+
+        properties.put(propName, propValue);
+    }
+
+    public Object getProperty(Object propName) {
+
+        return properties.get(propName);
+    }
 
     public SessionContextCacheEntry() {
         setAccessedTime();
