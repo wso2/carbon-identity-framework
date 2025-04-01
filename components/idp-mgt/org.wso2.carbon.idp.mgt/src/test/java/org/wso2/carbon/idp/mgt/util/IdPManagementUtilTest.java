@@ -61,6 +61,13 @@ public class IdPManagementUtilTest {
 
     private static final String TRUE_STRING = "true";
     private static final String FALSE_STRING = "false";
+    private static final String PASSWORD_RECOVERY_ENABLE = "Recovery.Notification.Password.Enable";
+    private static final String PASSWORD_RECOVERY_EMAIL_LINK_ENABLE
+            = "Recovery.Notification.Password.emailLink.Enable";
+    private static final String PASSWORD_RECOVERY_EMAIL_OTP_ENABLE =
+            "Recovery.Notification.Password.OTP.SendOTPInEmail";
+    private static final String PASSWORD_RECOVERY_SMS_OTP_ENABLE = "Recovery.Notification.Password.smsOtp.Enable";
+
 
     @Mock
     private IdentityProviderManager mockedIdentityProviderManager;
@@ -310,23 +317,98 @@ public class IdPManagementUtilTest {
         }
     }
 
+    @Test(dataProvider = "passwordRecoveryConfigsWithIdpMgtProps")
+    public void testValidatePasswordRecoveryWithCurrentAndPreviousConfigs(HashMap<String, String> configs,
+                                                                          IdentityProviderProperty[] identityProviderProperties,
+                                                                          boolean isValid) {
+
+        try {
+            IdPManagementUtil.validatePasswordRecoveryWithCurrentAndPreviousConfigs(configs,
+                    identityProviderProperties);
+
+            if (!isValid) {
+                Assert.fail("Expected an  IdentityProviderManagementClientException but no exception was thrown.");
+            }
+        } catch (IdentityProviderManagementClientException e) {
+            if (isValid) {
+                Assert.fail("Did not expect IdentityProviderManagementClientException.", e);
+            }
+        }
+
+    }
+
+    @DataProvider(name = "passwordRecoveryConfigsWithIdpMgtProps")
+    public Object[][] setPasswordRecoveryConfigsWithIpdMgtProps() {
+
+        IdentityProviderProperty[] passwordIdentityPropsAllFalse = getPasswordRecoveryIdentityProviderProperties(false,
+                false, false, false);
+
+        IdentityProviderProperty[] passwordIdentityPropsEmailLinkEnabled =
+                getPasswordRecoveryIdentityProviderProperties(false, true, false, false);
+
+        IdentityProviderProperty[] passwordIdentityPropsEmailOtpEnabled =
+                getPasswordRecoveryIdentityProviderProperties(false, false, true, false);
+
+        HashMap<String, String> recoveryConfig1 = getPasswordRecoveryConfigs(null, true, null, null);
+
+        HashMap<String, String> recoveryConfig2 = getPasswordRecoveryConfigs(null, null, true, null);
+
+        HashMap<String, String> recoveryConfig3 = getPasswordRecoveryConfigs(true, null, null, null);
+
+        HashMap<String, String> recoveryConfig4 = getPasswordRecoveryConfigs(null, true, false, null);
+
+        HashMap<String, String> recoveryConfig5 = getPasswordRecoveryConfigs(null, false, true, null);
+        return new Object[][]{
+                {recoveryConfig1, passwordIdentityPropsEmailOtpEnabled, false},
+                {recoveryConfig1, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig2, passwordIdentityPropsEmailLinkEnabled, false},
+                {recoveryConfig2, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig3, passwordIdentityPropsAllFalse, true},
+                {recoveryConfig4, passwordIdentityPropsEmailOtpEnabled, true},
+                {recoveryConfig5, passwordIdentityPropsEmailLinkEnabled, true}
+        };
+    }
+
     @DataProvider(name = "passwordRecoveryConfigs")
     public Object[][] setPasswordRecoveryConfigs() {
 
+        HashMap<String, String> recoveryConfig1 = getPasswordRecoveryConfigs(true, true, null, null);
+
+        HashMap<String, String> recoveryConfig2 = getPasswordRecoveryConfigs(true, false, false, false);
+
+        HashMap<String, String> recoveryConfig3 = getPasswordRecoveryConfigs(false, true, false, false);
+
+        HashMap<String, String> recoveryConfig4 = getPasswordRecoveryConfigs(false, false, true, false);
+
+        HashMap<String, String> recoveryConfig5 = getPasswordRecoveryConfigs(false, false, false, true);
+
+        HashMap<String, String> recoveryConfig6 = getPasswordRecoveryConfigs(null, true, null, null);
+
+        HashMap<String, String> recoveryConfig7 = getPasswordRecoveryConfigs(null, null, null, true);
+
+        HashMap<String, String> recoveryConfig8 = getPasswordRecoveryConfigs(null, false, null, null);
+
+        HashMap<String, String> recoveryConfig9 = getPasswordRecoveryConfigs(null, true, false, null);
+
+        HashMap<String, String> recoveryConfig10 = getPasswordRecoveryConfigs(null, false, true, null);
+
+        HashMap<String, String> recoveryConfig11 = getPasswordRecoveryConfigs(null, true, true, false);
+
+        HashMap<String, String> recoveryConfig12 = getPasswordRecoveryConfigs(null, null, true, null);
+
         return new Object[][]{
-                {getPasswordRecoveryConfigs(true, true, null, null), true},
-                {getPasswordRecoveryConfigs(null, true, null, null), true},
-                {getPasswordRecoveryConfigs(null, null, true, null), true},
-                {getPasswordRecoveryConfigs(null, null, null, true), true},
-                {getPasswordRecoveryConfigs(true, null, null, null), true},
-                {getPasswordRecoveryConfigs(true, false, true, null), true},
-                {getPasswordRecoveryConfigs(true, false, null, null), true},
-                {getPasswordRecoveryConfigs(true, false, false, null), true},
-                {getPasswordRecoveryConfigs(true, false, false, true), true},
-                {getPasswordRecoveryConfigs(true, false, false, false), false},
-                {getPasswordRecoveryConfigs(false, true, null, null), false},
-                {getPasswordRecoveryConfigs(false, false, true, false), false},
-                {getPasswordRecoveryConfigs(false, false, false, true), false}
+                {recoveryConfig1, true},
+                {recoveryConfig2, false},
+                {recoveryConfig3, false},
+                {recoveryConfig4, false},
+                {recoveryConfig5, false},
+                {recoveryConfig6, true},
+                {recoveryConfig7, true},
+                {recoveryConfig8, true},
+                {recoveryConfig9, true},
+                {recoveryConfig10, true},
+                {recoveryConfig11, false},
+                {recoveryConfig12, true}
         };
     }
 
@@ -358,6 +440,36 @@ public class IdPManagementUtilTest {
         }
 
         return configs;
+    }
+
+    private IdentityProviderProperty[] getPasswordRecoveryIdentityProviderProperties(
+            boolean passwordRecoveryEnable,
+            boolean passwordRecoveryEmailLinkEnable,
+            boolean passwordRecoveryEmailOtpEnable,
+            boolean passwordRecoverySmsOtpEnable) {
+
+        IdentityProviderProperty identityProviderProperty1 = new IdentityProviderProperty();
+        identityProviderProperty1.setName(PASSWORD_RECOVERY_ENABLE);
+        identityProviderProperty1.setValue(passwordRecoveryEnable ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty2 = new IdentityProviderProperty();
+        identityProviderProperty2.setName(PASSWORD_RECOVERY_EMAIL_LINK_ENABLE);
+        identityProviderProperty2.setValue(passwordRecoveryEmailLinkEnable ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty3 = new IdentityProviderProperty();
+        identityProviderProperty3.setName(PASSWORD_RECOVERY_EMAIL_OTP_ENABLE);
+        identityProviderProperty3.setValue(passwordRecoveryEmailOtpEnable ? TRUE_STRING : FALSE_STRING);
+
+        IdentityProviderProperty identityProviderProperty4 = new IdentityProviderProperty();
+        identityProviderProperty4.setName(PASSWORD_RECOVERY_SMS_OTP_ENABLE);
+        identityProviderProperty4.setValue(passwordRecoverySmsOtpEnable ? TRUE_STRING : FALSE_STRING);
+
+        return new IdentityProviderProperty[]{
+                identityProviderProperty1,
+                identityProviderProperty2,
+                identityProviderProperty3,
+                identityProviderProperty4
+        };
     }
 
     @Test(dataProvider = "setSuccessConfigDetails")
