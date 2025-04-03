@@ -1921,10 +1921,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * service provider.
      *
      * @param serviceProviderProperties List of service provider properties.
+     * @param tenantID Tenant ID.
      * @return Certificate content.
      * @throws CertificateRetrievingException If an error occurs while retrieving the certificate.
      */
-    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties)
+    private String getCertificateContent(List<ServiceProviderProperty> serviceProviderProperties, int tenantID)
             throws CertificateRetrievingException {
 
         String certificateReferenceId = null;
@@ -1939,7 +1940,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             try {
                 certificate = ApplicationManagementServiceComponentHolder.getInstance()
                         .getApplicationCertificateMgtService().getCertificate(Integer.parseInt(certificateReferenceId),
-                                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                                IdentityTenantUtil.getTenantDomain(tenantID));
 
                 if (certificate != null) {
                     return certificate.getCertificateContent();
@@ -2292,7 +2293,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
 
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
-            serviceProvider.setCertificateContent(getCertificateContent(propertyList));
+            serviceProvider.setCertificateContent(getCertificateContent(propertyList, tenantID));
 
             // Set role associations.
             serviceProvider.setAssociatedRolesConfig(
@@ -2449,7 +2450,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         readAndSetConfigurationsFromProperties(propertyList,
                                 serviceProvider.getLocalAndOutBoundAuthenticationConfig());
                         serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[0]));
-                        serviceProvider.setCertificateContent(getCertificateContent(propertyList));
+                        serviceProvider.setCertificateContent(getCertificateContent(propertyList, tenantID));
                     }
                     if (TEMPLATE_ID_SP_PROPERTY_NAME.equals(requiredAttribute)) {
                         serviceProvider.setTemplateId(getTemplateId(propertyList));
