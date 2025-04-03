@@ -29,12 +29,15 @@ import static org.wso2.carbon.identity.user.registration.engine.Constants.USERNA
 public class RegisteringUser implements Serializable {
 
     private static final long serialVersionUID = -1873658743998134877L;
-    private final Map<String, Object> claims = new HashMap<>();
+    private final Map<String, String> claims = new HashMap<>();
     private final Map<String, char[]> userCredentials = new HashMap<>();
     private String username;
 
     public String getUsername() {
 
+        if (username == null) {
+            username = claims.get(USERNAME_CLAIM_URI);
+        }
         return username;
     }
 
@@ -44,12 +47,12 @@ public class RegisteringUser implements Serializable {
         this.claims.put(USERNAME_CLAIM_URI, username);
     }
 
-    public Map<String, Object> getClaims() {
+    public Map<String, String> getClaims() {
 
         return claims;
     }
 
-    public void addClaims(Map<String, Object> claims) {
+    public void addClaims(Map<String, String> claims) {
 
         this.claims.putAll(claims);
     }

@@ -28,15 +28,27 @@ public class Constants {
     public static final String STATUS_INCOMPLETE = "INCOMPLETE";
     public static final String STATUS_PROMPT_ONLY = "PROMPT_ONLY";
     // Constants for user attributes.
+    public static final String CLAIM_URI_PREFIX = "http://wso2.org/claims/";
     public static final String USERNAME_CLAIM_URI = "http://wso2.org/claims/username";
     public static final String PASSWORD_KEY = "password";
     // Constants for DataDTO parameters.
     public static final String REDIRECT_URL = "redirectUrl";
     public static final String VALIDATIONS = "validations";
     public static final String IDENTIFIER = "identifier";
+    public static final String REQUIRED = "required";
     public static final String ERROR = "error";
     // Constants for self registration configurations.
     public static final String SELF_REGISTRATION_DEFAULT_USERSTORE_CONFIG = "SelfRegistration.DefaultUserStore";
+
+    // Constants related for OTP field length handling.
+    public static final String OTP_LENGTH = "otpLength";
+    public static final String OTP_VARIANT = "OTP";
+    public static final String LENGTH_CONFIG = "length";
+
+    public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
+
+    // Recaptcha related constants.
+    public static final String G_RECAPTCHA_RESPONSE = "g-recaptcha-response";
 
     private Constants() {
 
@@ -138,6 +150,12 @@ public class Constants {
         ERROR_CODE_REQUEST_PROCESSING_FAILURE("60007",
                 "Error while processing the registration request.",
                 "%s"),
+        ERROR_CODE_INVALID_USER_INPUT("60008",
+                "Invalid user inputs.",
+                "Invalid user inputs provided for the registration request."),
+        ERROR_CODE_INVALID_ACTION_ID("60009",
+                "Invalid action id.",
+                "The provided action id: %s is invalid."),
         ;
 
         private static final String ERROR_PREFIX = "RFE";
