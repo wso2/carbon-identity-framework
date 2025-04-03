@@ -164,7 +164,7 @@ public class UserOnboardingExecutor implements Executor {
     private String resolveUsername(RegisteringUser user, String flowId) throws RegistrationEngineException {
 
         String username = Optional.ofNullable(user.getUsername())
-                .orElseGet(() -> Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse("").toString());
+                .orElseGet(() -> Optional.ofNullable(user.getClaims().get(USERNAME_CLAIM_URI)).orElse(""));
         if (StringUtils.isBlank(username)) {
             throw handleClientException(ERROR_CODE_USERNAME_NOT_PROVIDED, flowId);
         }
