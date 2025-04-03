@@ -155,6 +155,7 @@
                             org.wso2.carbon.identity.user.registration.engine,
                             org.wso2.carbon.identity.user.registration.engine.cache,
                             org.wso2.carbon.identity.user.registration.engine.model,
+                            org.wso2.carbon.identity.user.registration.engine.services,
                             org.wso2.carbon.identity.user.registration.engine.exception,
                             org.wso2.carbon.identity.user.registration.engine.graph;
                             version="${carbon.identity.package.export.version}"

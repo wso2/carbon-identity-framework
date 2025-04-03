@@ -83,16 +83,10 @@ public class UserOnboardingExecutor implements Executor {
     public ExecutorResponse execute(RegistrationContext context) throws RegistrationEngineException {
 
         RegisteringUser user = updateUserProfile(context);
+        Map<String, String> userClaims = user.getClaims();
         Map<String, char[]> credentials = user.getUserCredentials();
-
         char[] password =
                 credentials.getOrDefault(PASSWORD_KEY, new DefaultPasswordGenerator().generatePassword());
-
-        Map<String, Object> claims = user.getClaims();
-        Map<String, String> userClaims = new HashMap<>();
-        for (Map.Entry<String, Object> entry : claims.entrySet()) {
-            userClaims.put(entry.getKey(), String.valueOf(entry.getValue()));
-        }
 
         try {
             String userStoreDomainName = resolveUserStoreDomain(user.getUsername());
