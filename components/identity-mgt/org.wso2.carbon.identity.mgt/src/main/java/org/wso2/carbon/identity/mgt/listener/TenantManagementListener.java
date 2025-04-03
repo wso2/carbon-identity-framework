@@ -54,7 +54,7 @@ public class TenantManagementListener implements TenantMgtListener {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantInfo.getTenantDomain());
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantInfo.getTenantId());
-            UserIdentityManagementUtil.loadDefaultChallenges();
+//            UserIdentityManagementUtil.loadDefaultChallenges();
 
             IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                     (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
