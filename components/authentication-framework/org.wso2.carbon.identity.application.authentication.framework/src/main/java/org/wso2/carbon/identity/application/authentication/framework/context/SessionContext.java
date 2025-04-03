@@ -39,6 +39,7 @@ public class SessionContext implements Serializable {
     private SessionAuthHistory sessionAuthHistory = new SessionAuthHistory();
     // This authenticatedIdPsOfApp has the mapping of application and the map of authenticated IDPs.
     private Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp;
+    private String impersonatedUser;
 
     public Map<String, SequenceConfig> getAuthenticatedSequences() {
         return authenticatedSequences;
@@ -72,6 +73,16 @@ public class SessionContext implements Serializable {
             this.authenticatedIdPsOfApp = new HashMap<>();
         }
         this.authenticatedIdPsOfApp.put(app, authenticatedIdPsOfApp);
+    }
+
+    public String getImpersonatedUser() {
+
+        return impersonatedUser;
+    }
+
+    public void setImpersonatedUser(String impersonatedUser) {
+
+        this.impersonatedUser = impersonatedUser;
     }
 
     public boolean isRememberMe() {
