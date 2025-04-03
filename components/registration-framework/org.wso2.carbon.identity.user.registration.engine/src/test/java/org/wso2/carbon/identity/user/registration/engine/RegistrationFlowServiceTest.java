@@ -18,9 +18,12 @@
 
 package org.wso2.carbon.identity.user.registration.engine;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
@@ -31,6 +34,7 @@ import org.wso2.carbon.identity.user.registration.engine.model.RegistrationConte
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
+import org.wso2.carbon.identity.user.registration.mgt.model.DataDTO;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
 import static org.testng.Assert.assertEquals;
 import static org.mockito.Mockito.mockStatic;
@@ -95,6 +99,7 @@ public class RegistrationFlowServiceTest {
                 .flowId(testRegContext.getContextIdentifier())
                 .flowStatus("INCOMPLETE")
                 .stepType("VIEW")
+                .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
                 .build();
 
         try (MockedStatic<RegistrationFlowEngineUtils> utilsMockedStatic = mockStatic(
@@ -119,6 +124,7 @@ public class RegistrationFlowServiceTest {
                 .flowId(testRegContext.getContextIdentifier())
                 .flowStatus("INCOMPLETE")
                 .stepType("VIEW")
+                .data(new DataDTO.Builder().components(new ArrayList<>()).url(StringUtils.EMPTY).build())
                 .build();
 
         String flowId = testRegContext.getContextIdentifier();

@@ -127,6 +127,9 @@ public class InputValidationService {
             throws RegistrationEngineServerException {
 
         processCurrentUserInputs(context);
+        if (dataDTO == null) {
+            return;
+        }
         processStepInputs(dataDTO, context);
         processFieldLengths(dataDTO, context.getCurrentNodeResponse());
         processValidations(dataDTO, context);
