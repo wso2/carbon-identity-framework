@@ -47,6 +47,9 @@ public class Constants {
 
     public static final String DEFAULT_ACTION = "DEFAULT_ACTION";
 
+    // Recaptcha related constants.
+    public static final String G_RECAPTCHA_RESPONSE = "g-recaptcha-response";
+
     private Constants() {
 
     }
