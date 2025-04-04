@@ -6217,8 +6217,12 @@ public class IdPManagementDAO {
                                                                    List<IdentityProviderProperty> idpProperties)
             throws SQLException {
 
-        // Enable all recovery options when Recovery.Notification.Username.Enable value is set as enabled.
-        // This keeps functionality consistent with previous API versions for migrating customers.
+        /*
+        Enable all recovery options when Recovery.Notification.Username.Enable value is true and
+        OnDemandConfig.OnInitialUse.EnableSMSUsernameRecoveryIfConnectorEnabled config is enabled in the toml.
+        This keeps functionality consistent with previous API versions for migrating customers.
+        */
+
         idpProperties.stream().filter(
                         idp -> IdPManagementConstants.
                                 EMAIL_USERNAME_RECOVERY_PROPERTY.equals(idp.getName())).findFirst()
@@ -6228,7 +6232,7 @@ public class IdPManagementDAO {
                             IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                             identityProviderProperty.setName(
                                     IdPManagementConstants.EMAIL_USERNAME_RECOVERY_PROPERTY);
-                            identityProviderProperty.setValue("true");
+                            identityProviderProperty.setValue(String.valueOf(true));
                             idpProperties.add(identityProviderProperty);
                         });
         if (Boolean.parseBoolean(IdentityUtil.getProperty(ENABLE_SMS_USERNAME_RECOVERY_IF_CONNECTOR_ENABLED))) {
@@ -6241,7 +6245,7 @@ public class IdPManagementDAO {
                                 IdentityProviderProperty identityProviderProperty = new IdentityProviderProperty();
                                 identityProviderProperty.setName(
                                         IdPManagementConstants.SMS_USERNAME_RECOVERY_PROPERTY);
-                                identityProviderProperty.setValue("true");
+                                identityProviderProperty.setValue(String.valueOf(true));
                                 idpProperties.add(identityProviderProperty);
                             });
         }
