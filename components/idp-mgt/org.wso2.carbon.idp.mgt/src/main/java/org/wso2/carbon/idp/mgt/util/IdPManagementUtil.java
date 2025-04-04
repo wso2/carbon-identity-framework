@@ -46,8 +46,8 @@ import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_LINK_PAS
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.NOTIFICATION_PASSWORD_ENABLE_PROPERTY;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.OFFLINE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.PRESERVE_LOCALLY_ADDED_CLAIMS;
@@ -447,15 +447,15 @@ public class IdPManagementUtil {
             throws IdentityProviderManagementClientException {
 
         if (configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY) ||
-                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY) ||
-                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY)) {
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY) ||
+                configurationDetails.containsKey(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY)) {
 
             String adminPasswordResetOfflineProp =
                     configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY);
             String adminPasswordResetEmailOtpProp =
-                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY);
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY);
             String adminPasswordResetEmailLinkProp =
-                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY);
+                    configurationDetails.get(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
 
             boolean isAdminPasswordResetOfflineEnabled = Boolean.parseBoolean(adminPasswordResetOfflineProp);
             boolean isAdminPasswordResetEmailOtpEnabled = Boolean.parseBoolean(adminPasswordResetEmailOtpProp);
@@ -473,10 +473,10 @@ public class IdPManagementUtil {
                 if (ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY.equals(identityMgtProperty.getName())) {
                     isAdminPasswordResetOfflineCurrentlyEnabled =
                             Boolean.parseBoolean(identityMgtProperty.getValue());
-                } else if (ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
+                } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY.equals(identityMgtProperty.getName())) {
                     isAdminPasswordResetEmailOtpCurrentlyEnabled =
                             Boolean.parseBoolean(identityMgtProperty.getValue());
-                } else if (ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY.equals(identityMgtProperty.getName())) {
+                } else if (ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY.equals(identityMgtProperty.getName())) {
                     isAdminPasswordResetEmailLinkCurrentlyEnabled =
                             Boolean.parseBoolean(identityMgtProperty.getValue());
                 }

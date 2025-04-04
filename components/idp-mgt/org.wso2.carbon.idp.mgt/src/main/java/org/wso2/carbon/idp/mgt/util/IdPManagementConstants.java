@@ -133,8 +133,8 @@ public class IdPManagementConstants {
 
     // Resident IDP forced password reset configs.
     public static final String ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY = "Recovery.AdminPasswordReset.Offline";
-    public static final String ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY = "Recovery.AdminPasswordReset.OTP";
-    public static final String ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY = "Recovery.AdminPasswordReset" +
+    public static final String ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY = "Recovery.AdminPasswordReset.OTP";
+    public static final String ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY = "Recovery.AdminPasswordReset" +
             ".RecoveryLink";
 
     // Resident IDP forced password reset options.

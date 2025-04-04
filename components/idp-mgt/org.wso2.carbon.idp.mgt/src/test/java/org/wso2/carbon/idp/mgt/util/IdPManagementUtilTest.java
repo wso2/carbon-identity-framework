@@ -52,8 +52,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_OFFLINE_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY;
-import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY;
 
 /**
  * Unit tests for IdPManagementUtil.
@@ -551,11 +551,11 @@ public class IdPManagementUtilTest {
 
         HashMap<String, String> configs = new HashMap<>();
         if (isEmailLinkEnabled != null) {
-            configs.put(ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY,
+            configs.put(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY,
                     isEmailLinkEnabled ? TRUE_STRING : FALSE_STRING);
         }
         if (isEmailOtpEnabled != null) {
-            configs.put(ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY,
+            configs.put(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY,
                     isEmailOtpEnabled ? TRUE_STRING : FALSE_STRING);
         }
         if (isOffilneEnabled != null) {
@@ -569,11 +569,11 @@ public class IdPManagementUtilTest {
             boolean isEmailLinkEnabled, boolean isEmailOtpEnabled, boolean isOfflineEnabled) {
 
         IdentityProviderProperty identityProviderProperty1 = new IdentityProviderProperty();
-        identityProviderProperty1.setName(ENABLE_ADMIN_PASSWORD_RESET_WITH_LINK_PROPERTY);
+        identityProviderProperty1.setName(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_LINK_PROPERTY);
         identityProviderProperty1.setValue(isEmailLinkEnabled ? TRUE_STRING : FALSE_STRING);
 
         IdentityProviderProperty identityProviderProperty2 = new IdentityProviderProperty();
-        identityProviderProperty2.setName(ENABLE_ADMIN_PASSWORD_RESET_WITH_OTP_PROPERTY);
+        identityProviderProperty2.setName(ENABLE_ADMIN_PASSWORD_RESET_EMAIL_OTP_PROPERTY);
         identityProviderProperty2.setValue(isEmailOtpEnabled ? TRUE_STRING : FALSE_STRING);
 
         IdentityProviderProperty identityProviderProperty3 = new IdentityProviderProperty();
