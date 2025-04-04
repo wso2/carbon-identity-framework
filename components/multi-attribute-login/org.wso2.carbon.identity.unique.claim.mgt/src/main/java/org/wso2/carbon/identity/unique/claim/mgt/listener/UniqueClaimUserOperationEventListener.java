@@ -40,9 +40,11 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR;
 import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes.ERROR_CODE_DUPLICATE_CLAIM_VALUE;
@@ -450,19 +452,33 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         String multiAttributeSeparator = userStoreManager.getSecondaryUserStoreManager(domainName)
                 .getRealmConfiguration().getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
 
-        String[] userList;
-        for (String claimValuePart : claimValue.split(multiAttributeSeparator)) {
+        String existingUserClaimValue = userStoreManager.getUserClaimValues(username, new String[] {claimUri},
+                UserCoreConstants.DEFAULT_PROFILE).get(claimUri);
+        List<String> existingClaimValues = new ArrayList<>();
+        if (StringUtils.isNotEmpty(existingUserClaimValue)) {
+            existingClaimValues = Arrays.stream(existingUserClaimValue.split(multiAttributeSeparator))
+                    .collect(Collectors.toList());
+        }
+        List<String> currentClaimValues = Arrays.stream(claimValue.split(multiAttributeSeparator))
+                .collect(Collectors.toList());
+        currentClaimValues.removeAll(existingClaimValues);
+
+        for (String claimValuePart : currentClaimValues) {
+            String[] userList;
             if (ClaimConstants.ClaimUniquenessScope.WITHIN_USERSTORE.equals(uniquenessScope)) {
                 String claimValueWithDomain = domainName + UserCoreConstants.DOMAIN_SEPARATOR + claimValuePart;
                 userList = userStoreManager.getUserList(claimUri, claimValueWithDomain, profile);
             } else {
-                userList = userStoreManager.getUserList(claimUri, claimValue, profile);
+                userList = userStoreManager.getUserList(claimUri, claimValuePart, profile);
+            }
+            if (userList.length > 1) {
+                return true;
             }
             if (userList.length == 1) {
                 String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(username, domainName);
-                return !usernameWithUserStoreDomain.equalsIgnoreCase(userList[0]);
-            } else {
-                return userList.length != 0;
+                if (!usernameWithUserStoreDomain.equalsIgnoreCase(userList[0])) {
+                    return true;
+                }
             }
         }
         return false;
