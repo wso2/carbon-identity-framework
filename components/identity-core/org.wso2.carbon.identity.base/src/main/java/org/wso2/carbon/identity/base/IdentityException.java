@@ -104,6 +104,33 @@ public class IdentityException extends Exception {
         return exception;
     }
 
+    /**
+     * Creates and returns an instance of a specified exception class that extends {@link IdentityException}.
+     * The specified exception class should support the constructor arguments used in this method:
+     * {@code (String errorCode, String message, String description, Throwable cause)}.
+     *
+     * @param <T>            The type of exception to be created, which must extend {@link IdentityException}.
+     * @param exceptionClass The class type of the exception to be instantiated.
+     * @param errorCode      The error code associated with the exception.
+     * @param message        A brief message describing the error.
+     * @param description    A detailed description of the error.
+     * @param cause          The underlying cause of the exception.
+     * @return An instance of the specified exception type with the provided details.
+     * @throws IdentityRuntimeException If the specified exception class cannot be instantiated.
+     */
+    public static <T extends IdentityException> T error(Class<T> exceptionClass, String errorCode, String message,
+                                                        String description, Throwable cause) {
+
+        T exception;
+        try {
+            exception = exceptionClass.getConstructor(String.class, String.class, String.class, Throwable.class).
+                    newInstance(errorCode, message, description, cause);
+        } catch (Exception e) {
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
+        }
+        return exception;
+    }
+
     public String getErrorCode() {
         return errorCode;
     }
