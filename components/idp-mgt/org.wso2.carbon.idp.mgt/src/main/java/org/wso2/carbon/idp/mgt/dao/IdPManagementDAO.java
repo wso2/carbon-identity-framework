@@ -6218,9 +6218,9 @@ public class IdPManagementDAO {
             throws SQLException {
 
         /*
-        Enable all recovery options when Recovery.Notification.Username.Enable value is true and
-        OnDemandConfig.OnInitialUse.EnableSMSUsernameRecoveryIfConnectorEnabled config is enabled in the toml.
-        This keeps functionality consistent with previous API versions for migrating customers.
+         Enable all recovery options when Recovery.Notification.Username.Enable value is true and
+         OnDemandConfig.OnInitialUse.EnableSMSUsernameRecoveryIfConnectorEnabled config is enabled in the toml.
+         This keeps functionality consistent with previous API versions for migrating customers.
         */
 
         idpProperties.stream().filter(
