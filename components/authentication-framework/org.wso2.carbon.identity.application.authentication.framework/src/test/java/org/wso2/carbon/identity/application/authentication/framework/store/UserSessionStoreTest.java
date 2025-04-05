@@ -391,7 +391,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
                 stmt.setString(2, "AppAuthFrameworkSessionContextCache");
                 stmt.setString(3, operation);
                 stmt.setLong(4, timeCreated);
-                stmt.setInt(5, TENANT_ID);
+                stmt.setInt(5, operation.equals("DELETE") ? -1 : TENANT_ID);
                 stmt.executeUpdate();
             }
             connection.commit();
