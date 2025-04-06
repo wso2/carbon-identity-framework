@@ -18,16 +18,15 @@
 
 package org.wso2.carbon.identity.user.registration.engine.model;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Model class to represent the response of a node in the registration sequence.
  */
-public class Response implements Serializable {
+public class Response {
 
-    private static final long serialVersionUID = 123456789L;
     private String status;
     private String type;
     private String error;

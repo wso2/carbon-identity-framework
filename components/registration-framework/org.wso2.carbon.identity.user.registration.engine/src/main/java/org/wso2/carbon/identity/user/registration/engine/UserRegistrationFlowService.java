@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
-import org.wso2.carbon.identity.user.registration.engine.services.InputValidationService;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
 
@@ -60,7 +59,6 @@ public class UserRegistrationFlowService {
         try {
             RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
-            InputValidationService.getInstance().handleStepInputs(step.getData(), context);
             RegistrationFlowEngineUtils.addRegContextToCache(context);
             return step;
         } catch (RegistrationEngineException e) {
@@ -83,7 +81,6 @@ public class UserRegistrationFlowService {
         try {
             RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
             context.getUserInputData().putAll(inputs);
-            InputValidationService.getInstance().validateInputs(actionId, context);
             context.setCurrentActionId(actionId);
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
@@ -91,7 +88,6 @@ public class UserRegistrationFlowService {
             } else {
                 RegistrationFlowEngineUtils.addRegContextToCache(context);
             }
-            InputValidationService.getInstance().handleStepInputs(step.getData(), context);
             return step;
         } catch (RegistrationEngineException e) {
             RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);

@@ -18,31 +18,29 @@
 
 package org.wso2.carbon.identity.user.registration.engine.util;
 
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
+import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
+import java.util.UUID;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCache;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCacheEntry;
 import org.wso2.carbon.identity.user.registration.engine.cache.RegistrationContextCacheKey;
-import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineClientException;
-import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
-import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
+import org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
+import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineClientException;
 import org.wso2.carbon.identity.user.registration.mgt.exception.RegistrationFrameworkException;
 import org.wso2.carbon.identity.user.registration.mgt.model.RegistrationGraphConfig;
-
-import java.util.UUID;
-
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_GET_DEFAULT_REG_FLOW_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_INVALID_FLOW_ID;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_REG_FLOW_NOT_FOUND;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_TENANT_RESOLVE_FAILURE;
-import static org.wso2.carbon.identity.user.registration.engine.Constants.ErrorMessages.ERROR_CODE_UNDEFINED_FLOW_ID;
 
 /**
  * Utility class for registration flow engine.

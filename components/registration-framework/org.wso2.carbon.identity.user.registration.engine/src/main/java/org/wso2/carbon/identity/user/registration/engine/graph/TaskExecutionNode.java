@@ -164,7 +164,7 @@ public class TaskExecutionNode implements Node {
 
         RegisteringUser user = context.getRegisteringUser();
         if (response.getUpdatedUserClaims() != null) {
-            response.getUpdatedUserClaims().forEach((key, value) -> user.addClaim(key, String.valueOf(value)));
+            user.addClaims(response.getUpdatedUserClaims());
         }
         if (response.getUserCredentials() != null) {
             user.getUserCredentials().putAll(response.getUserCredentials());
