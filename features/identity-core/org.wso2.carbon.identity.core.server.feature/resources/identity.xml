@@ -81,6 +81,7 @@
         <CertificateValidation>database</CertificateValidation>
         <AdminAdvisoryBanner>database</AdminAdvisoryBanner>
         <RemoteLoggingConfig>database</RemoteLoggingConfig>
+        <ChallengeQuestions>database</ChallengeQuestions>
     </DataStorageType>
 
     <!-- Time configurations are in minutes -->
