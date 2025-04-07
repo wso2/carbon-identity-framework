@@ -69,6 +69,7 @@ import static org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes
 public class UniqueClaimUserOperationEventListenerTest {
 
     private static final String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
+    private static final String EMAIL_ADDRESSES_CLAIM_URI = "http://wso2.org/claims/emailaddresses";
 
     private UniqueClaimUserOperationEventListener uniqueClaimUserOperationEventListener;
 
@@ -126,8 +127,8 @@ public class UniqueClaimUserOperationEventListenerTest {
 
         Map<String, String> claimsOne = new HashMap<>();
         claimsOne.put("http://wso2.org/claims/mobile", "0711234567");
-        claimsOne.put("http://wso2.org/claims/emailAddress", "sample@wso2.com");
-        claimsOne.put("http://wso2.org/claims/emailAddresses", "sample@wso2.com,sample1@wso2.com");
+        claimsOne.put(EMAIL_CLAIM_URI, "sample@wso2.com");
+        claimsOne.put(EMAIL_ADDRESSES_CLAIM_URI, "sample@wso2.com,sample1@wso2.com");
         return new Object[][]{
                 {"testUser", claimsOne, "default"}
         };
@@ -170,8 +171,8 @@ public class UniqueClaimUserOperationEventListenerTest {
 
         List<LocalClaim> localClaims = new ArrayList<>();
         LocalClaim localClaimMobile = new LocalClaim("http://wso2.org/claims/mobile");
-        LocalClaim localClaimEmail = new LocalClaim("http://wso2.org/claims/emailAddress");
-        LocalClaim localClaimEmails = new LocalClaim("http://wso2.org/claims/emailAddresses");
+        LocalClaim localClaimEmail = new LocalClaim(EMAIL_CLAIM_URI);
+        LocalClaim localClaimEmails = new LocalClaim(EMAIL_ADDRESSES_CLAIM_URI);
 
         localClaimEmail.setClaimProperties(new HashMap<String, String>() {{
             put(ClaimConstants.CLAIM_UNIQUENESS_SCOPE_PROPERTY,
@@ -194,15 +195,15 @@ public class UniqueClaimUserOperationEventListenerTest {
         claimMobile.setClaimUri("http://wso2.org/claims/mobile");
         claimMobile.setDisplayTag("Mobile");
         Claim claimEmail = new Claim();
-        claimEmail.setClaimUri("http://wso2.org/claims/emailAddress");
+        claimEmail.setClaimUri(EMAIL_CLAIM_URI);
         claimEmail.setDisplayTag("Email");
         Claim claimEmails = new Claim();
-        claimEmails.setClaimUri("http://wso2.org/claims/emailAddresses");
+        claimEmails.setClaimUri(EMAIL_ADDRESSES_CLAIM_URI);
         claimEmails.setDisplayTag("Email Addresses");
         claimEmails.setMultiValued(true);
         when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/mobile")).thenReturn(claimMobile);
-        when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/emailAddress")).thenReturn(claimEmail);
-        when(userStoreManager.getClaimManager().getClaim("http://wso2.org/claims/emailAddresses"))
+        when(userStoreManager.getClaimManager().getClaim(EMAIL_CLAIM_URI)).thenReturn(claimEmail);
+        when(userStoreManager.getClaimManager().getClaim(EMAIL_ADDRESSES_CLAIM_URI))
                 .thenReturn(claimEmails);
         when(userStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(userStoreManager);
         when(realmConfiguration.getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR)).thenReturn(",");
