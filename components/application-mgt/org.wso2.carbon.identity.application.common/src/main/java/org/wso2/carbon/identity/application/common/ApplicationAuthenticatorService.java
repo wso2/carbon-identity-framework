@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
+import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -335,7 +336,12 @@ public class ApplicationAuthenticatorService {
             LocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
-        authenticatorValidator.validateAmrValue(authenticatorConfig.getAmrValue());
+        try {
+            authenticatorValidator.validateAmrValue(authenticatorConfig.getAmrValue());
+        } catch (AuthenticatorMgtClientException e) {
+            throw buildClientException(AuthenticatorMgtError.ERROR_INVALID_AMR_VALUE,
+                    authenticatorConfig.getName());
+        }
         LocalAuthenticatorConfig existingConfig = resolveExistingSystemLocalAuthenticator(authenticatorConfig.getName(),
                 tenantDomain);
         if (existingConfig == null) {

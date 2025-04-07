@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.action.management.api.model.Action;
 import org.wso2.carbon.identity.action.management.api.model.EndpointConfig;
 import org.wso2.carbon.identity.action.management.api.service.ActionManagementService;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
-import org.wso2.carbon.identity.application.common.dao.AuthenticatorManagementDAO;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtClientException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
@@ -79,6 +78,7 @@ public class ApplicationAuthenticatorServiceTest {
     private UserDefinedLocalAuthenticatorConfig nonExistAuthenticatorConfig;
     private LocalAuthenticatorConfig systemAuthenticatorConfig;
     private LocalAuthenticatorConfig systemAuthenticatorConfig2;
+    private LocalAuthenticatorConfig systemAuthenticatorConfigForException;
     private LocalAuthenticatorConfig nonExistingSystemAuthenticatorConfig;
 
     private ActionManagementService actionManagementService;
@@ -91,8 +91,9 @@ public class ApplicationAuthenticatorServiceTest {
     private static final String AUTHENTICATOR_CONFIG_FOR_EXCEPTION_NAME = "custom-exception_auth";
     private static final String NON_EXIST_AUTHENTICATOR_NAME = "custom-non_exist_auth";
     private static final String SYSTEM_AUTHENTICATOR_NAME = "system_auth";
-    private static final String SYSTEM_AUTHENTICATOR2_NAME = "system_auth2";
+    private static final String SYSTEM_AUTHENTICATOR2_NAME = "system_auth_2";
     private static final String NON_EXIST_SYSTEM_AUTHENTICATOR_NAME = "non_exist_system_auth";
+    private static final String SYSTEM_AUTHENTICATOR_NAME_FOR_EXCEPTION = "system-auth-exception";
 
     @BeforeClass
     public void setUpClass() throws Exception {
@@ -102,6 +103,8 @@ public class ApplicationAuthenticatorServiceTest {
         systemAuthenticatorConfig2 = createSystemDefinedAuthenticatorConfig(SYSTEM_AUTHENTICATOR2_NAME);
         nonExistingSystemAuthenticatorConfig = createSystemDefinedAuthenticatorConfig(
                 NON_EXIST_SYSTEM_AUTHENTICATOR_NAME);
+        systemAuthenticatorConfigForException = createSystemDefinedAuthenticatorConfig(
+                SYSTEM_AUTHENTICATOR_NAME_FOR_EXCEPTION);
         authenticatorConfig1 = createUserDefinedAuthenticatorConfig(AUTHENTICATOR1_NAME,
                 AuthenticationType.IDENTIFICATION);
         authenticatorConfig2 = createUserDefinedAuthenticatorConfig(AUTHENTICATOR2_NAME,
@@ -146,19 +149,21 @@ public class ApplicationAuthenticatorServiceTest {
         };
     }
 
-    @DataProvider(name = "LocalAuthenticatorConfigForUpdate")
-    public Object[][] LocalAuthenticatorConfigForCreation() {
+    @DataProvider(name = "LocalAuthenticatorConfigForAddition")
+    public Object[][] LocalAuthenticatorConfigForAddition() {
 
         return new Object[][]{
-                {systemAuthenticatorConfig}
+                {systemAuthenticatorConfig2}
         };
     }
 
-    @DataProvider(name = "LocalAuthenticatorConfigForAddition")
-    public Object[][] LocalAuthenticatorConfigForAddition() {
+    @DataProvider(name = "LocalAuthenticatorConfigForUpdate")
+    public Object[][] LocalAuthenticatorConfigForUpdate() {
+
+        systemAuthenticatorConfig.setAmrValue("amrValue");
+
         return new Object[][]{
-                {systemAuthenticatorConfig},
-                {systemAuthenticatorConfig2}
+                {systemAuthenticatorConfig}
         };
     }
 
@@ -439,7 +444,7 @@ public class ApplicationAuthenticatorServiceTest {
 
 
 
-    @Test(priority = 22, dataProvider = "LocalAuthenticatorConfigForCreation")
+    @Test(priority = 22, dataProvider = "LocalAuthenticatorConfigForUpdate")
     public void testUpdateSystemDefinedLocalAuthenticatorAmrValue(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -458,13 +463,13 @@ public class ApplicationAuthenticatorServiceTest {
     public void testUpdateSystemDefinedLocalAuthenticatorWithNonExistingAuthenticator()
             throws AuthenticatorMgtException {
 
+        nonExistingSystemAuthenticatorConfig.setAmrValue("valid_amr");
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
-                .addSystemDefinedLocalAuthenticator(nonExistingSystemAuthenticatorConfig, tenantDomain);
+                .updateAuthenticatorAmrValue(nonExistingSystemAuthenticatorConfig, tenantDomain);
     }
 
 
-    @Test(priority = 24, expectedExceptions = AuthenticatorMgtException.class, expectedExceptionsMessageRegExp =
-            "Authenticator AMR value is invalid.")
+    @Test(priority = 24, expectedExceptions = AuthenticatorMgtException.class)
     public void testUpdateSystemDefinedLocalAuthenticatorWithInvalidAmrValue() throws AuthenticatorMgtException {
 
         LocalAuthenticatorConfig invalidConfig = new LocalAuthenticatorConfig();
@@ -472,6 +477,6 @@ public class ApplicationAuthenticatorServiceTest {
         invalidConfig.setAmrValue("Invalid-AMR");
         ApplicationCommonServiceDataHolder.getInstance().getApplicationAuthenticatorService()
                 .updateAuthenticatorAmrValue(updateSystemDefinedAuthenticatorConfig(
-                        systemAuthenticatorConfig), tenantDomain);
+                        invalidConfig), tenantDomain);
     }
 }

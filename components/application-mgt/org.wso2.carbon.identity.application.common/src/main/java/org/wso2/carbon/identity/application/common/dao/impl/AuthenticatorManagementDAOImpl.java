@@ -131,10 +131,8 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
             });
 
             return getSystemLocalAuthenticatorByName(updatedAuthenticatorConfig.getName(), tenantId);
-        } catch (TransactionException e) {
+        } catch (TransactionException | DataAccessException e) {
             throw buildServerException(AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR, e);
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -233,7 +231,7 @@ public class AuthenticatorManagementDAOImpl implements AuthenticatorManagementDA
     }
 
     @Override
-    public void deleteUserDefinedLocalAuthenticator(String authenticatorConfigName, 
+    public void deleteUserDefinedLocalAuthenticator(String authenticatorConfigName,
             UserDefinedLocalAuthenticatorConfig authenticatorConfig, int tenantId) throws AuthenticatorMgtException {
 
         NamedJdbcTemplate jdbcTemplate = new NamedJdbcTemplate(IdentityDatabaseUtil.getDataSource());

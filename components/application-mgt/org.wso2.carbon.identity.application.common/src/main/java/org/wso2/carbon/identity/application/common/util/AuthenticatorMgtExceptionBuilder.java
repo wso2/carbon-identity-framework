@@ -94,8 +94,8 @@ public class AuthenticatorMgtExceptionBuilder {
                 "The provided authenticator name %s is not in the expected format %s."),
         ERROR_INVALID_URL("60016", "Invalid URL.",
                 "The provided url %s is not in the expected format %s."),
-        ERROR_INVALID_AMR_VALUE("60017", "Invalid AMR value.",
-                "The provided AMR value %s is not in the expected format %s."),
+        ERROR_INVALID_AMR_VALUE("60017", "Authenticator AMR value is invalid.",
+                "Authenticator AMR value is invalid."),
 
         // Server errors.
         ERROR_WHILE_ADDING_AUTHENTICATOR("65001", "Error while adding authenticator.",

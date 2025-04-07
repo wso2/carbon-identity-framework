@@ -91,8 +91,11 @@ public class SystemDefinedLocalAuthenticatorDataUtil {
     public static LocalAuthenticatorConfig updateSystemDefinedAuthenticatorConfigForSQLException(
             LocalAuthenticatorConfig config) {
 
-        LocalAuthenticatorConfig updatedAuthenticatorConfig = updateSystemDefinedAuthenticatorConfig(config);
-        updatedAuthenticatorConfig.setDisplayName("Authenticator name with 254 characters".repeat(50));
-        return updatedAuthenticatorConfig;
+        LocalAuthenticatorConfig updatingAuthenticatorConfig = gson.fromJson(gson.toJson(config),
+                LocalAuthenticatorConfig.class);
+        updatingAuthenticatorConfig.setName(config.getName());
+        updatingAuthenticatorConfig.setAmrValue(("Updated Long AMR Value larger than 255 chars").repeat(50));
+
+        return updatingAuthenticatorConfig;
     }
 }

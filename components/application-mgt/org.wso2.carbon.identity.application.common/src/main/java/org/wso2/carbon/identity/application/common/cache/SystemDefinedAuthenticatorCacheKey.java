@@ -41,10 +41,10 @@ public class SystemDefinedAuthenticatorCacheKey extends CacheKey {
     @Override
     public boolean equals(Object o) {
 
-        if (!(o instanceof AuthenticatorCacheKey)) {
+        if (!(o instanceof SystemDefinedAuthenticatorCacheKey)) {
             return false;
         }
-        return authenticatorName.equals(((AuthenticatorCacheKey) o).getAuthenticatorName());
+        return authenticatorName.equals(((SystemDefinedAuthenticatorCacheKey) o).getAuthenticatorName());
     }
 
     @Override

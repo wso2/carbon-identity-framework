@@ -321,6 +321,7 @@ public class CacheBackedAuthenticatorMgtDAOTest {
     @Test
     public void testAddSystemLocalAuthenticator() throws AuthenticatorMgtException {
 
+        systemDefinedAuthenticatorCache.clear(TEST_TENANT_ID);
         LocalAuthenticatorConfig mockAuthenticatorConfig = mock(LocalAuthenticatorConfig.class);
         doReturn(localAuthenticatorConfig1.getName()).when(mockAuthenticatorConfig).getName();
         doReturn(localAuthenticatorConfig1).when(mockAuthenticatorManagementFacade).addSystemLocalAuthenticator(
@@ -349,7 +350,7 @@ public class CacheBackedAuthenticatorMgtDAOTest {
 
         SystemDefinedAuthenticatorCacheKey systemAuthenticatorCacheKey =
                 new SystemDefinedAuthenticatorCacheKey(localAuthenticatorConfig1.getName());
-        Assert.assertNull(systemDefinedAuthenticatorCache.getValueFromCache(
+        Assert.assertNotNull(systemDefinedAuthenticatorCache.getValueFromCache(
                 systemAuthenticatorCacheKey, TEST_TENANT_ID));
     }
 
@@ -381,7 +382,7 @@ public class CacheBackedAuthenticatorMgtDAOTest {
 
         LocalAuthenticatorConfig updatedConfig = cacheBackedAuthenticatorMgtDAO
                 .updateSystemLocalAuthenticatorAmrValue(
-                        existingAuthenticatorConfig, existingAuthenticatorConfig, TEST_TENANT_ID);
+                        localAuthenticatorConfig1, existingAuthenticatorConfig, TEST_TENANT_ID);
 
         Assert.assertNotNull(updatedConfig);
         Assert.assertEquals(updatedConfig, localAuthenticatorForUpdate);

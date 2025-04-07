@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR;
@@ -64,7 +65,7 @@ public class AuthenticatorManagementDAOImplTest {
     private static final String SYSTEM_AUTHENTICATOR1_NAME = "system_auth1";
     private static final String SYSTEM_AUTHENTICATOR2_NAME = "system_auth2";
     private static final String SYSTEM_AUTHENTICATOR_FOR_EXCEPTION_NAME = "exception_system_auth";
-    private static final String NON_EXIST_SYSTEM_AUTHENTICATOR_NAME = "non_exist_system_auth";
+    private static final String NON_EXIST_SYSTEM_AUTHENTICATOR_NAME = "non_exist_systemAuth";
 
     private final AuthenticatorManagementDAOImpl authenticatorManagementDAO = new AuthenticatorManagementDAOImpl();
 
@@ -87,12 +88,12 @@ public class AuthenticatorManagementDAOImplTest {
                 SYSTEM_AUTHENTICATOR1_NAME);
         localAuthenticatorConfig2 = SystemDefinedLocalAuthenticatorDataUtil.createSystemDefinedAuthenticatorConfig(
                 SYSTEM_AUTHENTICATOR2_NAME);
-        systemLocalAuthenticatorForUpdate = SystemDefinedLocalAuthenticatorDataUtil.
-                    updateSystemDefinedAuthenticatorConfig(localAuthenticatorConfig1);
-        systemLocalAuthenticatorConfigForException = SystemDefinedLocalAuthenticatorDataUtil.
-                createSystemDefinedAuthenticatorConfigForSQLException(SYSTEM_AUTHENTICATOR_FOR_EXCEPTION_NAME);
-        systemLocalAuthenticatorForUpdateForException = SystemDefinedLocalAuthenticatorDataUtil.
-                updateSystemDefinedAuthenticatorConfigForSQLException(localAuthenticatorConfig1);
+        systemLocalAuthenticatorForUpdate = SystemDefinedLocalAuthenticatorDataUtil
+                .updateSystemDefinedAuthenticatorConfig(localAuthenticatorConfig1);
+        systemLocalAuthenticatorConfigForException = SystemDefinedLocalAuthenticatorDataUtil
+                .createSystemDefinedAuthenticatorConfigForSQLException(SYSTEM_AUTHENTICATOR_FOR_EXCEPTION_NAME);
+        systemLocalAuthenticatorForUpdateForException = SystemDefinedLocalAuthenticatorDataUtil
+                .updateSystemDefinedAuthenticatorConfigForSQLException(localAuthenticatorConfig1);
 
 
     }
@@ -106,8 +107,9 @@ public class AuthenticatorManagementDAOImplTest {
         };
     }
 
-    @DataProvider(name = "LocalAuthenticatorConfigForUpdate")
-    public Object[][] LocalAuthenticatorConfigForUpdate() {
+    @DataProvider(name = "SystemLocalAuthenticatorConfig")
+    public Object[][] SystemLocalAuthenticatorConfig() {
+
         return new Object[][]{
                 {localAuthenticatorConfig1},
                 {localAuthenticatorConfig2}
@@ -227,11 +229,12 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertNull(authenticatorManagementDAO.getUserDefinedLocalAuthenticator(config.getName(), tenantId));
     }
 
-    @Test(dataProvider = "LocalAuthenticatorConfigForUpdate", priority = 12)
+    @Test(dataProvider = "SystemLocalAuthenticatorConfig", priority = 12)
     public void testAddSystemDefinedLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
+
         LocalAuthenticatorConfig addedConfig = authenticatorManagementDAO.
-                addSystemLocalAuthenticator(localAuthenticatorConfig1, tenantId);
+                addSystemLocalAuthenticator(config, tenantId);
 
         Assert.assertNotNull(addedConfig, "Added authenticator should not be null");
         Assert.assertEquals(addedConfig.getName(), config.getName());
@@ -246,22 +249,26 @@ public class AuthenticatorManagementDAOImplTest {
     public void testAddSystemDefinedLocalAuthenticatorWithSQLException() {
 
         AuthenticatorMgtException exception = assertThrows(AuthenticatorMgtException.class, () ->
-                authenticatorManagementDAO.addSystemLocalAuthenticator(systemLocalAuthenticatorConfigForException, tenantId));
+                authenticatorManagementDAO.addSystemLocalAuthenticator(systemLocalAuthenticatorConfigForException,
+                        tenantId));
         Assert.assertEquals(exception.getErrorCode(), ERROR_WHILE_ADDING_AUTHENTICATOR.getCode());
     }
 
-    @Test(dataProvider = "LocalAuthenticatorConfigForUpdate", priority = 13)
+    @Test(priority = 14)
     public void testUpdateAuthenticatorAmrValueWithValidAuthenticator() throws AuthenticatorMgtException {
-        LocalAuthenticatorConfig updatedConfig = authenticatorManagementDAO.
-                updateSystemLocalAuthenticatorAmrValue(
-                        localAuthenticatorConfig1,systemLocalAuthenticatorForUpdate, tenantId);
+
+        LocalAuthenticatorConfig updatedConfig = authenticatorManagementDAO
+                .updateSystemLocalAuthenticatorAmrValue(localAuthenticatorConfig1,
+                        systemLocalAuthenticatorForUpdate, tenantId);
 
         Assert.assertNotNull(updatedConfig, "Updated authenticator should not be null");
         Assert.assertEquals(updatedConfig.getName(), systemLocalAuthenticatorForUpdate.getName());
         Assert.assertEquals(updatedConfig.getAmrValue(), systemLocalAuthenticatorForUpdate.getAmrValue());
+
+        localAuthenticatorConfig1 = systemLocalAuthenticatorForUpdate;
     }
 
-    @Test(priority = 14)
+    @Test(priority = 15)
     public void testUpdateAuthenticatorAmrValueForException() {
 
         AuthenticatorMgtException exception = assertThrows(AuthenticatorMgtException.class, () ->
@@ -270,9 +277,10 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertEquals(exception.getErrorCode(), ERROR_WHILE_UPDATING_AUTHENTICATOR.getCode());
     }
 
-    @Test(priority = 15)
+    @Test(dataProvider = "SystemLocalAuthenticatorConfig", priority = 16)
     public void testGetExistingSystemLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
+
         LocalAuthenticatorConfig retrievedConfig = authenticatorManagementDAO.
                 getSystemLocalAuthenticator(config.getName(), tenantId);
 
@@ -283,28 +291,32 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertEquals(retrievedConfig.getAmrValue(), config.getAmrValue());
     }
 
-    @Test(priority = 16)
+    @Test(priority = 17)
     public void testGetNonExistingSystemLocalAuthenticator() throws AuthenticatorMgtException {
+
         LocalAuthenticatorConfig config = authenticatorManagementDAO.getSystemLocalAuthenticator(
                 NON_EXIST_SYSTEM_AUTHENTICATOR_NAME, tenantId);
 
         Assert.assertNull(config);
     }
 
-    @Test(priority = 17)
+    @Test(priority = 18)
     public void testGetSystemDefinedLocalAuthenticatorForNonExist() throws AuthenticatorMgtException {
+
         Assert.assertNull(authenticatorManagementDAO.getSystemLocalAuthenticator(
                 NON_EXIST_SYSTEM_AUTHENTICATOR_NAME, tenantId));
     }
 
-    @Test(priority = 18)
+    @Test(priority = 19)
     public void testIsExistingAuthenticatorNameDB() throws AuthenticatorMgtException {
+
         Assert.assertTrue(authenticatorManagementDAO.isExistingAuthenticatorName(
                 localAuthenticatorConfig1.getName(), tenantId));
     }
 
-    @Test(priority = 19)
+    @Test(priority = 20)
     public void testIsExistingAuthenticatorNameDBForNonExistName() throws AuthenticatorMgtException {
+
         Assert.assertFalse(authenticatorManagementDAO.isExistingAuthenticatorName(
                 NON_EXIST_AUTHENTICATOR_NAME, tenantId));
     }
