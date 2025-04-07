@@ -315,6 +315,9 @@ public class IdPManagementConstants {
         public static final String UPDATE_IDP_AUTH_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED=? WHERE IDP_ID=? " +
                 "AND NAME=?";
 
+        public static final String UPDATE_IDP_AUTH_SQL_WITH_AMR = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED=?, " +
+                "AMR_VALUE=? WHERE IDP_ID=? AND NAME=?";
+
         public static final String UPDATE_IDP_AUTH_PROP_SQL = "UPDATE IDP_AUTHENTICATOR_PROPERTY SET " +
                 "PROPERTY_VALUE = ?, IS_SECRET = ? WHERE AUTHENTICATOR_ID = ? AND PROPERTY_KEY = ?";
 

@@ -1354,7 +1354,7 @@ public class IdPManagementDAO {
         PreparedStatement prepStmt1 = null;
 
         try {
-            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_AUTH_SQL;
+            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_AUTH_SQL_WITH_AMR;
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
 
             if (newFederatedAuthenticatorConfig.isEnabled()) {
@@ -1362,8 +1362,9 @@ public class IdPManagementDAO {
             } else {
                 prepStmt1.setString(1, IdPManagementConstants.IS_FALSE_VALUE);
             }
-            prepStmt1.setInt(2, idpId);
-            prepStmt1.setString(3, newFederatedAuthenticatorConfig.getName());
+            prepStmt1.setString(2, newFederatedAuthenticatorConfig.getAmrValue());
+            prepStmt1.setInt(3, idpId);
+            prepStmt1.setString(4, newFederatedAuthenticatorConfig.getName());
             prepStmt1.executeUpdate();
 
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId,

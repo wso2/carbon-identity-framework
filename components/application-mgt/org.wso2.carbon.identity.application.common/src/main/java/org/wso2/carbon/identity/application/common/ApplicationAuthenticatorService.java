@@ -296,6 +296,9 @@ public class ApplicationAuthenticatorService {
         if (authenticatorConfig.getImageUrl() != null) {
             authenticatorValidator.validateUrl(authenticatorConfig.getImageUrl());
         }
+        if (authenticatorConfig.getAmrValue() != null) {
+                authenticatorValidator.validateAmrValue(authenticatorConfig.getAmrValue());
+        }
 
         return dao.updateUserDefinedLocalAuthenticator(
                 existingConfig, authenticatorConfig, IdentityTenantUtil.getTenantId(tenantDomain));
@@ -312,10 +315,10 @@ public class ApplicationAuthenticatorService {
             LocalAuthenticatorConfig authenticatorConfig, String tenantDomain)
             throws AuthenticatorMgtException {
 
-        if (isAuthenticatorExistsInDB(authenticatorConfig.getName(), tenantDomain)) {
-            throw buildClientException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST,
-                    authenticatorConfig.getName());
-        }
+//        if (isAuthenticatorExistsInDB(authenticatorConfig.getName(), tenantDomain)) {
+//            throw buildClientException(AuthenticatorMgtError.ERROR_AUTHENTICATOR_ALREADY_EXIST,
+//                    authenticatorConfig.getName());
+//        }
         for (LocalAuthenticatorConfig localAuthenticator : localAuthenticators) {
             if (localAuthenticator.getName().equals(authenticatorConfig.getName())) {
                 authenticatorConfig.setEnabled(localAuthenticator.getEnabled());
@@ -439,9 +442,9 @@ public class ApplicationAuthenticatorService {
         return dao.getSystemLocalAuthenticator(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
     }
 
-    private boolean isAuthenticatorExistsInDB(String authenticatorName, String tenantDomain)
-            throws AuthenticatorMgtException {
-
-        return dao.isExistingAuthenticatorName(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
-    }
+//    private boolean isAuthenticatorExistsInDB(String authenticatorName, String tenantDomain)
+//            throws AuthenticatorMgtException {
+//
+//        return dao.isExistingAuthenticatorName(authenticatorName, IdentityTenantUtil.getTenantId(tenantDomain));
+//    }
 }

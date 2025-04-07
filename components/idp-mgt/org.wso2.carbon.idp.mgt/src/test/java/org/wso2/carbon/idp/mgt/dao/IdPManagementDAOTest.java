@@ -1206,6 +1206,7 @@ public class IdPManagementDAOTest {
         federatedAuthenticatorConfig.setDisplayName("DisplayName1");
         federatedAuthenticatorConfig.setName("Name");
         federatedAuthenticatorConfig.setEnabled(true);
+        federatedAuthenticatorConfig.setAmrValue("new_amr_value");
         Property property1 = new Property();
         property1.setName("Property1");
         property1.setValue("value1");
