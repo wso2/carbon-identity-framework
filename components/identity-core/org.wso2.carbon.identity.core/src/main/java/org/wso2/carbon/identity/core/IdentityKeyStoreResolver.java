@@ -95,6 +95,7 @@ public class IdentityKeyStoreResolver {
                 return keyStoreManager.getPrimaryKeyStore();
             }
 
+            initializeTenantRegistry(tenantDomain);
             // Get tenant keystore from keyStoreManager
             String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
             return keyStoreManager.getKeyStore(tenantKeyStoreName);
@@ -177,6 +178,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 privateKey = keyStoreManager.getDefaultPrivateKey();
             } else {
+                initializeTenantRegistry(tenantDomain);
                 String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 privateKey = keyStoreManager.getPrivateKey(tenantKeyStoreName, tenantDomain);
             }
@@ -273,6 +275,7 @@ public class IdentityKeyStoreResolver {
             return publicCerts.get(buildTenantIdWithContext(tenantId, context));
         }
 
+        initializeTenantRegistry(tenantDomain);
         KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
         Certificate publicCert;
         String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain, context);
@@ -338,6 +341,7 @@ public class IdentityKeyStoreResolver {
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 publicCert = keyStoreManager.getDefaultPrimaryCertificate();
             } else {
+                initializeTenantRegistry(tenantDomain);
                 String tenantKeyStoreName = IdentityKeyStoreResolverUtil.buildTenantKeyStoreName(tenantDomain);
                 publicCert = keyStoreManager.getCertificate(tenantKeyStoreName, tenantDomain);
             }
@@ -566,6 +570,7 @@ public class IdentityKeyStoreResolver {
     private String getTenantKeyStoreConfig(String tenantDomain, String configName)
             throws IdentityKeyStoreResolverException {
 
+        initializeTenantRegistry(tenantDomain);
         try {
             KeyStoreUtil.validateKeyStoreConfigName(configName);
 
@@ -690,5 +695,23 @@ public class IdentityKeyStoreResolver {
         IdentityKeyStoreMapping identityKeyStoreMapping = new IdentityKeyStoreMapping(
                 keyStoreName, protocol, useInAllTenants);
         keyStoreMappings.put(protocol, identityKeyStoreMapping);
+    }
+
+    /**
+     * Initialize tenant registry.
+     *
+     * @param tenantDomain Tenant domain.
+     * @throws IdentityKeyStoreResolverException If an error occurs while loading the registry.
+     */
+    private void initializeTenantRegistry(String tenantDomain) throws IdentityKeyStoreResolverException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        try {
+            IdentityTenantUtil.initializeRegistry(tenantId);
+        } catch (Exception e) {
+            throw new IdentityKeyStoreResolverException(ErrorMessages.ERROR_WHILE_LOADING_REGISTRY.getCode(),
+                    String.format(ErrorMessages.ERROR_WHILE_LOADING_REGISTRY.getDescription(),
+                            tenantDomain), e);
+        }
     }
 }
