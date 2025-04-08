@@ -21,11 +21,10 @@ package org.wso2.carbon.identity.user.registration.engine.internal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.input.validation.mgt.services.InputValidationManagementService;
 import org.wso2.carbon.identity.user.registration.engine.graph.Executor;
+import org.wso2.carbon.identity.user.registration.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.user.registration.mgt.RegistrationFlowMgtService;
-import org.wso2.carbon.identity.user.registration.engine.graph.Node;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -40,6 +39,7 @@ public class RegistrationFlowEngineDataHolder {
     private RegistrationFlowMgtService registrationFlowMgtService;
     private RealmService realmService;
     private InputValidationManagementService inputValidationManagementService;
+    private List<FlowExecutionListener> flowExecutionListeners = new ArrayList<>();
     private static final RegistrationFlowEngineDataHolder instance = new RegistrationFlowEngineDataHolder();
 
     private RegistrationFlowEngineDataHolder() {
@@ -119,5 +119,25 @@ public class RegistrationFlowEngineDataHolder {
     public void setInputValidationManagementService(InputValidationManagementService inputValidationManagementService) {
 
         this.inputValidationManagementService = inputValidationManagementService;
+    }
+
+    /**
+     * Get the list of registration execution listeners.
+     *
+     * @return  List of registration execution listeners.
+     */
+    public List<FlowExecutionListener> getRegistrationExecutionListeners() {
+
+        return flowExecutionListeners;
+    }
+
+    /**
+     * Set the list of registration execution listeners.
+     *
+     * @param flowExecutionListeners    List of registration execution listeners.
+     */
+    public void addRegistrationExecutionListeners(FlowExecutionListener flowExecutionListeners) {
+
+        this.flowExecutionListeners.add(flowExecutionListeners);
     }
 }

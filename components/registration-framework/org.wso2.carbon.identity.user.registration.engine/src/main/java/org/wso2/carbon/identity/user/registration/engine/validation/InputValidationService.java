@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.user.registration.engine.services;
+package org.wso2.carbon.identity.user.registration.engine.validation;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -86,9 +86,10 @@ public class InputValidationService {
      * @param context Registration context.
      * @throws RegistrationEngineException Registration framework exception.
      */
-    public void validateInputs(String actionId, RegistrationContext context) throws RegistrationEngineException {
+    public void validateInputs(RegistrationContext context) throws RegistrationEngineException {
 
         // Check if the actionId is empty and set it to default action.
+        String actionId = context.getCurrentActionId();
         actionId = StringUtils.EMPTY.equals(actionId) ? DEFAULT_ACTION : actionId;
         if (context.getCurrentStepInputs() == null || context.getCurrentStepInputs().isEmpty()) {
             return;
@@ -126,7 +127,6 @@ public class InputValidationService {
     public void handleStepInputs(DataDTO dataDTO, RegistrationContext context)
             throws RegistrationEngineServerException {
 
-        processCurrentUserInputs(context);
         if (dataDTO == null) {
             return;
         }
@@ -141,7 +141,7 @@ public class InputValidationService {
      *
      * @param context Registration context.
      */
-    private static void processCurrentUserInputs(RegistrationContext context) {
+    public void handleUserInputs(RegistrationContext context) {
 
         context.getUserInputData().forEach(
                 (key, value) -> {
@@ -150,7 +150,23 @@ public class InputValidationService {
                     }
                 }
         );
-        context.getUserInputData().clear();
+        context.getRegisteringUser().getClaims().forEach(
+                (key, value) -> {
+                    context.getUserInputData().remove(key);
+                }
+        );
+    }
+
+    /**
+     * Clears the user inputs from the registration context.
+     *
+     * @param context Registration context.
+     */
+    public void clearUserInputs(RegistrationContext context) {
+
+        if (context != null) {
+            context.getUserInputData().clear();
+        }
     }
 
     /**
@@ -206,7 +222,9 @@ public class InputValidationService {
             }
         }
 
-        if (dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) {
+        // If the dataDTO has required params, add them to the current step inputs and required inputs.
+        if ((dataDTO.getComponents() == null || dataDTO.getComponents().isEmpty()) &&
+                dataDTO.getRequiredParams() != null && !dataDTO.getRequiredParams().isEmpty()) {
             context.getCurrentRequiredInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
             context.getCurrentStepInputs().put(DEFAULT_ACTION, new HashSet<>(dataDTO.getRequiredParams()));
         }

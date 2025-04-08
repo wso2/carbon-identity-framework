@@ -21,9 +21,10 @@ package org.wso2.carbon.identity.user.registration.engine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
+import org.wso2.carbon.identity.user.registration.engine.internal.RegistrationFlowEngineDataHolder;
+import org.wso2.carbon.identity.user.registration.engine.listener.FlowExecutionListener;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.identity.user.registration.engine.model.RegistrationStep;
-import org.wso2.carbon.identity.user.registration.engine.services.InputValidationService;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngine;
 import org.wso2.carbon.identity.user.registration.engine.util.RegistrationFlowEngineUtils;
 
@@ -59,8 +60,19 @@ public class UserRegistrationFlowService {
 
         try {
             RegistrationContext context = RegistrationFlowEngineUtils.initiateContext(tenantDomain);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPreInitiate(context)) {
+                    return null;
+                }
+            }
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
-            InputValidationService.getInstance().handleStepInputs(step.getData(), context);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPostInitiate(step, context)) {
+                    return null;
+                }
+            }
             RegistrationFlowEngineUtils.addRegContextToCache(context);
             return step;
         } catch (RegistrationEngineException e) {
@@ -83,15 +95,25 @@ public class UserRegistrationFlowService {
         try {
             RegistrationContext context = RegistrationFlowEngineUtils.retrieveRegContextFromCache(flowId);
             context.getUserInputData().putAll(inputs);
-            InputValidationService.getInstance().validateInputs(actionId, context);
             context.setCurrentActionId(actionId);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPreContinue(context)) {
+                    return null;
+                }
+            }
             RegistrationStep step = RegistrationFlowEngine.getInstance().execute(context);
+            for (FlowExecutionListener listener :
+                    RegistrationFlowEngineDataHolder.getInstance().getRegistrationExecutionListeners()) {
+                if (listener.isEnabled() && !listener.doPostContinue(step, context)) {
+                    return null;
+                }
+            }
             if (STATUS_COMPLETE.equals(step.getFlowStatus())) {
                 RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
             } else {
                 RegistrationFlowEngineUtils.addRegContextToCache(context);
             }
-            InputValidationService.getInstance().handleStepInputs(step.getData(), context);
             return step;
         } catch (RegistrationEngineException e) {
             RegistrationFlowEngineUtils.removeRegContextFromCache(flowId);
