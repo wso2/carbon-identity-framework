@@ -140,13 +140,6 @@ public class IdentityMgtServiceComponent {
         recoveryProcessor = new RecoveryProcessor();
         try {
             registry = IdentityMgtServiceComponent.getRegistryService().getConfigSystemRegistry();
-            if (!registry
-                    .resourceExists(IdentityMgtConstants.IDENTITY_MANAGEMENT_PATH)) {
-                Collection questionCollection = registry.newCollection();
-                registry.put(IdentityMgtConstants.IDENTITY_MANAGEMENT_PATH,
-                        questionCollection);
-                UserIdentityManagementUtil.loadDefaultChallenges();
-            }
 
             IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                     (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
