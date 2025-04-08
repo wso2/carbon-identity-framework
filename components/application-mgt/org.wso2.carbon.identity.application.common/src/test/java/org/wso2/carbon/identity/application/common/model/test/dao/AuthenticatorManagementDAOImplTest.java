@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.identity.common.testng.WithRealmService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceDataHolder;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError.ERROR_WHILE_ADDING_AUTHENTICATOR;
 import static org.wso2.carbon.identity.application.common.util.AuthenticatorMgtExceptionBuilder.AuthenticatorMgtError.ERROR_WHILE_UPDATING_AUTHENTICATOR;
@@ -107,8 +106,8 @@ public class AuthenticatorManagementDAOImplTest {
         };
     }
 
-    @DataProvider(name = "SystemLocalAuthenticatorConfig")
-    public Object[][] SystemLocalAuthenticatorConfig() {
+    @DataProvider(name = "systemLocalAuthenticatorConfig")
+    public Object[][] systemLocalAuthenticatorConfig() {
 
         return new Object[][]{
                 {localAuthenticatorConfig1},
@@ -229,7 +228,7 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertNull(authenticatorManagementDAO.getUserDefinedLocalAuthenticator(config.getName(), tenantId));
     }
 
-    @Test(dataProvider = "SystemLocalAuthenticatorConfig", priority = 12)
+    @Test(dataProvider = "systemLocalAuthenticatorConfig", priority = 12)
     public void testAddSystemDefinedLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -277,7 +276,7 @@ public class AuthenticatorManagementDAOImplTest {
         Assert.assertEquals(exception.getErrorCode(), ERROR_WHILE_UPDATING_AUTHENTICATOR.getCode());
     }
 
-    @Test(dataProvider = "SystemLocalAuthenticatorConfig", priority = 16)
+    @Test(dataProvider = "systemLocalAuthenticatorConfig", priority = 16)
     public void testGetExistingSystemLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 

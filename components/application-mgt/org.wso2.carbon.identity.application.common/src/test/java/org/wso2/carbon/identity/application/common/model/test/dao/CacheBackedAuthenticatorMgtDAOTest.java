@@ -24,7 +24,12 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.application.common.cache.*;
+import org.wso2.carbon.identity.application.common.cache.AuthenticatorCache;
+import org.wso2.carbon.identity.application.common.cache.AuthenticatorCacheKey;
+import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorCache;
+import org.wso2.carbon.identity.application.common.cache.SystemDefinedAuthenticatorCacheKey;
+import org.wso2.carbon.identity.application.common.cache.UserDefinedLocalAuthenticatorsCache;
+import org.wso2.carbon.identity.application.common.cache.UserDefinedLocalAuthenticatorsCacheKey;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementDAOImpl;
 import org.wso2.carbon.identity.application.common.dao.impl.AuthenticatorManagementFacade;
 import org.wso2.carbon.identity.application.common.dao.impl.CacheBackedAuthenticatorMgtDAO;
@@ -355,7 +360,7 @@ public class CacheBackedAuthenticatorMgtDAOTest {
     }
 
     @Test(dependsOnMethods = "testAddSystemLocalAuthenticator")
-    public void testGetSystemLocalAuthenticatorFromCache() throws AuthenticatorMgtException{
+    public void testGetSystemLocalAuthenticatorFromCache() throws AuthenticatorMgtException {
 
         SystemDefinedAuthenticatorCacheKey authenticatorCacheKey =
                 new SystemDefinedAuthenticatorCacheKey(localAuthenticatorConfig1.getName());

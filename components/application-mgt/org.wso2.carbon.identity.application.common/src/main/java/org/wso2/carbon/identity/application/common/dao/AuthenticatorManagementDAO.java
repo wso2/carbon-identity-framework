@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.common.dao;
 
 import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtException;
-import org.wso2.carbon.identity.application.common.exception.AuthenticatorMgtServerException;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.UserDefinedLocalAuthenticatorConfig;
 
@@ -63,8 +62,9 @@ public interface AuthenticatorManagementDAO {
      * @return Updated LocalAuthenticatorConfig.
      * @throws AuthenticatorMgtException If an error occurs while updating the authenticator configuration.
      */
-    LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(LocalAuthenticatorConfig existingAuthenticatorConfig,
-                                                                   LocalAuthenticatorConfig amrValue, int tenantId) throws AuthenticatorMgtException;
+    LocalAuthenticatorConfig updateSystemLocalAuthenticatorAmrValue(
+            LocalAuthenticatorConfig existingAuthenticatorConfig,
+            LocalAuthenticatorConfig amrValue, int tenantId) throws AuthenticatorMgtException;
 
     /**
      * Retrieve a local user defined application authenticator configuration by name.

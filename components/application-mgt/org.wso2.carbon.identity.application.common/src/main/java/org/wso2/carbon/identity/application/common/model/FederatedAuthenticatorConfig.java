@@ -115,7 +115,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
                 }
             } else if ("DefinedBy".equals(elementName)) {
                 federatedAuthenticatorConfig.setDefinedByType(DefinedByType.valueOf(element.getText()));
-            } else if("AmrValue".equals(elementName)) {
+            } else if ("AmrValue".equals(elementName)) {
                 federatedAuthenticatorConfig.setAmrValue(element.getText());
             }
         }
@@ -124,7 +124,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
             federatedAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
 
-        if(federatedAuthenticatorConfig.getAmrValue() == null) {
+        if (federatedAuthenticatorConfig.getAmrValue() == null) {
             federatedAuthenticatorConfig.setAmrValue(federatedAuthenticatorConfig.getName());
         }
 

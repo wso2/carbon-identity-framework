@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.common.cache;
 
-import org.wso2.carbon.identity.core.cache.BaseCache;
 import org.wso2.carbon.identity.core.cache.CacheKey;
 
 /**

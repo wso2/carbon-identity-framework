@@ -67,7 +67,7 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "DefinedBy")
     protected DefinedByType definedByType;
 
-    @XmlElement(name= "AmrValue")
+    @XmlElement(name = "AmrValue")
     protected String amrValue;
 
     public LocalAuthenticatorConfig() {
@@ -134,7 +134,7 @@ public class LocalAuthenticatorConfig implements Serializable {
             localAuthenticatorConfig.setDefinedByType(DefinedByType.SYSTEM);
         }
 
-        if(localAuthenticatorConfig.getAmrValue() == null) {
+        if (localAuthenticatorConfig.getAmrValue() == null) {
             localAuthenticatorConfig.setAmrValue(localAuthenticatorConfig.getName());
         }
 

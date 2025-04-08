@@ -19,7 +19,11 @@
 package org.wso2.carbon.identity.application.common.model.test;
 
 import org.testng.Assert;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtClientException;
 import org.wso2.carbon.identity.action.management.api.exception.ActionMgtServerException;
 import org.wso2.carbon.identity.action.management.api.model.Action;
@@ -149,16 +153,16 @@ public class ApplicationAuthenticatorServiceTest {
         };
     }
 
-    @DataProvider(name = "LocalAuthenticatorConfigForAddition")
-    public Object[][] LocalAuthenticatorConfigForAddition() {
+    @DataProvider(name = "localAuthenticatorConfigForAddition")
+    public Object[][] localAuthenticatorConfigForAddition() {
 
         return new Object[][]{
                 {systemAuthenticatorConfig2}
         };
     }
 
-    @DataProvider(name = "LocalAuthenticatorConfigForUpdate")
-    public Object[][] LocalAuthenticatorConfigForUpdate() {
+    @DataProvider(name = "localAuthenticatorConfigForUpdate")
+    public Object[][] localAuthenticatorConfigForUpdate() {
 
         systemAuthenticatorConfig.setAmrValue("amrValue");
 
@@ -428,7 +432,7 @@ public class ApplicationAuthenticatorServiceTest {
                 .deleteUserDefinedLocalAuthenticator(nonExistAuthenticatorConfig.getName(), tenantDomain);
     }
 
-    @Test(priority = 21, dataProvider = "LocalAuthenticatorConfigForAddition")
+    @Test(priority = 21, dataProvider = "localAuthenticatorConfigForAddition")
     public void testAddSystemDefinedLocalAuthenticator(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
@@ -444,7 +448,7 @@ public class ApplicationAuthenticatorServiceTest {
 
 
 
-    @Test(priority = 22, dataProvider = "LocalAuthenticatorConfigForUpdate")
+    @Test(priority = 22, dataProvider = "localAuthenticatorConfigForUpdate")
     public void testUpdateSystemDefinedLocalAuthenticatorAmrValue(LocalAuthenticatorConfig config)
             throws AuthenticatorMgtException {
 
