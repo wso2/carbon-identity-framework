@@ -5070,7 +5070,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        String sqlStmt = ApplicationMgtDBQueries.LOAD_IDP_AND_AUTHENTICATOR_NAMES;
+        String sqlStmt = ApplicationMgtDBQueries.LOAD_IDP_AND_AUTHENTICATOR_NAMES_WITH_AMR;
         Map<String, String> returnData = new HashMap<String, String>();
         try {
             prepStmt = conn.prepareStatement(sqlStmt);
@@ -5110,7 +5110,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         int authenticatorId = -1;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR;
+        String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR_WITH_AMR;
         try {
             String dbProductName = conn.getMetaData().getDatabaseProductName();
             prepStmt = conn.prepareStatement(sqlStmt, new String[] {

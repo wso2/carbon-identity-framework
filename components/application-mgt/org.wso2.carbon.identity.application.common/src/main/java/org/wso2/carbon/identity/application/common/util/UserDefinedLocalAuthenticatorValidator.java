@@ -90,8 +90,8 @@ public class UserDefinedLocalAuthenticatorValidator {
     /**
      * Validate the user defined local authenticator AMR value.
      *
-     * @param amrValue  The AMR value.
-     * @throws AuthenticatorMgtClientException   if the AMR value is not valid.
+     * @param amrValue The AMR value.
+     * @throws AuthenticatorMgtClientException if the AMR value is not valid.
      */
     public void validateAmrValue(String amrValue) throws AuthenticatorMgtClientException {
 
