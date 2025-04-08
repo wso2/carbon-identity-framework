@@ -24,6 +24,8 @@ import org.testng.annotations.Test;
 
 import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 import org.wso2.carbon.identity.user.registration.engine.graph.TaskExecutionNode;
+import org.wso2.carbon.identity.user.registration.engine.listener.FlowExecutionListener;
+import org.wso2.carbon.identity.user.registration.engine.validation.InputValidationListener;
 import org.wso2.carbon.identity.user.registration.engine.model.*;
 import org.wso2.carbon.identity.user.registration.mgt.model.*;
 import static org.junit.Assert.assertNotNull;
@@ -50,11 +52,13 @@ public class RegistrationFlowEngineTest {
 
     private RegistrationContext context;
     private RegistrationGraphConfig defaultGraph;
+    private List<FlowExecutionListener> listeners = new ArrayList<>();
 
     @BeforeClass
     public void setup() {
 
         defaultGraph = buildRegistrationGraphWithDecision();
+        listeners.add(new InputValidationListener());
     }
 
     @Test
