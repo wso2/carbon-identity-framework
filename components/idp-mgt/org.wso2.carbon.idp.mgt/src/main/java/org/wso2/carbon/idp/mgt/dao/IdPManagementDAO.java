@@ -1005,6 +1005,7 @@ public class IdPManagementDAO {
         List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
         boolean isRecoveryNotificationPasswordRecoveryEnabled = false;
         boolean isEmailLinkNotificationPasswordRecoveryEnabled = false;
+        boolean isEmailOTPNotificationPasswordRecoveryEnabled = false;
         boolean isSmsOtpNotificationPasswordRecoveryEnabled = false;
 
         boolean isUsernameRecoveryEnabled = false;
@@ -1028,6 +1029,10 @@ public class IdPManagementDAO {
                     isEmailLinkNotificationPasswordRecoveryEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
                 }
+                if (IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
+                    isEmailOTPNotificationPasswordRecoveryEnabled =
+                            Boolean.parseBoolean(rs.getString("VALUE"));
+                }
                 if (IdPManagementConstants.SMS_OTP_PASSWORD_RECOVERY_PROPERTY.equals(property.getName())) {
                     isSmsOtpNotificationPasswordRecoveryEnabled =
                             Boolean.parseBoolean(rs.getString("VALUE"));
@@ -1046,8 +1051,8 @@ public class IdPManagementDAO {
                 idpProperties.add(property);
             }
             // If recovery notification are inconsistent, correct the configurations.
-            if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled
-                    && !isSmsOtpNotificationPasswordRecoveryEnabled) {
+            if (isRecoveryNotificationPasswordRecoveryEnabled && !isEmailLinkNotificationPasswordRecoveryEnabled &&
+                    !isEmailOTPNotificationPasswordRecoveryEnabled && !isSmsOtpNotificationPasswordRecoveryEnabled) {
                 performConfigCorrectionForPasswordRecoveryConfigs(dbConnection, tenantId, idpId, idpProperties);
             }
             // If username recovery configs are inconsistent, correct the configurations.
