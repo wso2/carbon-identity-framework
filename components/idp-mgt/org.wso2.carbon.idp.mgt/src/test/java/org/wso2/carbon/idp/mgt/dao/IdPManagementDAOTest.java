@@ -1869,7 +1869,11 @@ public class IdPManagementDAOTest {
         identityProviderProperty.setDisplayName("idpDisplayName");
         identityProviderProperty.setName("idpPropertyName");
         identityProviderProperty.setValue("idpPropertyValue");
-        idp1.setIdpProperties(new IdentityProviderProperty[]{identityProviderProperty});
+
+        IdentityProviderProperty idpProp2 = new IdentityProviderProperty();
+        idpProp2.setValue("true");
+        idpProp2.setName(IdPManagementConstants.EMAIL_OTP_PASSWORD_RECOVERY_PROPERTY);
+        idp1.setIdpProperties(new IdentityProviderProperty[]{identityProviderProperty, idpProp2});
 
         ClaimConfig claimConfig = new ClaimConfig();
         claimConfig.setLocalClaimDialect(false);
